@@ -5,26 +5,26 @@ pluginManagement {
 }
 
 // Common projects
-include "common-util"
-include "common-verifier"
-include "common-ui"
-include "center-common"
-include "common-db"
-include "common-messagelog"
 include "signer-protocol"
 include "serverconf"
 include "monitoring-conf"
-include "common-op-monitoring"
-include "common-rest-api"
+
+
+include "common"
+include "common:common-admin-api"
+include "common:common-api-throttling"
+include "common:common-db"
+include "common:common-domain"
+include "common:common-management-request"
+include "common:common-messagelog"
+include "common:common-op-monitoring"
+include "common:common-ui"
+include "common:common-util"
+include "common:common-verifier"
 
 // Main projects
 include "proxy"
-include "proxy-ui-api"
-include "proxy-ui-api-devtools"
 include "signer"
-include "center-ui"
-include "center-util"
-include "center-service"
 include "configuration-proxy"
 include "configuration-client"
 include "asicverifier"
@@ -35,11 +35,40 @@ include "monitor-test"
 include "op-monitor-daemon"
 include "shared-ui"
 
+include "central-server"
+include "central-server:openapi-model"
+include "central-server:admin-service"
+include "central-server:admin-service:core"
+include "central-server:admin-service:core-api"
+include "central-server:admin-service:infra-api-rest"
+include "central-server:admin-service:application"
+include "central-server:admin-service:ui"
+include "central-server:admin-service:infra-jpa"
+include 'central-server:admin-service:globalconf-generator'
+include "central-server:admin-service:ui-system-test"
+include "central-server:admin-service:int-test"
+include 'central-server:admin-service:api-client'
+
+include "central-server:management-service"
+include 'central-server:management-service:application'
+include 'central-server:management-service:core'
+include 'central-server:management-service:infra-api-soap'
+include 'central-server:management-service:core-api'
+include 'central-server:management-service:int-test'
+
+include "central-server:registration-service"
+
+include 'security-server'
+include 'security-server:openapi-model'
+include 'security-server:admin-service'
+include 'security-server:admin-service:ui'
+include 'security-server:admin-service:application'
+
 // Utils
 include "signer-console"
 
 // Tests
-include "common-test"
+include "common:common-test"
 include "e2e-tests"
 // Addons
 include "addons:hwtoken"
@@ -56,3 +85,5 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
+
+

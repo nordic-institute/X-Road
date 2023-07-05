@@ -35,7 +35,6 @@ import java.time.Duration;
 import static com.codeborne.selenide.Selenide.$;
 
 public class CommonUiStepDefs extends BaseUiStepDefs {
-    public static final By BTN_CLOSE_SNACKBAR = By.xpath("//button[@data-test=\"close-snackbar\"]");
     public static final int MAX_WAIT_IN_SECONDS = 120;
 
     @Given("logout button is being clicked")

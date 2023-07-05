@@ -10,7 +10,6 @@ Running the X-Road software requires Linux (Ubuntu or RHEL). As a development en
 *Required for building natively (without Docker)*
 * OpenJDK / JDK version 8
 * Gradle
-* JRuby and rvm (ruby version manager)
 * GCC
 
 *Recommended for development environment*
@@ -42,10 +41,6 @@ The development environment should have at least 8GB of memory and 20GB of free 
     `./prepare_buildhost.sh`
 
     *Note*. On Ubuntu 20.04 or newer the script installs Docker (docker.io) for building .deb and .rpm packages. If you want to use Docker CE, install Docker manually (<https://docs.docker.com/install/linux/docker-ce/ubuntu/>) before running this script.
-
-* Update/install Ruby dependencies. It's needed only on first build or in case the [change log](../CHANGELOG.md) states so.
-
-    `./update_ruby_dependencies.sh`
 
 * Build the software and installation packages:
 

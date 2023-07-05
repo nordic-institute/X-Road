@@ -1,19 +1,16 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.9  
+Version: 0.10  
 Doc ID: TEST-OPMON
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
-|  | 0.5       | Initial version               |          |
-| 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
-| 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc. | Tatu Repo |
-| 05.02.2020 | 0.8       | Update information about the test suites. | Ilkka Seppälä |
-| 25.06.2020 | 0.9       | Update information about the JMX interface. | Petteri Kivimäki |
+| Date       | Version | Description                                                          | Author           |
+|------------|---------|----------------------------------------------------------------------|------------------|
+|            | 0.5     | Initial version                                                      |                  |
+| 23.01.2017 | 0.6     | Added license text, table of contents and version history            | Sami Kallio      |
+| 05.03.2018 | 0.7     | Added terms and abbreviations reference and moved terms to term doc. | Tatu Repo        |
+| 05.02.2020 | 0.8     | Update information about the test suites.                            | Ilkka Seppälä    |
+| 25.06.2020 | 0.9     | Update information about the JMX interface.                          | Petteri Kivimäki |
+| 01.06.2023 | 0.10    | Update references                                                    | Petteri Kivimäki |
 
 ## Table of Contents
 <!-- toc -->
@@ -61,11 +58,11 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 ### 1.3 References
 
 <a name="HD_1"></a>**HD_1** -- Hanke Lisa 1: X-tee monitooringu tehniline kirjeldus, https://riigihanked.riik.ee/register/hange/173409  
-<a name="ARC-OPMOND"></a>**ARC-OPMOND** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
-<a name="TEST-OPMONSTRAT"></a>**TEST-OPMONSTRAT** -- Cybernetica AS. X-Road: Operational Monitoring Testing Strategy. Document ID: [TEST-OPMONSTRAT](test-opmonstrat_x-road_operational_monitoring_testing_strategy_Y-1104-1.md)  
-<a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
-<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
-<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. Operational Monitoring Daemon JMXMP Interface. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
+<a name="ARC-OPMOND"></a>**ARC-OPMOND** -- X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
+<a name="TEST-OPMONSTRAT"></a>**TEST-OPMONSTRAT** -- X-Road: Operational Monitoring Testing Strategy. Document ID: [TEST-OPMONSTRAT](test-opmonstrat_x-road_operational_monitoring_testing_strategy_Y-1104-1.md)  
+<a name="UC-OPMON"></a>**UC-OPMON** -- X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
+<a name="UG-SS"></a>**UG-SS** -- X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
+<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Operational Monitoring Daemon JMXMP Interface. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 ## 2 Components of the Operational Monitoring System in the Context of Testing

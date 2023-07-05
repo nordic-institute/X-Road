@@ -1,36 +1,33 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
 # X-Road: Use Case Model for Global Configuration Distribution
 **Analysis**
 
-Version: 1.7  
-25.08.2021
-<!-- 36 pages -->
+Version: 1.8  
+07.02.2023
 Doc. ID: UC-GCONF
 
 -----------------
 
 ## Version history
 
-Date       | Version | Description                                                     | Author
----------- | ------- | --------------------------------------------------------------- | -------
-09.07.2015 |  0.1    |  Initial version                                                                                                                                                                                                                                                                    | Riin Saarmäe
-10.09.2015 |  0.2    |  Central server use cases added                                                                                                                                                                                                                                                     | Riin Saarmäe
-14.09.2015 |  0.3    |  Error messages for global configuration generation added                                                                                                                                                                                                                           | Martin Lind
-14.09.2015 |  0.4    |  Added comments and minor editorial changes                                                                                                                                                                                                                                         | Margus Freudenthal
-15.09.2015 |  0.5    |  Changes in error messages' structure and more accurate configuration location                                                                                                                                                                                                      | Martin Lind
-15.09.2015 |  0.6    |  Corrections and additions done                                                                                                                                                                                                                                                     | Riin Saarmäe
-16.09.2015 |  0.7    |  Use cases for changing the central server address added                                                                                                                                                                                                                            | Riin Saarmäe
-20.09.2015 |  1.0    |  Editorial changes made                                                                                                                                                                                                                                                             | Imbi Nõgisto
-21.09.2015 |  1.1    |  Minor corrections made                                                                                                                                                                                                                                                             | Imbi Nõgisto
-04.11.2015 |  1.2    |  Renamed *Scope* element to *System*. Renamed *native* to *local*. Added brief description to UC GCONF\_5.                                                                                                                                                                          |  Riin Saarmäe
-16.12.2015 |  1.3    |  GCONF\_11 updated: a label value can be assigned for the key on generation. UC GCONF\_24 updated: the last successful configuration source is used for downloading configuration, if the download from the last successful source fails then the next source is chosen randomly.   | Riin Saarmäe
-12.02.2016 |  1.4    |  GCONF\_22 updated: the verification of the instance identifier on configuration anchor file upload added.                                                                                                                                                                           | Meril Vaht
-29.08.2017 |  1.5    |  Changed documentation type from docx to md file |   Lasse Matikainen
-06.03.2018 |  1.6    |  Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
-25.08.2021 |  1.7    |  Update X-Road references from version 6 to 7 | Caro Hautamäki
+| Date       | Version | Description                                                                                                                                                                                                                                                                      | Author             |
+|------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
+| 09.07.2015 | 0.1     | Initial version                                                                                                                                                                                                                                                                  | Riin Saarmäe       |
+| 10.09.2015 | 0.2     | Central server use cases added                                                                                                                                                                                                                                                   | Riin Saarmäe       |
+| 14.09.2015 | 0.3     | Error messages for global configuration generation added                                                                                                                                                                                                                         | Martin Lind        |
+| 14.09.2015 | 0.4     | Added comments and minor editorial changes                                                                                                                                                                                                                                       | Margus Freudenthal |
+| 15.09.2015 | 0.5     | Changes in error messages' structure and more accurate configuration location                                                                                                                                                                                                    | Martin Lind        |
+| 15.09.2015 | 0.6     | Corrections and additions done                                                                                                                                                                                                                                                   | Riin Saarmäe       |
+| 16.09.2015 | 0.7     | Use cases for changing the central server address added                                                                                                                                                                                                                          | Riin Saarmäe       |
+| 20.09.2015 | 1.0     | Editorial changes made                                                                                                                                                                                                                                                           | Imbi Nõgisto       |
+| 21.09.2015 | 1.1     | Minor corrections made                                                                                                                                                                                                                                                           | Imbi Nõgisto       |
+| 04.11.2015 | 1.2     | Renamed *Scope* element to *System*. Renamed *native* to *local*. Added brief description to UC GCONF\_5.                                                                                                                                                                        | Riin Saarmäe       |
+| 16.12.2015 | 1.3     | GCONF\_11 updated: a label value can be assigned for the key on generation. UC GCONF\_24 updated: the last successful configuration source is used for downloading configuration, if the download from the last successful source fails then the next source is chosen randomly. | Riin Saarmäe       |
+| 12.02.2016 | 1.4     | GCONF\_22 updated: the verification of the instance identifier on configuration anchor file upload added.                                                                                                                                                                        | Meril Vaht         |
+| 29.08.2017 | 1.5     | Changed documentation type from docx to md file                                                                                                                                                                                                                                  | Lasse Matikainen   |
+| 06.03.2018 | 1.6     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links                                                                                                                                                                                          | Tatu Repo          |
+| 25.08.2021 | 1.7     | Update X-Road references from version 6 to 7                                                                                                                                                                                                                                     | Caro Hautamäki     |
+| 07.02.2023 | 1.8     | Updates regarding the validation-program property for optional configuration parts                                                                                                                                                                                               | Justas Samuolis    |
+
 
 ## Table of Contents
 
@@ -403,9 +400,6 @@ parameters parts needs to be added to the global configuration.
 
     b.  file-name = &lt;value&gt; (e.g., foo.xml)
 
-    c.  validation-program = &lt;value&gt; (e.g.,
-        /usr/share/xroad/scripts/verify-foo.sh)
-
 2.  CS administrator saves the created file.
 
 **Extensions**: -
@@ -422,10 +416,6 @@ parameters parts needs to be added to the global configuration.
     information, please see the document “X-Road: Protocol for
     Downloading Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\]) and also for displaying
     configuration part information in the GUI.
-
--   The system uses the value of the validation-program key for finding
-    the validation program when the optional configuration part file is
-    uploaded in the GUI (see 2.2.5).
 
 -   Editing or deleting the INI file manually is currently not supported
     and may result in inconsistent system behavior. The current solution
@@ -444,8 +434,7 @@ parameters parts needs to be added to the global configuration.
 **Actor**: CS administrator
 
 **Brief Description**: CS administrator uploads an optional
-configuration part file. System uses a validation program described for
-this optional part to validate the uploaded file.
+configuration part file.
 
 **Preconditions**: Optional configuration part data is described in the
 system (see 2.2.4).
@@ -464,22 +453,18 @@ the system.
 2.  CS administrator inserts the path to the configuration part file in
     the computer's file system.
 
-3.  System verifies that a validation program is described for this
-    configuration part and validates the uploaded file using the
-    program.
+3.  System verifies that the uploaded file conforms to xsd schema for 
+    given content identifier.
 
-4.  System verifies that the validation of the uploaded file succeeded
-    with no errors.
-
-5.  System displays the message “Configuration file for content
+4.  System displays the message “Configuration file for content
     identifier 'X' uploaded successfully.”, where “X” is the
     content-identifier described for the configuration part.
 
-6.  System verifies that a file for this optional configuration part
+5.  System verifies that a file for this optional configuration part
     already exists in the system configuration and replaces the existing
     file with the uploaded one.
 
-7.  System logs the event “Upload configuration part” to the audit log.
+6.  System logs the event “Upload configuration part” to the audit log.
 
 **Extensions**:
 

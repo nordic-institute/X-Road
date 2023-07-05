@@ -29,7 +29,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -67,11 +66,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
@@ -163,21 +160,6 @@ public class MessageTestCase {
      */
     public SigningCtx getSigningCtx(String sender) {
         return null;
-    }
-
-    /**
-     * @param service the service ID
-     * @return the security category IDs of the service with the given ID
-     */
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        return Collections.emptySet();
-    }
-
-    /**
-     * @return the provided security category IDs
-     */
-    public Set<SecurityCategoryId> getProvidedCategories() {
-        return Collections.emptySet();
     }
 
     /**

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="006-management-service-role.xml">
+    <changeSet author="niis" id="centerui/006-management-service-role">
+        <sql splitStatements="false">
+            <![CDATA[
+            ALTER TABLE APIKEY_ROLES DROP CONSTRAINT VALID_ROLE;
+            ALTER TABLE APIKEY_ROLES ADD CONSTRAINT VALID_ROLE
+                CHECK (ROLE IN (
+                    'XROAD_SECURITY_OFFICER',
+                    'XROAD_REGISTRATION_OFFICER',
+                    'XROAD_SYSTEM_ADMINISTRATOR',
+                    'XROAD_MANAGEMENT_SERVICE')
+                );
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

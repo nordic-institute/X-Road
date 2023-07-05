@@ -1,0 +1,17 @@
+[Unit]
+Description=X-Road Central Server
+After=network.target xroad-base.service
+Requires=xroad-base.service
+# configure longer StartLimitIntervalSec to prevent eternal restart loop with bad logback config
+StartLimitBurst=5
+StartLimitIntervalSec=40
+
+[Service]
+User=xroad
+Group=xroad
+ExecStart=/usr/share/xroad/bin/xroad-centralserver-admin-service
+Restart=on-failure
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

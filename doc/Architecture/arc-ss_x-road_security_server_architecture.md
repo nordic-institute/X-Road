@@ -1,13 +1,9 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # X-Road: Security Server Architecture <!-- omit in toc -->
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.13 
-03.05.2022
+Version: 1.15 
+01.06.2023
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -15,28 +11,30 @@ Doc. ID: ARC-SS
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                 | Author
- ---------- | ------- | ----------------------------------------------------------- | --------------------
- 09.07.2015 | 0.1     | Initial version                                             | Ilja Kromonov
- 08.09.2015 | 0.2     | Rearranged references, made some editorial changes          | Margus Freudenthal
- 09.09.2015 | 0.3     | Editorial changes, simplified deployment, technology matrix | Margus Freudenthal
- 15.09.2015 | 0.4     | Audit log                                                   | Kristo Heero
- 15.09.2015 | 0.5     | Message log updated                                         | Kristo Heero
- 16.09.2015 | 0.6     | Incorporated feedback from Vitali                           | Margus Freudenthal
- 17.09.2015 | 1.0     | Editorial changes made                                      | Imbi Nõgisto
- 21.10.2015 | 1.1     | SSCD and password store related information added           | Ilja Kromonov
- 16.12.2015 | 1.2     | Incorporated environmental monitoring                       | Ilkka Seppälä
- 19.12.2016 | 1.3     | Added operational monitoring                                | Kristo Heero
- 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 19.01.2018 | 1.5     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
- 02.03.2018 | 1.6     | Moved terms and abbreviations to terms document, added terms reference and document links | Tatu Repo
- 17.04.2019 | 1.7     | Added X-Road Message Protocol for REST                      | Petteri Kivimäki
- 31.10.2019 | 1.8     | Added chapter 3 [process view](#3-process-view)             | Ilkka Seppälä
- 21.08.2020 | 1.9     | Update for RHEL 8                                           | Jarkko Hyöty
- 10.09.2020 | 1.10    | Updates for API based UI                                    | Janne Mattila
- 07.09.2021 | 1.11    | Update for encryption features                              | Ilkka Seppälä
- 24.11.2021 | 1.12    | Fixed broken links and duplicate heading                    | Raido Kaju
- 03.05.2022 | 1.13    | Update `xroad-addon-messagelog` process section             | Petteri Kivimäki
+| Date       | Version | Description                                                                                          | Author             |
+|------------|---------|------------------------------------------------------------------------------------------------------|--------------------|
+| 09.07.2015 | 0.1     | Initial version                                                                                      | Ilja Kromonov      |
+| 08.09.2015 | 0.2     | Rearranged references, made some editorial changes                                                   | Margus Freudenthal |
+| 09.09.2015 | 0.3     | Editorial changes, simplified deployment, technology matrix                                          | Margus Freudenthal |
+| 15.09.2015 | 0.4     | Audit log                                                                                            | Kristo Heero       |
+| 15.09.2015 | 0.5     | Message log updated                                                                                  | Kristo Heero       |
+| 16.09.2015 | 0.6     | Incorporated feedback from Vitali                                                                    | Margus Freudenthal |
+| 17.09.2015 | 1.0     | Editorial changes made                                                                               | Imbi Nõgisto       |
+| 21.10.2015 | 1.1     | SSCD and password store related information added                                                    | Ilja Kromonov      |
+| 16.12.2015 | 1.2     | Incorporated environmental monitoring                                                                | Ilkka Seppälä      |
+| 19.12.2016 | 1.3     | Added operational monitoring                                                                         | Kristo Heero       |
+| 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder      |
+| 19.01.2018 | 1.5     | Matrix of technologies moved to ARC-TEC-file and chapters reordered                                  | Antti Luoma        |
+| 02.03.2018 | 1.6     | Moved terms and abbreviations to terms document, added terms reference and document links            | Tatu Repo          |
+| 17.04.2019 | 1.7     | Added X-Road Message Protocol for REST                                                               | Petteri Kivimäki   |
+| 31.10.2019 | 1.8     | Added chapter 3 [process view](#3-process-view)                                                      | Ilkka Seppälä      |
+| 21.08.2020 | 1.9     | Update for RHEL 8                                                                                    | Jarkko Hyöty       |
+| 10.09.2020 | 1.10    | Updates for API based UI                                                                             | Janne Mattila      |
+| 07.09.2021 | 1.11    | Update for encryption features                                                                       | Ilkka Seppälä      |
+| 24.11.2021 | 1.12    | Fixed broken links and duplicate heading                                                             | Raido Kaju         |
+| 03.05.2022 | 1.13    | Update `xroad-addon-messagelog` process section                                                      | Petteri Kivimäki   |
+| 01.06.2023 | 1.14    | Update references                                                                                    | Petteri Kivimäki   |
+| 20.06.2023 | 1.15    | Fixed Security Server Admin API OpenAPI specification link                                           | Madis Loitmaa      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -159,37 +157,37 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
+1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
 
-2. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
+2. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
 
 3. <a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 
-4. <a id="Ref_DM-SS" class="anchor"></a>\[DM-SS\] Cybernetica AS. X-Road: Security Server Configuration. Document ID: [DM-SS](../DataModels/dm-ss_x-road_security_server_configuration_data_model.md).
+4. <a id="Ref_DM-SS" class="anchor"></a>\[DM-SS\] X-Road: Security Server Configuration. Document ID: [DM-SS](../DataModels/dm-ss_x-road_security_server_configuration_data_model.md).
 
-5. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx?raw=true).
+5. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md).
 
 6. <a id="Ref_OCSP" class="anchor"></a>\[OCSP\] X.509 Internet Public Key Infrastructure Online Certificate Status Protocol - OCSP. Internet Engineering Task Force, RFC 6960, 2013.
 
 7. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
-8. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
+8. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
-9. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] Cybernetica AS. X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
+9. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
-10. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
+10. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-11. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
+11. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
 
-12. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] Cybernetica AS. X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
+12. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
 
-13. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).
+13. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).
 
 14. <a id="Ref_TSP" class="anchor"></a>\[TSP\] Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP). Intenet Engineering Task Force, RFC 3161, 2001.
 
-15. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] Cybernetica AS. X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
+15. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
-16. <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Cybernetica AS. X-Road: Member Communication Use Case Model. Document ID: [UC-MESS](../UseCases/uc-mess_x-road_member_communication_use_case_model.md).
+16. <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Member Communication Use Case Model. Document ID: [UC-MESS](../UseCases/uc-mess_x-road_member_communication_use_case_model.md).
 
 17. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
 
@@ -209,7 +207,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 25. <a id="Ref_OPENAPI" class="anchor"></a>\[OPENAPI\] OpenAPI Specification 3.0.0. 26th July 2017.
 
-26. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml>.
+26. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml>.
 
 ## 2 Component View
 

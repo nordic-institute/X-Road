@@ -1,0 +1,115 @@
+plugins {
+    id 'io.spring.dependency-management'
+    id 'org.springframework.boot'
+}
+
+archivesBaseName = 'proxy-ui-api'
+
+configurations {
+    dist {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+dependencies {
+    dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
+
+    implementation project(":common:common-util")
+    implementation project(":signer-protocol")
+    implementation project(":serverconf")
+    implementation project(":common:common-admin-api")
+    implementation project(":common:common-ui")
+    implementation project(":common:common-management-request")
+    implementation project(':common:common-api-throttling')
+    implementation project(":common:common-verifier")
+    implementation project(":security-server:openapi-model")
+
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.cloud:spring-cloud-starter-sleuth")
+    implementation("org.kohsuke:libpam4j:1.11")
+    implementation("org.apache.commons:commons-compress:1.21")
+    implementation("wsdl4j:wsdl4j:1.6.3")
+    implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
+    implementation("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("javax.validation:validation-api")
+
+    testImplementation project(":common:common-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
+    testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock:3.1.2")
+    testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.33.2")
+    testImplementation(testFixtures(project(":common:common-api-throttling")))
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+}
+
+task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
+    from configurations.dist
+    into "${buildDir}/admin-service/ui/public"
+}
+
+bootRun {
+    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
+    if (project.hasProperty('args')) {
+        def params = project.args.tokenize(',')
+        args = params
+    }
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    enabled = true
+
+    dependsOn copyUi
+    classpath += file("${buildDir}/admin-service/ui")
+
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Security Server Admin Service',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType"
+        )
+    }
+}
+
+task copyDeps(type: Copy) {
+    into "$buildDir/unpacked-libs"
+    from configurations.runtimeClasspath.find { it.name.startsWith("postgresql") }
+}
+
+// set license format to ignore generated java sources
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/test/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+assemble.dependsOn copyDeps
+
+test {
+  useJUnitPlatform()
+  maxHeapSize = "1g"
+}

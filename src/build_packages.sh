@@ -28,7 +28,7 @@ buildInDocker() {
     if [ -t 1 ]; then OPT="-it"; fi
 
     docker build -q -t xroad-build --build-arg uid=$(id -u) --build-arg gid=$(id -g) $XROAD/packages/docker-compile || errorExit "Error building build image."
-    docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build  bash -c "./update_ruby_dependencies.sh && ./compile_code.sh -nodaemon" || errorExit "Error running build of binaries."
+    docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build  bash -c "./compile_code.sh -nodaemon" || errorExit "Error running build of binaries."
 }
 
 buildLocally() {
@@ -49,6 +49,7 @@ case "$1" in
 esac
 
 if [ -n "$HAS_DOCKER" ]; then
+  echo "IN docker"
     docker build -q -t xroad-deb-focal "$XROAD/packages/docker/deb-focal" || errorExit "Error building deb-focal image."
     docker build -q -t xroad-deb-jammy "$XROAD/packages/docker/deb-jammy" || errorExit "Error building deb-jammy image."
     docker build -q -t xroad-rpm "$XROAD/packages/docker/rpm" || errorExit "Error building rpm image."

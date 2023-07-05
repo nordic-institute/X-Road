@@ -1,0 +1,36 @@
+# properties for test runtime
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    generate-ddl: true
+    show-sql: false
+    defer-datasource-initialization: true
+  profiles:
+    active: test
+
+
+logging:
+  level:
+    root: INFO
+    ee:
+      ria: DEBUG
+    org:
+      niis: DEBUG
+      springframework:
+        security: INFO
+        transaction:
+          interceptor: INFO
+        orm:
+          jpa: DEBUG
+
+ratelimit:
+  requests:
+    per:
+      second: 60
+      minute: 3600
+
+server:
+  tomcat:
+    accesslog.enabled: false

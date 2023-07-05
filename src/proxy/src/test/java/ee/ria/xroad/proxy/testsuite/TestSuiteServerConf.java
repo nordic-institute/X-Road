@@ -31,13 +31,11 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Test serverconf implementation.
@@ -45,7 +43,7 @@ import java.util.Set;
 public class TestSuiteServerConf extends EmptyServerConf {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId DEFAULT_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", "SUBCODE5");
     private static final String SERVICE1 = "SERVICE1";
     private static final String SERVICE2 = "SERVICE2";
@@ -53,8 +51,8 @@ public class TestSuiteServerConf extends EmptyServerConf {
     private static final String SERVICE4 = "SERVICE4";
 
     @Override
-    public SecurityServerId getIdentifier() {
-        return SecurityServerId.create("EE", "BUSINESS", "consumer",
+    public SecurityServerId.Conf getIdentifier() {
+        return SecurityServerId.Conf.create("EE", "BUSINESS", "consumer",
                 "proxytest");
     }
 
@@ -85,11 +83,6 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        return currentTestCase().getRequiredCategories(service);
-    }
-
-    @Override
     public InternalSSLKey getSSLKey() {
         PKCS12 internal = TestCertUtil.getInternalKey();
         return new InternalSSLKey(internal.key, internal.certChain);
@@ -101,33 +94,33 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
-        List<ServiceId> list = new ArrayList<>();
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+        List<ServiceId.Conf> list = new ArrayList<>();
         if (descriptionType == DescriptionType.REST) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
         }
         if (descriptionType == DescriptionType.OPENAPI3) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3));
         }
         if (descriptionType == DescriptionType.WSDL) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE4));
         }
         return list;
     }
 
     @Override
-    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
                                                                DescriptionType descriptionType) {
-        List<ServiceId> list = new ArrayList<>();
+        List<ServiceId.Conf> list = new ArrayList<>();
         if (descriptionType == DescriptionType.REST) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
         }
         if (descriptionType == DescriptionType.OPENAPI3) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3));
         }
         if (descriptionType == DescriptionType.WSDL) {
-            list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE4));
+            list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE4));
         }
         return list;
     }

@@ -1,0 +1,77 @@
+group 'ee.ria.xroad'
+version '1.0'
+
+archivesBaseName = 'centralserver-admin-service'
+
+configurations {
+    dist {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+    liquibaseLibs {
+        apply plugin: 'base'
+    }
+}
+dependencies {
+    dist(project(path: ":central-server:admin-service:ui", configuration: "dist"))
+
+    implementation project(":central-server:admin-service:core")
+    implementation project(":central-server:admin-service:core-api")
+    implementation project(":central-server:admin-service:infra-api-rest")
+    implementation project(":central-server:admin-service:infra-jpa")
+    implementation project(":central-server:admin-service:globalconf-generator")
+    implementation project(':central-server:openapi-model')
+
+
+    testImplementation project(":common:common-test")
+    testImplementation(testFixtures(project(":common:common-api-throttling")))
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.liquibase:liquibase-core")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootRun {
+    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
+    if (project.hasProperty('args')) {
+        def params = project.args.tokenize(',')
+        args = params
+    }
+}
+
+task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
+    from configurations.dist
+    into "${buildDir}/admin-service/ui/public"
+}
+
+jar {
+    enabled = false
+}
+bootJar {
+    enabled = true
+
+    if (!project.hasProperty('skip-frontend-build')) {
+        dependsOn copyUi
+        classpath += file("${buildDir}/admin-service/ui")
+    } else {
+        println("Warning: Excluding frontend from boot jar")
+    }
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Central Server Admin Service',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType"
+        )
+    }
+}
+
+task downloadLiquibaseLibs(type: Copy) {
+    mkdir "${buildDir}/libs/"
+
+    from configurations.liquibaseLibs
+    into "${buildDir}/libs"
+}
+
+build.dependsOn downloadLiquibaseLibs

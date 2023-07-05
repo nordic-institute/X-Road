@@ -37,7 +37,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedAbstractActor;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +56,7 @@ import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STA
 @Slf4j
 public class OpMonitoringDaemonSender extends UntypedAbstractActor {
 
-    private static final Gson GSON = JsonUtils.getSerializer();
+    private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
     private static final int CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
             OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds());
@@ -109,7 +109,7 @@ public class OpMonitoringDaemonSender extends UntypedAbstractActor {
             StoreOpMonitoringDataResponse response;
 
             try {
-                response = GSON.fromJson(responseJson, StoreOpMonitoringDataResponse.class);
+                response = OBJECT_READER.readValue(responseJson, StoreOpMonitoringDataResponse.class);
             } catch (Exception e) {
                 throw new Exception("Received invalid response: " + responseJson);
             }

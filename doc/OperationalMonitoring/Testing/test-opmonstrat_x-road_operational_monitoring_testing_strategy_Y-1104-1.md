@@ -1,18 +1,15 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # X-Road: Operational Monitoring Testing Strategy <!-- omit in toc -->
 
-Version: 0.8  
+Version: 0.9  
 Doc. ID: TEST-OPMONSTRAT
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
-|  | 0.5       | Initial version               |          |
-| 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
-| 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo | 
-| 05.02.2020 | 0.8       | Update information about the test suites. | Ilkka Seppälä | 
+| Date       | Version | Description                                                         | Author           |
+|------------|---------|---------------------------------------------------------------------|------------------|
+|            | 0.5     | Initial version                                                     |                  |
+| 23.01.2017 | 0.6     | Added license text, table of contents and version history           | Sami Kallio      |
+| 05.03.2018 | 0.7     | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo        | 
+| 05.02.2020 | 0.8     | Update information about the test suites.                           | Ilkka Seppälä    | 
+| 01.06.2023 | 0.9     | Update references                                                   | Petteri Kivimäki |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -56,12 +53,12 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 <a name="HD_1"></a>**HD_1** -- Hanke Lisa 1: X-tee monitooringu tehniline kirjeldus, https://riigihanked.riik.ee/register/hange/173409  
 <a name="HD_2"></a>**HD_2** -- Hanke Lisa 2: Mittefunktsionaalsed nõuded, https://riigihanked.riik.ee/register/hange/173409  
 <a name="HD_4"></a>**HD_4** -- Hanke Lisa 4: Testimise korraldus, https://riigihanked.riik.ee/register/hange/173409  
-<a name="ARC-OPMOND"></a>**ARC-OPMOND** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
-<a name="PP"></a>**PP** -- Cybernetica AS. Tööde kirjeldus koos ajakavaga, https://riigihanked.riik.ee/register/hange/173409  
-<a name="REC-OPMON"></a>**REC-OPMON** -- Cybernetica AS. X-Road Operational Monitoring: Requirements. Document ID: REC-OPMON. Location: project *XTEE6* repository *docs* directory *Service monitoring/Requirements*.  
-<a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
-<a name="TEST-OPMON"></a>**TEST-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Testing Plan. Document ID: [TEST-OPMON](test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md).  
-<a name="IG-SS"></a>**IG-SS** -- Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: [IG-SS](../../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).  
+<a name="ARC-OPMOND"></a>**ARC-OPMOND** -- X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
+<a name="PP"></a>**PP** -- Tööde kirjeldus koos ajakavaga, https://riigihanked.riik.ee/register/hange/173409  
+<a name="REC-OPMON"></a>**REC-OPMON** -- X-Road Operational Monitoring: Requirements. Document ID: REC-OPMON. Location: project *XTEE6* repository *docs* directory *Service monitoring/Requirements*.  
+<a name="UC-OPMON"></a>**UC-OPMON** -- X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
+<a name="TEST-OPMON"></a>**TEST-OPMON** -- X-Road: Operational Monitoring Testing Plan. Document ID: [TEST-OPMON](test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md).  
+<a name="IG-SS"></a>**IG-SS** -- X-Road: Security Server Installation Guide. Document ID: [IG-SS](../../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 ## 2 Requirements Relevant to Testing

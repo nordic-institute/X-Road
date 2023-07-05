@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.7
+Version: 1.8
 Doc. ID: DM-SS
 
 ## Version history
@@ -18,6 +18,7 @@ Doc. ID: DM-SS
 | 04.07.2019 | 1.5     | REST access rights                                                  | Jarkko Hyöty                    |
 | 16.09.2019 | 1.6     | Remove Ubuntu 14.04 support                                         | Jarkko Hyöty                    |
 | 26.09.2022 | 1.7     | Remove Ubuntu 18.04 support                                         | Andres Rosenthal                |
+| 10.05.2023 | 1.8     | Security Categories removed.                                        | Justas Samuolis                 |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -65,20 +66,17 @@ Doc. ID: DM-SS
   * [2.13 SERVICE](#213-service)
     * [2.13.1 Indexes](#2131-indexes)
     * [2.13.2 Attributes](#2132-attributes)
-  * [2.14 SERVICE_SECURITYCATEGORIES](#214-service_securitycategories)
-    * [2.14.1 Indexes](#2141-indexes)
-    * [2.14.2 Attributes](#2142-attributes)
-  * [2.15 TSP](#215-tsp)
-    * [2.15.1 Indexes](#2151-indexes)
-    * [2.15.2 Attributes](#2152-attributes)
-  * [2.16 UIUSER](#216-uiuser)
-    * [2.16.1 Attributes](#2161-attributes)
-  * [2.17 SERVICEDESCRIPTION](#217-servicedescription)
-    * [2.17.1 Indexes](#2171-indexes)
-    * [2.17.2 Attributes](#2172-attributes)
-  * [2.18 ENDPOINT](#218-endpoint)
-    * [2.18.1 Indexes](#2181-indexes)
-    * [2.18.2 Attributes](#2182-attributes)
+  * [2.14 TSP](#215-tsp)
+    * [2.14.1 Indexes](#2151-indexes)
+    * [2.14.2 Attributes](#2152-attributes)
+  * [2.15 UIUSER](#216-uiuser)
+    * [2.15.1 Attributes](#2161-attributes)
+  * [2.16 SERVICEDESCRIPTION](#217-servicedescription)
+    * [2.16.1 Indexes](#2171-indexes)
+    * [2.16.2 Attributes](#2172-attributes)
+  * [2.17 ENDPOINT](#218-endpoint)
+    * [2.17.1 Indexes](#2181-indexes)
+    * [2.17.2 Attributes](#2182-attributes)
 
 <!-- vim-markdown-toc -->
 
@@ -301,20 +299,19 @@ Identifier that can be used to identify various objects on X-Road. An identifier
 
 #### 2.10.1 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------|
-| id [PK] | bigint | NOT NULL | Primary key. |
-| discriminator | character varying(255) | NOT NULL | Technical attribute, specifying the Java class to which the identifier is mapped. Possible values are C (ClientId), S (ServiceId), CS (CentralServiceId), GG (GlobalGroupId), LG (LocalGroupId), SC (SecurityCategoryId), SS (SecurityServerId). The corresponding Java classes are located in the `ee.ria.xroad.common.identifier` package. |
-| type | character varying(255) |  | Specifies the type of the object that the identifier identifies. Possible values, defined in enum `ee.ria.xroad.common.identifier.XroadObjectType`, are MEMBER, SUBSYSTEM, SERVICE, CENTRALSERVICE, GLOBALGROUP, LOCALGROUP, SERVER, SECURITYCATEGORY. |
-| xroadinstance | character varying(255) |  | X-Road instance identifier. Present in identifiers of all types, except LOCALGROUP. |
-| memberclass | character varying(255) |   | Member class. Present in identifiers of MEMBER, SUBSYSTEM, SERVER and SERVICE type.  |
-| membercode | character varying(255) |   | Member code. Present in identifiers of MEMBER, SUBSYSTEM, SERVER and SERVICE type.  |
-| subsystemcode | character varying(255) |   | Subsystem code. Present in identifiers of SUBSYSTEM and SERVICE type.  |
-| serviceversion | character varying(255) |   | Service version. Present in identifiers of SERVICE type.  |
-| servicecode | character varying(255) |   | Service code. Present in identifiers of SERVICE type.  |
-| groupcode | character varying(255) |   | Group code. Present in identifiers of GLOBALGROUP and LOCALGROUP type. |
-| securitycategory | character varying(255) |   | Security category. Present in identifiers of SECURITYCATEGORY type.  |
-| servercode | character varying(255) |   | Security server code. Present in identifiers of SERVER type.  |
+| Name           |          Type          | Modifiers | Description                                                                                                                                                                                                                                                                                                         |
+|:---------------|:----------------------:|:----------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| id [PK]        |         bigint         | NOT NULL  | Primary key.                                                                                                                                                                                                                                                                                                        |
+| discriminator  | character varying(255) | NOT NULL  | Technical attribute, specifying the Java class to which the identifier is mapped. Possible values are C (ClientId), S (ServiceId), CS (CentralServiceId), GG (GlobalGroupId), LG (LocalGroupId), SS (SecurityServerId). The corresponding Java classes are located in the `ee.ria.xroad.common.identifier` package. |
+| type           | character varying(255) |           | Specifies the type of the object that the identifier identifies. Possible values, defined in enum `ee.ria.xroad.common.identifier.XroadObjectType`, are MEMBER, SUBSYSTEM, SERVICE, CENTRALSERVICE, GLOBALGROUP, LOCALGROUP, SERVER.                                                                                |
+| xroadinstance  | character varying(255) |           | X-Road instance identifier. Present in identifiers of all types, except LOCALGROUP.                                                                                                                                                                                                                                 |
+| memberclass    | character varying(255) |           | Member class. Present in identifiers of MEMBER, SUBSYSTEM, SERVER and SERVICE type.                                                                                                                                                                                                                                 |
+| membercode     | character varying(255) |           | Member code. Present in identifiers of MEMBER, SUBSYSTEM, SERVER and SERVICE type.                                                                                                                                                                                                                                  |
+| subsystemcode  | character varying(255) |           | Subsystem code. Present in identifiers of SUBSYSTEM and SERVICE type.                                                                                                                                                                                                                                               |
+| serviceversion | character varying(255) |           | Service version. Present in identifiers of SERVICE type.                                                                                                                                                                                                                                                            |
+| servicecode    | character varying(255) |           | Service code. Present in identifiers of SERVICE type.                                                                                                                                                                                                                                                               |
+| groupcode      | character varying(255) |           | Group code. Present in identifiers of GLOBALGROUP and LOCALGROUP type.                                                                                                                                                                                                                                              |
+| servercode     | character varying(255) |           | Security server code. Present in identifiers of SERVER type.                                                                                                                                                                                                                                                        |
 
 ### 2.11 LOCALGROUP
 
@@ -377,37 +374,17 @@ Service provided by a security server client. A service record is created when t
 | timeout | integer |  | The maximum time in seconds that the service provider can  take to respond to a query. |
 | servicedescription_id [FK] | bigint |  | The servicedescription of which this service is part of. References id attribute of SERVICEDESCRIPTION entity. |
 
-### 2.14 SERVICE_SECURITYCATEGORIES
+### 2.14 TSP
 
-Security category of a service. Currently security categories is a disabled feature and services cannot be assigned security categories.
+Timestamping service provider (TSP) that is used by the security server to time-stamp messages stored in the message log. Only connection parameters to the TSP are included. The data needed for verifying time stamps is read from the global configuration. A TSP record is created when the administrator adds a new TSP in the user interface. The record is deleted when the administrator deletes the TSP in the user interface. The record is never modified. 
 
 #### 2.14.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
-| SERVICE_SECURITYCATEGORIES_SECURITY_CAT_ID_fkey | security_cat_id |
-| SERVICE_SECURITYCATEGORIES_SERVICE_ID_fkey | service_id |
-| service_securitycategories_id_key | id |
-
-#### 2.14.2 Attributes
-
-| Name        | Type              | Modifiers   | Description      |
-|:----------- |:-----------------:|:-----------:|:-----------------|
-| id [PK]     | bigint            | NOT NULL    | Primary key.     |
-| service_id [FK] | bigint        | NOT NULL    | The service for which the security category is assigned. References id attribute of SERVICE entity. |
-| security_cat_id [FK] | bigint   | NOT NULL    | The identifier of the security category. References id attribute of IDENTIFIER entity. |
-
-### 2.15 TSP
-
-Timestamping service provider (TSP) that is used by the security server to time-stamp messages stored in the message log. Only connection parameters to the TSP are included. The data needed for verifying time stamps is read from the global configuration. A TSP record is created when the administrator adds a new TSP in the user interface. The record is deleted when the administrator deletes the TSP in the user interface. The record is never modified. 
-
-#### 2.15.1 Indexes
-
-| Name        | Columns           |
-|:----------- |:-----------------:|
 | TSP_CONF_ID_fkey | conf_id      |
 
-#### 2.15.2 Attributes
+#### 2.14.2 Attributes
 
 | Name        | Type           | Modifiers   | Description      |
 |:----------- |:--------------:|:----------- |:-----------------|
@@ -416,11 +393,11 @@ Timestamping service provider (TSP) that is used by the security server to time-
 | name  | character varying(255) |  | The name of the TSP. Used for displaying in the user interface. |
 | url  | character varying(255) | NOT NULL | The URL of the TSP. The security server will send time-stamping request using HTTP POST method.  |
 
-### 2.16 UIUSER
+### 2.15 UIUSER
 
 Preferences of the user interface user. A record is created when the user changes the user interface language for the first time. The record is modified on later changes to the language. The record is never deleted.
 
-#### 2.16.1 Attributes
+#### 2.15.1 Attributes
 
 | Name        | Type           | Modifiers   | Description      |
 |:----------- |:--------------:|:----------- |:-----------------|
@@ -428,17 +405,17 @@ Preferences of the user interface user. A record is created when the user change
 | username | character varying(255) | NOT NULL | Name of the user who has customized their user interface language. |
 | locale | character varying(255) |  | The preferred language code. Valid values are 'en' for English, and 'et' for Estonian. |
 
-### 2.17 SERVICEDESCRIPTION
+### 2.16 SERVICEDESCRIPTION
 
 Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided by a security server client. A SERVICEDESCRIPTION record is created when the administrator adds a new service description to a security server client in the user interface. The record is modified when the administrator refreshes, enables or disables the service description. The record is deleted when the administrator deletes the service description or the security server client owning the service description.
 
-#### 2.17.1 Indexes
+#### 2.16.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | WSDL_CLIENT_ID_fkey | client_id |
 
-#### 2.17.2 Attributes
+#### 2.16.2 Attributes
 
 | Name        | Type           | Modifiers        | Description     |
 |:----------- |:-----------------:|:----------- |:------------------|
@@ -450,16 +427,16 @@ Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided
 | refresheddate | timestamp with time zone |   | The time when the SERVICEDESCRIPTION was last refreshed. |
 | type | character varying(255) | NOT NULL | The type of the service description. At the time of writing 'WSDL' and 'OPENAPI3' types are supported. |
 
-### 2.18 ENDPOINT
+### 2.17 ENDPOINT
 
-#### 2.18.1 Indexes
+#### 2.17.1 Indexes
 
 | Name        | Columns           |
 |:----------- |:-----------------:|
 | pk_endpoint | id                |
 | ix_endpoint (unique)| client_id, servicecode, method, path |
 
-#### 2.18.2 Attributes
+#### 2.17.2 Attributes
 
 | Name           | Type           | Modifiers   | Description     |
 |:-------------- |:--------------:|:----------- |:----------------|

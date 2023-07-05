@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.16 
+Version: 1.17 
 Doc. ID: IG-XLB
 
 
@@ -23,7 +23,7 @@ Doc. ID: IG-XLB
 | 17.09.2021 | 1.14    | Add note about the proxy health check now also checking global conf validity                                             | Caro Hautamäki               |
 | 17.06.2022 | 1.15    | Replace the word "replica" with "secondary"                                                                              | Petteri Kivimäki             |
 | 26.09.2022 | 1.16    | Remove Ubuntu 18.04 support                                                                                              | Andres Rosenthal             |
-
+| 01.03.2023 | 1.17    | Updates for user groups in secondary nodes                                                                               | Petteri Kivimäki             |
 ## Table of Contents
 
 <!-- toc -->
@@ -281,8 +281,8 @@ In order to properly set up the data replication, the secondary nodes must be ab
 1. Install security server packages using the normal installation procedure. Alternatively you can also install only the packages
    required for secondary nodes. `xroad-proxy-ui-api` package can be omitted, but the admin graphical user interface
    (which is provided by this package) can be handy for diagnostics. It should be noted that changing a secondary's
-   configuration via the admin gui is not possible.
-2. Stop the xroad services.
+   configuration via the admin gui is not possible (except entering token PIN).
+2. Stop the `xroad` services.
 3. Create a separate PostgreSQL instance for the serverconf database (see section
    [4. Database replication setup](#4-database-replication-setup) for details)
 4. Change `/etc/xroad/db.properties` to point to the separate database instance and change password to match the one
@@ -315,11 +315,11 @@ In order to properly set up the data replication, the secondary nodes must be ab
    
    Note: `xroad-security-officer` should remain, otherwise you will not be able to enter token PIN codes.
 
-   After removing these groups, the super user created during the security server installation is a member of only one UI privilege group: `xroad-securityserver-observer`. This group allows read-only access to the admin user interface and provides a safe way to use the UI for checking the configuration status of the secondary security server. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the read-only group as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly so as to not overwrite this configuration step during security server updates.
+   After removing these groups, the super user created during the security server installation is a member of two UI privilege groups: `xroad-securityserver-observer` and `xroad-security-officer`. These groups allow read-only access to the admin user interface and provide a safe way to use the UI for checking the configuration status of the secondary security server. In addition, the groups allow the user to enter the token PIN code. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the groups as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly. Instead, version upgrades do not overwrite or modify this configuration during security server updates.
 
    For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#13-references)\].
 
-   Also, the secondary security server's management REST API can be used to read the secondary's configuration. However, modifying the secondary's configuration using the management REST API is blocked. API keys are replicated from the primary to the secondaries, and the keys that are associated with the `xroad-securityserver-observer` role have read-only access to the secondary. The keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the secondary. See next item for more details.
+   Also, the secondary security server's management REST API can be used to read the secondary's configuration. However, modifying the secondary's configuration using the management REST API is blocked. API keys are replicated from the primary to the secondaries, and the keys that are associated with the `xroad-securityserver-observer` role have read-only access to the secondary. In addition, the keys that are associated with the `xroad-securityserver-observer` and `xroad-security-officer` roles, are able to enter token PIN codes. The keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the secondary. See next item for more details.
 
    For more information on the management REST API, see the  Security Server User Guide \[[UG-SS](#13-references)\].
 
@@ -420,7 +420,6 @@ this node:
 $ curl -i localhost:5588
    HTTP/1.1 200 OK
    Content-Length: 0
-   Server: Jetty(8.y.z-SNAPSHOT)
 ```
 
 And a health check service response on the same node when the service `xroad-signer` is not running:
@@ -428,7 +427,6 @@ And a health check service response on the same node when the service `xroad-sig
 $ curl -i localhost:5588
 HTTP/1.1 500 Server Error
 Transfer-Encoding: chunked
-Server: Jetty(8.y.z-SNAPSHOT)
 
 Fetching health check response timed out for: Authentication key OCSP status
 ```

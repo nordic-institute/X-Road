@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202306161128-requests-remove-unused-columns.xml">
+
+    <changeSet author="niis" id="202306161128-requests-remove-unused-columns">
+        <dropColumn tableName="requests">
+            <column name="server_owner_name"/>
+            <column name="server_user_name"/>
+            <column name="server_owner_class"/>
+            <column name="server_owner_code"/>
+            <column name="server_code"/>
+            <column name="processing_status"/>
+        </dropColumn>
+    </changeSet>
+</databaseChangeLog>

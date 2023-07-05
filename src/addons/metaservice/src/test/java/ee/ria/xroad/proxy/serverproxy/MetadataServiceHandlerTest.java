@@ -133,7 +133,7 @@ import static org.mockito.Mockito.when;
 public class MetadataServiceHandlerTest {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId.Conf DEFAULT_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", "SUBCODE5");
 
     private static final String EXPECTED_WSDL_QUERY_PATH = "/wsdlMock";
@@ -214,7 +214,7 @@ public class MetadataServiceHandlerTest {
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -237,7 +237,7 @@ public class MetadataServiceHandlerTest {
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -262,7 +262,7 @@ public class MetadataServiceHandlerTest {
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
-        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -282,17 +282,17 @@ public class MetadataServiceHandlerTest {
     public void shouldHandleListMethods() throws Exception {
 
         // setup
-        List<ServiceId> expectedServices = Arrays.asList(
-                ServiceId.create(DEFAULT_CLIENT, "getNumber"),
-                ServiceId.create(DEFAULT_CLIENT, "helloThere"),
-                ServiceId.create(DEFAULT_CLIENT, "putThings"));
+        List<ServiceId.Conf> expectedServices = Arrays.asList(
+                ServiceId.Conf.create(DEFAULT_CLIENT, "getNumber"),
+                ServiceId.Conf.create(DEFAULT_CLIENT, "helloThere"),
+                ServiceId.Conf.create(DEFAULT_CLIENT, "putThings"));
 
         final ClientId expectedClient = DEFAULT_CLIENT;
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, LIST_METHODS);
+        final ServiceId serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider,
+            public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
                                                                 DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
@@ -324,7 +324,7 @@ public class MetadataServiceHandlerTest {
 
         final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
 
-        List<ServiceId> resultServices = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
+        List<ServiceId.Conf> resultServices = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
                 MethodListType.class).getService();
 
         assertThat("Response client does not match", xrHeader.getClient(), is(expectedClient));
@@ -340,19 +340,19 @@ public class MetadataServiceHandlerTest {
     public void shouldHandleAllowedMethods() throws Exception {
 
         // setup
-        List<ServiceId> expectedServices = Arrays.asList(
-                ServiceId.create(DEFAULT_CLIENT, "getNumber"),
-                ServiceId.create(DEFAULT_CLIENT, "helloThere"),
-                ServiceId.create(DEFAULT_CLIENT, "putThings"));
+        List<ServiceId.Conf> expectedServices = Arrays.asList(
+                ServiceId.Conf.create(DEFAULT_CLIENT, "getNumber"),
+                ServiceId.Conf.create(DEFAULT_CLIENT, "helloThere"),
+                ServiceId.Conf.create(DEFAULT_CLIENT, "putThings"));
 
         final ClientId expectedClient = DEFAULT_CLIENT;
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, ALLOWED_METHODS);
+        final ServiceId serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
 
         ServerConf.reload(new TestSuiteServerConf() {
 
             @Override
-            public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+            public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
                                                                        DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClient));
@@ -388,7 +388,7 @@ public class MetadataServiceHandlerTest {
 
         final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
 
-        List<ServiceId> resultServices = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
+        List<ServiceId.Conf> resultServices = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
                 MethodListType.class).getService();
 
         assertThat("Response client does not match", xrHeader.getClient(), is(expectedClient));
@@ -404,7 +404,7 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldThrowWhenMissingServiceCodeInWsdlRequestBody() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
@@ -432,8 +432,8 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldThrowUnknownServiceWhenWsdlUrlNotFound() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
-        final ServiceId requestingWsdlForService = ServiceId.create(DEFAULT_CLIENT, "someServiceWithoutWsdl");
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithoutWsdl");
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
@@ -464,8 +464,8 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldThrowRuntimeExWhenWsdlUrlNotOk200() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
-        final ServiceId requestingWsdlForService = ServiceId.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
 
@@ -516,7 +516,7 @@ public class MetadataServiceHandlerTest {
     @Test
     public void getWsdlShouldModifyOnlyEndpointAddress() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId);
         // "replace" with the original value (should produce identical output)
         handlerToTest.setTestFilter(OverwriteAttributeFilter.createOverwriteSoapAddressFilter(
@@ -547,7 +547,7 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldHandleGetWsdl() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId);
         handlerToTest.setTestFilter(OverwriteAttributeFilter.createOverwriteSoapAddressFilter("expected-location"));
 
@@ -589,7 +589,7 @@ public class MetadataServiceHandlerTest {
     @Test
     public void shouldThrowInvalidServiceTypeExWhenGetWsdl() throws Exception {
 
-        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId, true);
 
         thrown.expect(CodedException.class);
@@ -605,7 +605,7 @@ public class MetadataServiceHandlerTest {
      */
     private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId, boolean isRest) throws
             Exception {
-        final ServiceId requestingWsdlForService = ServiceId.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
+        final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl();
 
@@ -647,7 +647,7 @@ public class MetadataServiceHandlerTest {
         )), "UTF-8");
     }
 
-    private void setUpDatabase(ServiceId serviceId, boolean isRest) throws Exception {
+    private void setUpDatabase(ServiceId.Conf serviceId, boolean isRest) throws Exception {
         ServerConfType conf = new ServerConfType();
         conf.setServerCode("TestServer");
 
@@ -683,7 +683,7 @@ public class MetadataServiceHandlerTest {
 
     }
 
-    private void setUpDatabase(ServiceId serviceId) throws Exception {
+    private void setUpDatabase(ServiceId.Conf serviceId) throws Exception {
         setUpDatabase(serviceId, false);
     }
 

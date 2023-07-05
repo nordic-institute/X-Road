@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
@@ -38,10 +37,8 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 
 /**
  * Implementation of ServerConfProvider that does nothing but return nulls. You
@@ -70,12 +67,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        return emptySet();
-    }
-
-    @Override
-    public SecurityServerId getIdentifier() {
+    public SecurityServerId.Conf getIdentifier() {
         return null;
     }
 
@@ -142,28 +134,28 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ClientId> getMembers() throws Exception {
+    public List<ClientId.Conf> getMembers() throws Exception {
         return emptyList();
     }
 
     @Override
-    public List<ServiceId> getAllServices(ClientId serviceProvider) {
+    public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
         return emptyList();
     }
 
     @Override
-    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
         return emptyList();
     }
 
     @Override
-    public List<ServiceId> getAllowedServices(ClientId serviceProvider,
+    public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
         return emptyList();
     }
 
     @Override
-    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
                                                                ClientId client, DescriptionType descriptionType) {
         return emptyList();
     }

@@ -31,11 +31,8 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -43,7 +40,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Test globalconf implementation.
@@ -58,11 +54,6 @@ public class TestGlobalConf extends EmptyGlobalConf {
     @Override
     public Collection<String> getProviderAddress(ClientId provider) {
         return Collections.singleton("127.0.0.1");
-    }
-
-    @Override
-    public Set<SecurityCategoryId> getProvidedCategories(X509Certificate authCert) {
-        return Collections.emptySet();
     }
 
     @Override
@@ -100,22 +91,16 @@ public class TestGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public ServiceId getServiceId(CentralServiceId serviceId) {
-        return ServiceId.create(serviceId.getXRoadInstance(), "BUSINESS", "producer", null,
-                serviceId.getServiceCode(), null);
-    }
-
-    @Override
     public SignCertificateProfileInfo getSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
         return new EjbcaSignCertificateProfileInfo(parameters) {
             @Override
-            public ClientId getSubjectIdentifier(X509Certificate certificate) {
+            public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
                 // Currently the test certificate contains invalid member class
                 // so we just fix the member class here instead of regenerating
                 // new certificate.
                 ClientId id = super.getSubjectIdentifier(certificate);
-                return ClientId.create(
+                return ClientId.Conf.create(
                         id.getXRoadInstance(),
                         "BUSINESS",
                         id.getMemberCode()
@@ -131,9 +116,9 @@ public class TestGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public SecurityServerId getServerId(X509Certificate cert) throws Exception {
+    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
         // For SSL connections AuthTrustManager checks that client certificate
         // belongs to some X-Road member
-        return SecurityServerId.create("FI", "COM", "1111", "SS1");
+        return SecurityServerId.Conf.create("FI", "COM", "1111", "SS1");
     }
 }

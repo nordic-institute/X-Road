@@ -1,0 +1,7 @@
+#!/bin/bash
+. /etc/xroad/services/centralserver-admin-service.conf
+exec java \
+  $XROAD_PARAMS \
+  ${XROAD_CS_ADMIN_SERVICE_PARAMS} \
+  -jar /usr/share/xroad/jlib/centralserver-admin-service.jar
+

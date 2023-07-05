@@ -33,7 +33,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 
@@ -63,12 +62,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @return the service object
      */
     public ServiceType getService(Session session, ServiceId id) {
-        ServiceType serviceType = find(session, id);
-        if (serviceType != null) {
-            Hibernate.initialize(serviceType.getRequiredSecurityCategory());
-        }
-
-        return serviceType;
+        return find(session, id);
     }
 
     /**
@@ -87,9 +81,8 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @param serviceProvider the service provider
      * @return services of the specified service provider
      */
-    public List<ServiceId> getServices(Session session,
-            ClientId serviceProvider) {
-        return getServicesByDescriptionType(session, serviceProvider, null);
+    public List<ServiceId.Conf> getServices(Session session, ClientId serviceProvider) {
+        return getServicesByDescriptionType(session, serviceProvider);
     }
 
     /**
@@ -100,8 +93,8 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @return services of the specified service provider
      */
     @SuppressWarnings("squid:S1192")
-    public List<ServiceId> getServicesByDescriptionType(Session session,
-                                       ClientId serviceProvider, DescriptionType... descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(Session session,
+            ClientId serviceProvider, DescriptionType... descriptionType) {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Tuple> tq = builder.createTupleQuery();
         Root<ServiceType> root = tq.from(ServiceType.class);
@@ -124,11 +117,11 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         if (descriptionType != null && descriptionType.length > 0) {
             predicates.add(joinServiceDescription.get("type").in((Object[]) descriptionType));
         }
-        tq.where(predicates.toArray(new Predicate[]{}));
+        tq.where(predicates.toArray(new Predicate[] {}));
         List<Tuple> resultList = session.createQuery(tq).getResultList();
-        List<ServiceId> services = new ArrayList<>();
+        List<ServiceId.Conf> services = new ArrayList<>();
         for (Tuple tuple : resultList) {
-            services.add(ServiceId.create(serviceProvider, (String) tuple.get(0),
+            services.add(ServiceId.Conf.create(serviceProvider, (String) tuple.get(0),
                     (String) tuple.get(1)));
         }
         return services;

@@ -1,35 +1,33 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
 # X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.11  
+Version: 2.13  
 Doc. ID: PR-META
 
 ---
 
 ## Version history <!-- omit in toc --> 
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 04.08.2015 | 0.8     | Initial version                                                 | Siim Annuk
- 09.09.2015 | 1.0     | Editorial changes made                                          | Imbi Nõgisto
- 15.09.2015 | 1.1     | Made minor fixes to schemas                                     | Margus Freudenthal
- 16.09.2015 | 2.0     | Final version                                                   | Imbi Nõgisto
- 12.10.2015 | 2.1     | Updated identifier names and WSDL examples                      | Ilja Kromonov
- 23.08.2017 | 2.1.6   | Converted to Markdown and added endpoint address replacement    | Janne Mattila
- 02.01.2018 | 2.2     | Update getWsdl metaservice description                          | Ilkka Seppälä
- 04.01.2018 | 2.3     | Updated descriptions and subsystem requirements for meta-services | Tatu Repo
- 30.01.2018 | 2.4     | Updated metaservices wsdl                                       | Jarkko Hyöty
- 06.03.2018 | 2.5     | Added terms section, terms doc reference and link               | Tatu Repo
- 15.10.2018 | 2.6     | Update Annex B                                                  | Petteri Kivimäki
- 05.06.2019 | 2.7     | Add JSON response for listClients metadata API                  | Jarkko Hyöty
- 30.07.2019 | 2.8     | Update listMethods and allowedMethods descriptions              | Ilkka Seppälä
- 09.10.2019 | 2.9     | Remove listCentralServices from the OpenAPI definition          | Jarkko Hyöty
- 07.11.2019 | 2.10    | Update getWsdl metaservice description                          | Ilkka Seppälä
- 03.04.2020 | 2.11    | Remove getWsdl HTTP GET-request description                     | Petteri Kivimäki
+| Date       | Version | Description                                                       | Author             |
+|------------|---------|-------------------------------------------------------------------|--------------------|
+| 04.08.2015 | 0.8     | Initial version                                                   | Siim Annuk         |
+| 09.09.2015 | 1.0     | Editorial changes made                                            | Imbi Nõgisto       |
+| 15.09.2015 | 1.1     | Made minor fixes to schemas                                       | Margus Freudenthal |
+| 16.09.2015 | 2.0     | Final version                                                     | Imbi Nõgisto       |
+| 12.10.2015 | 2.1     | Updated identifier names and WSDL examples                        | Ilja Kromonov      |
+| 23.08.2017 | 2.1.6   | Converted to Markdown and added endpoint address replacement      | Janne Mattila      |
+| 02.01.2018 | 2.2     | Update getWsdl metaservice description                            | Ilkka Seppälä      |
+| 04.01.2018 | 2.3     | Updated descriptions and subsystem requirements for meta-services | Tatu Repo          |
+| 30.01.2018 | 2.4     | Updated metaservices wsdl                                         | Jarkko Hyöty       |
+| 06.03.2018 | 2.5     | Added terms section, terms doc reference and link                 | Tatu Repo          |
+| 15.10.2018 | 2.6     | Update Annex B                                                    | Petteri Kivimäki   |
+| 05.06.2019 | 2.7     | Add JSON response for listClients metadata API                    | Jarkko Hyöty       |
+| 30.07.2019 | 2.8     | Update listMethods and allowedMethods descriptions                | Ilkka Seppälä      |
+| 09.10.2019 | 2.9     | Remove listCentralServices from the OpenAPI definition            | Jarkko Hyöty       |
+| 07.11.2019 | 2.10    | Update getWsdl metaservice description                            | Ilkka Seppälä      |
+| 03.04.2020 | 2.11    | Remove getWsdl HTTP GET-request description                       | Petteri Kivimäki   |
+| 17.04.2023 | 2.12    | Remove central services support                                   | Justas Samuolis    |
+| 01.06.2023 | 2.13    | Update references                                                 | Petteri Kivimäki   |
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -41,9 +39,8 @@ Doc. ID: PR-META
   - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
   - [1.2 References](#12-references)
 - [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
-- [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
-- [4 Retrieving List of Services](#4-retrieving-list-of-services)
-- [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
+- [3 Retrieving List of Services](#4-retrieving-list-of-services)
+- [4 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
     - [WSDL-information modifications](#wsdl-information-modifications)
 - [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
 - [Annex B listMethods, allowedMethods, and getWsdl service descriptions](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions)
@@ -53,14 +50,13 @@ Doc. ID: PR-META
   - [C.1 listClients Response](#c1-listclients-response)
     - [XML Response](#xml-response)
     - [JSON Response](#json-response)
-  - [C.2 listCentralServices Response](#c2-listcentralservices-response)
-  - [C.3 listMethods Request](#c3-listmethods-request)
-  - [C.4 listMethods Response](#c4-listmethods-response)
-  - [C.5 allowedMethods Request](#c5-allowedmethods-request)
-  - [C.6 allowedMethods Response](#c6-allowedmethods-response)
-  - [C.7 getWsdl Request](#c7-getwsdl-request)
-  - [C.8 getWsdl Response](#c8-getwsdl-response)
-  - [C.9 getWsdl Response attachment](#c9-getwsdl-response-attachment)
+  - [C.2 listMethods Request](#c3-listmethods-request)
+  - [C.3 listMethods Response](#c4-listmethods-response)
+  - [C.4 allowedMethods Request](#c5-allowedmethods-request)
+  - [C.5 allowedMethods Response](#c6-allowedmethods-response)
+  - [C.6 getWsdl Request](#c7-getwsdl-request)
+  - [C.7 getWsdl Response](#c8-getwsdl-response)
+  - [C.8 getWsdl Response attachment](#c9-getwsdl-response-attachment)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -73,15 +69,15 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 This specification describes methods that can be used by X-Road participants to discover what services are available to them and download the WSDL files describing these services. The X-Road service metadata protocol is intended to support portals and other software that can discover the available services and then automatically generate user interfaces based on their descriptions. In order to accomplish this, the portal can use the following steps.
 
-1. Download a list of X-Road members and subsystems (see Section [2](#2-retrieving-list-of-service-providers)). This results in a list of (potential) service provides who can be further be queried. Alternatively, the portal can download a list of central services (see Section [3](#3-retrieving-list-of-central-services)) defined in the X-Road central server.
+1. Download a list of X-Road members and subsystems (see Section [2](#2-retrieving-list-of-service-providers)). This results in a list of (potential) service provides who can be further be queried.
 
 2. Connect to the service provider and acquire a list of services offered by this provider (see Section [4](#4-retrieving-list-of-services)). This service has two forms: `listMethods` returns a list of services provided by a given service provider, `allowedMethods` constrains the returned list by only including services that are allowed for the client.
 
 3. Download the description of the service in WSDL format (see Section [5](#5-retrieving-the-wsdl-of-a-service)).
 
-This specification is based on the X-Road protocol \[[PR-MESS](#Ref_PR-MESS)\]. The X-Road protocol specification also defines important concepts used in this text (for example, central service and X-Road identifier). Because this protocol uses HTTP and X-Road protocol as transport mechanisms, the details of message transport and error conditions are not described in this specification.
+This specification is based on the X-Road protocol \[[PR-MESS](#Ref_PR-MESS)\]. The X-Road protocol specification also defines important concepts used in this text (for example X-Road identifier). Because this protocol uses HTTP and X-Road protocol as transport mechanisms, the details of message transport and error conditions are not described in this specification.
 
-Chapters [2](#2-retrieving-list-of-service-providers), [3](#3-retrieving-list-of-central-services), [4](#4-retrieving-list-of-services) and [5](#5-retrieving-the-wsdl-of-a-service) together with annexes [A](#annex-a-xml-schema-for-messages) and [B](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions) contain normative information. All the other sections are informative in nature. All the references are normative.
+Chapters [2](#2-retrieving-list-of-service-providers), [3](#4-retrieving-list-of-services) and [4](#5-retrieving-the-wsdl-of-a-service) together with annexes [A](#annex-a-xml-schema-for-messages) and [B](#annex-b-listmethods-allowedmethods-and-getwsdl-service-descriptions) contain normative information. All the other sections are informative in nature. All the references are normative.
 
 This specification does not include option for partially implementing the protocol – the conformant implementation must implement the entire specification.
 
@@ -93,7 +89,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
-1. <a name="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID:
+1. <a name="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID:
 [PR-MESS](pr-mess_x-road_message_protocol.md).
 2. <a name="Ref_RFC2119" class="anchor"></a>\[RFC2119\] Key words for use in RFCs to Indicate Requirement Levels, Internet Engineering Task Force, 1997,
 [https://www.ietf.org/rfc/rfc2119.txt](https://www.ietf.org/rfc/rfc2119.txt)
@@ -116,38 +112,7 @@ Annex [C.1](#c1-listclients-response) contains an example XML and JSON response 
 
 The X-Road client identifier has a hierarchical structure consisting of X-Road instance, member class, member and (optionally) subsystem codes. See specification \[[PR-MESS](#Ref_PR-MESS)\] for explanation and specification of identifiers.
 
-## 3 Retrieving List of Central Services
-
-Security server clients can retrieve a list of all central services defined in an X-Road instance. This can be accomplished by making a HTTP GET request to the security server.
-The request URL is `http://SECURITYSERVER/listCentralServices` or `https://SECURITYSERVER/listCentralServices` depending on whether the HTTPS protocol is configured for interaction between the security server and the information system.
-When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the security server.
-
-In addition, it is possible to retrieve a list of central services in other, federated X-Road instances by adding the following HTTP parameter:
-
-* `xRoadInstance` – code that identifies the X-Road instance.
-
-Thus, in order to retrieve a list of central services defined in X-Road instance `AA`, the
-request URL is `http://SECURITYSERVER/listCentralServices?xRoadInstance=AA`.
-
-Security server MUST respond with content-type `text/xml` and the response MUST contain the
-`centralServiceList` XML element defined below
-(full XML schema appears in Annex [A](#annex-a-xml-schema-for-messages)).
-Annex [C.2](#c2-listcentralservices-response) contains an example response message.
-```xml
-    <xs:element name="centralServiceList"
-        type="CentralServiceListType"/>
-    <xs:complexType name="CentralServiceListType">
-        <xs:sequence>
-            <xs:element maxOccurs="unbounded" minOccurs="0"
-                name="centralService"
-                type="id:XRoadCentralServiceIdentifierType"/>
-        </xs:sequence>
-    </xs:complexType>
-```
-
-The `XRoadCentralServiceIdentifierType` represents a globally unique identifier of a central service consisting of a unique code identifying the X-Road instance and a code for the central service (unique within the given instance). See specification \[[PR-MESS](#Ref_PR-MESS)\] for explanation and specification of identifiers.
-
-## 4 Retrieving List of Services
+## 3 Retrieving List of Services
 
 X-Road provides two methods for getting the list of SOAP services offered by an X-Road client:
 
@@ -175,7 +140,7 @@ Annexes [C.4](#c4-listmethods-response) and [C.6](#c6-allowedmethods-response) c
     </xs:complexType>
 ```
 
-## 5 Retrieving the WSDL of a Service
+## 4 Retrieving the WSDL of a Service
 
 Service clients are able to download WSDL-files that contain the definition of a given service by using the `getWsdl` method. The method is invoked as regular X-Road SOAP service (see specification \[[PR-MESS](#Ref_PR-MESS)\] for details on the X-Road SOAP protocol). The connection type settings of the client subsystem is used when the method is invoked. In addition, the following aspects should be noted:
 
@@ -233,13 +198,6 @@ when retrieved through the meta-service.
                     name="member" type="ClientType"/>
         </xs:sequence>
     </xs:complexType>
-    <xs:complexType name="CentralServiceListType">
-        <xs:sequence>
-            <xs:element maxOccurs="unbounded" minOccurs="0"
-                    name="centralService"
-                    type="id:XRoadCentralServiceIdentifierType"/>
-        </xs:sequence>
-    </xs:complexType>
     <xs:complexType name="ClientType">
         <xs:sequence>
             <xs:element name="id" type="id:XRoadClientIdentifierType"/>
@@ -247,7 +205,6 @@ when retrieved through the meta-service.
         </xs:sequence>
     </xs:complexType>
     <xs:element name="clientList" type="ClientListType"/>
-    <xs:element name="centralServiceList" type="CentralServiceListType"/>
 </xs:schema>
 ```
 
@@ -529,7 +486,6 @@ components:
                 - GLOBALGROUP
                 - LOCALGROUP
                 - SERVICE
-                - CENTRALSERVICE
             xroad_instance:
               type: string
             member_class:
@@ -635,20 +591,7 @@ components:
 }
 ```
 
-### C.2 listCentralServices Response
-
-```xml
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:centralServiceList
-        xmlns:ns1="http://x-road.eu/xsd/identifiers"
-        xmlns:ns2="http://x-road.eu/xsd/xroad.xsd">
-    <ns2:centralService ns1:objectType="CENTRALSERVICE">
-        <ns1:xRoadInstance>AA</ns1:xRoadInstance>
-        <ns1:serviceCode>random</ns1:serviceCode>
-    </ns2:centralService>
-</ns2:centralServiceList>
-```
-### C.3 listMethods Request
+### C.2 listMethods Request
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
@@ -677,7 +620,7 @@ components:
 </SOAP-ENV:Envelope>
 ```
 
-### C.4 listMethods Response
+### C.3 listMethods Response
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
@@ -727,7 +670,7 @@ components:
 </SOAP-ENV:Envelope>
 ```
 
-### C.5 allowedMethods Request
+### C.4 allowedMethods Request
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
@@ -756,7 +699,7 @@ components:
 </SOAP-ENV:Envelope>
 ```
 
-### C.6 allowedMethods Response
+### C.5 allowedMethods Response
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
@@ -798,7 +741,7 @@ components:
 </SOAP-ENV:Envelope>
 ```
 
-### C.7 getWsdl Request
+### C.6 getWsdl Request
 ```xml
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xro="http://x-road.eu/xsd/xroad.xsd"
                   xmlns:iden="http://x-road.eu/xsd/identifiers">
@@ -831,7 +774,7 @@ components:
 </soapenv:Envelope>
 ```
 
-### C.8 getWsdl Response
+### C.7 getWsdl Response
 ```xml
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                   xmlns:iden="http://x-road.eu/xsd/identifiers"
@@ -868,7 +811,7 @@ components:
 </soapenv:Envelope>
 ```
 
-### C.9 getWsdl Response attachment
+### C.8 getWsdl Response attachment
 
 ```xml
 <wsdl:definitions name="testService" targetNamespace="http://test.x-road.fi/producer">

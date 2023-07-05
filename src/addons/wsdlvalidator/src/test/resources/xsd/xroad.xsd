@@ -21,13 +21,6 @@
                 that is invoked by the request</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="centralService"
-            type="id:XRoadCentralServiceIdentifierType">
-        <xs:annotation>
-            <xs:documentation>Identies the central service
-                that is invoked by the request.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
     <xs:element name="id" type="xs:string">
         <xs:annotation>
             <xs:documentation>Unique identier

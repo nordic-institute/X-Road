@@ -1,0 +1,28 @@
+subprojects {
+    def standaloneModules = ["int-test"]
+    if(!standaloneModules.contains(it.name)) {
+        apply {
+            plugin 'io.spring.dependency-management'
+            plugin 'org.springframework.boot'
+            plugin 'com.github.hierynomus.license'
+
+        }
+        dependencyManagement {
+            imports {
+                mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+            }
+        }
+
+        bootJar {
+            enabled = false
+        }
+
+        test {
+            useJUnitPlatform()
+        }
+    }
+}
+
+tasks.withType(Jar).configureEach {
+    enabled = false
+}

@@ -1,3 +1,0 @@
-content-identifier = nothing
-file-name = nofile.xml
-validation-program = /does/not/exist.net

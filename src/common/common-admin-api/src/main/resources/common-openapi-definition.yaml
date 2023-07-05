@@ -1,0 +1,152 @@
+---
+openapi: 3.0.0
+info:
+  description: X-Road Admin API common parts.
+  version: "1.0.32"
+  title: X-Road Security Server Admin API common
+  contact:
+    name: Nordic Institute for Interoperability Solutions (NIIS)
+    url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
+    email: info@niis.org
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: /api/v1
+    description: basepath for API v1
+tags:
+  - name: user
+    description: user endpoints
+paths:
+  /user:
+    get:
+      tags:
+        - user
+      summary: get user data for the logged user
+      operationId: getUser
+      description: <h3>Administrator gets user data from backend.</h3>
+      responses:
+        '200':
+          description: user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: X-Road-ApiKey token=<api key>
+      # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
+  schemas:
+    CodeWithDetails:
+      type: object
+      description: object that contains a code identifier and possibly collection of
+        associated metadata or validation errors. Used to relay error and warning information.
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          format: text
+          description: identifier of the item (for example errorcode)
+          example: adding_services
+        metadata:
+          type: array
+          description: array containing metadata associated with the item. For example names of services
+            were attempted to add, but failed
+          items:
+            type: string
+            format: text
+        validation_errors:
+          description: A dictionary object that contains validation errors bound to their respected fields. The key
+            represents the field where the validation error has happened and the value is a list of validation errors
+          type: object
+          additionalProperties: # https://swagger.io/docs/specification/data-models/dictionaries/
+            type: array
+            description: Array containing the validation errors of a field. The possible validation error values
+              are listed in the X-Road User Guide
+            items:
+              type: string
+              format: text
+          example:
+            clientAdd.client.memberCode: ["NoPercent"]
+            clientAdd.client.subsystemCode: ["NoPercent", "NoBackslashes"]
+    ErrorInfo:
+      type: object
+      description: object returned in error cases
+      required:
+        - status
+      properties:
+        status:
+          type: integer
+          format: int32
+          description: http status code
+          example: 400
+        error:
+          $ref: '#/components/schemas/CodeWithDetails'
+        warnings:
+          type: array
+          description: warnings that could be ignored
+          items:
+            $ref: '#/components/schemas/CodeWithDetails'
+    User:
+      type: object
+      description: x-road user
+      required:
+        - username
+        - roles
+        - permissions
+      properties:
+        username:
+          type: string
+          format: text
+          description: user username
+          example: Guest
+          minLength: 1
+          maxLength: 255
+        roles:
+          type: array
+          description: user roles
+          uniqueItems: true
+          items:
+            type: string
+            format: text
+        permissions:
+          type: array
+          description: user permissions
+          uniqueItems: true
+          items:
+            type: string
+            format: text
+  examples:
+    ErrorExample:
+      summary: Error response body example
+      value:
+        status: 400
+        error:
+          code: invalid_filename
+    ErrorWithMetadataExample:
+      summary: Error with metadata response body example
+      value:
+        status: 400
+        error:
+          code: invalid_service_url
+          metadata:
+            - "sftp://some.sftp.server"
+security:
+  - ApiKeyAuth: []

@@ -1,12 +1,8 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # Security Server Installation Guide for Red Hat Enterprise Linux <!-- omit in toc -->
 
 **X-ROAD 7**
 
-Version: 1.22  
+Version: 1.23  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -39,6 +35,7 @@ Doc. ID: IG-SS-RHEL
  26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
  03.09.2021 | 1.21    | Minor fixes | Ilkka Seppälä
  06.09.2021 | 1.22    | Update list of running services | Jarkko Hyöty
+ 23.05.2023 | 1.23    | Minor backup encryption configuration fixes | Eneli Reimets
 
 ## License
 
@@ -430,18 +427,16 @@ for backup encryption and verification. Backups are always signed, but backup en
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
     [proxy]
-    backup-encrypted=true
-    backup-public-key-path=/etc/xroad/backupkeys
+    backup-encryption-enabled = true
+    backup-encryption-keyids = <keyid1>, <keyid2>, ...
 
-To turn backup encryption on, please change the `backup-encrypted` property value to `true`.
-By default, additional encryption keys are stored in the `/etc/xroad/backupkeys` directory.
-The default directory can be changed by modifying the `backup-public-key-path` property value.
+To turn backup encryption on, please change the `backup-encryption-enabled` property value to `true`.
+By default, backups are encrypted using security server's backup encryption key. Additional encryption keys can be imported in the /etc/xroad/gpghome keyring and key identifiers listed using the backup-encryption-keyids parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case security server's private key is lost. It is up to security server's administrator to check that keys used are sufficiently strong, there are no automatic checks.
 
-By default, backups are encrypted using security server's backup encryption key. Before turning backup encryption on, it
-is strongly recommended to copy additional GPG public keys to backup public key folder. All these keys are used to
-encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
+Warning. All keys listed in backup-encryption-keyids must be present in the gpg keyring or backup fails.
+
+All these keys are used to encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
 consistency and decrypting backups in case security server's backup encryption key gets lost for whatever reason.
-Do not place any other files into backup keys folder, otherwise backing up configuration will fail.
 
 To externally verify a backup archive's consistency, security server's backup encryption public key has to be exported
 and imported into external GPG keyring. Note that this can be done only after security server has been initialised - the

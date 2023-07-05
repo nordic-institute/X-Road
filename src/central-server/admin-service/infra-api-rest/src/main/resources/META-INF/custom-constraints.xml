@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<constraint-mappings
+    xmlns="http://xmlns.jcp.org/xml/ns/validation/mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/validation/mapping
+    http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
+    version="2.0">
+    <default-package>org.niis.xroad.cs.openapi.model</default-package>
+
+    <bean class="InitialServerConfDto" ignore-annotations="false">
+        <field name="instanceIdentifier">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
+            </constraint>
+        </field>
+        <field name="centralServerAddress">
+            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidHostAddress">
+            </constraint>
+        </field>
+    </bean>
+
+    <bean class="CentralServerAddressDto" ignore-annotations="false">
+        <field name="centralServerAddress">
+            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidHostAddress">
+            </constraint>
+        </field>
+    </bean>
+
+    <bean class="XRoadIdDto" ignore-annotations="false">
+        <class ignore-annotations="false">
+            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidXRoadId"/>
+        </class>
+    </bean>
+
+    <bean class="AuthenticationCertificateRegistrationRequestDto">
+        <field name="authenticationCertificate">
+            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidX509Certificate"/>
+        </field>
+        <field name="serverAddress">
+            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidHostAddress"/>
+        </field>
+    </bean>
+
+    <bean class="MemberAddDto" ignore-annotations="false">
+        <field name="memberName">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"></constraint>
+        </field>
+    </bean>
+    <bean class="MemberNameDto" ignore-annotations="false">
+        <field name="memberName">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"></constraint>
+        </field>
+    </bean>
+
+    <bean class="MemberClassDto" ignore-annotations="false">
+        <field name="code">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+    </bean>
+
+    <bean class="NewMemberIdDto" ignore-annotations="false">
+        <field name="memberClass">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+        <field name="memberCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+    </bean>
+
+    <bean class="NewSubsystemIdDto" ignore-annotations="false">
+        <field name="subsystemCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+        <field name="memberClass">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+        <field name="memberCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+    </bean>
+
+
+</constraint-mappings>

@@ -25,16 +25,58 @@
  */
 package org.niis.xroad.test.ui.glue;
 
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
+import com.nortal.test.core.report.TestReportService;
+import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
-import com.nortal.test.core.services.ScenarioExecutionContext;
 import org.niis.xroad.test.configuration.TestProperties;
+import org.niis.xroad.test.ui.page.CommonPageObj;
+import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 
+import static org.openqa.selenium.Keys.COMMAND;
+import static org.openqa.selenium.Keys.CONTROL;
+import static org.openqa.selenium.Keys.DELETE;
+
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public abstract class BaseUiStepDefs {
+    protected final CommonPageObj commonPageObj = new CommonPageObj();
+
     @Autowired
     protected TestProperties testProperties;
     @Autowired
-    protected ScenarioExecutionContext scenarioExecutionContext;
+    protected CucumberScenarioProvider scenarioProvider;
     @Autowired
     protected ScenarioContext scenarioContext;
+
+    @Autowired
+    protected TestReportService testReportService;
+
+    /**
+     * Vue.JS adds additional elements on top of input and simple clear just does not work.
+     *
+     * @param element element to clear
+     */
+    protected SelenideElement clearInput(SelenideElement element) {
+        element.sendKeys(isMacOsBrowser() ? COMMAND : CONTROL, "a");
+        element.sendKeys(DELETE);
+
+        return element;
+    }
+
+    /**
+     * Takes a screenshot and adds it to report.
+     *
+     * @param screenshotName filename that will be visible in report
+     */
+    protected void takeScreenshot(String screenshotName) {
+        var scr = Selenide.screenshot(OutputType.BYTES);
+        scenarioProvider.getCucumberScenario().attach(scr, MediaType.IMAGE_PNG_VALUE, screenshotName);
+    }
+
+    private boolean isMacOsBrowser() {
+        return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
+    }
 }

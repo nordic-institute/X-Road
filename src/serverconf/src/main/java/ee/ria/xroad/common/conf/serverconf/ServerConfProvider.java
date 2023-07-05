@@ -28,14 +28,12 @@ package ee.ria.xroad.common.conf.serverconf;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -46,7 +44,7 @@ public interface ServerConfProvider {
     /**
      * @return the identifier of this Security Server.
      */
-    SecurityServerId getIdentifier();
+    SecurityServerId.Conf getIdentifier();
 
     /**
      * @param service the service identifier
@@ -91,13 +89,13 @@ public interface ServerConfProvider {
      * @param serviceProvider the service provider identifier
      * @return all the services offered by a service provider.
      */
-    List<ServiceId> getAllServices(ClientId serviceProvider);
+    List<ServiceId.Conf> getAllServices(ClientId serviceProvider);
 
     /**
      * @param serviceProvider the service provider identifier
      * @return all the services offered by a service provider.
      */
-    List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType);
+    List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType);
 
     /**
      * @param serviceProvider the service provider identifier
@@ -105,7 +103,7 @@ public interface ServerConfProvider {
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
-    List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client);
+    List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider, ClientId client);
 
     /**
      * @param serviceProvider the service provider identifier
@@ -113,7 +111,7 @@ public interface ServerConfProvider {
      * @return all the services by a service provider that the caller
      * has permission to invoke filtered by description type
      */
-    List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+    List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
                                                         DescriptionType descriptionType);
 
     /**
@@ -153,7 +151,7 @@ public interface ServerConfProvider {
      * @return all members identifiers
      * @throws Exception if an error occurs
      */
-    List<ClientId> getMembers() throws Exception;
+    List<ClientId.Conf> getMembers() throws Exception;
 
     /**
      * @param memberId the member identifier
@@ -170,12 +168,6 @@ public interface ServerConfProvider {
      * to invoke service <code>serviceName</code>
      */
     boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path);
-
-    /**
-     * @param service the service identifier
-     * @return set of security category codes required by this service.
-     */
-    Collection<SecurityCategoryId> getRequiredCategories(ServiceId service);
 
     /**
      * @return list of URLs for the Time-stamping providers configured

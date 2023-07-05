@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
 
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
     implementation project(':serverconf')
@@ -28,8 +28,8 @@ dependencies {
     implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
     implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
-    testImplementation project(':common-test')
-    testImplementation "junit:junit:${junitVersion}"
+    testImplementation project(':common:common-test')
+    testImplementation "junit:junit:$junitVersion"
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"

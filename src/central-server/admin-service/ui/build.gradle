@@ -1,0 +1,112 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'base'
+    id 'com.github.node-gradle.node' version "$nodePluginVersion"
+}
+
+configurations {
+    npm
+    dist
+}
+
+dependencies {
+    npm project(path: ":shared-ui", configuration: "npm")
+}
+
+node {
+    download = true
+    version = nodeVersion
+
+    if (System.getenv().containsKey("CI")) {
+        npmInstallCommand = "ci"
+    }
+}
+
+task npmUpdateDeps(type: NpmTask, dependsOn: configurations.npm) {
+    inputs.files('package.json')
+    outputs.files('package-lock.json')
+    args = ['--quiet', 'install', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
+}
+
+task cleanNpmUpdateDeps {
+    //NOP, we do not want to accidentally delete package-lock.json
+}
+
+npmInstall {
+    dependsOn += 'npmUpdateDeps'
+}
+
+task npmGenerateTypes(type: NpmTask, dependsOn: ['npmInstall']) {
+    inputs.files('./package.json',
+        '../infra-api-rest/src/main/resources/openapi-definition.yaml')
+    outputs.dir('src/openapi-types')
+    outputs.dir("${buildDir}/openapi")
+    args = ['--quiet', 'run', 'generate-types']
+
+    doFirst {
+        project.delete('src/openapi')
+    }
+}
+
+task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
+    inputs.files(
+        'src/',
+        'public/',
+        'package.json',
+        'package-lock.json',
+        'vue.config.js',
+        'tsconfig.js',
+        'babel.config.js',
+        fileTree('node_modules') {
+            exclude '.cache'
+            exclude 'webpack-dev-server/ssl'
+        }
+    )
+    outputs.dir('dist')
+    args = ['run', '--quiet', 'build:gradle']
+}
+
+task checkFrontAudit(type: NpmTask) {
+    inputs.files(
+        'package.json',
+        'package-lock.json'
+    )
+    outputs.files("${buildDir}/reports/audit-ci.txt")
+    args = ['run', 'npx-check-audit']
+}
+
+// check that npm run license-check passes
+task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.files(
+        "test/",
+        "public/",
+        fileTree('src/') {
+            exclude 'openapi-types'
+        }
+    )
+    outputs.upToDateWhen { true }
+    args = ['run', 'license-check']
+}
+
+clean {
+    delete file('node_modules')
+    delete file('dist')
+}
+
+assemble.dependsOn npmBuild
+check.dependsOn checkFrontLicense
+
+if (project.hasProperty('frontend-npm-audit')) {
+  npmUpdateDeps.dependsOn checkFrontAudit
+}
+
+artifacts {
+    dist(file("dist/")) {
+        builtBy(npmBuild)
+    }
+}

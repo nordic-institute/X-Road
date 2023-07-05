@@ -41,7 +41,11 @@ create_backup_tarball () {
     if [ "$ENCRYPT_MODE" = "encrypt" ] ; then
       echo "CREATING ENCRYPTED AND SIGNED TAR ARCHIVE TO ${BACKUP_FILENAME}"
       local PUBCOUNT=0
-      ENCRYPTION_ARGS=(--encrypt --trust-model direct --cipher-algo AES256 --no-auto-key-locate -r "${SECURITY_SERVER_ID}")
+      local FIRST_RECEIPIENT=${SECURITY_SERVER_ID}
+      if [ -z "${FIRST_RECEIPIENT}" ] ; then
+        FIRST_RECEIPIENT=${INSTANCE_ID}
+      fi
+      ENCRYPTION_ARGS=(--encrypt --trust-model direct --cipher-algo AES256 --no-auto-key-locate -r "${FIRST_RECEIPIENT}")
       if [ -n "${GPG_KEYIDS}" ] ; then
         local recipients=()
         IFS=", " read -ra recipients <<< "${GPG_KEYIDS}"

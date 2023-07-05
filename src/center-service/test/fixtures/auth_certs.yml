@@ -1,3 +1,0 @@
-authCert_first:
-  security_server_id: <%= ActiveRecord::Fixtures.identify(:securityServer_first) %>
-  cert: "authCertOfSecurityServer"

@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-VERSION=7.2.1
-LAST_SUPPORTED_VERSION=7.0.0
+VERSION=7.3.0
+LAST_SUPPORTED_VERSION=7.1.0
 
 if [[ $1 == "-release" ]] ; then
   RELEASE=1
@@ -42,3 +42,4 @@ rpmbuild \
     --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
     --define "_binary_payload $compress" \
     -"${CMD}" "${ROOT}/SPECS/"${FILES}
+

@@ -78,11 +78,10 @@ import static org.junit.Assert.assertThat;
 public class SecurityServerMetricsMessage extends MessageTestCase {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final ClientId DEFAULT_OWNER_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "BUSINESS",
-            "producer");
+    private static final ClientId.Conf DEFAULT_OWNER_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS", "producer");
 
-    private static final SecurityServerId DEFAULT_OWNER_SERVER =
-            SecurityServerId.create(DEFAULT_OWNER_CLIENT, "ownerServer");
+    private static final SecurityServerId.Conf DEFAULT_OWNER_SERVER =
+            SecurityServerId.Conf.create(DEFAULT_OWNER_CLIENT, "ownerServer");
 
     private static final ActorSystem ACTOR_SYSTEM
             = ActorSystem.create("xroad-monitor", loadAkkaConfiguration());
@@ -157,7 +156,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
         KeyConf.reload(new TestSuiteKeyConf());
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
-            public SecurityServerId getIdentifier() {
+            public SecurityServerId.Conf getIdentifier() {
                 return DEFAULT_OWNER_SERVER;
             }
         });

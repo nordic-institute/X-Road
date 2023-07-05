@@ -8,24 +8,24 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
+        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
         resources.srcDirs = ['src/main/resources']
     }
 }
 
 dependencies {
-    api project(':common-db')
+    api project(':common:common-db')
 
-    implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
 
     // DB layer tests use HSQLDB with in-memory tables
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation project(':common-db')
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-db')
+    testImplementation project(':common:common-test')
     testImplementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
 
-    schema project(':common-util')
+    schema project(':common:common-util')
     schema "org.apache.ant:ant:1.10.11"
     schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"
     schema "org.hibernate:hibernate-tools:$hibernateVersion"
@@ -38,7 +38,7 @@ task schemaExport () {
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
-        ant.schemaExport(destdir: 'build') {
+        ant.schemaExport(destdir: "build") {
             configuration(
                 configurationfile: 'src/main/resources/serverconf.hibernate.cfg.xml',
                 propertyFile: 'src/test/resources/hibernate-schema.properties'
@@ -52,7 +52,7 @@ task schemaExport () {
                 pathelement(path: configurations.schema.asPath)
                 pathelement(path: 'src/main/resources')
                 pathelement(path: 'src/test/resources')
-                pathelement(path: 'build/classes/java/main')
+                pathelement(path: "${buildDir}/classes/java/main")
             }
         }
     }

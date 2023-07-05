@@ -3,12 +3,12 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':signer-protocol')
 
     implementation 'commons-cli:commons-cli:1.4'
 
-    testImplementation project(':common-test')
+    testImplementation project(':common:common-test')
 }
 
 ext {

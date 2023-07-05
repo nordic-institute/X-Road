@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -44,22 +43,20 @@ public class IdentifierValidatorTest {
 
     @Test
     public void testCheckIdentifierValid() {
-        final ServiceId valid = ServiceId.create("TEST", "CLASS", "CO DE", null, "SERVICE");
+        final ServiceId valid = ServiceId.Conf.create("TEST", "CLASS", "CO DE", null, "SERVICE");
         assertTrue(MessageProcessorBase.checkIdentifier(valid));
     }
 
     @Test
     public void testCheckIdentifierInvalid() {
         final XRoadId[] cases = {
-                ClientId.create("TEST", "CLASS", "CO\tDE"),
-                SecurityServerId.create("TEST", "CLASS", "MEMBER", "SER:VER"),
-                ServiceId.create("TE/ST", "CLASS", "MEMBER", "SYSTEM", "SERVICE"),
-                ServiceId.create("TEST", "CLA;SS", "MEMBER", "SYSTEM", "SERVICE"),
-                ServiceId.create("TEST", "CLASS", "MEM\\BER", "SYSTEM", "SERVICE"),
-                ServiceId.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE"),
-                ServiceId.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"),
-                CentralServiceId.create("TEST", "SERVICE;"),
-                CentralServiceId.create("TE\ufeffST", "SERVICE")
+                ClientId.Conf.create("TEST", "CLASS", "CO\tDE"),
+                SecurityServerId.Conf.create("TEST", "CLASS", "MEMBER", "SER:VER"),
+                ServiceId.Conf.create("TE/ST", "CLASS", "MEMBER", "SYSTEM", "SERVICE"),
+                ServiceId.Conf.create("TEST", "CLA;SS", "MEMBER", "SYSTEM", "SERVICE"),
+                ServiceId.Conf.create("TEST", "CLASS", "MEM\\BER", "SYSTEM", "SERVICE"),
+                ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYS%TEM", "SERVICE"),
+                ServiceId.Conf.create("TEST", "CLASS", "MEMBER", "SYSTEM", "SERVICE\u200b"),
         };
         for (XRoadId id : cases) {
             assertFalse(MessageProcessorBase.checkIdentifier(id));

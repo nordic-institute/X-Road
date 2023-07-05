@@ -1,0 +1,45 @@
+plugins {
+    id 'java-library'
+}
+
+
+configurations {
+    liquibaseLibs {
+        apply plugin: 'base'
+    }
+}
+
+dependencies {
+    annotationProcessor("org.hibernate:hibernate-jpamodelgen:$hibernateVersion")
+
+    api project(':central-server:admin-service:core-api')
+    api project(':monitoring-conf')
+    api(project(":common:common-api-throttling"))
+
+    api('org.springframework.boot:spring-boot-starter-web')
+    api('org.springframework.boot:spring-boot-starter-security')
+    api("org.springframework.boot:spring-boot-starter-cache")
+    api("org.springframework.boot:spring-boot-starter-validation")
+    api('org.springframework.data:spring-data-commons')
+    api("jakarta.transaction:jakarta.transaction-api")
+    api("jakarta.persistence:jakarta.persistence-api")
+
+    implementation("io.vavr:vavr:$vavrVersion")
+
+    testImplementation project(':common:common-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+    testImplementation('org.liquibase:liquibase-core')
+    testImplementation('org.xmlunit:xmlunit-core:2.9.0')
+    testImplementation('org.xmlunit:xmlunit-assertj3:2.9.0')
+    testImplementation("org.mockito:mockito-inline:$mockitoVersion")
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java',
+            "${buildDir}/generated/sources/annotationProcessor/java/main"
+        ]
+    }
+}

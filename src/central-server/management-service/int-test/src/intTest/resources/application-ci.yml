@@ -1,0 +1,7 @@
+test-automation:
+  environment: jenkins
+  containers:
+    testable-container:
+      spring-boot:
+        jacoco:
+          host: host.docker.internal

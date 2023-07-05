@@ -88,7 +88,7 @@ public final class TokenManager {
      *
      * @throws Exception if an error occurs
      */
-    public static void init() throws Exception {
+    public static void init() {
         try {
             TokenConf.getInstance().load();
         } catch (Exception e) {
@@ -800,7 +800,9 @@ public final class TokenManager {
      * @return certificate id
      */
     public static synchronized String addCertRequest(String keyId,
-                                                     ClientId memberId, String subjectName, KeyUsageInfo keyUsage) {
+                                                     ClientId.Conf memberId,
+                                                     String subjectName,
+                                                     KeyUsageInfo keyUsage) {
         log.trace("addCertRequest({}, {})", keyId, memberId);
 
         Key key = findKey(keyId);

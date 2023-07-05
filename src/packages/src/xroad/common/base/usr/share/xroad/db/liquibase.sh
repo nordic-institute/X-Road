@@ -20,34 +20,13 @@ if [ ! -n "${LIQUIBASE_HOME+x}" ]; then
 
   # make it fully qualified
   LIQUIBASE_HOME=`cd "$LIQUIBASE_HOME" && pwd`
-  # echo "Liquibase Home: $LIQUIBASE_HOME"
 fi
 
-
-# build classpath from all jars in lib
-if [ -f /usr/bin/cygpath ]; then
-  CP=.
-  for i in "$LIQUIBASE_HOME"/liquibase*.jar; do
-    i=`cygpath --windows "$i"`
-    CP="$CP;$i"
-  done
-  for i in "$LIQUIBASE_HOME"/lib/*.jar; do
-    i=`cygpath --windows "$i"`
-    CP="$CP;$i"
-  done
-else
-  CP=.
-  for i in "$LIQUIBASE_HOME"/liquibase*.jar; do
-    CP="$CP":"$i"
-  done
-  for i in "$LIQUIBASE_HOME"/lib/*.jar; do
-    CP="$CP":"$i"
-  done
-fi
-
+CLASSPATH=/usr/share/xroad/db/liquibase-core.jar
 # add any JVM options here
 JAVA_OPTS="${JAVA_OPTS-}"
 
-java -cp "$CP" $JAVA_OPTS liquibase.integration.commandline.Main ${1+"$@"}
+echo "Liquibase Home: $LIQUIBASE_HOME"
+java -cp "$CLASSPATH" $JAVA_OPTS liquibase.integration.commandline.Main ${1+"$@"}
 
 

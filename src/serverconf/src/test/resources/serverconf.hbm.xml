@@ -35,7 +35,7 @@
                      class="ServerConfType" cascade="none"/>
 
         <many-to-one name="identifier" access="field"
-                     class="ee.ria.xroad.common.identifier.ClientId"
+                     class="ee.ria.xroad.common.identifier.ClientId$Conf"
                      cascade="save-update"/>
 
         <property name="clientStatus" access="field"/>
@@ -109,13 +109,6 @@
         <property name="url" access="field"/>
         <property name="sslAuthentication" access="field"/>
         <property name="timeout" access="field"/>
-
-        <bag name="requiredSecurityCategory" access="field"
-             cascade="all-delete-orphan" table="service_securitycategories">
-            <key column="service_id"/>
-            <many-to-many column="security_cat_id"
-                          class="ee.ria.xroad.common.identifier.SecurityCategoryId"/>
-        </bag>
     </class>
 
     <class name="LocalGroupType" table="LOCALGROUP">
@@ -140,7 +133,7 @@
         </id>
 
         <many-to-one name="groupMemberId" access="field"
-                     class="ee.ria.xroad.common.identifier.ClientId"
+                     class="ee.ria.xroad.common.identifier.ClientId$Conf"
                      not-null="true" cascade="save-update"/>
         <property name="added" access="field" not-null="true"/>
     </class>
@@ -156,7 +149,7 @@
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
-        <many-to-one name="subjectId" access="field" class="ee.ria.xroad.common.identifier.XRoadId" not-null="true"
+        <many-to-one name="subjectId" access="field" class="ee.ria.xroad.common.identifier.XRoadId$Conf" not-null="true"
                      cascade="save-update" lazy="false"/>
         <many-to-one name="endpoint" column="endpoint_id" access="field" class="EndpointType" not-null="true"
                      cascade="save-update" lazy="false"/>

@@ -153,7 +153,7 @@ final class Utils {
         }
     }
 
-    static ClientId createClientId(String string) throws Exception {
+    static ClientId.Conf createClientId(String string) throws Exception {
         String[] parts = string.split(" ");
 
         if (parts.length < CLIENT_ID_PARTS) {
@@ -164,9 +164,9 @@ final class Utils {
             String subsystem = parts.length > CLIENT_ID_PARTS ? parts[parts.length - 1] : null;
             String code = StringUtils.join(ArrayUtils.subarray(parts, 2, parts.length - 1), " ");
 
-            return ClientId.create(parts[0], parts[1], code, subsystem);
+            return ClientId.Conf.create(parts[0], parts[1], code, subsystem);
         } else {
-            return ClientId.create(parts[0], parts[1], parts[2], null);
+            return ClientId.Conf.create(parts[0], parts[1], parts[2], null);
         }
     }
 

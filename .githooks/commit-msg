@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if ! grep -iqE "^(merge).+" "$1"; then
+  test "" != "$(egrep '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test){1}(\([[:alnum:]._-]+\))?(!)?: ([[:alnum:]])+([[:space:][:print:]]*)' "$1")" || {
+    echo >&2 Aborting commit. Your commit message does match our conventions. See: https://github.com/nordic-institute/X-Road/blob/develop/CONTRIBUTING.md#commit-messages
+    exit 1
+  }
+fi

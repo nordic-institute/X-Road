@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<constraint-mappings
+    xmlns="http://xmlns.jcp.org/xml/ns/validation/mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/validation/mapping
+http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
+    version="2.0">
+    <default-package>org.niis.xroad.securityserver.restapi.openapi.model</default-package>
+    <bean class="Endpoint" ignore-annotations="false">
+        <field name="path">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="EndpointUpdate" ignore-annotations="false">
+        <field name="path">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="ServiceUpdate" ignore-annotations="false">
+        <field name="url">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="KeyLabel" ignore-annotations="false">
+        <field name="label">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="KeyName" ignore-annotations="false">
+        <field name="name">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="KeyLabelWithCsrGenerate" ignore-annotations="false">
+        <field name="keyLabel">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="TokenName" ignore-annotations="false">
+        <field name="name">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="LocalGroupAdd" ignore-annotations="false">
+        <field name="code">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+        <field name="description">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="LocalGroupDescription" ignore-annotations="false">
+        <field name="description">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="ServiceDescriptionAdd" ignore-annotations="false">
+        <field name="url">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+        <field name="restServiceCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="ServiceDescriptionUpdate" ignore-annotations="false">
+        <field name="url">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+        <field name="newRestServiceCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="InitialServerConf" ignore-annotations="false">
+        <field name="securityServerCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
+            </constraint>
+        </field>
+        <field name="ownerMemberClass">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
+            </constraint>
+        </field>
+        <field name="ownerMemberCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="Client" ignore-annotations="false">
+        <field name="memberCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
+            </constraint>
+        </field>
+        <field name="subsystemCode">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
+            </constraint>
+        </field>
+    </bean>
+    <bean class="ServiceDescriptionDisabledNotice" ignore-annotations="false">
+        <field name="disabledNotice">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
+</constraint-mappings>

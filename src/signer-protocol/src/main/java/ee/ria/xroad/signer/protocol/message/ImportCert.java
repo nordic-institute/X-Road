@@ -41,6 +41,6 @@ public class ImportCert implements Serializable {
 
     private final byte[] certData;
     private final String initialStatus;
-    private final ClientId memberId;
+    private final ClientId.Conf memberId;
 
 }

@@ -46,6 +46,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.eclipse.jetty.http.HttpComplianceSection;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -54,6 +55,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
@@ -62,8 +64,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
@@ -73,7 +73,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
-
 
 /**
  * Client proxy that handles requests of service clients.
@@ -100,6 +99,7 @@ public class ClientProxy implements StartStop {
 
     /**
      * Constructs and configures a new client proxy.
+     *
      * @throws Exception in case of any errors
      */
     public ClientProxy() throws Exception {
@@ -116,10 +116,7 @@ public class ClientProxy implements StartStop {
         Path file = Paths.get(SystemProperties.getJettyClientProxyConfFile());
 
         log.debug("Configuring server from {}", file);
-
-        try (InputStream in = Files.newInputStream(file)) {
-            new XmlConfiguration(in).configure(server);
-        }
+        new XmlConfiguration(Resource.newResource(file)).configure(server);
     }
 
     private void createClient() throws Exception {
@@ -161,7 +158,7 @@ public class ClientProxy implements StartStop {
             sfr.register("https", createSSLSocketFactory());
         }
 
-        SocketConfig.Builder sockBuilder =  SocketConfig.custom().setTcpNoDelay(true);
+        SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
         sockBuilder.setSoLinger(SystemProperties.getClientProxyHttpClientSoLinger());
         sockBuilder.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
         SocketConfig socketConfig = sockBuilder.build();
@@ -196,11 +193,9 @@ public class ClientProxy implements StartStop {
         connector.setName(CLIENT_HTTP_CONNECTOR_NAME);
         connector.setHost(hostname);
         connector.setPort(port);
-
-        connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
         connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
 
-        disableSendServerVersion(connector);
+        applyConnectionFactoryConfig(connector);
         server.addConnector(connector);
 
         log.info("Client HTTP connector created ({}:{})", hostname, port);
@@ -230,20 +225,23 @@ public class ClientProxy implements StartStop {
         connector.setName(CLIENT_HTTPS_CONNECTOR_NAME);
         connector.setHost(hostname);
         connector.setPort(port);
-
         connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
 
-        disableSendServerVersion(connector);
+        applyConnectionFactoryConfig(connector);
         server.addConnector(connector);
 
         log.info("Client HTTPS connector created ({}:{})", hostname, port);
     }
 
-    private void disableSendServerVersion(ServerConnector connector) {
+    private void applyConnectionFactoryConfig(ServerConnector connector) {
         connector.getConnectionFactories().stream()
                 .filter(cf -> cf instanceof HttpConnectionFactory)
-                .forEach(httpCf -> ((HttpConnectionFactory) httpCf)
-                        .getHttpConfiguration().setSendServerVersion(false));
+                .map(cf -> (HttpConnectionFactory)cf)
+                .forEach(cf -> {
+                    //allowed so that x-road identifiers with a '/' can be encoded to a path segment using %2F
+                    cf.getHttpCompliance().sections().remove(HttpComplianceSection.NO_AMBIGUOUS_PATH_SEGMENTS);
+                    cf.getHttpConfiguration().setSendServerVersion(false);
+                });
     }
 
     private void createHandlers() throws Exception {

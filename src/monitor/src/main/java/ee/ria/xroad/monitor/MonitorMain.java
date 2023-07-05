@@ -56,8 +56,6 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_ENV_MONITOR;
 public final class MonitorMain {
 
     private static final String APP_NAME = "xroad-monitor";
-    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     static {
         SystemPropertiesLoader.create()
@@ -78,7 +76,7 @@ public final class MonitorMain {
      */
     public static void main(String args[]) throws Exception {
         log.info("Starting X-Road Environmental Monitoring");
-        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
+        Version.outputVersionInfo(APP_NAME);
 
         registerShutdownHook();
         initAkka();

@@ -1,12 +1,8 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # Security Server Installation Guide for Ubuntu <!-- omit in toc -->
 
 **X-ROAD 7**
 
-Version: 2.43  
+Version: 2.45  
 Doc. ID: IG-SS
 
 ---
@@ -67,7 +63,8 @@ Doc. ID: IG-SS
 | 03.08.2021 | 2.41    | Minor fixes                                                                                                                                                                                                          | Ilkka Seppälä    |
 | 06.09.2021 | 2.42    | Update list of running services                                                                                                                                                                                      | Jarkko Hyöty     |
 | 26.09.2022 | 2.43    | Remove Ubuntu 18.04 support                                                                                                                                                                                          | Andres Rosenthal |
-
+| 23.05.2023 | 2.44    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets    |
+| 01.06.2023 | 2.45    | Update references                                                                                                                                                                                                    | Petteri Kivimäki |
 
 ## License
 
@@ -139,7 +136,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -492,18 +489,16 @@ for backup encryption and verification. Backups are always signed, but backup en
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
     [proxy]
-    backup-encrypted=true
-    backup-public-key-path=/etc/xroad/backupkeys
+    backup-encryption-enabled = true
+    backup-encryption-keyids = <keyid1>, <keyid2>, ...
 
-To turn backup encryption on, please change the `backup-encrypted` property value to `true`.
-By default, additional encryption keys are stored in the `/etc/xroad/backupkeys` directory.
-The default directory can be changed by modifying the `backup-public-key-path` property value.
+To turn backup encryption on, please change the `backup-encryption-enabled` property value to `true`.
+By default, backups are encrypted using security server's backup encryption key. Additional encryption keys can be imported in the /etc/xroad/gpghome keyring and key identifiers listed using the backup-encryption-keyids parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case security server's private key is lost. It is up to security server's administrator to check that keys used are sufficiently strong, there are no automatic checks.
 
-By default, backups are encrypted using security server's backup encryption key. Before turning backup encryption on, it
-is strongly recommended to copy additional GPG public keys to backup public key folder. All these keys are used to
-encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
+Warning. All keys listed in backup-encryption-keyids must be present in the gpg keyring or backup fails.
+
+All these keys are used to encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
 consistency and decrypting backups in case security server's backup encryption key gets lost for whatever reason.
-Do not place any other files into backup keys folder, otherwise backing up configuration will fail.
 
 To externally verify a backup archive's consistency, security server's backup encryption public key has to be exported
 and imported into external GPG keyring. Note that this can be done only after security server has been initialised - the
@@ -681,7 +676,7 @@ apt upgrade xroad-securityserver
 
 serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/serverconf
 serverconf.hibernate.connection.username = serverconf
-serverconf.hibernate.connection.password = <randomly generated password> 
+serverconf.hibernate.connection.password = <randomly generated password>
 serverconf.hibernate.connection.driver_class = org.postgresql.Driver
 serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
 serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
@@ -781,61 +776,81 @@ Login to the database server(s) as the superuser (`postgres` by default) to run 
 psql -h <database host>:<port> -U <superuser> -d postgres
 ```
 
-Run the following commands to create the necessary database structures. If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several security server instances, it is necessary to have separate database names and roles for each server). By default, the database, database user, and schema use the same name (e.g. serverconf), and the admin user is named with \_admin prefix (e.g. serverconf_admin).
+Run the following commands to create the necessary database structures.
+If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several security server instances, it is necessary to have separate database names and roles for each server).
 
 **serverconf** (required)
+
+By default, the database, database user, and schema use the same name of `serverconf`, and the admin user is named with `_admin` suffix (e.g. `serverconf_admin`).
+
 ```sql
-CREATE DATABASE serverconf ENCODING 'UTF8';
-REVOKE ALL ON DATABASE serverconf FROM PUBLIC;
-CREATE ROLE serverconf_admin LOGIN PASSWORD '<serverconf_admin password>';
-GRANT serverconf_admin to <superuser>;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE serverconf TO serverconf_admin;
-\c serverconf
+CREATE DATABASE <serverconf_database> ENCODING 'UTF8';
+REVOKE ALL ON DATABASE <serverconf_database> FROM PUBLIC;
+CREATE ROLE <serverconf_admin_user> LOGIN PASSWORD '<serverconf_admin_user password>';
+GRANT <serverconf_admin_user> TO <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <serverconf_database> TO <serverconf_admin_user>;
+\c <serverconf_database>
 CREATE EXTENSION hstore;
-CREATE SCHEMA serverconf AUTHORIZATION serverconf_admin;
+CREATE SCHEMA <serverconf_schema> AUTHORIZATION <serverconf_admin_user>;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to serverconf_admin;
-CREATE ROLE serverconf LOGIN PASSWORD '<serverconf password>';
-GRANT serverconf to <superuser>;
-GRANT TEMPORARY,CONNECT ON DATABASE serverconf TO serverconf;
-GRANT USAGE ON SCHEMA public to serverconf;
+GRANT USAGE ON SCHEMA public TO <serverconf_admin_user>;
+CREATE ROLE <serverconf_database_user> LOGIN PASSWORD '<serverconf_database_user password>';
+GRANT <serverconf_database_user> TO <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE <serverconf_database> TO <serverconf_database_user>;
+GRANT USAGE ON SCHEMA public TO <serverconf_database_user>;
+GRANT USAGE ON SCHEMA <serverconf_schema> TO <serverconf_database_user>;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA <serverconf_schema> TO <serverconf_database_user>;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA <serverconf_schema> TO <serverconf_database_user>;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA <serverconf_schema> TO <serverconf_database_user>;
 ```
 
 **messagelog** (required by xroad-addon-messagelog)
+
+By default, the database, database user, and schema use the same name of `messagelog`, and the admin user is named with `_admin` suffix (e.g. `messagelog_admin`).
+
 ```sql
-CREATE DATABASE messagelog ENCODING 'UTF8';
-REVOKE ALL ON DATABASE messagelog FROM PUBLIC;
-CREATE ROLE messagelog_admin LOGIN PASSWORD '<messagelog_admin password>';
-GRANT messagelog_admin to <superuser>;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE messagelog TO messagelog_admin;
-\c messagelog
-CREATE SCHEMA messagelog AUTHORIZATION messagelog_admin;
+CREATE DATABASE <messagelog_database> ENCODING 'UTF8';
+REVOKE ALL ON DATABASE <messagelog_database> FROM PUBLIC;
+CREATE ROLE <messagelog_admin_user> LOGIN PASSWORD '<messagelog_admin_user password>';
+GRANT <messagelog_admin_user> TO <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <messagelog_database> TO <messagelog_admin_user>;
+\c <messagelog_database>
+CREATE SCHEMA <messagelog_schema> AUTHORIZATION <messagelog_admin_user>;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to messagelog_admin;
-CREATE ROLE messagelog LOGIN PASSWORD '<messagelog password>';
-GRANT messagelog to <superuser>;
-GRANT TEMPORARY,CONNECT ON DATABASE messagelog TO messagelog;
-GRANT USAGE ON SCHEMA public to messagelog;
+GRANT USAGE ON SCHEMA public TO <messagelog_admin_user>;
+CREATE ROLE <messagelog_database_user> LOGIN PASSWORD '<messagelog_database_user password>';
+GRANT <messagelog_database_user> TO <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE <messagelog_database> TO <messagelog_database_user>;
+GRANT USAGE ON SCHEMA public TO <messagelog_database_user>;
+GRANT USAGE ON SCHEMA <messagelog_schema> TO <messagelog_database_user>;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA <messagelog_schema> TO <messagelog_database_user>;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA <messagelog_schema> TO <messagelog_database_user>;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA <messagelog_schema> TO <messagelog_database_user>;
 ```
 
 **op-monitor** (optional, required by xroad-opmonitor)
 
 If operational monitoring is going to be installed, run additionally the following commands. Again, the database and role names can be customized to suit your environment.
+By default, the database is named `op-monitor`, database user and schema both are named `opmonitor`, and the admin user is named with `_admin` suffix (e.g. `opmonitor_admin`).
 
 ```sql
-CREATE DATABASE "op-monitor" ENCODING 'UTF8';
-REVOKE ALL ON DATABASE "op-monitor" FROM PUBLIC;
-CREATE ROLE opmonitor_admin LOGIN PASSWORD '<opmonitor_admin password>';
-GRANT opmonitor_admin to <superuser>;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "op-monitor" TO opmonitor_admin;
-\c "op-monitor"
-CREATE SCHEMA opmonitor AUTHORIZATION opmonitor_admin;
+CREATE DATABASE <opmonitor_database> ENCODING 'UTF8';
+REVOKE ALL ON DATABASE <opmonitor_database> FROM PUBLIC;
+CREATE ROLE <opmonitor_admin_user> LOGIN PASSWORD '<opmonitor_admin_user password>';
+GRANT <opmonitor_admin_user> TO <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <opmonitor_database> TO <opmonitor_admin_user>;
+\c <opmonitor_database>
+CREATE SCHEMA <opmonitor_schema> AUTHORIZATION <opmonitor_admin_user>;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to opmonitor_admin;
-CREATE ROLE opmonitor LOGIN PASSWORD '<opmonitor password>';
-GRANT opmonitor to <superuser>;
-GRANT TEMPORARY,CONNECT ON DATABASE "op-monitor" TO opmonitor;
-GRANT USAGE ON SCHEMA public to opmonitor;
+GRANT USAGE ON SCHEMA public TO <opmonitor_admin_user>;
+CREATE ROLE <database_user> LOGIN PASSWORD '<opmonitor_database_user password>';
+GRANT <opmonitor_database_user> TO <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE <opmonitor_database> TO <opmonitor_database_user>;
+GRANT USAGE ON SCHEMA public TO <opmonitor_database_user>;
+GRANT USAGE ON SCHEMA <opmonitor_schema> TO <opmonitor_database_user>;
+GRANT SELECT,UPDATE,INSERT,DELETE ON ALL TABLES IN SCHEMA <opmonitor_schema> TO <opmonitor_database_user>;
+GRANT SELECT,UPDATE ON ALL SEQUENCES IN SCHEMA <opmonitor_schema> TO <opmonitor_database_user>;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA <opmonitor_schema> TO <opmonitor_database_user>;
 ```
 
 Lastly, customize the database connection properties to match the values used when creating the database.
@@ -851,12 +866,12 @@ sudo chmod 600 /etc/xroad.properties
 
 Edit `/etc/xroad.properties` and add/update the following properties (if you customized the role names, use your own). The admin users are used to run database migrations during the install and upgrades.
 ```properties
-serverconf.database.admin_user = serverconf_admin
-serverconf.database.admin_password = <serverconf_admin password>
-op-monitor.database.admin_user = opmonitor_admin
-op-monitor.database.admin_password = <opmonitor_admin password>
-messagelog.database.admin_user = messagelog_admin
-messagelog.database.admin_password = <messagelog_admin password>
+serverconf.database.admin_user = <serverconf_admin_user>
+serverconf.database.admin_password = <serverconf_admin_user password>
+messagelog.database.admin_user = <messagelog_admin_user>
+messagelog.database.admin_password = <messagelog_admin_user password>
+op-monitor.database.admin_user = <opmonitor_admin_user>
+op-monitor.database.admin_password = <opmonitor_admin_user password>
 ```
 
 Create the `/etc/xroad/db.properties` file
@@ -872,18 +887,18 @@ sudo chown xroad:xroad /etc/xroad/db.properties
 Edit the `/etc/xroad/db.properties` file and add/update the following connection properties (if you customized the database, user, and/or role names, use the customized values).
 The database connection url format is `jdbc:postgresql://<database host>:<port>/<database name>`
 ```properties
-serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/serverconf
-serverconf.hibernate.connection.username = serverconf
-serverconf.hibernate.connection.password = <serverconf password> 
-serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/<serverconf_database>
+serverconf.hibernate.connection.username = <serverconf_database_user>
+serverconf.hibernate.connection.password = <serverconf_database_user password>
+serverconf.hibernate.hikari.dataSource.currentSchema = <serverconf_schema>,public
 
-messagelog.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/messagelog
-messagelog.hibernate.connection.username = messagelog
-messagelog.hibernate.connection.password = <messagelog password>
-messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
+messagelog.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/<messagelog_database>
+messagelog.hibernate.connection.username = <messagelog_database_user>
+messagelog.hibernate.connection.password = <messagelog_database_user password>
+messagelog.hibernate.hikari.dataSource.currentSchema = <messagelog_schema>,public
 
-op-monitor.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/op-monitor
-op-monitor.hibernate.connection.username = opmonitor
-op-monitor.hibernate.connection.password = <opmonitor password>
-op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
+op-monitor.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/<opmonitor_database>
+op-monitor.hibernate.connection.username = <opmonitor_database_user>
+op-monitor.hibernate.connection.password = <opmonitor_database_user password>
+op-monitor.hibernate.hikari.dataSource.currentSchema = <opmonitor_schema>,public
 ```

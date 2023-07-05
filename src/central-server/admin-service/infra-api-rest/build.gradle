@@ -1,0 +1,28 @@
+
+dependencies {
+    implementation project(':central-server:admin-service:core-api')
+    implementation project(':central-server:openapi-model')
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
+    implementation project(':signer-protocol')
+    implementation project(':common:common-ui')
+    implementation project(':common:common-admin-api')
+
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    testImplementation project(':common:common-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java',
+            "${buildDir}/generated/sources/annotationProcessor/java/main"
+        ]
+    }
+}

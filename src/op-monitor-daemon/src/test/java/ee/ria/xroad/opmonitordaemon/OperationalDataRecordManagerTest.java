@@ -45,7 +45,7 @@ import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransa
 import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.queryAllRecords;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.queryRecords;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.storeRecords;
-import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.GSON;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.OBJECT_READER;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.storeFullOperationalDataRecord;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.storeFullOperationalDataRecords;
@@ -88,7 +88,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     @Test
     public void storeAndQueryOperationalData() throws Exception {
-        OperationalDataRecord record = GSON.fromJson(
+        OperationalDataRecord record = OBJECT_READER.readValue(
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
         storeRecords(Collections.singletonList(record), 1474968979L);
 
@@ -194,7 +194,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     @Test
     public void storeAndQueryDataFilteringByOutputFields() throws Exception {
-        ClientId client = ClientId.create(
+        ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000001", "System1");
 
         storeFullOperationalDataRecords(1, 1474968960L);
@@ -255,16 +255,16 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
     @Test
     public void storeAndQueryDataFilteringByClientAndServiceProvider()
             throws Exception {
-        ClientId client = ClientId.create(
+        ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000001", "System1");
-        ClientId unknownClient = ClientId.create(
+        ClientId unknownClient = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000001", "UNKNOWN");
-        ClientId serviceProvider = ClientId.create(
+        ClientId serviceProvider = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000000", "Center");
-        ClientId unknownServiceProvider = ClientId.create(
+        ClientId unknownServiceProvider = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000000", "UNKNOWN");
 
-        ClientId member = ClientId.create("XTEE-CI-XM", "GOV", "00000011");
+        ClientId member = ClientId.Conf.create("XTEE-CI-XM", "GOV", "00000011");
 
         storeFullOperationalDataRecord(1474968960L, client, serviceProvider);
         storeFullOperationalDataRecord(1474968970L, client, serviceProvider);
@@ -333,9 +333,9 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
     @Test
     public void storeAndQueryDataFilteringByClientAndServiceProviderOverflow()
             throws Exception {
-        ClientId client = ClientId.create(
+        ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000001", "System1");
-        ClientId serviceProvider = ClientId.create(
+        ClientId serviceProvider = ClientId.Conf.create(
                 "XTEE-CI-XM", "GOV", "00000000", "Center");
 
         storeFullOperationalDataRecord(1474968960L, client, serviceProvider);
@@ -397,7 +397,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     @Test
     public void stringTruncation() throws Exception {
-        OperationalDataRecord record = GSON.fromJson(
+        OperationalDataRecord record = OBJECT_READER.readValue(
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
 
         record.setMessageIssue(LONG_STRING);

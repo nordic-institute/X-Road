@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202207011455-identifiers-remove-redundant-type-field.xml">
+    <changeSet author="niis" id="202207011455-identifiers-remove-redundant-type-field">
+        <dropColumn tableName="identifiers">
+            <column name="type"/>
+        </dropColumn>
+    </changeSet>
+</databaseChangeLog>

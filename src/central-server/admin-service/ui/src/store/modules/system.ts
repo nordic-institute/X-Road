@@ -1,0 +1,109 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+import axios from 'axios';
+
+import * as api from '@/util/api';
+import {
+  InitializationStatus,
+  InitialServerConf,
+  CentralServerAddress,
+  SystemStatus,
+  TokenInitStatus,
+  Version,
+} from '@/openapi-types';
+import { defineStore } from 'pinia';
+import { notificationsStore } from './notifications';
+
+export const systemStore = defineStore('systemStore', {
+  state: () => {
+    return {
+      serverVersion: undefined as Version | undefined,
+      systemStatus: {
+        initialization_status: {
+          instance_identifier: '',
+          central_server_address: '',
+          software_token_init_status: TokenInitStatus.UNKNOWN,
+        },
+        high_availability_status: {
+          is_ha_configured: false,
+          node_name: undefined,
+        },
+      } as SystemStatus,
+    };
+  },
+  persist: {
+    storage: localStorage,
+  },
+  getters: {
+    getServerVersion(state) {
+      return state.serverVersion;
+    },
+    getSystemStatus(state) {
+      return state.systemStatus;
+    },
+    isServerInitialized(): boolean {
+      const initializationStatus: InitializationStatus | undefined =
+        this.systemStatus?.initialization_status;
+
+      if (!initializationStatus) return false;
+
+      return (
+        0 < initializationStatus.instance_identifier.length &&
+        0 < initializationStatus.central_server_address.length &&
+        TokenInitStatus.INITIALIZED ==
+          initializationStatus.software_token_init_status
+      );
+    },
+  },
+
+  actions: {
+    async fetchServerVersion() {
+      return axios
+        .get<Version>('/system/version')
+        .then((resp) => (this.serverVersion = resp.data));
+    },
+    async fetchSystemStatus() {
+      return api
+        .get<SystemStatus>('/system/status')
+        .then((resp) => (this.systemStatus = resp.data));
+    },
+    async updateCentralServerAddress(newAddress: CentralServerAddress) {
+      return api
+        .put<SystemStatus>('/system/server-address', newAddress)
+        .then((resp) => (this.systemStatus = resp.data));
+    },
+
+    async initalizationRequest(formData: InitialServerConf) {
+      const notifications = notificationsStore();
+
+      return api.post('/initialization', formData).then(() => {
+        notifications.setContinueInit(true);
+      });
+    },
+  },
+});

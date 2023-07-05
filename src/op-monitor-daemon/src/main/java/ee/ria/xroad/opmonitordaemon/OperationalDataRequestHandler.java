@@ -184,7 +184,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
                 recordsFrom, recordsTo, filterByServiceProvider, outputFields);
 
         opDataResponse.setRecordsCount(responseRecords.size());
-        String payload = responseRecords.getPayload(GSON);
+        String payload = responseRecords.getPayload(OBJECT_WRITER);
 
         // Optimize memory usage: release records memory before compressing
         // operation.
