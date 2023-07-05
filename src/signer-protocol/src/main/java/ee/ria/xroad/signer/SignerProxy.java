@@ -249,18 +249,6 @@ public final class SignerProxy {
     }
 
     /**
-     * Imports the given byte array as a new certificate with the provided initial status.
-     *
-     * @param certBytes     byte content of the new certificate
-     * @param initialStatus initial status of the certificate
-     * @return key ID of the new certificate as a String
-     * @throws Exception if any errors occur
-     */
-    public static String importCert(byte[] certBytes, String initialStatus) throws Exception {
-        return importCert(certBytes, initialStatus, null);
-    }
-
-    /**
      * Imports the given byte array as a new certificate with the provided initial status and owner client ID.
      *
      * @param certBytes     byte content of the new certificate
