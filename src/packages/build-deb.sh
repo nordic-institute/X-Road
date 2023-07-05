@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-LAST_SUPPORTED_VERSION=7.1.0
+LAST_SUPPORTED_VERSION=7.2.0
 
 function builddeb {
     local root="$1"
