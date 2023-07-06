@@ -1,5 +1,8 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
+Version: 1.10  
+Doc. ID: UG-SS-SIDECAR
+
 ## Version history <!-- omit in toc -->
 
  Date       | Version | Description                                             | Author
@@ -14,6 +17,7 @@
  02.11.2021 | 1.7     | Updates for Sidecar 7.0.0                               | Jarkko Hyöty
  28.11.2021 | 1.8     | Add license info                                        | Petteri Kivimäki
  11.10.2022 | 1.9     | Minor documentation updates regarding upgrade process   | Monika Liutkute
+ 06.07.2023 | 1.10    | Sidecar repo migration                                  | Eneli Reimets
 
 ## License
 
@@ -73,11 +77,9 @@ Operational monitoring           | Yes         | No               |
 
 ### 1.2 References
 
-<a id="Ref_IG-SS">[IG-SS]</a> [X-Road: Security Server Installation Guide](https://github.com/nordic-institute/X-Road/blob/master/doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
-
-<a id="Ref_IG-SS-Annex-D">[IG-SS-Annex-D]</a> [X-Road: Security Server Installation Guide](https://github.com/nordic-institute/X-Road/blob/master/doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#annex-d-create-database-structure-manually)
-
-<a id="Ref_UG-SS">[UG-SS]</a> [X-Road: Security Server User Guide](https://github.com/nordic-institute/X-Road/blob/master/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md)
+1. <a id="Ref_IG-SS">[IG-SS]</a> [X-Road: Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
+2. <a id="Ref_IG-SS-Annex-D">[IG-SS-Annex-D]</a> [X-Road: Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#annex-d-create-database-structure-manually)
+3. <a id="Ref_UG-SS">[UG-SS]</a> [X-Road: Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md)
 
 ## 2 Installation
 

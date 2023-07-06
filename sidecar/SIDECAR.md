@@ -40,7 +40,7 @@ The Security Server Sidecar Docker image (`niis/xroad-security-server-sidecar`) 
 
 ## How to Contribute?
 
-Submit a pull request to the [Sidecar source code Github repository](https://github.com/nordic-institute/X-Road-Security-Server-sidecar)
+Submit a pull request to the [Sidecar source code Github repository](https://github.com/nordic-institute/X-Road)
 or an enhancement request to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).
 [Sign up](https://id.atlassian.com/signup) for an account and
 get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) and

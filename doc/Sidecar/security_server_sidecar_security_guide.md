@@ -1,12 +1,16 @@
 # Security Server Sidecar Security Guide <!-- omit in toc -->
 
+Version: 1.3  
+Doc. ID: UG-SS-SEC-SIDECAR
+
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description      | Author
- ---------- |---------|------------------| --------------------
- 05.02.2021 | 1.0     | Initial version  | Raul Martinez Lopez
- 28.11.2021 | 1.1     | Add license info | Petteri Kivimäki
- 11.10.2022 | 1.2     | Updating links   | Monika Liutkute
+ Date       | Version | Description            | Author
+ ---------- |---------|------------------------| --------------------
+ 05.02.2021 | 1.0     | Initial version        | Raul Martinez Lopez
+ 28.11.2021 | 1.1     | Add license info       | Petteri Kivimäki
+ 11.10.2022 | 1.2     | Updating links         | Monika Liutkute
+ 06.07.2023 | 1.3     | Sidecar repo migration | Eneli Reimets
 
 ## License
 
@@ -71,6 +75,10 @@ Note(2) For the scope of this document, we will assume a single Security Server 
 The Security Server Sidecar can be configured to use either a local database running inside the container or a remote database running externally. Since the Security Server is a stateful application, it is recommended to configure the Sidecar container to use a remote database and persistent file storage external to the container. More information can be found on the Security Server Sidecar User Guide to [set up an external database](security_server_sidecar_user_guide.md#27-external-database) and [bind an external volume](security_server_sidecar_user_guide.md#29-volume-support).
 
 Note(3) For the scope of this document, we will assume the Security Server sidecar is configured to use an external database for storing server configuration, message logs and operational monitoring data and an external volume to store configuration files.
+
+### 1.3 References
+
+1. <a id="Ref_UG-SS">[UG-SS]</a> [X-Road: Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md)
 
 ## 2 Securing Sidecar container
 
@@ -382,7 +390,7 @@ The command should return `NetworkMode=xroad-network` for the Security Server Si
 
 ### 3.4 Management API and keys
 
-The Management API provides access to all the same administrative operations of the Security Server that can be done using the web UI. The Management API is protected with an API key-based authentication. The process to create new API keys is explained in the [Security Server User Guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#191-api-key-management-operations).
+The Management API provides access to all the same administrative operations of the Security Server that can be done using the web UI. The Management API is protected with an API key-based authentication. The process to create new API keys is explained in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#191-api-key-management-operations).
 
 Internal and admin UI TLS keys and certificates are generated during the first time the Security Server Sidecar container is run. The internal TLS certificate is used for establishing a TLS connection between the Security Server and the client Information Systems. The admin UI TLS certificate is used to authenticate the Information System when HTTPS protocol is used for connections between the service client's or provider's Security Server and Information System. Those keys and certificates can be found under the `/etc/xroad/ssl/` directory in the container.
 

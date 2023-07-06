@@ -1,16 +1,20 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
+Version: 1.7  
+Doc. ID: UG-K-SS-SIDECAR
+
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                     | Author
- ---------- |---------| --------------------------------------------------------------- | --------------------
- 05.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
- 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                                   | Alberto Fernandez Lorenzo
- 11.03.2021 | 1.2     | Add setup examples                                              | Alberto Fernandez Lorenzo
- 15.03.2021 | 1.3     | Add IP address options                                          | Alberto Fernandez Lorenzo
- 22.03.2021 | 1.4     | Add Load Balancer setup example                                 | Alberto Fernandez Lorenzo
- 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                            | Jarkko Hyöty
- 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process           | Monika Liutkute
+ Date       | Version | Description                                           | Author
+ ---------- |---------|-------------------------------------------------------| --------------------
+ 05.01.2021 | 1.0     | Initial version                                       | Alberto Fernandez Lorenzo
+ 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                         | Alberto Fernandez Lorenzo
+ 11.03.2021 | 1.2     | Add setup examples                                    | Alberto Fernandez Lorenzo
+ 15.03.2021 | 1.3     | Add IP address options                                | Alberto Fernandez Lorenzo
+ 22.03.2021 | 1.4     | Add Load Balancer setup example                       | Alberto Fernandez Lorenzo
+ 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                  | Jarkko Hyöty
+ 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process | Monika Liutkute
+ 06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets
 
 ## License
 
@@ -81,7 +85,7 @@ It's recommended to use this deployment only for testing or developing environme
 
 This deployment is the same as the previous deployment except that it uses an external database.
 
-You can find more information about [using an external database on the Security Server Sidecar](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#25-using-an-external-database).
+You can find more information about [using an external database on the Security Server Sidecar](security_server_sidecar_user_guide.md#25-using-an-external-database).
 
 ### 2.3 Multiple Pods using a Load Balancer
 
@@ -99,7 +103,7 @@ This option enables scaling the number of Nodes and Pods on the cluster. The opt
 
 ## 3 X-Road Security Server Sidecar images for Kubernetes
 
-All of the X-Road Security Server Sidecar images described in the [Security Server user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) are suitable to be used for a Kubernetes deployment. Additionally, there are images suitable to be used for a Load Balancer Kubernetes deployment as described in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). These images include the necessary configuration so that the Pods can act as Primary or Secondary.
+All of the X-Road Security Server Sidecar images described in the [Security Server user guide](security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) are suitable to be used for a Kubernetes deployment. Additionally, there are images suitable to be used for a Load Balancer Kubernetes deployment as described in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). These images include the necessary configuration so that the Pods can act as Primary or Secondary.
 
 **Image**                                                              | **Description**
 ---------------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------------------
@@ -140,7 +144,7 @@ The table below lists the required connections between different components.
 
 ### 4.4 Reference Data
 
-This is an extension of the Security Server Sidecar [Reference Data](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-reference-data)
+This is an extension of the Security Server Sidecar [Reference Data](security_server_sidecar_user_guide.md#22-reference-data)
 
 **Ref** | **Value**                            | **Explanation**
 ------- | ----------------------------------- | ----------------------------------------------------------
@@ -219,7 +223,7 @@ spec:
     - containerPort: 5577
 ```
 
-Any of the Security Server Sidecar images described in the [Security Server Sidecar user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) can be used as image tag.
+Any of the Security Server Sidecar images described in the [Security Server Sidecar user guide](security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) can be used as image tag.
 Optionally, you can use an external database by adding the following environment variables of the deployment (**reference data: 1.7, 1.8, 1.9, 1.11**):
 
 ``` yaml
@@ -499,7 +503,7 @@ The manifest has two Kubernetes objects:
 * A Pod with the primary image of the Security Server Sidecar, as image tag you can choose between the "primary" or "primary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
 The Pod defines two volumes: one volume to store the secret public key described in [4.5.4 Kubernetes Secrets](#454-Kubernetes-secrets), and a second volume to store the `/etc/xroad` configuration.
 
-Once the Primary Pod is deployed, you need to configure it (complete initial configuration, create the certificates, register in the Central Server) following the [User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#3-initial-configuration).
+Once the Primary Pod is deployed, you need to configure it (complete initial configuration, create the certificates, register in the Central Server) following the [User Guide](security_server_sidecar_user_guide.md#3-initial-configuration).
 
 Once the configuration is completed, verify the installation by running a healthcheck to the Pod running the Security Server Sidecar container from the internal network and check that the result is OK:
 
@@ -640,7 +644,7 @@ In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple
 
 ## 5 Backup and Restore
 
-The backup system of the Security Servers described in the [User Guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore) is also valid for the installation using Kubernetes. If your Kubernetes deployment uses volumes to store the configuration, you can additionally back up each volume using e.g. volume snapshots.
+The backup system of the Security Servers described in the [User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore) is also valid for the installation using Kubernetes. If your Kubernetes deployment uses volumes to store the configuration, you can additionally back up each volume using e.g. volume snapshots.
 
 ## 6 Monitoring
 
@@ -667,7 +671,7 @@ To update the version of the Security Server Sidecar, re-deploy the Pod with a n
 
 Upgrading from 6.26.0 to 7.0.0 is supported, if the above prerequisites are met. However, due to a problem in 6.26.0 installer scripts, 
 it is necessary to verify that the `/etc/xroad.properties` file containing database admin credentials that are needed during schema migrations  
-has been correctly populated (see [IG-SS, Annex D](https://github.com/nordic-institute/X-Road/blob/master/doc/Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#annex-d-create-database-structure-manually) 
+has been correctly populated (see [IG-SS, Annex D](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#annex-d-create-database-structure-manually) 
 for details describing expected file content and manual creation instructions).
 Backups are not compatible between 6.26.0 and 7.0.0, so upgrading using a backup is not possible.
 
@@ -682,7 +686,7 @@ kubectl exec -n <namespace> <sidecar-pod-name> -- cp /etc/xroad.properties /etc/
 
 **Note:** Does not apply to slim containers and secondary Pods.
 
-As described in the [Security Server Sidecar User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#29-message-log-archives) it is recommended to use a persistent volume for the message log archives. Note that in the load balancer setup, only the primary node performs archiving.
+As described in the [Security Server Sidecar User Guide](security_server_sidecar_user_guide.md#29-message-log-archives) it is recommended to use a persistent volume for the message log archives. Note that in the load balancer setup, only the primary node performs archiving.
 
 ## 9 Automatic scaling of the secondary pods
 

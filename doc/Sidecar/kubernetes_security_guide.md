@@ -1,5 +1,8 @@
 # Kubernetes Security Server Sidecar Security User Guide <!-- omit in toc -->
 
+Version: 1.4  
+Doc. ID: UG-K-SS-SEC-SIDECAR
+
 ## Version history <!-- omit in toc -->
 
  Date       | Version | Description                                  | Author
@@ -8,6 +11,7 @@
  09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices | Alberto Fernandez Lorenzo
  28.11.2021 | 1.2     | Add license info                             | Petteri Kivimäki
  11.10.2022 | 1.3     | Updating links                               | Monika Liutkute
+ 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets
 
 ## License
 
@@ -45,12 +49,12 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS environment.
 
-This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md).
+This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md).
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, AWS EKS and X-Road.
 
 ## 2 Reference Data
 
-Please check the Reference data in the [Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#44-reference-data).
+Please check the Reference data in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#44-reference-data).
 
 **Ref** | **Value**                                | **Explanation**
 ------- | ----------------------------------------- | ----------------------------------------------------------
@@ -62,7 +66,7 @@ Please check the Reference data in the [Kubernetes User Guide](https://github.co
 
 ## 3 Handling passwords and secrets
 
-Kubernetes Secrets let you store and manage sensitive information in a safer way than putting it verbatim in a Pod definition or container image. For example, for the scenario [Multiple Pods using a Load Balancer](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#23-multiple-pods-using-a-load-balancer) it is recommended to use secrets to store the environmental variables for the database password and the SSH keys using for the communication between the Primary and Secondary pods.
+Kubernetes Secrets let you store and manage sensitive information in a safer way than putting it verbatim in a Pod definition or container image. For example, for the scenario [Multiple Pods using a Load Balancer](kubernetes_security_server_sidecar_user_guide.md#23-multiple-pods-using-a-load-balancer) it is recommended to use secrets to store the environmental variables for the database password and the SSH keys using for the communication between the Primary and Secondary pods.
 The Secrets can be used with a Pod in three ways:
 
 * As files in a volume mounted on one or more containers.
@@ -334,7 +338,7 @@ kubectl get daemonset calico-node --namespace kube-system
 
 ### 5.1 Create Network policies
 
-In this example, it will be shown how to isolate the Primary Pod described in [Multiple Pods scenario](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#456-multiple-pods-using-a-load-balancer-deployment) so that it only allows traffic from the Secondary Pods through port 22.
+In this example, it will be shown how to isolate the Primary Pod described in [Multiple Pods scenario](kubernetes_security_server_sidecar_user_guide.md#456-multiple-pods-using-a-load-balancer-deployment) so that it only allows traffic from the Secondary Pods through port 22.
 
 1. Modify the Primary Pod manifest adding the label "role:primary" to identify it:
 
@@ -628,7 +632,7 @@ The restoration of backups is a process that is executed with root permission an
 
 ## 10 Message logs
 
-The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#8-message-log-archives).
+The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#8-message-log-archives).
 
 ## 11 Horizontal Pod Autoscaler best practices
 

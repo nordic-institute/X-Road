@@ -9,12 +9,12 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: 'master']],
+                    branches: [[name: 'develop']],
                     doGenerateSubmoduleConfigurations: false,
                     gitTool: 'Default',
                     userRemoteConfigs: [
                         [
-                            url: 'https://github.com/nordic-institute/X-Road-Security-Server-sidecar.git',
+                            url: 'https://github.com/nordic-institute/X-Road.git',
                             refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
                         ]
                     ]
