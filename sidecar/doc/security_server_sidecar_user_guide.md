@@ -140,7 +140,7 @@ See also [Docker Networking](https://docs.docker.com/network/)
 ### 2.4 Running the Sidecar Container
 
 To run X-Road Security Server Sidecar, use one of the images published in [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server-sidecar).
-Alternatively, you can build container images locally using the [docker-build.sh script](../sidecar/docker-build.sh).
+Alternatively, you can build container images locally using the [docker-build.sh script](../docker-build.sh).
 
 ```bash
 docker run --detach \

@@ -429,7 +429,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
     kubectl delete -f /path/to/file.yaml
     ```
 
-The [security-server-sidecar-network-policy-examples manifest template](./files/security-server-sidecar-network-policy-examples.yaml) contains examples of all the above network policies.
+The [security-server-sidecar-network-policy-examples manifest template](files/security-server-sidecar-network-policy-examples.yaml) contains examples of all the above network policies.
 
 ## 6 Pod Security Policies
 
