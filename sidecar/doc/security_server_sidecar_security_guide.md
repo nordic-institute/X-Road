@@ -60,15 +60,15 @@ The document is intended for readers with a moderate knowledge of Linux server m
 
 ### 1.2 Environment assumptions
 
-The regular version of the Sidecar includes message log, operational monitoring, and environmental monitoring modules, whereas the Sidecar slim version does not include the aforementioned modules. Both the slim and regular versions of the Sidecar can be used for both consuming and producing services. In addition, there are country-specific configuration versions available, such as the Finnish meta-package (currently the only one). More information can be found on the Security Server Sidecar User Guide for the different [image versions](./security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images).
+The regular version of the Sidecar includes message log, operational monitoring, and environmental monitoring modules, whereas the Sidecar slim version does not include the aforementioned modules. Both the slim and regular versions of the Sidecar can be used for both consuming and producing services. In addition, there are country-specific configuration versions available, such as the Finnish meta-package (currently the only one). More information can be found on the Security Server Sidecar User Guide for the different [image versions](security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images).
 
 Note(1) For the scope of this document, we will assume the regular Security Server Sidecar image version is used.
 
-The Security Server Sidecar can run alongside the client or service information system in the same host but in separate containers. In a production environment, a single Security Server Sidecar container may be shared between different information systems. However, the footprint of the Sidecar container is relatively high compared to the footprint of average containers and it has to be taken into account for dimensioning the host where the containers should run. More information can be found on the Security Server Sidecar User Guide for the [requirements to run a Security Server Sidecar container](./security_server_sidecar_user_guide.md#24-requirements-for-the-x-road-security-server-sidecar).
+The Security Server Sidecar can run alongside the client or service information system in the same host but in separate containers. In a production environment, a single Security Server Sidecar container may be shared between different information systems. However, the footprint of the Sidecar container is relatively high compared to the footprint of average containers and it has to be taken into account for dimensioning the host where the containers should run. More information can be found on the Security Server Sidecar User Guide for the [requirements to run a Security Server Sidecar container](security_server_sidecar_user_guide.md#24-requirements-for-the-x-road-security-server-sidecar).
 
 Note(2) For the scope of this document, we will assume a single Security Server Sidecar container is running alongside an information system for consuming or providing services.
 
-The Security Server Sidecar can be configured to use either a local database running inside the container or a remote database running externally. Since the Security Server is a stateful application, it is recommended to configure the Sidecar container to use a remote database and persistent file storage external to the container. More information can be found on the Security Server Sidecar User Guide to [set up an external database](./security_server_sidecar_user_guide.md#27-external-database) and [bind an external volume](./security_server_sidecar_user_guide.md#29-volume-support).
+The Security Server Sidecar can be configured to use either a local database running inside the container or a remote database running externally. Since the Security Server is a stateful application, it is recommended to configure the Sidecar container to use a remote database and persistent file storage external to the container. More information can be found on the Security Server Sidecar User Guide to [set up an external database](security_server_sidecar_user_guide.md#27-external-database) and [bind an external volume](security_server_sidecar_user_guide.md#29-volume-support).
 
 Note(3) For the scope of this document, we will assume the Security Server sidecar is configured to use an external database for storing server configuration, message logs and operational monitoring data and an external volume to store configuration files.
 
@@ -303,7 +303,7 @@ Additionally, if the Security Server Sidecar is configured to use a remote datab
 
 The software token PIN code set up during the initial configuration of the Security Server is stored on `/etc/xroad/autologin` file.
 
-The above-mentioned files should not be stored inside the Security Server Sidecar container. More information can be found on the Security Server Sidecar User Guide for [using volumes to store files outside the container](./security_server_sidecar_user_guide.md#27-using-volumes).
+The above-mentioned files should not be stored inside the Security Server Sidecar container. More information can be found on the Security Server Sidecar User Guide for [using volumes to store files outside the container](security_server_sidecar_user_guide.md#27-using-volumes).
 
 #### 3.1.3 Secure credentials on environment variables
 
@@ -314,7 +314,7 @@ docker run ... -e -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user
 -e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<database password> ...
 ```
 
-When deploying the Security Server Sidecar in a production cloud environment, we can make use of Kubernetes Secrets to avoid passing this information as plain text. More information can be found on the Kubernetes Security Server Sidecar User Guide for [Kubernetes Secrets](./kubernetes_security_server_sidecar_user_guide.md#454-kubernetes-secrets).
+When deploying the Security Server Sidecar in a production cloud environment, we can make use of Kubernetes Secrets to avoid passing this information as plain text. More information can be found on the Kubernetes Security Server Sidecar User Guide for [Kubernetes Secrets](kubernetes_security_server_sidecar_user_guide.md#454-kubernetes-secrets).
 
 ### 3.2 User accounts
 
@@ -386,10 +386,10 @@ The Management API provides access to all the same administrative operations of 
 
 Internal and admin UI TLS keys and certificates are generated during the first time the Security Server Sidecar container is run. The internal TLS certificate is used for establishing a TLS connection between the Security Server and the client Information Systems. The admin UI TLS certificate is used to authenticate the Information System when HTTPS protocol is used for connections between the service client's or provider's Security Server and Information System. Those keys and certificates can be found under the `/etc/xroad/ssl/` directory in the container.
 
-The above mentioned files should not be stored inside the Security Server Sidecar container. More information can be found on the Security Server Sidecar User Guide for [configuring volumes to store sensitive files outside the container](./security_server_sidecar_user_guide.md#291-store-sensitive-information-in-volumes).
+The above mentioned files should not be stored inside the Security Server Sidecar container. More information can be found on the Security Server Sidecar User Guide for [configuring volumes to store sensitive files outside the container](security_server_sidecar_user_guide.md#291-store-sensitive-information-in-volumes).
 
 ### 3.5 Backups
 
-The internal and admin UI and internal TLS certificates created during the installation process will be overwritten by the ones restored from the backup. The X-Road admin user created during the installation process is not included in the backup and must be re-created manually. More information on the Security Server User Guide for the [installation process](./security_server_sidecar_user_guide.md#26-installation).
+The internal and admin UI and internal TLS certificates created during the installation process will be overwritten by the ones restored from the backup. The X-Road admin user created during the installation process is not included in the backup and must be re-created manually. More information on the Security Server User Guide for the [installation process](security_server_sidecar_user_guide.md#26-installation).
 
 Note that the backup does not include X-Road admin user account(s) or `/etc/xroad.properties` (database admin credentials; needed when using a remote database). You need to take care of moving these manually.

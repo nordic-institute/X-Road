@@ -690,7 +690,7 @@ It is possible to automatically scale the Sidecar secondary Pods using e.g. [Kub
 
 ## 10 Load Balancer setup example
 
-The [load_balancer_setup manifest template](./files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to set up the deployment scenario in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is named `sidecar`.
+The [load_balancer_setup manifest template](files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to set up the deployment scenario in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is named `sidecar`.
 
 1. Download the file and search for the following variables and replace it with our desired values:
 
