@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+    parameters {
+        string(description: "Path to the Dockerfile to build", name: "DOCKERFILE_PATH", defaultValue: "${params?.DOCKERFILE_PATH}")
+    }
+    stages {
+        stage('Create Security server sidecar docker image') {
+            steps {
+                build job: 'build-security-server-sidecar-docker-image',
+                parameters: [
+                    string(name: 'RELEASE_VERSION', value: params.RELEASE_VERSION),
+                    string(name: 'IMAGE_TAG', value: params.IMAGE_TAG),
+                    string(name: 'DOCKERFILE_PATH', value: params.DOCKERFILE_PATH),
+                ]
+            }
+        }
+        stage('Publish image with IMAGE_TAG') {
+            steps {
+                withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                    sh 'docker push niis/xroad-security-server-sidecar:$IMAGE_TAG'
+                }
+            }
+        }
+    }
+}
