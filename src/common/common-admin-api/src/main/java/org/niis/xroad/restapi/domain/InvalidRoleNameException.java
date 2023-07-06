@@ -32,4 +32,8 @@ public class InvalidRoleNameException extends Exception {
     public InvalidRoleNameException(String s) {
         super(s);
     }
+
+    public InvalidRoleNameException(String s, Throwable cause) {
+        super(s, cause);
+    }
 }
