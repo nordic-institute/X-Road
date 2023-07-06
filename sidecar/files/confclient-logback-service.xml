@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <property file="/etc/xroad/conf.d/variables-logback.properties" />
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} %level [xroad-confclient-service] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ee.ria.xroad" level="${XROAD_LOG_LEVEL:-INFO}"/>
+    <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
+
+    <root level="${XROAD_ROOT_LOG_LEVEL:-WARN}">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

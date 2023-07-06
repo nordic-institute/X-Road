@@ -1,0 +1,49 @@
+pipeline {
+    agent { label 'dev-test' }
+    stages {
+        stage('Check if slim and regular are deployed in kubernetes') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-slim'
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar'
+                }
+            }
+        }
+        stage('Test SOAP inteface') {
+            steps {
+                retry (5) {
+                    sleep(time: 10, unit: 'SECONDS')
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure -d  @sidecar/kubernetes/testRequest.xml --header "Content-Type: text/xml" -X POST  http://$(kubectl get pods -l run=security-server-sidecar-slim -o jsonpath={.items[].status.podIP}):8080', returnStdout:true)
+                            if(response == '200') {
+                                echo '========> Security server is successfully running'
+                                currentBuild.result = 'SUCCESS'
+                            } else {
+                                error("========> Security server returned " + response + " . Try again in 10s")
+                            }
+                    }
+                    }
+                }
+            }
+        }
+        stage('Test REST inteface') {
+            steps {
+                retry (5) {
+                    sleep(time: 10, unit: 'SECONDS')
+                    script {
+                        withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure -X GET -H "X-Road-Client: DEV/COM/12345/TESTKUBERNETES"  "http://$(kubectl get pods -l run=security-server-sidecar-slim -o jsonpath={.items[].status.podIP}):8080/r1/DEV/COM/012345/TESTPROVIDER/BIS?totalResults=false&maxResults=10&resultsFrom=0&companyRegistrationFrom=2019-02-28" -H "accept: application/json"', returnStdout:true)
+                            if(response == '200') {
+                                echo '========> Security server is successfully running'
+                                currentBuild.result = 'SUCCESS'
+                            } else {
+                                error("========> Security server returned " + response + " . Try again in 10s")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

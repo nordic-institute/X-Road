@@ -1,0 +1,193 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sidecar
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-ssh-keys
+  namespace: sidecar
+type: Opaque
+data:
+  public-key: <public-key-path>
+  private-key: <private-key-path>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-sidecar-variables
+  namespace: sidecar
+type: Opaque
+stringData:
+  XROAD_TOKEN_PIN: "<token pin>"
+  XROAD_ADMIN_USER: "<admin user>"
+  XROAD_ADMIN_PASSWORD: "<admin password>"
+  XROAD_DB_HOST: "<database host>"
+  XROAD_DB_PWD: "<database password>"
+  XROAD_DB_PORT: "<database port>"
+  XROAD_LOG_LEVEL: "<xroad log level>"
+  XROAD_DATABASE_NAME: "<xroad database name>"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-config-sidecar
+  namespace: sidecar
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-security-server-sidecar-primary
+  labels:
+    run: service-security-server-sidecar-primary
+  namespace: sidecar
+spec:
+  clusterIP: None
+  selector:
+    run: security-server-sidecar-primary
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: security-server-sidecar-primary
+  namespace: sidecar
+  labels:
+    run: security-server-sidecar-primary
+    role: primary
+spec:
+   volumes:
+   - name: config-volume
+     persistentVolumeClaim:
+       claimName: pvc-config-sidecar
+   - name: secret-ssh-sidecar
+     secret:
+       secretName: secret-ssh-keys
+       items:
+       - key: public-key
+         path: id_rsa.pub
+         mode: 0644
+   containers:
+   - name: security-server-sidecar-primary-container
+     image: niis/xroad-security-server-sidecar:<version primary>
+     imagePullPolicy: "Always"
+     volumeMounts:
+     - name: config-volume
+       mountPath: /etc/xroad/
+     - name: secret-ssh-sidecar
+       mountPath: "/etc/.ssh/"
+     envFrom:
+     - secretRef:
+         name: secret-sidecar-variables
+     ports:
+     - containerPort: 4000
+     - containerPort: 5588
+     - containerPort: 22
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: balancer-security-server-sidecar
+  annotations:
+    service.beta.Kubernetes.io/aws-load-balancer-type: nlb
+  labels:
+    run: balancer-security-server-sidecar
+  namespace: sidecar
+spec:
+  type: LoadBalancer
+  selector:
+    run: security-server-sidecar-secondary
+  ports:
+  - port: 5500
+    targetPort: 5500
+    protocol: TCP
+    name: messaging
+  - port: 5577
+    targetPort: 5577
+    protocol: TCP
+    name: ocsp
+    name: tcp-5577
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: security-server-sidecar-secondary
+  namespace: sidecar
+spec:
+  selector:
+    matchLabels:
+      run: security-server-sidecar-secondary
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: security-server-sidecar-secondary
+        role: secondary
+    spec:
+      volumes:
+      - name: secret-ssh-sidecar
+        secret:
+          secretName: secret-ssh-keys
+          items:
+          - key: private-key
+            path: id_rsa
+            mode: 0644
+          - key: public-key
+            path: id_rsa.pub
+            mode: 0644
+      containers:
+      - name: secondary-sidecar-balancer-container
+        image: niis/xroad-security-server-sidecar:<version secondary>
+        imagePullPolicy: "Always"
+        volumeMounts:
+        - name: secret-ssh-sidecar
+          mountPath: "/etc/.ssh/"
+        env:
+        - name: XROAD_TOKEN_PIN
+          valueFrom:
+            secretKeyRef:
+              name: secret-sidecar-variables
+              key: XROAD_TOKEN_PIN
+        - name: XROAD_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: secret-sidecar-variables
+              key: XROAD_ADMIN_USER
+        - name: XROAD_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secret-sidecar-variables
+              key: XROAD_ADMIN_PASSWORD
+        - name: XROAD_LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              name: secret-sidecar-variables
+              key: XROAD_LOG_LEVEL
+        - name: XROAD_PRIMARY_DNS
+          value: "service-security-server-sidecar-primary"
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 10
+          failureThreshold: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5588
+          periodSeconds: 10
+          timeoutSeconds: 6
+          successThreshold: 1
+          failureThreshold: 1
+        ports:
+        - containerPort: 4000
+        - containerPort: 8443
+        - containerPort: 5500
+        - containerPort: 5577
+        - containerPort: 5588
