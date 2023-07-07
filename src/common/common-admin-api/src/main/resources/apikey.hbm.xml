@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="org.niis.xroad.restapi.domain">
+
+    <typedef name="RoleEnum" class="org.hibernate.type.EnumType">
+        <param name="enumClass">org.niis.xroad.restapi.domain.Role</param>
+        <param name="useNamed">true</param>
+    </typedef>
+
+    <class name="org.niis.xroad.restapi.domain.PersistentApiKeyType" table="APIKEY">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+        <property name="encodedKey" column="encodedkey" access="field"/>
+        <!--<set name="roles" table="APIKEY_ROLES" access="field" lazy="false" cascade="all-delete-orphan">-->
+        <set name="roles" table="APIKEY_ROLES" access="field" lazy="false">
+            <key column="apikey_id" not-null="true"/>
+            <element column="role" type="RoleEnum" not-null="true" />
+        </set>
+    </class>
+
+</hibernate-mapping>

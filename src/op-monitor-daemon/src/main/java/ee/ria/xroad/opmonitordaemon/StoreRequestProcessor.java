@@ -28,7 +28,7 @@ package ee.ria.xroad.opmonitordaemon;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
 @Slf4j
 class StoreRequestProcessor {
 
-    private static final Gson GSON = JsonUtils.getSerializer();
+    private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
     /** The servlet request. */
     private HttpServletRequest servletRequest;
@@ -93,7 +93,7 @@ class StoreRequestProcessor {
         OperationalDataRecords records;
 
         try {
-            records = GSON.fromJson(rawJsonData, OperationalDataRecords.class);
+            records = OBJECT_READER.readValue(rawJsonData, OperationalDataRecords.class);
         } catch (Exception e) {
             throw new Exception("Received invalid request", e);
         }

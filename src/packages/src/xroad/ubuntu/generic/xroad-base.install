@@ -1,8 +1,8 @@
 ../../../../src/xroad/common/base/etc/*  etc/
 ../../../../src/xroad/common/base/usr/*  usr/
 ../../../../src/xroad/default-configuration/common.ini etc/xroad/conf.d/
-../../../../../common-db/build/libs/common-db-1.0.jar usr/share/xroad/jlib/
-../../../../../proxy-ui-api/build/unpacked-libs/postgresql-42.5.2.jar usr/share/xroad/jlib/
+../../../../../common/common-db/build/libs/common-db-1.0.jar usr/share/xroad/jlib/
+../../../../../security-server/admin-service/application/build/unpacked-libs/postgresql-42.5.4.jar usr/share/xroad/jlib/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-base/
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-base/
 ../../../../../LICENSE.txt usr/share/doc/xroad-base/

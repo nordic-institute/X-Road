@@ -36,16 +36,16 @@ import ee.ria.xroad.common.util.MimeTypes;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -54,7 +54,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests to verify correct proxy message encoder behavior.
  */
-@Ignore(value = "Test data must be updated -- protocolVersion header field is required")
 public class ProxyMessageEncoderTest {
 
     ByteArrayOutputStream out;
@@ -62,10 +61,9 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Initialize.
-     * @throws Exception in case of any unexpected errors
      */
     @Before
-    public void initialize() throws Exception {
+    public void initialize() {
         out = new ByteArrayOutputStream();
         encoder = new ProxyMessageEncoder(out, getHashAlgoId());
     }
@@ -77,7 +75,7 @@ public class ProxyMessageEncoderTest {
     @Test
     public void normalMessage() throws Exception {
         SoapMessageImpl message = createMessage(getQuery("getstate.query"));
-        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml")), null, null);
+        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml"), UTF_8), null, null);
 
         encoder.soap(message, new HashMap<>());
         encoder.signature(signature);
@@ -99,7 +97,7 @@ public class ProxyMessageEncoderTest {
     @Test
     public void normalMessageWithOcsp() throws Exception {
         SoapMessageImpl message = createMessage(getQuery("getstate.query"));
-        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml")), null, null);
+        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml"), UTF_8), null, null);
         OCSPResp ocsp = getOcsp("src/test/queries/test.ocsp");
 
         encoder.ocspResponse(ocsp);
@@ -123,9 +121,9 @@ public class ProxyMessageEncoderTest {
     @Test
     public void normalMessageWithAttachment() throws Exception {
         SoapMessageImpl message = createMessage(getQuery("getstate.query"));
-        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml")), null, null);
+        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml"), UTF_8), null, null);
 
-        InputStream attachment = new ByteArrayInputStream("Hello, world!".getBytes(StandardCharsets.UTF_8));
+        InputStream attachment = new ByteArrayInputStream("Hello, world!".getBytes(UTF_8));
 
         encoder.soap(message, new HashMap<>());
         encoder.attachment(MimeTypes.TEXT_PLAIN, attachment, null);
@@ -184,7 +182,7 @@ public class ProxyMessageEncoderTest {
         return proxyMessage;
     }
 
-    private static SoapMessageImpl createMessage(InputStream is) throws Exception {
+    private static SoapMessageImpl createMessage(InputStream is) {
         Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
 
         if (soap instanceof SoapMessageImpl) {
@@ -194,7 +192,7 @@ public class ProxyMessageEncoderTest {
         throw new RuntimeException("Unexpected SOAP from parser: " + soap.getClass());
     }
 
-    private static SoapFault createFault(InputStream is) throws Exception {
+    private static SoapFault createFault(InputStream is) {
         Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
 
         if (soap instanceof SoapFault) {
@@ -205,11 +203,11 @@ public class ProxyMessageEncoderTest {
     }
 
     private static InputStream getQuery(String fileName) throws Exception {
-        return new FileInputStream("src/test/queries/" + fileName);
+        return Files.newInputStream(Paths.get("src/test/queries/" + fileName));
     }
 
     private static OCSPResp getOcsp(String fileName) throws Exception {
-        try (InputStream is = new FileInputStream(fileName)) {
+        try (InputStream is = Files.newInputStream(Paths.get(fileName))) {
             return new OCSPResp(IOUtils.toByteArray(is));
         }
     }

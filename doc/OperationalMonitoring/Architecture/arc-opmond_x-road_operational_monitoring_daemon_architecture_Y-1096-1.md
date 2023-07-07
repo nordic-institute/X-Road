@@ -1,21 +1,18 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.1  
+Version: 1.2  
 Document ID: ARC-OPMOND
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
-|  | 0.5       | Initial version               |          |
-| 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
-| 02.02.2018 | 0.7       | Technology matrix moved to the ARC-TEC-file               | Antti Luoma |
-| 05.03.2018 | 0.8       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo   |
-| 18.02.2019 | 0.9       | New optional field: xRequestId (string) | Caro Hautamäki   |
-| 12.12.2019 | 1.0       | Update appendix A.2 with the updated fields | Ilkka Seppälä   |
-| 25.06.2020 | 1.1       | Update section 3.3 with the instructions how to enable JMX | Petteri Kivimäki   |
+| Date       | Version | Description                                                         | Author           |
+|------------|---------|---------------------------------------------------------------------|------------------|
+|            | 0.5     | Initial version                                                     |                  |
+| 23.01.2017 | 0.6     | Added license text, table of contents and version history           | Sami Kallio      |
+| 02.02.2018 | 0.7     | Technology matrix moved to the ARC-TEC-file                         | Antti Luoma      |
+| 05.03.2018 | 0.8     | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo        |
+| 18.02.2019 | 0.9     | New optional field: xRequestId (string)                             | Caro Hautamäki   |
+| 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                         | Ilkka Seppälä    |
+| 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX          | Petteri Kivimäki |
+| 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -69,11 +66,11 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-<a name="ARC-G"></a>**ARC-G** -- Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](../../Architecture/arc-g_x-road_arhitecture.md).  
-<a name="PR-GCONF"></a>**PR-GCONF** -- Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).  
-<a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
-<a name="PR-OPMON"></a>**PR-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
-<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
+<a name="ARC-G"></a>**ARC-G** -- X-Road Architecture. Document ID: [ARC-G](../../Architecture/arc-g_x-road_arhitecture.md).  
+<a name="PR-GCONF"></a>**PR-GCONF** -- X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).  
+<a name="PR-MESS"></a>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
+<a name="PR-OPMON"></a>**PR-OPMON** -- X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
+<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="PSQL"></a>**PSQL** -- PostgreSQL, https://www.postgresql.org/  
 <a name="ARC-TEC"></a>**ARC-TEC** -- X-Road technologies. Document ID: [ARC-TEC](../../Architecture/arc-tec_x-road_technologies.md).  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).

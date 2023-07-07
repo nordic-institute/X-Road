@@ -1,0 +1,33 @@
+---
+#Logging configuration
+logging:
+  level:
+    ROOT: INFO
+    cucumber: TRACE
+    org.springframework: INFO
+
+test-automation:
+  report-name: xroad-cs-management-test-suite
+  environment: restuitest
+  spring-component-scan: "org.niis.xroad.cs.test"
+  cucumber:
+    execution:
+      parallel:
+        enabled: false
+    glue-append: "org.niis.xroad.cs.test.glue"
+    filter:
+      tags: "not @Skip"
+  containers:
+    testable-container:
+      reuse-between-runs: true
+      spring-boot:
+        jar-debug-enabled: true
+        debug-port: 9000
+        jacoco:
+          enabled: true
+        jar-build-dir: ../application/build/libs/
+        spring-profiles-to-activate: int-test
+    context-containers:
+      mock-server:
+        enabled: true
+        reuse-between-runs: false

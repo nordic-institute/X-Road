@@ -1,32 +1,28 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
-
 # X-Road: Configuration Proxy Architecture
 **Technical Specification**
 
-Version: 1.6  
-25.08.2021
+Version: 1.7  
+01.06.2023
 <!-- 1 pages -->
  Doc. ID: ARC-CP
 
 
 ## Version history
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 05.06.2015 | 0.1     | Initial version                                                 | Ilja Kromonov
- 03.07.2015 | 0.2     | Added deployment diagram                                        | Ilja Kromonov
- 08.07.2015 | 0.3     | Added configuration distribution workflow description; updated deployment diagram | Ilja Kromonov
- 09.09.2015 | 0.4     | Updated diagrams, editorial changes, technology matrix          | Ilja Kromonov
- 16.09.2015 | 1.0     | Editorial changes made                                          | Imbi Nõgisto
- 24.09.2015 | 1.1     | Reference added                                                 | Kristo Heero
- 21.10.2015 | 1.2     | SSCD and passwordstore related information added                | Ilja Kromonov
+ Date      | Version | Description                                                                                          | Author
+ --------- |---------|------------------------------------------------------------------------------------------------------| --------------------
+ 05.06.2015 | 0.1     | Initial version                                                                                      | Ilja Kromonov
+ 03.07.2015 | 0.2     | Added deployment diagram                                                                             | Ilja Kromonov
+ 08.07.2015 | 0.3     | Added configuration distribution workflow description; updated deployment diagram                    | Ilja Kromonov
+ 09.09.2015 | 0.4     | Updated diagrams, editorial changes, technology matrix                                               | Ilja Kromonov
+ 16.09.2015 | 1.0     | Editorial changes made                                                                               | Imbi Nõgisto
+ 24.09.2015 | 1.1     | Reference added                                                                                      | Kristo Heero
+ 21.10.2015 | 1.2     | SSCD and passwordstore related information added                                                     | Ilja Kromonov
  24.02.2017 | 1.3     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 19.01.2018 | 1.4     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
- 02.03.2018 | 1.5     | Moved terms and abbreviations to terms document                 | Tatu Repo
- 25.08.2021 | 1.6     | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 19.01.2018 | 1.4     | Matrix of technologies moved to ARC-TEC-file and chapters reordered                                  | Antti Luoma 
+ 02.03.2018 | 1.5     | Moved terms and abbreviations to terms document                                                      | Tatu Repo
+ 25.08.2021 | 1.6     | Update X-Road references from version 6 to 7                                                         | Caro Hautamäki
+ 01.06.2023 | 1.7     | Update references                                                                                    | Petteri Kivimäki
 
 ## Table of Contents
 
@@ -78,13 +74,13 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
+1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
 
-2. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
+2. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
 3. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
-4. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] Cybernetica AS. X-Road v7 Configuration Proxy Manual. Document ID: [UG-CP](../Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md).
+4. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] X-Road v7 Configuration Proxy Manual. Document ID: [UG-CP](../Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md).
 
 5. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies. Document ID: [ARC-TEC](arc-tec_x-road_technologies.md).
 

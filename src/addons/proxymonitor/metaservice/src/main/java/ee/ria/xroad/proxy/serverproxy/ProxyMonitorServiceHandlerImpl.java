@@ -101,7 +101,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     @Override
     public boolean canHandle(ServiceId requestServiceId, ProxyMessage requestProxyMessage) {
-        final ServiceId serviceId = ServiceId.create(ServerConf.getIdentifier().getOwner(), SERVICE_CODE);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(ServerConf.getIdentifier().getOwner(), SERVICE_CODE);
 
         if (serviceId.equals(requestServiceId)) {
             requestMessage = requestProxyMessage;

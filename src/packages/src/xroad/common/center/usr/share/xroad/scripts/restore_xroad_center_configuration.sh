@@ -23,6 +23,8 @@ OPTIONS:
        Mandatory in HA setup if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
+    -P Backup archive is in unencrypted TAR format NOT in GPG format (not encrypted nor signed).
+    -N Skip GPG signature verification
     -S Skip database restoration.
 EOF
 }
@@ -44,6 +46,12 @@ execute_restore () {
     if [ -n "${SKIP_DB_RESTORE}" ] && [[ ${SKIP_DB_RESTORE} = true ]] ; then
       args="${args} -S"
     fi
+    if [[ $PLAIN_BACKUP != true ]] ; then
+      args="${args} -E"
+    fi
+    if [[ $SKIP_SIGNATURE_CHECK = true ]] ; then
+      args="${args} -N"
+    fi
     sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
     if [ $? -ne 0 ] ; then
       echo "Failed to restore the configuration of the X-Road central server"
@@ -55,7 +63,7 @@ execute_restore () {
   fi
 }
 
-while getopts ":FSi:n:f:bh" opt ; do
+while getopts ":FSi:n:f:bhPN" opt ; do
   case $opt in
     h)
       usage
@@ -78,6 +86,12 @@ while getopts ":FSi:n:f:bh" opt ; do
       ;;
     b)
       USE_BASE_64=true
+      ;;
+    P)
+      PLAIN_BACKUP=true
+      ;;
+    N)
+      SKIP_SIGNATURE_CHECK=true
       ;;
     \?)
       echo "Invalid option $OPTARG"

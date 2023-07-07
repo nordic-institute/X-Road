@@ -9,10 +9,12 @@
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
         </xroad:client>
-        <xroad:centralService id:objectType="CENTRALSERVICE">
+        <xroad:service id:objectType="SERVICE">
             <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
             <id:serviceCode>testQuery</id:serviceCode>
-        </xroad:centralService>
+        </xroad:service>
         <xroad:userId>&lt;&#34;EE37702211234&quot; &amp; &apos;xml encoded&#39;&#62;</xroad:userId>
         <xroad:id>1234567890</xroad:id>
         <xroad:protocolVersion test="&#35;">4.0</xroad:protocolVersion>

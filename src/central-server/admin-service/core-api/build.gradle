@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':common:common-util')
+    api project(':common:common-ui')
+    api project(':signer-protocol')
+    api project(':common:common-admin-api')
+    api project(':common:common-management-request')
+    api project(':common:common-verifier')
+
+    implementation("jakarta.validation:jakarta.validation-api")
+}

@@ -1,13 +1,9 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # Technical Specification
 
 **X-Road Architecture**
 
-Version: 1.11  
-07.09.2021
+Version: 1.13  
+01.06.2023
 <!-- 16 pages -->
 Doc. ID: ARC-G
 
@@ -16,26 +12,28 @@ Doc. ID: ARC-G
 
 ## Version history
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 02.06.2015 | 0.1     | Initial version                                                 | Margus Freudenthal
- 03.07.2015 | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references | Margus Freudenthal
- 08.09.2015 | 0.3     | Made editorial changes                                          | Vello Hanson
+ Date       | Version | Description                                                                                                   | Author
+ ---------- |---------|---------------------------------------------------------------------------------------------------------------| --------------------
+ 02.06.2015 | 0.1     | Initial version                                                                                               | Margus Freudenthal
+ 03.07.2015 | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references          | Margus Freudenthal
+ 08.09.2015 | 0.3     | Made editorial changes                                                                                        | Vello Hanson
  08.09.2015 | 0.4     | Added signed document download interface and UIs to component diagram, added components to deployment diagram | Margus Freudenthal
- 17.09.2015 | 0.5     | Incorporated feedback from Vitali                               | Margus Freudenthal
- 18.09.2015 | 1.0     | Editorial changes made                                          | Imbi Nõgisto
- 13.10.2015 | 1.1     | Incorporated feedback from Vitali                               | Ilja Kromonov
- 28.10.2015 | 1.2     | Typos fixed                                                     | Siim Annuk
- 16.12.2015 | 1.3     | Add environmental monitoring                                    | Ilkka Seppälä
- 20.12.2016 | 1.4     | Added operational monitoring                                    | Kristo Heero
- 20.02.2017 | 1.5     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 21.12.2017 | 1.6     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma
- 02.03.2018 | 1.7     | Moved terms and abbreviations into the terms document, added terms reference and document links | Tatu Repo
- 02.11.2018 | 1.8     | Described environmental monitoring daemon and its interfaces | Ilkka Seppälä
- 16.04.2019 | 1.9     | Added REST support and X-Road Message Protocol for REST | Petteri Kivimäki
- 28.02.2021 | 1.10    | Update Figure 1 and Figure 2 | Petteri Kivimäki
- 07.09.2021 | 1.11    | Fix broken link | Ilkka Seppälä
- 
+ 17.09.2015 | 0.5     | Incorporated feedback from Vitali                                                                             | Margus Freudenthal
+ 18.09.2015 | 1.0     | Editorial changes made                                                                                        | Imbi Nõgisto
+ 13.10.2015 | 1.1     | Incorporated feedback from Vitali                                                                             | Ilja Kromonov
+ 28.10.2015 | 1.2     | Typos fixed                                                                                                   | Siim Annuk
+ 16.12.2015 | 1.3     | Add environmental monitoring                                                                                  | Ilkka Seppälä
+ 20.12.2016 | 1.4     | Added operational monitoring                                                                                  | Kristo Heero
+ 20.02.2017 | 1.5     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF          | Toomas Mölder
+ 21.12.2017 | 1.6     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered                             | Antti Luoma
+ 02.03.2018 | 1.7     | Moved terms and abbreviations into the terms document, added terms reference and document links               | Tatu Repo
+ 02.11.2018 | 1.8     | Described environmental monitoring daemon and its interfaces                                                  | Ilkka Seppälä
+ 16.04.2019 | 1.9     | Added REST support and X-Road Message Protocol for REST                                                       | Petteri Kivimäki
+ 28.02.2021 | 1.10    | Update Figure 1 and Figure 2                                                                                  | Petteri Kivimäki
+ 07.09.2021 | 1.11    | Fix broken link                                                                                               | Ilkka Seppälä
+ 23.09.2022 | 1.12    | Added new Registration Web Service                                                                            | Eneli Reimets
+ 01.06.2023 | 1.13    | Update references                                                                                             | Petteri Kivimäki
+
 ## Table of Contents
 
 <!-- toc -->
@@ -122,15 +120,15 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.4 References
 
-1.  <a id="Ref_ARC-CP" class="anchor"></a>\[ARC-CP\] X-Road: Configuration Proxy Architecture. Cybernetica AS. Document ID: [ARC-CP](arc-cp_x-road_configuration_proxy_architecture.md).
+1.  <a id="Ref_ARC-CP" class="anchor"></a>\[ARC-CP\] X-Road: Configuration Proxy Architecture. Document ID: [ARC-CP](arc-cp_x-road_configuration_proxy_architecture.md).
 
-2.  <a id="Ref_ARC-CS" class="anchor"></a>\[ARC-CS\] X-Road: Central Server Architecture. Cybernetica AS. Document ID: [ARC-CS](arc-cs_x-road_central_server_architecture.md).
+2.  <a id="Ref_ARC-CS" class="anchor"></a>\[ARC-CS\] X-Road: Central Server Architecture. Document ID: [ARC-CS](arc-cs_x-road_central_server_architecture.md).
 
-3.  <a id="Ref_ARC-SS" class="anchor"></a>\[ARC-SS\] X-Road: Security Server Architecture. Cybernetica AS. Document ID: [ARC-SS](arc-ss_x-road_security_server_architecture.md).
+3.  <a id="Ref_ARC-SS" class="anchor"></a>\[ARC-SS\] X-Road: Security Server Architecture. Document ID: [ARC-SS](arc-ss_x-road_security_server_architecture.md).
 
 4.  <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
 
-5.  <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Cybernetica AS. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
+5.  <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
 
 6.  <a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 
@@ -140,25 +138,25 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 9.  <a id="Ref_PKCS10" class="anchor"></a>\[PKCS10\] Certification Request Syntax Standard. RSA Laboratories, PKCS \#10.
 
-10. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for Downloading Configuration. Cybernetica AS. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
+10. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
-11. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Management Services Protocol. Cybernetica AS. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
+11. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
-12.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Profile of Messages. Cybernetica AS. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
+12.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-13. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] X-Road: Message Transport Protocol. Cybernetica AS. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
+13. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
 
-14. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Cybernetica AS. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
+14. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
 
-15. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Cybernetica AS. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).
+15. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).
 
-16. <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Cybernetica AS. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).
+16. <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).
 
 17. <a id="Ref_SOAP" class="anchor"></a>\[SOAP\] Simple Object Access Protocol (SOAP) 1.1, 2000.
 
 18. <a id="Ref_TSP" class="anchor"></a>\[TSP\] Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP). Intenet Engineering Task Force, RFC 3161, 2001.
 
-19. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Cybernetica AS. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
+19. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
 20. <a id="Ref_WSDL" class="anchor"></a>\[WSDL\] Web Services Description Language (WSDL) 1.1, 2001.
 
@@ -309,9 +307,9 @@ The Download Signed Document protocol is used by IS for downloading data stored 
 
 The management services are called by security servers to perform management tasks such as registering a security server client or deleting an authentication certificate.
 
-The management service protocol is a synchronous RPC-style protocol that is offered by the central server. The service is called by security servers.
+The management service protocol is a synchronous RPC-style protocol that is offered by the member management and registration web services. The services are called by security servers.
 
-The management services are implemented as standard X-Road services (see Section [3.1](#31-x-road-message-protocol) for details) that are offered by the organization managing the X-Road instance. The exception is the authentication certificate registration service that, for technical reasons, is implemented directly by the central server. Full details of the management services are described in \[[PR-MSERV](#Ref_PR-MSERV)\].
+The management services are implemented as standard X-Road services (see Section 3.1 for details) that are offered by the organization managing the X-Road instance. The exception is the authentication certificate registration service that, for technical reasons, is implemented directly by the registration web service. Full details of the management services are described in \[[PR-MSERV](#Ref_PR-MSERV)\].
 
 In general, the management services are not critical to operation of X-Road and therefore their availability is not paramount. If the management services are unavailable, the security servers cannot manage their clients and authentication certificates. Some actions (such as removing clients and certificates) can be performed manually by central server administrator, without using the management services. The management service operations are not time-critical (the security server user explicitly chooses to send the management request and the user interface does not imply that this operation is instantaneous).
 

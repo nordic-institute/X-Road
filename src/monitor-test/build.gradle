@@ -11,9 +11,9 @@ repositories {
 
 dependencies {
 
-    implementation project(':common-util')
+    implementation project(':common:common-util')
     implementation project(':monitor-common')
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
 
-    testImplementation "junit:junit:${junitVersion}"
+    testImplementation "junit:junit:$junitVersion"
 }

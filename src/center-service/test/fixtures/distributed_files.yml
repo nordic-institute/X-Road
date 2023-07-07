@@ -1,9 +1,0 @@
-distributedFile_private_parameters:
-  file_name: "private-parameters.xml"
-  file_data: "<XMLContainingPrivateParameters>"
-  content_identifier: "PRIVATE-PARAMETERS"
-
-distributedFile_shared_parameters:
-  file_name: "shared-parameters.xml"
-  file_data: "<XMLContainingSharedParameters>"
-  content_identifier: "SHARED-PARAMETERS"

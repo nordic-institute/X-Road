@@ -1,5 +1,299 @@
 # Change Log
 
+
+## 7.3.0 - 2023-05-30
+- XRDDEV-409: As a Security Expert I want to investigate the possibility to use secure connection (HTTPS) for distributing global configuration so that the implementation would be more secure.
+- XRDDEV-444: As a Product Owner I want that API key caching does not cause problems for clustered central server, so that central server operators do not have problems
+- XRDDEV-1093: As a Central Server Administrator I want that the normal DB user used by the application cannot update the DB schema so that the implementation is more secure.
+- XRDDEV-1410: As a Developer I want to review the two different JSON serialization libraries we use and pick one so that we are more consistent
+- XRDDEV-1533: As a Developer I want that we have a AWS environment and build pipeline for the renewal project
+- XRDDEV-1546: As a Software Developer I want to consider and define which standards we need to follow in the renewal project so that our software meets the expected best practices
+- XRDDEV-1557: As an Architect I want to look into using the Digital Signature Services (DSS) Java library by the European Commission for signing ASiC containers in X-Road so that we don't have to implement a compliant solution ourselves
+- XRDDEV-1574: As a Developer I want to convert the database migrations for the Central Server to use Liquibase instead of Ruby so that we can start migrating away from Ruby
+- XRDDEV-1575: As a Developer I want to move the Central Server database model to Hibernate entities so that we use the same frameworks across the project
+- XRDDEV-1576: As a Developer I want to define the new Central Server artifacts and structure so that we can start developing the code
+- XRDDEV-1607: As a Frontend Developer I want to create the base structure for the new Central Server UI so that we can start implementing subviews in the future
+- XRDDEV-1624: As a Developer I want to create a mock version of the Central Server members table so that I can start visualising the different pages
+- XRDDEV-1627: As an Architect I want to create an architecture document for the new Central Server so that we can better plan its implementation
+- XRDDEV-1631: As a Developer I want to create mock views for the new Central Server UI member details tabs so that we continue with the frontend implementation
+- XRDDEV-1649: As a Product Owner I want the mock backup and restore page for the Central Server to be created so that we have the view implemented
+- XRDDEV-1650: As a Developer I want to implement authentication for the new Central Server UI API so that we can start implementing it
+- XRDDEV-1657: As a QA engineer I want to set up the e2e testing framework for the new Central Server UI so that e2e tests can be written for it and ran against the new UI
+- XRDDEV-1658: As a Product Owner I want to have an implementation plan for the new Central Server so that we can have a better overview of what to implement in which order and the current state
+- XRDDEV-1674: As a Frontend Developer I want to implement the mock Central Server initialisation view so that we are ready when starting the implementation
+- XRDDEV-1678: As an X-Road administrator I want to be able to configure the Central and Security Server to use mutual TLS for the database connection so it can be more secure
+- XRDDEV-1683: As a Frontend Developer I want to create a mock view for the internal configuration tab in the Central Server so that it is ready to tie with the backend
+- XRDDEV-1684: As a Frontend Developer I want to create a mock view for the external configuration tab in the Central Server so that it is ready to tie with the backend
+- XRDDEV-1685: As a Frontend Developer I want to create a mock view for the trusted anchors tab in the Central Server so that it is ready to tie with the backend
+- XRDDEV-1688: As a Developer I want the new management requests API and component to be designed so that we can start implementing it
+- XRDDEV-1709: As a Central Server administrator I want the global configuration to be able to be generated even without write access to the database so that the HA solution is more resilient
+- XRDDEV-1710: As a Central Server administrator I want to be able to initialise the new Central Server so that I can start to configure the instance
+- XRDDEV-1714: As a Frontend Developer I want to implement the mock view for the new Central Server management requests so that we have it ready to connect to the backend
+- XRDDEV-1715: As a Developer I want that the API models and paths are generated correctly for frontend and backend from common-rest-api
+- XRDDEV-1716: As a QA Engineer I want that we have an AWS e2e testing environment and build pipeline for the renewal project
+- XRDDEV-1724: As a Developer I want to use the generated API client services instead of Axios
+- XRDDEV-1730: As a Central Server administrator I want the Security Servers list view to be implemented so that I can use it in the browser
+- XRDDEV-1731: As a Central Server administrator I want the Trust Services view to be implemented so that I can use it in the browser
+- XRDDEV-1746: As a Central Server administrator I want the System Settings view to be implemented so that I can use it in the browser
+- XRDDEV-1755: As a Developer I want to upgrade the OpenAPI Generator version to 5.x in the new Central Server admin API
+- XRDDEV-1773: As a Frontend Developer I want to implement the Security Server details view in the new Central Server UI so that we have the mock view ready for implementation
+- XRDDEV-1774: As a Frontend Developer I want to implement the Global Groups details view and wizards in the new Central Server UI so that we have the mock view ready for implementation
+- XRDDEV-1775: As a Frontend Developer I want to implement the API key management in the new Central Server UI so that we have the mock view ready for implementation
+- XRDDEV-1781: As a Central Server Administrator I want to see server node information at the top of the UI so that I understand which node I am working on
+- XRDDEV-1782: As a Central Server administrator I want to Web UI be redirected  to login after session timeout
+- XRDDEV-1804: As a Central Server Administrator I want to be able to edit system parameters so that I can configure my instance
+- XRDDEV-1813: As a central server administrator, I want to see a descriptive error note when entering too  weak PIN so that the error cause is clear
+- XRDDEV-1844: Vuetify Tabs Slider is not working in sub tabs in Central Server
+- XRDDEV-1854: As a Central Server administrator, I want that the log files contain the correlation IDs so that it is easy to find the relevant log entry
+- XRDDEV-1856: As a Central Server administrator, I want that the error notes look similar with the security server so that the user experience is the same
+- XRDDEV-1862: As a Frontend Developer I want to update the Central Server UI with the new empty and loading states so that the experience is consistent
+- XRDDEV-1863: As a Frontend Developer I want to look into Pinia as a replacement to the Vuex store for better type checking and future proofing
+- XRDDEV-1864: As a Frontend Developer I want to update the Central Server localisations so that they follow the same logic as the Security Server
+- XRDDEV-1870: As an X-Road instance operator I want to be able to have management API services for the registration web service so that I can onboard new Security Servers to my instance
+- XRDDEV-1879: As a Frontend developer I want the Central Server login logic is refactored so that it's easier to understand
+- XRDDEV-1885: As an Architect I want to create a general API design so that we have a structure in place for Central Server API
+- XRDDEV-1891: As a Developer I want to analyse and document how we will support pagination in the Central Server API so that we can more effectively handle larger datasets
+- XRDDEV-1892: As a Frontend Developer I want to analyse and document how we will support pagination on the UI side so that we can more effectively handle larger datasets
+- XRDDEV-1894: As a Central Server Administrator I want to be able to manage member classes so that I can manage my members
+- XRDDEV-1910: As a Central Server Administrator I want to be able to view a list of my instances members so that I can manage them
+- XRDDEV-1914: As a Central Server Administrator I want to be able to see all the Security Servers in my instance so that I can manage them
+- XRDDEV-1932: As a Central Server Administrator I want to be able to add members to my instance so that I can grow my members
+- XRDDEV-1936: As a Central Server Administrator I want to be able to add an API key so that I can create API users
+- XRDDEV-1939: As a Frontend Developer I want to review and update mock views so that they are up to date with the current design
+- XRDDEV-1945: As an X-Road instance operator I want to be able to have management API services for the member management web service so that I can onboard new Security Servers to my instance
+- XRDDEV-1960: As an X-Road user I want the identifier checks to be unified across the components so that we don't get unexpected errors
+- XRDDEV-1965: As an X-Road instance operator I want to be able to have a registration web service so that I can onboard new Security Servers to my instance
+- XRDDEV-1984: As a Developer I want that proxy-ui-api and admin-service use the same way of populating test data to in-memory db, so that implementation is consistent
+- XRDDEV-1987: As an X-Road instance member I want to be able to define my own validity periods for globalconf and OCSP responses so that the environment can be configured based on my security assessment
+- XRDDEV-2030: As an X-Road user I would like to be able to define certificate profile mappings in the configuration so that onboarding new certificate profiles doesn't require code changes
+- XRDDEV-2031: As an X-Road Operator I want to be able to add certification services so that I can set up the trust services for my instance
+- XRDDEV-2034: As an X-Road Operator I want to be able to see a list of certification services that exist on my instance so that I can administrate them
+- XRDDEV-2050: As a Central Server administrator I want to be able to see a list of management requests so that I can manage my instance
+- XRDDEV-2053: As a Central Server administrator I want to be able to manage the servers API keys so that I can manage access rights for API users
+- XRDDEV-2058: As a Central Server administrator I want to be able to add global groups so that I can manage my global groups
+- XRDDEV-2059: As a Central Server administrator I want an API to be available for viewing a list of global groups available so that I can access the data
+- XRDDEV-2060: As a Central Server administrator I want to be able to view a list on global groups on my server using the UI so that I can see what I have on the server
+- XRDDEV-2064: As a Central Server administrator I want to be able to view details of a global group so that I can manage its details
+- XRDDEV-2069: As a Central Server administrator I want to be able to view members under the global group so that I can manage who belongs there
+- XRDDEV-2078: As a Central Server Administrator I would like to have an API to be able to view details about an instance member so that I can manage my instance
+- XRDDEV-2079: As a Central Server Administrator I would like to have an API to be able to edit the name of an instance member so that I can manage my instance
+- XRDDEV-2080: As a Central Server Administrator I would like to have an API to be able to delete a member from my instance so that I can manage my instance
+- XRDDEV-2081: As a Central Server Administrator I would like to have an API to be able to view a list of subsystems belonging to a member so that I can manage my instance
+- XRDDEV-2082: As a Central Server Administrator I would like to have an API to be able to add a subsystem of a member to my local subsystem so that it is present in the global configuration
+- XRDDEV-2083: As a Central Server Administrator I would like to have an API to be able to unregister a subsystem from a Security Server so that I can manage my instance
+- XRDDEV-2084: As a Central Server Administrator I would like to have an API to be able to delete a subsystem from an X-Road member so that I can manage my instance
+- XRDDEV-2085: As a Central Server Administrator I would like the member details view details tab to be connected to the backend so that I can manage my instance
+- XRDDEV-2086: As a Central Server administrator I would like the member details view subsystem tab to be connected to the backend so that I can manage my instance
+- XRDDEV-2087: As a Quality Engineer I would like to verify that the Central Server member details view details tab works correctly so that our test coverage is improved
+- XRDDEV-2088: As a Quality Engineer I would like to verify that the Central Server member details view subsystems tab works correctly sop that our test coverage is improved
+- XRDDEV-2119: As a Central Server Administrator I would like to have up to date documentation about the database setup
+- XRDDEV-2120: As a Security Server Administrator I would like to be able to use the asicverifier.jar to extract REST messages as well
+- XRDDEV-2136: As a Central Server user I would like to have an API to list certification services so that I can see which are added to my instance
+- XRDDEV-2138: As a Central Server user I would like to have an API to view the details of a certification service so that I can manage my instance
+- XRDDEV-2139: As a Central Server user I would like to have an API to view the CA settings of a certification service so that I can manage my instance
+- XRDDEV-2140: As a Central Server user I would like to have an API to modify the CA settings of a certification service so that I can manage my instance
+- XRDDEV-2141: As a Central Server user I would like to have an API to view the list of OCSP responders of a certification service so that I can manage my instance
+- XRDDEV-2142: As a Central Server user I would like to have an API to add an OCSP responder to a certification service so that I can manage my instance
+- XRDDEV-2143: As a Central Server user I would like to have an API to modify an OCSP responder to a certification service so that I can manage my instance
+- XRDDEV-2144: As a Central Server user I would like to have an API to get the certificate of an OCSP responder of a certification service so that I can manage my instance
+- XRDDEV-2145: As a Central Server user I would like to have an API to get the certificate of a certification service so that I can manage my instance
+- XRDDEV-2146: As a Central Server user I would like to have an API to delete an OCSP responder from a certification service so that I can manage my instance
+- XRDDEV-2147: As a Central Server user I would like to have an API to view a list of intermediate CA-s connected to a certification service so that I can manage my instance
+- XRDDEV-2148: As a Central Server user I would like to have an API to add a intermediate CA to a certification service so that I can manage my instance
+- XRDDEV-2149: As a Central Server user I would like to have an API to view the details an intermediate CA of a certification service so that I can manage my instance
+- XRDDEV-2150: As a Central Server user I would like to have an API to view the OCSP responders of an intermediate CA of a certification service so that I can manage my instance
+- XRDDEV-2151: As a Central Server user I would like to have an API to add an OCSP responder to an intermediate CA of a certification service so that I can manage my instance
+- XRDDEV-2152: As a Central Server user I would like to have an API to modify an OCSP responder to an intermediate CA of a certification service so that I can manage my instance
+- XRDDEV-2153: As a Central Server user I would like to have an API to delete an intermediate CA from a certification service so that I can manage my instance
+- XRDDEV-2154: As a Central Server user I would like to have an API to delete an OCSP responder of an intermediate CA from a certification service so that I can manage my instance
+- XRDDEV-2155: As a Central Server user I would like to have an API to get the certificate of an intermediate CA of a certification service so that I can manage my instance
+- XRDDEV-2162: As a Central Server I want to have a web UI for the certification service details page so that I can use it instead of the API directly
+- XRDDEV-2163: As a Central Server I want to have a web UI for the certification service CA settings page so that I can use it instead of the API directly
+- XRDDEV-2164: As a Central Server I want to have a web UI for the certification service OCSP responders page so that I can use it instead of the API directly
+- XRDDEV-2168: As a Central Server Administrator I want have a web UI for the certification service intermediate CA page so that I can use it instead of the API directly
+- XRDDEV-2169: As a Central Server Administrator I want have a web UI for the intermediate CA details view so that I can use it instead of the API directly
+- XRDDEV-2170: As a Central Server I want to have a web UI for the intermediate CA OCSP responders page so that I can use it instead of the API directly
+- XRDDEV-2174: As a X-Road Central Server Administrator I want to have an API to list the timestamping authorities on my instance so that I can manage them
+- XRDDEV-2175: As a X-Road Central Server Administrator I want to have an API to add a timestamping authority to my instance so that I can manage it
+- XRDDEV-2176: As a X-Road Central Server Administrator I want to have an API to edit a timestamping authority of my instance so that I can manage it
+- XRDDEV-2177: As a X-Road Central Server Administrator I want to have an API to view a timestamping authority in my instance so that I can manage it
+- XRDDEV-2178: As a X-Road Central Server Administrator I want to have an API to delete a timestamping authority from my instance so that I can manage it
+- XRDDEV-2179: As a X-Road Central Server Administrator I want to have a UI to view the timestamping services on my instance so that I don't have to use the API
+- XRDDEV-2180: As a X-Road Central Server Administrator I want to have a UI to add and edit the timestamping services on my instance so that I don't have to use the API
+- XRDDEV-2182: Member class description editing should edit description not add new member class
+- XRDDEV-2184: New Central Server UI is not properly refreshing values from back-end
+- XRDDEV-2187: As an X-Road Operator I want to have an API on the Central Server to allow processing owner change requests for Security Servers on my instance
+- XRDDEV-2189: As an X-Road Operator I want the member management web service to be created so that members can manage their clients on my instance
+- XRDDEV-2191: As an X-Road Operator I want the new Central Server to be able to generate global configuration so that it can be used in my instance
+- XRDDEV-2193: As a Central Server Administrator I want to be able to see a list of tokens available for global configuration signing for internal configuration so that I can use them
+- XRDDEV-2194: As a Central Server Administrator I want to have and API to see the details of my internal configuration so that I can have an overview
+- XRDDEV-2195: As a Central Server Administrator I want to have an API to log in and out of tokens used to store global configuration signing keys so that I can manage my instance
+- XRDDEV-2196: As a Central Server Administrator I want and API that allows me to add a configuration signing key to a token so that I can create new keys
+- XRDDEV-2197: As a Central Server Administrator I want to have an API that allows removing configuration signing keys from a token so that I can manage them
+- XRDDEV-2198: As a Central Server Administrator I want to have an API that allows me to activate a configuration signing key so that I can rotate keys
+- XRDDEV-2199: As a Central Server Administrator I want to be able to see a list of tokens available for global configuration signing for external configuration so that I can use them
+- XRDDEV-2200: As a Central Server Administrator I want to have and API to see the details of my external configuration so that I can have an overview
+- XRDDEV-2206: As a Central Server Administrator I want the registration web service to be feature-complete so that it can be used in my instance
+- XRDDEV-2207: X-Road automatic backups sometimes fail due to the TAR program exiting with code 1
+- XRDDEV-2208: As a Central Server Administrator I want to be able to see information about my configuration signing tokens and log in and out of them so that I can utilise them
+- XRDDEV-2209: As a Central Server Administrator I want to be able to view the details of my internal and external configuration through the web UI so that it would be more convenient to use
+- XRDDEV-2211: As a Developer I want to migrate the existing internal configuration generation code to the new Central Server so that it can be used
+- XRDDEV-2212: As a Developer I want to migrate the existing external configuration generation code to the new Central Server so that it can be used
+- XRDDEV-2213: As a Central Server Administrator I want to be able to add a new configuration signing key to my internal or external configuration through the UI
+- XRDDEV-2214: As a Central Server Administrator I want to be able to activate a configuration signing key from the UI
+- XRDDEV-2215: As a Central Server Administrator I want to be able to remove a configuration signing key using the UI
+- XRDDEV-2216: As a Developer I want to add E2E tests for the configuration signing key management so that we can easily verify if it works in the future
+- XRDDEV-2219: As a Developer I want to migrate the Security Server automated backup trigger to Quartz so that we can better control the execution
+- XRDDEV-2221: As a Central Server Administrator I want to have an API to trigger re-creating the internal configuration anchor so that I can recreate if after making changes
+- XRDDEV-2222: As a Central Server Administrator I want to have an API to trigger re-creating the external configuration anchor so that I can trigger recreating it after making changes
+- XRDDEV-2223: As a Central Server Administrator I want to have an API to download the internal configuration anchor so that I can access it
+- XRDDEV-2224: As a Central Server Administrator I want to have an API to download the external configuration anchor so that I can access it
+- XRDDEV-2225: As a Central Server Administrator I want to have an API for uploading and downloading configuration parts for the internal global configuration so that I can manage them
+- XRDDEV-2226: As a Central Server Administrator I want to have an API to download configuration parts of the external global configuration so that I can access them
+- XRDDEV-2227: As a Central Server Administrator I want to be able to use the UI to interact with the global configuration
+- XRDDEV-2228: As a Central Server Administrator I want to be able to use the UI to upload and download configuration parts
+- XRDDEV-2229: As a Developer I would like to have E2E tests covering the global configuration page bottom so that I know it works correctly
+- XRDDEV-2233: As a Developer I would like the configuration parts validator on the new Central Server to be called directly from JAVA code rather than through bash so that we get rid of the added complexity
+- XRDDEV-2240: As a Central Server Administrator I would like to have an API that I can use to approve or decline a management request so that I can manage my instance
+- XRDDEV-2242: As a Central Server Administrator I want to have an API to view the details of a management request so that I can verify the content
+- XRDDEV-2243: As a product owner I want to analyse current state of develop-7.x codebase and fix obvious issues
+- XRDDEV-2245: As a Central Server Administrator I want to have a UI where I can approve or decline management requests so that I can manage my instance
+- XRDDEV-2246: As a Central Server Administrator I want to have a UI where I can view the details of a management request so that I can understand it better
+- XRDDEV-2247: As a Central Server Administrator I want to have an API to get the management Security Server details so that I can view details about my instance configuration
+- XRDDEV-2248: As a Central Server Administrator I want to have an API to update the information about the management Security Server so that I can manage my instance
+- XRDDEV-2250: As a Central Server Administrator I want to have a UI where I can view the details about the configured member management web service Security Server so that I can view details about my instance
+- XRDDEV-2251: As a Central Server Administrator I want o have a UI where I can select the subsystem that should be used for the member management web service so that I can manage my instance
+- XRDDEV-2252: As a Developer I want the management requests view in the Central Server to be covered by E2E tests so that I can verify it works
+- XRDDEV-2253: As a Developer I the management services block under system settings in the Central Server to be covered by E2E tests so that I can verify it works
+- XRDDEV-2256: As a Central Server Administrator I want to have an API for getting the details of a Security Server so that I can get information about my instance
+- XRDDEV-2257: As a Central Server Administrator I want to have an API to change a Security Servers address so that I can manage my instance
+- XRDDEV-2258: As a Central Server Administrator I want to have and API for getting a list of clients for a Security Server so that I can understand my instance
+- XRDDEV-2259: As a Central Server Administrator I want to have an API for getting a list of a Security Servers authentication certificates so that I can understand my instance
+- XRDDEV-2260: As a Central Server Administrator I want to have an API for getting the details of an authentication certificate related to a Security Server so that I can better understand my instance
+- XRDDEV-2261: As a Central Server Administrator I want to have an API for deleting an authentication certificate from a Security Server so that I can manage my instance
+- XRDDEV-2264: As a Central Server Administrator I want to have an API for deleting a Security Server so that I can manage my instance
+- XRDDEV-2265: As a Central Server Administrator I want to have a UI where I can view the details of a Security Server so that I can manage my instance
+- XRDDEV-2266: As a Central Server Administrator I want to have a UI where I can view the subsystems that exist on the Security Server so that I can manage my instance
+- XRDDEV-2267: As a Central Server Administrator I want to have a UI where I can view the authentication certificates of a Security Server so that I can mange my instance
+- XRDDEV-2268: As a Developer I want the Security Server details view on the Central Server to be covered by E2E tests so that I can verify it is correct
+- XRDDEV-2270: As a Central Server Administrator I want to have an API for viewing backups that have been created of the instance so that I can have an overview
+- XRDDEV-2271: As a Central Server Administrator I want to have an API for backing up my configuration so that I can manage my instance
+- XRDDEV-2272: As a Central Server Administrator I want to have an API for restoring my configuration from a backup on the server so that I can restore a previous state
+- XRDDEV-2273: As a Central Server Administrator I want to have an API for downloading a backup from the Central Server so that I can download and store them
+- XRDDEV-2274: As a Central Server Administrator I want to have an API for uploading a backup to the Central Server so that I can use a backup I created and stored previously
+- XRDDEV-2275: As a Central Server Administrator I want to have an API for deleting a backup archive from the server so that I can free up space
+- XRDDEV-2276: As a Central Server Administator I want my configuration to periodically be automatically backed up so that I know I have restore points if something goes wrong
+- XRDDEV-2277: As a Central Server Administrator I want to have a UI where I can manage my backups so that I have an overview
+- XRDDEV-2278: As a Developer I want the backup and restore view on the Central Server to be covered by E2E tests so that I can verify it works
+- XRDDEV-2279: As a Central Server Administrator I want my backup archives to be verifiable and encryptable so that security is improved
+- XRDDEV-2287: As a Developer I want the mock management requests views to be removed from the Member and Security Server details since those aren't used
+- XRDDEV-2288: As a Developer I want to check how well the new Central Server supports a HA setup according to the existing guides so that we can resolve issues and update the documents as needed
+- XRDDEV-2291: As a Central Server User I want the backend and frontend to give detailed error messages so that I can understand what the issue is
+- XRDDEV-2293: As a Central Server Administrator I want packaging to work correctly on the new Central Server so that the installation and upgrade processes work as intended
+- XRDDEV-2294: As a Central Server Administrator I want to have an API to view a list of trusted anchors on my instance so that I can get the data
+- XRDDEV-2295: As a Central Server Administrator I want to have an API for uploading a trusted anchor to the system so that I can add new federated instances
+- XRDDEV-2296: As a Central Server Administrator I want to have an API for deleting a trusted anchor so that I can remove federated instances
+- XRDDEV-2297: As a Central Server Administrator I want to have an API for downloading a trusted anchor so that I can retrieve it from my instance
+- XRDDEV-2298: As a Central Server Administrator I want to have a UI to manage trusted anchors so that I can manage federated instances from the web UI
+- XRDDEV-2299: As a Developer I want the trusted anchors page to be covered by E2E tests so that I can verify their correctness
+- XRDDEV-2303: Incorret validation error when deleting a member from Central Server.
+- XRDDEV-2304: Management requests view default checkbox and free text search fixes
+- XRDDEV-2305: As a Central Server Administrator I want to have an API for adding a member or subsystem to a global group so that I can manage group members
+- XRDDEV-2306: As a Central Server Administrator I want to have an API for removing a member or subsystem from a global group so that I can manage groups
+- XRDDEV-2307: Accessing the internalconf endpoint to download the global configuration directory from the Central Server returns 404 not found.
+- XRDDEV-2308: As a Central Server Administrator I want to have UI components to add and remove members or subsystems in a global group so that I can manage them through a user interface
+- XRDDEV-2309: As a Developer I want the functionality to add and remove members of a global group on the Central Server to be automatically tested so that I can verify it works correctly
+- XRDDEV-2310: As a Central Server Administrator I want to have an API for deleting a certification service so that I can manage the services on my instance
+- XRDDEV-2311: As a Central Server Administrator I want to be able to delete a certification service through the UI so that it is more usable
+- XRDDEV-2312: As a Developer I want to remove code related to Central Services since it is not required anymore in the new version
+- XRDDEV-2313: As a Developer I want to remove unneeded planned API-s from our OpenAPI and service so that we don't have dead code
+- XRDDEV-2314: Management requests paging returns the same request multiple times in different pages
+- XRDDEV-2316: Central Server internal configuration and external configuration views are missing information because of failing backend API requests
+- XRDDEV-2317: It's not possible to create a new API key for management services.
+- XRDDEV-2318: New CS fails to restore from backup while being in “just CS init done” state
+- XRDDEV-2319: ha_node_name value is set not correctly
+- XRDDEV-2320: Recreating internal/external configuration fails when configuration source is not present
+- XRDDEV-2321: Central Server initialization form fields are mandatory, but sent as null, when value previously set
+- XRDDEV-2322: When initializing second Central Server node for HA the signing token isn't generated eventhough the initialization succeeds.
+- XRDDEV-2324: NullPointerException when retrieving signing keys
+- XRDDEV-2325: As a Developer I want to go over the buttons in the new Central Server and verify that we correctly set the loading attribute so that buttons can't be clicked twice
+- XRDDEV-2327: As a Central Server Administrator I want to be able to provide the global configuration over HTTPS so that security is improved
+- XRDDEV-2329: As a Developer I want to check that the Configuration Proxy works with the new Central Server so that we are sure not to break anything
+- XRDDEV-2330: As a Developer I want to check that setting up a federated instance works with the new Central Server so that we don't break existing functionality
+- XRDDEV-2331: Global group member list view is working incorrectly
+- XRDDEV-2332: Importing Central Server's anchor into Security Server fails due to authCertRegServiceAddress being missing in private-params
+- XRDDEV-2333: Central Server db property secondary_hosts is ignored
+- XRDDEV-2335: Selecting a subsystem for the management Security Server does not select the Security Server
+- XRDDEV-2336: Check whether some db.properties are used or not and remove if not used
+- XRDDEV-2338: Central Server UI does not show any alerts when global conf generation is not working properly
+- XRDDEV-2339: Unregisterig a subsystem from a Security Server fails on the Central Server.
+- XRDDEV-2341: Subsystem-related information is not shown correctly in the Central Server Members - Subsystems view.
+- XRDDEV-2343: User is able to access the Central Server UI when session has already expired.
+- XRDDEV-2344: The Central Server login view logs an uncaught type error to the console.
+- XRDDEV-2345: The Central Server Members view logs a type error to the console when entering it after login.
+- XRDDEV-2346: As a Central Server Administrator I want to be able have an API that allows me to assign a subsystem to a Security Server so that I can bootstrap an X-Road instance
+- XRDDEV-2347: As a Central Server Administrator I want to be able to set the management Security Server when I have chosen a subsystem for it through the UI so that I can bootstrap my instance
+- XRDDEV-2349: As a Developer I want to clean up code related to security_categories and security_server_security_categories so that we don't have dead code
+- XRDDEV-2350: As a Central Server Administrator I want to have the users IP address included in the audit log so that I can have more knowledge of where the action originated from
+- XRDDEV-2351: As a Central Server Administrator I want to know see the original IP of the management request sender in the audit log so that I can trace it's origins
+- XRDDEV-2352: As a Central Server Administrator I want the new Central Server UI to use the same TLS certificate as the old UI so that users don't get a security warning after the upgrade
+- XRDDEV-2353: As a Central Server user I want to have a coherent API so that it is easier to reason about
+- XRDDEV-2355: As a Central Server Administrator I want to have up-to-date information in the Central Server installation manual so that I can have the information I need
+- XRDDEV-2356: As a Central Server Administrator I want to have up-to-date information in the Central Server HA installation manual so that I can have the required information
+- XRDDEV-2357: As a Central Server Administrator I want to have up-to-date information in the Central Server user manual so that I have the required information
+- XRDDEV-2361: Changing Security Server owner removes previous owner's association with the Security Server.
+- XRDDEV-2362: Change owner management request details view has an incorrect label.
+- XRDDEV-2363: After upgrading Central Server to version 7.3.0 management service requests start failing
+- XRDDEV-2364: Owner name field is empty in the Central Server Add client management request view
+- XRDDEV-2365: Incorrect row highlighting in the Central Server Members - Subsystems table when one subsystem is registered on multiple Security Servers
+- XRDDEV-2366: No error message is shown in the UI when sending a client registration request from the Security Server fails.
+- XRDDEV-2367: Configuration anchor file name generated by the Central Server is missing instance identifier and configuration anchor type (internal/external)
+- XRDDEV-2368: On the Central Server Approve management request popup is not closed when an error occurs during the approval
+- XRDDEV-2370: As a Developer I want to review the todo comments in the new Central Server code to make sure we haven't forgotten anything
+- XRDDEV-2375: As a Central Server Administrator I want the UI to have better usability on the management requests page so that it is easier to navigate
+- XRDDEV-2376: As a Central Server Administrator I want to have documentation available on how to configure encryption and verification of backups so that I can improve security
+- XRDDEV-2378: As a Developer I want to verify that the new Central Server handles certificate checks in the management services correctly so that we know the implementation is secure
+- XRDDEV-2379: As a Central Server Administrator I want to have up-to-date information in the System Parameters documentation so that I know how to configure the system
+- XRDDEV-2380: Client & certificate deletion management requests are displayed with UNKNOWN status in the Admin UI
+- XRDDEV-2381: As a Developer I want to clean up code related to security_server_client_names so that we don't have dead code
+- XRDDEV-2382: While setting up an X-Road instance with version 7.3.0 management requests don't work until the service is restarted on the Central Server
+- XRDDEV-2383: New Central Server does not verify private-params.xml & shared-params.xml during their generation
+- XRDDEV-2384: Management service rate limit uses incorrect property values.
+- XRDDEV-2386: Role check for clients endpoint possibly incorrect
+- XRDDEV-2387: Host header injection
+- XRDDEV-2388: Unrestricted file upload and double extension file upload
+- XRDDEV-2389: Race condition when adding global groups
+- XRDDEV-2390: Samesite not implemented in the new Central Server UI
+- XRDDEV-2391: Long string attack
+- XRDDEV-2392: Sensitive information in local storage
+- XRDDEV-2393: No rate-limiting on the Central Server API
+- XRDDEV-2394: New Central Server does not automatically regenerate internal/external configuration anchor when central server address is changed or new signing key is generated or is deleted
+- XRDDEV-2395: Registration request received from a security server can't be revoked anymore by deletion requests sent from the security server
+- XRDDEV-2396: Management request details view field Comments is not automatically filled when request are generated
+- XRDDEV-2397: New Central Server UI minor fixes
+- XRDDEV-2399: New client management web service on the Central Server does not verify that the management request is being sent by the owner of the Security Server that is the target of the request
+- XRDDEV-2400: As a Developer I want to improve small UI issues that exist in the new Central Server so that the release is more polished
+- XRDDEV-2401: As a Central Server Administrator I want the check_ha_cluster_status endpoint to be implemented in the new Central Server so that I can check the cluster status
+- XRDDEV-2402: As a Central Server Administrator I want the audit log documentation to be up-to-date so that I can rely on it for information
+- XRDDEV-2417: As a Central Server Administrator I want to have information on how to use the new REST API so that I can utilise it
+- XRDDEV-2420: Members subsystem list server owner column name not showing
+- XRDDEV-2421: Navigating Back from Security Server client details goes to Members list
+- XRDDEV-2422: As a Developer I want the new Central Server to support Spring Datasource styled properties for database configuration
+- XRDDEV-2423: As a Developer I want to review and update the build instructions and related scripts so that I'm able build X-Road without problems.
+- XRDDEV-2425: Configuration part filename missing from internal and external Configuration Parts lists
+- XRDDEV-2426: Owned Servers list is empty in the Member details view on the new Central Server
+- XRDDEV-2427: Global configuration generation interval is hard-coded and not configurable
+- XRDDEV-2428: As a Central Server Administrator I want to be able to access the servers OpenAPI description locally so that I can use the one on the server
+- XRDDEV-2429: As a Developer I want to update the technologies information in our documentation so that we provide the correct and up-to-date information to users
+- XRDDEV-2430: As a Developer I want to review the permissions file on the Central Server so that the don't have deprecated permissions there
+- XRDDEV-2431: As a Developer I want to make sure that setting up the operational monitoring client works as defined in the documentation so that we don't cause an outage with the new version
+- XRDDEV-2432: As a Developer I want to review and update the Central Server architecture document so that it reflects the new state
+- XRDDEV-2433: As a Developer I want to update our Central Server data model document so that it reflects the current state correctly
+- XRDDEV-2434: As a Developer I want to define the correct minimum JAVA version for the X-Road components checking it so that it shows correctly in the UI as well as logs
+- XRDDEV-2435: As a Security Server user I would like it to be possible for me to override the default password store key token path so that I can customize it's location
+- XRDDEV-2436: The Central Server API doesn't have request and file size limiting.
+- XRDDEV-2437: New Central Server configuration database unnecessary database objects
+
 ## 7.2.1 - 2023-02-10
 - XRDDEV-2210: As a Security Server Administrator I want that the Security Server uses the ocspFreshnessSeconds value of the X-Road instance where it has been registered so that the configuration of federated instances doesn't affect my Security Server's operations.
 - XRDDEV-2230: Gpg is not marked as a dependency so initial configuration might fail.

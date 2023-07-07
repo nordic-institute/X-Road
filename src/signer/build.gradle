@@ -9,20 +9,20 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
+        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
     }
 }
 
 dependencies {
-    implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
     implementation project(':signer-protocol')
 
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../libs', include: '*.jar')
 
-    testImplementation project(':common-test')
-    testImplementation project(path: ':common-verifier', configuration: 'testArtifacts')
+    testImplementation project(':common:common-test')
+    testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
 
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
@@ -54,7 +54,7 @@ task createDirs() {
     }
 }
 
-task xjc(dependsOn: [':common-util:xjc', ':common-verifier:xjc']) {
+task xjc(dependsOn: [':common:common-util:xjc', ':common:common-verifier:xjc']) {
     inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
@@ -65,7 +65,7 @@ task xjc(dependsOn: [':common-util:xjc', ':common-verifier:xjc']) {
             destdir: project.ext.schemaTargetDir,
             package: 'ee.ria.xroad.common.conf.keyconf',
             schema: 'src/main/resources/keyconf.xsd',
-            binding: '../common-util/src/main/resources/identifiers-bindings.xml'
+            binding: '../common/common-util/src/main/resources/identifiers-bindings.xml'
         )
     }
 }
@@ -77,15 +77,15 @@ task xjc(dependsOn: [':common-util:xjc', ':common-verifier:xjc']) {
 task runSignerMain(type: JavaExec) {
     jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
         '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
-        '-Dxroad.common.configuration-path=../common-util/src/test/resources/globalconf_good_v2',
-        '-Dxroad.common.temp-files-path=build/tmp/',
-        '-Dxroad.proxy.configuration-anchor-file=../common-util/src/test/resources/configuration-anchor1.xml',
+        '-Dxroad.common.configuration-path=../common/common-util/src/test/resources/globalconf_good_v2',
+        "-Dxroad.common.temp-files-path=${buildDir}/tmp/",
+        '-Dxroad.proxy.configuration-anchor-file=../common/common-util/src/test/resources/configuration-anchor1.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
         '-Djava.library.path=../passwordstore:../libs',
         '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'
     mainClass = 'ee.ria.xroad.signer.SignerMain'
     classpath = sourceSets.main.runtimeClasspath
-    classpath += files('../addons/hwtoken/build/libs/hwtoken-1.0.jar')
+    classpath += files("../addons/hwtoken/${buildDir}/libs/hwtoken-1.0.jar")
 
     description = "Starts signer main program.\nNote: " +
         "Be sure that appropriate libpkcs11wrapper.so is installed to the " +

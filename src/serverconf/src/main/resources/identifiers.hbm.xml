@@ -4,7 +4,7 @@
     "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping package="ee.ria.xroad.common.identifier">
 
-    <class name="XRoadId" table="IDENTIFIER">
+    <class name="XRoadId$Conf" table="IDENTIFIER">
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
@@ -20,13 +20,13 @@
 
         <property name="xRoadInstance" access="field"/>
 
-        <subclass name="ClientId" discriminator-value="C">
+        <subclass name="ClientId$Conf" discriminator-value="C">
             <property name="memberClass" access="field"/>
             <property name="memberCode" access="field"/>
             <property name="subsystemCode" access="field"/>
         </subclass>
 
-        <subclass name="ServiceId" discriminator-value="S">
+        <subclass name="ServiceId$Conf" discriminator-value="S">
             <property name="memberClass" access="field"/>
             <property name="memberCode" access="field"/>
             <property name="serviceVersion" access="field"/>
@@ -34,23 +34,15 @@
             <property name="serviceCode" access="field"/>
         </subclass>
 
-        <subclass name="CentralServiceId" discriminator-value="CS">
-            <property name="serviceCode" access="field"/>
-        </subclass>
-
-        <subclass name="GlobalGroupId" discriminator-value="GG">
+        <subclass name="GlobalGroupId$Conf" discriminator-value="GG">
             <property name="groupCode" access="field"/>
         </subclass>
 
-        <subclass name="LocalGroupId" discriminator-value="LG">
+        <subclass name="LocalGroupId$Conf" discriminator-value="LG">
             <property name="groupCode" access="field"/>
         </subclass>
 
-        <subclass name="SecurityCategoryId" discriminator-value="SC">
-            <property name="securityCategory" access="field"/>
-        </subclass>
-
-        <subclass name="SecurityServerId" discriminator-value="SS">
+        <subclass name="SecurityServerId$Conf" discriminator-value="SS">
             <property name="memberClass" access="field"/>
             <property name="memberCode" access="field"/>
             <property name="serverCode" access="field"/>

@@ -1,0 +1,12 @@
+plugins {
+    id "java-library"
+}
+
+dependencies {
+    api project(':common:common-management-request')
+    api(project(':common:common-util')) {
+        exclude group: 'com.typesafe.akka'
+        exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.quartz-scheduler'
+    }
+}

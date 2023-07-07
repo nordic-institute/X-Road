@@ -1,0 +1,17 @@
+plugins {
+  id 'java-library'
+  id 'java-test-fixtures'
+}
+
+dependencies {
+  compileOnly("jakarta.servlet:jakarta.servlet-api:4.0.4")
+
+  api("com.google.guava:guava:$guavaVersion")
+  api("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
+
+  implementation("org.slf4j:slf4j-api:$slf4jVersion")
+
+  testFixturesImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+  testFixturesCompileOnly("org.projectlombok:lombok:${lombokVersion}")
+  testFixturesAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+}

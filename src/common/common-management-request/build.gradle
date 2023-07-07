@@ -1,0 +1,28 @@
+plugins {
+    id "java-library"
+    id 'java-test-fixtures'
+}
+
+dependencies {
+    implementation project(":common:common-util")
+    implementation project(":signer-protocol")
+    implementation project(":common:common-verifier")
+
+    implementation("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+
+    testImplementation project(":common:common-test")
+    testImplementation project(path: ":common:common-util", configuration: "testArtifacts")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+
+    testFixturesApi project(":common:common-util")
+    testFixturesApi project(":common:common-test")
+    testFixturesApi project(":signer-protocol")
+    testFixturesApi project(":common:common-verifier")
+
+    testFixturesCompileOnly("org.projectlombok:lombok:${lombokVersion}")
+    testFixturesAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}

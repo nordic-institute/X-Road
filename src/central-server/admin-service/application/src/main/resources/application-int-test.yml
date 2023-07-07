@@ -1,0 +1,17 @@
+---
+debug: true
+
+spring:
+  cache:
+    type: none
+  jpa:
+    show-sql: true
+
+xroad:
+  admin-service:
+    cache-default-ttl: -1
+    cache-api-key-ttl: -1
+
+server:
+  ssl:
+    enabled: false

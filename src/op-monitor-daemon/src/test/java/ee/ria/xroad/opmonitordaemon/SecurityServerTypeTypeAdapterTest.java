@@ -27,14 +27,20 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.google.gson.Gson;
-import com.google.gson.annotations.JsonAdapter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -44,7 +50,8 @@ import static org.junit.Assert.assertEquals;
  */
 public class SecurityServerTypeTypeAdapterTest {
 
-    private static final Gson GSON = JsonUtils.getSerializer();
+    private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
+    private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
     private static final String OK_JSON_CLIENT = "{\"securityServerType\":\"Client\"}";
     private static final String OK_JSON_PRODUCER = "{\"securityServerType\":\"Producer\"}";
@@ -53,39 +60,40 @@ public class SecurityServerTypeTypeAdapterTest {
     public final ExpectedException expectedException = ExpectedException.none();
 
     @AllArgsConstructor
-    class Type {
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    static class Type {
         @Getter
         @Setter
-        @JsonAdapter(SecurityServerTypeTypeAdapter.class)
+        @JsonDeserialize(using = SecurityServerTypeTypeAdapter.class)
         private String securityServerType;
     }
 
     @Test
-    public void okType() {
-        Type type = GSON.fromJson(OK_JSON_CLIENT, Type.class);
+    public void okType() throws IOException {
+        Type type = OBJECT_READER.readValue(OK_JSON_CLIENT, Type.class);
         assertEquals("Client", type.getSecurityServerType());
 
-        type = GSON.fromJson(OK_JSON_PRODUCER, Type.class);
+        type = OBJECT_READER.readValue(OK_JSON_PRODUCER, Type.class);
         assertEquals("Producer", type.getSecurityServerType());
     }
 
     @Test
-    public void nokType() {
-        expectedException.expect(RuntimeException.class);
+    public void nokType() throws IOException {
+        expectedException.expect(JsonProcessingException.class);
         expectedException.expectMessage("Invalid value of securityServerType");
 
         String nokJson = "{\"securityServerType\":\"UNKNOWN\"}";
-        GSON.fromJson(nokJson, Type.class);
+        OBJECT_READER.readValue(nokJson, Type.class);
     }
 
     @Test
-    public void serialize() {
+    public void serialize() throws JsonProcessingException {
         Type type = new Type("Client");
-        String json = GSON.toJson(type);
+        String json = OBJECT_WRITER.writeValueAsString(type);
         assertEquals(OK_JSON_CLIENT, json);
 
         type = new Type("Producer");
-        json = GSON.toJson(type);
+        json = OBJECT_WRITER.writeValueAsString(type);
         assertEquals(OK_JSON_PRODUCER, json);
     }
 }

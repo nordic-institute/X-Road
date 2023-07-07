@@ -1,0 +1,46 @@
+
+
+dependencies {
+    intTestImplementation project(":central-server:openapi-model")
+    intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
+    intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
+    intTestImplementation( "org.awaitility:awaitility:${awaitilityVersion}")
+}
+
+task systemTest(type: Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def systemTestArgs = []
+    if (project.hasProperty('systemTestTags')) {
+        systemTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('systemTestTags')
+    }
+    if (project.hasProperty('systemTestServeReport')) {
+        systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('systemTestServeReport')
+    }
+    if (project.hasProperty('systemTestCentralServerUrl')) {
+        systemTestArgs += "-Dtest-automation.custom.central-server-url-override=" + project.getProperty('systemTestCentralServerUrl')
+    }
+    if (project.hasProperty('systemTestCsPackageHost')) {
+        systemTestArgs += "-Dtest-automation.custom.package-host=" + project.getProperty('systemTestCsPackageHost')
+    }
+    jvmArgs systemTestArgs
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+
+    shouldRunAfter test
+}

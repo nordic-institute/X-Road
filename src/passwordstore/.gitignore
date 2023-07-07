@@ -1,0 +1,6 @@
+.deps
+test_passwordstore_clear
+test_passwordstore_read
+test_passwordstore_write
+*.o
+*.so

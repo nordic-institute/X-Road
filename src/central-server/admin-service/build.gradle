@@ -1,0 +1,47 @@
+subprojects {
+
+    def standaloneModules = ["ui", "ui-system-test", "int-test"]
+    if(!standaloneModules.contains(it.name)) {
+        apply {
+            plugin 'io.spring.dependency-management'
+            plugin 'org.springframework.boot'
+            plugin 'com.github.hierynomus.license'
+
+        }
+
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+            options.compilerArgs += [
+                "-Amapstruct.unmappedTargetPolicy=ERROR"
+            ]
+        }
+
+        dependencyManagement {
+            imports {
+                mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+            }
+        }
+
+        dependencies {
+            annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
+            annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBinding")
+
+            implementation "org.mapstruct:mapstruct:$mapStructVersion"
+
+            testAnnotationProcessor "org.mapstruct:mapstruct-processor:$mapStructVersion"
+        }
+
+        bootJar {
+            enabled = false
+        }
+
+        test {
+            useJUnitPlatform()
+        }
+    }
+
+}
+
+tasks.withType(Jar).configureEach {
+    enabled = false
+}

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified"
+    targetNamespace="http://x-road.eu/xsd/xroad.xsd"
+    xmlns="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+    <xs:import schemaLocation="identifiers.xsd" id="id"
+               namespace="http://x-road.eu/xsd/identifiers"/>
+    <xs:complexType name="ClientListType">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0"
+                name="member" type="ClientType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MethodListType">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0"
+                name="service" type="id:XRoadServiceIdentifierType" />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="RestServiceDetailsListType">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0"
+                        name="service" type="XRoadRestServiceDetailsType" />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ClientType">
+        <xs:sequence>
+            <xs:element name="id" type="id:XRoadClientIdentifierType"/>
+            <xs:element name="name" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="RestServiceType">
+        <xs:annotation>
+            <xs:documentation>Enumeration for REST service types.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="REST"/>
+            <xs:enumeration value="OPENAPI"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="Endpoint">
+        <xs:annotation>
+            <xs:documentation>Service endpoint containing HTTP method and path.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="method" type="xs:string"/>
+            <xs:element name="path" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element name="endpointList" type="Endpoint">
+        <xs:annotation>
+            <xs:documentation>HTTP method and path.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="XRoadRestServiceDetailsType">
+        <xs:annotation>
+            <xs:documentation>Detailed REST service information.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element ref="id:xRoadInstance"/>
+            <xs:element ref="id:memberClass"/>
+            <xs:element ref="id:memberCode"/>
+            <xs:element minOccurs="0" ref="id:subsystemCode"/>
+            <xs:element ref="id:serviceCode"/>
+            <xs:element minOccurs="0" ref="id:serviceVersion"/>
+            <xs:element minOccurs="0" maxOccurs="unbounded" ref="endpointList"/>
+        </xs:sequence>
+        <xs:attribute ref="id:objectType" use="required" fixed="SERVICE"/>
+        <xs:attribute ref="serviceType" use="required"/>
+    </xs:complexType>
+    <xs:element name="clientList" type="ClientListType"/>
+    <xs:attribute name="serviceType" type="RestServiceType"/>
+    <xs:element name="listMethodsResponse" type="MethodListType"/>
+    <xs:element name="allowedMethodsResponse" type="MethodListType"/>
+</xs:schema>

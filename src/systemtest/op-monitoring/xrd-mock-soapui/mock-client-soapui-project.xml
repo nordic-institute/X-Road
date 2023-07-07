@@ -337,12 +337,6 @@
                 that is invoked by the request</xs:documentation>
     </xs:annotation>
   </xs:element>
-  <xs:element name="centralService" type="id:XRoadCentralServiceIdentifierType">
-    <xs:annotation>
-      <xs:documentation>Identies the central service
-                that is invoked by the request.</xs:documentation>
-    </xs:annotation>
-  </xs:element>
   <xs:element name="id" type="xs:string">
     <xs:annotation>
       <xs:documentation>Unique identier
@@ -441,7 +435,7 @@
             <a href="http://www.w3.org/XML/1998/namespace.html">http://www.w3.org/XML/1998/namespace.html</a>
             and
             <a href="http://www.w3.org/TR/REC-xml">http://www.w3.org/TR/REC-xml</a>
-            for information 
+            for information
       about this namespace.
           </p>
           <p>Note that local names in this namespace are intended to be
@@ -567,9 +561,9 @@
       <div>
         <h3>Father (in any context at all)</h3>
         <div class="bodytext">
-          <p>denotes Jon Bosak, the chair of 
-      the original XML Working Group.  This name is reserved by 
-      the following decision of the W3C XML Plenary and 
+          <p>denotes Jon Bosak, the chair of
+      the original XML Working Group.  This name is reserved by
+      the following decision of the W3C XML Plenary and
       XML Coordination groups:</p>
           <blockquote>
             <p>In appreciation for his vision, leadership and
@@ -649,7 +643,7 @@
             <a href="http://www.w3.org/2009/01/xml.xsd">http://www.w3.org/2009/01/xml.xsd</a>
             will not change.
           </p>
-          <p>Previous dated (and unchanging) versions of this schema 
+          <p>Previous dated (and unchanging) versions of this schema
       document are at:</p>
           <ul>
             <li>
@@ -685,7 +679,6 @@
       <xs:element minOccurs="0" ref="groupCode"/>
       <xs:element minOccurs="0" ref="serviceCode"/>
       <xs:element minOccurs="0" ref="serviceVersion"/>
-      <xs:element minOccurs="0" ref="securityCategoryCode"/>
       <xs:element minOccurs="0" ref="serverCode"/>
     </xs:sequence>
     <xs:attribute ref="objectType" use="required"/>
@@ -701,9 +694,7 @@
       <xs:enumeration value="SERVER"/>
       <xs:enumeration value="GLOBALGROUP"/>
       <xs:enumeration value="LOCALGROUP"/>
-      <xs:enumeration value="SECURITYCATEGORY"/>
       <xs:enumeration value="SERVICE"/>
-      <xs:enumeration value="CENTRALSERVICE"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:element name="xRoadInstance" type="xs:string">
@@ -747,12 +738,6 @@
       <xs:documentation>Version of the service.</xs:documentation>
     </xs:annotation>
   </xs:element>
-  <xs:element name="securityCategoryCode" type="xs:string">
-    <xs:annotation>
-      <xs:documentation>Code that uniquely identifies security category in
-                a given X-Road instance.</xs:documentation>
-    </xs:annotation>
-  </xs:element>
   <xs:element name="serverCode" type="xs:string">
     <xs:annotation>
       <xs:documentation>Code that uniquely identifies security server
@@ -786,28 +771,6 @@
           <xs:element minOccurs="0" ref="serviceVersion"/>
         </xs:sequence>
         <xs:attribute ref="objectType" use="required" fixed="SERVICE"/>
-      </xs:restriction>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="XRoadSecurityCategoryIdentifierType">
-    <xs:complexContent>
-      <xs:restriction base="XRoadIdentifierType">
-        <xs:sequence>
-          <xs:element ref="xRoadInstance"/>
-          <xs:element ref="securityCategoryCode"/>
-        </xs:sequence>
-        <xs:attribute ref="objectType" use="required" fixed="SECURITYCATEGORY"/>
-      </xs:restriction>
-    </xs:complexContent>
-  </xs:complexType>
-  <xs:complexType name="XRoadCentralServiceIdentifierType">
-    <xs:complexContent>
-      <xs:restriction base="XRoadIdentifierType">
-        <xs:sequence>
-          <xs:element ref="xRoadInstance"/>
-          <xs:element ref="serviceCode"/>
-        </xs:sequence>
-        <xs:attribute ref="objectType" use="required" fixed="CENTRALSERVICE"/>
       </xs:restriction>
     </xs:complexContent>
   </xs:complexType>
@@ -845,56 +808,56 @@
       </xs:restriction>
     </xs:complexContent>
   </xs:complexType>
-</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>http://ws-i.org/profiles/basic/1.1/swaref.xsd</con:url><con:content><![CDATA[<!--Copyright (c) 2002-2004 by The Web Services-Interoperability Organization (WS-I) and 
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>http://ws-i.org/profiles/basic/1.1/swaref.xsd</con:url><con:content><![CDATA[<!--Copyright (c) 2002-2004 by The Web Services-Interoperability Organization (WS-I) and
   Certain of its Members. All Rights Reserved.
-	
+
   Notice
-  The material contained herein is not a license, either expressly or impliedly, to any 
-  intellectual property owned or controlled by any of the authors or developers of this 
-  material or WS-I. The material contained herein is provided on an "AS IS" basis and to 
-  the maximum extent permitted by applicable law, this material is provided AS IS AND WITH 
-  ALL FAULTS, and the authors and developers of this material and WS-I hereby disclaim all 
-  other warranties and conditions, either express, implied or statutory, including, but not 
-  limited to, any (if any) implied warranties, duties or conditions of  merchantability, 
-  of fitness for a particular purpose, of accuracy or completeness of responses, of results, 
-  of workmanlike effort, of lack of viruses, and of lack of negligence. ALSO, THERE IS NO 
-  WARRANTY OR CONDITION OF TITLE, QUIET ENJOYMENT, QUIET POSSESSION, CORRESPONDENCE TO 
+  The material contained herein is not a license, either expressly or impliedly, to any
+  intellectual property owned or controlled by any of the authors or developers of this
+  material or WS-I. The material contained herein is provided on an "AS IS" basis and to
+  the maximum extent permitted by applicable law, this material is provided AS IS AND WITH
+  ALL FAULTS, and the authors and developers of this material and WS-I hereby disclaim all
+  other warranties and conditions, either express, implied or statutory, including, but not
+  limited to, any (if any) implied warranties, duties or conditions of  merchantability,
+  of fitness for a particular purpose, of accuracy or completeness of responses, of results,
+  of workmanlike effort, of lack of viruses, and of lack of negligence. ALSO, THERE IS NO
+  WARRANTY OR CONDITION OF TITLE, QUIET ENJOYMENT, QUIET POSSESSION, CORRESPONDENCE TO
   DESCRIPTION OR NON-INFRINGEMENT WITH REGARD TO THIS MATERIAL.
-	
-  IN NO EVENT WILL ANY AUTHOR OR DEVELOPER OF THIS MATERIAL OR WS-I BE LIABLE TO ANY OTHER 
-  PARTY FOR THE COST OF PROCURING SUBSTITUTE GOODS OR SERVICES, LOST PROFITS, LOSS OF USE, 
-  LOSS OF DATA, OR ANY INCIDENTAL, CONSEQUENTIAL, DIRECT, INDIRECT, OR SPECIAL DAMAGES 
-  WHETHER UNDER CONTRACT, TORT, WARRANTY, OR OTHERWISE, ARISING IN ANY WAY OUT OF THIS OR 
-  ANY OTHER AGREEMENT RELATING TO THIS MATERIAL, WHETHER OR NOT SUCH PARTY HAD ADVANCE 
+
+  IN NO EVENT WILL ANY AUTHOR OR DEVELOPER OF THIS MATERIAL OR WS-I BE LIABLE TO ANY OTHER
+  PARTY FOR THE COST OF PROCURING SUBSTITUTE GOODS OR SERVICES, LOST PROFITS, LOSS OF USE,
+  LOSS OF DATA, OR ANY INCIDENTAL, CONSEQUENTIAL, DIRECT, INDIRECT, OR SPECIAL DAMAGES
+  WHETHER UNDER CONTRACT, TORT, WARRANTY, OR OTHERWISE, ARISING IN ANY WAY OUT OF THIS OR
+  ANY OTHER AGREEMENT RELATING TO THIS MATERIAL, WHETHER OR NOT SUCH PARTY HAD ADVANCE
   NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
-	
+
   WS-I License Information
-  Use of this WS-I Material is governed by the WS-I Test License and other licenses.  Information on these 
-  licenses are contained in the README.txt and ReleaseNotes.txt files.  By downloading this file, you agree 
+  Use of this WS-I Material is governed by the WS-I Test License and other licenses.  Information on these
+  licenses are contained in the README.txt and ReleaseNotes.txt files.  By downloading this file, you agree
   to the terms of these licenses.
-	
+
   How To Provide Feedback
-  The Web Services-Interoperability Organization (WS-I) would like to receive input, 
-  suggestions and other feedback ("Feedback") on this work from a wide variety of 
-  industry participants to improve its quality over time. 
-	
-  By sending email, or otherwise communicating with WS-I, you (on behalf of yourself if 
-  you are an individual, and your company if you are providing Feedback on behalf of the 
-  company) will be deemed to have granted to WS-I, the members of WS-I, and other parties 
-  that have access to your Feedback, a non-exclusive, non-transferable, worldwide, perpetual, 
-  irrevocable, royalty-free license to use, disclose, copy, license, modify, sublicense or 
-  otherwise distribute and exploit in any manner whatsoever the Feedback you provide regarding 
-  the work. You acknowledge that you have no expectation of confidentiality with respect to 
-  any Feedback you provide. You represent and warrant that you have rights to provide this 
-  Feedback, and if you are providing Feedback on behalf of a company, you represent and warrant 
-  that you have the rights to provide Feedback on behalf of your company. You also acknowledge 
-  that WS-I is not required to review, discuss, use, consider or in any way incorporate your 
-  Feedback into future versions of its work. If WS-I does incorporate some or all of your 
-  Feedback in a future version of the work, it may, but is not obligated to include your name 
-  (or, if you are identified as acting on behalf of your company, the name of your company) on 
-  a list of contributors to the work. If the foregoing is not acceptable to you and any company 
+  The Web Services-Interoperability Organization (WS-I) would like to receive input,
+  suggestions and other feedback ("Feedback") on this work from a wide variety of
+  industry participants to improve its quality over time.
+
+  By sending email, or otherwise communicating with WS-I, you (on behalf of yourself if
+  you are an individual, and your company if you are providing Feedback on behalf of the
+  company) will be deemed to have granted to WS-I, the members of WS-I, and other parties
+  that have access to your Feedback, a non-exclusive, non-transferable, worldwide, perpetual,
+  irrevocable, royalty-free license to use, disclose, copy, license, modify, sublicense or
+  otherwise distribute and exploit in any manner whatsoever the Feedback you provide regarding
+  the work. You acknowledge that you have no expectation of confidentiality with respect to
+  any Feedback you provide. You represent and warrant that you have rights to provide this
+  Feedback, and if you are providing Feedback on behalf of a company, you represent and warrant
+  that you have the rights to provide Feedback on behalf of your company. You also acknowledge
+  that WS-I is not required to review, discuss, use, consider or in any way incorporate your
+  Feedback into future versions of its work. If WS-I does incorporate some or all of your
+  Feedback in a future version of the work, it may, but is not obligated to include your name
+  (or, if you are identified as acting on behalf of your company, the name of your company) on
+  a list of contributors to the work. If the foregoing is not acceptable to you and any company
   on whose behalf you are acting, please do not provide any Feedback.
-	
+
   Feedback on this document should be directed to wsi-test-comments@ws-i.org.-->
 <xsd:schema targetNamespace="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <xsd:simpleType name="swaRef">
@@ -905,13 +868,13 @@
      http://www.w3.org/TR/xml-media-types
 
    Copyright © 2005 World Wide Web Consortium,
-  
+
    (Massachusetts Institute of Technology, European Research Consortium for
    Informatics and Mathematics, Keio University). All Rights Reserved. This
    work is distributed under the W3C® Software License [1] in the hope that
    it will be useful, but WITHOUT ANY WARRANTY; without even the implied
    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
+
    [1] http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
 
    $Id: xmlmime.xsd,v 1.1 2005/04/25 17:08:35 hugo Exp $-->

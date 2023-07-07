@@ -1,12 +1,8 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-  
 # X-Road: Use Case Model for Service Management
 **Analysis**
 
-Version: 1.9  
-25.08.2021
+Version: 1.10  
+17.04.2023
 <!-- 45 pages -->
   
 Doc.ID: UC-SERVICE
@@ -16,24 +12,25 @@ Doc.ID: UC-SERVICE
 ## Version history
 
 
-Date       | Version | Description                                                     | Author
----------- | ------- | --------------------------------------------------------------- | --------------------
-09.06.2015 |  0.1    |   Initial version | Meril Vaht
-21.08.2015 |  0.2    |   Updated version | Meril Vaht
-11.09.2015 |  0.3    |   Updated version | Meril Vaht
-16.09.2015 |  0.4    |   Updated version | Meril Vaht
-17.09.2015 |  0.5    |   Comments and editorial changes made | Riin Saarmäe
-17.09.2015 |  0.6    |   Comments and editorial changes accepted | Meril Vaht
-20.09.2015 |  1.0    |   Editorial changes made | Imbi Nõgisto
-27.09.2015 |  1.1    |   Use cases for managing an X-Road member's global group membership records added. *Scope* element renamed to *System*. | Riin Saarmäe
-23.10.2015 |  1.2    |   User renamed to SS/CS administrator; updated: UC SERVICE\_11, XTE-78, XTE-161. | Meril Vaht
-26.10.2015 |  1.3    |   UC SERVICE\_09 updated according to system developments. | Meril Vaht
-27.10.2015 |  1.4    |   Editorial changes made | Meril Vaht
-23.12.2015 |  1.5    |   XTE-117 – WSDL validator (UC SERVICE\_08, UC SERVICE\_09, UC SERVICE\_14 updated; UC SERVICE\_44 added) | Meril Vaht
-29.12.2015 |  1.6    |   Editorial changes made | Meril Vaht
-29.08.2017 |  1.7    |  Changed documentation type from docx to md file |   Lasse Matikainen
-06.03.2018 |  1.8    |  Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
-25.08.2021 |  1.9    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+| Date       | Version | Description                                                                                                           | Author           |
+|------------|---------|-----------------------------------------------------------------------------------------------------------------------|------------------|
+| 09.06.2015 | 0.1     | Initial version                                                                                                       | Meril Vaht       |
+| 21.08.2015 | 0.2     | Updated version                                                                                                       | Meril Vaht       |
+| 11.09.2015 | 0.3     | Updated version                                                                                                       | Meril Vaht       |
+| 16.09.2015 | 0.4     | Updated version                                                                                                       | Meril Vaht       |
+| 17.09.2015 | 0.5     | Comments and editorial changes made                                                                                   | Riin Saarmäe     |
+| 17.09.2015 | 0.6     | Comments and editorial changes accepted                                                                               | Meril Vaht       |
+| 20.09.2015 | 1.0     | Editorial changes made                                                                                                | Imbi Nõgisto     |
+| 27.09.2015 | 1.1     | Use cases for managing an X-Road member's global group membership records added. *Scope* element renamed to *System*. | Riin Saarmäe     |
+| 23.10.2015 | 1.2     | User renamed to SS/CS administrator; updated: UC SERVICE\_11, XTE-78, XTE-161.                                        | Meril Vaht       |
+| 26.10.2015 | 1.3     | UC SERVICE\_09 updated according to system developments.                                                              | Meril Vaht       |
+| 27.10.2015 | 1.4     | Editorial changes made                                                                                                | Meril Vaht       |
+| 23.12.2015 | 1.5     | XTE-117 – WSDL validator (UC SERVICE\_08, UC SERVICE\_09, UC SERVICE\_14 updated; UC SERVICE\_44 added)               | Meril Vaht       |
+| 29.12.2015 | 1.6     | Editorial changes made                                                                                                | Meril Vaht       |
+| 29.08.2017 | 1.7     | Changed documentation type from docx to md file                                                                       | Lasse Matikainen |
+| 06.03.2018 | 1.8     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links                               | Tatu Repo        |
+| 25.08.2021 | 1.9     | Update X-Road references from version 6 to 7                                                                          | Caro Hautamäki   |
+| 17.04.2023 | 1.10    | Remove central services support                                                                                       | Justas Samuolis  |
 
 <!-- toc -->
 
@@ -89,10 +86,6 @@ Date       | Version | Description                                              
     * [3.2.9 UC SERVICE\_37: Add an X-Road Member or Subsystem to a Global Group](#329-uc-service_37-add-an-x-road-member-or-subsystem-to-a-global-group)
     * [3.2.10 UC SERVICE\_38: Remove an X-Road Member or Subsystem from a Global Group](#3210-uc-service_38-remove-an-x-road-member-or-subsystem-from-a-global-group)
     * [3.2.11 UC SERVICE\_39: Delete a Global Group](#3211-uc-service_39-delete-a-global-group)
-    * [3.2.12 UC SERVICE\_40: View Central Services](#3212-uc-service_40-view-central-services)
-    * [3.2.13 UC SERVICE\_41: Add a Central Service](#3213-uc-service_41-add-a-central-service)
-    * [3.2.14 UC SERVICE\_42: Edit the Implementing Service of a Central Service](#3214-uc-service_42-edit-the-implementing-service-of-a-central-service)
-    * [3.2.15 UC SERVICE\_43: Delete a Central Service](#3215-uc-service_43-delete-a-central-service)
 
 <!-- tocstop -->
 
@@ -117,8 +110,6 @@ including:
 -   the management of the local groups of a security server client,
 
 -   the management of global groups and
-
--   the management of central services.
 
 The use cases include verifications that take place, and the main error
 conditions that may be encountered during the described process. The
@@ -177,13 +168,6 @@ rights group for a group of X-Road subsystems that use the same services
 A local group can only be used to manage the service access rights of
 one security server client in one security server. The global groups can
 be used by all the security server clients in all the security servers.
-
-Central services are used to ensure that for nationally important
-services, the process of defining the service and the process of
-implementing the service are separated. Central services are managed in
-the central server. A central service defines an alternative identifier,
-that does not depend on the current service provider, for an X-Road
-service.
 
 ## 3 Use Case Model
 
@@ -2353,214 +2337,3 @@ the X-Road members and subsystems that were the members of this group.
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
-
-#### 3.2.12 UC SERVICE\_40: View Central Services
-
-**System**: Central server
-
-**Level**: User task
-
-**Component**: Central server
-
-**Actors**: CS administrator
-
-**Brief** **Description**: CS administrator views the list of central
-services.
-
-**Preconditions**: -
-
-**Postconditions**: The list of central services has been displayed to
-CS administrator.
-
-**Trigger**: CS administrator wants to view the list of central
-services.
-
-**Main** **Success** **Scenario**:
-
-1.  CS administrator selects to view the list of central services.
-
-2.  System displays the list of central services. For each service, the
-    following information is displayed:
-
-    -   the code of the central service;
-
-    -   the X-Road identifier of the implementing service.
-
-    The CS administrator has a possibility to choose amongst the following actions:
-
-    -   add a central service: 3.2.13;
-    
-    -   change the implementing service of a central service: 3.2.14;
-    
-    -   delete a central service: 3.2.15.
-
-**Extensions**: -
-
-**Related** **information**: -
-
-#### 3.2.13 UC SERVICE\_41: Add a Central Service
-
-**System**: Central server
-
-**Level**: User task
-
-**Component**: Central server
-
-**Actors**: CS administrator
-
-**Brief** **Description**: CS administrator adds a central service to
-the central server.
-
-**Preconditions**: -
-
-**Postconditions**: An audit log record for the event is created.
-
-**Trigger**: CS administrator wants to add a central service.
-
-**Main** **Success** **Scenario**:
-
-1.  CS administrator selects to add a central service.
-
-2.  CS administrator inserts the following information:
-
-    -   the code of the central service;
-
-    -   the name of the provider of the implementing service;
-
-    -   the X-Road identifier of the implementing service.
-
-3.  System parses the user input: 3.1.13.
-
-4.  System verifies that a central service with the inserted central
-    service code does not already exist.
-
-5.  System verifies that the provider of the implementing service is
-    registered as an X-Road member or subsystem.
-
-6.  System saves the information about the added central service to the
-    system configuration.
-
-7.  System logs the event “Add central service” to the audit log.
-
-**Extensions**:
-
-- 3a. The process of parsing the user input terminated with an error message.
-    - 3a.1. System displays the error message “Failed to save central service: 'X'” (where “X” is the termination message from the parsing process).
-    - 3a.2. System logs the event “Add central service failed” to the audit log.
-    - 3a.3. CS administrator selects to reinsert the central service information. Use case continues form step 3.
-        - 3a.3a. CS administrator selects to terminate the use case.
-
-- 4a. A central service with the inserted central service code already exists.
-    - 4a.1. System displays the error message “Failed to save central service: central service code 'X' has already been taken”, where “X” is the inserted code.
-    - 4a.2. System logs the event “Add central service failed” to the audit log.
-    - 4a.3. CS administrator selects to reinsert the code of the central service. Use case continues form step 3.
-        - 4a.3.a. CS administrator selects to terminate the use case.
-
-- 5a. The provider of the inserted implementing service is not registered as an X-Road member or subsystem.
-    - 5a.1. System displays the error message “Failed to save central service: Provider with ID 'X' not found” (where “X” is the X-Road identifier of the inserted implementing service provider).
-    - 5a.2. System logs the event “Add central service failed” to the audit log.
-    - 5a.3. CS administrator selects to reinsert the implementing service identifier. Use case continues form step 3.
-        - 5a.3a. CS administrator selects to terminate the use case.
-
-**Related** **information**:
-
--   The audit log is located at /var/log/xroad/audit.log. The data set
-    of audit log records is described in the document “X-Road: Audit Log
-    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
-
-#### 3.2.14 UC SERVICE\_42: Edit the Implementing Service of a Central Service
-
-**System**: Central server
-
-**Level**: User task
-
-**Component**: Central server
-
-**Actors**: CS administrator
-
-**Brief** **Description**: CS administrator edits the X-Road indentifier
-of the implementing service of a central service.
-
-**Preconditions**: The central service is added to central server.
-
-**Postconditions**: -
-
-**Trigger**: CS administrator wants to edit the implementing service of
-a central service.
-
-**Main** **Success** **Scenario**:
-
-1.  CS administrator selects to edit the implementing service of a
-    central service.
-
-2.  CS administrator inserts the X-Road identifier of the implementing
-    service and the name of the service provider.
-
-3.  System parses the user input: 3.1.13.
-
-4.  System verifies that the provider of the inserted implementing
-    service is an X-Road member or subsystem.
-
-5.  System saves changes to the system configuration.
-
-6.  System logs the event “Edit central service” to the audit log.
-
-**Extensions**:
-
-- 3a. The process of parsing the user input terminated with an error message.
-    - 3a.1. System displays the error message “Failed to update central service: 'X'” (where “X” is the termination message from the parsing process).
-    - 3a.2. System logs the event “Edit central service failed” to the audit log.
-    - 3a.3. CS administrator selects to reinsert the X-Road identifier of the implementing service. Use case continues form step 3.
-    - 3a.3a. CS administrator selects to terminate the use case.
-
-- 4a. The provider of the inserted implementing service is not an X-Road member or subsystem.
-    - 4a.1. System displays the error message “Failed to update central service: Provider with ID 'X' not found” (where “X” is the X-Road identifier of the inserted implementing service provider).
-    - 4a.2. System logs the event “Edit central service failed” to the audit log.
-    - 4a.3. CS administrator selects to reinsert the implementing service identifier. Use case continues form step 3.
-    - 4a.3a. CS administrator selects to terminate the use case.
-
-**Related** **information**:
-
--   The audit log is located at /var/log/xroad/audit.log. The data set
-    of audit log records is described in the document “X-Road: Audit Log
-    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
-
-#### 3.2.15 UC SERVICE\_43: Delete a Central Service
-
-**System**: Central server
-
-**Level**: User task
-
-**Component**: Central server
-
-**Actors**: CS administrator
-
-**Brief** **Description**: CS administrator deletes a central service.
-
-**Preconditions**: -
-
-**Postconditions**: -
-
-**Trigger**: CS administrator wants to delete a central service.
-
-**Main** **Success** **Scenario**:
-
-1.  CS administrator selects to delete a central service.
-
-2.  System prompts for confirmation.
-
-3.  CS administrator confirms.
-
-4.  System deletes the central service from the system configuration.
-
-5.  System logs the event “Delete central service” to the audit log.
-
-**Extensions**:
-
-- 3a. CS administrator terminates the use case.
-
-**Related** **information**:
-
--   The audit log is located at /var/log/xroad/audit.log. The data set
-    of audit log records is described in the document “X-Road: Audit Log
-    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]

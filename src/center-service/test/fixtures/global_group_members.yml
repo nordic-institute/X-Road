@@ -1,3 +1,0 @@
-globalGroupMember_first:
-  global_group_id: <%= ActiveRecord::Fixtures.identify(:globalGroup_first) %>
-  group_member_id: <%= ActiveRecord::Fixtures.identify(:identifier_firstGlobalGroupMember) %>

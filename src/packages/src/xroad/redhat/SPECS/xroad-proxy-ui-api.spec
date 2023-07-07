@@ -38,7 +38,7 @@ mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/conf.d
 
 cp -p %{_sourcedir}/proxy-ui-api/xroad-proxy-ui-api.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../proxy-ui-api/build/libs/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/proxy-ui-api.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/proxy-ui-api-logback.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
@@ -67,6 +67,9 @@ rm -rf %{buildroot}
 %upgrade_check
 
 if [ "$1" -gt 1 ]; then
+  mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+  rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
+
   systemctl --quiet stop xroad-jetty.service >/dev/null 2>&1 || true
 fi
 
@@ -92,6 +95,15 @@ function migrate_conf_value {
 if [ $1 -gt 1 ] ; then
   #migrating possible local configuration for modified configuration values (for version 6.24.0)
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui auth-cert-reg-signature-digest-algorithm-id proxy-ui-api auth-cert-reg-signature-digest-algorithm-id
+
+  prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
+
+  # disable strict-identifier-checks for upgrades from version < 7.3.0
+  if ! echo -e "7.3.0\n$prev_version" | sort -V -C; then
+      crudini --set /etc/xroad/conf.d/local.ini proxy-ui-api strict-identifier-checks false
+  fi
+
+  rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
 fi
 
 if [[ -f /etc/xroad/ssl/nginx.crt && -f /etc/xroad/ssl/nginx.key ]];

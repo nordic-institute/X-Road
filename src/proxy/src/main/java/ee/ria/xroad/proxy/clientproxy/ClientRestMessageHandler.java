@@ -31,12 +31,13 @@ import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import com.google.gson.stream.JsonWriter;
+import com.fasterxml.jackson.core.JsonGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpStatus;
@@ -102,8 +103,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     public void sendErrorResponse(HttpServletRequest request,
-                                  HttpServletResponse response,
-                                  CodedException ex) throws IOException {
+            HttpServletResponse response,
+            CodedException ex) throws IOException {
         if (ex.getFaultCode().startsWith("Server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {
@@ -133,13 +134,14 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 log.error("Unable to generate XML document");
             }
         } else {
-            final JsonWriter writer = new JsonWriter(new PrintWriter(response.getOutputStream()));
-            writer.beginObject()
-                    .name("type").value(ex.getFaultCode())
-                    .name("message").value(ex.getFaultString())
-                    .name("detail").value(ex.getFaultDetail())
-                    .endObject()
-                    .close();
+            try (JsonGenerator jsonGenerator = JsonUtils.getObjectWriter()
+                    .getFactory().createGenerator(new PrintWriter(response.getOutputStream()))) {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField("type", ex.getFaultCode());
+                jsonGenerator.writeStringField("message", ex.getFaultString());
+                jsonGenerator.writeStringField("detail", ex.getFaultDetail());
+                jsonGenerator.writeEndObject();
+            }
         }
     }
 

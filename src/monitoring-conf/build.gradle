@@ -7,13 +7,14 @@ configurations {
 sourceSets {
     main {
         java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
-        resources.srcDirs = ['src/main/resources', '../common-util/src/main/resources']
+        resources.srcDirs = ['src/main/resources', '../common/common-util/src/main/resources']
+        resources.exclude 'version.properties'
     }
 }
 
 dependencies {
-    implementation project(':common-util')
-    implementation project(':common-verifier')
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
@@ -36,8 +37,8 @@ task xjc {
         ant.xjc(
                 destdir: project.ext.schemaTargetDir,
                 package: 'ee.ria.xroad.common.conf.globalconf.monitoringparameters',
-                schema: 'build/resources/main/monitoring-conf.xsd',
-                binding: 'build/resources/main/identifiers-bindings.xml'
+                schema: "${buildDir}/resources/main/monitoring-conf.xsd",
+                binding: "${buildDir}/resources/main/identifiers-bindings.xml"
         )
     }
 }

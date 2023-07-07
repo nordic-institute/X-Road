@@ -10,8 +10,8 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
-        resources.srcDirs = ['src/main/resources', '../common-util/src/main/resources']
+        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
+        resources.srcDirs = ['src/main/resources', '../common/common-util/src/main/resources']
     }
 }
 
@@ -20,10 +20,10 @@ dependencies {
     implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
     implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
-    implementation project(':common-verifier')
-    implementation project(':common-util')
-    implementation project(':common-db')
-    implementation project(':common-op-monitoring')
+    implementation project(':common:common-verifier')
+    implementation project(':common:common-util')
+    implementation project(':common:common-db')
+    implementation project(':common:common-op-monitoring')
     implementation project(':monitoring-conf')
 
     // Using HSQLDB for an in-memory database in tests.
@@ -53,8 +53,8 @@ task xjc() {
         ant.xjc(
                 destdir: project.ext.schemaTargetDir,
                 package: 'ee.ria.xroad.opmonitordaemon.message',
-                schema: 'build/resources/main/op-monitoring.xsd',
-                binding: 'build/resources/main/identifiers-bindings.xml'
+                schema: "${buildDir}/resources/main/op-monitoring.xsd",
+                binding: "${buildDir}/resources/main/identifiers-bindings.xml"
         )
     }
 }

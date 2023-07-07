@@ -1,0 +1,28 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/000-ensure-supported-version.xml">
+    <changeSet author="niis" id="000-ensure-supported-version" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <!-- verify that schema either does not have any pre-liquibase migrations
+             or has the correct version from pre-liquibase migrations.
+             No actual changes. -->
+        <preConditions onFail="HALT"
+                       onFailMessage="Cannot start liquibase migrations. Database not in expected state (failure)"
+                       onErrorMessage="Cannot start liquibase migrations. Database not in expected state (error)">
+            <or>
+                <not>
+                    <!-- previous Ruby schema_migrations does not exist -> we assume fresh install -->
+                    <tableExists tableName="schema_migrations"/>
+                </not>
+                <and>
+                    <!-- previous Ruby schema_migrations do exist -> they must have correct version -->
+                    <tableExists tableName="schema_migrations"/>
+                    <sqlCheck expectedResult="1">
+                        SELECT COUNT(*) FROM schema_migrations WHERE version = '20200902142050'
+                    </sqlCheck>
+                </and>
+            </or>
+        </preConditions>
+    </changeSet>
+</databaseChangeLog>

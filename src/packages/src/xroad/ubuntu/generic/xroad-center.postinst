@@ -26,27 +26,54 @@ handle_error() {
 
 # setup database and run migrations
 setup_database() {
+    /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
+
     local db_properties=/etc/xroad/db.properties
     local root_properties=/etc/xroad.properties
     RET=
     db_get xroad-common/database-host || true
-    local db_host="${RET:-127.0.0.1:5432}"
-    local db_addr=${db_host%%:*}
-    local db_port=${db_host##*:}
-    crudini --set "${db_properties}" '' host "${db_addr}"
-    crudini --set "${db_properties}" '' port "${db_port}"
+    local -r new_db_host="${RET}"
+    local db_host="${new_db_host:-127.0.0.1:5432}"
 
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     local skip_migrations="${RET}"
     crudini --set "${db_properties}" '' skip_migrations "${skip_migrations}"
 
-    local db_user=$(get_prop ${db_properties} 'username' 'centerui')
-    local db_schema=$(get_prop ${db_properties} 'schema' "${db_user%%@*}")
-    local db_password=$(get_prop ${db_properties} 'password' 'centerui')
-    local db_database=$(get_prop ${db_properties} 'database' 'centerui_production')
+    local db_user=$(get_prop ${db_properties} 'spring.datasource.username' 'centerui')
+    local db_schema=$(get_prop ${db_properties} 'spring.datasource.hikari.data-source-properties.currentSchema' "${db_user%%@*}")
+    db_schema=${db_schema%%,*}
+    local db_password=$(get_prop ${db_properties} 'spring.datasource.password' 'centerui')
+    local db_database="centerui_production"
     local db_master_user=postgres
+
+    local db_url=$(get_prop ${db_properties} 'spring.datasource.url' "jdbc:postgresql://${db_host}/${db_database}")
+    pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
+    if [[ "$db_url" =~ $pat ]]; then
+      db_host=${new_db_host:-${BASH_REMATCH[1]}}
+      db_database=${BASH_REMATCH[3]:-$db_database}
+    else
+      log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database'"
+    fi
+
+    crudini --set "${db_properties}" '' spring.datasource.url "jdbc:postgresql://${db_host}/${db_database}"
+
+    local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
+    local db_admin_password=$(get_prop ${root_properties} 'centerui.database.admin_password' 'centerui')
+    if [[ -z "$db_admin_conn_user" && -n "$db_admin_password" ]]; then
+      db_admin_conn_user="${db_user}_admin"
+    else
+      db_admin_conn_user="${db_admin_conn_user:-$db_user}"
+      db_admin_password="${db_admin_password:-$db_password}"
+    fi
+    local db_admin_user="${db_admin_conn_user%%@*}"
+
     export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
+
+    local hosts
+    IFS=',' read -ra hosts <<<"$db_host"
+    local db_addr=${hosts[0]%%:*}
+    local db_port=${hosts[0]##*:}
 
     local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
     remote_psql() { psql -h "$db_addr" -p "$db_port" -qtA "$@"; }
@@ -54,6 +81,10 @@ setup_database() {
     psql_dbuser() {
         PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
     }
+
+    psql_adminuser() {
+            PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
+        }
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
@@ -66,56 +97,71 @@ setup_database() {
     fi
 
     local db_plain_user=${db_user%%@*}
-    local db_plain_master=${db_master_user%%@*}
 
     if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
         log "Database and user exists, skipping database creation."
-
-        if [ "$db_schema" != "public" ]; then
-          if [[ $(psql_dbuser -c "SELECT 1 from public.schema_migrations limit 1;" 2>/dev/null) != "1" ]]; then
-            psql_dbuser -c "CREATE SCHEMA IF NOT EXISTS \"${db_schema}\"" || abort "Creating schema '$db_schema' failed."
-          fi
-        fi
     else
+
+        if [[ $(get_prop ${root_properties} 'centerui.database.admin_user' "") == "" ]]; then
+          db_admin_user="${db_user}_admin"
+        fi
+
+        if [[ $(get_prop ${root_properties} 'centerui.database.admin_password' "") == "" ]]; then
+          db_admin_password=$(gen_pw)
+        fi
+
+        if [[ ! -f "$root_properties" ]]; then
+          touch ${root_properties}
+          chown root:root ${root_properties}
+          chmod 600 ${root_properties}
+        fi
+
         db_password=$(gen_pw)
+        echo "Creating database"
         psql_master <<EOF || abort "Creating database '${db_database}' on '${db_host}' failed."
 CREATE DATABASE "${db_database}" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
 DO \$\$
 BEGIN
-  CREATE ROLE "${db_plain_user}" LOGIN PASSWORD '${db_password}';
-  GRANT "${db_plain_user}" to "${db_plain_master}";
+  CREATE ROLE "${db_admin_user}" LOGIN PASSWORD '${db_admin_password}';
+  GRANT "${db_admin_user}" TO "${db_master_user}";
   EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'User $db_plain_user already exists';
-END\$\$;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
+    RAISE NOTICE 'User $db_admin_user already exists';
+END
+\$\$;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_admin_user}";
 \c "${db_database}"
 CREATE EXTENSION hstore;
-CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_plain_user}";
+CREATE SCHEMA "${db_schema}" AUTHORIZATION "${db_admin_user}";
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public to "${db_plain_user}";
+GRANT USAGE ON SCHEMA public TO "${db_admin_user}";
 EOF
-        crudini --set "${db_properties}" '' schema "${db_schema}"
-        crudini --set "${db_properties}" '' password "${db_password}"
+        echo "Creating database plain user"
+        psql_master <<EOF || abort "Creating plain user failed."
+DO \$\$
+BEGIN
+  CREATE ROLE "${db_plain_user}" LOGIN PASSWORD '${db_password}';
+  GRANT "${db_plain_user}" TO "${db_master_user}";
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'User $db_plain_user already exists';
+END
+\$\$;
+\c "${db_database}"
+GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_plain_user}";
+GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
+EOF
+        crudini --set "${db_properties}" '' spring.datasource.hikari.data-source-properties.currentSchema "${db_schema},public"
+        crudini --set "${db_properties}" '' spring.datasource.username "centerui"
+        crudini --set "${db_properties}" '' spring.datasource.password "${db_password}"
+
+        crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_user' "${db_admin_conn_user}"
+        crudini --set --inplace "${root_properties}" '' 'centerui.database.admin_password' "${db_admin_password}"
     fi
 
-    if [ "$skip_migrations" = false ] ; then
-      echo "running database migrations"
-      if [[ $(psql_dbuser -c "SELECT max(version) <= '20191211104400' from public.schema_migrations;" 2>/dev/null) == "t" ]]; then
-          /usr/share/xroad/db/migrate-legacy.sh db:migrate || abort "Database migration failed. ABORTING."
-          psql_master --single-transaction -d "$db_database" <<EOF || abort "Renaming public schema to '$db_schema' failed."
-ALTER SCHEMA public RENAME TO "${db_schema}";
-ALTER SCHEMA "${db_schema}" OWNER TO "${db_plain_user}";
-REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
-CREATE SCHEMA public;
-GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
-ALTER EXTENSION hstore SET SCHEMA public;
-EOF
-          crudini --set "${db_properties}" '' schema "${db_schema}"
-      fi
-      /usr/share/xroad/db/migrate.sh db:migrate || abort "Database migration failed. ABORTING."
-    else
+    if [ "$skip_migrations" = true ] ; then
       echo "skipping database migrations"
+    else
+      /usr/share/xroad/db/migrate.sh || abort "Database migration failed. ABORTING."
     fi
 }
 
@@ -129,9 +175,26 @@ create_certificates() {
     for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
     ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
+    if [[ -f /etc/xroad/ssl/nginx.crt && -f /etc/xroad/ssl/nginx.key ]];
+    then
+      if [[ ! -r /etc/xroad/ssl/center-admin-service.crt || ! -r /etc/xroad/ssl/center-admin-service.key || ! -r /etc/xroad/ssl/center-admin-service.p12 ]]
+      then
+        echo "found existing nginx.crt and nginx.key, migrating those to center-admin-service.crt, key and p12"
+        mv -f /etc/xroad/ssl/nginx.crt /etc/xroad/ssl/center-admin-service.crt
+        mv -f /etc/xroad/ssl/nginx.key /etc/xroad/ssl/center-admin-service.key
+        rm -f /etc/xroad/ssl/center-admin-service.p12
+        openssl pkcs12 -export -in /etc/xroad/ssl/center-admin-service.crt -inkey /etc/xroad/ssl/center-admin-service.key -name center-admin-service -out /etc/xroad/ssl/center-admin-service.p12 -passout pass:center-admin-service
+        chmod -f 660 /etc/xroad/ssl/center-admin-service.key /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/center-admin-service.p12
+        chown -f xroad:xroad /etc/xroad/ssl/center-admin-service.key /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/center-admin-service.p12
+
+      else
+        echo "found existing center-admin-service.key, crt and p12, keeping those and not migrating nginx.key and crt"
+      fi
+    fi
+
     while :; do
-        if [[ ! -r /etc/xroad/ssl/nginx.crt || ! -r /etc/xroad/ssl/nginx.key ]]; then
-            log "Generating new nginx.[crt|key] files "
+        if [[ ! -r /etc/xroad/ssl/center-admin-service.crt || ! -r /etc/xroad/ssl/center-admin-service.key || ! -r /etc/xroad/ssl/center-admin-service.p12 ]]; then
+            log "Generating new center-admin-service.[crt|key|p12] files "
             db_subst xroad-common/admin-subject HOST "$HOST"
             db_subst xroad-common/admin-altsubject ALT "$ALT"
             RET=
@@ -154,9 +217,9 @@ create_certificates() {
             db_get xroad-common/admin-altsubject
             altn="$RET"
             db_go
-            rm -f /etc/xroad/ssl/nginx.crt /etc/xroad/ssl/nginx.key
+            rm -f /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/center-admin-service.key /etc/xroad/ssl/center-admin-service.p12
             log "generating new webUI TLS key/certificate with $subj and $altn"
-            /usr/share/xroad/scripts/generate_certificate.sh -n nginx -s "${subj}" -a "${altn}" 2>/tmp/cert.err || handle_error
+            /usr/share/xroad/scripts/generate_certificate.sh -n center-admin-service -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err || handle_error
         else
             break
         fi
@@ -229,6 +292,23 @@ configure | reconfigure)
     chmod 755 /var/lib/xroad/import
     chown xroad:xroad /var/lib/xroad/import
 
+    # generate gpg keypair when needed - directory does not exist and server is initialised
+    if [[ -n "$2" ]]; then
+      if [ ! -d /etc/xroad/gpghome ] ; then
+        ID=$(/usr/share/xroad/scripts/get_central_server_instance_id.sh)
+        if [[ -n "${ID}" ]] ; then
+          /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
+        fi
+      fi
+      # always fix gpghome ownership
+      [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
+
+      # disable strict-identifier-checks for upgrades from version < 7.3.0
+      if dpkg --compare-versions "$2" lt-nl "7.3.0"; then
+          crudini --set /etc/xroad/conf.d/local.ini admin-service strict-identifier-checks false
+      fi
+    fi
+
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     skip_migrations="${RET}"
@@ -236,12 +316,6 @@ configure | reconfigure)
     invoke-rc.d --quiet rsyslog try-restart || true
     invoke-rc.d --quiet nginx try-restart || true
     invoke-rc.d --quiet xroad-signer try-restart || true
-    if [ "$skip_migrations" = false ] ; then
-      invoke-rc.d --quiet xroad-jetty restart || true
-    else
-      invoke-rc.d --quiet xroad-jetty stop || true
-      echo "xroad-jetty service remains stopped since the database migrations were skipped"
-    fi
     ;;
 
 abort-upgrade | abort-remove | abort-deconfigure)

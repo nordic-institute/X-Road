@@ -46,7 +46,6 @@ import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -69,7 +68,6 @@ import javax.persistence.criteria.Root;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -97,14 +95,14 @@ public class ServerConfImpl implements ServerConfProvider {
     private final ServiceDescriptionDAOImpl serviceDescriptionDao = new ServiceDescriptionDAOImpl();
 
     @Override
-    public SecurityServerId getIdentifier() {
+    public SecurityServerId.Conf getIdentifier() {
         return tx(session -> {
             ServerConfType confType = getConf(session);
             ClientType owner = confType.getOwner();
             if (owner == null) {
                 throw new CodedException(X_MALFORMED_SERVERCONF, "Owner is not set");
             }
-            return SecurityServerId.create(owner.getIdentifier(), confType.getServerCode());
+            return SecurityServerId.Conf.create(owner.getIdentifier(), confType.getServerCode());
         });
     }
 
@@ -199,19 +197,20 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId> getAllServices(ClientId serviceProvider) {
+    public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
         return tx(session -> serviceDao.getServices(session, serviceProvider));
     }
 
     @Override
-    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
+                                                             DescriptionType descriptionType) {
         return tx(session -> serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType));
     }
 
     @Override
-    public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {
+    public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
-            List<ServiceId> allServices =
+            List<ServiceId.Conf> allServices =
                     serviceDao.getServices(session, serviceProvider);
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
@@ -220,10 +219,10 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
             DescriptionType descriptionType) {
         return tx(session -> {
-            List<ServiceId> allServices =
+            List<ServiceId.Conf> allServices =
                     serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType);
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
@@ -246,7 +245,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ClientId> getMembers() {
+    public List<ClientId.Conf> getMembers() {
         return tx(session -> getConf(session).getClient().stream()
                 .map(ClientType::getIdentifier)
                 .collect(Collectors.toList()));
@@ -319,17 +318,6 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public boolean isQueryAllowed(ClientId client, ServiceId service, String method, String path) {
         return tx(session -> internalIsQueryAllowed(session, client, service, method, path));
-    }
-
-    @Override
-    public List<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        return tx(session -> {
-            ServiceType serviceType = getService(session, service);
-            if (serviceType != null) {
-                return serviceType.getRequiredSecurityCategory();
-            }
-            return Collections.emptyList();
-        });
     }
 
     @Override

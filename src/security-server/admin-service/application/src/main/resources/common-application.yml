@@ -1,0 +1,106 @@
+## properties that are not specific to a runtime (test or prod)
+
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+  resources:
+    add-mappings: false
+  jpa:
+    ## *.hbm.xml files are loaded from classpath
+    mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+      show-sql: true
+  jackson:
+    default-property-inclusion: NON_NULL
+  servlet:
+    multipart:
+      max-file-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload:${request.sizelimit.binary.upload}}
+      max-request-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload:${request.sizelimit.binary.upload}}
+
+# default is 30m
+# server.servlet.session.timeout=1m
+server:
+  port: 4000
+  servlet:
+    session:
+      cookie:
+        secure: true
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: /var/log/xroad
+      prefix: proxy_ui_api_access
+      suffix: .log
+      pattern: "%h %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{X-Forwarded-For}i\""
+      renameOnRotate: true
+      rotatable: true
+      max-days: 30
+
+# Deprecated, should be replaced with "xroad.proxy-ui-api.request-sizelimit-regular" & "xroad.proxy-ui-api.request-sizelimit-binary-upload" once removed
+request:
+  sizelimit:
+    regular: 50KB
+    binary:
+      upload: 10MB
+
+xroad:
+  proxy-ui-api:
+    rate-limit-requests-per-second: ${ratelimit.requests.per.second:20} #Deprecated. This is a fallback to old style properties
+    rate-limit-requests-per-minute: ${ratelimit.requests.per.minute:600} #Deprecated. This is a fallback to old style properties
+    rate-limit-cache-size: 10_000
+    rate-limit-expire-after-access-minutes: 5
+    cache-default-ttl: 60
+    cache-api-key-ttl: 60
+    strict-identifier-checks: true
+    request-size-limit-regular: ${request.sizelimit.regular}
+    request-size-limit-binary-upload: ${request.sizelimit.binary.upload}
+
+file-upload-endpoints:
+  endpoint-definitions:
+    -
+      http-method: POST
+      path-pattern: "/**/backups/upload"
+    -
+      http-method: POST
+      path-pattern: "/**/tls-certificates"
+    -
+      http-method: POST
+      path-pattern: "/**/token-certificates"
+    -
+      http-method: POST
+      path-pattern: "/**/certificate/import"
+
+script:
+  generate-gpg-keypair:
+    path: /usr/share/xroad/scripts/generate_gpg_keypair.sh
+  generate-certificate:
+    path: /usr/share/xroad/scripts/generate_certificate.sh
+    args: -n internal -f -S -p 2>&1
+  generate-backup:
+    path: /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
+    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
+  internal-configuration-verifier:
+    path: /usr/share/xroad/scripts/verify_internal_configuration.sh
+  external-configuration-verifier:
+    path: /usr/share/xroad/scripts/verify_external_configuration.sh
+  restore-configuration:
+    path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
+
+url:
+  download-configuration-anchor: http://localhost:%s/execute
+  diagnostics-globalconf: http://localhost:%s/status
+  diagnostics-timestamping-services: http://localhost:%s/timestampstatus
+  diagnostics-ocsp-responders: http://localhost:%s/status
+  clear-configuration-cache: http://localhost:%s/clearconfcache
+  diagnostics-addon-status: http://localhost:%s/addonstatus
+  diagnostics-backup-encryption-status: http://localhost:%s/backup-encryption-status
+  diagnostics-message-log-encryption-status: http://localhost:%s/message-log-encryption-status
+
+common-module-endpoints:
+  base-path: /api/v1
+
+gpgkeys:
+  gpghome: /etc/xroad/gpghome
+

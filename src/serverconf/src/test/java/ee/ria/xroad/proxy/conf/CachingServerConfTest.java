@@ -34,7 +34,6 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
@@ -47,7 +46,6 @@ import org.junit.Test;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
@@ -60,7 +58,6 @@ import static ee.ria.xroad.proxy.conf.TestUtil.NUM_CLIENTS;
 import static ee.ria.xroad.proxy.conf.TestUtil.NUM_SERVICEDESCRIPTIONS;
 import static ee.ria.xroad.proxy.conf.TestUtil.NUM_SERVICES;
 import static ee.ria.xroad.proxy.conf.TestUtil.NUM_TSPS;
-import static ee.ria.xroad.proxy.conf.TestUtil.SECURITY_CATEGORY;
 import static ee.ria.xroad.proxy.conf.TestUtil.SERVER_CODE;
 import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_CODE;
 import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_TIMEOUT;
@@ -135,8 +132,8 @@ public class CachingServerConfTest {
      */
     @Test
     public void getIdentifier() {
-        SecurityServerId expectedIdentifier =
-                SecurityServerId.create(
+        SecurityServerId.Conf expectedIdentifier =
+                SecurityServerId.Conf.create(
                         XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, SERVER_CODE);
         assertEquals(expectedIdentifier, ServerConf.getIdentifier());
     }
@@ -146,13 +143,13 @@ public class CachingServerConfTest {
      */
     @Test
     public void getExistingServiceAddress() {
-        ServiceId service = ServiceId.create(XROAD_INSTANCE, MEMBER_CLASS,
+        ServiceId.Conf service = ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS,
                 client(1), null, service(1, 1), SERVICE_VERSION);
         assertTrue(ServerConf.serviceExists(service));
         assertEquals(SERVICE_URL + 1, ServerConf.getServiceAddress(service));
         assertEquals(SERVICE_TIMEOUT, ServerConf.getServiceTimeout(service));
 
-        service = ServiceId.create(XROAD_INSTANCE, MEMBER_CLASS,
+        service = ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS,
                 client(1), null, service(1, NUM_SERVICES - 2), null);
         assertTrue(ServerConf.serviceExists(service));
     }
@@ -162,7 +159,7 @@ public class CachingServerConfTest {
      */
     @Test
     public void getAllServices() {
-        ClientId serviceProvider = createTestClientId(client(1));
+        ClientId.Conf serviceProvider = createTestClientId(client(1));
 
         List<ServiceId> expectedServices = new ArrayList<>();
         for (int i = 0; i < NUM_SERVICEDESCRIPTIONS; i++) {
@@ -256,20 +253,6 @@ public class CachingServerConfTest {
     }
 
     /**
-     * Tests getting required categories.
-     */
-    @Test
-    public void getRequiredCategories() {
-        ServiceId service1 = createTestServiceId(client(1),
-                service(1, 1), SERVICE_VERSION);
-        Collection<SecurityCategoryId> securityCategories =
-                ServerConf.getRequiredCategories(service1);
-        assertEquals(1, securityCategories.size());
-        assertEquals(SecurityCategoryId.create(XROAD_INSTANCE,
-                SECURITY_CATEGORY + 1), securityCategories.iterator().next());
-    }
-
-    /**
      * Tests getting IS authentication.
      */
     @Test
@@ -318,7 +301,7 @@ public class CachingServerConfTest {
      */
     @Test
     public void getMembers() throws Exception {
-        List<ClientId> members = ServerConf.getMembers();
+        List<ClientId.Conf> members = ServerConf.getMembers();
         assertNotNull(members);
         assertEquals(NUM_CLIENTS, members.size());
     }
@@ -341,7 +324,7 @@ public class CachingServerConfTest {
     public void getServices() throws Exception {
         ClientId serviceProvider = createTestClientId(client(1), null);
 
-        List<ServiceId> allServices = getServices(serviceProvider);
+        List<ServiceId.Conf> allServices = getServices(serviceProvider);
         assertEquals(NUM_SERVICEDESCRIPTIONS * NUM_SERVICES, allServices.size());
 
         serviceProvider = createTestClientId(client(NUM_CLIENTS - 1), null);
@@ -356,7 +339,7 @@ public class CachingServerConfTest {
         assertEquals(NUM_SERVICEDESCRIPTIONS * NUM_SERVICES, allServices.size());
     }
 
-    private static List<ServiceId> getServices(ClientId serviceProvider) {
+    private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
         return new ServiceDAOImpl().getServices(
                 ServerConfDatabaseCtx.get().getSession(),
                 serviceProvider);

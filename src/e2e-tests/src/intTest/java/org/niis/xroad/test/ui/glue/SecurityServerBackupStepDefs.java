@@ -30,25 +30,23 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Then;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
+import org.niis.xroad.test.ui.glue.constants.Constants;
 import org.openqa.selenium.By;
 
 import java.io.File;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
-import static org.niis.xroad.test.ui.glue.CommonUiStepDefs.BTN_CLOSE_SNACKBAR;
 import static org.openqa.selenium.By.xpath;
 
 public class SecurityServerBackupStepDefs extends BaseUiStepDefs {
     private static final By TAB_BACKUP_AND_RESTORE = xpath("//*[@data-test=\"backupandrestore-tab-button\"]");
     private static final By BTN_CREATE_BACKUP = xpath("//*[@data-test=\"backup-create-configuration\"]");
-    private static final By SNACKBAR_SUCCESS = xpath("//div[@data-test=\"success-snackbar\"]");
     private static final By BTN_SEARCH = xpath("//button[contains(@class, \"mdi-magnify\")]");
     private static final By INPUT_SEARCH = xpath("//input[@data-test=\"search-input\"]");
-    private static final By BTN_DIALOG_SAVE = xpath("//div[@data-test=\"dialog-simple\" "
+    private static final By BTN_DIALOG_CONFIRM_DELETE = xpath("//div[@data-test=\"dialog-simple\" "
             + "and .//div[@data-test=\"dialog-content-text\" "
             + "and contains(text(), \"Are you sure you want to delete\")]]//button[@data-test=\"dialog-save-button\"]");
-    private static final By BTN_UPLOAD_CONFIRM = xpath("//button[@data-test=\"dialog-save-button\"]");
     private static final By BTN_UPLOAD_CANCEL = xpath("//button[@data-test=\"dialog-cancel-button\"]");
     private static final By INPUT_FILE_UPLOAD = xpath("//input[@type=\"file\"]");
 
@@ -66,15 +64,15 @@ public class SecurityServerBackupStepDefs extends BaseUiStepDefs {
     public void anchorDownloadButtonIsVisible() {
         $(BTN_CREATE_BACKUP).click();
 
-        String snackbarMessage = $(SNACKBAR_SUCCESS)
+        String snackbarMessage = $(Constants.SNACKBAR_SUCCESS)
                 .shouldBe(Condition.visible)
                 .text();
 
         String backupName = snackbarMessage.split(" ")[1];
-        scenarioExecutionContext.getCucumberScenario().log(String.format("Backup %s was created", backupName));
+        scenarioProvider.getCucumberScenario().log(String.format("Backup %s was created", backupName));
         scenarioContext.putStepData("backupName", backupName);
 
-        $(BTN_CLOSE_SNACKBAR).click();
+        $(Constants.BTN_CLOSE_SNACKBAR).click();
     }
 
     @Then("A newly created backup is filtered and visible")
@@ -85,7 +83,7 @@ public class SecurityServerBackupStepDefs extends BaseUiStepDefs {
         $(INPUT_SEARCH).setValue(backupName);
 
 
-        $$(xpath("//table[contains(@class, \"xrd-table\")]/tbody/tr"))
+        $$(xpath("//div[@data-test='backup-restore-view']//table/tbody/tr"))
                 .shouldHave(CollectionCondition.size(1));
 
         $(INPUT_SEARCH).clear();
@@ -98,13 +96,13 @@ public class SecurityServerBackupStepDefs extends BaseUiStepDefs {
 
         $(getDeleteBackupSelector(backupName)).click();
 
-        $(BTN_DIALOG_SAVE).click();
+        $(BTN_DIALOG_CONFIRM_DELETE).click();
 
-        $(SNACKBAR_SUCCESS)
+        $(Constants.SNACKBAR_SUCCESS)
                 .shouldBe(Condition.visible)
                 .shouldHave(Condition.partialText(backupName));
 
-        $(BTN_CLOSE_SNACKBAR).click();
+        $(Constants.BTN_CLOSE_SNACKBAR).click();
     }
 
     @SneakyThrows
@@ -128,21 +126,21 @@ public class SecurityServerBackupStepDefs extends BaseUiStepDefs {
         $(BTN_UPLOAD_CANCEL).click();
 
         $(INPUT_FILE_UPLOAD).uploadFile(file);
-        $(BTN_UPLOAD_CONFIRM).click();
+        $(Constants.BTN_DIALOG_SAVE).click();
 
-        $(SNACKBAR_SUCCESS)
+        $(Constants.SNACKBAR_SUCCESS)
                 .shouldBe(Condition.visible)
                 .shouldHave(Condition.partialText(backupName));
     }
 
     private By getDeleteBackupSelector(String backupName) {
-        String selector = String.format("//table[contains(@class, \"xrd-table\")]"
+        String selector = String.format("//div[@data-test='backup-restore-view']//table"
                 + "/tbody/tr/td[text() = \"%s\"]/..//button[@data-test=\"backup-delete\"]", backupName);
         return xpath(selector);
     }
 
     private By getDownloadBackupSelector(String backupName) {
-        String selector = String.format("//table[contains(@class, \"xrd-table\")]"
+        String selector = String.format("//div[@data-test='backup-restore-view']//table"
                 + "/tbody/tr/td[text() = \"%s\"]/..//button[@data-test=\"backup-download\"]", backupName);
         return xpath(selector);
     }

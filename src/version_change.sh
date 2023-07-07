@@ -6,7 +6,6 @@ export DEBEMAIL=info@niis.org
 
 RELEASE=false
 DEB_CHANGELOG=packages/src/xroad/ubuntu/generic/changelog
-DEBJ9_CHANGELOG=packages/src/xroad-jetty9/ubuntu/generic/changelog
 CURRENT_VERSION=`awk '{if ($1 == "##") {print $2; exit;}}' ../CHANGELOG.md`
 
 function version { echo "$@" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }'; }
@@ -36,8 +35,6 @@ function add_dch_entry {
 function release_current {
     dch -r --distribution stable -c "$DEB_CHANGELOG" ""
     sed -i "1s/\-0/\-1/" "$DEB_CHANGELOG"
-    dch -r --distribution stable -c "$DEBJ9_CHANGELOG" ""
-    sed -i "1s/\-0/\-1/" "$DEBJ9_CHANGELOG"
     CURRENT_DATE=`date +%Y-%m-%d`
     sed -i "0,/ - UNRELEASED$/ s// - $CURRENT_DATE/" ../CHANGELOG.md
 }
@@ -99,12 +96,9 @@ if [[ $DOWNGRADE == true ]]; then
     sed -i "s/## $VERSION.*$/## $VERSION - UNRELEASED/" ../CHANGELOG.md
     downgrade "1" "$VERSION" "$DEB_CHANGELOG" "1"
     sed -i "1s/\-1/\-0/" $DEB_CHANGELOG
-    downgrade "1" "$VERSION" "$DEBJ9_CHANGELOG" "1"
-    sed -i "1s/\-1/\-0/" $DEBJ9_CHANGELOG
 else
     sed -i "2a## $VERSION - UNRELEASED\n" ../CHANGELOG.md
     add_dch_entry "$DEB_CHANGELOG" "$VERSION" "Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz"
-    add_dch_entry "$DEBJ9_CHANGELOG" "$VERSION" "Version bump"
 fi
 
 if [[ $RELEASE == true ]]; then

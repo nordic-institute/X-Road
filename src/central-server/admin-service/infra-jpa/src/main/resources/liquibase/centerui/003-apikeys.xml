@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/003-apikeys.xml">
+    <changeSet author="niis" id="003-apikeys">
+        <preConditions onFail="MARK_RAN">
+            <not><tableExists tableName="APIKEY"/></not>
+            <not><tableExists tableName="APIKEY_ROLES"/></not>
+        </preConditions>
+
+        <createTable tableName="APIKEY">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ENCODEDKEY" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="APIKEY_ROLES">
+            <column name="ID" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="APIKEY_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ROLE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="ID" constraintName="APIKEYPK" tableName="APIKEY"/>
+        <addPrimaryKey columnNames="ID" constraintName="APIKEY_ROLESPK" tableName="APIKEY_ROLES"/>
+        <addForeignKeyConstraint baseColumnNames="APIKEY_ID" baseTableName="APIKEY_ROLES" constraintName="FK_APIKEY_ROLES_APIKEY_ID" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="APIKEY"/>
+        <addUniqueConstraint columnNames="apikey_id, role" constraintName="UNIQUE_APIKEY_ROLE" tableName="APIKEY_ROLES" />
+
+        <sql splitStatements="false">
+            <![CDATA[
+            ALTER TABLE APIKEY_ROLES ADD CONSTRAINT VALID_ROLE
+                CHECK (ROLE IN (
+                    'XROAD_SECURITY_OFFICER',
+                    'XROAD_REGISTRATION_OFFICER',
+                    'XROAD_SYSTEM_ADMINISTRATOR')
+                );
+            DROP TRIGGER IF EXISTS update_history ON apikey;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON apikey
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+
+            DROP TRIGGER IF EXISTS update_history ON apikey_roles;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON apikey_roles
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+        <rollback>
+          <dropTable tableName="APIKEY" cascadeConstraints="true"/>
+          <dropTable tableName="APIKEY_ROLES" cascadeConstraints="true"/>
+        </rollback>
+
+    </changeSet>
+</databaseChangeLog>

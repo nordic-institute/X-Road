@@ -1,12 +1,7 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
-
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 7**
 
-Version: 1.15  
+Version: 1.20
 Doc. ID: IG-CSHA
 
 ---
@@ -14,26 +9,32 @@ Doc. ID: IG-CSHA
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                                     | Author
- ---------- | ------- | --------------------------------------------------------------- | --------------------
- 31.08.2015 | 0.1     | Initial version created.
- 15.09.2015 | 1.0     | Minor fixes done.
- 20.09.2015 | 1.1     | Editorial changes made
- 16.12.2015 | 1.2     | Added recovery information
- 17.12.2015 | 1.3     | Editorial changes made
- 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 05.03.2018 | 1.5     | Added terms and abbreviations references and document links  | Tatu Repo
- 03.10.2018 | 1.6     | Added the chapter "Changing Nodes' IP Addresses in HA Cluster"
- 19.12.2018 | 1.7     | Minor changes related to Ubuntu 18 support
- 03.01.2019 | 1.8     | Removed forced NTP installation. | Jarkko Hyöty
- 27.09.2019 | 1.9     | Minor fix | Petteri Kivimäki
- 03.12.2019 | 1.10    | Removed dependency on BDR | Jarkko Hyöty
- 30.12.2019 | 1.11    | Add instructions for setting up a replicated PostgreSQL database | Jarkko Hyöty 
- 18.03.2020 | 1.12    | Add instructions for Central Server HA Migration | Ilkka Seppälä 
- 16.04.2020 | 1.13    | Update cluster status output | Jarkko Hyöty
- 10.08.2021 | 1.14    | Update HA installation instructions. Remove obsolete BDR references. | Ilkka Seppälä
- 25.08.2021 | 1.15    | Update X-Road references from version 6 to 7 | Caro Hautamäki
- 
+| Date       | Version | Description                                                                                          | Author             |
+|------------|---------|------------------------------------------------------------------------------------------------------|--------------------|
+| 31.08.2015 | 0.1     | Initial version created.                                                                             |                    |
+| 15.09.2015 | 1.0     | Minor fixes done.                                                                                    |                    |
+| 20.09.2015 | 1.1     | Editorial changes made                                                                               |                    |
+| 16.12.2015 | 1.2     | Added recovery information                                                                           |                    |
+| 17.12.2015 | 1.3     | Editorial changes made                                                                               |                    |
+| 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder      |
+| 05.03.2018 | 1.5     | Added terms and abbreviations references and document links                                          | Tatu Repo          |
+| 03.10.2018 | 1.6     | Added the chapter "Changing Nodes' IP Addresses in HA Cluster"                                       |                    |
+| 19.12.2018 | 1.7     | Minor changes related to Ubuntu 18 support                                                           |                    |
+| 03.01.2019 | 1.8     | Removed forced NTP installation.                                                                     | Jarkko Hyöty       |
+| 27.09.2019 | 1.9     | Minor fix                                                                                            | Petteri Kivimäki   |
+| 03.12.2019 | 1.10    | Removed dependency on BDR                                                                            | Jarkko Hyöty       |
+| 30.12.2019 | 1.11    | Add instructions for setting up a replicated PostgreSQL database                                     | Jarkko Hyöty       |
+| 18.03.2020 | 1.12    | Add instructions for Central Server HA Migration                                                     | Ilkka Seppälä      |
+| 16.04.2020 | 1.13    | Update cluster status output                                                                         | Jarkko Hyöty       |
+| 10.08.2021 | 1.14    | Update HA installation instructions. Remove obsolete BDR references.                                 | Ilkka Seppälä      |
+| 25.08.2021 | 1.15    | Update X-Road references from version 6 to 7                                                         | Caro Hautamäki     |
+| 17.04.2023 | 1.16    | Updated HA installation instructions. Added conf updated for newer postgres versions (>=12).         | Mikk-Erik Bachmann |
+| 19.04.2023 | 1.17    | Removed unused properties from db.properties                                                         | Mikk-Erik Bachmann |
+| 02.06.2023 | 1.18    | Minor updates                                                                                        | Justas Samuolis    |
+| 05.06.2023 | 1.19    | Update HA cluster status endpoint path                                                               | Andres Rosenthal   |
+| 28.06.2023 | 1.20    | Update database properties to follow new Spring datasource style                                     | Raido Kaju         |
+
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -57,13 +58,13 @@ Doc. ID: IG-CSHA
 - [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
   - [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
   - [6.2 One or more cental server nodes lost, backup available](#62-one-or-more-cental-server-nodes-lost-backup-available)
-  - [6.3 Some central server nodes lost, backup not available](#63-some-central-server-nodes-lost-backup-not-available)
+  - [6.3 Some Central Server nodes lost, backup not available](#63-some-central-server-nodes-lost-backup-not-available)
 - [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database)
   - [Prerequisites](#prerequisites)
   - [PostgreSQL configuration (all database servers)](#postgresql-configuration-all-database-servers)
   - [Preparing the standby](#preparing-the-standby)
   - [Verifying replication](#verifying-replication)
-  - [Configuring central servers](#configuring-central-servers)
+  - [Configuring Central Servers](#configuring-central-servers)
   - [Fail-over](#fail-over)
     - [Automatic fail-over](#automatic-fail-over)
 - [Appendix B. Central Server HA Migration](#appendix-b-central-server-ha-migration)
@@ -81,20 +82,20 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 1.1 High Availability for X-Road Central Server
 
-The High Availability (HA) solution for the X-Road central server relies on a shared, optionally highly available database. This enables every node to work as a standalone central server which receives configuration updates from all other nodes. Security servers can download identical configuration from any of the public addresses published in a configuration anchor file.
+The High Availability (HA) solution for the X-Road Central Server relies on a shared, optionally highly available database. This enables every node to work as a standalone Central Server which receives configuration updates from all other nodes. Security servers can download identical configuration from any of the public addresses published in a configuration anchor file.
 
-Every central server node has its own:
+Every Central Server node has its own:
 - node specific keys to sign configuration;
 - node specific public address which is distributed to the configuration clients in configuration anchor files;
-- optionally, a management security server.
+- optionally, a management Security Server.
 
 In addition, a highly-available PostgreSQL compatible database is required for storing the shared configuration. Setting up the database is out of the scope of this document.
 
-The minimum X-Road central server version is 6.23.
+The minimum X-Road Central Server version is 6.23.
 
 ### 1.2 Target Audience
 
-The intended audience of this installation guide are X-Road central server administrators responsible for installing and configuring the X-Road central server software.
+The intended audience of this installation guide are X-Road Central Server administrators responsible for installing and configuring the X-Road Central Server software.
 
 The document is intended for readers with a good knowledge of Linux server management, computer networks, and the X-Road functioning principles.
 
@@ -117,13 +118,13 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
 
 2.  Network security and speed.
 
-    Even though all the database connections are secured and authenticated with TLS, network security (especially confidentiality, availability) must be reviewed on infrastructure level. The network speed and reliability between central server nodes and the shared database is important for the functionality of the system. A central server node can not function if it can not write to and read from the database.
+    Even though all the database connections are secured and authenticated with TLS, network security (especially confidentiality, availability) must be reviewed on infrastructure level. The network speed and reliability between Central Server nodes and the shared database is important for the functionality of the system. A Central Server node can not function if it can not write to and read from the database.
 
 3.  All the nodes must run the same patch-level X-Road software and database software.
 
 4.  Time window for node failure repairing.
 
-    A node can work (i.e. provide valid global configuration to the X-Road instance) as long as it can read from and write to the shared configuration database. If one node loses database access, other nodes continue providing valid global configuration, and security servers will switch downloading the configuration from a healthly node. In the case all nodes or the shared database fails, security servers can function until global configuration exprires, but new security servers can not be added to the X-Road instance.
+    A node can work (i.e. provide valid global configuration to the X-Road instance) as long as it can read from and write to the shared configuration database. If one node loses database access, other nodes continue providing valid global configuration, and Security Servers will switch downloading the configuration from a healthly node. In the case all nodes or the shared database fails, Security Servers can function until global configuration exprires, but new Security Servers can not be added to the X-Road instance.
 
 5.  Configuration files (located in `/etc/xroad/`) are not synchronized between nodes. It is the responsibility of the system administrator to change them in all nodes if required or stated by the user manual.
 
@@ -137,15 +138,15 @@ Additionally, creating an HA setup requires that all nodes can access the shared
 ### 3.2 Workflow for a New X-Road Instance Setup
 
 1.  Install HA support according to steps listed in section [4](#4-general-installation-of-ha-support).
-2.  Install the X-Road central server software according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] on each node.
+2.  Install the X-Road Central Server software according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] on each node.
 
 ### 3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration
 
-1.  Upgrade the existing X-Road central server software to the latest release available, verify system health.
+1.  Upgrade the existing X-Road Central Server software to the latest release available, verify system health.
 2.  Create a backup of the system configuration and store it in a safe place.
 3.  Continue with HA support installation steps as described in section [4](#4-general-installation-of-ha-support).
-4.  Install the X-Road central server software as described in the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] to each of the new nodes.
-5.  After installing and configuring all the X-Road central server nodes, retrieve new internal and external configuration anchor files from one of the nodes and distribute the files to all security servers and configuration proxies.
+4.  Install the X-Road Central Server software as described in the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] to each of the new nodes.
+5.  After installing and configuring all the X-Road Central Server nodes, retrieve new internal and external configuration anchor files from one of the nodes and distribute the files to all Security Servers and configuration proxies.
 
 ### 3.4 Workflow for Adding New Nodes to an Existing HA Configuration
 
@@ -154,9 +155,9 @@ Referencing steps in section [4](#4-general-installation-of-ha-support).
 1.  Upgrade the software of the existing nodes to the latest version available, verify system health on all nodes.
 2.  Create a backup system configuration of the existing nodes and store it in a safe place.
 3.  Prepare the node for HA configuration as described in section [4](#4-general-installation-of-ha-support).
-4.  Install the X-Road central server software as described in the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] to each of the new nodes.
+4.  Install the X-Road Central Server software as described in the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] to each of the new nodes.
 
-After installing and configuring all the X-Road central server nodes, retrieve new internal end external configuration anchor files from one of the nodes and distribute the files to all security servers and configuration proxies.
+After installing and configuring all the X-Road Central Server nodes, retrieve new internal end external configuration anchor files from one of the nodes and distribute the files to all Security Servers and configuration proxies.
 
 ### 3.5 Post-Configuration Steps
 
@@ -174,7 +175,7 @@ The secondary hosts are assumed to use the same port (default 5432) as the prima
 ## 4 General Installation of HA Support
 
 The HA support requires that an external database is initialized and available (see [X-Road Central Server Installation Guide](#Ref_IG-CS) about using an external database). 
-The database can also be installed on the central server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
+The database can also be installed on the Central Server node(s), but that is not recommended unless a multi-master setup (e.g. BDR) is used.
 
 In addition, it is necessary to configure a unique node name for each node participating in the cluster preferably before installing the X-Road software.
 
@@ -186,47 +187,49 @@ In addition, it is necessary to configure a unique node name for each node parti
     ```
     Where `<node_name>` is the unique name for the HA node. It is suggested to follow a naming scheme where the first node is `node_0` and subsequent ones `node_1`, `node_2`, etc..
     
-    When upgrading an existing central server to HA configuration, the name of the existing server *must be* `node_0`.
+    When upgrading an existing Central Server to HA configuration, the name of the existing server *must be* `node_0`.
 
     If upgrading an existing cluster with BDR, the name of the node **must be** the same as the local BDR node name.
 
-3.  Install the X-Road central server software according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] on the first node.
+3.  Install the X-Road Central Server software according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] on the first node.
     
     When the installation asks for a database host, provide the details of the external database.
 
-4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the central server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
+4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the Central Server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
 
 ## 5 Monitoring HA State on a Node
 
 It is possible to get HA status via a web interface, for example using curl:
 ```bash
-curl -k https://cs1.example.org:4000/public_system_status/check_ha_cluster_status
+curl --header "Authorization: X-Road-ApiKey token=<api key>" -k https://cs1.example.org:4000/api/v1/system/high-availability-cluster/status
 ```
+
+See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#32-checking-the-status-of-the-nodes-of-the-cluster) for more information about the API KEY Authorization
+
+Response:
 ```json
 {
-  "ha_node_status": {
-    "ha_configured": true,
-    "node_name": "node_0",
-    "nodes": [
-      {
-        "node_name": "node_0",
-        "node_address": "cs1.example.org",
-        "configuration_generated": "2019-12-03 14:48:02.306199",
-        "status": "OK"
-      },
-      {
-        "node_name": "node_1",
-        "node_address": "cs2.example.org",
-        "configuration_generated": "2019-12-03 14:47:02.053865",
-        "status": "WARN"
-      }
-    ],
-    "all_nodes_ok": false
-  }
+  "ha_configured": true,
+  "node_name": "node_0",
+  "nodes": [
+    {
+      "node_name": "node_0",
+      "node_address": "cs1.example.org",
+      "configuration_generated": "2023-06-06T09:48:02.000Z",
+      "status": "OK"
+    },
+    {
+      "node_name": "node_1",
+      "node_address": "cs2.example.org",
+      "configuration_generated": "2023-06-06T09:46:02.000Z",
+      "status": "WARN"
+    }
+  ],
+  "all_nodes_ok": false
 }
 ```
-The status information is based on the data in the configuration database and other nodes are not directly accessed. If the database is not available at all, the status check will respond with an error (HTTP error 503 Service Unvailable).
-A node status is:
+The status information is based on the data in the configuration database and other nodes are not directly accessed.
+A node can be:
   * "OK" if the configuration is recently generated.
   * "WARN" if the timestamp is more than a global configuration generation interval in the past.
   * "ERROR" if the timestamp is older than the global configuration expriry time.
@@ -244,24 +247,24 @@ Recovery procedure depends on the type of the failure and database used. If conf
 
 ### 6.1 Configuration database (and possible replicas) is lost
 
-* Stop central servers.
+* Stop Central Servers.
 * Set up a new database.
-* Update the db.properties on each central server node to point to the new database.
+* Update the db.properties on each Central Server node to point to the new database.
 * On one node, restore the database from a backup (see \[[UG-CS](#Ref_UG-CS)\]).
-* Start central servers.
+* Start Central Servers.
 
 ### 6.2 One or more cental server nodes lost, backup available
 
 * Setup the missing nodes like described in [3.4](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
 * Restore configuration from a backup, skipping database restoration (see \[[UG-CS](#Ref_UG-CS)\]).
 
-### 6.3 Some central server nodes lost, backup not available
+### 6.3 Some Central Server nodes lost, backup not available
 
 See [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
 
 ## Appendix A. Setting up a replicated PostgreSQL database
 
-In this configuration, the central server nodes share an external PostgreSQL database that uses a master - standby configuration with streaming replication. In case of master failure, the central server nodes can automatically start using the standby once it has been promoted to master. The promoting is manual by default, but can be automated by custom scripts or using third-party tools. Because the database standby is read-only and the central server nodes require write access, this setup does not provide horizontal scalability.
+In this configuration, the Central Server nodes share an external PostgreSQL database that uses a master - standby configuration with streaming replication. In case of master failure, the Central Server nodes can automatically start using the standby once it has been promoted to master. The promoting is manual by default, but can be automated by custom scripts or using third-party tools. Because the database standby is read-only and the Central Server nodes require write access, this setup does not provide horizontal scalability.
 
 It is assumed that a PostgreSQL database is installed on two or more similar hosts. It is recommended to use a recent PostgeSQL version (10 or later). One of these hosts will be configured as a master, and others will replicate the master database (standby). The master node can have an existing database, but the standby databases will be initialized during the installation.
 
@@ -271,7 +274,7 @@ A thorough discussion about PostgreSQL replication and high-availability is out 
 
 * Same version (10 or later) of PostgreSQL installed on at least two similar hosts.
 * Network connections on PostgreSQL port (tcp/5432) are allowed between database servers (both directions).
-* Network connections to PostgreSQL port (tcp/5432) are allowed from the central servers to the database servers.
+* Network connections to PostgreSQL port (tcp/5432) are allowed from the Central Servers to the database servers.
 
 ### PostgreSQL configuration (all database servers)
 
@@ -304,7 +307,7 @@ max_replication_slots = 10
 hot_standby = on
 ```
 
-Edit pg_hba.conf (on Ubuntu by default in `/etc/postgresql/<version>/main/`) and add configuration for the replication user. For example, the following allows the user "standby" from a host in the same network to connect to the master. The connection requires TLS and uses challenge-response password authentication. See https://www.postgresql.org/docs/current/auth-pg-hba-conf.html for more information.
+Edit pg_hba.conf (on Ubuntu by default in `/etc/postgresql/<version>/<cluster name>/`) and add configuration for the replication user. For example, the following allows the user "standby" from a host in the same network to connect to the master. The connection requires TLS and uses challenge-response password authentication. See https://www.postgresql.org/docs/current/auth-pg-hba-conf.html for more information.
 
 ```
 # TYPE    DATABASE        USER            ADDRESS       METHOD
@@ -327,7 +330,7 @@ sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_n
 ### Preparing the standby
 
 * Verify that the standby PostgreSQL instance is not running.
-* Clear the data directory (on Ubuntu, default location is `/var/lib/postgresql/<version>/main`)
+* Clear the data directory (on Ubuntu, default location is `/var/lib/postgresql/<version>/<cluster name>`)
 
   ```bash
    rm -rf /path/to/data/directory/*
@@ -339,10 +342,18 @@ sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_n
   sudo -u postgres pg_basebackup -h <master> -U standby --slot=standby_node1 -R -D /path/to/data/directory/
   ```
 
-* Edit `recovery.conf` (in the data directory) and verify the settings:
+
+* Additional settings:
+  * Postgresql version < 12: Edit `recovery.conf` (in the data directory) and verify the settings:
   
   ```properties
   standby_mode = 'on'
+  primary_conninfo = 'host=<master> user=<standby> password=<password>'
+  primary_slot_name = 'standby_node1'
+  recovery_target_timeline = 'latest'
+  ```
+   * Postgresql version >=12: Previous settings were moved to `postgresql.conf` instead and standby_mode is not used anymore. A standby.signal file in the data directory is used instead. (https://www.postgresql.org/docs/current/recovery-config.html):
+  ```properties
   primary_conninfo = 'host=<master> user=<standby> password=<password>'
   primary_slot_name = 'standby_node1'
   recovery_target_timeline = 'latest'
@@ -382,23 +393,19 @@ slot_name             | standby_node1
 
 The `status` should be _streaming_ and `sent_lsn` on master should be close to `received_lsn` on the stanbys. If replication slots are in use, one can also compare the `sent_lsn` and `replay_lsn` values on the master.
 
-### Configuring central servers
+### Configuring Central Servers
 
-See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#18-migrating-to-remote-database-host) for instructions about migrating an existing central server database to an external database.
+See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#17-migrating-to-remote-database-host) for instructions about migrating an existing Central Server database to an external database.
 
 Edit `/etc/xroad/db.properties` and change the connection properties:
 ```properties
-adapter=postgresql
-encoding=utf8
-username=centerui
-password=<password>
-database=centerui_production
-reconnect=true
-host=<master host>
-secondary_hosts=<standby host>
+spring.datasource.username=<database_user>
+spring.datasource.password=<password>
+spring.datasource.url=jdbc:postgresql://<master_host>:<master_port>/<database>
+secondary_hosts=<standby_host>
 ```
 
-Restart central servers and verify that the cluster is working (see [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)).
+Restart Central Servers and verify that the cluster is working (see [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)).
 
 ### Fail-over
 
@@ -413,7 +420,7 @@ sudo pg_ctlcluster <major version> <cluster name> promote
 # e.g. sudo pg_ctlcluster 10 main promote
 ```
 
-If the standby is configured as a secondary database host on the central servers, the servers will automatically reconnect to it.
+If the standby is configured as a secondary database host on the Central Servers, the servers will automatically reconnect to it.
 To avoid a "split-brain" situation, the old master must not be started until it has been reconfigured as a standby.
 
 See also: https://www.postgresql.org/docs/current/warm-standby-failover.html
@@ -439,7 +446,7 @@ Since version 6.23.0 it is possible to use an external database for the Central 
 
 1. Take a backup of the Central Server.
 
-2. Follow the instructions in [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#18-migrating-to-remote-database-host) to migrate the Central Server database from local to remote.
+2. Follow the instructions in [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#17-migrating-to-remote-database-host) to migrate the Central Server database from local to remote.
 
 3. Follow the instructions in [General Installation of HA Support](#4-general-installation-of-ha-support)
 

@@ -1,0 +1,13 @@
+#!/bin/bash
+. /usr/share/debconf/confmodule
+
+#DEBHELPER#
+
+if [[ "$1" = configure ]]; then
+  if [[ -d /etc/nginx/sites-enabled ]]; then
+    ln -sf /etc/xroad/nginx/registration-service.conf /etc/nginx/sites-enabled/
+    invoke-rc.d --quiet nginx reload ||:
+  fi
+fi
+
+exit 0

@@ -1,0 +1,53 @@
+
+dependencies {
+    intTestImplementation project(':common:common-test')
+    intTestImplementation project(":central-server:admin-service:api-client")
+    intTestImplementation(testFixtures(project(":common:common-management-request")))
+    intTestImplementation ("io.github.openfeign:feign-hc5:$openFeignVersion")
+
+    intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-assert:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}") {
+      exclude(group: "org.bouncycastle", module: "bcpkix-jdk18on")
+      exclude(group: "org.bouncycastle", module: "bcprov-jdk18on")
+    }
+    intTestImplementation("com.nortal.test:test-automation-feign:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task intTest(type: Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def intTestArgs = []
+    if (project.hasProperty('intTestTags')) {
+        intTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('intTestTags')
+    }
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
+
+    jvmArgs intTestArgs
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+
+    shouldRunAfter test
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('intTest')
+}

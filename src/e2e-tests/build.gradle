@@ -2,6 +2,7 @@ dependencies {
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
+    intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
 }
 
 task e2eTest(type: Test) {

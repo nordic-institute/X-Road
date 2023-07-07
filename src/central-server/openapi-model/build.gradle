@@ -1,0 +1,58 @@
+plugins {
+    id 'java-library'
+    id 'org.openapi.generator' version "$openApiGeneratorVersion"
+}
+
+dependencies {
+    compileOnly("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+    compileOnly("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
+
+    api("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java',
+            "${buildDir}/generated-sources/openapi/src/main/java",
+        ]
+    }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml"
+    outputDir = "$buildDir/generated-sources/openapi"
+    apiPackage = "org.niis.xroad.cs.openapi"
+    modelPackage = "org.niis.xroad.cs.openapi.model"
+    modelNameSuffix = "Dto"
+    importMappings = [
+        User           : "org.niis.xroad.restapi.openapi.model.User",
+        ErrorInfo      : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
+        CodeWithDetails: "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
+    ]
+    globalProperties = [
+        modelDocs              : "false",
+        apis                   : "", // must use empty strings instead of "true":
+        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+        models                 : "",
+        generateSupportingFiles: "false",
+        skipDefaultInterface   : "true",
+        supportingFiles        : 'ApiUtil.java'
+    ]
+    configOptions = [
+        interfaceOnly       : "true",
+        useTags             : "true",
+        documentationProvider  : "none",
+        skipDefaultInterface   : "true",
+        openApiNullable: "false"
+    ]
+}
+
+// Fix up to date check
+tasks.openApiGenerate {
+    inputs.files(openApiGenerate.inputSpec)
+    outputs.dir(openApiGenerate.outputDir)
+}
+
+compileJava.dependsOn tasks.openApiGenerate

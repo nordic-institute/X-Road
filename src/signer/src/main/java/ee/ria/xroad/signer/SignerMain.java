@@ -61,8 +61,6 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 public final class SignerMain {
 
     private static final String APP_NAME = "xroad-signer";
-    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     static {
         SystemPropertiesLoader.create()
@@ -97,7 +95,7 @@ public final class SignerMain {
     }
 
     private static void startup() throws Exception {
-        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
+        Version.outputVersionInfo(APP_NAME);
         int signerPort = SystemProperties.getSignerPort();
         log.info("Starting Signer on port {}...", signerPort);
 
@@ -166,7 +164,8 @@ public final class SignerMain {
                 }
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(diagnostics, response.getWriter());
+                    JsonUtils.getObjectWriter()
+                            .writeValue(response.getWriter(), diagnostics);
                 } catch (IOException e) {
                     log.error("Error writing response {}", e);
                 }

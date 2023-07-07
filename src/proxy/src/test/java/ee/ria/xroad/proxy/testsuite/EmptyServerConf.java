@@ -31,7 +31,6 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
@@ -43,10 +42,8 @@ import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 
 /**
  * Implementation of ServerConfProvider that does nothing but return nulls. You
@@ -56,7 +53,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     private static final int SERVICE_TIMEOUT = 300;
     private static final String EXPECTED_XR_INSTANCE = "EE";
-    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+    private static final ClientId DEFAULT_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", "SUBCODE5");
     private static final String SERVICE1 = "SERVICE1";
     private static final String SERVICE2 = "SERVICE2";
@@ -83,12 +80,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public Set<SecurityCategoryId> getRequiredCategories(ServiceId service) {
-        return emptySet();
-    }
-
-    @Override
-    public SecurityServerId getIdentifier() {
+    public SecurityServerId.Conf getIdentifier() {
         return null;
     }
 
@@ -102,17 +94,17 @@ public class EmptyServerConf implements ServerConfProvider {
             ClientId serviceProvider) {
         RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
 
-        ServiceId serviceId1 = ServiceId.create(DEFAULT_CLIENT, SERVICE1);
+        ServiceId serviceId1 = ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1);
         XRoadRestServiceDetailsType serviceDetails1 = createRestServiceDetails(serviceId1);
         serviceDetails1.getEndpointList().addAll(getServiceEndpoints(serviceId1));
         restServiceDetailsList.getService().add(serviceDetails1);
 
-        ServiceId serviceId2 = ServiceId.create(DEFAULT_CLIENT, SERVICE2);
+        ServiceId serviceId2 = ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2);
         XRoadRestServiceDetailsType serviceDetails2 = createRestServiceDetails(serviceId2);
         serviceDetails2.getEndpointList().addAll(getServiceEndpoints(serviceId2));
         restServiceDetailsList.getService().add(serviceDetails2);
 
-        ServiceId serviceId3 = ServiceId.create(DEFAULT_CLIENT, SERVICE3);
+        ServiceId serviceId3 = ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3);
         XRoadRestServiceDetailsType serviceDetails3 = createRestServiceDetails(serviceId3);
         serviceDetails3.getEndpointList().addAll(getServiceEndpoints(serviceId3));
         restServiceDetailsList.getService().add(serviceDetails3);
@@ -177,36 +169,36 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ClientId> getMembers() throws Exception {
+    public List<ClientId.Conf> getMembers() throws Exception {
         return emptyList();
     }
 
     @Override
-    public List<ServiceId> getAllServices(ClientId serviceProvider) {
-        List<ServiceId> list = new ArrayList<>();
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+    public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
+        List<ServiceId.Conf> list = new ArrayList<>();
+        list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
+        list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
+        list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3));
         return list;
     }
 
     @Override
-    public List<ServiceId> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
         return emptyList();
     }
 
     @Override
-    public List<ServiceId> getAllowedServices(ClientId serviceProvider,
+    public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
-        List<ServiceId> list = new ArrayList<>();
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
-        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        List<ServiceId.Conf> list = new ArrayList<>();
+        list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
+        list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
+        list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3));
         return list;
     }
 
     @Override
-    public List<ServiceId> getAllowedServicesByDescriptionType(ClientId serviceProvider,
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
                                               ClientId client, DescriptionType descriptionType) {
         return emptyList();
     }

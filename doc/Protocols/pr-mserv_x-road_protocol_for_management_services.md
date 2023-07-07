@@ -1,38 +1,35 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
 # X-Road: Protocol for Management Services
 
 **Technical Specification**
 
-Version: 1.14  
+Version: 1.15  
 Doc. ID: PR-MSERV
 
-|  Date      | Version |  Description                                                             | Author             |
-|------------|---------|--------------------------------------------------------------------------|--------------------|
-| 19.08.2015 | 0.1     | Initial version                                                          | Martin Lind        |
-| 28.08.2015 | 0.2     | Added comments and made editorial changes                                | Margus Freudenthal |
-| 03.09.2015 | 0.3     | Re-structuring and accuracy improvements                                 | Martin Lind        |
-| 13.09.2015 | 0.4     | Made editorial changes                                                   | Margus Freudenthal |
-| 16.09.2015 | 0.5     | Correct example message for authentication certificate registration request | Martin Lind     |
-| 17.09.2015 | 0.6     | Improvements for example messages and referential improvements           | Martin Lind        |
-| 17.09.2015 | 0.7     | Improvements for Schema fragments                                        | Martin Lind        |
-| 18.09.2015 | 0.8     | Updating Schema in the WSDL                                              | Martin Lind        |
-| 21.09.2015 | 1.0     | Editorial changes made                                                   | Imbi Nõgisto       |
-| 21.09.2015 | 1.1     | Document renamed                                                         | Imbi Nõgisto       |
-| 01.10.2015 | 1.2     | Field *requestId* added and redundant elements removed                   | Martin Lind        |
-| 05.10.2015 | 1.3     | Updated example messages                                                 | Martin Lind        |
-| 06.10.2015 | 1.4     | Correct header fields for WSDL                                           | Martin Lind        |
-| 17.10.2015 | 1.6     | Editorial changes related to *requestId* field                           | Margus Freudenthal |
-| 28.10.2015 | 1.7     | Complete X-Road identifiers schema added                                 | Siim Annuk         |
-| 30.10.2015 | 1.8     | Header field *userId* removed from management services WSDL              | Kristo Heero       |
-| 11.12.2015 | 1.9     | Corrected documentation about registering only subsystems                | Siim Annuk         |
-| 07.06.2017 | 1.10    | Additional signature algorithms supported                                | Kristo Heero       |
-| 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references       | Tatu Repo          |
-| 06.02.2019 | 1.12    | Update *clientReg* message description                                   | Petteri Kivimäki   |
-| 03.06.2019 | 1.13    | Add ownerChange management service                                       | Ilkka Seppälä      |
-| 29.06.2019 | 1.14    | Rename *newOwner* element to *client* in ownerChange management service  | Petteri Kivimäki   |
+| Date       | Version | Description                                                                 | Author             |
+|------------|---------|-----------------------------------------------------------------------------|--------------------|
+| 19.08.2015 | 0.1     | Initial version                                                             | Martin Lind        |
+| 28.08.2015 | 0.2     | Added comments and made editorial changes                                   | Margus Freudenthal |
+| 03.09.2015 | 0.3     | Re-structuring and accuracy improvements                                    | Martin Lind        |
+| 13.09.2015 | 0.4     | Made editorial changes                                                      | Margus Freudenthal |
+| 16.09.2015 | 0.5     | Correct example message for authentication certificate registration request | Martin Lind        |
+| 17.09.2015 | 0.6     | Improvements for example messages and referential improvements              | Martin Lind        |
+| 17.09.2015 | 0.7     | Improvements for Schema fragments                                           | Martin Lind        |
+| 18.09.2015 | 0.8     | Updating Schema in the WSDL                                                 | Martin Lind        |
+| 21.09.2015 | 1.0     | Editorial changes made                                                      | Imbi Nõgisto       |
+| 21.09.2015 | 1.1     | Document renamed                                                            | Imbi Nõgisto       |
+| 01.10.2015 | 1.2     | Field *requestId* added and redundant elements removed                      | Martin Lind        |
+| 05.10.2015 | 1.3     | Updated example messages                                                    | Martin Lind        |
+| 06.10.2015 | 1.4     | Correct header fields for WSDL                                              | Martin Lind        |
+| 17.10.2015 | 1.6     | Editorial changes related to *requestId* field                              | Margus Freudenthal |
+| 28.10.2015 | 1.7     | Complete X-Road identifiers schema added                                    | Siim Annuk         |
+| 30.10.2015 | 1.8     | Header field *userId* removed from management services WSDL                 | Kristo Heero       |
+| 11.12.2015 | 1.9     | Corrected documentation about registering only subsystems                   | Siim Annuk         |
+| 07.06.2017 | 1.10    | Additional signature algorithms supported                                   | Kristo Heero       |
+| 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references          | Tatu Repo          |
+| 06.02.2019 | 1.12    | Update *clientReg* message description                                      | Petteri Kivimäki   |
+| 03.06.2019 | 1.13    | Add ownerChange management service                                          | Ilkka Seppälä      |
+| 29.06.2019 | 1.14    | Rename *newOwner* element to *client* in ownerChange management service     | Petteri Kivimäki   |
+| 10.05.2023 | 1.15    | Security Categories removed.                                                | Justas Samuolis    |
 
 ## Table of Contents
 
@@ -892,7 +889,6 @@ Response message
                     <xs:element minOccurs="0" ref="groupCode"/>
                     <xs:element minOccurs="0" ref="serviceCode"/>
                     <xs:element minOccurs="0" ref="serviceVersion"/>
-                    <xs:element minOccurs="0" ref="securityCategoryCode"/>
                     <xs:element minOccurs="0" ref="serverCode"/>
                 </xs:sequence>
                 <xs:attribute ref="objectType" use="required"/>
@@ -909,9 +905,7 @@ Response message
                     <xs:enumeration value="SERVER"/>
                     <xs:enumeration value="GLOBALGROUP"/>
                     <xs:enumeration value="LOCALGROUP"/>
-                    <xs:enumeration value="SECURITYCATEGORY"/>
                     <xs:enumeration value="SERVICE"/>
-                    <xs:enumeration value="CENTRALSERVICE"/>
                 </xs:restriction>
             </xs:simpleType>
             <xs:element name="xRoadInstance" type="xs:string">
@@ -967,14 +961,6 @@ Response message
                     <xs:documentation>Version of the service.</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="securityCategoryCode" type="xs:string">
-                <xs:annotation>
-                    <xs:documentation>
-                        Code that uniquely identifies security category in a
-                        given X-Road instance.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:element>
             <xs:element name="serverCode" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>
@@ -1010,30 +996,6 @@ Response message
                         </xs:sequence>
                         <xs:attribute ref="objectType" use="required"
                               fixed="SERVICE"/>
-                    </xs:restriction>
-                </xs:complexContent>
-            </xs:complexType>
-            <xs:complexType name="XRoadSecurityCategoryIdentifierType">
-                <xs:complexContent>
-                    <xs:restriction base="XRoadIdentifierType">
-                        <xs:sequence>
-                            <xs:element ref="xRoadInstance"/>
-                            <xs:element ref="securityCategoryCode"/>
-                        </xs:sequence>
-                        <xs:attribute ref="objectType" use="required"
-                                fixed="SECURITYCATEGORY"/>
-                    </xs:restriction>
-                </xs:complexContent>
-            </xs:complexType>
-            <xs:complexType name="XRoadCentralServiceIdentifierType">
-                <xs:complexContent>
-                    <xs:restriction base="XRoadIdentifierType">
-                        <xs:sequence>
-                            <xs:element ref="xRoadInstance"/>
-                            <xs:element ref="serviceCode"/>
-                        </xs:sequence>
-                        <xs:attribute ref="objectType" use="required"
-                                fixed="CENTRALSERVICE"/>
                     </xs:restriction>
                 </xs:complexContent>
             </xs:complexType>

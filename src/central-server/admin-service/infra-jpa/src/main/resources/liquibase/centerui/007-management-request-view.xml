@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/007-management-request-view.xml">
+
+    <changeSet author="niis" id="007-drop-management-request-view">
+        <preConditions onFail="MARK_RAN">
+            <viewExists viewName="management_request_view"/>
+        </preConditions>
+        <dropView viewName="management_request_view"/>
+    </changeSet>
+
+    <changeSet author="niis" id="007-create-management-request-view">
+        <createView fullDefinition="false" viewName="management_request_view">
+            SELECT r.id,
+                   r.origin,
+                   r.comments,
+                   r.type,
+                   r.security_server_id,
+
+                   r.request_processing_id,
+                   rp.status             AS request_processing_status,
+
+                   ss_owner.name         AS security_server_owner_name,
+                   ss.xroad_instance,
+                   ss.member_code,
+                   ss.member_class,
+                   ss.server_code,
+
+                   client_owner.name     AS client_owner_name,
+                   client.object_type    AS client_type,
+                   client.xroad_instance AS client_xroad_instance,
+                   client.member_code    AS client_member_code,
+                   client.member_class   AS client_member_class,
+                   client.subsystem_code AS client_subsystem_code,
+
+                   r.auth_cert,
+                   r.address,
+
+                   r.created_at
+            FROM requests r
+                     LEFT JOIN request_processings rp ON (rp.id = r.request_processing_id)
+                     LEFT JOIN identifiers ss ON (ss.id = r.security_server_id)
+                     LEFT JOIN identifiers client ON (client.id = r.sec_serv_user_id)
+                     LEFT JOIN member_classes mc ON (mc.code = ss.member_class)
+                     LEFT JOIN security_server_clients ss_owner
+                               ON (ss_owner.member_code = ss.member_code
+                                   AND ss_owner.member_class_id = mc.id
+                                   AND ss_owner.type = 'XRoadMember')
+                     LEFT JOIN member_classes client_mc ON (client_mc.code = client.member_class)
+                     LEFT JOIN security_server_clients client_owner
+                               ON (client_owner.member_code = client.member_code
+                                   AND client_owner.member_class_id = client_mc.id
+                                   AND client_owner.type = 'XRoadMember')
+        </createView>
+    </changeSet>
+</databaseChangeLog>

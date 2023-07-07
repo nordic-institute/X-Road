@@ -131,13 +131,13 @@ public class DAOImplTest {
      */
     @Test
     public void getServiceByIdentifier() throws Exception {
-        ServiceId id = createTestServiceId(client(1), service(1, 1),
+        ServiceId.Conf id = createTestServiceId(client(1), service(1, 1),
                 SERVICE_VERSION);
         ServiceType service = new ServiceDAOImpl().getService(session, id);
         assertNotNull(service);
         assertNotNull(service.getServiceDescription());
         assertNotNull(service.getServiceDescription().getClient());
-        assertEquals(id, ServiceId.create(
+        assertEquals(id, ServiceId.Conf.create(
                 service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 

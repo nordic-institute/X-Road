@@ -1,6 +1,3 @@
-  ![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
------------------------------------------------------
 # X-Road: Use Case Model for Trust Service Management
 **Analysis**
 

@@ -1,3 +1,14 @@
+## Naming conventions
+### Feature naming
+* Feature files are numbered as they're **executed in alphabetical order**.
+* Kebab case must be used for files names.
+* It is OK to make granular feature files per feature if that makes scenarios more readable.
+
+### Scenario naming
+* Scenarios must describe what they're testing.
+* Scenarios are executing in sequential order. From top to bottom.
+* Naming must be unique.
+
 # Running
 
 Default properties do not specify what environment should be used. This configuration should be passed through gradle or

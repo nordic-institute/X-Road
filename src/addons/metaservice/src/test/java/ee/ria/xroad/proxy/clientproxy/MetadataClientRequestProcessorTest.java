@@ -27,9 +27,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.metadata.CentralServiceListType;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -57,8 +55,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.identifier.CentralServiceId.create;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.xmlUtf8ContentTypes;
 import static org.hamcrest.Matchers.arrayContaining;
@@ -125,15 +121,6 @@ public class MetadataClientRequestProcessorTest {
                 new MetadataClientRequestProcessor(LIST_CLIENTS, mockRequest, mockResponse);
 
         assertTrue("Wasn't able to process list clients", processorToTest.canProcess());
-    }
-
-    @Test
-    public void shouldBeAbleToProcessListCentralServices() {
-
-        MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(LIST_CENTRAL_SERVICES, mockRequest, mockResponse);
-
-        assertTrue("Wasn't able to process central services", processorToTest.canProcess());
     }
 
     @Test
@@ -214,43 +201,6 @@ public class MetadataClientRequestProcessorTest {
     }
 
     @Test
-    public void shouldProcessListCentralServices() throws Exception {
-
-        final List<CentralServiceId> expectedCentraServices = Arrays.asList(
-                create(EXPECTED_XR_INSTANCE, "getInfo"),
-                create(EXPECTED_XR_INSTANCE, "someService"),
-                create(EXPECTED_XR_INSTANCE, "getRandom"));
-
-        GlobalConf.reload(new TestSuiteGlobalConf() {
-
-            @Override
-            public List<CentralServiceId> getCentralServices(String instanceIdentifier) {
-                assertThat("Wrong Xroad instance in query", instanceIdentifier, is(EXPECTED_XR_INSTANCE));
-                return expectedCentraServices;
-            }
-        });
-
-        MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(LIST_CENTRAL_SERVICES, mockRequest, mockResponse);
-
-        processorToTest.process();
-
-        assertContentTypeIsIn(xmlUtf8ContentTypes());
-
-        List<CentralServiceId> resultCentralServices = unmarshaller.unmarshal(
-                mockServletOutputStream.getResponseSource(), CentralServiceListType.class)
-                .getValue().getCentralService();
-
-
-        assertThat("Wrong amount of services",
-                resultCentralServices.size(), is(expectedCentraServices.size()));
-
-        assertThat("Wrong services", resultCentralServices,
-                containsInAnyOrder(expectedCentraServices.toArray()));
-
-    }
-
-    @Test
     public void shouldAcceptJson() {
         final Enumeration<String> accept =
                 Collections.enumeration(Arrays.asList("text/xml;q=1.0", "application/json;q=0.9 , text/*"));
@@ -279,7 +229,7 @@ public class MetadataClientRequestProcessorTest {
     }
 
     private static MemberInfo createMember(String member, String subsystem) {
-        return new MemberInfo(ClientId.create(EXPECTED_XR_INSTANCE, "BUSINESS",
+        return new MemberInfo(ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
                 member, subsystem), member + "-name");
     }
 

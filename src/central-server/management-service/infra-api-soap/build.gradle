@@ -1,0 +1,6 @@
+dependencies {
+    implementation project(":central-server:management-service:core-api")
+    implementation(project(':common:common-util'))
+
+    implementation("org.springframework.boot:spring-boot-starter-web")
+}

@@ -1,0 +1,116 @@
+# shared properties for dev/prod runtime
+# test runtime has a separate application.properties
+spring:
+  jpa:
+    mapping-resources:
+      - apikey.hbm.xml
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    properties:
+      hibernate:
+        dialect_resolvers: >
+          ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialectResolver,
+          ee.ria.xroad.common.db.Postgres12FixedImplicitSequenceDialectResolver,
+          ee.ria.xroad.common.db.Postgres14FixedImplicitSequenceDialectResolver
+  profiles:
+    include: nontest
+  jackson:
+    default-property-inclusion: NON_NULL
+  liquibase:
+    enabled: false
+  servlet:
+    multipart:
+      max-request-size: ${xroad.admin-service.request-size-limit-binary-upload}
+      max-file-size: ${xroad.admin-service.request-size-limit-binary-upload}
+
+common-module-endpoints:
+  base-path: /api/v1
+
+server:
+  port: 4000
+  ssl:
+    key-store: /etc/xroad/ssl/center-admin-service.p12
+    key-store-password: center-admin-service
+    enabled: true
+    ciphers: TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    protocol: TLS
+    enabled-protocols: TLSv1.2,TLSv1.3
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css,image/jpeg
+
+logging:
+  config: file:/etc/xroad/conf.d/centralserver-admin-service-logback.xml
+
+script:
+  generate-gpg-keypair:
+    path: /usr/share/xroad/scripts/generate_gpg_keypair.sh
+  generate-backup:
+    path: /usr/share/xroad/scripts/backup_xroad_center_configuration.sh
+    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
+  restore-configuration:
+    path: /usr/share/xroad/scripts/restore_xroad_center_configuration.sh
+  external-configuration-verifier:
+    path: /usr/share/xroad/scripts/verify_external_configuration.sh
+
+gpgkeys:
+  gpghome: /etc/xroad/gpghome
+
+file-upload-endpoints:
+  endpoint-definitions:
+    -
+      http-method: POST
+      path-pattern: "/**/backups/upload"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services/*/intermediate-cas"
+    -
+      http-method: POST
+      path-pattern: "/**/certification-services/*/ocsp-responders"
+    -
+      http-method: POST
+      path-pattern: "/**/configuration-sources/*/configuration-parts"
+    -
+      http-method: POST
+      path-pattern: "/**/trusted-anchors"
+    -
+      http-method: POST
+      path-pattern: "/**/trusted-anchors/preview"
+    -
+      http-method: POST
+      path-pattern: "/**/intermediate-cas/*/ocsp-responders"
+    -
+      http-method: PATCH
+      path-pattern: "/**/ocsp-responders/*"
+    -
+      http-method: POST
+      path-pattern: "/**/timestamping-services"
+    -
+      http-method: PATCH
+      path-pattern: "/**/timestamping-services/*"
+
+xroad:
+  admin-service:
+    global-configuration-generation-rate-in-seconds: 60
+    rate-limit-enabled: true
+    rate-limit-requests-per-second: 20
+    rate-limit-requests-per-minute: 600
+    rate-limit-cache-size: 10_000
+    rate-limit-expire-after-access-minutes: 5
+    cache-default-ttl: 60
+    cache-api-key-ttl: 60
+    certificate-allowed-extensions: der,crt,pem,cer
+    certificate-allowed-content-types: application/x-x509-cert,text/plain
+    backup-allowed-content-types: application/pgp-encrypted
+    xml-allowed-extensions: xml
+    xml-allowed-content-types: text/xml,application/xml
+    strict-identifier-checks: true
+    request-size-limit-regular: 50KB
+    request-size-limit-binary-upload: 10MB

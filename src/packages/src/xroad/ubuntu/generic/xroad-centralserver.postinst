@@ -10,6 +10,16 @@ if [ "$1" = abort-upgrade ]; then
   exit 0
 fi
 
+
+# ensure valid api key configured for management & registration services
+
+/usr/share/xroad/scripts/configure_management_api_key.sh management-service
+/usr/share/xroad/scripts/configure_management_api_key.sh registration-service
+
+invoke-rc.d --quiet xroad-center-management-service try-restart || true
+invoke-rc.d --quiet xroad-center-registration-service try-restart || true
+
+
 #DEBHELPER#
 
 exit 0

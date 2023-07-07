@@ -1,0 +1,4855 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: info@niis.org
+    name: Nordic Institute for Interoperability Solutions (NIIS)
+    url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
+  description: X-Road Central Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: X-Road Central Server Admin API
+  version: "1.0.0"
+servers:
+  - description: basepath for API v1
+    url: /api/v1
+tags:
+  - name: backups
+    description: resources related to Backups and Backup Restoration
+  - name: certification-services
+    description: resources related to Certification Services
+  - name: members
+    description: resources related to Members
+  - name: subsystems
+    description: resources related to Subsystems
+  - name: member-classes
+    description: resources related to Central Server's member classes
+  - name: clients
+    description: resources related to Clients (Members and Subsystems)
+  - name: configuration-sources
+    description: general resources related to Configuration Sources
+  - name: configuration-source-anchors
+    description: resources related to Configuration Source Anchors
+  - name: trusted-anchors
+    description: resources related to Trusted Anchors
+  - name: configuration-parts
+    description: resources related to Configuration Parts
+  - name: global-groups
+    description: resources related to Global Groups
+  - name: initialization
+    description: resources related to Central Server initialization
+  - name: intermediate-cas
+    description: resources related to Intermediate Certificate Authorities
+  - name: management-requests
+    description: resources related to management requests
+  - name: management-services
+    description: resources related to Management Services
+  - name: ocsp-responders
+    description: resources related to OCSP Responders
+  - name: security-servers
+    description: resources related to Security Servers
+  - name: tokens
+    description: resources related to Tokens
+  - name: signing-keys
+    description: resources related to Global Configuration Signing Keys
+  - name: system
+    description: resources related to System info
+  - name: timestamping-services
+    description: resources related to Central Server's Timestamping Services
+paths:
+  /backups:
+    get:
+      description: <h3>Administrator views the backups for the central server.</h3>
+      operationId: getBackups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of backup objects sorted newest to oldest
+                items:
+                  $ref: '#/components/schemas/Backup'
+                type: array
+                uniqueItems: false
+          description: list of central server backups
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get central server backups
+      tags:
+        - backups
+    post:
+      description:
+        <h3>Generates a new central server backup.</h3>
+        <p>
+          This endpoint can also return metadata in the error response.
+          The metadata array contains the output of a failed backup generation script.
+        </p>
+      operationId: addBackup
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: item created
+        '202':
+          description: item accepted
+        '400':
+          content:
+            application/json:
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add new backup for the central server
+      tags:
+        - backups
+  /backups/upload:
+    post:
+      description:
+        <h3>Uploads new central server backup to the system.</h3>
+        <p>
+          Note that it is possible to overwrite an existing backup file with the same name.
+          <ul>
+            <li>Attempt to upload a new backup file having the same name with an existing backup and with query
+                parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in
+                response's ErrorInfo object.
+            </li>
+            <li>Attempt to upload a new backup file having the same name with an existing backup and with query
+                parameter <code>ignore_warnings</code> = true will overwrite the existing backup.
+            </li>
+          </ul>
+        </p>
+        <p>The warning response has a warning code <code>warning_file_already_exists</code> and the metadata field
+          contains the name of the existing backup
+        </p>
+      operationId: uploadBackup
+      parameters:
+        - description: If true, any ignorable warnings are ignored. if false (or missing), any warnings cause request to fail.
+          in: query
+          name: ignore_warnings
+          required: false
+          schema:
+            default: false
+            type: boolean
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BackupArchive'
+        description: backup to add
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+          description: item created
+        '202':
+          description: item accepted
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/UploadExistingBackupWarningExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: upload new backup for the central server
+      tags:
+        - backups
+  /backups/{filename}:
+    delete:
+      description: <h3>Administrator deletes the backup of the central server.</h3>
+      operationId: deleteBackup
+      parameters:
+        - $ref: '#/components/parameters/FilenameParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete central server backup
+      tags:
+        - backups
+  /backups/{filename}/download:
+    get:
+      description: <h3>Administrator downloads the backup of the central server.</h3>
+      operationId: downloadBackup
+      parameters:
+        - $ref: '#/components/parameters/FilenameParam'
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                description: backup file
+                format: binary
+                type: string
+          description: backup file downloaded
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: download central server backup
+      tags:
+        - backups
+  /backups/{filename}/restore:
+    put:
+      description:
+        <h3>Administrator restores the central server configuration from backup.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array contains the output of a failed backup restore script.</p>
+      operationId: restoreBackup
+      parameters:
+        - $ref: '#/components/parameters/FilenameParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupRestorationStatus'
+          description: restore was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: restore central server configuration from backup
+      tags:
+        - backups
+  /certification-services:
+    get:
+      description: <h3>CS administrator views the list of certification services that have been approved and described for this X-Road instance.</h3>
+      operationId: getCertificationServices
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of certification service objects
+                items:
+                  $ref: '#/components/schemas/ApprovedCertificationServiceListItem'
+                type: array
+                uniqueItems: false
+          description: list of certification services
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get all certification services
+      tags:
+        - certification-services
+    post:
+      description: <h3>CS administrator adds a certification service to the list of approved certification services.</h3>
+      operationId: addCertificationService
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificationServiceFileAndSettings'
+        description: the new certification service with settings
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedCertificationService'
+          description: created item
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add a new certification service
+      tags:
+        - certification-services
+  /certification-services/{certification_service_id}:
+    parameters:
+      - $ref: '#/components/parameters/CertificationServiceIdParam'
+    delete:
+      description: <h3>CS Administrator deletes a certification service.</h3>
+      operationId: deleteCertificationService
+      responses:
+        '204':
+          description: certification service deletion was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete certification service
+      tags:
+        - certification-services
+    get:
+      description: <h3>CS administrator views the details of an approved certification service.</h3>
+      operationId: getCertificationService
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedCertificationService'
+          description: a certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a certification service
+      tags:
+        - certification-services
+    patch:
+      description: <h3>CS administrator edits the settings of a certification service.</h3>
+      operationId: updateCertificationService
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationServiceSettings'
+        description: the updated settings of the certification service
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedCertificationService'
+          description: the new state of the certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the certification service
+      tags:
+        - certification-services
+  /certification-services/{certification_service_id}/certificate:
+    get:
+      description: <h3>CS administrator views the details of an approved certification service cetificate.</h3>
+      operationId: getCertificationServiceCertificate
+      parameters:
+        - $ref: '#/components/parameters/CertificationServiceIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+          description: a certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a certification service
+      tags:
+        - certification-services
+  /certification-services/{certification_service_id}/intermediate-cas:
+    parameters:
+      - $ref: '#/components/parameters/CertificationServiceIdParam'
+    get:
+      description: <h3>CS administrator views the intermediate CAs configured for a certification service.</h3>
+      operationId: getCertificationServiceIntermediateCas
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of certificate authorities
+                items:
+                  $ref: '#/components/schemas/CertificateAuthority'
+                type: array
+                uniqueItems: false
+          description: list of intermediate certificate authorities belonging to the certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the intermediate certificate authorities of a certification service
+      tags:
+        - certification-services
+    post:
+      description: <h3>CS administrator configures an intermediate CA for a certification service.</h3>
+      operationId: addCertificationServiceIntermediateCa
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificateFile'
+        description: the new intermediate certificate authority certificate file
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateAuthority'
+          description: created item
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add a new intermediate certificate authority to a certification service
+      tags:
+        - certification-services
+  /certification-services/{certification_service_id}/ocsp-responders:
+    parameters:
+      - $ref: '#/components/parameters/CertificationServiceIdParam'
+    get:
+      description: <h3>CS administrator views the OCSP responders configured for a CA.</h3>
+      operationId: getCertificationServiceOcspResponders
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of ocsp responders
+                items:
+                  $ref: '#/components/schemas/OcspResponder'
+                type: array
+                uniqueItems: false
+          description: list of ocsp responders belonging to the certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the ocsp responders of a certification service
+      tags:
+        - certification-services
+    post:
+      description: <h3>CS administrator adds an OCSP responder service information for a CA.</h3>
+      operationId: addCertificationServiceOcspResponder
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+              required:
+                - url
+                - certificate
+        description: ocsp responder to add
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcspResponder'
+          description: created item
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add an ocsp responder to a certification service
+      tags:
+        - certification-services
+  /global-groups:
+    get:
+      description: <h3>CS administrator searches for global groups.</h3>
+      operationId: findGlobalGroups
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of global groups
+                items:
+                  $ref: '#/components/schemas/GlobalGroupResource'
+                type: array
+                uniqueItems: false
+          description: list of global groups
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: find global groups
+      tags:
+        - global-groups
+    post:
+      description: <h3>CS administrator adds a global group to the central server.</h3>
+      operationId: addGlobalGroup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
+        description: global group code and description
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalGroupResource'
+          description: new global group created
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: there are errors in the request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add new global group
+      tags:
+        - global-groups
+  /global-groups/{group_code}:
+    parameters:
+      - $ref: '#/components/parameters/GroupCodeParam'
+    delete:
+      description:
+        <h3>CS administrator deletes a global group.</h3>
+        <p>The access rights that were granted for the group will not be available for the X-Road members and
+          subsystems that were the members of this group.
+        </p>
+      operationId: deleteGlobalGroup
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete global group
+      tags:
+        - global-groups
+    get:
+      description: <h3>CS administrator views the details of a global group.</h3>
+      operationId: getGlobalGroup
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalGroupResource'
+          description: global group
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get global group information
+      tags:
+        - global-groups
+    patch:
+      description: <h3>CS administrator changes the description of the global group.</h3>
+      operationId: updateGlobalGroupDescription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GlobalGroupDescription'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalGroupResource'
+          description: global group modified
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update global group description
+      tags:
+        - global-groups
+  /global-groups/{group_code}/members/filter-model:
+    get:
+      description: <h3>CS administrator filter model to search global group members.</h3>
+      operationId: getGroupMembersFilterModel
+      parameters:
+        - $ref: '#/components/parameters/GroupCodeParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMembersFilterModel'
+          description: global group
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get filter model to search global group members
+      tags:
+        - global-groups
+  /global-groups/{group_code}/members/add:
+    post:
+      description: <h3>CS administrator adds an X-Road member or a member's subsystem to a global group.</h3>
+      operationId: addGlobalGroupMembers
+      parameters:
+        - $ref: '#/components/parameters/GroupCodeParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Members'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Members'
+          description: Response list contains only new members added to group, if request contains member already in group then it will be excluded from response.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add new members for the global group
+      tags:
+        - global-groups
+  /global-groups/{group_code}/members:
+    post:
+      description: <h3>CS administrator view of global group members.</h3>
+      operationId: findGlobalGroupMembers
+      parameters:
+        - $ref: '#/components/parameters/GroupCodeParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupMembersFilter'
+      responses:
+        '200':
+          description: paged array of global group members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedGroupMemberListView'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: find global group members
+      tags:
+        - global-groups
+  /global-groups/{group_code}/members/{client_id}:
+    delete:
+      description: <h3>Administrator deletes member from global group.</h3>
+      operationId: deleteGlobalGroupMember
+      parameters:
+        - $ref: '#/components/parameters/GroupCodeParam'
+        - $ref: '#/components/parameters/ClientIdParam'
+      responses:
+        '204':
+          description: member deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete member from global group
+      tags:
+        - global-groups
+  /configuration-sources/{configuration_type}/anchor:
+    get:
+      description: <h3>Administrator views the anchor of a specified configuration source.</h3>
+      operationId: getAnchor
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationAnchorContainer'
+          description: the configuration anchor
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator views the anchor of a configuration source
+      tags:
+        - configuration-source-anchors
+  /configuration-sources/{configuration_type}/anchor/download:
+    get:
+      description: <h3>Administrator downloads the configuration anchor information of a specified configuration source.</h3>
+      operationId: downloadAnchor
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                description: configuration anchor file
+                format: binary
+                type: string
+          description: configuration anchor
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: download configuration anchor information
+      tags:
+        - configuration-source-anchors
+  /configuration-sources/{configuration_type}/anchor/re-create:
+    put:
+      description: <h3>Administrator re-creates the configuration anchor of a specified configuration source.</h3>
+      operationId: reCreateAnchor
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationAnchor'
+          description: the new configuration anchor resource
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: re-create the configuration source anchor file
+      tags:
+        - configuration-source-anchors
+  /configuration-sources/{configuration_type}/configuration-parts:
+    # Note: only ConfigurationType INTERNAL is supported
+    parameters:
+      - $ref: '#/components/parameters/ConfigurationTypeParam'
+    get:
+      description: <h3>Administrator views the configuration parts of a specified configuration source.</h3>
+      operationId: getConfigurationParts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of configuration parts
+                items:
+                  $ref: '#/components/schemas/ConfigurationPart'
+                type: array
+                uniqueItems: false
+          description: global conf parts
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator views the configuration parts of a configuration source
+      tags:
+        - configuration-parts
+    post:
+      description: <h3>Administrator uploads additional configuration parts file. Note - only supported for ConfigurationType = INTERNAL</h3>
+      operationId: uploadConfigurationParts
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConfigurationPartUpload'
+        description: new additional configuration parts file to add
+        required: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator uploads additional configuration parts file
+      tags:
+        - configuration-parts
+  /configuration-sources/{configuration_type}/configuration-parts/{content_identifier}/{version}/download:
+    get:
+      description: <h3>Administrator downloads a configuration parts file.</h3>
+      operationId: downloadConfigurationParts
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
+        - description: the content identifier of the configuration part
+          in: path
+          name: content_identifier
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
+        - description: version of the configuration part. 0 = all versions
+          in: path
+          name: version
+          required: true
+          schema:
+            example: 2
+            format: int32
+            minimum: 0
+            type: integer
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                description: configuration parts file
+                format: binary
+                type: string
+          description: configuration parts file
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: download a configuration parts file
+      tags:
+        - configuration-parts
+  /signing-keys/{sign_key_id}:
+    delete:
+      description: <h3>Administrator deletes the configuration signing key.</h3>
+      operationId: deleteKey
+      parameters:
+        - $ref: '#/components/parameters/SigningKeyIdParam'
+      responses:
+        '204':
+          description: key deletion was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete key
+      tags:
+        - signing-keys
+  /signing-keys/{sign_key_id}/activate:
+    put:
+      description: <h3>Administrator activates a configuration signing key.</h3>
+      operationId: activateKey
+      parameters:
+        - $ref: '#/components/parameters/SigningKeyIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: activate key
+      tags:
+        - signing-keys
+  /configuration-sources/{configuration_type}/signing-keys:
+    post:
+      description: <h3>Adds configuration signing key for selected configuration source and token.</h3>
+      operationId: addKey
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationSigningKeyAdd'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationSigningKey'
+          description: created signing key
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add new key
+      tags:
+        - signing-keys
+  /tokens:
+    get:
+      description: <h3>Administrator views tokens</h3>
+      operationId: getTokens
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of token objects
+                items:
+                  $ref: '#/components/schemas/Token'
+                type: array
+                uniqueItems: false
+          description: list of tokens
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator views the tokens of the central server
+      tags:
+        - tokens
+  /tokens/{token_id}/login:
+    put:
+      description: <h3>Administrator logs in to a token</h3>
+      operationId: loginToken
+      parameters:
+        - $ref: '#/components/parameters/TokenIdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenPassword'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+          description: logged in
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: login to token
+      tags:
+        - tokens
+  /tokens/{token_id}/logout:
+    put:
+      description: <h3>Administrator logs out from token.</h3>
+      operationId: logoutToken
+      parameters:
+        - $ref: '#/components/parameters/TokenIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+          description: logged out
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: logout from token
+      tags:
+        - tokens
+  /trusted-anchors:
+    get:
+      description: <h3>Administrator views the trusted anchors.</h3>
+      operationId: getTrustedAnchors
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of trusted anchor objects
+                items:
+                  $ref: '#/components/schemas/TrustedAnchor'
+                type: array
+                uniqueItems: false
+          description: list of anchors
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator views the trusted anchors
+      tags:
+        - trusted-anchors
+    post:
+      description: <h3>Administrator uploads a new additional trusted anchor.</h3>
+      operationId: uploadTrustedAnchor
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TrustedAnchorFile'
+        description: Trusted anchor to add
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedAnchor'
+          description: the new trusted anchor resource
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator uploads a new additional trusted anchor
+      tags:
+        - trusted-anchors
+  /trusted-anchors/preview:
+    post:
+      description: <h3>Administrator uploads a trusted anchor file for preview.</h3>
+      operationId: previewTrustedAnchor
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TrustedAnchorFile'
+        description: Trusted anchor to preview
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedAnchor'
+          description: the trusted anchor
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator uploads a trusted anchor file for preview
+      tags:
+        - trusted-anchors
+  /trusted-anchors/{hash}:
+    delete:
+      description: <h3>Administrator deletes a trusted anchor.</h3>
+      operationId: deleteTrustedAnchor
+      parameters:
+        - $ref: '#/components/parameters/HashParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a trusted anchor
+      tags:
+        - trusted-anchors
+  /trusted-anchors/{hash}/download:
+    get:
+      description: <h3>Administrator downloads the trusted anchor.</h3>
+      operationId: downloadTrustedAnchor
+      parameters:
+        - $ref: '#/components/parameters/HashParam'
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                description: trusted anchor file
+                format: binary
+                type: string
+          description: trusted anchor
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: download trusted anchor
+      tags:
+        - trusted-anchors
+  /configuration-sources/{configuration_type}/download-url:
+    get:
+      description: <h3>Administrator views the download url of a specified configuration source.</h3>
+      operationId: getDownloadUrl
+      parameters:
+        - $ref: '#/components/parameters/ConfigurationTypeParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalConfDownloadUrl'
+          description: global conf download url
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: CS administrator views the url from where to download the internal configuration from
+      tags:
+        - configuration-sources
+  /initialization:
+    post:
+      description:
+        <h3>Administrator initializes a new Central Server with the provided initial configuration.</h3>
+        <p> This endpoint can also return metadata in the error response. The metadata array can contain error
+          messages about why the init did not succeed. If the pin code is too weak, the error code <code>weak_pin</code>
+          is used and the entries in the metadata array are always ordered in following way
+          <ul>
+            <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+            <li>x = the minimum length of the pin code</li>
+            <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+          </ul>
+          Other possible error code are
+          <ul>
+            <li><code>invalid_init_params</code> for "business" logic problems which can have any one or more of the
+              following strings in the metadata field. There "_exists" -entries are returned if parameter has been
+              given already in partially succeeded initialization. The "_not_provided"-entries are returned if these
+              parameters is needed still for the initialization,  but it is not given in the request.
+            </li>
+            <li>pin_code_exists</li>
+            <li>pin_code_not_provided</li>
+            <li>server_address_exists</li>
+            <li>server_address_not_provided</li>
+            <li>instance_identifier_exists</li>
+            <li>instance_identifier_not_provided</li>
+            <li><code>validation_failure</code> for parameter format errors
+          </ul>
+          <strong>See the '400' response examples</strong>
+        </p>
+      operationId: initCentralServer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitialServerConf'
+        description: initial central server configuration
+      responses:
+        '201':
+          description: central server initialized
+        '400':
+          content:
+            application/json:
+              examples:
+                error_invalid_init_params:
+                  $ref: '#/components/examples/ErrorInvalidInitParamsMetadataExample'
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_weak_pin:
+                  $ref: '#/components/examples/ErrorWeakPinMetadataExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+                warnings_response:
+                  $ref: '#/components/examples/InitializationWarningExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: Initialize a new central server with the provided initial configuration
+      tags:
+        - initialization
+  /initialization/status:
+    get:
+      description: <h3>Administrator checks the initialization status of the Central Server.</h3>
+      operationId: getInitializationStatus
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializationStatus'
+          description: initialization status of the Central Server
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: Check the initialization status of the Central Server
+      tags:
+        - initialization
+  /intermediate-cas/{intermediate_ca_id}:
+    parameters:
+      - $ref: '#/components/parameters/IntermediateCaIdParam'
+    delete:
+      description: <h3>CS administrator deletes an intermediate CA.</h3>
+      operationId: deleteIntermediateCa
+      responses:
+        '204':
+          description: ca deletion was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete an intermediate certificate authority
+      tags:
+        - intermediate-cas
+    get:
+      description: <h3>CS administrator views the details of an intermediate CA.</h3>
+      operationId: getIntermediateCa
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateAuthority'
+          description: intermediate certificate authority
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get an intermediate certificate authority
+      tags:
+        - intermediate-cas
+  /intermediate-cas/{intermediate_ca_id}/ocsp-responders:
+    parameters:
+      - $ref: '#/components/parameters/IntermediateCaIdParam'
+    get:
+      description: <h3>CS administrator views the OCSP responders configured for an intermediate CA.</h3>
+      operationId: getIntermediateCaOcspResponders
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of ocsp responders
+                items:
+                  $ref: '#/components/schemas/OcspResponder'
+                type: array
+                uniqueItems: false
+          description: list of ocsp responders belonging to the intermediate certificate authority
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the ocsp responders of an intermediate certificate authority
+      tags:
+        - intermediate-cas
+    post:
+      description: <h3>CS administrator adds an OCSP responder service information for an intermediate CA.</h3>
+      operationId: addIntermediateCaOcspResponder
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+              required:
+                - url
+                - certificate
+        description: ocsp responder to add
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcspResponder'
+          description: created item
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add an ocsp responder to an intermediate certificate authority
+      tags:
+        - intermediate-cas
+  /intermediate-cas/{intermediate_ca_id}/ocsp-responders/{ocsp_responder_id}:
+    delete:
+      description: <h3>CS administrator deletes an OCSP responder of intermediate CA.</h3>
+      operationId: deleteIntermediateCaOcspResponder
+      parameters:
+        - $ref: '#/components/parameters/IntermediateCaIdParam'
+        - $ref: '#/components/parameters/OcspResponderIdParam'
+      responses:
+        '204':
+          description: ocsp responder of ca deletion was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete an intermediate certificate authority ocsp responder
+      tags:
+        - intermediate-cas
+  /member-classes:
+    get:
+      description: <h3>CS Administrator lists member classes.</h3>
+      operationId: getMemberClasses
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of member classes
+                items:
+                  $ref: '#/components/schemas/MemberClass'
+                type: array
+                uniqueItems: false
+          description: array of member classes
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: List member classes
+      tags:
+        - member-classes
+    post:
+      description:
+        <h3>CS Administrator adds a new member class.</h3>
+        <p>The member class will be validated and if the validation fails a validation error is returned.</p>
+      operationId: addMemberClass
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberClass'
+        description: new additional member class to add
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberClass'
+          description: the added member class
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: there are errors in the request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add a new member class
+      tags:
+        - member-classes
+  /member-classes/{code}:
+    parameters:
+      - description: code of the member class
+        in: path
+        name: code
+        required: true
+        schema:
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+    delete:
+      description: <h3>CS Administrator deletes a member class.</h3>
+      operationId: deleteMemberClass
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a member class
+      tags:
+        - member-classes
+    patch:
+      tags:
+        - member-classes
+      summary: Update member class
+      operationId: updateMemberClass
+      description: CS Administrator updates a member class description.
+      requestBody:
+        description: the new description of the member class
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberClassDescription'
+      responses:
+        '200':
+          description: updated member class
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberClass'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /members:
+    post:
+      description:
+        <h3>CS administrator creates a new member.</h3>
+        <p>The member id will be validated and if the validation fails a validation error is returned.</p>
+        <p>Member's association with security servers is created through management requests.</p>
+      operationId: addMember
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberAdd'
+        description: Member details
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: new member created
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: there are errors in the request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add new member to the central server
+      tags:
+        - members
+  /members/{member_id}:
+    parameters:
+      - $ref: '#/components/parameters/MemberIdParam'
+    delete:
+      description: <h3>CS administrator deletes a member</h3>
+      operationId: deleteMember
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a member
+      tags:
+        - members
+    get:
+      description: <h3>CS administrator views a members's details.</h3>
+      operationId: getMember
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: a member
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a member by its id
+      tags:
+        - members
+    patch:
+      description:
+        <h3>CS administrator edits the name of an X-Road member.</h3>
+        <p>Attempting to edit name with subsystem id results in http 400</p>
+      operationId: updateMemberName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberName'
+        description: member name
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: the updated member
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the name of a member
+      tags:
+        - members
+  /members/{member_id}/subsystems:
+    get:
+      description: <h3>CS Administrator lists subsystems.</h3>
+      operationId: getSubsystems
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of subsystems
+                items:
+                  $ref: '#/components/schemas/Subsystem'
+                type: array
+                uniqueItems: false
+          description: array of subsystems
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: List subsystems
+      tags:
+        - members
+  /members/{member_id}/global-groups:
+    get:
+      description: <h3>CS administrator views a members' global groups.</h3>
+      operationId: getMemberGlobalGroups
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of member global groups
+                items:
+                  $ref: '#/components/schemas/MemberGlobalGroup'
+                type: array
+                uniqueItems: false
+          description: List of member's global groups
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - members
+        - global-groups
+  /members/{member_id}/owned-servers:
+    get:
+      description: <h3>CS administrator views a members' owned servers.</h3>
+      operationId: getOwnedServers
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of member security servers
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+                type: array
+                uniqueItems: false
+          description: List of member's global groups
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - members
+        - security-servers
+  /subsystems:
+    post:
+      description:
+        <h3>CS administrator creates a new subsystem.</h3>
+        <p>The subsystem id will be validated and if the validation fails a validation error is returned.</p>
+        <p>Subsystem's association with security servers is created through management requests.</p>
+      operationId: addSubsystem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubsystemAdd'
+        description: Subsystem details
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: new subsystem created
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: there are errors in the request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add new subsystem to the central server
+      tags:
+        - subsystems
+  /subsystems/{subsystem_id}:
+    delete:
+      description: <h3>CS administrator deletes a subsystem</h3>
+      operationId: deleteSubsystem
+      parameters:
+        - $ref: '#/components/parameters/SubsystemIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a subsystem
+      tags:
+        - subsystems
+  /subsystems/{subsystem_id}/servers/{server_id}:
+    delete:
+      description: <h3>CS administrator unregisters a subsystem from a Security Server</h3>
+      operationId: unregisterSubsystem
+      parameters:
+        - $ref: '#/components/parameters/SubsystemIdParam'
+        - $ref: '#/components/parameters/ServerIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a subsystem
+      tags:
+        - subsystems
+  /clients:
+    get:
+      description: <h3>CS administrator searches for X-Road clients.</h3>
+      operationId: findClients
+      parameters:
+        - description: >
+            An optional generic filtering query parameter selects only items that contain parameter
+            value in properties (member name, member_class, member_code, subsystem_code) . Needs to be properly encoded for the
+            special characters, too. Empty value means the parameter is ignored.
+          in: query
+          name: q
+          required: false
+          schema:
+            example: foobar
+            format: text
+            maxLength: 25
+            type: string
+        - description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>id</b> for id</li>
+                <li><b>member_name</b> for client's member name,</li>
+                <li><b>xroad_id.instance_id</b> for client's instance id</li>
+                <li><b>xroad_id.member_class</b> for client's member class or</li>
+                <li><b>xroad_id.member_code</b> for client's member code or</li>
+                <li><b>client_type</b> for client type.</li>
+            </ul>
+          in: query
+          name: paging_sorting
+          required: false
+          schema:
+            $ref: '#/components/schemas/PagingSortingParameters'
+        - description: an optional search string (member name). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
+          in: query
+          name: name
+          required: false
+          schema:
+            format: text
+            maxLength: 255
+            minLength: 0
+            type: string
+        - description: an optional search string (instance). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
+          in: query
+          name: instance
+          required: false
+          schema:
+            format: text
+            maxLength: 255
+            minLength: 0
+            type: string
+        - description: an optional search string (member_class). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
+          in: query
+          name: member_class
+          required: false
+          schema:
+            format: text
+            maxLength: 255
+            minLength: 0
+            type: string
+        - description: an optional search string (member_code). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
+          in: query
+          name: member_code
+          required: false
+          schema:
+            format: text
+            maxLength: 255
+            minLength: 0
+            type: string
+        - description: an optional search string (subsystem_code). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
+          in: query
+          name: subsystem_code
+          required: false
+          schema:
+            format: text
+            maxLength: 255
+            minLength: 0
+            type: string
+        - description: an optional parameter limiting search to either members or subsystems. If not used, both are searched for.
+          in: query
+          name: client_type
+          required: false
+          schema:
+            $ref: '#/components/schemas/ClientType'
+        - description: an optional security server id parameter - only return clients that belong to this security server. Empty value means the parameter is ignored.
+          in: query
+          name: security_server
+          required: false
+          schema:
+            description: <instance_id>:<member_class>:<member_code>:<security_server_code>
+            example: FI:GOV:123:sserver1
+            format: text
+            type: string
+        - description: an optional global group code parameter - only return clients that do not belong to this group. Empty value means the parameter is ignored.
+          in: query
+          name: excluding_group
+          example: groupcode
+          required: false
+          schema:
+            format: text
+            maxLength: 255
+            minLength: 1
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedClients'
+          description: paged clients results
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: find clients
+      tags:
+        - clients
+  /ocsp-responders/{ocsp_responder_id}:
+    parameters:
+      - $ref: '#/components/parameters/OcspResponderIdParam'
+    delete:
+      description: <h3>CS administrator deletes an ocsp responder.</h3>
+      operationId: deleteOcspResponder
+      responses:
+        '204':
+          description: ocsp responder deletion was successful
+        '400':
+          content:
+            application/json:
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+          description: request was invalid
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete an ocsp responder
+      tags:
+        - ocsp-responders
+    get:
+      description: <h3>CS administrator views the details of an ocsp responder.</h3>
+      operationId: getOcspResponder
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcspResponder'
+          description: ocsp responder
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get an ocsp responder
+      tags:
+        - ocsp-responders
+    patch:
+      description: <h3>CS administrator updates the details of an ocsp responder.</h3>
+      operationId: updateOcspResponder
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              anyOf:
+                - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+        description: update ocsp responder url, upload a new certificate file, or do both
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcspResponder'
+          description: the updated ocsp responder
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update an ocsp responder
+      tags:
+        - ocsp-responders
+  /ocsp-responders/{ocsp_responder_id}/certificate:
+    get:
+      description: <h3>CS administrator views the details of an approved OCSP Responders cetificate.</h3>
+      operationId: getOcspRespondersCertificate
+      parameters:
+        - $ref: '#/components/parameters/OcspResponderIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+          description: a certification service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a certificate
+      tags:
+        - ocsp-responders
+  /security-servers:
+    get:
+      description: <h3>CS administrator searches for X-Road Security Servers that are registered in the central server.</h3>
+      operationId: findSecurityServers
+      parameters:
+        - description: >
+            An optional generic filtering query parameter selects only items that contain parameter
+            value in visible properties server code, server owner name, server owner class and owner code. Needs to be properly encoded for the
+            special characters, too. Empty value means the parameter is ignored.
+          in: query
+          name: q
+          required: false
+          schema:
+            example: foobar
+            format: text
+            maxLength: 25
+            type: string
+        - description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>xroad_id.server_code</b> for server code ,</li>
+                <li><b>owner_name</b> for server owner name,</li>
+                <li><b>xroad_id.member_class</b> for server owner class or</li>
+                <li><b>xroad_id.member_code</b> for owner code.</li>
+            </ul>
+          in: query
+          name: paging_sorting
+          required: false
+          schema:
+            $ref: '#/components/schemas/PagingSortingParameters'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedSecurityServers'
+          description: paged security servers results
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: find security servers
+      tags:
+        - security-servers
+  /security-servers/{server_id}:
+    parameters:
+      - $ref: '#/components/parameters/ServerIdParam'
+    delete:
+      description:
+        <h3>CS administrator deletes a security server. System generates deletion requests for the clients
+          and authentication certificates registered for the deleted server.
+        </h3>
+      operationId: deleteSecurityServer
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a security server
+      tags:
+        - security-servers
+    get:
+      description: <h3>CS administrator views a Security Server's details.</h3>
+      operationId: getSecurityServer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityServer'
+          description: a security server
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a security server by its id
+      tags:
+        - security-servers
+    patch:
+      description: <h3>CS administrator changes the address of a security server.</h3>
+      operationId: updateSecurityServerAddress
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityServerAddress'
+        description: security server address
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityServer'
+          description: the updated security server
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the security server's address
+      tags:
+        - security-servers
+  /security-servers/{server_id}/authentication-certificates:
+    get:
+      description: <h3>CS administrator views a Security Server's authentication certificates.</h3>
+      operationId: getSecurityServerAuthCerts
+      parameters:
+        - $ref: '#/components/parameters/ServerIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of auth certs
+                items:
+                  $ref: '#/components/schemas/SecurityServerAuthenticationCertificateDetails'
+                type: array
+                uniqueItems: false
+          description: list of auth certs
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a security server's authentication certificates
+      tags:
+        - security-servers
+  /security-servers/{server_id}/authentication-certificates/{certificate_id}:
+    delete:
+      description: <h3>CS administrator deletes a Security Server's authentication certificate.</h3>
+      operationId: deleteSecurityServerAuthCert
+      parameters:
+        - $ref: '#/components/parameters/ServerIdParam'
+        - description: unique identifier of the authentication certificate
+          in: path
+          name: certificate_id
+          required: true
+          schema:
+            minimum: 1
+            format: int32
+            type: integer
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a security server's authentication certificate
+      tags:
+        - security-servers
+  /security-servers/{server_id}/clients:
+    get:
+      description: <h3>CS administrator views a Security Server's clients.</h3>
+      operationId: getSecurityServerClients
+      parameters:
+        - $ref: '#/components/parameters/ServerIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: clients
+                items:
+                  $ref: '#/components/schemas/Client'
+                type: array
+                uniqueItems: false
+          description: list of clients
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a security server's clients
+      tags:
+        - security-servers
+  /management-services-configuration:
+    get:
+      description: <h3>Administrator views the management services configuration of the Central Server.</h3>
+      operationId: getManagementServicesConfiguration
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementServicesConfiguration'
+          description: the management services configuration
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the current management services configuration
+      tags:
+        - management-services
+    patch:
+      description: <h3>CS Administrator updates the management services configuration of the Central Server.</h3>
+      operationId: updateManagementServicesConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceProviderId'
+        description: the x-road member that is the new service provider identifier of the management services
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementServicesConfiguration'
+          description: the new status of the updated management services
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the management services configuration
+      tags:
+        - management-services
+  /management-services-configuration/register-provider:
+    post:
+      description: <h3>CS Administrator registers management service provider as security server client.</h3>
+      operationId: registerServiceProvider
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterServiceProviderRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementServicesConfiguration'
+          description: Management services configuration
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - management-services
+  /system/server-address:
+    put:
+      operationId: updateCentralServerAddress
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CentralServerAddress'
+        description: New central server address
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+          description: System status with updated Central Server address
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the server address
+      tags:
+        - system
+  /system/status:
+    get:
+      operationId: getSystemStatus
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+          description: system status
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the system status
+      tags:
+        - system
+  /system/version:
+    get:
+      operationId: getSystemVersion
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+          description: system version information
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get information for the system version
+      tags:
+        - system
+  /system/high-availability-cluster/status:
+    get:
+      operationId: getHighAvailabilityClusterStatus
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HighAvailabilityClusterStatus'
+          description: system status
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the system status
+      tags:
+        - system
+  /timestamping-services:
+    get:
+      description: <h3>CS administrator views the approved timestamping services configured for this X-Road instance.</h3>
+      operationId: getTimestampingServices
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of timestamping services
+                items:
+                  $ref: '#/components/schemas/TimestampingService'
+                type: array
+                uniqueItems: false
+          description: list of timestamping services
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get the timestamping services
+      tags:
+        - timestamping-services
+    post:
+      description: <h3>CS administrator adds a timestamping service to the list of approved timestamping services.</h3>
+      operationId: addTimestampingService
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/TimestampingServiceUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+              required:
+                - url
+                - certificate
+        description: timestamping service to add
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimestampingService'
+          description: created item
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: add a timestamping service
+      tags:
+        - timestamping-services
+  /timestamping-services/{timestamping_service_id}:
+    parameters:
+      - $ref: '#/components/parameters/TimestampingServiceIdParam'
+    delete:
+      description: <h3>CS administrator deletes an approved timestamping service.</h3>
+      operationId: deleteTimestampingService
+      responses:
+        '204':
+          description: timestamping service deletion was successful
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a timestamping service
+      tags:
+        - timestamping-services
+    get:
+      description: <h3>CS administrator views an approved timestamping service's details.</h3>
+      operationId: getTimestampingService
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimestampingService'
+          description: a timestamping service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: get a timestamping service
+      tags:
+        - timestamping-services
+    patch:
+      description: <h3>CS administrator edits the URL or certificate of a timestamping server.</h3>
+      operationId: updateTimestampingService
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/TimestampingServiceUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+              required:
+                - url
+        description: updated URL or certificate of the timestamping service
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimestampingService'
+          description: the updated timestamping service
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update a timestamping service
+      tags:
+        - timestamping-services
+  /management-requests:
+    get:
+      tags:
+        - management-requests
+      summary: Find management requests
+      operationId: findManagementRequests
+      description: List management requests
+      parameters:
+        - in: query
+          name: filter
+          description: >
+            optional filtering parameters. Filtering is possible according to one of the following values:
+            <ul>
+                <li><b>q</b> Free text query</li>
+                <li><b>origin</b> Request origin</li>
+                <li><b>type</b> an array of types</li>
+                <li><b>serverId</b> Security server id</li>
+            </ul>
+          required: false
+          schema:
+            $ref: '#/components/schemas/ManagementRequestsFilter'
+        - in: query
+          name: paging_sorting
+          description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>id</b> for id</li>
+                <li><b>created_at</b> Creation date</li>
+            </ul>
+          required: false
+          schema:
+            $ref: '#/components/schemas/PagingSortingParameters'
+      responses:
+        '200':
+          description: array of management requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedManagementRequests'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post:
+      tags:
+        - management-requests
+      summary: Add a management request
+      operationId: addManagementRequest
+      description: Add management request
+      requestBody:
+        description: management request to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManagementRequest'
+      responses:
+        '201':
+          description: The request was processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequest'
+        '202':
+          description: The request was accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequest'
+
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: request can not be processed due to data integrity or business rule violations
+        '500':
+          description: internal server error
+  /management-requests/{management_request_id}:
+    parameters:
+      - $ref: '#/components/parameters/ManagementRequestIdParam'
+    get:
+      tags:
+        - management-requests
+      summary: get management request details
+      operationId: getManagementRequest
+      description: Administrator creates a management request
+      responses:
+        '200':
+          description: The management request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequestDetailedView'
+        '400':
+          description: invalid request
+        '401':
+          description: not authenticated
+        '403':
+          description: not authorized
+    delete:
+      tags:
+        - management-requests
+      summary: Revoke/decline a management request
+      operationId: revokeManagementRequest
+      description: Administrator revokes a management request
+      responses:
+        '204':
+          description: Revoke succeeded
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /management-requests/{management_request_id}/approval:
+    post:
+      tags:
+        - management-requests
+      summary: approve a management request
+      operationId: approveManagementRequest
+      description: Administrator approves a management request
+      parameters:
+        - $ref: '#/components/parameters/ManagementRequestIdParam'
+      responses:
+        '200':
+          description: The management request was approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequest'
+        '400':
+          description: invalid request
+        '401':
+          description: not authenticated
+        '403':
+          description: not authorized
+        '404':
+          description: request not found
+        '409':
+          description: request can not be approved in this state
+  /openapi.yaml:
+    get:
+      tags:
+        - openapi
+      summary: download central server's openapi definition
+      operationId: downloadOpenApi
+      description: <h3>Administrator downloads the central server's OpenAPI definition.</h3>
+      responses:
+        '200':
+          description: openapi definition
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+                format: binary
+                description: openapi definition file
+        '400':
+          description: request was invalid
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+components:
+  examples:
+    DeleteKeyWarningExample:
+      summary: Warning response when trying to delete an authentication key with a registered authentication certificate
+      value:
+        error:
+          code: warnings_detected
+        status: 400
+        warnings:
+          - code: auth_key_with_registered_cert_warning
+            metadata:
+              - 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+    ErrorExample:
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
+    ErrorInvalidInitParamsMetadataExample:
+      summary: Initialization error with metadata
+      value:
+        error:
+          code: invalid_init_params
+          metadata:
+            - "server_address_not_provided"
+            - "instance_id_not_provided"
+            - "pin_code_exists"
+        status: 400
+    ErrorWeakPinMetadataExample:
+      summary: Initialization or pin change error with metadata when the provided pin is too weak
+      value:
+        error:
+          code: weak_pin
+          metadata:
+            - "pin_min_length"
+            - "8"
+            - "pin_min_char_classes_count"
+            - "3"
+        status: 400
+    ErrorWithMetadataExample:
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
+    InitializationWarningExample:
+      summary: All initialization warnings example.
+      value:
+        error:
+          code: warnings_detected
+        status: 400
+        warnings:
+          - code: init_software_token_initialized
+    UploadExistingBackupWarningExample:
+      summary: Warning response when uploading a new backup configuration file with an existing name
+      value:
+        error:
+          code: warnings_detected
+        status: 400
+        warnings:
+          - code: warning_file_already_exists
+            metadata:
+              - conf_backup_20201006-094932.tar
+    ValidationErrorsExample:
+      summary: Validation errors response body example
+      value:
+        error:
+          code: validation_failure
+          validation_errors:
+            "initialServerConfDto.instanceIdentifier":
+              - IdentifierChars
+        status: 400
+  responses:
+    BadRequest:
+      description: request was invalid
+    Conflict:
+      description: an existing item already exists
+    Forbidden:
+      description: request has been refused
+    InternalServerError:
+      description: internal server error
+    NoContent:
+      description: request was successful
+    NotFound:
+      description: resource requested does not exists
+    Unauthorized:
+      description: authentication credentials are missing
+  schemas:
+    ApprovedCertificationServiceListItem:
+      description: certification service list item
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: certification service name
+          example: Name
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+      required:
+        - id
+        - name
+        - not_before
+        - not_after
+      type: object
+    ApprovedCertificationService:
+      description: certification service
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        name:
+          description: certification service name
+          example: Name
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        issuer_distinguished_name:
+          description: certificate issuer distinguished name
+          example: issuer123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subject_distinguished_name:
+          description: certificate subject distinguished name
+          example: subject123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        certificate_profile_info:
+          description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
+          example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
+          format: text
+          minLength: 1
+          type: string
+        tls_auth:
+          description: can the CA be used for TLS authentication
+          type: boolean
+      required:
+        - id
+        - tls_auth
+        - certificate_profile_info
+      type: object
+    Backup:
+      description: central server backup # potential-common-api
+      properties:
+        filename:
+          description: backup filename
+          example: configuration_backup_20181224.tar
+          format: filename
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - filename
+      type: object
+    BackupArchive:
+      description: central server backup archive file # potential-common-api
+      properties:
+        file:
+          format: binary
+          type: string
+      type: object
+    TrustedAnchorFile:
+      description: Trusted Anchor File
+      properties:
+        anchor:
+          description: the trusted anchor file
+          format: binary
+          type: string
+      required:
+        - anchor
+    CentralServerAddress:
+      description: address of the central server
+      properties:
+        central_server_address:
+          description: Central server’s public DNS name or external IP address
+          format: text
+          type: string
+      required:
+        - central_server_address
+      type: object
+    CertificateAuthority:
+      description: approved certificate authority information
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        ca_certificate:
+          $ref: '#/components/schemas/CertificateDetails'
+      required:
+        - ca_certificate
+      type: object
+    CertificateDetails:
+      description: certificate details for any kind of certificate (TLS, auth, sign) # potential-common-api
+      properties:
+        hash:
+          description: certificate SHA-1 hash
+          example: 1234567890ABCDEF
+          format: text
+          maxLength: 40
+          minLength: 1
+          type: string
+        issuer_common_name:
+          description: certificate issuer common name
+          example: domain.com
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        issuer_distinguished_name:
+          description: certificate issuer distinguished name
+          example: issuer123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        key_usages:
+          description: certificate key usage array
+          items:
+            $ref: '#/components/schemas/KeyUsage'
+          type: array
+          uniqueItems: false
+        not_after:
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        not_before:
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        public_key_algorithm:
+          description: certificate public key algorithm
+          example: 'sha256WithRSAEncryption'
+          format: sha-256
+          maxLength: 255
+          minLength: 1
+          type: string
+        rsa_public_key_exponent:
+          description: RSA public key exponent (if RSA key) as an integer
+          example: 65537
+          format: int32
+          type: integer
+        rsa_public_key_modulus:
+          description: hex encoded RSA public key modulus (if RSA key)
+          example: c44421d601...
+          format: hex
+          maxLength: 1000
+          minLength: 1
+          type: string
+        serial:
+          description: serial number
+          example: '123456789'
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        signature:
+          description: hex encoded certificate signature
+          example: '30af2fdc1780...'
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        signature_algorithm:
+          description: certificate signature algorithm
+          example: sha256WithRSAEncryption
+          format: sha-256
+          maxLength: 255
+          minLength: 1
+          type: string
+        subject_alternative_names:
+          description: certificate subject alternative names
+          example: DNS:*.example.org
+          format: text
+          maxLength: 1000
+          minLength: 1
+          type: string
+        subject_common_name:
+          description: certificate subject common name
+          example: domain.com
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subject_distinguished_name:
+          description: certificate subject distinguished name
+          example: subject123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        version:
+          description: version
+          example: 3
+          format: int32
+          type: integer
+      required:
+        - issuer_distinguished_name
+        - issuer_common_name
+        - subject_distinguished_name
+        - subject_common_name
+        - not_before
+        - not_after
+        - serial
+        - version
+        - signature_algorithm
+        - signature
+        - public_key_algorithm
+        - rsa_public_key_modulus
+        - rsa_public_key_exponent
+        - hash
+        - key_usages
+        - subject_alternative_names
+      type: object
+    SecurityServerAuthenticationCertificateDetails:
+      allOf:
+        - $ref: '#/components/schemas/CertificateDetails'
+      description: Security server's authentication certificate
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+    CertificateFile:
+      description: certificate file
+      properties:
+        certificate:
+          description: the certificate file
+          format: binary
+          type: string
+      required:
+        - certificate
+      type: object
+    CertificationServiceFileAndSettings:
+      allOf:
+        - $ref: '#/components/schemas/CertificateFile'
+        - $ref: '#/components/schemas/CertificationServiceSettings'
+      description: certification service file and settings
+      type: object
+    CertificationServiceSettings:
+      description: certification service settings
+      properties:
+        certificate_profile_info:
+          description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
+          example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
+          format: text
+          type: string
+        tls_auth:
+          description: can the CA be used for TLS authentication
+          type: string
+      type: object
+    CodeWithDetails:
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
+    ConfigurationAnchorContainer:
+      type: object
+      description: Container object for configuration anchor, in case central server isn't fully initialized it may not contain anchor.
+      properties:
+        anchor:
+          $ref: '#/components/schemas/ConfigurationAnchor'
+    ConfigurationAnchor:
+      allOf:
+        - $ref: '#/components/schemas/ModificationTimestamps'
+      description: global conf anchor # potential-common-api
+      properties:
+        hash:
+          description: anchor hash
+          example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
+          format: hash
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - hash
+        - created_at
+      type: object
+    ConfigurationPart:
+      description: configuration part
+      properties:
+        content_identifier:
+          $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
+        file_name:
+          example: shared-params.xml
+          format: filename
+          maxLength: 255
+          minLength: 1
+          type: string
+        optional:
+          description: if the part is optional
+          example: true
+          type: boolean
+        file_updated_at:
+          description: file updated at
+          example: '2022-01-12T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        version:
+          description: version of the conf part
+          example: 3
+          format: text
+          minLength: 1
+          type: integer
+      required:
+        - content_identifier
+        - filename
+        - file_updated_at
+        - version
+        - optional
+      type: object
+    ConfigurationPartContentIdentifier:
+      description: the content identifier of a globalconf configuration part
+      example: SHARED-PARAMETERS
+      format: text
+      minLength: 1
+      type: string
+    ConfigurationPartUpload:
+      description: configuration parts file
+      properties:
+        content_identifier:
+          $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
+        file:
+          format: binary
+          type: string
+      required:
+        - file
+        - content_identifier
+      type: object
+    ConfigurationType:
+      description: configuration type
+      enum:
+        - INTERNAL
+        - EXTERNAL
+      example: INTERNAL
+      format: enum
+      type: string
+    ErrorInfo:
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
+    GlobalConfDownloadUrl:
+      description: the global conf download url object
+      properties:
+        url:
+          description: the global conf download url
+          example: https://dev.xroad.rocks/globalconf
+          format: url
+          minLength: 1
+          type: string
+      required:
+        - url
+      type: object
+    GlobalGroupResource:
+      allOf:
+        - $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
+      description: group
+      properties:
+        member_count:
+          description: member count
+          example: 10
+          format: int32
+          maximum: 1000000
+          minimum: 0
+          type: integer
+      type: object
+    GlobalGroupCodeAndDescription:
+      description: group code and description
+      properties:
+        code:
+          description: group code
+          example: groupcode
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        description:
+          description: group description
+          example: description
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - code
+        - description
+      type: object
+    GlobalGroupDescription:
+      description: group description
+      properties:
+        description:
+          description: group description
+          example: description
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - description
+      type: object
+    GroupMember:
+      description: group member # potential-common-api
+      properties:
+        created_at:
+          description: group member created at
+          example: '2022-01-20T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        id:
+          description: group member id
+          example: 123
+          format: int32
+          type: integer
+        client_id:
+          $ref: '#/components/schemas/ClientId'
+      required:
+        - id
+        - client_id
+        - created_at
+      type: object
+    GroupMemberListView:
+      description: group member list view
+      allOf:
+        - $ref: '#/components/schemas/GroupMember'
+      properties:
+        name:
+          description: group member name
+          example: Member123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - name
+      type: object
+    HighAvailabilityStatus:
+      description: Central server's high availability status
+      properties:
+        is_ha_configured:
+          default: false
+          description: indicates if the central server is in high availability mode
+          type: boolean
+        node_name:
+          description: central server's node name
+          example: node_0
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      type: object
+    HighAvailabilityClusterNode:
+      description: Central server's high availability cluster nodes information
+      properties:
+        node_name:
+          description: The name of the node
+          example: node_0
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        node_address:
+          description: Public DNS name or IP address of the node
+          format: text
+          type: string
+        configuration_generated:
+          description: Lasest time global configuration was generated at
+          example: '2022-01-12T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        status:
+          description: The status of the node
+          enum:
+            - OK
+            - WARN
+            - ERROR
+            - UNKNOWN
+          example: OK
+          format: enum
+          type: string
+    HighAvailabilityClusterStatus:
+      allOf:
+        - $ref: '#/components/schemas/HighAvailabilityStatus'
+      properties:
+        nodes:
+          items:
+            $ref: '#/components/schemas/HighAvailabilityClusterNode'
+        all_nodes_ok:
+          description: Indicator whether all the cluster nodes have OK status
+          type: boolean
+    InitialServerConf:
+      allOf:
+        - $ref: '#/components/schemas/InstanceIdentifier'
+        - $ref: '#/components/schemas/CentralServerAddress'
+      description: central server initial configuration
+      properties:
+        software_token_pin:
+          description: pin code for the initial software token
+          example: sup3rs3cr3t_p!n
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - software_token_pin
+      type: object
+    InitializationStatus:
+      allOf:
+        - $ref: '#/components/schemas/InstanceIdentifier'
+        - $ref: '#/components/schemas/CentralServerAddress'
+      description: Initialization status of the Central Server
+      properties:
+        software_token_init_status: # property for enum
+          $ref: '#/components/schemas/TokenInitStatus'
+      required:
+        - software_token_init_status
+      type: object
+    InstanceIdentifier:
+      description: the instance identifier of the Central Server
+      properties:
+        instance_identifier:
+          description: Valid instance identifier, shall not contain colon, semicolon, forwardslash, backslash, percent or control characters.
+          example: FI-TEST
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+          pattern: ^[a-zA-Z0-9'()+,-.=?]*
+      required:
+        - instance_identifier
+      type: object
+    ConfigurationSigningKey:
+      description: Signing context (key identifier used by the signer and signing certificate) for signing the global configuration. Also includes the possible actions that can be done to this object, e.g DELETE (only for key related operations and does not consider user authorization).
+      properties:
+        active:
+          description: if the key is active
+          example: true
+          type: boolean
+        available:
+          description: if the key is available
+          example: true
+          type: boolean
+        created_at:
+          description: configuration signing key created at
+          example: '2022-01-12T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          type: string
+        id:
+          type: string
+          description: unique identifier
+          example: 123
+          minLength: 1
+        key_hash:
+          description: key hash
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          format: text
+          minLength: 1
+          readOnly: true
+          type: string
+        token_id:
+          type: string
+          format: text
+          description: token id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          minLength: 1
+          readOnly: true
+        label:
+          $ref: '#/components/schemas/KeyLabel'
+        possible_actions:
+          description: array containing the possible actions that can be done for this item # potential-common-api
+          items:
+            $ref: '#/components/schemas/PossibleKeyAction'
+          type: array
+        source_type:
+            $ref: '#/components/schemas/ConfigurationType'
+      required:
+        - id
+        - label
+        - created_at
+        - active
+        - available
+        - possible_actions
+      type: object
+    KeyLabel:
+      properties:
+        label:
+          description: label for the new key
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      type: object
+    KeyUsage:
+      description: certificate key usage # potential-common-api
+      enum:
+        - DIGITAL_SIGNATURE
+        - NON_REPUDIATION
+        - KEY_ENCIPHERMENT
+        - DATA_ENCIPHERMENT
+        - KEY_AGREEMENT
+        - KEY_CERT_SIGN
+        - CRL_SIGN
+        - ENCIPHER_ONLY
+        - DECIPHER_ONLY
+      example: NON_REPUDIATION
+      format: enum
+      type: string
+    ManagementServicesConfiguration:
+      allOf:
+        - $ref: '#/components/schemas/ServiceProviderId'
+      properties:
+        security_server_id:
+          description: encoded id of the security server that provides the management services
+          example: CS:ORG:111:SS1
+          format: text
+          maxLength: 1279
+          minLength: 1
+          readOnly: true
+          type: string
+        security_server_owners_global_group_code:
+          description: the global group code of security server owners
+          example: security-server-owners
+          format: text
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+          type: string
+        service_provider_name:
+          description: name of the service provider
+          example: NIIS
+          format: text
+          maxLength: 255
+          minLength: 1
+          readOnly: true
+          type: string
+        services_address:
+          description: the url of the management services
+          example: https://dev.xroad.rocks/managementservice/manage/
+          format: url
+          minLength: 1
+          readOnly: true
+          type: string
+        wsdl_address:
+          description: the url of the management service wsdl
+          example: https://dev.xroad.rocks/managementservices.wsdl
+          format: url
+          minLength: 1
+          readOnly: true
+          type: string
+      required:
+        - security_server_id
+        - security_server_owners_global_group_code
+        - service_provider_name
+        - services_address
+        - wsdl_address
+        - service_provider_id
+      type: object
+    Client:
+      allOf:
+        - $ref: '#/components/schemas/MemberName'
+      description: x-road member
+      required:
+        - client_id
+      properties:
+        client_id:
+          $ref: '#/components/schemas/ClientId'
+      type: object
+    MemberAdd:
+      allOf:
+        - $ref: '#/components/schemas/MemberName'
+      description: x-road member to add
+      required:
+        - member_id
+      properties:
+        member_id:
+          $ref: '#/components/schemas/NewMemberId'
+      type: object
+    SubsystemAdd:
+      description: x-road subsystem to add
+      type: object
+      required:
+        - subsystem_id
+      properties:
+        subsystem_id:
+          $ref: '#/components/schemas/NewSubsystemId'
+    NewSubsystemId:
+      description: ID for x-road subsystem to add
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/NewMemberId'
+      properties:
+        subsystem_code:
+          type: string
+          format: text
+          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: ABC
+          minLength: 1
+          maxLength: 255
+      required:
+        - subsystem_code
+    NewMemberId:
+      description: ID for x-road member to add
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MemberId'
+    MemberClass:
+      allOf:
+        - $ref: '#/components/schemas/MemberClassDescription'
+      description: Central server's member classes
+      properties:
+        code:
+          description: member class code
+          example: ORG
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - code
+      type: object
+    Subsystem:
+      properties:
+        subsystem_id:
+          $ref: '#/components/schemas/ClientId'
+        used_security_servers:
+          items:
+            $ref: '#/components/schemas/UsedSecurityServers'
+      type: object
+    UsedSecurityServers:
+      properties:
+        server_code:
+          description: security server code
+          type: string
+        server_owner:
+          description: security server owner
+          type: string
+        status:
+          description: security server status
+          type: string
+      type: object
+    MemberClassDescription:
+      description: Central server's member class description
+      properties:
+        description:
+          description: member class description
+          example: Non-profit organisations
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - description
+      type: object
+    MemberName:
+      description: x-road member name
+      properties:
+        member_name:
+          description: Member name.
+          example: Member123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      type: object
+    MemberCode:
+      description: x-road member code
+      properties:
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: MEMBER123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - member_code
+      type: object
+    ClientType:
+      description: client type
+      enum:
+        - MEMBER
+        - SUBSYSTEM
+      example: SUBSYSTEM
+      format: text
+      type: string
+    Members:
+      description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id # potential-common-api
+      properties:
+        items:
+          description: array of members to be added
+          example: [ "FI:GOV:123", "FI:GOV:123:SS1", "FI:GOV:123:SS2" ]
+          items:
+            format: text
+            maxLength: 1023
+            minLength: 1
+            type: string
+          type: array
+      type: object
+    MemberGlobalGroup:
+      description: Member's global group
+      properties:
+        group_code:
+          type: string
+          format: text
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        subsystem:
+          type: string
+          format: text
+          minLength: 0
+          maxLength: 255
+          readOnly: true
+        added_to_group:
+          example: '2022-01-22T07:30:00.001Z'
+          type: string
+          format: date-time
+          readOnly: true
+      type: object
+
+    ModificationTimestamps:
+      description: created_at and updated_at timestamps
+      properties:
+        created_at:
+          description: object creation time
+          example: '2022-01-20T00:00:00.001Z'
+          format: date-time
+          readOnly: true
+          type: string
+        updated_at:
+          description: last time updated
+          example: '2022-01-22T07:30:00.001Z'
+          format: date-time
+          readOnly: true
+          type: string
+      type: object
+    OcspResponder:
+      allOf:
+        - $ref: '#/components/schemas/OcspResponderUrl'
+      description: OCSP responder
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        has_certificate:
+          description: has OCSP responder certificate
+          default: false
+          type: boolean
+      required:
+        - id
+    OcspResponderCertificate:
+      description: OCSP responder certificate
+      properties:
+        certificate:
+          $ref: '#/components/schemas/CertificateDetails'
+      required:
+        - certificate
+      type: object
+    OcspResponderUrl:
+      description: OCSP responder url
+      properties:
+        url:
+          description: url of the OCSP responder
+          example: http://dev.xroad.rocks:123
+          format: url
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - url
+      type: object
+    PossibleTokenAction:
+      description: an action to change state or edit tokens # set of values not final or complete
+      enum:
+        - LOGIN
+        - LOGOUT
+        - GENERATE_INTERNAL_KEY
+        - GENERATE_EXTERNAL_KEY
+        - CHANGE_PIN
+        - EDIT_FRIENDLY_NAME
+      example: LOGIN
+      format: enum
+      type: string
+    PossibleKeyAction:
+      description: an action to change state or edit keys # set of values not final or complete
+      enum:
+        - DELETE
+        - ACTIVATE
+      example: DELETE
+      format: enum
+      type: string
+    ConfigurationSigningKeys:
+      description: array containing the configuration signing keys
+      items:
+        $ref: '#/components/schemas/ConfigurationSigningKey'
+      type: array
+    SecurityServer:
+      allOf:
+        - $ref: '#/components/schemas/SecurityServerAddress'
+        - $ref: '#/components/schemas/ModificationTimestamps'
+      description: security server information
+      properties:
+        server_id:
+          $ref: '#/components/schemas/SecurityServerId'
+        owner_name:
+          type: string
+          readOnly: true
+      required:
+        - server_id
+      type: object
+    PagedClients:
+      description: array of Clients with paging metadata
+      properties:
+        clients:
+          description: clients
+          items:
+            $ref: '#/components/schemas/Client'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
+    PagedSecurityServers:
+      description: array of SecurityServers with paging metadata
+      properties:
+        items:
+          description: Security Servers
+          items:
+            $ref: '#/components/schemas/SecurityServer'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
+    PagedManagementRequests:
+      description: an array of ManagementRequests with paging metadata
+      properties:
+        items:
+          description: Management Requests
+          items:
+            $ref: '#/components/schemas/ManagementRequestListView'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
+    PagedGroupMemberListView:
+      description: an array of GroupMemberListView with paging metadata
+      properties:
+        items:
+          description: Global group members paged list view
+          items:
+            $ref: '#/components/schemas/GroupMemberListView'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
+    PagingMetadata:
+      description: metadata about paged results
+      properties:
+        total_items:
+          description: Total number of items in the query results
+          type: integer
+          format: int32
+        items:
+          description: Number of items on the current page of query results
+          type: integer
+          format: int32
+        limit:
+          description: >
+              Indicates the maximum number of items for the returned page.
+          default: 25
+          type: integer
+          format: int32
+        offset:
+          description: >
+              Offset in pages from the beginning of the query result after filtering and sorting
+              parameters are taken into account.
+          default: 0
+          type: integer
+          format: int32
+      required:
+        - total_items
+        - items
+        - limit
+        - offset
+      type: object
+    PagingSortingParameters:
+      description: parameters for sorting and paging search results
+      properties:
+        sort:
+          description: Indicates item property that is to be used as sorting key.
+          example: title
+          minLength: 2
+          pattern: '[a-zA-Z_.]+'
+          maxLength: 25
+          type: string
+        # exploded query parameters from objects dont seem to like underscores
+        # https://stackoverflow.com/questions/35628974/when-post-spring-is-ignoring-jsonproperty#comment58939524_35628974
+        desc:
+          description: >
+              Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
+              parameter indicates ascending direction.
+          default: false
+          type: boolean
+        limit:
+          description: >
+              Indicates the maximum number of items for the returned page.   If parameter is
+              omitted, then the default amount of 25   is returned.
+          default: 25
+          type: integer
+          format: int32
+        offset:
+          description: >
+              Offset in pages from the beginning of the query result after filtering and sorting
+              parameters are taken into account.  If the parameter omitted or the value 0 (zero)
+              is given, the first page is returned.
+          default: 0
+          type: integer
+          format: int32
+      type: object
+    SecurityServerAddress:
+      description: security server address
+      properties:
+        server_address:
+          description: security server address (ip or name)
+          example: 192.168.1.100
+          format: text
+          maxLength: 255
+          type: string
+      required:
+        - server_address
+      type: object
+    ServiceProviderId:
+      properties:
+        service_provider_id:
+          description: encoded id of the x-road member that provides the management services
+          example: FI:GOV:123:ABC
+          format: text
+          maxLength: 1279
+          minLength: 1
+          type: string
+      type: object
+    RegisterServiceProviderRequest:
+      properties:
+        security_server_id:
+          description: encoded id of the security server
+          example: CS:ORG:111:SS1
+          format: text
+          maxLength: 1279
+          minLength: 1
+          readOnly: true
+          type: string
+      type: object
+      required:
+        - security_server_id
+    SystemStatus:
+      description: Central server's status
+      properties:
+        high_availability_status:
+          $ref: '#/components/schemas/HighAvailabilityStatus'
+        initialization_status:
+          $ref: '#/components/schemas/InitializationStatus'
+      type: object
+    TimestampingService:
+      allOf:
+        - $ref: '#/components/schemas/TimestampingServiceUrl'
+        - $ref: '#/components/schemas/TimestampingServiceCertificate'
+      description: timestamping service
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: int32
+          readOnly: true
+          type: integer
+        timestamping_interval:
+          description: timestamping interval in seconds
+          example: 60
+          format: int32
+          type: integer
+        cost:
+          $ref: '#/components/schemas/TimestampingServiceCost'
+      required:
+        - id
+        - timestamping_interval
+        - cost
+      type: object
+    TimestampingServiceCost:
+      description: timestamping service cost (free, paid, undefined)
+      enum:
+        - FREE
+        - PAID
+        - UNDEFINED
+      example: FREE
+      format: enum
+    TimestampingServiceCertificate:
+      description: timestamping service certificate
+      properties:
+        certificate:
+          $ref: '#/components/schemas/CertificateDetails'
+      required:
+        - certificate
+      type: object
+    TimestampingServiceUrl:
+      description: timestamping service url
+      properties:
+        url:
+          description: url of the timestamping service
+          example: http://dev.xroad.rocks:8899
+          format: url
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - url
+      type: object
+    ConfigurationSigningKeyAdd:
+      properties:
+        key_label:
+          description: label for the new key
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        token_id:
+          description: token id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          format: text
+          minLength: 1
+          type: string
+      required:
+        - token_id
+        - key_label
+      type: object
+    Token:
+      description: Token. Also includes the possible actions that can be done to this object, e.g DELETE (only for token related operations and does not consider user authorization).
+      properties:
+        active:
+          description: if the token is active
+          example: true
+          type: boolean
+        available:
+          description: if the token is available
+          example: true
+          type: boolean
+        id:
+          description: token id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          format: text
+          minLength: 1
+          readOnly: true
+          type: string
+        logged_in:
+          description: if the token has been logged in to
+          example: true
+          type: boolean
+        name:
+          description: token name
+          example: softToken-0
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        possible_actions:
+          description: array containing the possible actions that can be done for this item # potential-common-api
+          items:
+            $ref: '#/components/schemas/PossibleTokenAction'
+          type: array
+        configuration_signing_keys:
+          $ref: '#/components/schemas/ConfigurationSigningKeys'
+        serial_number:
+          description: serial number of the token
+          example: 12345
+          format: text
+          type: string
+        status:
+          $ref: '#/components/schemas/TokenStatus'
+      required:
+        - id
+        - name
+        - keys
+        - status
+        - logged_in
+        - active
+        - available
+      type: object
+    TokenInitStatus:
+      description: whether a token has been initialized or not – if the token init status cannot be resolved (e.g. signer module is offline), the value is UNKNOWN # potential-common-api
+      enum:
+        - INITIALIZED
+        - NOT_INITIALIZED
+        - UNKNOWN
+      example: INITIALIZED
+      format: enum
+      type: string
+    TokenPassword:
+      description: password for logging in to the token # potential-common-api
+      example:
+        password: sm3!!ycat
+      properties:
+        password:
+          description: password for logging in to the token
+          format: text
+          minLength: 1
+          type: string
+      type: object
+    TokenStatus:
+      description: token status # potential-common-api
+      enum:
+        - OK # Normal operation status
+        - USER_PIN_LOCKED # Blocked
+        - USER_PIN_INCORRECT # Incorrect PIN was entered
+        - USER_PIN_INVALID # Invalid PIN
+        - USER_PIN_EXPIRED # PIN expired
+        - USER_PIN_COUNT_LOW # Only a few tries left
+        - USER_PIN_FINAL_TRY # Final try
+        - NOT_INITIALIZED # Not inited
+      example: OK
+      format: text
+      type: string
+    BackupRestorationStatus:
+      description: response that tells if hsm tokens were logged out during the restore process
+      properties:
+        hsm_tokens_logged_out:
+          default: false
+          description: whether any hsm tokens were logged out during the restore process
+          type: boolean
+      type: object
+    TrustedAnchor:
+      description: trusted anchor
+      properties:
+        instance_identifier:
+          description: instance identifier
+          example: CS
+          format: text
+          type: string
+        generated_at:
+          description: timestamp
+          example: '2023-03-17T00:00:00.001Z'
+          format: date-time
+          readOnly: true
+          type: string
+        hash:
+          description: anchor hash
+          example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
+          format: hash
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - hash
+        - created_at
+        - instance_identifier
+      type: object
+    User:
+      $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
+    Version:
+      description: version information
+      properties:
+        info:
+          description: information about the security server
+          example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - info
+      type: object
+    XRoadId:
+      type: object
+      description: X-Road identifier
+      discriminator:
+        propertyName: type
+        mapping:
+          MEMBER: "ClientId"
+          SERVER: "SecurityServerId"
+          SUBSYSTEM: "ClientId"
+      properties:
+        instance_id:
+          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+          readOnly: true
+        type:
+          type: string
+          format: enum
+          enum:
+            - MEMBER
+            - SUBSYSTEM
+            - SERVER
+            - GLOBALGROUP
+            - SERVICE
+            - LOCALGROUP
+      required:
+        - instance_id
+        - type
+    EncodedId:
+      type: object
+      description: Encoded identifier
+      properties:
+        encoded_id:
+          readOnly: true
+          type: string
+          description: Encoded ID of Security Serve, Member or Subsystem Id
+    ClientId:
+      type: object
+      description: Client identifier
+      allOf:
+        - $ref: '#/components/schemas/XRoadId'
+        - $ref: '#/components/schemas/MemberId'
+        - $ref: '#/components/schemas/EncodedId'
+      properties:
+        subsystem_code:
+          type: string
+          format: text
+          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: ABC
+          minLength: 1
+          maxLength: 255
+    MemberId:
+      type: object
+      description: Member identifier
+      properties:
+        member_class:
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          format: text§
+          maxLength: 255
+          minLength: 1
+          type: string
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - member_class
+        - member_code
+    SecurityServerId:
+      allOf:
+        - $ref: '#/components/schemas/XRoadId'
+        - $ref: '#/components/schemas/MemberId'
+        - $ref: '#/components/schemas/EncodedId'
+      type: object
+      properties:
+        server_code:
+          description: security server code
+          example: server123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - server_code
+    ManagementRequestDetailedView:
+      type: object
+      description: Management Request detailed view
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequestListView'
+      properties:
+        client_owner_name:
+          type: string
+          readOnly: true
+        comments:
+          type: string
+          format: text
+        certificate_details:
+          $ref: '#/components/schemas/CertificateDetails'
+    ManagementRequest:
+      type: object
+      description: Management request
+      allOf:
+        - $ref: '#/components/schemas/ModificationTimestamps'
+      discriminator:
+        propertyName: type
+        mapping:
+          AUTH_CERT_REGISTRATION_REQUEST: "AuthenticationCertificateRegistrationRequest"
+          AUTH_CERT_DELETION_REQUEST: "AuthenticationCertificateDeletionRequest"
+          CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
+          CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
+          OWNER_CHANGE_REQUEST: "OwnerChangeRequest"
+      properties:
+        id:
+          type: integer
+          description: request id
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/ManagementRequestType'
+        origin:
+          $ref: '#/components/schemas/ManagementRequestOrigin'
+        security_server_owner:
+          type: string
+          readOnly: true
+        security_server_id:
+          type: string
+          description: Encoded Security Server ID
+        status:
+          $ref: '#/components/schemas/ManagementRequestStatus'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - type
+        - source
+        - securityserverId
+    ManagementRequestListView:
+      type: object
+      description: Management Request view
+      properties:
+        id:
+          type: integer
+          description: request id
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/ManagementRequestType'
+        origin:
+          $ref: '#/components/schemas/ManagementRequestOrigin'
+        security_server_owner:
+          type: string
+          readOnly: true
+        security_server_id:
+          $ref: '#/components/schemas/SecurityServerId'
+        address:
+          type: string
+        status:
+          $ref: '#/components/schemas/ManagementRequestStatus'
+        client_id:
+          $ref: '#/components/schemas/ClientId'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - type
+        - source
+        - security_server_id
+    ManagementRequestType:
+      type: string
+      enum:
+        - AUTH_CERT_REGISTRATION_REQUEST
+        - CLIENT_REGISTRATION_REQUEST
+        - OWNER_CHANGE_REQUEST
+        - CLIENT_DELETION_REQUEST
+        - AUTH_CERT_DELETION_REQUEST
+    ManagementRequestStatus:
+      type: string
+      readOnly: true
+      description: request status
+      enum:
+        - WAITING
+        - APPROVED
+        - DECLINED
+        - REVOKED
+        - "SUBMITTED FOR APPROVAL"
+    ManagementRequestOrigin:
+      type: string
+      description: request source
+      enum:
+        - CENTER
+        - SECURITY_SERVER
+    ManagementRequestsFilter:
+      description: parameters for filtering management requests search results
+      properties:
+        query:
+          description: Free text query
+          nullable: true
+          type: string
+        origin:
+          description: management request origin
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ManagementRequestOrigin'
+        types:
+          description: management request type
+          nullable: true
+          items:
+           $ref: '#/components/schemas/ManagementRequestType'
+        status:
+          description: request status
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ManagementRequestStatus'
+        server_id:
+          description: security server id
+          nullable: true
+          type: string
+      type: object
+    GroupMembersFilterModel:
+      description: Filter model to search global group members
+      properties:
+        instances:
+          description: X-Road instance
+          nullable: true
+          items:
+            type: string
+          type: array
+        member_classes:
+          description: member classes
+          nullable: true
+          items:
+            type: string
+          type: array
+        codes:
+          description: member codes
+          nullable: true
+          items:
+            type: string
+          type: array
+        subsystems:
+          description: subsystem codes
+          nullable: true
+          items:
+            type: string
+          type: array
+      type: object
+    GroupMembersFilter:
+      description: parameters for filtering global group members search results
+      properties:
+        query:
+          description: free text query
+          nullable: true
+          type: string
+        member_class:
+          description: member class
+          nullable: true
+          type: string
+        instance:
+          description: X-Road instance
+          nullable: true
+          type: string
+        codes:
+          description: member code
+          nullable: true
+          items:
+            type: string
+          type: array
+        subsystems:
+          description: subsystem code
+          nullable: true
+          items:
+            type: string
+          type: array
+        types:
+          description: client type
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ClientType'
+        paging_sorting:
+          description: paging sorting parameters
+          nullable: false
+          allOf:
+            - $ref: '#/components/schemas/PagingSortingParameters'
+      type: object
+    Page:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: page number (zero based)
+        size:
+          type: integer
+          description: page size
+        total_pages:
+          type: integer
+          description: total number of pages
+        total_elements:
+          type: integer
+          description: total number of elements (<=size * totalPages)
+    AuthenticationCertificateRegistrationRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        server_address:
+          type: string
+        authentication_certificate:
+          type: string
+          format: byte
+      required:
+        - serverAddress
+        - authenticationCertificate
+    AuthenticationCertificateDeletionRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        authentication_certificate:
+          type: string
+          format: byte
+      required:
+        - authenticationCertificate
+    ClientRegistrationRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Encoded Client ID
+      required:
+        - clientId
+    ClientDeletionRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Encoded Client ID
+      required:
+        - clientId
+    OwnerChangeRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Encoded Client ID
+      required:
+        - clientId
+  securitySchemes:
+    ApiKeyAuth:
+      description: X-Road-ApiKey token=<api key>
+      # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
+      in: header
+      name: Authorization
+      type: apiKey
+  parameters:
+    CertificationServiceIdParam:
+      in: path
+      name: certification_service_id
+      description: unique identifier of the certification service
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
+    FilenameParam:
+      in: path
+      name: filename
+      description: filename of the backup
+      required: true
+      schema:
+        format: filename
+        maxLength: 255
+        minLength: 1
+        type: string
+    MemberIdParam:
+      in: path
+      name: member_id
+      description: the encoded string representation of the x-road member id
+      example: FI:GOV:123
+      required: true
+      schema:
+        format: text
+        maxLength: 1023
+        minLength: 1
+        type: string
+    ClientIdParam:
+      in: path
+      name: client_id
+      description: the encoded string representation of the x-road client id
+      example: FI:GOV:123
+      required: true
+      schema:
+        format: text
+        maxLength: 1023
+        minLength: 1
+        type: string
+    SubsystemIdParam:
+      in: path
+      name: subsystem_id
+      description: the encoded string representation of the subsystem id
+      example: FI:GOV:123:SUBSYSTEM1
+      required: true
+      schema:
+        format: text
+        maxLength: 1023
+        minLength: 1
+        type: string
+    ServerIdParam:
+      in: path
+      name: server_id
+      description: the encoded string representation of the Security Server id
+      example: FI:GOV:123:sserver1
+      required: true
+      schema:
+        format: text
+        maxLength: 1023
+        minLength: 1
+        type: string
+    IntermediateCaIdParam:
+      in: path
+      name: intermediate_ca_id
+      description: unique identifier of the intermediate certificate authority
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
+    OcspResponderIdParam:
+      in: path
+      name: ocsp_responder_id
+      description: unique identifier of the intermediateCA ocsp responder
+      required: true
+      schema:
+        format: int32
+        minimum: 1
+        type: integer
+    ConfigurationTypeParam:
+      in: path
+      name: configuration_type
+      description: the type of the configuration for which the anchor is fetched for
+      required: true
+      schema:
+        $ref: '#/components/schemas/ConfigurationType'
+    ManagementRequestIdParam:
+      in: path
+      name: management_request_id
+      description: Management request id
+      required: true
+      schema:
+        minimum: 1
+        format: int32
+        type: integer
+    GroupCodeParam:
+      in: path
+      name: group_code
+      description: group code
+      example: groupcode
+      required: true
+      schema:
+        format: text
+        maxLength: 255
+        minLength: 1
+        type: string
+    SigningKeyIdParam:
+      in: path
+      name: sign_key_id
+      description: Id of the signing key
+      required: true
+      schema:
+        format: text
+        minLength: 1
+        type: string
+    TokenIdParam:
+      in: path
+      name: token_id
+      description: id of the token
+      required: true
+      schema:
+        format: text
+        minLength: 1
+        type: string
+    TimestampingServiceIdParam:
+      in: path
+      name: timestamping_service_id
+      description: unique identifier of the timestamping service
+      required: true
+      schema:
+        format: int32
+        minLength: 1
+        type: integer
+    HashParam:
+      in: path
+      name: hash
+      description: hash of the trusted anchor
+      required: true
+      schema:
+        format: text
+        maxLength: 255
+        minLength: 1
+        type: string
+security:
+  - ApiKeyAuth: [ ]

@@ -6,14 +6,14 @@ logging:
     org.springframework: INFO
 
 test-automation:
-  report-name: xroad-ui-test-suite
+  report-name: xroad-cs-ui-test-suite
   environment: restuitest
   spring-component-scan: "org.niis.xroad.test"
   cucumber:
     execution:
       parallel:
         enabled: false # Parallel execution triggers HTTP 429 Too Many Requests
-    glue-append: "org.niis.xroad.test"
+    glue-append: "org.niis.xroad.test.ui"
     filter:
       tags: "not @Skip"
 
@@ -31,4 +31,3 @@ test-automation:
 
   custom:
     security-server-url: "replace-me"
-    central-server-url: "replace-me"

@@ -1,13 +1,8 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
-
 # X-Road: Message Protocol v4.0
 **Technical Specification**
 
-Version: 4.0.22  
-19.05.2020  
+Version: 4.0.25  
+15.06.2023  
 Doc. ID: PR-MESS
 
 ---
@@ -15,30 +10,33 @@ Doc. ID: PR-MESS
 
 ## Version history
 
- Date       | Version | Description                                                                                     | Author
- ---------- | ------- | ------------------------------------------------------------------------------------------------|--------------------
- 04.09.2015 | 4.0.2   | Converted to ODT                                                                                | Siim Annuk
- 08.09.2015 | 4.0.3   | Minor fixes                                                                                     | Siim Annuk
- 10.09.2015 | 4.0.4   | Fixed some typos                                                                                | Siim Annuk
- 16.09.2015 | 4.0.5   | Editorial changes made                                                                          | Imbi Nõgisto
- 30.09.2015 | 4.0.6   | Additional information added about requestHash header field and HTTP headers                    | Siim Annuk
- 14.10.2015 | 4.0.7   | Note added about supported attachment encodings. Updated examples                               | Siim Annuk, Ilja Kromonov
- 17.10.2015 | 4.0.8   | Clarified must/MUST language                                                                    | Margus Freudenthal
- 28.10.2015 | 4.0.9   | Better example messages added                                                                   | Siim Annuk
- 28.10.2015 | 4.0.10  | Complete X-Road identifiers schema added                                                        | Siim Annuk
- 20.11.2015 | 4.0.11  | Minor enhancements, example messages fixed                                                      | Siim Annuk
- 02.12.2015 | 4.0.12  | Minor fixes added                                                                               | Siim Annuk
- 08.12.2015 | 4.0.13  | Typo fixed                                                                                      | Siim Annuk
- 25.01.2016 | 4.0.14  | Minor fixes                                                                                     | Kristo Heero
- 10.05.2016 | 4.0.15  | Added section about character encoding                                                          | Kristo Heero
- 16.05.2016 | 4.0.16  | Editorial changes made                                                                          | Margus Freudenthal
- 10.11.2016 | 4.0.17  | Converted to Markdown                                                                           | Vitali Stupin
- 20.02.2016 | 4.0.18  | Adjusted tables and internal links for better output in PDF                                     | Toomas Mölder
- 20.06.2017 | 4.0.19  | SOAPAction HTTP header is preserved                                                             | Jarkko Hyöty
- 26.10.2017 | 4.0.20  | Added [Annex H](#annex-h-known-x-road-message-protocol-extensions) on known protocol extensions | Olli Lindgren
- 06.03.2018 | 4.0.21  | Moved terms to term doc, added terms reference and doc link                                     | Tatu Repo
- 19.05.2020 | 4.0.22  | Added chapter [2.7 Identifier Character Restrictions](#27-identifier-character-restrictions)    | Ilkka Seppälä
- 
+| Date       | Version | Description                                                                                     | Author                    |
+|------------|---------|-------------------------------------------------------------------------------------------------|---------------------------|
+| 04.09.2015 | 4.0.2   | Converted to ODT                                                                                | Siim Annuk                |
+| 08.09.2015 | 4.0.3   | Minor fixes                                                                                     | Siim Annuk                |
+| 10.09.2015 | 4.0.4   | Fixed some typos                                                                                | Siim Annuk                |
+| 16.09.2015 | 4.0.5   | Editorial changes made                                                                          | Imbi Nõgisto              |
+| 30.09.2015 | 4.0.6   | Additional information added about requestHash header field and HTTP headers                    | Siim Annuk                |
+| 14.10.2015 | 4.0.7   | Note added about supported attachment encodings. Updated examples                               | Siim Annuk, Ilja Kromonov |
+| 17.10.2015 | 4.0.8   | Clarified must/MUST language                                                                    | Margus Freudenthal        |
+| 28.10.2015 | 4.0.9   | Better example messages added                                                                   | Siim Annuk                |
+| 28.10.2015 | 4.0.10  | Complete X-Road identifiers schema added                                                        | Siim Annuk                |
+| 20.11.2015 | 4.0.11  | Minor enhancements, example messages fixed                                                      | Siim Annuk                |
+| 02.12.2015 | 4.0.12  | Minor fixes added                                                                               | Siim Annuk                |
+| 08.12.2015 | 4.0.13  | Typo fixed                                                                                      | Siim Annuk                |
+| 25.01.2016 | 4.0.14  | Minor fixes                                                                                     | Kristo Heero              |
+| 10.05.2016 | 4.0.15  | Added section about character encoding                                                          | Kristo Heero              |
+| 16.05.2016 | 4.0.16  | Editorial changes made                                                                          | Margus Freudenthal        |
+| 10.11.2016 | 4.0.17  | Converted to Markdown                                                                           | Vitali Stupin             |
+| 20.02.2016 | 4.0.18  | Adjusted tables and internal links for better output in PDF                                     | Toomas Mölder             |
+| 20.06.2017 | 4.0.19  | SOAPAction HTTP header is preserved                                                             | Jarkko Hyöty              |
+| 26.10.2017 | 4.0.20  | Added [Annex H](#annex-h-known-x-road-message-protocol-extensions) on known protocol extensions | Olli Lindgren             |
+| 06.03.2018 | 4.0.21  | Moved terms to term doc, added terms reference and doc link                                     | Tatu Repo                 |
+| 19.05.2020 | 4.0.22  | Added chapter [2.7 Identifier Character Restrictions](#27-identifier-character-restrictions)    | Ilkka Seppälä             |
+| 17.04.2023 | 4.0.23  | Remove central services support                                                                 | Justas Samuolis           |
+| 10.05.2023 | 4.0.24  | Security Categories removed.                                                                    | Justas Samuolis           |
+| 15.06.2023 | 4.0.25  | Stricter identifier character restrictions                                                      | Madis Loitmaa             |
+
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
@@ -150,9 +148,6 @@ Next, we will describe how globally unique identifiers are constructed for vario
 -   **Service** – *SERVICE:\[service provider\]/\[service code\]/\[service version\]*. Identifier for a service consists of an identifier of the service provider (either an X-Road member or a subsystem), service code, and version. The service code is chosen by the service provider. Version is optional and can be used to distinguish between technically incompatible versions of the same basic service.
     Example: SERVICE:EE/BUSINESS/123456789/highsecurity/getSecureData/v1 identifies version v1 of service getSecureData that is offered by subsystem SUBSYSTEM:EE/BUSINESS/123456789/highsecurity.
 
--   **Central service** – *CENTRALSERVICE:/\[X-Road instance\]/\[service code\]*. The list of central services is managed by the X-Road governing agency who also assigns unique codes for these services.
-    Example: CENTRALSERVICE:EE/populationRegister\_personData identifies a central service that returns person data from the national Population Register.
-
 
 ## 2 Format of Messages
 
@@ -197,7 +192,6 @@ The enumeration `XRoadObjectType` lists all possible values of the `objectType` 
             <xs:enumeration value="MEMBER"/>
             <xs:enumeration value="SUBSYSTEM"/>
             <xs:enumeration value="SERVICE"/>
-            <xs:enumeration value="CENTRALSERVICE"/>
         </xs:restriction>
     </xs:simpleType>
 ```
@@ -250,21 +244,6 @@ The `XRoadServiceIdentifierType` can be used to represent identifiers of service
     </xs:complexType>
 ```
 
-The `XRoadCentralServiceIdentifierType` can be used to represent identifiers of central services.
-
-```xml
-    <xs:complexType name="XRoadCentralServiceIdentifierType">
-        <xs:complexContent>
-            <xs:restriction base="XRoadIdentifierType">
-                <xs:sequence>
-                    <xs:element ref="xRoadInstance"/>
-                    <xs:element ref="serviceCode"/>
-                </xs:sequence>
-            </xs:restriction>
-        </xs:complexContent>
-    </xs:complexType>
-```
-
 
 ### 2.2 Message Headers
 
@@ -278,7 +257,6 @@ Table 1. Supported header fields
 ---------------- | ----------------------------------------- | ----------- | --------------------------------------------------------
  client          | XRoadClientIdentifierType                 | M           | Identifies a service client – an entity that initiates the service call.
  service         | XRoadServiceIdentifierType                | O           | Identifies the service that is invoked by the request.
- centralService  | XRoadCentralServiceIdentifierType         | O           | Identifies the central service that is invoked by the request.
  id              | string                                    | M           | Unique identifier for this message. The recommended form of message ID is UUID.
  userId          | string                                    | O           | User whose action initiated the request. The user ID should be prefixed with two-letter ISO country code (e.g., EE12345678901).
  issue           | string                                    | O           | Identifies received application, issue or document that was the cause of the service request. This field may be used by the client information system to connect service requests (and responses) to working procedures.
@@ -286,7 +264,7 @@ Table 1. Supported header fields
  requestHash     | string                                    | O           | For responses, this field contains a Base64 encoded hash of the request SOAP message. This field is automatically filled in by the service provider's security server.
  requestHash /@algorithmId | string                          | M           | Identifies the hash algorithm that was used to calculate the value of the requestHash field. The algorithms are specified as URIs listed in the XML-DSIG specification \[[DSIG](#Ref_DSIG)\].
 
-When a service client sends a request to the security server, exactly one of the fields `service` or `centralService` MUST be present. If the `centralService` field is used, the security server resolves the central service and automatically fills in the `service` field with the identifier of the concrete service that implements the central service. Thus, in the request sent to the service, both fields MAY be present (the `service` field is always present).
+When a service client sends a request to the security server, the field `service` MUST be present.
 
 When responding, the service MUST copy all the header fields from the request to the response in the exact same sequence with the exact same values. The XML namespace prefix of the header fields has no significance to the security server, but the prefix must reference the same namespace as in the request.
 
@@ -343,18 +321,13 @@ X-Road identifiers include, but are not restricted to:
 - Subsystem code
 - Service code
 - Service version
-- Central service code
 - Security server code
 
-X-Road Message Protocol imposes some restrictions on the characters that can be used in X-Road identifiers. The following characters SHALL NOT be used in the identifier values:
-- Colon `:`
-- Semicolon `;`
-- Slash `/`
-- Backslash `\`
-- Percent `%`
-- Control characters and zero-width spaces
-  - U+0000—U+001F and U+007F—U+009F; includes chars like tab, newline, del etc.
-  - U+200B and U+FEFF
+X-Road Message Protocol for REST imposes some restrictions on the characters that can be used in X-Road identifiers.
+Only the following characters MUST be used in the identifier values:
+- Letters `A...Z` and `a...z`
+- Numbers `0...9`
+- Symbols `'()+,-.=?`
   
 ## 3 Describing Services
 
@@ -439,7 +412,6 @@ Table 2. WSDL elements for X-Road services
             <xs:element minOccurs="0" ref="groupCode"/>
             <xs:element minOccurs="0" ref="serviceCode"/>
             <xs:element minOccurs="0" ref="serviceVersion"/>
-            <xs:element minOccurs="0" ref="securityCategoryCode"/>
             <xs:element minOccurs="0" ref="serverCode"/>
         </xs:sequence>
         <xs:attribute ref="objectType" use="required"/>
@@ -455,9 +427,7 @@ Table 2. WSDL elements for X-Road services
             <xs:enumeration value="SERVER"/>
             <xs:enumeration value="GLOBALGROUP"/>
             <xs:enumeration value="LOCALGROUP"/>
-            <xs:enumeration value="SECURITYCATEGORY"/>
             <xs:enumeration value="SERVICE"/>
-            <xs:enumeration value="CENTRALSERVICE"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:element name="xRoadInstance" type="xs:string">
@@ -501,12 +471,6 @@ Table 2. WSDL elements for X-Road services
             <xs:documentation>Version of the service.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="securityCategoryCode" type="xs:string">
-        <xs:annotation>
-            <xs:documentation>Code that uniquely identifies security category in
-                a given X-Road instance.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
     <xs:element name="serverCode" type="xs:string">
         <xs:annotation>
             <xs:documentation>Code that uniquely identifies security server
@@ -540,30 +504,6 @@ Table 2. WSDL elements for X-Road services
                     <xs:element minOccurs="0" ref="serviceVersion"/>
                 </xs:sequence>
                 <xs:attribute ref="objectType" use="required" fixed="SERVICE"/>
-            </xs:restriction>
-        </xs:complexContent>
-    </xs:complexType>
-    <xs:complexType name="XRoadSecurityCategoryIdentifierType">
-        <xs:complexContent>
-            <xs:restriction base="XRoadIdentifierType">
-                <xs:sequence>
-                    <xs:element ref="xRoadInstance"/>
-                    <xs:element ref="securityCategoryCode"/>
-                </xs:sequence>
-                <xs:attribute ref="objectType" use="required"
-                        fixed="SECURITYCATEGORY"/>
-            </xs:restriction>
-        </xs:complexContent>
-    </xs:complexType>
-    <xs:complexType name="XRoadCentralServiceIdentifierType">
-        <xs:complexContent>
-            <xs:restriction base="XRoadIdentifierType">
-                <xs:sequence>
-                    <xs:element ref="xRoadInstance"/>
-                    <xs:element ref="serviceCode"/>
-                </xs:sequence>
-                <xs:attribute ref="objectType" use="required"
-                        fixed="CENTRALSERVICE"/>
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
@@ -632,13 +572,6 @@ Table 2. WSDL elements for X-Road services
         <xs:annotation>
             <xs:documentation>Identies the service
                 that is invoked by the request</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-    <xs:element name="centralService"
-            type="id:XRoadCentralServiceIdentifierType">
-        <xs:annotation>
-            <xs:documentation>Identies the central service
-                that is invoked by the request.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="id" type="xs:string">

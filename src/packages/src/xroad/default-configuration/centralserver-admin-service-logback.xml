@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" scanPeriod="60 seconds">
+
+    <contextName>X-Road Central Server Admin Service</contextName>
+
+    <property name="logOutputPath" value="/var/log/xroad" />
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logOutputPath}/centralserver-admin-service.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logOutputPath}/centralserver-admin-service.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} [%thread] correlation-id:[%X{traceId:-}] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>AUDIT</marker>
+            </evaluator>
+            <onMismatch>DENY</onMismatch>
+            <onMatch>NEUTRAL</onMatch>
+        </filter>
+        <syslogHost>127.0.0.1</syslogHost>
+        <port>514</port>
+        <facility>LOCAL0</facility>
+        <suffixPattern>correlation-id:[%X{traceId:-}] %-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} - %msg</suffixPattern>
+    </appender>
+
+    <logger name="akka" level="WARN" />
+    <logger name="ee.ria.xroad" level="INFO" />
+    <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
+    <logger name="org.niis.xroad" level="INFO" />
+
+    <root level="INFO">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="SYSLOG" />
+    </root>
+</configuration>

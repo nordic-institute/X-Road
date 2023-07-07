@@ -1,12 +1,8 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
-
----
-
 # X-Road: Message Protocol for REST
 
 **Technical Specification**
 
-Version: 1.0.2  
+Version: 1.0.3    
 Doc. ID: PR-REST
 
 ---
@@ -24,6 +20,7 @@ Doc. ID: PR-REST
 | 25.04.2019 | 1.0.0   | Update document version number                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Jarkko Hyöty                                                                                           |
 | 19.05.2020 | 1.0.1   | Added chapter [4.8 Identifier Character Restrictions](#48-identifier-character-restrictions)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Ilkka Seppälä                                                                                          |
 | 27.05.2022 | 1.0.2   | <ul><li>Added `X-Road-Represented-Party` extension header to 4.3</li><li>Updated `X-Road-Client` header description in 4.3</ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Petteri Kivimäki                                                                                       |
+| 15.06.2023 | 1.0.3   | Stricter identifier character restrictions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa                                                                                          |
 
 ## License
 
@@ -736,20 +733,13 @@ X-Road identifiers include, but are not restricted to:
 - Subsystem code
 - Service code
 - Service version
-- Central service code
 - Security server code
 
-X-Road Message Protocol for REST imposes some restrictions on the characters that can be used in X-Road identifiers. The
-following characters SHALL NOT be used in the identifier values:
-
-- Colon `:`
-- Semicolon `;`
-- Slash `/`
-- Backslash `\`
-- Percent `%`
-- Control characters and zero-width spaces
-    - U+0000—U+001F and U+007F—U+009F; includes chars like tab, newline, del etc.
-    - U+200B and U+FEFF
+X-Road Message Protocol for REST imposes some restrictions on the characters that can be used in X-Road identifiers. 
+Only the following characters MUST be used in the identifier values:
+- Letters `A...Z` and `a...z`
+- Numbers `0...9`
+- Symbols `'()+,-.=?`
 
 ## 5 Services
 

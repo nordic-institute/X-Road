@@ -1,0 +1,26 @@
+<jxb:bindings
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+    version="2.1">
+
+    <jxb:bindings schemaLocation="identifiers.xsd">
+        <jxb:bindings node="//xs:complexType[@name='XRoadClientIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.ClientId.Conf"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='XRoadServiceIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.ServiceId.Conf"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='XRoadSecurityServerIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.SecurityServerId.Conf"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='XRoadGlobalGroupIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.GlobalGroupId.Conf"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='XRoadLocalGroupIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.LocalGroupId.Conf"/>
+        </jxb:bindings>
+        <jxb:bindings node="//xs:complexType[@name='XRoadIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.XRoadId.Conf"/>
+        </jxb:bindings>
+    </jxb:bindings>
+</jxb:bindings>

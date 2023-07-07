@@ -1,13 +1,14 @@
 ../../../../src/xroad/common/center/usr/* usr/
 ../../../../src/xroad/common/center/etc/* etc/
 ../../../../src/xroad/default-configuration/center.ini etc/xroad/conf.d
+../../../../src/xroad/default-configuration/centralserver-admin-service-logback.xml etc/xroad/conf.d/
 ../../../../src/xroad/default-configuration/override-signer.ini etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/managementservices.wsdl var/lib/xroad/public
 ../../../../src/xroad/default-configuration/rsyslog.d/* etc/rsyslog.d/
-../../../../src/xroad/default-configuration/center-ui-jetty-logback-context-name.xml etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/ocsp-nextupdate.ini /etc/xroad/configuration-parts/
 ../../../../src/xroad/default-configuration/ocsp-fetchinterval.ini /etc/xroad/configuration-parts/
-../../../../../center-service/build/libs/center-service.war usr/share/xroad/jlib/webapps/
-../../../../../center-ui/build/libs/center-ui.war usr/share/xroad/jlib/webapps/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-center
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-center
+../../../../../central-server/admin-service/application/build/libs/centralserver-admin-service-1.0.jar /usr/share/xroad/jlib/
+../../../../../central-server/admin-service/infra-jpa/src/main/resources/liquibase/* /usr/share/xroad/db/
+

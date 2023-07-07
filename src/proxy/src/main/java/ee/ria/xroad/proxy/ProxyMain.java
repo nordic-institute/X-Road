@@ -99,8 +99,6 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 public final class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
-    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     static {
         SystemPropertiesLoader.create()
@@ -186,7 +184,7 @@ public final class ProxyMain {
 
     private static void startup() throws Exception {
         log.trace("startup()");
-        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
+        Version.outputVersionInfo(APP_NAME);
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
                 .withFallback(ConfigFactory.load())
                 .withValue("akka.remote.artery.canonical.port",
@@ -294,7 +292,7 @@ public final class ProxyMain {
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(addOnStatus, response.getWriter());
+                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), addOnStatus);
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
@@ -308,7 +306,7 @@ public final class ProxyMain {
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(backupEncryptionStatusDiagnostics, response.getWriter());
+                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), backupEncryptionStatusDiagnostics);
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
@@ -322,8 +320,7 @@ public final class ProxyMain {
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(messageLogEncryptionStatusDiagnostics,
-                            response.getWriter());
+                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), messageLogEncryptionStatusDiagnostics);
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
@@ -412,7 +409,7 @@ public final class ProxyMain {
 
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(result, response.getWriter());
+                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), result);
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }

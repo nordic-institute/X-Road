@@ -15,17 +15,13 @@ plugins {
     id 'jacoco'
     id 'java'
     id 'idea'
-    id "io.spring.dependency-management" version "1.1.0" apply false
+    id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
     id 'org.springframework.boot' version "${springBootVersion}" apply false
-    id "com.dorongold.task-tree" version "2.1.0"
+    //id "com.dorongold.task-tree" version "2.1.0"
 }
 
 repositories {
     mavenCentral()
-}
-
-def getRubySourceCheckCommand(def projectPath) {
-    return ["$rootDir/check_ruby_source.sh", "$projectPath"]
 }
 
 sonarqube {
@@ -39,6 +35,11 @@ sonarqube {
         property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
         property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+
+        property "sonar.issue.ignore.multicriteria", "e1"
+        //# ignore 'Local-Variable Type Inference should be used"
+        property "sonar.issue.ignore.multicriteria.e1.ruleKey", "java:S6212"
+        property "sonar.issue.ignore.multicriteria.e1.resourceKey", "**/*.java"
     }
 }
 
@@ -46,15 +47,22 @@ dependencyCheck {
     outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
     suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
     format = "ALL"
-    skipProjects = [":e2e-tests"]
+    skipProjects = [
+        ":e2e-tests",
+        ":central-server:admin-service:ui-system-test",
+        ":central-server:admin-service:int-test",
+        ":central-server:management-service:int-test"
+    ]
     analyzers {
         experimentalEnabled = false
         archiveEnabled = false
         jarEnabled = true
         centralEnabled = false
-        bundleAuditEnabled = true
+        bundleAuditEnabled = false
         nexusEnabled = false
         nuspecEnabled = false
+        opensslEnabled = false
+        msbuildEnabled = false
         assemblyEnabled = false
         pyDistributionEnabled = false
         pyPackageEnabled = false
@@ -64,24 +72,24 @@ dependencyCheck {
         composerEnabled = false
         nodeEnabled = false
         nodeAudit {
-          enabled = false
+            enabled = false
         }
         ossIndex {
-          enabled = false
+            enabled = false
         }
     }
 }
 
 allprojects {
     buildscript {
-      repositories {
-        mavenCentral()
-      }
+        repositories {
+            mavenCentral()
+        }
     }
 
     repositories {
-      mavenLocal()
-      mavenCentral()
+        mavenLocal()
+        mavenCentral()
     }
 
     group = 'ee.ria.xroad'
@@ -104,7 +112,7 @@ allprojects {
     }
 }
 
-configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
+configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
@@ -113,6 +121,16 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
     apply plugin: 'jacoco'
     group = 'ee.ria.xroad'
     version = '1.0'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(11)
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
 
     sourceSets {
         intTest {
@@ -165,7 +183,7 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
 
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
-        testImplementation "junit:junit:${junitVersion}"
+        testImplementation "junit:junit:$junitVersion"
 
         compileOnly "org.projectlombok:lombok:${lombokVersion}"
         annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -182,12 +200,6 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
         from sourceSets.test.output
     }
 
-    java {
-      toolchain {
-          languageVersion = JavaLanguageVersion.of(8)
-      }
-    }
-
     def javaCompiler = javaToolchains.compilerFor(java.toolchain)
     def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
@@ -196,22 +208,20 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
     }
 
     tasks.withType(JavaExec) {
+        systemProperty 'file.encoding', 'UTF-8'
         javaLauncher = javaToolchains.launcherFor(java.toolchain)
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
     }
 
-    tasks.withType(Exec) {
-        environment "JAVA_HOME", javaHome
+    tasks.withType(Test) {
+        systemProperty 'file.encoding', 'UTF-8'
     }
 
-    test {
-        if (java.toolchain.languageVersion.get() == JavaLanguageVersion.of(8)) {
-            //workaround for JDK-8156584
-            systemProperty("java.security.properties",
-                "${project.rootDir}/config/workaround-jdk-8156584-security.properties");
-        }
+    tasks.withType(Exec) {
+        environment "JAVA_HOME", javaHome
+        environment "JAVA_TOOL_OPTIONS", '-Dfile.encoding=UTF-8'
     }
 
     testJar.enabled = false
@@ -221,19 +231,21 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
     }
 
     checkstyle {
-        toolVersion = "8.44"
+        toolVersion = "10.7.0"
         configDirectory = file("${project.rootDir}/config/checkstyle")
-        configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
         ignoreFailures = false
         showViolations = false
+        enableExternalDtdLoad = true
     }
 
     checkstyleMain {
         source = fileTree('src/main/java')
+        configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
     }
 
     checkstyleTest {
         source = fileTree('src/test/java')
+        configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
     }
 
     jacocoTestReport {
@@ -245,65 +257,41 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
     license {
         header rootProject.file('LICENSE.txt')
         include '**/*.java'
-        include '**/*.rb'
         skipExistingHeaders = true
     }
 
+    licenseMain.source = fileTree('src/main')
+    licenseTest.source = fileTree('src/test')
+    licenseFormatMain.source = fileTree('src/main')
+    licenseFormatTest.source = fileTree('src/test')
+
     jar {
         from rootProject.file('LICENSE.txt')
+        duplicatesStrategy = DuplicatesStrategy.WARN
     }
-
-    //compileJava {
-    //    options.compilerArgs << '-Xlint:deprecation'
-    //}
-
-}
-
-configure(subprojects.findAll { it.name.contains('center-') or it.name.contains('common-ui') }) {
-
-    apply plugin: 'com.github.hierynomus.license'
-
-    def sources = (fileTree('app') + fileTree('etc') + fileTree('config') + fileTree('test'))
-
-    task licenseFormatUi(type: nl.javadude.gradle.plugins.license.License) {
-        source = sources
-    }
-
-    task licenseFormatUiCheck(type: nl.javadude.gradle.plugins.license.License) {
-        source = sources
-        check = true;
-    }
-
-    licenseFormat.dependsOn licenseFormatUi
-    licenseTest.dependsOn licenseFormatUiCheck
-}
-
-configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') })) {
-    def licenseSourceAdds = fileTree('lib')
-
-    task licenseFormatLib(type: nl.javadude.gradle.plugins.license.License) {
-        source += licenseSourceAdds
-    }
-
-    task licenseFormatLibCheck(type: nl.javadude.gradle.plugins.license.License) {
-        source += licenseSourceAdds
-        check = true
-    }
-
-    licenseFormat.dependsOn licenseFormatLib
-    licenseTest.dependsOn licenseFormatLibCheck
-
 }
 
 clean.delete << "${rootDir}/packages/build"
 
 jacocoTestReport {
-    def javaProjects = subprojects.findAll{it.plugins.hasPlugin(JavaPlugin)}
+    def javaProjects = subprojects.findAll { it.plugins.hasPlugin(JavaPlugin) }
     dependsOn javaProjects.check
     reports {
         xml.required = true
     }
     classDirectories.setFrom files(javaProjects.sourceSets.main.java.classesDirectory)
     sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
-    executionData.setFrom fileTree(dir: '.', include: '**/build/jacoco/*.exec')
+    executionData.setFrom fileTree(dir: '.', include: "**/build/jacoco/*.exec")
 }
+
+tasks.withType(Jar).configureEach {
+    enabled = false
+}
+
+//Register git-hooks
+tasks.register("installGitHooks", Copy) {
+    from file("$rootDir/../.githooks")
+    into file("$rootDir/../.git/hooks")
+    fileMode 0775
+}
+assemble.dependsOn installGitHooks

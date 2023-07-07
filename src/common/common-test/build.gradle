@@ -1,0 +1,22 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
+    implementation 'org.antlr:ST4:4.0.7'
+    // JUnit is needed for ExpectedCodedException
+    implementation "junit:junit:$junitVersion"
+    api "org.mockito:mockito-core:$mockitoVersion"
+
+    implementation "io.vavr:vavr:$vavrVersion"
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/test/certs'
+        }
+    }
+}

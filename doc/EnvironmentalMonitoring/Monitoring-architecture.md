@@ -1,19 +1,20 @@
 # X-Road: Environmental Monitoring Architecture
 
-Version: 1.8  
+Version: 1.9  
 Doc. ID: ARC-ENVMON
 
-| Date       | Version  | Description                                                                  | Author             |
-|------------|----------|------------------------------------------------------------------------------|--------------------|
-| 15.12.2015 | 1.0      | Initial version               | Ilkka Seppälä         |
-| 04.01.2017 | 1.1      | Fix documentation links | Ilkka Seppälä         |
-| 20.01.2017 | 1.2      | Added license text, table of contents and version history | Sami Kallio |
-| 23.2.2017  | 1.3      | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
-| 18.8.2017  | 1.4      | Added details about the security server certificates monitoring data | Olli Lindgren |
-| 18.10.2017 | 1.5      |  | Joni Laurila |
-| 02.03.2018 | 1.6      | Added numbering, terms document references, removed unnecessary anchors | Tatu Repo
-| 20.01.2020 | 1.7      | Update XroadProcessLister description | Jarkko Hyöty
-| 25.06.2020 | 1.8      | Add chapter [2.2.1 JMX interface](#221-jmx-interface)| Petteri Kivimäki
+| Date       | Version | Description                                                                                                     | Author             |
+|------------|---------|-----------------------------------------------------------------------------------------------------------------|--------------------|
+| 15.12.2015 | 1.0     | Initial version                                                                                                 | Ilkka Seppälä         |
+| 04.01.2017 | 1.1     | Fix documentation links                                                                                         | Ilkka Seppälä         |
+| 20.01.2017 | 1.2     | Added license text, table of contents and version history                                                       | Sami Kallio |
+| 23.2.2017  | 1.3     | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
+| 18.8.2017  | 1.4     | Added details about the security server certificates monitoring data                                            | Olli Lindgren |
+| 18.10.2017 | 1.5     |                                                                                                                 | Joni Laurila |
+| 02.03.2018 | 1.6     | Added numbering, terms document references, removed unnecessary anchors                                         | Tatu Repo
+| 20.01.2020 | 1.7     | Update XroadProcessLister description                                                                           | Jarkko Hyöty
+| 25.06.2020 | 1.8     | Add chapter [2.2.1 JMX interface](#221-jmx-interface)                                                           | Petteri Kivimäki
+| 01.06.2023 | 1.9     | Update references                                                                                               | Petteri Kivimäki |
 
 
 # Table of Contents
@@ -60,9 +61,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 | Document ID||
 | ------------- |-------------|
-| PR-GCONF      | [Cybernetica AS. X-Road: Protocol for Downloading Configuration](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md) |
-| UC-GCONF      | [Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution](../UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md)|
-| PR-MESS | [Cybernetica AS.X-Road: Message Protocol v4.0](../Protocols/pr-mess_x-road_message_protocol.md)      |
+| PR-GCONF      | [X-Road: Protocol for Downloading Configuration](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md) |
+| UC-GCONF      | [X-Road: Use Case Model for Global Configuration Distribution](../UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md)|
+| PR-MESS | [X-Road: Message Protocol v4.0](../Protocols/pr-mess_x-road_message_protocol.md)      |
 | PR-TARGETSS | [Security Server targeting extension for the X-Road message protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md) |
 | <a id="Ref_TERMS" class="anchor"></a> TA-TERMS | [X-Road Terms and Abbreviations](../terms_x-road_docs.md)| 
 

@@ -80,6 +80,8 @@ import XrdIconTableBackup from './components/icons/XrdIconTableBackup.vue';
 import XrdIconTooltip from './components/icons/XrdIconTooltip.vue';
 import XrdIconUpload from './components/icons/XrdIconUpload.vue';
 import XrdIconWarning from './components/icons/XrdIconWarning.vue';
+import BackupsDataTable from './components/BackupAndRestore/BackupsDataTable.vue';
+import BackupsToolbar from './components/BackupAndRestore/BackupsToolbar.vue';
 
 // Import vee-validate so it's configured on the library build
 import './plugins/vee-validate';
@@ -140,6 +142,8 @@ const SharedComponents = {
     Vue.component('XrdSubViewContainer', XrdSubViewContainer);
     Vue.component('XrdEmptyPlaceholder', EmptyPlaceholder);
     Vue.component('XrdEmptyPlaceholderRow', EmptyPlaceholderRow);
+    Vue.component('XrdBackupsDataTable', BackupsDataTable);
+    Vue.component('XrdBackupsToolbar', BackupsToolbar);
   },
 };
 

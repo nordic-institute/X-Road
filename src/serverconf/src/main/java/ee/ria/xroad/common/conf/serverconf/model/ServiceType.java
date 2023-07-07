@@ -25,13 +25,8 @@
  */
 package ee.ria.xroad.common.conf.serverconf.model;
 
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
-
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Service.
@@ -39,9 +34,6 @@ import java.util.List;
 @Getter
 @Setter
 public class ServiceType {
-
-    private final List<SecurityCategoryId> requiredSecurityCategory =
-            new ArrayList<>();
 
     private Long id;
 

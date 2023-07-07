@@ -38,7 +38,7 @@ public class SecurityServerSettingsStepDefs extends BaseUiStepDefs {
     private static final By BTN_ANCHOR_DOWNLOAD =
             xpath("//*[@data-test=\"system-parameters-configuration-anchor-download-button\"]");
 
-    @Given("Settings tab is selected")
+    @Given("SecurityServer Settings tab is selected")
     public void userNavigatesToSettings() {
         $(By.xpath("//a[@data-test='settings']")).click();
     }

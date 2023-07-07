@@ -1,21 +1,18 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # X-Road: Operational Monitoring JMX Protocol <!-- omit in toc -->
 
 **Technical Specification**
 
-Version: 1.1  
+Version: 1.2  
 Doc. ID: PR-OPMONJMX
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
-|  | 0.2       | Initial version               |          |
-| 23.01.2017 | 0.3       | Added license text, table of contents and version history | Sami Kallio |
-| 05.03.2018 | 0.4       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo |
-| 12.12.2019 | 1.0       | Add description of serviceType gauges | Ilkka Seppälä |
-| 25.06.2020 | 1.1       | Add note about JMX being disabled by default | Petteri Kivimäki |
+| Date       | Version | Description                                                         | Author           |
+|------------|---------|---------------------------------------------------------------------|------------------|
+|            | 0.2     | Initial version                                                     |                  |
+| 23.01.2017 | 0.3     | Added license text, table of contents and version history           | Sami Kallio      |
+| 05.03.2018 | 0.4     | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo        |
+| 12.12.2019 | 1.0     | Add description of serviceType gauges                               | Ilkka Seppälä    |
+| 25.06.2020 | 1.1     | Add note about JMX being disabled by default                        | Petteri Kivimäki |
+| 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -59,7 +56,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 1.2 References
 
-<a name="Ref_PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
+<a name="Ref_PR-MESS"></a>**PR-MESS** -- X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
 <a name="Ref_JMX"></a>**JMX** -- Java Management Extensions (JMX) Specification, version 1.4, http://download.oracle.com/otn-pub/jcp/jmx_remote-1_4-mrel2-eval-spec/jsr160-jmx-1_4-mrel4-spec-FINAL-v1_0.pdf  
 <a name="Ref_JMXMP"></a>**JMXMP** -- Using JMX Connectors to Manage Resources Remotely, http://docs.oracle.com/javase/8/docs/technotes/guides/jmx/overview/connectors.html  
 <a name="Ref_METRICS"></a>**METRICS** -- GitHub - dropwizard/metrics: Capturing JVM- and application-level metrics. So you know what's going on, https://github.com/dropwizard/metrics  

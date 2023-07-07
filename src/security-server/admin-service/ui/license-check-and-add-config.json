@@ -1,0 +1,42 @@
+{
+  "ignore": [
+    ".idea",
+    ".gradle",
+    "**/*.md",
+    "**/*.svg",
+    "**/*.eot",
+    "**/*.ttf",
+    "**/*.xml",
+    "**/*.woff",
+    "**/*.DS_Store",
+    "**/*.config.js",
+    "**/*.cer",
+    "**/*.log",
+    "**/*.yaml*",
+    "**/*.gradle",
+    "**/.*",
+    "src/openapi-types/",
+    "**/openapi-types.ts",
+    "scripts/dtsgen-wrapper.js",
+    "tests/e2e/testdata/**",
+    "build/"
+  ],
+  "license": "LICENSE.txt",
+  "licenseFormats": {
+    "ts|js|css|scss": {
+      "prepend": "/*",
+      "append": " */",
+      "eachLine": {
+        "prepend": " * "
+      }
+    },
+    "vue": {
+      "prepend": "<!--",
+      "append": " -->",
+      "eachLine": {
+        "prepend": "   "
+      }
+    }
+  },
+  "trailingWhitespace": "TRIM"
+}

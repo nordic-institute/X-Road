@@ -189,7 +189,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                     "Missing serviceCode in message body");
         }
 
-        ServiceId targetServiceId = ServiceId.create(requestProxyMessage.getRest().getServiceId().getClientId(),
+        ServiceId.Conf targetServiceId = ServiceId.Conf.create(
+                requestProxyMessage.getRest().getServiceId().getClientId(),
                 targetServiceCode);
         log.trace("targetServiceId={}", targetServiceId);
 

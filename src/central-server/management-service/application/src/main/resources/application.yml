@@ -1,0 +1,37 @@
+# shared properties for dev/prod runtime
+# test runtime has a separate application.properties
+spring:
+  servlet:
+    multipart.enabled: false
+  jackson:
+    default-property-inclusion: NON_NULL
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+  jetty:
+    connection-idle-timeout: 15s
+    threads:
+      max-queue-capacity: 10000
+      max: 32
+      acceptors: 2
+  servlet:
+    jsp:
+      registered: false
+    session:
+      tracking-modes:
+  port: 8085
+  address: 127.0.0.1
+  forward-headers-strategy: native
+
+xroad:
+  management-service:
+    rate-limit-enabled: true
+    rate-limit-requests-per-second: -1
+    rate-limit-requests-per-minute: 10
+    rate-limit-cache-size: 10_000
+    rate-limit-expire-after-access-minutes: 2
+    api-trust-store: ${xroad.conf.path:/etc/xroad}/ssl/center-admin-service.p12
+    api-trust-store-password: center-admin-service
+    api-base-url: https://127.0.0.1:4000/api/v1

@@ -1,0 +1,4 @@
+../../../../../central-server/registration-service/build/libs/centralserver-registration-service-1.0.jar /usr/share/xroad/jlib/
+../../../../src/xroad/common/center-registration-service/usr/* usr/
+../../../../src/xroad/common/center-registration-service/etc/* etc/
+../../../../src/xroad/default-configuration/centralserver-registration-service-logback.xml etc/xroad/conf.d

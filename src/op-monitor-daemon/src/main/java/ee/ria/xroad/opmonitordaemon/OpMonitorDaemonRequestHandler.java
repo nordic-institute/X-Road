@@ -33,7 +33,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
@@ -57,7 +57,7 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints.STORE
 @Slf4j
 class OpMonitorDaemonRequestHandler extends HandlerBase {
 
-    private static final Gson GSON = JsonUtils.getSerializer();
+    private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
 
     private static final byte[] OK_RESPONSE_BYTES = getOkResponseBytes();
 
@@ -168,7 +168,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
     private static void sendJsonErrorResponse(HttpServletResponse response,
             String errorMessage) throws IOException {
-        byte[] messageBytes = GSON.toJson(
+        byte[] messageBytes = OBJECT_WRITER.writeValueAsString(
                 new StoreOpMonitoringDataResponse(errorMessage)).getBytes(
                 MimeUtils.UTF8);
 
@@ -182,7 +182,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
     @SneakyThrows
     private static byte[] getOkResponseBytes() {
-        return GSON.toJson(new StoreOpMonitoringDataResponse()).getBytes(
+        return OBJECT_WRITER.writeValueAsString(new StoreOpMonitoringDataResponse()).getBytes(
                 MimeUtils.UTF8);
     }
 

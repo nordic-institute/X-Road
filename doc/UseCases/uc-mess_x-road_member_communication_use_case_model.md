@@ -1,13 +1,9 @@
-
-| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
-| -------------------------: |
-
 # X-Road: Use Case Model for Member Communication
 
 **Analysis**
 
-Version: 1.8  
-19.01.2023
+Version: 1.10  
+17.04.2023
 <!-- 38 pages -->
 Doc. ID: UC-MESS
 
@@ -16,21 +12,23 @@ Doc. ID: UC-MESS
 
 ## Version history
 
-| Date       | Version | Description                                                                                                                                                                                                                                                              | Author             |
-|------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
-| 02.06.2015 | 0.1     | Initial                                                                                                                                                                                                                                                                  | Riin Saarmäe       |
-| 17.08.2015 | 0.2     | Sequence diagram added ([Annex A](#annex-a-sequence-diagram-for-messaging)). Component element added to use cases. Terms and Abbreviations section updated.                                                                                                              | Riin Saarmäe       |
-| 31.08.2015 | 0.3     | Added comments and editorial changes                                                                                                                                                                                                                                     | Margus Freudenthal |
-| 14.09.2015 | 0.4     | Minor corrections                                                                                                                                                                                                                                                        | Riin Saarmäe       |
-| 20.09.2015 | 1.0     | Editorial changes made                                                                                                                                                                                                                                                   | Imbi Nõgisto       |
-| 23.09.2015 | 1.1     | Use case [MESS\_09](#310-uc-mess_09-log-message-and-signature-to-message-log) (3.10) and sequence diagram ([Annex A](#annex-a-sequence-diagram-for-messaging)) updated                                                                                                   | Riin Saarmäe       |
-| 08.11.2015 | 1.2     | Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done.                                                                                                                                                              | Riin Saarmäe       |
-| 26.11.2015 | 1.3     | Use cases [MESS\_02](#33-uc-mess_02-process-x-road-soap-request), [MESS\_03](#34-uc-mess_03-process-x-road-request-message), [MESS\_14](#315-uc-mess_14-get-ocsp-responses) and [MESS\_15](#316-uc-mess_15-get-and-verify-ocsp-response) updated.                        | Riin Saarmäe       |
-| 05.02.2016 | 1.4     | XTE-225 - use case [MESS\_04](#35-uc-mess_04-verify-soap-message) updated.                                                                                                                                                                                               | Meril Vaht         |
-| 14.12.2016 | 1.5     | Operational monitoring functionality added                                                                                                                                                                                                                               | Meril Vaht         |
-| 22.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF, re-numbered and re-bulleted [MESS\_16](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon) | Toomas Mölder      |
-| 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links                                                                                                                                                                                  | Tatu Repo          |
-| 19.01.2023 | 1.8     | Updates regarding the *ocspFreshnessSeconds* parameter                                                                                                                                                                                                                   | Justas Samuolis    |
+| Date         | Version | Description                                                                                                                                                                                                                                                              | Author             |
+|--------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
+| 02.06.2015   | 0.1     | Initial                                                                                                                                                                                                                                                                  | Riin Saarmäe       |
+| 17.08.2015   | 0.2     | Sequence diagram added ([Annex A](#annex-a-sequence-diagram-for-messaging)). Component element added to use cases. Terms and Abbreviations section updated.                                                                                                              | Riin Saarmäe       |
+| 31.08.2015   | 0.3     | Added comments and editorial changes                                                                                                                                                                                                                                     | Margus Freudenthal |
+| 14.09.2015   | 0.4     | Minor corrections                                                                                                                                                                                                                                                        | Riin Saarmäe       |
+| 20.09.2015   | 1.0     | Editorial changes made                                                                                                                                                                                                                                                   | Imbi Nõgisto       |
+| 23.09.2015   | 1.1     | Use case [MESS\_09](#310-uc-mess_09-log-message-and-signature-to-message-log) (3.10) and sequence diagram ([Annex A](#annex-a-sequence-diagram-for-messaging)) updated                                                                                                   | Riin Saarmäe       |
+| 08.11.2015   | 1.2     | Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done.                                                                                                                                                              | Riin Saarmäe       |
+| 26.11.2015   | 1.3     | Use cases [MESS\_02](#33-uc-mess_02-process-x-road-soap-request), [MESS\_03](#34-uc-mess_03-process-x-road-request-message), [MESS\_14](#315-uc-mess_14-get-ocsp-responses) and [MESS\_15](#316-uc-mess_15-get-and-verify-ocsp-response) updated.                        | Riin Saarmäe       |
+| 05.02.2016   | 1.4     | XTE-225 - use case [MESS\_04](#35-uc-mess_04-verify-soap-message) updated.                                                                                                                                                                                               | Meril Vaht         |
+| 14.12.2016   | 1.5     | Operational monitoring functionality added                                                                                                                                                                                                                               | Meril Vaht         |
+| 22.02.2017   | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF, re-numbered and re-bulleted [MESS\_16](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon) | Toomas Mölder      |
+| 06.03.2018   | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links                                                                                                                                                                                  | Tatu Repo          |
+| 19.01.2023   | 1.8     | Updates regarding the *ocspFreshnessSeconds* parameter                                                                                                                                                                                                                   | Justas Samuolis    |
+| 17.04.2023   | 1.9     | Remove central services support                                                                                                                                                                                                                                          | Justas Samuolis    |
+| 01.06.2023   | 1.10    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
 
 ## Table of Contents
 
@@ -86,19 +84,19 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 2.  <a id="Ref_HPDS" class="anchor"></a>\[HPDS\] Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015. <https://cyber.ee/research/reports/>
 
-3.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
+3.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-4.  <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx).
+4.  <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx).
 
-5.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
+5.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
 
-6.  <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] Cybernetica AS. X-Road: System Parameters. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
+6.  <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 
 7.  <a id="Ref_XAdES" class="anchor"></a>\[XAdES\] XML Advanced Electronic Signatures (XadES). ETSI TS 101 903 V1.3.2.
 
 8.  <a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: [UC-SS](uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.md).
 
-9.  <a id="Ref_UC-OPMON" class="anchor"></a>\[UC-OPMON\] Cybernetica AS. X-Road Operational Monitoring Daemon: Use Case Model. Document ID: [UC-OPMON](../OperationalMonitoring/UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).
+9.  <a id="Ref_UC-OPMON" class="anchor"></a>\[UC-OPMON\] X-Road Operational Monitoring Daemon: Use Case Model. Document ID: [UC-OPMON](../OperationalMonitoring/UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).
 
 10. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -242,7 +240,7 @@ Figure 1. Communication use case diagram
 
 4.  System verifies that the request contains a SOAP message and verifies the SOAP message: [3.5](#35-uc-mess_04-verify-soap-message).
 
-5.  System verifies that the target service is not an X-Road central service (SOAP request header contains X-Road service identifier and not X-Road central service identifier).
+5.  System verifies that SOAP request header contains X-Road service identifier.
 
 6.  System verifies that the Client IS is in *Registered* state in the system configuration.
 
@@ -301,18 +299,6 @@ Figure 1. Communication use case diagram
 4b. The validation process terminates with an exception message.
 
   - 4b.1. System sends a SOAP Fault message with fault string containing the exception message to the Client IS. The use case terminates.
-
-5a. The target service is an X-Road central service (SOAP request header contains X-Road central service identifier).
-
-  - 5a.1. System looks up the identifier of the implementing service from the global configuration and writes it to the request header. The use case continues from step 6.
-
-    - 5a.1a. System cannot find the identifier of the implementing service that for the central service from the global configuration.
-
-      - 5a.1a.1. System sends a SOAP Fault message with fault string “Cannot find implementing service for central service 'X'” (where “X” is the central service identifier) to the Client IS. The use case terminates.
-
-5b. Request contains both a service identifier and a central service identifier.
-
-  - 5b.1. System sends a SOAP Fault message with fault string “Message header must contain either service id or central service id” to the Client IS. The use case terminates.
 
 6a. Client IS is not in *Registered* state.
 
@@ -710,9 +696,9 @@ The system receives a communication request from Client SS; verifies that the sy
 
   - 2c.1. System creates an exception message: “Malformed SOAP message: header missing”. The use case terminates.
 
-2d. The message is not a SOAP Fault and the *service* and *centralservice* headers are both empty.
+2d. The message is not a SOAP Fault and the *service* header is empty.
 
-  - 2d.1. System creates an exception message: “Message header must contain either service id or central service id“. The use case terminates.
+  - 2d.1. System creates an exception message: “Message header must contain service id“. The use case terminates.
 
 2e. The message is not a SOAP Fault and the SOAP header contains duplicate fields.
 
