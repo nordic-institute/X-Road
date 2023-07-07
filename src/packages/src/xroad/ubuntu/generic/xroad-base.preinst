@@ -18,6 +18,18 @@ if [ "$1" = "upgrade" ]; then
       fi
     fi
 
+    # 7.3.0 remove JAVA_HOME from local.conf if it points to java < 11
+    if [ -f /etc/xroad/services/local.conf ]; then
+      java_home=$(grep -oP '^\s*JAVA_HOME=\K(.*)' /etc/xroad/services/local.conf | tail -n 1)
+      if [ -n "$java_home" ]; then
+        java_version=$("$java_home"/bin/java -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)
+        if [[ $java_version -lt 11 ]]; then
+          sed -E -i 's/^(\s*JAVA_HOME=)/# \1/g' /etc/xroad/services/local.conf \
+                  && echo "Removed JAVA_HOME from /etc/xroad/services/local.conf" >&2 \
+                  || echo "Failed to remove JAVA_HOME from /etc/xroad/services/local.conf" >&2
+        fi
+      fi
+    fi
 fi
 
 if [[ $LC_ALL =~ "UTF-8"$ ]]
