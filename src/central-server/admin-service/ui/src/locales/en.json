@@ -585,7 +585,7 @@
         "subsystems": "Subsystems"
       },
       "subsystems": {
-        "addClient": "Add new subsystem",
+        "addClient": "Add subsystem",
         "deleteSubsystem": "Delete Subsystem",
         "serverOwner": "Server owner",
         "servercode": "Server code",
