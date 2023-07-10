@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.31
+Version: 2.32
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -57,6 +57,7 @@ Doc. ID: UG-CS
 | 09.06.2023 | 2.29    | Added REST API paragraph                                                                                                                                                                                                                                                                                                                                                                                                                | Vytautas Paliliūnas |
 | 19.06.2023 | 2.30    | Remove table schema_migrations                                                                                                                                                                                                                                                                                                                                                                                                          | Eneli Reimets       |
 | 28.06.2023 | 2.31    | Update database properties to match new Spring datasource style                                                                                                                                                                                                                                                                                                                                                                         | Raido Kaju          |
+| 10.07.2023 | 2.32    | Update system services                                                                                                                                                                                                                                                                                                                                                                                                                  | Petteri Kivimäki    |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -1266,14 +1267,13 @@ The value is the fetch interval in seconds for new OCSP responses.
 
 Most significant Central Server services are the following:
 
-| Service                           | Purpose                                                                                             |                                                     Log |
-|-----------------------------------|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------:|
-| xroad-center                      | X-Road Central Server                                                                               |        `/var/log/xroad/centralserver-admin-service.log` |
-| xroad-center-registration-service | X-Road Central Server Registration Service                                                          | `/var/log/xroad/centralserver-registration-service.log` |
-| xroad-center-management-service   | X-Road Central Server Management Service                                                            |   `/var/log/xroad/centralserver-management-service.log` |
-| xroad-jetty                       | The application server providing the user interface and the request acceptance service              |                                 `/var/log/xroad/jetty/` |
-| xroad-signer                      | The service that manages key settings                                                               |                             `/var/log/xroad/signer.log` |
-| nginx                             | The Web server that distributes configuration and implements the TLS protocol in the user interface |                                       `/var/log/nginx/` |
+| Service                           | Purpose                                                |                                                     Log |
+|-----------------------------------|--------------------------------------------------------|--------------------------------------------------------:|
+| xroad-center                      | X-Road Central Server admin UI and REST management API |        `/var/log/xroad/centralserver-admin-service.log` |
+| xroad-center-registration-service | X-Road Central Server Registration Service             | `/var/log/xroad/centralserver-registration-service.log` |
+| xroad-center-management-service   | X-Road Central Server Management Service               |   `/var/log/xroad/centralserver-management-service.log` |
+| xroad-signer                      | The service that manages key settings                  |                             `/var/log/xroad/signer.log` |
+| nginx                             | The Web server that distributes global configuration   |                                       `/var/log/nginx/` |
 
 System services can be managed using the systemd facility.
 To start a service, issue the following command as a root user:
