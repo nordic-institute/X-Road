@@ -28,7 +28,7 @@
 import { mainTabs } from '@/global';
 import { createPinia } from 'pinia';
 import { setActivePinia } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 const testPermissions: string[] = [
   'EDIT_APPROVED_TSA',
@@ -81,7 +81,7 @@ describe('user store user.ts  -- setters & getters', () => {
   });
 
   it('SET_PERMISSIONS fills permissions', () => {
-    const store = userStore();
+    const store = useUser();
     store.setPermissions(testPermissions);
 
     expect(store.permissions).toHaveLength(testPermissions.length);
@@ -91,7 +91,7 @@ describe('user store user.ts  -- setters & getters', () => {
   });
 
   it('GET_ALLOWED_TABS filters correctly', () => {
-    const store = userStore();
+    const store = useUser();
     store.setPermissions(memberPermissions);
     expect(mainTabs).not.toBeUndefined();
 
@@ -103,7 +103,7 @@ describe('user store user.ts  -- setters & getters', () => {
   });
 
   it('FIRST_ALLOWED_TAB returns right tab', () => {
-    const store = userStore();
+    const store = useUser();
     store.setPermissions(memberPermissions);
     const firstTab = store.getFirstAllowedTab;
     expect(firstTab).not.toBeNull();

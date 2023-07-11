@@ -111,10 +111,10 @@
 import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import { Colors, Permissions, RouteName } from '@/global';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 /**
  * Component for a Certification Service details view
@@ -132,14 +132,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useCertificationService),
+    ...mapState(useUser, ['hasPermission']),
     showDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_APPROVED_CA);
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     confirmDelete(): void {
       if (!this.certificationServiceStore.currentCertificationService) return;
       this.deleting = true;

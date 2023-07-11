@@ -52,11 +52,11 @@
 import Vue from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { XRoadId } from '@/openapi-types';
-import { clientStore } from '@/store/modules/clients';
-import { memberStore } from '@/store/modules/members';
-import { systemStore } from '@/store/modules/system';
-import { notificationsStore } from '@/store/modules/notifications';
-import { subsystemStore } from '@/store/modules/subsystems';
+import { useClient } from '@/store/modules/clients';
+import { useMember } from '@/store/modules/members';
+import { useSystem } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSubsystem } from '@/store/modules/subsystems';
 
 export default Vue.extend({
   name: 'AddMemberSubsystemDialog',
@@ -74,8 +74,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(clientStore, memberStore, subsystemStore),
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapStores(useClient, useMember, useSubsystem),
+    ...mapState(useSystem, ['getSystemStatus']),
     formReady(): boolean {
       return !!this.subsystemCode;
     },
@@ -84,7 +84,7 @@ export default Vue.extend({
     this.memberStore.currentMember;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
       this.clearForm();

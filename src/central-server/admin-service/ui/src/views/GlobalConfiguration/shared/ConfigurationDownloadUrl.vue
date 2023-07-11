@@ -64,7 +64,7 @@ import Vue from 'vue';
 import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
@@ -80,7 +80,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useConfigurationSourceStore),
+    ...mapStores(useConfigurationSource),
     urls(): GlobalConfDownloadUrl[] {
       return [
         this.configurationSourceStore.getDownloadUrl(this.configurationType),

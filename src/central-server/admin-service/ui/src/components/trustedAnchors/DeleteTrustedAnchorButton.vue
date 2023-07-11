@@ -43,7 +43,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import DeleteTrustedAnchorDialog from './DeleteTrustedAnchorDialog.vue';
 
@@ -60,7 +60,7 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
     canDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_TRUSTED_ANCHOR);
     },

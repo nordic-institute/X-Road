@@ -35,7 +35,7 @@ import Vue from 'vue';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 import { mapStores } from 'pinia';
-import { timestampingServicesStore } from '@/store/modules/trust-services';
+import { useTimestampingService } from '@/store/modules/trust-services';
 
 export default Vue.extend({
   name: 'TimestampingServiceCertificate',
@@ -52,11 +52,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(timestampingServicesStore),
+    ...mapStores(useTimestampingService),
   },
   created() {
     window.scrollTo(0, 0);
-    const find = this.timestampingServicesStore.timestampingServices.find(
+    const find = this.timestampingServiceStore.timestampingServices.find(
       (tsa) => tsa.id === this.timestampingServiceId,
     );
 

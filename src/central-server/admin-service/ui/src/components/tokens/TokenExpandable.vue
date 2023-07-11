@@ -105,8 +105,8 @@ import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
-import { tokenStore } from '@/store/modules/tokens';
-import { userStore } from '@/store/modules/user';
+import { useToken } from '@/store/modules/tokens';
+import { useUser } from '@/store/modules/user';
 import {
   ConfigurationSigningKey,
   ConfigurationType,
@@ -144,8 +144,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapState(tokenStore, {
+    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useToken, {
       isExpanded: 'tokenExpanded',
     }),
     showAddKey(): boolean {
@@ -175,7 +175,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(tokenStore, [
+    ...mapActions(useToken, [
       'setSelectedToken',
       'setTokenHidden',
       'setTokenExpanded',

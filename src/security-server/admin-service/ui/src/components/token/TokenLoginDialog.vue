@@ -68,7 +68,7 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { useAlerts } from '@/store/modules/alerts';
 import { useNotifications } from '@/store/modules/notifications';
-import { useTokensStore } from '@/store/modules/tokens';
+import { useTokens } from '@/store/modules/tokens';
 
 export default Vue.extend({
   components: { ValidationProvider },
@@ -87,7 +87,7 @@ export default Vue.extend({
   },
 
   computed: {
-    ...mapState(useTokensStore, ['selectedToken']),
+    ...mapState(useTokens, ['selectedToken']),
 
     isValid(): boolean {
       // Check that input is not empty

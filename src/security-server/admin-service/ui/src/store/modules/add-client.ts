@@ -40,7 +40,7 @@ import {
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
 import { AddMemberWizardModes } from '@/global';
-import { useCsrStore } from './certificateSignRequest';
+import { useCsr } from 'src/store/modules/certificate-sign-request';
 
 // Compares two Clients on member level and returns true if the
 // member ids of the clients match. Otherwise returns false.
@@ -294,7 +294,7 @@ export const useAddClient = defineStore('addClient', {
             key.certificate_signing_requests.some(
               (csr: TokenCertificateSigningRequest) => {
                 if (ownerId === csr.owner_id) {
-                  const csrStore = useCsrStore();
+                  const csrStore = useCsr();
                   csrStore.setCsrTokenId(token.id);
                   csrStore.setKeyId(key.id);
 

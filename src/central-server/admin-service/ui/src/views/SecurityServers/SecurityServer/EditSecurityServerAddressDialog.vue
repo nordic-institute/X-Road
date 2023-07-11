@@ -71,8 +71,8 @@
 import Vue, { VueConstructor } from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { mapActions, mapStores } from 'pinia';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { useNotifications } from '@/store/modules/notifications';
 import { ErrorInfo } from '@/openapi-types';
 import {
   getErrorInfo,
@@ -115,10 +115,10 @@ export default (
     };
   },
   computed: {
-    ...mapStores(useSecurityServerStore),
+    ...mapStores(useSecurityServer),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     open(): void {
       this.showDialog = true;
     },

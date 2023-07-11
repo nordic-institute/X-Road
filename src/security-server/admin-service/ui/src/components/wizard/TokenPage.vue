@@ -109,8 +109,8 @@ import { Token } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 
 import { useNotifications } from '@/store/modules/notifications';
-import { useTokensStore } from '@/store/modules/tokens';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useTokens } from '@/store/modules/tokens';
+import { useCsr } from '@/store/modules/certificate-sign-request';
 
 export default Vue.extend({
   components: {
@@ -125,7 +125,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useTokensStore, ['tokens', 'tokensFilteredByName']),
+    ...mapState(useTokens, ['tokens', 'tokensFilteredByName']),
 
     filteredTokens: {
       get(): Token[] {
@@ -152,8 +152,8 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsrStore, ['setCsrTokenId']),
-    ...mapActions(useTokensStore, ['setSelectedToken', 'fetchTokens']),
+    ...mapActions(useCsr, ['setCsrTokenId']),
+    ...mapActions(useTokens, ['setSelectedToken', 'fetchTokens']),
     cancel(): void {
       this.$emit('cancel');
     },

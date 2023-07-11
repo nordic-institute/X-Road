@@ -36,7 +36,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useOcspResponderStore } from '@/store/modules/trust-services';
+import { useOcspResponderService } from '@/store/modules/trust-services';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
@@ -55,7 +55,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useOcspResponderStore),
+    ...mapStores(useOcspResponderService),
   },
   created() {
     this.ocspResponderServiceStore

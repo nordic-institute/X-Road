@@ -69,7 +69,7 @@
 import Vue, { PropType } from 'vue';
 import { ManagementRequestListView } from '@/openapi-types';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import MrConfirmDialog from '@/components/managementRequests/MrConfirmDialog.vue';
 import MrDeclineDialog from '@/components/managementRequests/MrDeclineDialog.vue';
@@ -94,7 +94,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
     showApproveButton(): boolean {
       return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
     },

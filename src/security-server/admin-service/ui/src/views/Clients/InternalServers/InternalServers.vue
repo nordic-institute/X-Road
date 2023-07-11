@@ -141,7 +141,7 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
 export default Vue.extend({
   props: {
@@ -166,7 +166,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useClientStore, [
+    ...mapState(useClient, [
       'tlsCertificates',
       'ssCertificate',
       'connectionType',
@@ -220,7 +220,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useClientStore, [
+    ...mapActions(useClient, [
       'saveConnectionType',
       'fetchTlsCertificates',
       'fetchSSCertificate',

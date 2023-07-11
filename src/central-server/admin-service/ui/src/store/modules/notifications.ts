@@ -89,7 +89,7 @@ function createEmptyNotification(timeout: number): Notification {
   };
 }
 
-export const notificationsStore = defineStore('notificationsStore', {
+export const useNotifications = defineStore('notifications', {
   state: () => {
     return {
       errorNotifications: [] as Notification[],

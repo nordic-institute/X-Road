@@ -94,9 +94,9 @@ import { createClientId } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
-import { useAddClient } from '@/store/modules/addClient';
+import { useAddClient } from '@/store/modules/add-client';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificate-sign-request';
 
 export default Vue.extend({
   components: {
@@ -119,7 +119,7 @@ export default Vue.extend({
       'reservedMember',
     ]),
 
-    ...mapState(useCsrStore, ['csrTokenId']),
+    ...mapState(useCsr, ['csrTokenId']),
 
     showRegisterOption() {
       if (
@@ -134,7 +134,7 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     ...mapActions(useAddClient, ['createMember']),
-    ...mapActions(useCsrStore, ['requestGenerateCsr', 'generateKeyAndCsr']),
+    ...mapActions(useCsr, ['requestGenerateCsr', 'generateKeyAndCsr']),
     cancel(): void {
       this.$emit('cancel');
     },

@@ -64,7 +64,7 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
 export default Vue.extend({
   components: {
@@ -89,7 +89,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useClientStore, ['tlsCertificates']),
+    ...mapState(useClient, ['tlsCertificates']),
     showDeleteButton(): boolean {
       return this.hasPermission(Permissions.DELETE_CLIENT_INTERNAL_CERT);
     },

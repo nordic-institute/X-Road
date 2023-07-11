@@ -134,8 +134,8 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapStores } from 'pinia';
-import { useOcspResponderStore } from '@/store/modules/trust-services';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useOcspResponderService } from '@/store/modules/trust-services';
+import { useNotifications } from '@/store/modules/notifications';
 import AddOcspResponderDialog from '@/components/ocspResponders/AddOcspResponderDialog.vue';
 import {
   ApprovedCertificationService,
@@ -168,7 +168,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useOcspResponderStore),
+    ...mapStores(useOcspResponderService),
     ocspResponders(): OcspResponder[] {
       return this.ocspResponderServiceStore.currentOcspResponders;
     },
@@ -195,7 +195,7 @@ export default Vue.extend({
     this.ocspResponderServiceStore.loadByCa(this.ca);
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     hideAddOcspResponderDialog() {
       this.showAddOcspResponderDialog = false;
     },

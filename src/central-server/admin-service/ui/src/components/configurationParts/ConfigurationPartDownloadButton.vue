@@ -42,10 +42,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapState, mapStores } from 'pinia';
-import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 
 export default Vue.extend({
@@ -65,8 +65,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useConfigurationSourceStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useConfigurationSource),
+    ...mapState(useUser, ['hasPermission']),
 
     showDownloadButton(): boolean {
       return (

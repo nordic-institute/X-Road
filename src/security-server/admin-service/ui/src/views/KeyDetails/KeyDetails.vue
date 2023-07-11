@@ -146,7 +146,7 @@ import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 import { isEmpty } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
-import { useTokensStore } from '@/store/modules/tokens';
+import { useTokens } from '@/store/modules/tokens';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 
@@ -176,7 +176,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useTokensStore, ['tokens']),
+    ...mapState(useTokens, ['tokens']),
 
     ...mapState(useUser, ['hasPermission']),
     canEdit(): boolean {
@@ -207,7 +207,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useTokensStore, ['fetchTokens']),
+    ...mapActions(useTokens, ['fetchTokens']),
     close(): void {
       this.$router.go(-1);
     },

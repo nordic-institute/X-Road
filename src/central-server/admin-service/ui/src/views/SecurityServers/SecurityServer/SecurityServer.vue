@@ -43,8 +43,8 @@ import PageNavigation, {
 } from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
@@ -64,7 +64,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useSecurityServerStore),
+    ...mapStores(useSecurityServer),
     securityServerCode(): string {
       return (
         this.securityServerStore?.currentSecurityServer?.server_id
@@ -106,7 +106,7 @@ export default Vue.extend({
     this.fetchDetails();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
+    ...mapActions(useNotifications, ['showError']),
     fetchDetails: async function () {
       try {
         await this.securityServerStore.loadById(this.serverId);

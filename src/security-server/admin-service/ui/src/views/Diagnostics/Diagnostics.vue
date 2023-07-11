@@ -460,7 +460,7 @@ import {
 } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useSystemStore } from '@/store/modules/system';
+import { useSystem } from '@/store/modules/system';
 
 export default Vue.extend({
   data: () => ({
@@ -478,7 +478,7 @@ export default Vue.extend({
     messageLogEncryptionLoading: false,
   }),
   computed: {
-    ...mapState(useSystemStore, ['securityServerVersion']),
+    ...mapState(useSystem, ['securityServerVersion']),
   },
 
   created() {

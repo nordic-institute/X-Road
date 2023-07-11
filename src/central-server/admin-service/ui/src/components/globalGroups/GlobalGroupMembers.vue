@@ -144,11 +144,11 @@ import Vue from 'vue';
 
 import { Permissions } from '@/global';
 import { DataOptions, DataTableHeader } from 'vuetify';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { useGlobalGroups } from '@/store/modules/global-groups';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { GroupMembersFilter } from '@/openapi-types';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 import GroupMembersFilterDialog from './GroupMembersFilterDialog.vue';
 import { debounce } from '@/util/helpers';
 import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
@@ -179,8 +179,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useGlobalGroupsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useGlobalGroups),
+    ...mapState(useUser, ['hasPermission']),
     allowAddAndRemoveGroupMembers(): boolean {
       return this.hasPermission(Permissions.ADD_AND_REMOVE_GROUP_MEMBERS);
     },
@@ -255,7 +255,7 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.fetchItems(that.pagingSortingOptions, that.filter);

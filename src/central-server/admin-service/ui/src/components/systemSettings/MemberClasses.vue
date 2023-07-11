@@ -155,8 +155,8 @@
 import Vue, { VueConstructor } from 'vue';
 import { ErrorInfo, MemberClass } from '@/openapi-types';
 import { mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useMemberClassStore } from '@/store/modules/member-class';
+import { useNotifications } from '@/store/modules/notifications';
+import { useMemberClass } from '@/store/modules/member-class';
 import { DataTableHeader } from 'vuetify';
 import {
   getErrorInfo,
@@ -186,7 +186,7 @@ export default (
     valid: true,
   }),
   computed: {
-    ...mapStores(useMemberClassStore, notificationsStore),
+    ...mapStores(useMemberClass, useNotifications),
     memberClasses() {
       return this.memberClassStore.memberClasses;
     },
@@ -235,11 +235,11 @@ export default (
       if (this.activeItem !== undefined) {
         try {
           await this.memberClassStore.delete(this.activeItem);
-          this.notificationsStoreStore.showSuccess(
+          this.notificationsStore.showSuccess(
             this.$t('systemSettings.memberClassDeleted'),
           );
         } catch (error: unknown) {
-          this.notificationsStoreStore.showError(error);
+          this.notificationsStore.showError(error);
         }
         this.activeItem = undefined;
       }
@@ -260,7 +260,7 @@ export default (
                 this.activeItem.code,
                 this.activeItem.description,
               ));
-          this.notificationsStoreStore.showSuccess(
+          this.notificationsStore.showSuccess(
             this.$t('systemSettings.memberClassSaved'),
           );
         } catch (error: unknown) {
@@ -274,7 +274,7 @@ export default (
               return;
             }
           } else {
-            this.notificationsStoreStore.showError(error);
+            this.notificationsStore.showError(error);
           }
         } finally {
           this.savingMemberClass = false;

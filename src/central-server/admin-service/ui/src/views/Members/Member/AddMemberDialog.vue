@@ -79,11 +79,11 @@
 import Vue, {VueConstructor} from 'vue';
 import {mapActions, mapState, mapStores} from 'pinia';
 import {ErrorInfo, MemberClass} from '@/openapi-types';
-import {clientStore} from '@/store/modules/clients';
-import {memberStore} from '@/store/modules/members';
-import {systemStore} from '@/store/modules/system';
-import {notificationsStore} from '@/store/modules/notifications';
-import {useMemberClassStore} from '@/store/modules/member-class';
+import {useClient} from '@/store/modules/clients';
+import {useMember} from '@/store/modules/members';
+import {useSystem} from '@/store/modules/system';
+import {useNotifications} from '@/store/modules/notifications';
+import {useMemberClass} from '@/store/modules/member-class';
 import {getErrorInfo, getTranslatedFieldErrors, isFieldError,} from '@/util/helpers';
 import {AxiosError} from 'axios';
 import {ValidationProvider} from 'vee-validate';
@@ -115,8 +115,8 @@ export default (
     };
   },
   computed: {
-    ...mapStores(clientStore, memberStore, useMemberClassStore),
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapStores(useClient, useMember, useMemberClass),
+    ...mapState(useSystem, ['getSystemStatus']),
     memberClasses(): MemberClass[] {
       return this.memberClassStore.memberClasses;
     },
@@ -128,7 +128,7 @@ export default (
     this.memberClassStore.fetchAll();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
       this.clearForm();

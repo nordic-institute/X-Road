@@ -99,14 +99,14 @@ import Vue from 'vue';
 import { RouteName } from '@/global';
 import AddMemberDialog from '@/views/Members/Member/AddMemberDialog.vue';
 import { DataTableHeader } from 'vuetify';
-import { userStore } from '@/store/modules/user';
-import { clientStore } from '@/store/modules/clients';
+import { useUser } from '@/store/modules/user';
+import { useClient } from '@/store/modules/clients';
 import { mapState } from 'pinia';
 import { Permissions } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { DataOptions } from 'vuetify';
 import { debounce, toIdentifier } from '@/util/helpers';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { Client } from '@/openapi-types';
 
 // To provide the Vue instance to debounce
@@ -128,8 +128,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(clientStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useClient),
+    ...mapState(useUser, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -172,7 +172,7 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     hideAddMemberDialog(): void {
       this.showAddMemberDialog = false;
     },

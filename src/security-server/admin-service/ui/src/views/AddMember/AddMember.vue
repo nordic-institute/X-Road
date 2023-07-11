@@ -156,9 +156,9 @@ import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
 import { RouteName, AddMemberWizardModes } from '@/global';
 import { mapActions, mapState } from 'pinia';
-import { useAddClient } from '@/store/modules/addClient';
+import { useAddClient } from '@/store/modules/add-client';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificate-sign-request';
 import { useGeneral } from '@/store/modules/general';
 
 const NO_SELECTION = 999;
@@ -279,7 +279,7 @@ export default Vue.extend({
 
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsrStore, [
+    ...mapActions(useCsr, [
       'storeCsrClient',
       'storeCsrIsNewMember',
       'resetCsrState',

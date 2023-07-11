@@ -133,7 +133,7 @@ import { Permissions } from '@/global';
 import { CsrFormat, KeyUsageType } from '@/openapi-types';
 import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificate-sign-request';
 
 export default Vue.extend({
   components: {
@@ -159,12 +159,12 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useCsrStore, [
+    ...mapState(useCsr, [
       'memberIds',
       'filteredServiceList',
       'isUsageReadOnly',
     ]),
-    ...mapWritableState(useCsrStore, [
+    ...mapWritableState(useCsr, [
       'usage',
       'csrClient',
       'csrFormat',
@@ -213,7 +213,7 @@ export default Vue.extend({
     }
   },
   methods: {
-    ...mapActions(useCsrStore, ['fetchAllMemberIds']),
+    ...mapActions(useCsr, ['fetchAllMemberIds']),
     done(): void {
       this.$emit('done');
     },

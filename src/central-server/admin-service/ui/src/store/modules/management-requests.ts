@@ -47,7 +47,7 @@ export interface State {
   pagingSortingOptions: DataOptions;
 }
 
-export const managementRequestsStore = defineStore('managementRequests', {
+export const useManagementRequests = defineStore('managementRequests', {
   state: (): State => ({
     currentManagementRequest: null,
     items: [],

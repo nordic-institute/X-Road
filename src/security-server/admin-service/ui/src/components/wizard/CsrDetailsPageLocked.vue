@@ -111,8 +111,8 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { CsrFormat } from '@/openapi-types';
 import { mapState, mapWritableState } from 'pinia';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
-import { useAddClient } from '@/store/modules/addClient';
+import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useAddClient } from '@/store/modules/add-client';
 
 export default Vue.extend({
   components: {
@@ -135,8 +135,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useCsrStore, ['filteredServiceList', 'usage']),
-    ...mapWritableState(useCsrStore, ['csrFormat', 'certificationService']),
+    ...mapState(useCsr, ['filteredServiceList', 'usage']),
+    ...mapWritableState(useCsr, ['csrFormat', 'certificationService']),
     ...mapState(useAddClient, ['selectedMemberId']),
   },
 

@@ -206,7 +206,7 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { useClientsStore } from '@/store/modules/clients';
+import { useClients } from '@/store/modules/clients';
 
 export default Vue.extend({
   components: {
@@ -225,7 +225,7 @@ export default Vue.extend({
   }),
 
   computed: {
-    ...mapState(useClientsStore, [
+    ...mapState(useClients, [
       'getClients',
       'clientsLoading',
       'ownerMember',
@@ -282,7 +282,7 @@ export default Vue.extend({
 
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useClientsStore, ['fetchClients']),
+    ...mapActions(useClients, ['fetchClients']),
 
     openClient(item: ExtendedClient): void {
       if (!item.id) {

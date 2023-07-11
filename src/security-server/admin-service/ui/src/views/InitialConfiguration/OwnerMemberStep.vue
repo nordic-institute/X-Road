@@ -136,7 +136,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
 import { useUser } from '@/store/modules/user';
-import { useInitializeServer } from '@/store/modules/initializeServer';
+import { useInitializeServer } from '@/store/modules/initialize-server';
 
 export default (
   Vue as VueConstructor<

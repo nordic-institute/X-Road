@@ -30,7 +30,7 @@ import { saveResponseAsFile } from '@/util/helpers';
 import axios from 'axios';
 import { TrustedAnchor } from '@/openapi-types';
 
-export const trustedAnchorStore = defineStore('trustedAnchor', {
+export const useTrustedAnchor = defineStore('trustedAnchor', {
   actions: {
     fetchTrustedAnchors() {
       return axios.get<TrustedAnchor[]>('/trusted-anchors').catch((error) => {

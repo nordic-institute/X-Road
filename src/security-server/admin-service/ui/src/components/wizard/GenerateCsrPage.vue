@@ -76,7 +76,7 @@
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { mapState } from 'pinia';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificate-sign-request';
 
 export default Vue.extend({
   components: {
@@ -94,7 +94,7 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapState(useCsrStore, ['csrForm']),
+    ...mapState(useCsr, ['csrForm']),
   },
   methods: {
     cancel(): void {
