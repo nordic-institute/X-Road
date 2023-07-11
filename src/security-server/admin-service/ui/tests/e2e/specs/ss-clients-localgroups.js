@@ -140,6 +140,7 @@ module.exports = {
     );
 
     // Add a new group and verify
+    clientLocalGroups.openAddDialog();
     clientLocalGroups.initCode('abc');
     clientLocalGroups.initDescription('addDesc');
     clientLocalGroups.confirmAddDialog();
