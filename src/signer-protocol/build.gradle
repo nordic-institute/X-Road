@@ -23,7 +23,7 @@ test {
   useJUnitPlatform()
 }
 
-task intTest(type: Test) {
+tasks.register('intTest', Test) {
   useJUnitPlatform()
 
   setDescription("Runs integration tests.")
@@ -40,7 +40,8 @@ task intTest(type: Test) {
     showCauses(true)
     showStandardStreams(true)
   }
-
-  shouldRunAfter test
 }
 
+tasks.named('check') {
+  dependsOn tasks.named('intTest')
+}
