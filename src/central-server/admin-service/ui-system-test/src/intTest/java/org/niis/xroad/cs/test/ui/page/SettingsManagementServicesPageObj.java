@@ -51,7 +51,7 @@ public class SettingsManagementServicesPageObj {
         return $x("//td[@data-test='management-wsdl-address-field']");
     }
 
-    public SelenideElement managementServicessAddress() {
+    public SelenideElement managementServicesAddress() {
         return $x("//td[@data-test='management-management-services-address-field']");
     }
 

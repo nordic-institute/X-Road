@@ -82,7 +82,7 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
 
     @Step("management services address field should have value {}")
     public void managementServicesAddressFieldHasText(String centralServerAddress) {
-        settingsManagementServicesPageObj.managementServicessAddress().shouldHave(text(centralServerAddress));
+        settingsManagementServicesPageObj.managementServicesAddress().shouldHave(text(centralServerAddress));
     }
 
     @Step("security server owner group code field should have value {}")
