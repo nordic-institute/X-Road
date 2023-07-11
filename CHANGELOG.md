@@ -2,6 +2,9 @@
 
 ## 7.4.0 - UNRELEASED
 
+## 7.3.1 - 2023-07-10
+- XRDDEV-2442: X-Road components fail to start after upgrading to 7.3.0 if Java 8 was used before the upgrade and the component was originally installed before version 7.0.0.
+
 ## 7.3.0 - 2023-05-30
 - XRDDEV-409: As a Security Expert I want to investigate the possibility to use secure connection (HTTPS) for distributing global configuration so that the implementation would be more secure.
 - XRDDEV-444: As a Product Owner I want that API key caching does not cause problems for clustered central server, so that central server operators do not have problems
