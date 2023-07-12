@@ -115,9 +115,9 @@
 
           <tr>
             <td>
-              {{ $t('systemSettings.centralServerAddress') }}
+              {{ $t('systemSettings.managementServicesAddress') }}
             </td>
-            <td data-test="management-central-server-address-field">
+            <td data-test="management-management-services-address-field">
               {{ managementServicesConfiguration.services_address }}
             </td>
             <td class="action-cell">
@@ -126,7 +126,7 @@
                 text
                 :outlined="false"
                 class="copy-button"
-                data-test="management-central-server-address-copy-btn"
+                data-test="management-management-services-address-copy-btn"
                 @click.prevent="
                   copyUrl(managementServicesConfiguration.services_address)
                 "
