@@ -194,7 +194,7 @@
     "SERIAL_NUMBER": "Serial Number",
     "SERIAL_NUMBER_SN": "Serial Number (SN)",
     "SERVER_CODE": "Server Code (CN)",
-    "SERVER_DNS_NAME": "Server DNS name (CN)"
+    "SERVER_DNS_NAME": "Server DNS Name (CN)"
   },
   "client": {
     "action": {
@@ -508,12 +508,14 @@
       "memberCode": "Member Code",
       "subsystemCode": "Subsystem Code"
     },
+    "C": "Country Code",
     "clientAdd": {
       "client": {
         "memberCode": "Member Code",
         "subsystemCode": "Subsystem Code"
       }
     },
+    "CN": "Server DNS Name",
     "confirmPin": "Confirm PIN",
     "csr": {
       "certService": "Certification Service",
@@ -525,10 +527,12 @@
     "keys": {
       "name": "Name"
     },
+    "O": "Organization Name",
     "password": "Password",
     "path": "path",
     "pin": "PIN",
     "securityServerCode": "Security Server Code",
+    "serialNumber": "Serial Number",
     "serviceCode": "Service Code",
     "serviceDescriptionAdd": {
       "restServiceCode": "Service code"
