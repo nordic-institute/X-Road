@@ -585,7 +585,7 @@
         "subsystems": "Subsystems"
       },
       "subsystems": {
-        "addClient": "Add new subsystem to database",
+        "addClient": "Add subsystem",
         "deleteSubsystem": "Delete Subsystem",
         "serverOwner": "Server owner",
         "servercode": "Server code",
@@ -658,10 +658,10 @@
     "serverCode": "Server Code"
   },
   "systemSettings": {
-    "centralServerAddress": "Central Server address",
+    "centralServerAddress": "Central Server Address",
     "code": "Code",
     "description": "Description",
-    "editCentralServerAddressSuccess": "Central server address successfully updated",
+    "editCentralServerAddressSuccess": "Central Server address successfully updated",
     "editCentralServerAddressTitle": "Edit Central Server address",
     "instanceIdentifier": "Instance Identifier",
     "managementServiceSecurityServer": "Management Services' Security Server",
@@ -696,6 +696,7 @@
     "serviceProviderName": "Service Provider Name",
     "systemParameters": "System Parameters",
     "wsdlAddress": "WSDL Address",
+    "managementServicesAddress": "Management Services Address",
     "editMemberClassTitle": "Edit member class",
     "addMemberClassTitle": "Add member class",
     "deleteMemberClass": "Delete member class?",

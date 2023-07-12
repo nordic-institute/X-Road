@@ -80,9 +80,9 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
         settingsManagementServicesPageObj.wsdlAddress().shouldHave(text(wsdlAddress));
     }
 
-    @Step("central server address field should have value {}")
-    public void centralServerAddressFieldHasText(String centralServerAddress) {
-        settingsManagementServicesPageObj.centralServerAddress().shouldHave(text(centralServerAddress));
+    @Step("management services address field should have value {}")
+    public void managementServicesAddressFieldHasText(String centralServerAddress) {
+        settingsManagementServicesPageObj.managementServicesAddress().shouldHave(text(centralServerAddress));
     }
 
     @Step("security server owner group code field should have value {}")
@@ -91,13 +91,13 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
     }
 
     @Step("wsdl address copy button is clicked")
-    public void centralServerAddressCopyButtonIsClicked() {
+    public void wsdlAddressCopyButtonIsClicked() {
         settingsManagementServicesPageObj.wsdlAddressCopyButton().click();
     }
 
-    @Step("central server address copy button is clicked")
-    public void wsdlAddressCopyButtonIsClicked() {
-        settingsManagementServicesPageObj.centralServerAddressCopyButton().click();
+    @Step("management services address copy button is clicked")
+    public void managementServicesAddressCopyButtonIsClicked() {
+        settingsManagementServicesPageObj.managementServicesAddressCopyButton().click();
     }
 
     @Step("{} should be on clipboard")
