@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,9 +26,11 @@
 package org.niis.xroad.securityserver.restapi.facade;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.commonui.SignerProxy;
-import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
+import ee.ria.xroad.signer.SignerProxy.KeyIdInfo;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -39,7 +41,6 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -107,22 +108,6 @@ public class SignerProxyFacade {
     }
 
     /**
-     * {@link SignerProxy#generateSelfSignedCert(String, ClientId.Conf, KeyUsageInfo, String, Date, Date)}
-     */
-    public byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-            String commonName, Date notBefore, Date notAfter) throws Exception {
-        return SignerProxy.generateSelfSignedCert(keyId, memberId, keyUsage,
-                commonName, notBefore, notAfter);
-    }
-
-    /**
-     * {@link SignerProxy#importCert(byte[], String)}
-     */
-    public String importCert(byte[] certBytes, String initialStatus) throws Exception {
-        return SignerProxy.importCert(certBytes, initialStatus);
-    }
-
-    /**
      * {@link SignerProxy#importCert(byte[], String, ClientId.Conf)}
      */
     public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
@@ -147,7 +132,7 @@ public class SignerProxyFacade {
      * {@link SignerProxy#generateCertRequest(String, ClientId.Conf, KeyUsageInfo, String, CertificateRequestFormat)}
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-            String subjectName, CertificateRequestFormat format) throws Exception {
+                                                        String subjectName, CertificateRequestFormat format) throws Exception {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
     }
 
@@ -197,7 +182,7 @@ public class SignerProxyFacade {
     /**
      * {@link SignerProxy#getKeyIdForCertHash(String)}
      */
-    public String getKeyIdForCertHash(String hash) throws Exception {
+    public KeyIdInfo getKeyIdForCertHash(String hash) throws Exception {
         return SignerProxy.getKeyIdForCertHash(hash);
     }
 
@@ -230,10 +215,10 @@ public class SignerProxyFacade {
     }
 
     /**
-     * {@link SignerClient#execute(Object message)}
+     * {@link SignerProxy#getAuthKey(SecurityServerId)}
      */
-    public <T> T execute(Object message) throws Exception {
-        return SignerClient.execute(message);
+    public AuthKeyInfo getAuthKey(SecurityServerId serverId) throws Exception {
+        return SignerProxy.getAuthKey(serverId);
     }
 
     public void updateSoftwareTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {

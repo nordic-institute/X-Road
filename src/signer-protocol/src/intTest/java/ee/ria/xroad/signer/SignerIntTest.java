@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,32 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.addon.module;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.SignerProxy;
+package ee.ria.xroad.signer;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
+import org.junit.platform.suite.api.IncludeEngines;
+import org.junit.platform.suite.api.SelectClasspathResource;
+import org.junit.platform.suite.api.Suite;
 
-/**
- * Static class for accessing hardware security modules info.
- */
-public final class HardwareSecurityModuleUtils {
-
-    private HardwareSecurityModuleUtils() {
-    }
-
-    /**
-     * Verify that all configured HSMs are operational at the moment
-     */
-    public static void verifyAllHSMOperational() throws Exception {
-        if (!isOperational()) {
-            throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
-                    "At least one HSM are non operational");
-        }
-    }
-
-    private static boolean isOperational() throws Exception {
-        return SignerProxy.isHSMOperational();
-    }
+@Suite
+@IncludeEngines("cucumber")
+@SelectClasspathResource("behavior")
+public class SignerIntTest {
 }
+

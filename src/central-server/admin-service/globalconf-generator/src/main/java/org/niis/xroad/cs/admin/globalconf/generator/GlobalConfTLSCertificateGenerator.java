@@ -29,10 +29,6 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
-import ee.ria.xroad.signer.protocol.message.SignCertificate;
-import ee.ria.xroad.signer.protocol.message.SignCertificateResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -58,6 +54,7 @@ public class GlobalConfTLSCertificateGenerator {
 
     private final SignerProxyFacade signerProxyFacade;
     private final SystemParameterService systemParameterService;
+
     @SneakyThrows
     void updateGlobalConfTLSCertificates(
             ConfigurationSigningKey internalSigningKey,
@@ -85,19 +82,13 @@ public class GlobalConfTLSCertificateGenerator {
 
     private void signAndSaveGlobalConfTLSCertificate(ConfigurationSigningKey signingKey, String tlsCertPath,
                                                      PublicKey publicKeyToSign) throws Exception {
-        GetSignMechanismResponse signMechanismResponse =
-                signerProxyFacade.execute(new GetSignMechanism(signingKey.getKeyIdentifier()));
+        String signMechanismName = signerProxyFacade.getSignMechanism(signingKey.getKeyIdentifier());
         String signatureAlgorithmId = getSignatureAlgorithmId(systemParameterService.getConfSignDigestAlgoId(),
-                                                              signMechanismResponse.getSignMechanismName());
-        SignCertificateResponse signCertificateResponse = signerProxyFacade.execute(
-                new SignCertificate(signingKey.getKeyIdentifier(),
-                                    signatureAlgorithmId,
-                                    "CN=" + systemParameterService.getCentralServerAddress(),
-                                    publicKeyToSign
-                )
-        );
+                signMechanismName);
+        final byte[] signedCertificate = signerProxyFacade.signCertificate(signingKey.getKeyIdentifier(), signatureAlgorithmId,
+                "CN=" + systemParameterService.getCentralServerAddress(), publicKeyToSign);
         AtomicSave.execute(tlsCertPath, "tmp_cert",
-                           out -> CryptoUtils.writeCertificateChainPem(signCertificateResponse.getCertificateChain(), out));
+                out -> CryptoUtils.writeCertificateChainPem(signedCertificate, out));
 
     }
 }

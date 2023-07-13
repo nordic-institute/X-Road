@@ -1,20 +1,20 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,14 +31,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy.KeyIdInfo;
+import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
-import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
-import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.Sign;
-import ee.ria.xroad.signer.protocol.message.SignResponse;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.util.MultiPartOutputStream;
@@ -110,7 +106,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    private void verifyAuthCert() throws Exception {
+    private void verifyAuthCert() {
         try {
             readCertificate(authCert).checkValidity();
         } catch (Exception e) {
@@ -131,8 +127,8 @@ public class AuthCertRegRequest implements ManagementRequest {
     }
 
     private void writeSignatures() throws Exception {
-        GetKeyIdForCertHashResponse authKeyId = getAuthKeyId();
-        MemberSigningInfo memberSigningInfo = getMemberSigningInfo();
+        KeyIdInfo authKeyId = getAuthKeyId();
+        MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
         String authKeySignAlogId = CryptoUtils.getSignatureAlgorithmId(SIGNATURE_DIGEST_ALGORITHM_ID,
                 authKeyId.getSignMechanismName());
@@ -156,19 +152,18 @@ public class AuthCertRegRequest implements ManagementRequest {
         multipart.write(dataToSign);
     }
 
-    private GetKeyIdForCertHashResponse getAuthKeyId() {
+    private KeyIdInfo getAuthKeyId() {
         try {
             String certHash = CryptoUtils.calculateCertHexHash(authCert);
-
-            return SignerClient.execute(new GetKeyIdForCertHash(certHash));
+            return SignerProxy.getKeyIdForCertHash(certHash);
         } catch (Exception e) {
             throw translateException(e);
         }
     }
 
-    private MemberSigningInfo getMemberSigningInfo() throws Exception {
+    private MemberSigningInfoDto getMemberSigningInfo() {
         try {
-            MemberSigningInfo signingInfo = SignerClient.execute(new GetMemberSigningInfo(owner));
+            MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(owner);
 
             ownerCert = signingInfo.getCert();
 
@@ -178,11 +173,9 @@ public class AuthCertRegRequest implements ManagementRequest {
         }
     }
 
-    private static byte[] createSignature(String keyId, String signAlgoId, byte[] digest) throws Exception {
+    private static byte[] createSignature(String keyId, String signAlgoId, byte[] digest) {
         try {
-            SignResponse response = SignerClient.execute(new Sign(keyId, signAlgoId, digest));
-
-            return response.getSignature();
+            return SignerProxy.sign(keyId, signAlgoId, digest);
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

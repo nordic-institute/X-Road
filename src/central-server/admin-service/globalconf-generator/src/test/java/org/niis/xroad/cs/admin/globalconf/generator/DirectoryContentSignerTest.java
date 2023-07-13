@@ -27,10 +27,6 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
-import ee.ria.xroad.signer.protocol.message.Sign;
-import ee.ria.xroad.signer.protocol.message.SignResponse;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -40,6 +36,8 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ee.ria.xroad.common.util.CryptoUtils.CKM_RSA_PKCS_NAME;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -79,11 +77,9 @@ class DirectoryContentSignerTest {
     @Test
     void createSignedDirectory() {
         var signerProxyFacade = Mockito.mock(SignerProxyFacade.class);
-        when(signerProxyFacade.execute(new GetSignMechanism(KEY_ID))).thenReturn(
-                new GetSignMechanismResponse(CryptoUtils.CKM_RSA_PKCS_NAME));
+        when(signerProxyFacade.getSignMechanism(KEY_ID)).thenReturn(CKM_RSA_PKCS_NAME);
         var digest = CryptoUtils.calculateDigest(CryptoUtils.SHA512_ID, SIGNABLE_DIRECTORY_CONTENT.getBytes());
-        when(signerProxyFacade.execute(new Sign(KEY_ID, CryptoUtils.SHA512WITHRSA_ID, digest)))
-                .thenReturn(new SignResponse(SIGNATURE));
+        when(signerProxyFacade.sign(KEY_ID, SHA512WITHRSA_ID, digest)).thenReturn(SIGNATURE);
 
         var signedDirectory = new DirectoryContentSigner(signerProxyFacade, CryptoUtils.SHA512_ID, CryptoUtils.SHA512_ID)
                 .createSignedDirectory(directoryContentHolder, KEY_ID, SIGNING_CERT);
