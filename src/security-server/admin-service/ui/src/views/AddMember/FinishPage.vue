@@ -94,9 +94,9 @@ import { createClientId } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
-import { useAddClient } from '@/store/modules/add-client';
+import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {

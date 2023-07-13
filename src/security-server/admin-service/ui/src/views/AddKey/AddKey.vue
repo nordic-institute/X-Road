@@ -87,7 +87,7 @@ import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
-import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({

@@ -68,7 +68,7 @@
 import Vue from 'vue';
 import { mapActions, mapWritableState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   data() {

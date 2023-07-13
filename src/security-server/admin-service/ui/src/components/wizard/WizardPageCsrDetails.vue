@@ -133,7 +133,7 @@ import { Permissions } from '@/global';
 import { CsrFormat, KeyUsageType } from '@/openapi-types';
 import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {

@@ -110,7 +110,7 @@ import { mapActions, mapState } from 'pinia';
 
 import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
-import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {

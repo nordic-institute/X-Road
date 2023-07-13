@@ -156,9 +156,9 @@ import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
 import { RouteName, AddMemberWizardModes } from '@/global';
 import { mapActions, mapState } from 'pinia';
-import { useAddClient } from '@/store/modules/add-client';
+import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useGeneral } from '@/store/modules/general';
 
 const NO_SELECTION = 999;

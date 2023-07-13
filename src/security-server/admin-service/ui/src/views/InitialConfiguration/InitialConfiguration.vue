@@ -118,7 +118,7 @@ import { mapActions, mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useInitializeServer } from '@/store/modules/initialize-server';
+import { useInitializeServer } from '@/store/modules/initializeServer';
 
 export default Vue.extend({
   components: {

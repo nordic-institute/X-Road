@@ -67,7 +67,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapWritableState } from 'pinia';
-import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   props: {

@@ -157,7 +157,7 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { AddMemberWizardModes } from '@/global';
 import { validate } from 'vee-validate';
 import { mapActions, mapState, mapWritableState } from 'pinia';
-import { useAddClient } from '@/store/modules/add-client';
+import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
 import { useUser } from '@/store/modules/user';

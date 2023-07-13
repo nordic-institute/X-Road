@@ -111,8 +111,8 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { CsrFormat } from '@/openapi-types';
 import { mapState, mapWritableState } from 'pinia';
-import { useCsr } from '@/store/modules/certificate-sign-request';
-import { useAddClient } from '@/store/modules/add-client';
+import { useCsr } from '@/store/modules/certificateSignRequest';
+import { useAddClient } from '@/store/modules/addClient';
 
 export default Vue.extend({
   components: {

@@ -96,9 +96,9 @@ import { memberHasValidSignCert } from '@/util/ClientUtil';
 import { mapActions, mapState } from 'pinia';
 
 import { useNotifications } from '@/store/modules/notifications';
-import { useAddClient } from '@/store/modules/add-client';
+import { useAddClient } from '@/store/modules/addClient';
 import { useUser } from '@/store/modules/user';
-import { useCsr } from '@/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {

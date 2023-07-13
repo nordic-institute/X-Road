@@ -40,7 +40,7 @@ import {
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
 import { AddMemberWizardModes } from '@/global';
-import { useCsr } from 'src/store/modules/certificate-sign-request';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 // Compares two Clients on member level and returns true if the
 // member ids of the clients match. Otherwise returns false.
