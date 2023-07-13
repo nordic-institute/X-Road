@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.77
+Version: 2.78
 Doc. ID: UG-SS
 
 ---
@@ -106,6 +106,7 @@ Doc. ID: UG-SS
 | 01.06.2023 | 2.75    | Update references                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki  |
 | 31.05.2023 | 2.76    | Updated chapter [19.1.5 API key caching](#1915-api-key-caching) with additional configuration suggestions.                                                                                                                                                                                                                                                                                                  | Ričardas Bučiūnas |
 | 11.07.2023 | 2.77    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki  |
+| 12.07.2023 | 2.78    | Removed deprecated request.sizelimit.* and ratelimit.requests.* parameters                                                                                                                                                                                                                                                                                                                                  | Justas Samuolis   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -2581,24 +2582,14 @@ Limits are
 - 600 requests per minute
 - 20 requests per second
 
-If the default limits are too restricting (or too loose), they can be overridden with command line arguments. Limits are set with
-application properties:
-- `request.sizelimit.regular`
-- `request.sizelimit.binary.upload`
-- `ratelimit.requests.per.second`
-- `ratelimit.requests.per.minute`
-
-**Note:** These properties have been deprecated since 7.3.0, please use `request-sizelimit-*` & `rate-limit-requests-per-*` [proxy-ui-api](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) parameters instead.
+If the default limits are too restricting (or too loose), they can be overridden with [proxy-ui-api](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) parameters:
+- `request-sizelimit-regular`
+- `request-sizelimit-binary-upload`
+- `rate-limit-requests-per-second`
+- `rate-limit-requests-per-minute`
 
 Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
 for example `5MB`.
-
-New command line arguments can be added, not replaced, using the configuration file `local.properties`.
-Example of `/etc/xroad/services/local.properties` with modifications:
-
-```properties
-XROAD_PROXY_UI_API_PARAMS=-Dratelimit.requests.per.second=100 -Drequest.sizelimit.binary.upload=1MB
-```
 
 ### 19.1 API key management operations
 
