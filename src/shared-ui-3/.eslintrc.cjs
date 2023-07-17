@@ -9,7 +9,7 @@ module.exports = {
     'plugin:vuetify/recommended',
     '@vue/eslint-config-typescript',
     'plugin:@intlify/vue-i18n/recommended',
-    'plugin:prettier/recommended',
+    'prettier',
   ],
   parser: 'vue-eslint-parser',
   rules: {
