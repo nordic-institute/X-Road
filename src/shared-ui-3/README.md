@@ -1,3 +1,5 @@
+Marker: shared-ui components are migrated from 24f42d62b9f29a810840f5bae328be396c6ee563 (24f42d62 Eneli Reimets <eneli.reimets@nortal.com> on 2023-06-20 at 14:31) version
+
 # xrd-shared-ui
 
 This template should help get you started developing with Vue 3 in Vite.
