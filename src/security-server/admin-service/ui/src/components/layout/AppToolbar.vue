@@ -64,13 +64,13 @@ import Vue from 'vue';
 import { NodeType } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { useSystemStore } from '@/store/modules/system';
+import { useSystem } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'Toolbar',
   computed: {
     ...mapState(useUser, ['authenticated', 'currentSecurityServer']),
-    ...mapState(useSystemStore, ['securityServerNodeType']),
+    ...mapState(useSystem, ['securityServerNodeType']),
     shouldShowNodeType(): boolean {
       return this.securityServerNodeType !== NodeType.STANDALONE;
     },

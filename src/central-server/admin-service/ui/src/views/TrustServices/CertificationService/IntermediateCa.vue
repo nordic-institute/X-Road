@@ -55,7 +55,7 @@ import PageNavigation, {
 } from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
-import { useIntermediateCaStore } from '@/store/modules/trust-services';
+import { useIntermediateCasService } from '@/store/modules/trust-services';
 
 /**
  * Wrapper component for intermediate CA view
@@ -75,7 +75,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useIntermediateCaStore),
+    ...mapStores(useIntermediateCasService),
     intermediateCaNavigationTabs(): PageNavigationTab[] {
       return [
         {

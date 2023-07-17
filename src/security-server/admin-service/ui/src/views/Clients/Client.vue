@@ -68,7 +68,7 @@ import MakeOwnerButton from '@/components/client/MakeOwnerButton.vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
 export default Vue.extend({
   components: {
@@ -83,7 +83,7 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapState(useClientStore, ['client', 'clientLoading']),
+    ...mapState(useClient, ['client', 'clientLoading']),
     ...mapState(useUser, ['hasPermission']),
     showMakeOwner(): boolean {
       if (!this.client) return false;
@@ -122,7 +122,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
-    ...mapActions(useClientStore, ['fetchClient']),
+    ...mapActions(useClient, ['fetchClient']),
     fetchData(id: string): void {
       this.fetchClient(id).catch((error) => {
         this.showError(error);

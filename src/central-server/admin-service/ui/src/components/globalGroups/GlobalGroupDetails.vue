@@ -85,11 +85,11 @@ import Vue from 'vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { DataOptions } from 'vuetify';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { useGlobalGroups } from '@/store/modules/global-groups';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { GlobalGroupResource } from '@/openapi-types';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 import GlobalGroupDeleteDialog from './GlobalGroupDeleteDialog.vue';
 import GlobalGroupEditDescriptionDialog from './GlobalGroupEditDescriptionDialog.vue';
 
@@ -120,8 +120,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useGlobalGroupsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useGlobalGroups),
+    ...mapState(useUser, ['hasPermission']),
     allowDescriptionEdit(): boolean {
       return this.hasPermission(Permissions.EDIT_GROUP_DESCRIPTION);
     },
@@ -147,7 +147,7 @@ export default Vue.extend({
       });
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelDelete(): void {
       this.showDeleteGroupDialog = false;
     },

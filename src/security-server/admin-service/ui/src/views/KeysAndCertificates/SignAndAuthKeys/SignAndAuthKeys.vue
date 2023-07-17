@@ -84,7 +84,7 @@ import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import HelpButton from '../HelpButton.vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useTokensStore } from '@/store/modules/tokens';
+import { useTokens } from '@/store/modules/tokens';
 
 import {
   Key,
@@ -109,7 +109,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useTokensStore, ['tokens', 'selectedToken']),
+    ...mapState(useTokens, ['tokens', 'selectedToken']),
     filtered(): Token[] {
       if (!this.tokens || this.tokens.length === 0) {
         return [];
@@ -199,7 +199,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useTokensStore, ['fetchTokens', 'tokenLogout']),
+    ...mapActions(useTokens, ['fetchTokens', 'tokenLogout']),
     fetchData(): void {
       // Fetch tokens from backend
       this.loading = true;

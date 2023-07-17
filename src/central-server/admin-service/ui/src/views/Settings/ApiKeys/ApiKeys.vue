@@ -162,8 +162,8 @@ import { RouteName, Roles } from '@/global';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   data() {
@@ -182,7 +182,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
     canEdit(): boolean {
       return this.hasPermission(Permissions.UPDATE_API_KEY);
     },
@@ -218,7 +218,7 @@ export default Vue.extend({
   },
 
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     loadKeys(): void {
       if (this.hasPermission(Permissions.VIEW_API_KEYS)) {
         this.loading = true;

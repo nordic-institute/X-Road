@@ -30,7 +30,7 @@ import { deepClone } from '@/util/helpers';
 import axios from 'axios';
 import { Token, TokenPassword } from '@/openapi-types';
 
-export const tokenStore = defineStore('tokenStore', {
+export const useToken = defineStore('token', {
   state: () => {
     return {
       expandedTokens: [] as string[],

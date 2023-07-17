@@ -44,16 +44,16 @@ import Vue from 'vue';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapStores } from 'pinia';
-import { availableSettingsTabsStore } from '@/store/modules/settings-tabs';
+import { useSettingsTabs } from '@/store/modules/settings-tabs';
 
 export default Vue.extend({
   components: {
     SubTabs,
   },
   computed: {
-    ...mapStores(availableSettingsTabsStore, ['getAvailableTabs']),
+    ...mapStores(useSettingsTabs, ['getAvailableTabs']),
     tabs(): Tab[] {
-      return this.settingsTabServiceStore.getAvailableTabs();
+      return this.settingsTabsStore.getAvailableTabs();
     },
   },
 });

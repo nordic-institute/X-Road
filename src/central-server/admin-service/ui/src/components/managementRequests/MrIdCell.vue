@@ -39,7 +39,7 @@ import Vue, { PropType } from 'vue';
 import { ManagementRequestListView } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   props: {
@@ -50,7 +50,7 @@ export default Vue.extend({
   },
 
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
     canSeeDetails(): boolean {
       return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
     },

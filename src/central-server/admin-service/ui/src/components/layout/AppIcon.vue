@@ -39,11 +39,11 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   computed: {
-    ...mapState(userStore, ['getFirstAllowedTab']),
+    ...mapState(useUser, ['getFirstAllowedTab']),
   },
   methods: {
     home(): void {

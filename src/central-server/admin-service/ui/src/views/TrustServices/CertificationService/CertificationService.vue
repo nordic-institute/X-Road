@@ -50,7 +50,7 @@ import PageNavigation, {
 } from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
@@ -71,7 +71,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore),
+    ...mapStores(useCertificationService),
     certificationServiceNavigationTabs(): PageNavigationTab[] {
       return [
         {

@@ -33,7 +33,7 @@ export interface ServicesState {
   serviceClients: ServiceClient[];
 }
 
-export const useServicesStore = defineStore('servicesStore', {
+export const useServices = defineStore('services', {
   state: (): ServicesState => {
     return {
       expandedServiceDescriptions: [],

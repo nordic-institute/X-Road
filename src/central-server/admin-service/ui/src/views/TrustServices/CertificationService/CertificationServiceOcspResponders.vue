@@ -35,14 +35,14 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
 
 export default Vue.extend({
   name: 'CertificationServiceOcspResponders',
   components: { OcspRespondersList },
   computed: {
-    ...mapStores(useCertificationServiceStore),
+    ...mapStores(useCertificationService),
   },
 });
 </script>

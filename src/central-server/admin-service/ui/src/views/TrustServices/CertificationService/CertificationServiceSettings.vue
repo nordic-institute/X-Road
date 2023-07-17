@@ -87,9 +87,9 @@
 import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapState, mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import { Permissions } from '@/global';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import EditCertProfileDialog from '@/components/certificationServices/EditCertProfileDialog.vue';
 import EditTlsAuthDialog from '@/components/certificationServices/EditTlsAuthDialog.vue';
 
@@ -107,8 +107,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useCertificationService),
+    ...mapState(useUser, ['hasPermission']),
     allowEditSettings(): boolean {
       return this.hasPermission(Permissions.EDIT_APPROVED_CA);
     },

@@ -37,9 +37,9 @@ import {
   Version,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { notificationsStore } from './notifications';
+import { useNotifications } from './notifications';
 
-export const systemStore = defineStore('systemStore', {
+export const useSystem = defineStore('system', {
   state: () => {
     return {
       serverVersion: undefined as Version | undefined,
@@ -99,7 +99,7 @@ export const systemStore = defineStore('systemStore', {
     },
 
     async initalizationRequest(formData: InitialServerConf) {
-      const notifications = notificationsStore();
+      const notifications = useNotifications();
 
       return api.post('/initialization', formData).then(() => {
         notifications.setContinueInit(true);

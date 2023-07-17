@@ -40,8 +40,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { tokenStore } from '@/store/modules/tokens';
+import { useNotifications } from '@/store/modules/notifications';
+import { useToken } from '@/store/modules/tokens';
 import { Token } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 
@@ -59,8 +59,8 @@ export default Vue.extend({
     };
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    ...mapActions(tokenStore, ['logoutToken']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useToken, ['logoutToken']),
     cancel(): void {
       this.$emit('cancel');
     },

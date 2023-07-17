@@ -64,8 +64,8 @@
 import Vue from 'vue';
 import { ValidationProvider } from 'vee-validate';
 import { mapActions } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { tokenStore } from '@/store/modules/tokens';
+import { useNotifications } from '@/store/modules/notifications';
+import { useToken } from '@/store/modules/tokens';
 import { Prop } from 'vue/types/options';
 import { Token } from '@/openapi-types';
 
@@ -90,8 +90,8 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    ...mapActions(tokenStore, ['loginToken']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useToken, ['loginToken']),
     login(): void {
       this.loading = true;
       this.loginToken(this.token.id, { password: this.pin })

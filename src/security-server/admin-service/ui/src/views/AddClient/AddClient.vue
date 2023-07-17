@@ -156,7 +156,7 @@ import { RouteName, AddMemberWizardModes } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 const NO_SELECTION = 999;
 
@@ -252,7 +252,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsrStore, [
+    ...mapActions(useCsr, [
       'setupSignKey',
       'resetCsrState',
       'fetchCertificateAuthorities',

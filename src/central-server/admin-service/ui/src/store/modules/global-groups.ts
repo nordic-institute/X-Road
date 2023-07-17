@@ -46,7 +46,7 @@ export interface State {
   pagingOptions: PagingMetadata;
 }
 
-export const useGlobalGroupsStore = defineStore('globalGroup', {
+export const useGlobalGroups = defineStore('globalGroup', {
   state: (): State => ({
     globalGroups: [],
     groupsLoading: false,

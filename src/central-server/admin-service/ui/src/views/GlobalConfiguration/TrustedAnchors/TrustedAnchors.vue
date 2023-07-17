@@ -70,9 +70,9 @@ import ConfigurationAnchorItem, {
 } from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
 import { TrustedAnchor } from '@/openapi-types';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { userStore } from '@/store/modules/user';
-import { trustedAnchorStore } from '@/store/modules/trusted-anchors';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
+import { useNotifications } from '@/store/modules/notifications';
 import UploadTrustedAnchorButton from '@/components/trustedAnchors/UploadTrustedAnchorButton.vue';
 import DownloadTrustedAnchorButton from '@/components/trustedAnchors/DownloadTrustedAnchorButton.vue';
 import DeleteTrustedAnchorButton from '@/components/trustedAnchors/DeleteTrustedAnchorButton.vue';
@@ -99,8 +99,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(trustedAnchorStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useTrustedAnchor),
+    ...mapState(useUser, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -129,7 +129,7 @@ export default Vue.extend({
     this.fetchTrustedAnchors();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showSuccess', 'showError']),
+    ...mapActions(useNotifications, ['showSuccess', 'showError']),
     fetchTrustedAnchors() {
       this.loading = true;
       this.trustedAnchorStore

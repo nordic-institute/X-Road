@@ -119,12 +119,12 @@ import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { useSecurityServer } from '@/store/modules/security-servers';
 import { SecurityServer } from '@/openapi-types';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
 import DeleteSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerAddressDialog.vue';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 
 /**
  * Component for a Security server details view
@@ -148,8 +148,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapStores(useSecurityServerStore),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapStores(useSecurityServer),
     securityServer(): SecurityServer | null {
       return this.securityServerStore.currentSecurityServer;
     },
@@ -170,7 +170,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showSuccess']),
+    ...mapActions(useNotifications, ['showSuccess']),
     deleteServer() {
       this.$router.replace({
         name: RouteName.SecurityServers,

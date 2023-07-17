@@ -40,8 +40,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { managementRequestsStore } from '@/store/modules/managementRequestStore';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useManagementRequests } from '@/store/modules/management-requests';
+import { useNotifications } from '@/store/modules/notifications';
 
 /**
  * General component for Management request actions
@@ -64,7 +64,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(managementRequestsStore),
+    ...mapStores(useManagementRequests),
     messageData(): Record<string, unknown> {
       return {
         id: this.requestId,
@@ -73,7 +73,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     decline(): void {
       this.loading = true;
       this.managementRequestsStore

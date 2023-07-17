@@ -70,7 +70,7 @@
 import Vue from 'vue';
 import { Colors } from '@/global';
 import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { Notification } from '@/ui-types';
 
 declare global {
@@ -87,12 +87,12 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(notificationsStore, ['successNotifications']),
+    ...mapState(useNotifications, ['successNotifications']),
     // Check global window value to see if e2e testing mode should be enabled
     transitionName: () => (window.e2eTestingMode === true ? null : 'fade'),
   },
   methods: {
-    ...mapActions(notificationsStore, ['deleteSuccessNotification']),
+    ...mapActions(useNotifications, ['deleteSuccessNotification']),
     closeSuccess(id: number): void {
       this.deleteSuccessNotification(id);
     },

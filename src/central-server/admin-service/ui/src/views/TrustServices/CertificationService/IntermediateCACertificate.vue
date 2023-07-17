@@ -33,7 +33,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useIntermediateCaStore } from '@/store/modules/trust-services';
+import { useIntermediateCasService } from '@/store/modules/trust-services';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
@@ -52,7 +52,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useIntermediateCaStore),
+    ...mapStores(useIntermediateCasService),
   },
   created() {
     this.intermediateCasServiceStore

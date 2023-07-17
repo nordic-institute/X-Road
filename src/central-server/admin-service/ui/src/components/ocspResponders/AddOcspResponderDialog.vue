@@ -79,8 +79,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { useOcspResponderStore } from '@/store/modules/trust-services';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useOcspResponderService } from '@/store/modules/trust-services';
+import { useNotifications } from '@/store/modules/notifications';
 import { FileUploadResult } from '@niis/shared-ui';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 
@@ -105,10 +105,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useOcspResponderStore),
+    ...mapStores(useOcspResponderService),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelEdit(): void {
       this.$emit('cancel');
     },

@@ -98,7 +98,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useAddClient } from '@/store/modules/addClient';
 import { useUser } from '@/store/modules/user';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {
@@ -122,7 +122,7 @@ export default Vue.extend({
       'tokens',
     ]),
     ...mapState(useUser, ['currentSecurityServer']),
-    ...mapState(useCsrStore, ['csrTokenId']),
+    ...mapState(useCsr, ['csrTokenId']),
 
     showRegisterOption(): boolean {
       return (
@@ -138,7 +138,7 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     ...mapActions(useAddClient, ['createClient']),
-    ...mapActions(useCsrStore, ['generateKeyAndCsr']),
+    ...mapActions(useCsr, ['generateKeyAndCsr']),
     cancel(): void {
       this.$emit('cancel');
     },

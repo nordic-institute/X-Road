@@ -57,12 +57,12 @@
 
 <script lang="ts">
 import { Permissions } from '@/global';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 import Vue from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { ConfigurationType } from '@/openapi-types';
-import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { Prop } from 'vue/types/options';
 import { DataTableHeader } from 'vuetify';
 import ConfigurationAnchorItem, {
@@ -85,8 +85,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useConfigurationSourceStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useConfigurationSource),
+    ...mapState(useUser, ['hasPermission']),
     anchor(): Anchor | null {
       const title = this.$t('globalConf.anchor.title').toString();
       const anchor = this.configurationSourceStore.getAnchor(
@@ -132,7 +132,7 @@ export default Vue.extend({
     this.fetchConfigurationAnchor();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showSuccess', 'showError']),
+    ...mapActions(useNotifications, ['showSuccess', 'showError']),
     fetchConfigurationAnchor() {
       this.loading = true;
       this.configurationSourceStore

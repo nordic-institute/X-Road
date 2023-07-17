@@ -97,7 +97,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
 export default Vue.extend({
   props: {
@@ -114,7 +114,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useClientStore, ['client']),
+    ...mapState(useClient, ['client']),
     ...mapState(useUser, ['hasPermission']),
     showAddSubjects(): boolean {
       return this.hasPermission(Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES);

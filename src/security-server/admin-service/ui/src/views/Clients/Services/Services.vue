@@ -220,7 +220,7 @@ import { Prop } from 'vue/types/options';
 import { sortServiceDescriptionServices } from '@/util/sorting';
 import { deepClone } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
-import { useServicesStore } from '@/store/modules/services';
+import { useServices } from '@/store/modules/services';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 
@@ -270,7 +270,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useServicesStore, ['descExpanded']),
+    ...mapState(useServices, ['descExpanded']),
 
     showAddWSDLButton(): boolean {
       return this.hasPermission(Permissions.ADD_WSDL);
@@ -340,7 +340,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useServicesStore, ['hideDesc', 'expandDesc']),
+    ...mapActions(useServices, ['hideDesc', 'expandDesc']),
 
     showRefreshButton(serviceDescriptionType: string): boolean {
       if (serviceDescriptionType === this.serviceTypeEnum.WSDL) {

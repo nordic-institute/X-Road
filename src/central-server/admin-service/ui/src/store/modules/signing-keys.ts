@@ -32,7 +32,7 @@ import {
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
-export const useSigningKeyStore = defineStore('signingKey', {
+export const useSigningKey = defineStore('signingKey', {
   actions: {
     addSigningKey(
       configurationType: ConfigurationType,

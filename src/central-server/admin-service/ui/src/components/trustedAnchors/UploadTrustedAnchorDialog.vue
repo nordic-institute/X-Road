@@ -85,8 +85,8 @@ import Vue from 'vue';
 import { TrustedAnchor } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { Prop } from 'vue/types/options';
-import { notificationsStore } from '@/store/modules/notifications';
-import { trustedAnchorStore } from '@/store/modules/trusted-anchors';
+import { useNotifications } from '@/store/modules/notifications';
+import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 
 export default Vue.extend({
   props: {
@@ -106,10 +106,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(trustedAnchorStore),
+    ...mapStores(useTrustedAnchor),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     open() {
       this.opened = true;
     },

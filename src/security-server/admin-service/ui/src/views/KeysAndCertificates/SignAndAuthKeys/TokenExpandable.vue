@@ -201,7 +201,7 @@ import {
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useTokensStore } from '@/store/modules/tokens';
+import { useTokens } from '@/store/modules/tokens';
 
 export default Vue.extend({
   components: {
@@ -227,7 +227,7 @@ export default Vue.extend({
   computed: {
     ...mapState(useUser, ['hasPermission']),
 
-    ...mapState(useTokensStore, ['tokenExpanded']),
+    ...mapState(useTokens, ['tokenExpanded']),
 
     canActivateToken(): boolean {
       return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
@@ -308,7 +308,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useTokensStore, [
+    ...mapActions(useTokens, [
       'setSelectedToken',
       'hideToken',
       'expandToken',

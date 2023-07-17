@@ -33,7 +33,7 @@ export interface State {
   backups: Backup[];
 }
 
-export const useBackupsStore = defineStore('backup', {
+export const useBackups = defineStore('backup', {
   state: (): State => ({
     backups: [],
   }),

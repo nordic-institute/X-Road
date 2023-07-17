@@ -41,7 +41,7 @@ export interface State {
   securityServerPagingOptions: PagingMetadata;
 }
 
-export const useSecurityServerStore = defineStore('securityServer', {
+export const useSecurityServer = defineStore('securityServer', {
   state: (): State => ({
     currentSecurityServerLoading: false,
     currentSecurityServer: null,

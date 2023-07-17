@@ -90,7 +90,7 @@ import { Prop } from 'vue/types/options';
 import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
 import { DataTableHeader } from 'vuetify';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDialog.vue';
 import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
@@ -115,7 +115,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
     canDeleteKeys(): boolean {
       return this.hasPermission(Permissions.DELETE_SIGNING_KEY);
     },

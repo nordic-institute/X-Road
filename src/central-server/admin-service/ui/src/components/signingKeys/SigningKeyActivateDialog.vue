@@ -41,8 +41,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useSigningKeyStore } from '@/store/modules/signing-keys';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSigningKey } from '@/store/modules/signing-keys';
 import { ConfigurationSigningKey } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 
@@ -59,14 +59,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useSigningKeyStore),
+    ...mapStores(useSigningKey),
     label() {
       const key: ConfigurationSigningKey = this.signingKey;
       return { label: key?.label?.label || key.id };
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
     },

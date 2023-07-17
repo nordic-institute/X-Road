@@ -56,7 +56,7 @@ export interface CsrState {
   isNewMember: boolean;
 }
 
-export const useCsrStore = defineStore('csrStore', {
+export const useCsr = defineStore('csr', {
   state: (): CsrState => {
     return {
       csrKey: undefined,

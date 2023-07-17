@@ -33,7 +33,7 @@ import { User } from '@/openapi-types';
 import { mainTabs } from '@/global';
 import { get } from '@/util/api';
 
-export const userStore = defineStore('userStore', {
+export const useUser = defineStore('user', {
   state: () => {
     return {
       authenticated: false,

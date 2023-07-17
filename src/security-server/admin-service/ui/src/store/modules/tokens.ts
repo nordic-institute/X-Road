@@ -48,7 +48,7 @@ function sortTokens(tokens: Token[]): Token[] {
   return arr;
 }
 
-export const useTokensStore = defineStore('tokensStore', {
+export const useTokens = defineStore('tokens', {
   state: () => {
     return {
       expandedTokens: [] as string[],
