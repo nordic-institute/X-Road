@@ -1,6 +1,6 @@
 {
-  "name": "xrd-shared-ui",
-  "version": "0.0.1",
+  "name": "@niis/shared-ui",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
     "npx-check-audit": "npx audit-ci@6.3.0 --config audit-ci-shared.json >build/reports/audit-ci.txt",
-    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules && rm -rf xrd-shared-ui-0.1.0.tgz",
+    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules && rm -rf xrd-shared-ui-3.0.0.tgz",
     "format": "prettier .  --write"
   },
   "main": "./dist/xrd-shared-ui.umd.js",
