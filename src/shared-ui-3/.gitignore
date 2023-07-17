@@ -26,3 +26,4 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+/niis-shared-ui-3.0.0.tgz
