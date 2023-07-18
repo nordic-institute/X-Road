@@ -61,7 +61,7 @@ bootJar {
     }
     manifest {
         attributes(
-            'Implementation-Title': 'X-Road Central Server Admin Service',
+            'Implementation-Title': 'CamDX Central Server Admin Service',
             'Implementation-Version': "$xroadVersion-$xroadBuildType"
         )
     }
