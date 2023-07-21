@@ -52,11 +52,12 @@ public interface JpaGlobalGroupMemberRepository
 
     List<GlobalGroupMemberEntity> findByGlobalGroupGroupCode(String groupCode);
 
-    default List<GlobalGroupMemberEntity> findMemberGroups(ee.ria.xroad.common.identifier.ClientId memberId) {
+    default List<GlobalGroupMemberEntity> findMemberGroups(ee.ria.xroad.common.identifier.ClientId clientId) {
         return findAll(findSpecification(GlobalGroupService.Criteria.builder()
-                .instance(memberId.getXRoadInstance())
-                .memberClass(memberId.getMemberClass())
-                .code(memberId.getMemberCode())
+                .instance(clientId.getXRoadInstance())
+                .memberClass(clientId.getMemberClass())
+                .code(clientId.getMemberCode())
+                .subsystemCode(clientId.getSubsystemCode())
                 .build()));
     }
 
@@ -72,6 +73,9 @@ public interface JpaGlobalGroupMemberRepository
         predicates.add(builder.equal(member.get(XRoadIdEntity_.MEMBER_CLASS), criteria.getMemberClass()));
         predicates.add(builder.equal(member.get(XRoadIdEntity_.X_ROAD_INSTANCE), criteria.getInstance()));
         predicates.add(builder.equal(member.get(XRoadIdEntity_.MEMBER_CODE), criteria.getCode()));
+        if (criteria.getSubsystemCode() != null) {
+            predicates.add(builder.equal(member.get(XRoadIdEntity_.SUBSYSTEM_CODE), criteria.getSubsystemCode()));
+        }
 
         return builder.and(predicates.toArray(new Predicate[0]));
     }
