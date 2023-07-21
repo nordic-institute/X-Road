@@ -40,6 +40,7 @@ dependencies {
     implementation("org.kohsuke:libpam4j:1.11")
     implementation("org.apache.commons:commons-compress:1.21")
     implementation("wsdl4j:wsdl4j:1.6.3")
+    implementation("org.shredzone.acme4j:acme4j-client:2.16")
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
     implementation("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")

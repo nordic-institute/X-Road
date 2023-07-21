@@ -67,7 +67,12 @@ public class FiVRKSignCertificateProfileInfo
                 // Member code
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE,
                         params.getClientId().getMemberCode()
-                ).setReadOnly(true) }
+                ).setReadOnly(true),
+
+                // Business category
+                new EnumLocalizedFieldDescriptionImpl("subjectAltName", DnFieldLabelLocalizationKey.SUBJECT_ALTERNATIVE_NAME,
+                        ""
+                ).setReadOnly(false) }
         );
         this.params = params;
     }

@@ -168,7 +168,7 @@ public class ImportCertRequestHandler
         log.info("Imported certificate to key '{}', certificate hash:\n{}",
                 keyInfo.getId(), certHash);
 
-        deleteCertRequest(keyInfo.getId(), memberId);
+        deleteCertRequest(keyInfo.getId(), memberId); //
     }
 
     private void updateOcspResponse(X509Certificate cert) {

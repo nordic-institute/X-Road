@@ -196,7 +196,7 @@ public class SystemService {
         byte[] csrBytes = null;
         try {
             KeyPair keyPair = CertUtils.readKeyPairFromPemFile(internalKeyPath);
-            csrBytes = CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName);
+            csrBytes = CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName); //
         } catch (IllegalArgumentException e) {
             throw new InvalidDistinguishedNameException(e);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | OperatorCreationException e) {

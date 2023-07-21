@@ -81,7 +81,6 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsr, ['requestGenerateCsr']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -90,16 +89,6 @@ export default Vue.extend({
     },
     done(): void {
       this.$emit('done');
-    },
-    generateCsr(): void {
-      this.requestGenerateCsr().then(
-        () => {
-          this.disableDone = false;
-        },
-        (error) => {
-          this.showError(error);
-        },
-      );
     },
   },
 });

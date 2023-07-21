@@ -111,7 +111,7 @@ export default Vue.extend({
     back(): void {
       this.$router.go(-1);
     },
-    generateCsr(): void {
+    generateCsr(): void {//
       this.generatingCsr = true;
       api
         .post(

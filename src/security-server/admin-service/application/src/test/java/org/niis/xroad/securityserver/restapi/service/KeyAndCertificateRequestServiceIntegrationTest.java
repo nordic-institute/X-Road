@@ -100,7 +100,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
             String keyId = (String) invocation.getArguments()[0];
             return getTokenWithKey(tokens, keyId);
         });
-        when(signerProxyFacade.generateCertRequest(any(), any(), any(), any(), any()))
+        when(signerProxyFacade.generateCertRequest(any(), any(), any(), any(), any(), any()))
                 .thenAnswer(invocation -> {
                     // keyInfo is immutable, so we need some work to replace KeyInfo with
                     // one that has correct usage
@@ -158,22 +158,28 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         verify(signerProxyFacade, times(1))
                 .generateKey(SOFTWARE_TOKEN_ID, "keylabel");
         verify(signerProxyFacade, times(1))
-                .generateCertRequest(any(), any(), any(), any(), any());
+                .generateCertRequest(any(), any(), any(), any(), any(), any());
     }
 
     private HashMap<String, String> createCsrDnParams() {
+        return createCsrDnParams(false);
+    }
+    private HashMap<String, String> createCsrDnParams(boolean isAuthKey) {
         HashMap<String, String> dnParams = new HashMap<>();
         dnParams.put("C", "FI");
         dnParams.put("O", "foobar-o");
         dnParams.put("serialNumber", "FI/ss1/GOV");
         dnParams.put("CN", "foobar-cn");
+        if (!isAuthKey) {
+            dnParams.put("subjectAltName", "example.com");
+        }
         return dnParams;
     }
 
     @Test
     @WithMockUser(authorities = { "DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY" })
     public void canAddAuthKeyToSoftToken() throws Exception {
-        HashMap<String, String> dnParams = createCsrDnParams();
+        HashMap<String, String> dnParams = createCsrDnParams(true);
         KeyAndCertificateRequestService.KeyAndCertRequestInfo info = keyAndCertificateRequestService
                 .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
                         null,

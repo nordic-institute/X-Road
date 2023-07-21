@@ -698,7 +698,7 @@ public class SignerCLI {
 
         try {
             final GeneratedCertRequestInfo generatedCertRequestInfo =
-                    SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, requestFormat);
+                    SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName,"", requestFormat);
 
             AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER, null, logData);
 

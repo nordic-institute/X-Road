@@ -26,10 +26,12 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
@@ -43,6 +45,10 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -56,16 +62,38 @@ import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.shredzone.acme4j.Account;
+import org.shredzone.acme4j.AccountBuilder;
+import org.shredzone.acme4j.Authorization;
+import org.shredzone.acme4j.Certificate;
+import org.shredzone.acme4j.Order;
+import org.shredzone.acme4j.Session;
+import org.shredzone.acme4j.Status;
+import org.shredzone.acme4j.challenge.Http01Challenge;
+import org.shredzone.acme4j.exception.AcmeException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
@@ -73,6 +101,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.common.util.CertUtils.readKeyPairFromPemFile;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_AUTH_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE;
@@ -134,6 +163,8 @@ public class TokenCertificateService {
             KeyNotFoundException,
             DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException {
 
+        String subjectAltName = null;
+
         // validate key and memberId existence
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         auditDataHelper.put(tokenInfo);
@@ -143,6 +174,11 @@ public class TokenCertificateService {
         auditDataHelper.put(memberId);
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
+            if (subjectFieldValues.get("subjectAltName") != null
+                    && !subjectFieldValues.get("subjectAltName").isEmpty()) {
+                // Set subject alternative name (SAN)
+                subjectAltName = subjectFieldValues.get("subjectAltName");
+            }
             // validate that the member exists or has a subsystem on this server
             if (!clientService.getLocalClientMemberIds().contains(memberId)) {
                 throw new ClientNotFoundException("client with id " + memberId + ", or subsystem for it, " + NOT_FOUND);
@@ -173,20 +209,119 @@ public class TokenCertificateService {
         }
 
         List<DnFieldValue> dnFieldValues = dnFieldHelper.processDnParameters(profile, subjectFieldValues);
+        // Remove subjectAltName from dn field values since it's not a valid field value
+        List<DnFieldValue> filteredDnFieldValues = dnFieldValues.stream().filter(v -> !v.getId().equals("subjectAltName"))
+                .collect(Collectors.toList());
 
-        String subjectName = dnFieldHelper.createSubjectName(dnFieldValues);
+        String subjectName = dnFieldHelper.createSubjectName(filteredDnFieldValues);
         auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, subjectName);
         auditDataHelper.put(RestApiAuditProperty.CERTIFICATION_SERVICE_NAME, caName);
         auditDataHelper.put(RestApiAuditProperty.CSR_FORMAT, format);
 
+        GeneratedCertRequestInfo generatedCertRequestInfo;
         try {
-            return signerProxyFacade.generateCertRequest(keyId, memberId,
-                    keyUsage, subjectName, format);
+            generatedCertRequestInfo = signerProxyFacade.generateCertRequest(keyId, memberId,
+                    keyUsage, subjectName, subjectAltName, format);
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
             throw new SignerNotReachableException("Generate cert request failed", e);
         }
+        try {
+            List<X509Certificate> chain = doACME(subjectFieldValues.get("CN"), subjectAltName, generatedCertRequestInfo);
+            if (chain != null) {
+                importCertificate(chain.get(0).getEncoded(), false);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Acme error", e);
+        }
+        return generatedCertRequestInfo;
+    }
+
+    private List<X509Certificate> doACME(String subjectName, String subjectAltName, GeneratedCertRequestInfo generatedCertRequestInfo) throws Exception {
+        Session session
+                = new Session("https://ca:9000/acme/acme/directory");
+
+        String keyPairFileName = "/etc/xroad/keypair.pem";
+        KeyPair keyPair;
+        if ((new File(keyPairFileName)).exists()) {
+            try (PEMParser pemParser = new PEMParser(new FileReader(keyPairFileName))) {
+                var pemKeyPair = (PEMKeyPair) pemParser.readObject();
+                keyPair = new JcaPEMKeyConverter().getKeyPair(pemKeyPair);
+            }
+        } else {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+            keyPair = keyPairGenerator.generateKeyPair();
+            try (var jw = new JcaPEMWriter(new FileWriter(keyPairFileName))) {
+                jw.writeObject(keyPair);
+            }
+        }
+        Account account = new AccountBuilder()
+                .addContact("mailto:acme@example.com")
+                .agreeToTermsOfService()
+                .useKeyPair(keyPair)
+                .create(session);
+        URL accountLocationUrl = account.getLocation();
+
+        Order order = account.newOrder()
+                .domains(subjectAltName != null ? subjectAltName : subjectName)
+                .notAfter(Instant.now().plus(Duration.ofDays(1L)))
+                .create();
+
+        for (Authorization auth : order.getAuthorizations()) {
+            if (auth.getStatus() == Status.PENDING) {
+                Http01Challenge challenge = auth.findChallenge(Http01Challenge.class);
+                if (challenge != null) {
+                    String token = challenge.getToken();
+                    String content = challenge.getAuthorization();
+                    String acmeChallenge = "/etc/xroad/acme-challenge/" + token;
+                    AtomicSave.execute(acmeChallenge, "tmp_challenge",
+                            out -> out.write(content.getBytes(StandardCharsets.UTF_8)));
+                    challenge.trigger();
+                    int attempts = 5;
+                    long interval = 3000L;
+                    while (auth.getStatus() != Status.VALID  && attempts-- > 0) {
+                        if (auth.getStatus() == Status.INVALID) {
+                            throw new AcmeException("Authorization failed");
+                        }
+                        Thread.sleep(interval);
+                        try {
+                            auth.update();
+                        } catch (AcmeException e) {
+                            log.error("Authorization failed", e);
+                            throw e;
+                        }
+                    }
+                    Files.delete(Path.of(acmeChallenge));
+                    order.execute(generatedCertRequestInfo.getCertRequest());
+                }
+            }
+        }
+
+        int attempts = 6;
+        long interval = 4000L;
+        while (order.getStatus() != Status.VALID && attempts-- > 0) {
+            if (order.getStatus() == Status.INVALID) {
+                throw new AcmeException("Certificate creation failed");
+            }
+            Thread.sleep(interval);
+            try {
+                order.update();
+            } catch (AcmeException e) {
+                log.error("Certificate creation failed", e);
+                throw e;
+            }
+        }
+
+        Certificate cert = order.getCertificate();
+        if (cert != null) {
+            List<X509Certificate> chain = cert.getCertificateChain();
+            log.info("Cert Chain created!");
+            log.debug("cert chain: {}:", chain);
+            return chain;
+        }
+        return null;
     }
 
     /**

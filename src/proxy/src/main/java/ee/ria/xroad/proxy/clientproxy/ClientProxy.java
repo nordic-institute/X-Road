@@ -53,8 +53,10 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
@@ -269,6 +271,13 @@ public class ClientProxy implements StartStop {
         List<Handler> handlers = new ArrayList<>();
         String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
 
+        ResourceHandler resourceHandler = new ResourceHandler();
+        resourceHandler.setResourceBase("/etc/xroad/acme-challenge");
+        resourceHandler.setDirectoriesListed(false);
+        ContextHandler contextHandler= new ContextHandler("/.well-known/acme-challenge");
+        contextHandler.setHandler(resourceHandler);
+        server.setHandler(contextHandler);
+        handlers.add(contextHandler);
         handlers.add(new ClientRestMessageHandler(client));
 
         if (!StringUtils.isBlank(handlerClassNames)) {

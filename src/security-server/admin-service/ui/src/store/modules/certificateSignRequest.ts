@@ -196,7 +196,7 @@ export const useCsr = defineStore('csr', {
         });
     },
 
-    generateKeyAndCsr(tokenId: string) {
+    generateKeyAndCsr(tokenId: string) {//
       const crtObject = this.csrRequestBody;
 
       const body: KeyLabelWithCsrGenerate = {
@@ -232,7 +232,7 @@ export const useCsr = defineStore('csr', {
         });
     },
 
-    requestGenerateCsr() {
+    requestGenerateCsr() { //
       const requestBody = this.csrRequestBody;
       return api
         .post(`/keys/${encodePathParameter(this.keyId)}/csrs`, requestBody, {
