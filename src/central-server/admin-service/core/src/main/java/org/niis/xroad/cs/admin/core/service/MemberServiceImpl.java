@@ -36,6 +36,7 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
@@ -67,6 +68,8 @@ public class MemberServiceImpl implements MemberService {
     private final XRoadMemberRepository xRoadMemberRepository;
     private final MemberClassRepository memberClassRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
+
+    private final GlobalGroupMemberService globalGroupMemberService;
 
     private final SecurityServerMapper securityServerMapper;
     private final SecurityServerClientMapper securityServerClientMapper;
@@ -111,6 +114,7 @@ public class MemberServiceImpl implements MemberService {
 
         XRoadMemberEntity member = xRoadMemberRepository.findMember(clientId)
                 .getOrElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+        globalGroupMemberService.removeClientFromGlobalGroups(clientId);
         xRoadMemberRepository.delete(member);
     }
 
