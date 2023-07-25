@@ -59,26 +59,24 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { FileUploadResult } from '@niis/shared-ui';
+import  { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import { Prop } from 'vue/types/options';
 import {
   ConfigurationPartContentIdentifier,
   ConfigurationType,
 } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'UploadConfigurationPartDialog',
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     contentIdentifier: {
-      type: String as Prop<ConfigurationPartContentIdentifier>,
+      type: String as PropType<ConfigurationPartContentIdentifier>,
       required: true,
     },
   },

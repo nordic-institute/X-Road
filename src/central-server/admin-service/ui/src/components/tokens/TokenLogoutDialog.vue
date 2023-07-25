@@ -38,17 +38,16 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useToken } from '@/store/modules/tokens';
 import { Token } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     token: {
-      type: Object as Prop<Token>,
+      type: Object as PropType<Token>,
       required: true,
     },
   },

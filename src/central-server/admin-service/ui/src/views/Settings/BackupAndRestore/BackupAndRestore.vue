@@ -55,17 +55,15 @@
 /**
  * View for 'backup and restore' tab
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useBackups } from '@/store/modules/backups';
 import { useNotifications } from '@/store/modules/notifications';
-import VueI18n from 'vue-i18n';
-import Values = VueI18n.Values;
 import { Backup } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       filter: '',
@@ -121,12 +119,12 @@ export default Vue.extend({
     uploadBackup(backupFile: File, ignoreWarnings = false) {
       return this.backupStore.uploadBackup(backupFile, ignoreWarnings);
     },
-    displaySuccess(textKey: string, data: Values = {}) {
+    displaySuccess(textKey: string, data: Record<string, any> = {}) {
       this.showSuccess(this.$t(textKey, data));
     },
   },
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

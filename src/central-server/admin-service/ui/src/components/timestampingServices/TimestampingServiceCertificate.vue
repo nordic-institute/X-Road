@@ -31,13 +31,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 import { mapStores } from 'pinia';
 import { useTimestampingService } from '@/store/modules/trust-services';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'TimestampingServiceCertificate',
   components: { CertificateDetails },
   props: {

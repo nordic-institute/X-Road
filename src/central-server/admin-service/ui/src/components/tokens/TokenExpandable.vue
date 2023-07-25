@@ -101,8 +101,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import Vue, { defineComponent, PropType } from 'vue';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useToken } from '@/store/modules/tokens';
@@ -117,7 +116,7 @@ import KeysTable from '@/components/tokens/KeysTable.vue';
 import TokenLoggingButton from '@/components/tokens/TokenLoggingButton.vue';
 import SigningKeyAddDialog from '@/components/signingKeys/SigningKeyAddDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     SigningKeyAddDialog,
     KeysTable,
@@ -125,11 +124,11 @@ export default Vue.extend({
   },
   props: {
     token: {
-      type: Object as Prop<Token>,
+      type: Object as PropType<Token>,
       required: true,
     },
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     loadingKeys: {
@@ -200,8 +199,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .token-logging-button {
   display: inline-flex;

@@ -73,7 +73,7 @@
 /**
  * View for 'security server clients' tab
  */
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { Client } from '@/openapi-types';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -83,7 +83,7 @@ import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'SecurityServerClients',
   props: {
     serverId: {
@@ -163,8 +163,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .table-cell-member-name-action {
   color: $XRoad-Purple100;

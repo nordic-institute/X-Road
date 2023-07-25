@@ -37,6 +37,9 @@ import App from './App.vue';
 import { createApp } from 'vue';
 
 // Plugins
-import { createSharedUi } from './index';
+import { createSharedI18n, createSharedUi } from './index';
 
-createApp(App).use(createSharedUi()).mount('#app');
+createApp(App)
+  .use(createSharedUi())
+  .use(createSharedI18n({}))
+  .mount('#app');

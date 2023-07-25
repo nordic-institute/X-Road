@@ -141,7 +141,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import AddTimestampingServiceDialog from '@/components/timestampingServices/AddTimestampingServiceDialog.vue';
 import EditTimestampingServiceDialog from '@/components/timestampingServices/EditTimestampingServiceDialog.vue';
 import { DataTableHeader } from 'vuetify';
@@ -152,7 +152,7 @@ import { TimestampingService } from '@/openapi-types';
 import { useTimestampingService } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'TimestampingServicesList',
   components: {
     AddTimestampingServiceDialog,
@@ -282,7 +282,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .custom-footer {
   border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */

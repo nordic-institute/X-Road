@@ -19,6 +19,9 @@
       "vuetify"
     ],
     "paths": {
+      "@shared-ui/*" : [
+        "../../../shared-ui-3/src/*"
+      ],
       "@/*": [
         "src/*"
       ]

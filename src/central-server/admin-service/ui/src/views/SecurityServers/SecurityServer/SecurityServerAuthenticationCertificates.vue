@@ -83,7 +83,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
 import { Permissions, RouteName } from '@/global';
@@ -92,7 +92,7 @@ import { mapState, mapStores } from 'pinia';
 import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 
-export default Vue.extend({
+export default defineComponent({
   components: { DeleteAuthenticationCertificateDialog },
   data() {
     return {
@@ -182,7 +182,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .icon-cell {
   color: $XRoad-Purple100;

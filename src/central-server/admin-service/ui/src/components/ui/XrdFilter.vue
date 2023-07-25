@@ -49,12 +49,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 /**
  * Component for launching the filter view
  * */
 
-export default Vue.extend({
+export default defineComponent({
   name: 'XrdFilter',
   props: {
     label: {
@@ -88,7 +88,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .icon-closed {
   margin-top: 20px; // adjusted so that icon stays in the same place open/closed

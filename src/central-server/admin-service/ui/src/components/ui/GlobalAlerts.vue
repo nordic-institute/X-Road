@@ -63,14 +63,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { formatDateTime, formatDateTimeSeconds } from '@/filters';
 import { mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AlertsContainer',
   computed: {
     ...mapState(useAlerts, ['alerts']),
@@ -103,7 +103,7 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .alerts-container {
   padding: 0;

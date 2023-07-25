@@ -134,7 +134,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
@@ -147,7 +147,7 @@ import AddIntermediateCaDialog from '@/components/intermediateCas/AddIntermediat
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'IntermediateCasList',
   components: { AddIntermediateCaDialog },
   props: {
@@ -260,5 +260,5 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

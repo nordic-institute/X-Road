@@ -83,6 +83,14 @@
   height: 72px;
 }
 
+.data-table {
+  border-radius: 4px;
+
+
+}
+:deep(.v-data-table-footer) {
+  border-top: thin solid rgba(0, 0, 0, 0.12) !important;  /* Matches the color of the Vuetify table line */
+}
 // Wrapper for actions at the end of a row
 .cs-table-actions-wrap {
   width: 100%;

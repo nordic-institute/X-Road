@@ -88,15 +88,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { FileUploadResult } from '@niis/shared-ui';
-import { Prop } from 'vue/types/options';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AddCertificationServiceDialog',
   props: {
     showDialog: {
-      type: Boolean as Prop<boolean>,
+      type: Boolean as PropType<boolean>,
       required: true,
     },
   },
@@ -151,5 +150,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

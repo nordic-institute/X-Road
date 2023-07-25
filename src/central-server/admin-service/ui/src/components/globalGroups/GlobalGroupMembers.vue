@@ -140,7 +140,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
 import { Permissions } from '@/global';
 import { DataOptions, DataTableHeader } from 'vuetify';
@@ -158,7 +158,7 @@ import DeleteGroupMemberDialog from './DeleteGroupMemberDialog.vue';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     DeleteGroupMemberDialog,
     AddGroupMembersDialog,
@@ -296,8 +296,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .member-name {
   color: $XRoad-Purple100;

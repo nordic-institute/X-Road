@@ -34,13 +34,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'OcspResponderCertificate',
   components: { CertificateDetails },
   props: {

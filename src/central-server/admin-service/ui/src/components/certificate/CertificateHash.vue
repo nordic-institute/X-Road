@@ -32,9 +32,9 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     hash: {
       type: String,

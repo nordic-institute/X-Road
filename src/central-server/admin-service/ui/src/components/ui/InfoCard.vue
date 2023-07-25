@@ -48,9 +48,9 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'InfoCard',
   props: {
     // Text for the title
@@ -84,7 +84,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .card-title {
   font-size: 12px;

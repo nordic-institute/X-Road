@@ -103,21 +103,16 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { FileUploadResult } from '@niis/shared-ui';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { TimestampingService } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useTimestampingService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'EditTimestampingServiceDialog',
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
   props: {
     tsaService: {
       type: Object as () => TimestampingService,

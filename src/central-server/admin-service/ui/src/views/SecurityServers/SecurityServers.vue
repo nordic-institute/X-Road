@@ -32,10 +32,10 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
 /**
  * Security servers main view wrapping content all from 'Security servers' main tab
  */
-export default Vue.extend({});
+export default defineComponent({});
 </script>

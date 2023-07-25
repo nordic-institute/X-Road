@@ -33,12 +33,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import IntermediateCasList from '@/components/intermediateCas/IntermediateCasList.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificationServiceIntermediateCas',
   components: { IntermediateCasList },
   computed: {

@@ -122,7 +122,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { SecurityServer } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
@@ -135,7 +135,7 @@ import { TranslateResult } from 'vue-i18n';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default Vue.extend({
+export default defineComponent({
   name: 'SelectSecurityServerDialog',
   props: {
     dialog: {

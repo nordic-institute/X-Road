@@ -50,13 +50,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'EditCertProfileDialog',
   props: {
     certificationService: {

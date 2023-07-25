@@ -63,7 +63,7 @@
 /**
  * View for 'backup and restore' tab
  */
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import ConfigurationAnchorItem, {
   Anchor,
@@ -85,7 +85,7 @@ function convert(source: TrustedAnchor): Anchor {
   };
 }
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     DeleteTrustedAnchorButton,
     DownloadTrustedAnchorButton,
@@ -143,8 +143,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .card-title {
   font-size: 12px;

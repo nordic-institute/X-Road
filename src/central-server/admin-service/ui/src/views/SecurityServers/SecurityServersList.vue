@@ -72,22 +72,20 @@
 /**
  * View for 'security servers' tab
  */
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataOptions, DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import VueI18n from 'vue-i18n';
-import TranslateResult = VueI18n.TranslateResult;
 import { debounce } from '@/util/helpers';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       search: '',
@@ -126,7 +124,7 @@ export default Vue.extend({
         },
       ];
     },
-    emptyListReasoning(): TranslateResult {
+    emptyListReasoning(): string {
       return this.search
         ? this.$t('noData.noMatches')
         : this.$t('noData.noSecurityServers');
@@ -171,7 +169,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .server-code {
   color: $XRoad-Purple100;

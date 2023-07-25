@@ -28,6 +28,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { PagedClients, PagingMetadata, Client } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
+import { DataQuery } from "@/ui-types";
 
 export interface State {
   clients: Client[];
@@ -52,15 +53,17 @@ export const useClient = defineStore('client', {
   }),
   persist: true,
   actions: {
-    async find(dataOptions: DataOptions, q: string) {
+    async find(dataOptions: DataQuery) {
+
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
+
       const params: unknown = {
         limit: dataOptions.itemsPerPage,
         offset: offset,
-        sort: dataOptions.sortBy[0],
-        desc: dataOptions.sortDesc[0],
+        sort: dataOptions.sortBy,
+        desc: dataOptions.sortOrder === 'desc',
         client_type: 'MEMBER',
-        q,
+        q: dataOptions.search,
       };
       const axiosParams: AxiosRequestConfig = { params };
 

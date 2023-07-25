@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import PageNavigation, {
   PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
@@ -50,7 +50,7 @@ import DetailsView from '@/components/ui/DetailsView.vue';
 /**
  * Wrapper component for a security server view
  */
-export default Vue.extend({
+export default defineComponent({
   components: { DetailsView, PageNavigation },
   props: {
     serverId: {

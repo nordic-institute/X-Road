@@ -58,13 +58,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
 import { FileUploadResult } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AddIntermediateDialog',
   props: {
     caId: {

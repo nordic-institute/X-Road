@@ -59,21 +59,20 @@
 import { Permissions } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { ConfigurationType } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import { Prop } from 'vue/types/options';
 import { DataTableHeader } from 'vuetify';
 import ConfigurationAnchorItem, {
   Anchor,
 } from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { ConfigurationAnchorItem },
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
   },
@@ -166,7 +165,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .card-title {
   font-size: 12px;

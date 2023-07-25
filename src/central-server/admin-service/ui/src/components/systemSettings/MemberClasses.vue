@@ -152,7 +152,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
+import Vue, { defineComponent, VueConstructor } from 'vue';
 import { ErrorInfo, MemberClass } from '@/openapi-types';
 import { mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
@@ -164,18 +164,8 @@ import {
   isFieldError,
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
-import { ValidationProvider } from 'vee-validate';
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        code: InstanceType<typeof ValidationProvider>;
-      };
-    }
-  >
-).extend({
-  components: { ValidationProvider },
+export default defineComponent({
   data: () => ({
     deletingMemberClass: false,
     savingMemberClass: false,
@@ -301,7 +291,7 @@ export default (
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .server-code {
   color: $XRoad-Purple100;

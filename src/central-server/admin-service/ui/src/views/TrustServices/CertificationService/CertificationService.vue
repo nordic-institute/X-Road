@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import PageNavigation, {
   PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
@@ -56,7 +56,7 @@ import DetailsView from '@/components/ui/DetailsView.vue';
 /**
  * Wrapper component for a certification service view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificationService',
   components: { DetailsView, PageNavigation },
   props: {
@@ -128,5 +128,5 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

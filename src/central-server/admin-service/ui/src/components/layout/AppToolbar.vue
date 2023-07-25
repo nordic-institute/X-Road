@@ -64,12 +64,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { Colors } from '@/global';
 import { mapState } from 'pinia';
 import { useSystem } from '@/store/modules/system';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'Toolbar',
   data() {
     return {

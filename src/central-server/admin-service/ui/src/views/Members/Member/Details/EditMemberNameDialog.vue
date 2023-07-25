@@ -51,14 +51,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'EditMemberNameDialog',
   props: {
     member: {

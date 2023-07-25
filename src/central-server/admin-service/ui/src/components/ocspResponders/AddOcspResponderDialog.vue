@@ -77,19 +77,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
 import { FileUploadResult } from '@niis/shared-ui';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AddOcspResponderDialog',
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
   props: {
     caId: {
       type: Number,

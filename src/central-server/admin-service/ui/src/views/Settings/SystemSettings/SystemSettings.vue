@@ -146,26 +146,15 @@ import ManagementServices from '@/components/systemSettings/ManagementServices.v
 import MemberClasses from '@/components/systemSettings/MemberClasses.vue';
 import { AxiosError } from 'axios';
 import { mapActions, mapState } from 'pinia';
-import { ValidationProvider } from 'vee-validate';
 
 /**
  * View for 'system settings' tab
  */
-import Vue, { VueConstructor } from 'vue';
+import Vue, { defineComponent, VueConstructor } from 'vue';
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        serverAddressVP: InstanceType<typeof ValidationProvider>;
-        managementServices: InstanceType<typeof ManagementServices>;
-      };
-    }
-  >
-).extend({
+export default defineComponent({
   components: {
     MemberClasses,
-    ValidationProvider,
     ManagementServices,
   },
   data() {
@@ -246,7 +235,7 @@ export default (
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .align-fix {
   align-items: center;

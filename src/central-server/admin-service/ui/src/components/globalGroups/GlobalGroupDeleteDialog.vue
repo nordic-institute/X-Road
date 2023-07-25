@@ -47,10 +47,9 @@
 <script lang="ts">
 /** Base component for simple dialogs */
 
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import Vue, { defineComponent, PropType } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'GlobalGroupDeleteDialog',
   props: {
     groupCode: {
@@ -58,7 +57,7 @@ export default Vue.extend({
       required: true,
     },
     showDialog: {
-      type: Boolean as Prop<boolean>,
+      type: Boolean as PropType<boolean>,
       required: true,
     },
   },

@@ -49,23 +49,22 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapState } from 'pinia';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import UploadConfigurationPartDialog from '@/components/configurationParts/UploadConfigurationPartDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { UploadConfigurationPartDialog },
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     configurationPart: {
-      type: Object as Prop<ConfigurationPart>,
+      type: Object as PropType<ConfigurationPart>,
       required: true,
     },
   },

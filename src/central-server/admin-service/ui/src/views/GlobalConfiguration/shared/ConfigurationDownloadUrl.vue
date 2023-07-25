@@ -60,17 +60,16 @@
 /**
  * View for 'backup and restore' tab
  */
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { DataTableHeader } from 'vuetify';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
   },
@@ -115,7 +114,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .card-title {
   font-size: 12px;

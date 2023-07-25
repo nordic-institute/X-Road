@@ -24,42 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { extend, configure } from 'vee-validate';
-import { required, min, max, between, is } from 'vee-validate/dist/rules';
-import i18n from '../i18n';
+import { configure, defineRule } from 'vee-validate';
+import { between, is, max, min, required } from '@vee-validate/rules';
 import * as Helpers from '@/util/helpers';
+import { App } from "vue";
+import i18n from "@/plugins/i18n";
 
-configure({
-  // This should be ok, as it is the vee-validate contract
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultMessage: (field, values: any): string => {
-    // override the field name.
-    values._field_ = i18n.t(`fields.${field}`);
+export function createValidators(i18nMessages = {}) {
+  return {
+    install(app: App) {
+      configure({
+        // This should be ok, as it is the vee-validate contract
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        generateMessage: ctx => {
+          // override the field name.
 
-    return i18n.t(`validation.${values._rule_}`, values) as string;
-  },
-});
+          // values._field_ = i18n.t(`fields.${field}`); TODO refactor to work properly
+
+          return i18n.global.t(`validation.messages.${ctx.rule.name}`, {}) as string;
+        },
+      });
 
 // Install required rule and message.
-extend('required', required);
+      defineRule('required', required);
 
 // Install min rule and message.
-extend('min', min);
+      defineRule('min', min);
 
 // Install max rule and message.
-extend('max', max);
+      defineRule('max', max);
 
 // Install between rule and message.
-extend('between', between);
+      defineRule('between', between);
 
 // Install is rule and message.
-extend('is', is);
+      defineRule('is', is);
 
-extend('url', {
-  validate: (value) => {
-    return Helpers.isValidUrl(value);
-  },
-  message() {
-    return i18n.t('customValidation.invalidUrl') as string;
-  },
-});
+      defineRule('url', (value: any) => {
+        if (Helpers.isValidUrl(value)) {
+          return true;
+        }
+        return t('customValidation.invalidUrl') as string;
+      });
+    },
+  };
+}

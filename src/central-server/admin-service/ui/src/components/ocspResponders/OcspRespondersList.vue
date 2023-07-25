@@ -131,7 +131,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapStores } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
@@ -145,7 +145,7 @@ import {
 import EditOcspResponderDialog from '@/components/ocspResponders/EditOcspResponderDialog.vue';
 import { RouteName } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'OcspRespondersList',
   components: { EditOcspResponderDialog, AddOcspResponderDialog },
   props: {
@@ -247,7 +247,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .custom-footer {
   border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */

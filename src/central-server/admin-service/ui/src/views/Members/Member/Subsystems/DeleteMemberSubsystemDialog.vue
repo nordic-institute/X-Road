@@ -67,7 +67,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useMember } from '@/store/modules/members';
@@ -77,7 +77,7 @@ import { useSubsystem } from '@/store/modules/subsystems';
 import { Client } from '@/openapi-types';
 import { toIdentifier } from '@/util/helpers';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'DeleteMemberSubsystemDialog',
   props: {
     showDialog: {
