@@ -89,7 +89,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { managementTypeToText } from '@/util/helpers';
@@ -109,7 +109,7 @@ import DetailsView from '@/components/ui/DetailsView.vue';
 /**
  * Wrapper component for a certification service view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'ManagementRequestDetails',
   components: {
     DetailsView,
@@ -183,8 +183,8 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .management-request-additional-details {
   margin-top: 24px;

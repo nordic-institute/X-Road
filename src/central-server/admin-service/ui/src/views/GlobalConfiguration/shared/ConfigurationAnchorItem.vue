@@ -65,9 +65,8 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { Prop } from 'vue/types/options';
 
 export interface Anchor {
   title: string;
@@ -75,14 +74,14 @@ export interface Anchor {
   createdAt?: string;
 }
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     loading: {
       type: Boolean,
       default: false,
     },
     anchor: {
-      type: Object as Prop<Anchor>,
+      type: Object as PropType<Anchor>,
       default: null,
     },
   },
@@ -119,7 +118,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .card-title {
   font-size: 12px;

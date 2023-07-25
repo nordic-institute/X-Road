@@ -76,14 +76,9 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { mapActions, mapStores } from 'pinia';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import Vue from 'vue';
-export default Vue.extend({
+import Vue, { defineComponent } from 'vue';
+export default defineComponent({
   name: 'DeleteAuthenticationCertificateDialog',
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
   props: {
     authenticationCertificateId: {
       type: String,

@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import GlobalGroupDetails from '@/components/globalGroups/GlobalGroupDetails.vue';
 import GlobalGroupMembers from '@/components/globalGroups/GlobalGroupMembers.vue';
 import DetailsView from '@/components/ui/DetailsView.vue';
@@ -41,7 +41,7 @@ import DetailsView from '@/components/ui/DetailsView.vue';
 /**
  * Global group view
  */
-export default Vue.extend({
+export default defineComponent({
   components: {
     DetailsView,
     GlobalGroupMembers,

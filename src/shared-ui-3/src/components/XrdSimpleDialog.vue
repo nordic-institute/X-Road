@@ -26,11 +26,11 @@
  -->
 <template>
   <v-dialog
-    v-if="dialog"
-    :model-value="dialog"
+    v-model="localModelValue"
     :width="width"
     :persistent="true"
     :scrollable="scrollable"
+    @update:model-value="$emit('update:modelValue', $event)"
   >
     <v-card class="xrd-card" data-test="dialog-simple">
       <template #append>
@@ -38,7 +38,7 @@
           v-if="showClose"
           id="dlg-close-x"
           data-test="dlg-close-x"
-          @click="cancel()"
+          @click="$emit('cancel')"
         />
       </template>
       <v-progress-linear
@@ -64,7 +64,7 @@
           class="mr-3"
           variant="outlined"
           :disabled="disableCancelButton"
-          @click="cancel()"
+          @click="$emit('cancel')"
         >
           {{ $t(cancelButtonText) }}
         </xrd-button>
@@ -73,7 +73,7 @@
           data-test="dialog-save-button"
           :disabled="disableSaveButton"
           :loading="loading"
-          @click="save()"
+          @click="$emit('save')"
         >
           {{ $t(saveButtonText) }}
         </xrd-button>
@@ -82,94 +82,89 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-/** Base component for simple dialogs */
+<script setup lang="ts">/** Base component for simple dialogs */
+import { computed } from "vue";
 
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  props: {
-    // Title of the dialog
-    title: {
-      type: String,
-      required: true,
-    },
-    // Dialog visible / hidden
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-    // Is the content scrollable
-    scrollable: {
-      type: Boolean,
-      default: false,
-    },
-    // Disable save button
-    disableSave: {
-      type: Boolean,
-    },
-    //  cancel button
-    allowLoadingCancellation: {
-      type: Boolean,
-      default: false,
-    },
-    // Hide save button
-    hideSaveButton: {
-      type: Boolean,
-      default: false,
-    },
-    cancelButtonText: {
-      type: String,
-      default: 'action.cancel',
-    },
-    // Text of the save button
-    saveButtonText: {
-      type: String,
-      default: 'action.add',
-    },
-    width: {
-      type: [Number, String],
-      default: 620,
-    },
-    showClose: {
-      type: Boolean,
-      default: true,
-    },
-    // Set save button loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    // Show indeterminate progress bar at the top
-    showProgressBar: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  // Title of the dialog
+  title: {
+    type: String,
+    required: true,
   },
-  emits: ['cancel', 'save'],
-
-  computed: {
-    disableSaveButton(): boolean {
-      if (this.disableSave !== undefined && this.disableSave !== null) {
-        return this.disableSave;
-      }
-
-      return false;
-    },
-    disableCancelButton(): boolean {
-      return this.allowLoadingCancellation ? false : this.loading;
-    },
+  // Dialog visible / hidden
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-
-  methods: {
-    cancel(): void {
-      this.$emit('cancel');
-    },
-    save(): void {
-      this.$emit('save');
-    },
+  // Is the content scrollable
+  scrollable: {
+    type: Boolean,
+    default: false,
+  },
+  // Disable save button
+  disableSave: {
+    type: Boolean,
+  },
+  //  cancel button
+  allowLoadingCancellation: {
+    type: Boolean,
+    default: false,
+  },
+  // Hide save button
+  hideSaveButton: {
+    type: Boolean,
+    default: false,
+  },
+  cancelButtonText: {
+    type: String,
+    default: 'action.cancel',
+  },
+  // Text of the save button
+  saveButtonText: {
+    type: String,
+    default: 'action.add',
+  },
+  width: {
+    type: [Number, String],
+    default: 620,
+  },
+  showClose: {
+    type: Boolean,
+    default: true,
+  },
+  // Set save button loading spinner
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  // Show indeterminate progress bar at the top
+  showProgressBar: {
+    type: Boolean,
+    default: false,
   },
 });
+
+const emits = defineEmits(['cancel', 'save', 'update:modelValue']);
+
+const disableSaveButton = computed(() => {
+  if (props.disableSave !== undefined && props.disableSave !== null) {
+    return props.disableSave;
+  }
+
+  return false;
+});
+
+const disableCancelButton = computed<boolean>(() => props.allowLoadingCancellation ? false : props.loading);
+
+const localModelValue = computed({
+  get() {
+    return props.modelValue;
+  },
+  set(newValue) {
+    emits('update:modelValue', newValue);
+  }
+});
+
 </script>
 
 <style lang="scss" scoped>

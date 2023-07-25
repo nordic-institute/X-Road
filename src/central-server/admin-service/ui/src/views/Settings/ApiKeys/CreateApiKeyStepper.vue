@@ -196,7 +196,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/api-types';
 import * as api from '@/util/api';
@@ -204,7 +204,7 @@ import { toClipboard } from '@/util/helpers';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'CreateApiKeyStepper',
   data() {
     return {
@@ -257,8 +257,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/forms';
-@import '~styles/colors';
+@import '@/assets/forms';
+@import '@/assets/colors';
 
 .stepper {
   box-shadow: unset;

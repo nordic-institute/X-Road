@@ -28,9 +28,10 @@
   <div>
     <div class="header-row">
       <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('members.header') }}</div>
-        <xrd-search v-model="search" />
+        <div class="xrd-view-title ">{{ $t('members.header') }}</div>
+        <xrd-search v-model="search" @update:model-value="debouncedFetchClients"/>
       </div>
+
       <xrd-button
         v-if="hasPermissionToAddMember"
         data-test="add-member-button"
@@ -41,22 +42,19 @@
         </xrd-icon-base>
         {{ $t('members.addMember') }}
       </xrd-button>
-    </div>
 
+    </div>
     <!-- Table -->
-    <v-data-table
+    <v-data-table-server
       :loading="loading"
       :headers="headers"
       :items="clientStore.clients"
-      :search="search"
-      :must-sort="true"
       :items-per-page="10"
-      :options.sync="pagingSortingOptions"
-      :server-items-length="clientStore.pagingOptions.total_items"
-      class="elevation-0 data-table"
+      :items-per-page-options="itemsPerPageOptions"
+      :items-length="clientStore.pagingOptions.total_items"
+      class="xrd-table elevation-0 rounded"
       item-key="client_id.encoded_id"
       :loader-height="2"
-      :footer-props="{ itemsPerPageOptions: [10, 25] }"
       data-test="members-table"
       @update:options="changeOptions"
     >
@@ -64,95 +62,90 @@
         <div
           v-if="hasPermissionToMemberDetails"
           class="members-table-cell-name-action"
-          @click="toDetails(item)"
+          @click="toDetails(item.raw)"
         >
-          <xrd-icon-base class="xrd-clickable mr-4"
-            ><xrd-icon-folder-outline
-          /></xrd-icon-base>
+          <xrd-icon-base class="xrd-clickable mr-4">
+            <xrd-icon-folder-outline />
+          </xrd-icon-base>
 
-          {{ item.member_name }}
+          {{ item.columns.member_name }}
         </div>
 
         <div v-else class="members-table-cell-name">
           <xrd-icon-base class="mr-4"
-            ><xrd-icon-folder-outline
-          /></xrd-icon-base>
+          >
+            <xrd-icon-folder-outline
+            />
+          </xrd-icon-base>
 
-          {{ item.member_name }}
+          {{ item.columns.member_name }}
         </div>
       </template>
-    </v-data-table>
-
+    </v-data-table-server>
     <!-- Dialogs -->
-    <AddMemberDialog
-      v-if="showAddMemberDialog"
+    <add-member-dialog
+      v-model="showAddMemberDialog"
       :show-dialog="showAddMemberDialog"
       @cancel="hideAddMemberDialog"
       @save="hideAddMemberDialogAndRefetch"
     >
-    </AddMemberDialog>
+    </add-member-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { RouteName } from '@/global';
+import { defineComponent } from 'vue';
+import { Permissions, RouteName } from '@/global';
 import AddMemberDialog from '@/views/Members/Member/AddMemberDialog.vue';
-import { DataTableHeader } from 'vuetify';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/clients';
-import { mapState } from 'pinia';
-import { Permissions } from '@/global';
-import { mapActions, mapStores } from 'pinia';
-import { DataOptions } from 'vuetify';
+import { mapActions, mapState, mapStores } from 'pinia';
 import { debounce, toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { Client } from '@/openapi-types';
+import { VDataTableServer } from "vuetify/labs/VDataTable";
+import { DataQuery } from "@/ui-types";
+import { defaultItemsPerPageOptions } from "@/util/defaults";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default Vue.extend({
+export default defineComponent({
   name: 'MemberList',
   components: {
     AddMemberDialog,
+    VDataTableServer
   },
   data() {
     return {
+      dataQuery: { page: 1, itemsPerPage: 10 } as DataQuery,
+      itemsPerPageOptions: defaultItemsPerPageOptions(),
       search: '',
       loading: false,
       showOnlyPending: false,
-      pagingSortingOptions: {} as DataOptions,
       showAddMemberDialog: false,
     };
   },
   computed: {
     ...mapStores(useClient),
     ...mapState(useUser, ['hasPermission']),
-    headers(): DataTableHeader[] {
+    headers() {
       return [
         {
-          text:
-            (this.$t('global.memberName') as string) +
-            ' (' +
-            this.clientStore.clients?.length +
-            ')',
+          title: `${this.$t('global.memberName')} (${this.clientStore.clients?.length})`,
           align: 'start',
-          value: 'member_name',
-          class: 'xrd-table-header members-table-header-name',
+          key: 'member_name',
         },
         {
-          text: this.$t('global.memberClass') as string,
+          title: this.$t('global.memberClass') as string,
           align: 'start',
-          value: 'client_id.member_class',
-          class: 'xrd-table-header members-table-header-class',
+          key: 'client_id.member_class',
         },
         {
-          text: this.$t('global.memberCode') as string,
+          title: this.$t('global.memberCode') as string,
           align: 'start',
-          value: 'client_id.member_code',
-          class: 'xrd-table-header members-table-header-code',
+          key: 'client_id.member_code',
         },
       ];
     },
@@ -161,11 +154,6 @@ export default Vue.extend({
     },
     hasPermissionToAddMember(): boolean {
       return this.hasPermission(Permissions.ADD_NEW_MEMBER);
-    },
-  },
-  watch: {
-    search: function (newSearch, oldSearch) {
-      this.debouncedFetchClients();
     },
   },
   created() {
@@ -178,11 +166,11 @@ export default Vue.extend({
     },
     hideAddMemberDialogAndRefetch(): void {
       this.hideAddMemberDialog();
-      this.fetchClients(this.pagingSortingOptions);
+      this.fetchClients();
     },
     debouncedFetchClients: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.fetchClients(that.pagingSortingOptions);
+      that.fetchClients();
     }, 600),
     toDetails(member: Client): void {
       this.$router.push({
@@ -193,14 +181,18 @@ export default Vue.extend({
         },
       });
     },
-    changeOptions: async function () {
-      this.fetchClients(this.pagingSortingOptions);
+    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
+      this.dataQuery.itemsPerPage = itemsPerPage;
+      this.dataQuery.page = page;
+      this.dataQuery.sortBy= sortBy[0]?.key;
+      this.dataQuery.ortOrder= sortBy[0]?.order;
+      this.fetchClients();
     },
-    fetchClients: async function (options: DataOptions) {
+    fetchClients: async function () {
       this.loading = true;
-
+      this.dataQuery.search = this.search;
       try {
-        await this.clientStore.find(options, this.search);
+        await this.clientStore.find(this.dataQuery);
       } catch (error: unknown) {
         this.showError(error);
       } finally {
@@ -212,8 +204,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .members-table-cell-name-action {
   color: $XRoad-Purple100;
@@ -225,5 +217,15 @@ export default Vue.extend({
 .members-table-cell-name {
   font-weight: 600;
   font-size: 14px;
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>

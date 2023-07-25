@@ -32,20 +32,17 @@
       :background-color="colors.WarmGrey10"
       slider-size="2"
     >
-      <v-tabs-slider
-        color="primary"
-        class="xrd-sub-tabs-slider"
-      ></v-tabs-slider>
+
       <slot></slot>
     </v-tabs>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { Colors } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       colors: Colors,

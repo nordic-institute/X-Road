@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { XRoadId } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
@@ -58,7 +58,7 @@ import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AddMemberSubsystemDialog',
   props: {
     showDialog: {

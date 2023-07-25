@@ -182,7 +182,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -206,7 +206,7 @@ let that: any;
 /**
  * Component for Member Subsystem
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'MemberSubsystems',
   components: {
     DeleteMemberSubsystemDialog,
@@ -370,7 +370,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .card-corner-button {
   display: flex;

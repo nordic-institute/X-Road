@@ -55,7 +55,7 @@
   </div>
 </template>
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
@@ -65,15 +65,7 @@ import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { TrustedAnchor } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        dialog: InstanceType<typeof UploadTrustedAnchorDialog>;
-      };
-    }
-  >
-).extend({
+export default defineComponent({
   components: { UploadTrustedAnchorDialog },
   data() {
     return {

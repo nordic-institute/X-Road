@@ -154,7 +154,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { Colors, Permissions, RouteName } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
@@ -173,7 +173,7 @@ let that: any;
 /**
  * Component for a Members details view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'MemberDetails',
   components: {
     EditMemberNameDialog,
@@ -294,8 +294,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .card-title {
   font-size: 12px;

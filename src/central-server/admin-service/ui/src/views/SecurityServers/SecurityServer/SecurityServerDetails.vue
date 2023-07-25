@@ -115,7 +115,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -129,7 +129,7 @@ import { useNotifications } from '@/store/modules/notifications';
 /**
  * Component for a Security server details view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'SecurityServerDetails',
   components: {
     DeleteSecurityServerAddressDialog,
@@ -184,8 +184,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 #security-server-details {
   margin-top: 24px;

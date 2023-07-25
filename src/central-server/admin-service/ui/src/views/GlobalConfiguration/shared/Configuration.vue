@@ -60,15 +60,14 @@
 /**
  * View for 'backup and restore' tab
  */
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import ConfigurationAnchor from './ConfigurationAnchor.vue';
 import ConfigurationPartsList from '@/components/configurationParts/ConfigurationPartsList.vue';
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
 import { ConfigurationType } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 import Tokens from '@/components/tokens/Tokens.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     Tokens,
     ConfigurationDownloadUrl,
@@ -81,7 +80,7 @@ export default Vue.extend({
       required: true,
     },
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
   },
@@ -98,7 +97,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .card-title {
   font-size: 12px;

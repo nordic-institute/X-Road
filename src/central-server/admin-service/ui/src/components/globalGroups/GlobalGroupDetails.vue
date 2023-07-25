@@ -80,7 +80,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
 import { Colors, Permissions, RouteName } from '@/global';
 import { DataOptions } from 'vuetify';
@@ -96,7 +96,7 @@ import GlobalGroupEditDescriptionDialog from './GlobalGroupEditDescriptionDialog
 /**
  * Global group view
  */
-export default Vue.extend({
+export default defineComponent({
   components: {
     GlobalGroupEditDescriptionDialog,
     GlobalGroupDeleteDialog,
@@ -187,6 +187,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 </style>

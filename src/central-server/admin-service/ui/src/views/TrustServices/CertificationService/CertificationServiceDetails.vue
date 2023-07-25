@@ -108,7 +108,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
@@ -119,7 +119,7 @@ import { useUser } from '@/store/modules/user';
 /**
  * Component for a Certification Service details view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificationServiceDetails',
   components: {
     InfoCard,
@@ -166,8 +166,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .card-title {
   font-size: 12px;

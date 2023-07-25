@@ -60,19 +60,16 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSigningKey } from '@/store/modules/signing-keys';
 import { ConfigurationSigningKey, ConfigurationType } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
-import { ValidationProvider } from 'vee-validate';
 
-export default Vue.extend({
-  components: { ValidationProvider },
+export default defineComponent({
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     tokenId: {

@@ -81,7 +81,7 @@
   </section>
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
@@ -91,7 +91,7 @@ import { Permissions, RouteName } from '@/global';
 import AddGroupDialog from './AddGroupDialog.vue';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'GlobalResourcesList',
   components: { AddGroupDialog },
   data() {
@@ -166,7 +166,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .group-code {
   color: $XRoad-Purple100;

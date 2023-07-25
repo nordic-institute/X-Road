@@ -77,19 +77,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { FileUploadResult } from '@niis/shared-ui';
 import { useTimestampingService } from '@/store/modules/trust-services';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AddTimestampingServiceDialog',
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
   data() {
     return {
       showCASettingsDialog: false,

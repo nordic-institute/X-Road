@@ -39,17 +39,16 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSigningKey } from '@/store/modules/signing-keys';
 import { ConfigurationSigningKey } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     signingKey: {
-      type: Object as Prop<ConfigurationSigningKey>,
+      type: Object as PropType<ConfigurationSigningKey>,
       required: true,
     },
   },

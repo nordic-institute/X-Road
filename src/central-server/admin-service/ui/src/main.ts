@@ -31,26 +31,33 @@ Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
-import Vue from 'vue';
+import { createApp } from 'vue'
 import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
-import './filters';
+import { createFilters } from "@/filters";
 import App from './App.vue';
 import router from './router/router';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
-import i18n from './i18n';
-import { createPinia, PiniaVuePlugin } from 'pinia';
-import VueCompositionAPI from '@vue/composition-api';
+import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
+import { createValidators } from "@/plugins/vee-validate";
+import '@shared-ui/assets/icons.css';
+import XrdIconFolderOutline from '@shared-ui/components/icons/XrdIconFolderOutline.vue';
+import XrdIconBase from '@shared-ui/components/icons/XrdIconBase.vue';
+import XrdIconChecker from '@shared-ui/components/icons/XrdIconChecker.vue';
+import XrdIconClose from '@shared-ui/components/icons/XrdIconClose.vue';
+import XrdIconChecked from '@shared-ui/components/icons/XrdIconChecked.vue';
+import XrdIconAdd from '@shared-ui/components/icons/XrdIconAdd.vue';
+import XrdIconCopy from '@shared-ui/components/icons/XrdIconCopy.vue';
+import XrdButton from '@shared-ui/components/XrdButton.vue';
+import XrdSearch from '@shared-ui/components/XrdSearch.vue';
+import XrdCloseButton from '@shared-ui/components/XrdCloseButton.vue';
+import XrdSubViewContainer from '@shared-ui/components/XrdSubViewContainer.vue';
+import vuetify from '@/plugins/vuetify';
+import i18n from "@/plugins/i18n";
 
-Vue.use(VueCompositionAPI);
-Vue.use(PiniaVuePlugin);
 
 const pinia = createPinia();
 pinia.use(
@@ -58,17 +65,31 @@ pinia.use(
     storage: sessionStorage,
   }),
 );
-Vue.config.productionTip = false;
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
+//Vue.config.productionTip = false; TODO probably save to remove
+axios.defaults.baseURL = import.meta.env.VITE_VUE_APP_BASE_URL;
+console.log(import.meta.env.VITE_VUE_APP_BASE_URL)
+
 axios.defaults.headers.get.Accepts = 'application/json';
 
-Vue.use(Router);
+const app = createApp(App);
+app.use(pinia);
+app.use(router);
+app.use(vuetify);
+app.use(i18n);
+app.use(createFilters());
+app.use(createValidators());
+app.component('XrdIconFolderOutline', XrdIconFolderOutline);
+app.component('XrdIconBase', XrdIconBase);
+app.component('XrdIconChecker', XrdIconChecker);
+app.component('XrdIconClose', XrdIconClose);
+app.component('XrdIconChecked', XrdIconChecked);
+app.component('XrdIconAdd', XrdIconAdd);
+app.component('XrdIconCopy', XrdIconCopy);
+app.component('XrdButton', XrdButton);
+app.component('XrdSearch', XrdSearch);
+app.component('XrdCloseButton', XrdCloseButton);
+app.component('XrdSubViewContainer', XrdSubViewContainer);
+app.mount('#app');
 
-new Vue({
-  router,
-  i18n,
-  vuetify,
-  pinia,
-  render: (h) => h(App),
-}).$mount('#app');
+

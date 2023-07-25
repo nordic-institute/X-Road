@@ -76,8 +76,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
@@ -85,11 +84,7 @@ import { useNotifications } from '@/store/modules/notifications';
 /**
  * Component for a Security server details view
  */
-export default Vue.extend({
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+export default defineComponent({
   props: {
     securityServerId: {
       type: String,

@@ -33,7 +33,7 @@ import './assets/icons.css';
 
 //plugins
 import vuetify from './plugins/vuetify';
-import createI18nForXrd from './plugins/i18n';
+import createSharedI18n from './plugins/i18n';
 
 //components
 import XrdButton from './components/XrdButton.vue';
@@ -56,12 +56,27 @@ import XrdTable from './components/XrdTable.vue';
 import XrdBackupsDataTable from './components/backups-and-restore/XrdBackupsDataTable.vue';
 import XrdBackupsToolbar from './components/backups-and-restore/XrdBackupsToolbar.vue';
 
-function createSharedUi(i18nMessages = {}) {
+//icons
+import XrdIconAdd from "./components/icons/XrdIconAdd.vue";
+import XrdIconBase from "./components/icons/XrdIconBase.vue";
+import XrdIconChecked from "./components/icons/XrdIconChecked.vue";
+import XrdIconChecker from "./components/icons/XrdIconChecker.vue";
+import XrdIconClose from "./components/icons/XrdIconClose.vue";
+import XrdIconCopy from "./components/icons/XrdIconCopy.vue";
+import XrdIconFolderOutline from "./components/icons/XrdIconFolderOutline.vue";
+
+function createSharedUi() {
   return {
     install(app: App) {
       app
         .use(vuetify)
-        .use(createI18nForXrd(i18nMessages))
+        .component('XrdIconAdd', XrdIconAdd)
+        .component('XrdIconBase', XrdIconBase)
+        .component('XrdIconChecked', XrdIconChecked)
+        .component('XrdIconChecker', XrdIconChecker)
+        .component('XrdIconClose', XrdIconClose)
+        .component('XrdIconCopy', XrdIconCopy)
+        .component('XrdIconFolderOutline', XrdIconFolderOutline)
         .component('XrdButton', XrdButton)
         .component('XrdCloseButton', XrdCloseButton)
         .component('XrdAlert', XrdAlert)
@@ -87,6 +102,7 @@ function createSharedUi(i18nMessages = {}) {
 
 export {
   createSharedUi,
+  createSharedI18n,
   XrdButton,
   XrdCloseButton,
   XrdAlert,
@@ -106,4 +122,11 @@ export {
   XrdTable,
   XrdBackupsDataTable,
   XrdBackupsToolbar,
+  XrdIconAdd,
+  XrdIconBase,
+  XrdIconChecked,
+  XrdIconChecker,
+  XrdIconClose,
+  XrdIconCopy,
+  XrdIconFolderOutline
 };

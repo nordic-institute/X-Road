@@ -29,9 +29,11 @@
     <!-- Dont show toolbar or footer in login view -->
     <app-toolbar v-if="loginView" />
     <v-main app>
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </v-main>
     <snackbar />
     <app-footer v-if="loginView" />
@@ -40,13 +42,13 @@
 
 <script lang="ts">
 // The root component of the Vue app
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import Snackbar from '@/components/ui/Snackbar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'App',
 
   components: {
@@ -63,11 +65,11 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import './assets/global-style';
+@import '@/assets/global-style';
 </style>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .fade-enter-active,
 .fade-leave-active {
@@ -82,7 +84,7 @@ export default Vue.extend({
 }
 
 // Set the app background color
-.theme--light.v-application.xrd-app {
+.v-theme--light.v-application.xrd-app {
   background: $XRoad-WarmGrey30;
 }
 </style>

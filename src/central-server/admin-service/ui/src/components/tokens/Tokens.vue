@@ -52,18 +52,17 @@
 /**
  * Table component for an array of keys
  */
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import Vue, { defineComponent, PropType } from 'vue';
 import { ConfigurationType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useToken } from '@/store/modules/tokens';
 import TokenExpandable from '@/components/tokens/TokenExpandable.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { TokenExpandable },
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
   },

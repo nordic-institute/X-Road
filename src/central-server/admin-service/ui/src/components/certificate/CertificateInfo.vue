@@ -87,11 +87,11 @@
  * Component for displaying detailed certificate information
  */
 
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import CertificateLine from './CertificateLine.vue';
 import { CertificateDetails } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     CertificateLine,
   },

@@ -24,71 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { createI18n } from 'vue-i18n';
+import merge from 'deepmerge';
+import vee_en from '@vee-validate/i18n/dist/locale/en.json'
+import sharedLocals from '@shared-ui/locales/en.json';
+import locals from '@/locales/en.json';
 
-@import "@/assets/colors";
+(locals as any).validation = vee_en;
 
-// Card looking outer wrap for the form
-.form-view-wrap {
-  width: 100%;
-  max-width: 1280px;
-  background-color: $XRoad-White100;
-  margin: 40px;
-  margin-top: 30px;
-  box-shadow: $XRoad-DefaultShadow;
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-}
+let en = merge(sharedLocals, locals)
 
-// Centered container on a form "card"
-.form-content-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+console.log(en)
 
-// Row to contain info and the input
-.form-row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  min-height: 60px;
-  width: 840px;
-  margin-bottom: 20px;
-  margin-left: 20px;
-  margin-right: 20px;
-  // children
-  > * {
-    &:first-child {
-      margin-right: 15px;
-    }
-
-    &:last-child {
-      margin-left: 15px;
-    }
-  }
-}
-
-.form-input {
-  width: 405px;
-}
-
-// Button area on the bottom of a "card"
-.button-footer {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
-  padding-right: 24px;
-  padding-left: 24px;
-  border-radius: 0px 0px 4px 4px;
-
-  // children
-  > * {
-    &:not(:last-child) {
-      margin-right: 20px;
-    }
-  }
-}
+export default createI18n({
+  legacy: false,
+  locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
+  fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  silentFallbackWarn: true,
+  allowComposition: true,
+  messages: { en },
+});

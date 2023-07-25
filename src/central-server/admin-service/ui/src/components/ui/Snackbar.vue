@@ -27,47 +27,47 @@
 <template>
   <div>
     <!-- Success -->
-    <transition-group :name="transitionName">
-      <v-snackbar
-        v-for="notification in successNotifications"
-        :key="notification.timeAdded"
-        v-model="notification.show"
-        data-test="success-snackbar"
-        :timeout="snackbarTimeout(notification.timeout)"
-        :color="colors.Success10"
-        multi-line
-        class="success-snackbar"
-        :min-width="760"
-        @input="closeSuccess(notification.timeAdded)"
-      >
-        <div class="row-wrapper-top scrollable identifier-wrap">
-          <xrd-icon-base :color="colors.Success100">
-            <XrdIconChecker />
-          </xrd-icon-base>
+    <v-snackbar
+      v-for="notification in successNotifications"
+      :key="notification.timeAdded"
+      v-model="notification.show"
+      transition="fab-transition"
+      :timeout="snackbarTimeout(notification.timeout)"
+      :color="colors.Success10"
+      :min-width="760"
+      data-test="success-snackbar"
+      multi-line
+      class="success-snackbar"
+      @input="closeSuccess(notification.timeAdded)"
+    >
+      <div class="row-wrapper-top scrollable identifier-wrap">
+        <xrd-icon-base :color="colors.Success100">
+          <XrdIconChecker />
+        </xrd-icon-base>
 
-          <div class="row-wrapper">
-            <div v-if="notification.successMessage">
-              {{ notification.successMessage }}
-            </div>
+        <div class="row-wrapper">
+          <div v-if="notification.successMessage">
+            {{ notification.successMessage }}
           </div>
-          <v-btn
-            icon
-            :color="colors.Black100"
-            data-test="close-snackbar"
-            @click="closeSuccess(notification.timeAdded)"
-          >
-            <xrd-icon-base>
-              <XrdIconClose />
-            </xrd-icon-base>
-          </v-btn>
         </div>
-      </v-snackbar>
-    </transition-group>
+        <v-btn
+          icon
+          variant="text" rounded
+          :color="colors.Black100"
+          data-test="close-snackbar"
+          @click="closeSuccess(notification.timeAdded)"
+        >
+          <xrd-icon-base>
+            <XrdIconClose />
+          </xrd-icon-base>
+        </v-btn>
+      </div>
+    </v-snackbar>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Colors } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
@@ -79,7 +79,7 @@ declare global {
   }
 }
 
-export default Vue.extend({
+export default defineComponent({
   // Component for snackbar notifications
   data() {
     return {
@@ -140,15 +140,5 @@ export default Vue.extend({
 .scrollable {
   overflow-y: auto;
   max-height: 300px;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 1s;
-}
-
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

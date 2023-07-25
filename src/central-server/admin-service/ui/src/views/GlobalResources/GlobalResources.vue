@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useSettingsTabs } from '@/store/modules/settings-tabs';
@@ -39,7 +39,7 @@ import { useSettingsTabs } from '@/store/modules/settings-tabs';
  * Main view wrapping content all from 'Global resources' main tab.
  * The tab is the default tab of Settings section.
  */
-export default Vue.extend({
+export default defineComponent({
   computed: {
     ...mapStores(useSettingsTabs, ['getAvailableTabs']),
   },

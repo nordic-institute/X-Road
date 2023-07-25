@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { RouteName, Timeouts } from '@/global';
 import { get } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
@@ -70,7 +70,7 @@ import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       sessionPollInterval: 0,

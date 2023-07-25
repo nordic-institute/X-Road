@@ -51,10 +51,9 @@
 </template>
 
 <script lang="ts">
-import { Prop } from 'vue/types/options';
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'GlobalGroupEditDescriptionDialog',
   props: {
     groupCode: {
@@ -66,7 +65,7 @@ export default Vue.extend({
       required: true,
     },
     showDialog: {
-      type: Boolean as Prop<boolean>,
+      type: Boolean as PropType<boolean>,
       required: true,
     },
   },

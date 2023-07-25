@@ -24,23 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
-import Vue from 'vue';
-import Vuetify from 'vuetify/lib';
-import { Colors } from '@/global';
+import { createVuetify } from 'vuetify';
+import { aliases, mdi } from 'vuetify/iconsets/mdi'
+import { Colors } from "@/global";
 
-Vue.use(Vuetify);
-
-export default new Vuetify({
+export default createVuetify({
   icons: {
-    iconfont: 'mdi',
+    defaultSet: 'mdi',
+    aliases,
+    sets: {
+      mdi
+    }
   },
   theme: {
+    //TODO check customProperties in https://vuetifyjs.com/en/getting-started/upgrade-guide/
     themes: {
       light: {
-        primary: Colors.Purple100,
-        accent: Colors.Purple70,
-        grey: Colors.Black50,
+        colors: {
+          primary: Colors.Purple100,
+          accent: Colors.Purple70,
+          grey: Colors.Black50,
+        },
       },
     },
   },

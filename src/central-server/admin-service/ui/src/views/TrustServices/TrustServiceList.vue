@@ -97,7 +97,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import AddCertificationServiceDialog from '@/components/certificationServices/AddCertificationServiceDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -112,7 +112,7 @@ import {
 } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'TrustServiceList',
   components: {
     AddCertificationServiceDialog,
@@ -201,7 +201,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .server-code {
   color: $XRoad-Purple100;

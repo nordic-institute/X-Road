@@ -66,19 +66,14 @@
   </ValidationObserver>
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { GroupMemberListView } from '@/openapi-types';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { toIdentifier } from '@/util/helpers';
 
-export default Vue.extend({
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+export default defineComponent({
   props: {
     groupCode: {
       type: String,
