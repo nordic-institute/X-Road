@@ -32,10 +32,10 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { ManagementRequestStatus } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     status: {
       type: String as PropType<ManagementRequestStatus>,
@@ -87,7 +87,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .status-wrapper {
   display: flex;

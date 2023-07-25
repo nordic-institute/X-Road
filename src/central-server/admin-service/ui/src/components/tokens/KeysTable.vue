@@ -85,8 +85,7 @@
 /**
  * Table component for an array of keys
  */
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import Vue, { defineComponent, PropType } from 'vue';
 import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
 import { DataTableHeader } from 'vuetify';
 import { mapState } from 'pinia';
@@ -95,11 +94,11 @@ import { Permissions } from '@/global';
 import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDialog.vue';
 import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { SigningKeyActivateDialog, SigningKeyDeleteDialog },
   props: {
     keys: {
-      type: Array as Prop<ConfigurationSigningKey[]>,
+      type: Array as PropType<ConfigurationSigningKey[]>,
       required: true,
     },
     loadingKeys: {
@@ -183,7 +182,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .key-icon {
   margin-right: 18px;

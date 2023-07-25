@@ -167,9 +167,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
-import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
-import i18n from '@/i18n';
+import { defineComponent } from 'vue';
 import { Colors, RouteName } from '@/global';
 import {
   ErrorInfo,
@@ -178,20 +176,20 @@ import {
   TokenInitStatus,
 } from '@/openapi-types';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
-import { AxiosError } from 'axios';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSystem } from '@/store/modules/system';
+import { defineRule } from "vee-validate";
 
-const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
+//const { t } = useI18n();
+const PASSWORD_MATCH_ERROR: string = 'FIX ME'; //TODO vue3 fixme later t('init.pin.pinMatchError') as string;
 
-extend('password', {
-  params: ['target'],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validate(value, { target }: Record<string, any>) {
-    return value === target;
-  },
-  message: PASSWORD_MATCH_ERROR,
+defineRule('password', (value, [target]) => {
+  if (value === target) {
+    return true;
+  }
+
+  return PASSWORD_MATCH_ERROR;
 });
 
 function getTranslatedFieldErrors(
@@ -201,26 +199,14 @@ function getTranslatedFieldErrors(
   const errors: string[] = fieldError[fieldName];
   if (errors) {
     return errors.map((errorKey: string) => {
-      return i18n.t(`validationError.${errorKey}Field`).toString();
+      return t(`validationError.${errorKey}Field`).toString();
     });
   } else {
     return [];
   }
 }
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        initializationForm: InstanceType<typeof ValidationObserver>;
-      };
-    }
-  >
-).extend({
-  components: {
-    ValidationObserver,
-    ValidationProvider,
-  },
+export default defineComponent({
   props: {},
   data() {
     return {
@@ -329,8 +315,8 @@ export default (
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/forms';
+@import '@/assets/colors';
+@import '@/assets/forms';
 
 .form-main-title {
   color: $XRoad-WarmGrey100;

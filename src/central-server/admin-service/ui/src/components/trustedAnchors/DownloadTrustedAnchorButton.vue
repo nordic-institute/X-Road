@@ -39,14 +39,14 @@
   </xrd-button>
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     hash: {
       type: String,

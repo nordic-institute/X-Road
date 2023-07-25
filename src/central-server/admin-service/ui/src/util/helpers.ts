@@ -28,8 +28,8 @@
 // Filters an array of objects excluding specified object key
 import { NavigationFailure } from 'vue-router';
 import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
-import i18n from '@/i18n';
 import { AxiosError, AxiosResponse } from 'axios';
+import { useI18n } from "vue-i18n";
 
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
@@ -173,8 +173,9 @@ export function getTranslatedFieldErrors(
 ): string[] {
   const errors: string[] = fieldError[fieldName];
   if (errors) {
+    const { t } = useI18n();
     return errors.map((errorKey: string) => {
-      return i18n.t(`validationError.${errorKey}Field`).toString();
+      return t(`validationError.${errorKey}Field`).toString();
     });
   } else {
     return [];
@@ -224,18 +225,46 @@ export function toShortMemberId(client: ClientId): string {
 export function managementTypeToText(
   type: ManagementRequestType | undefined,
 ): string {
+  const { t } = useI18n();
   switch (type) {
     case ManagementRequestType.OWNER_CHANGE_REQUEST:
-      return i18n.t('managementRequests.changeOwner') as string;
+      return t('managementRequests.changeOwner') as string;
     case ManagementRequestType.AUTH_CERT_DELETION_REQUEST:
-      return i18n.t('managementRequests.removeCertificate') as string;
+      return t('managementRequests.removeCertificate') as string;
     case ManagementRequestType.CLIENT_DELETION_REQUEST:
-      return i18n.t('managementRequests.removeClient') as string;
+      return t('managementRequests.removeClient') as string;
     case ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST:
-      return i18n.t('managementRequests.addCertificate') as string;
+      return t('managementRequests.addCertificate') as string;
     case ManagementRequestType.CLIENT_REGISTRATION_REQUEST:
-      return i18n.t('managementRequests.addClient') as string;
+      return t('managementRequests.addClient') as string;
     default:
       return '';
   }
+}
+
+// Add colon for every two characters.  xxxxxx -> xx:xx:xx
+export function colonize(value: string): string {
+  if (!value) {
+    return '';
+  }
+
+  const colonized = value.replace(/(.{2})/g, '$1:');
+
+  if (colonized[colonized.length - 1] === ':') {
+    return colonized.slice(0, -1);
+  }
+
+  return colonized;
+}
+
+// Upper case every word
+export function upperCaseWords(value: string): string {
+  if (!value) {
+    return '';
+  }
+  return value
+    .toLowerCase()
+    .split(' ')
+    .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+    .join(' ');
 }

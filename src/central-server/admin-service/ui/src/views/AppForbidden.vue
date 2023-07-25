@@ -67,13 +67,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     TabsBase,
     AlertsContainer,
@@ -95,7 +95,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .xrd-view-common {
   width: 100%;

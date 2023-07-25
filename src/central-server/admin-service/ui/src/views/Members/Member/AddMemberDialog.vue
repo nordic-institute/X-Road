@@ -26,8 +26,8 @@
  -->
 <template>
   <xrd-simple-dialog
+    v-model="showDialog"
     :disable-save="!formReady"
-    :dialog="showDialog"
     :loading="loading"
     cancel-button-text="action.cancel"
     title="members.addMember"
@@ -39,7 +39,7 @@
         <v-text-field
           v-model="memberName"
           :label="$t('global.memberName')"
-          outlined
+          variant="outlined"
           autofocus
           data-test="add-member-name-input"
         ></v-text-field>
@@ -49,34 +49,28 @@
         v-model="memberClass"
         :items="memberClasses"
         :label="$t('global.memberClass')"
-        item-text="code"
-        outlined
+        item-title="code"
+        item-value="code"
+        variant="outlined"
         data-test="add-member-class-input"
+        z-index="2410"
       ></v-select>
 
       <div class="dlg-input-width">
-        <ValidationProvider
-          ref="memberCodeVP"
-          v-slot="{ errors }"
-          rules="required"
-          name="memberCode"
-          class="validation-provider"
-        >
           <v-text-field
-            v-model="memberCode"
+            v-model="memberCode.value"
             :label="$t('global.memberCode')"
-            outlined
+            variant="outlined"
             data-test="add-member-code-input"
-            :error-messages="errors"
+            :error-messages="memberCode.errorMessage as string"
           ></v-text-field>
-        </ValidationProvider>
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue, {VueConstructor} from 'vue';
+import { defineComponent } from 'vue';
 import {mapActions, mapState, mapStores} from 'pinia';
 import {ErrorInfo, MemberClass} from '@/openapi-types';
 import {useClient} from '@/store/modules/clients';
@@ -86,32 +80,27 @@ import {useNotifications} from '@/store/modules/notifications';
 import {useMemberClass} from '@/store/modules/member-class';
 import {getErrorInfo, getTranslatedFieldErrors, isFieldError,} from '@/util/helpers';
 import {AxiosError} from 'axios';
-import {ValidationProvider} from 'vee-validate';
+import { useField } from "vee-validate";
+import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        memberCodeVP: InstanceType<typeof ValidationProvider>;
-      };
-    }
-  >
-).extend({
+export default defineComponent({
   name: 'AddMemberDialog',
-  components: { ValidationProvider },
+  components: {
+    XrdSimpleDialog
+  },
   props: {
     showDialog: {
       type: Boolean,
       required: true,
-    },
+    }
   },
-
+  emits:['save', 'cancel'],
   data() {
     return {
       loading: false,
       memberName: '',
       memberClass: '',
-      memberCode: '',
+      memberCode: useField('memberCode', 'required'),
     };
   },
   computed: {
@@ -136,7 +125,7 @@ export default (
     clearForm(): void {
       this.memberName = '';
       this.memberClass = '';
-      this.memberCode = '';
+      this.memberCode.resetField();
     },
     add(): void {
       this.loading = true;
@@ -147,7 +136,7 @@ export default (
           member_name: this.memberName,
           member_id: {
             member_class: this.memberClass,
-            member_code: this.memberCode,
+            member_code: this.memberCode.value as string,
           },
         })
         .then(() => {
@@ -164,7 +153,7 @@ export default (
           if (isFieldError(errorInfo)) {
             let fieldErrors = errorInfo.error?.validation_errors;
             if (fieldErrors && this.$refs?.memberCodeVP) {
-              this.$refs.memberCodeVP.setErrors(
+              this.memberCode.setErrors(
                 getTranslatedFieldErrors(
                   'memberAddDto.memberId.memberCode',
                   fieldErrors,

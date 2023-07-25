@@ -84,7 +84,7 @@
 /**
  * Component for a Certification Service details view
  */
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapState, mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
@@ -93,7 +93,7 @@ import { useUser } from '@/store/modules/user';
 import EditCertProfileDialog from '@/components/certificationServices/EditCertProfileDialog.vue';
 import EditTlsAuthDialog from '@/components/certificationServices/EditTlsAuthDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificationServiceSettings',
   components: {
     EditTlsAuthDialog,

@@ -81,17 +81,16 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { TrustedAnchor } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
-import { Prop } from 'vue/types/options';
 import { useNotifications } from '@/store/modules/notifications';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     preview: {
-      type: Object as Prop<TrustedAnchor>,
+      type: Object as PropType<TrustedAnchor>,
       required: true,
     },
     file: {

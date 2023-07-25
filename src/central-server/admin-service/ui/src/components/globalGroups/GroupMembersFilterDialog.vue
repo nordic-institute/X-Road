@@ -152,7 +152,7 @@
 <script lang="ts">
 /** Base component for simple dialogs */
 
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 
@@ -167,7 +167,7 @@ const initialState = () => {
   };
 };
 
-export default Vue.extend({
+export default defineComponent({
   name: 'GroupMembersFilterDialog',
   components: {},
   props: {
@@ -255,7 +255,7 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-@import '~@/assets/colors';
+@import '@/assets/colors';
 
 .xrd-card {
   .xrd-card-actions {

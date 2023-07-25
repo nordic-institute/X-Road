@@ -67,7 +67,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useSystem } from '@/store/modules/system';
@@ -77,7 +77,7 @@ import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'UnregisterMemberSubsystemDialog',
   props: {
     showDialog: {

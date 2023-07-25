@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import PageNavigation, {
   PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
@@ -60,7 +60,7 @@ import { useIntermediateCasService } from '@/store/modules/trust-services';
 /**
  * Wrapper component for intermediate CA view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'IntermediateCa',
   components: { PageNavigation },
   props: {
@@ -114,5 +114,5 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

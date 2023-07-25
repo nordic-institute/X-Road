@@ -37,10 +37,11 @@
         :key="notification.timeAdded"
         v-model="notification.show"
         data-test="contextual-alert"
+        border="start"
+        border-color="error"
+        variant="outlined"
+        class="alert mb-2"
         color="red"
-        border="left"
-        colored-border
-        class="alert"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="icon-wrapper">
@@ -119,14 +120,13 @@
           <xrd-button
             v-if="notification.errorId"
             text
-            :outlined="false"
             class="id-button"
             data-test="copy-id-button"
             @click.prevent="copyId(notification)"
           >
-            <xrd-icon-base class="xrd-large-button-icon"
-              ><XrdIconCopy
-            /></xrd-icon-base>
+            <xrd-icon-base class="xrd-large-button-icon">
+              <XrdIconCopy />
+            </xrd-icon-base>
 
             {{ $t('action.copyId') }}</xrd-button
           >
@@ -146,12 +146,12 @@
 
           <div class="close-button">
             <v-btn
-              icon
               color="primary"
               data-test="close-alert"
               @click="closeError(notification.timeAdded)"
+              variant="text"
             >
-              <xrd-icon-base><XrdIconClose /></xrd-icon-base>
+              <xrd-icon-base><xrd-icon-close /></xrd-icon-base>
             </v-btn>
           </div>
         </div>
@@ -161,13 +161,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 
-export default Vue.extend({
+export default defineComponent({
   // Component for contextual notifications
   computed: {
     ...mapState(useNotifications, ['errorNotifications']),
@@ -198,7 +198,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .alerts-container {
   padding: 0;
@@ -213,6 +213,7 @@ export default Vue.extend({
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
+  background-color: $XRoad-White100;
 }
 
 .row-wrapper-top {

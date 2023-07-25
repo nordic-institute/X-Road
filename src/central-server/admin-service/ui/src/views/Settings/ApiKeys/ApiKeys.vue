@@ -155,7 +155,7 @@
 /**
  * View for 'API keys' tab
  */
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { ApiKey } from '@/api-types';
 import { RouteName, Roles } from '@/global';
@@ -165,7 +165,7 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       search: '' as string,
@@ -297,7 +297,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .button-wrap {
   width: 100%;

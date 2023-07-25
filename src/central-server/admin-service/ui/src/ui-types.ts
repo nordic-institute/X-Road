@@ -29,7 +29,6 @@
  These are not in openapi definitions.
 */
 import { Location } from 'vue-router';
-import { AxiosError } from 'axios';
 
 // Interface for Tab data
 export interface Tab {
@@ -80,4 +79,12 @@ export type ValidationError = {
 export interface ActionError {
   errorMessage?: string;
   action?: NotificationAction;
+}
+
+export interface DataQuery {
+  itemsPerPage: number;
+  page: number,
+  sortBy?: string,
+  sortOrder?: string,
+  search?: string
 }

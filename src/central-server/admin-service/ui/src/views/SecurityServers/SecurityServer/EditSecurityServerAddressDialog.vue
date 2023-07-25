@@ -68,8 +68,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import Vue, { defineComponent, VueConstructor } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
@@ -84,19 +83,7 @@ import { AxiosError } from 'axios';
 /**
  * Component for a Security server details view
  */
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        serverAddressVP: InstanceType<typeof ValidationProvider>;
-      };
-    }
-  >
-).extend({
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+export default defineComponent({
   props: {
     securityServerId: {
       type: String,

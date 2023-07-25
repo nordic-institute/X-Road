@@ -41,13 +41,13 @@
   </xrd-button>
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import DeleteTrustedAnchorDialog from './DeleteTrustedAnchorDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { DeleteTrustedAnchorDialog },
   props: {
     hash: {

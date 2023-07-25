@@ -37,10 +37,10 @@
 /**
  * View for 'Internal configuration' tab
  */
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import Configuration from '../shared/Configuration.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     Configuration,
   },

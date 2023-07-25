@@ -26,7 +26,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-model="localModelValue"
     :title="title"
     :cancel-button-text="cancelButtonText"
     :save-button-text="acceptButtonText"
@@ -49,13 +49,14 @@
  */
 
 import type { PropType } from 'vue';
+import { computed } from "vue";
 
-defineEmits(['cancel', 'accept']);
+const emits = defineEmits(['cancel', 'accept', 'update:modelValue']);
 
-defineProps({
-  dialog: {
+const props = defineProps({
+  modelValue: {
     type: Boolean,
-    required: true,
+    default: false,
   },
   title: {
     type: String,
@@ -84,5 +85,14 @@ defineProps({
     required: false,
     default: {} as Record<string, unknown>,
   },
+});
+
+const localModelValue = computed({
+  get() {
+    return props.modelValue;
+  },
+  set(newValue) {
+    emits('update:modelValue', newValue);
+  }
 });
 </script>

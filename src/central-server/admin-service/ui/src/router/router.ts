@@ -24,7 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Router, { NavigationGuardNext, Route } from 'vue-router';
+import {
+  createRouter,
+  createWebHashHistory,
+  NavigationGuardNext,
+  RouteLocationNormalized
+} from 'vue-router'
 import routes from './routes';
 import { RouteName } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
@@ -32,11 +37,12 @@ import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 
 // Create the router
-const router = new Router({
+const router = createRouter({
+  history:createWebHashHistory(),
   routes: routes,
 });
 
-router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
+router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   // Going to login
   if (to.name === RouteName.Login) {
     next();
@@ -80,7 +86,6 @@ router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
           name: RouteName.Forbidden,
         });
       }
-      next();
     }
 
     return;

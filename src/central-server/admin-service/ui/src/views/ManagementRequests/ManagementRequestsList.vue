@@ -103,7 +103,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
@@ -122,7 +122,7 @@ let that: any;
 /**
  * General component for Management requests
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'ManagementRequestsList',
   components: {
     MrTypeCell,
@@ -245,7 +245,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~@/assets/tables';
+@import '@/assets/tables';
 
 #management-request-filters {
   display: flex;

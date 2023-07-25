@@ -177,7 +177,7 @@ import {
   ManagementServicesConfiguration,
   SecurityServer,
 } from '@/openapi-types';
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useManagementServices } from '@/store/modules/management-services';
 import { useNotifications } from '@/store/modules/notifications';
@@ -187,7 +187,7 @@ import { useUser } from '@/store/modules/user';
 import SelectSubsystemDialog from '@/components/systemSettings/SelectSubsystemDialog.vue';
 import SelectSecurityServerDialog from '@/components/systemSettings/SelectSecurityServerDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     SelectSubsystemDialog,
     SelectSecurityServerDialog,
@@ -304,7 +304,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .card-top {
   padding-top: 15px;

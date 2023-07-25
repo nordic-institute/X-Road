@@ -26,7 +26,7 @@
  */
 
 import SecurityServerAuthenticationCertificate from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
-import { Route, RouteConfig } from 'vue-router';
+import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 import TabsBase from '@/components/layout/TabsBase.vue';
 
 import AppLogin from '@/views/AppLogin.vue';
@@ -91,7 +91,7 @@ import TimestampingServiceCertificate from '@/components/timestampingServices/Ti
 import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
 import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
 
-const routes: RouteConfig[] = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: AppBase,
@@ -249,7 +249,7 @@ const routes: RouteConfig[] = [
                 name: RouteName.SecurityServerDetails,
                 path: 'details',
                 component: SecurityServerDetails,
-                props(route: Route): { serverId: string } {
+                props(route: RouteLocationNormalized): { serverId: string } {
                   const serverId = route.params.serverId;
                   return { serverId };
                 },
@@ -270,7 +270,7 @@ const routes: RouteConfig[] = [
                 name: RouteName.SecurityServerAuthenticationCertificate,
                 path: 'authenticationcertificates/:authenticationCertificateId',
                 component: SecurityServerAuthenticationCertificate,
-                props(route: Route): { authenticationCertificateId: number } {
+                props(route: RouteLocationNormalized): { authenticationCertificateId: number } {
                   const authenticationCertificateId = Number(
                     route.params.authenticationCertificateId,
                   );
@@ -313,7 +313,7 @@ const routes: RouteConfig[] = [
             path: '',
             component: TimestampingServiceCertificate,
             meta: { permissions: [Permissions.VIEW_APPROVED_TSAS] },
-            props(route: Route): { timestampingServiceId: number } {
+            props(route: RouteLocationNormalized): { timestampingServiceId: number } {
               const timestampingServiceId = Number(
                 route.params.timestampingServiceId,
               );
@@ -324,7 +324,7 @@ const routes: RouteConfig[] = [
             path: '/certification-services/:certificationServiceId',
             component: CertificationService,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props(route: Route): { certificationServiceId: number } {
+            props(route: RouteLocationNormalized): { certificationServiceId: number } {
               const certificationServiceId = Number(
                 route.params.certificationServiceId,
               );
@@ -362,7 +362,7 @@ const routes: RouteConfig[] = [
             path: '/intermediate-ca/:intermediateCaId',
             component: IntermediateCa,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: (route: Route): { intermediateCaId: number } => {
+            props: (route: RouteLocationNormalized): { intermediateCaId: number } => {
               const intermediateCaId = Number(route.params.intermediateCaId);
               return { intermediateCaId };
             },
@@ -387,7 +387,7 @@ const routes: RouteConfig[] = [
             path: '/certification-services/:certificationServiceId/certificate-details',
             component: CertificationServiceCertificate,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: (route: Route): { certificationServiceId: number } => {
+            props: (route: RouteLocationNormalized): { certificationServiceId: number } => {
               const certificationServiceId = Number(
                 route.params.certificationServiceId,
               );
@@ -399,7 +399,7 @@ const routes: RouteConfig[] = [
             path: 'ocsp-responder/:ocspResponderId/certificate-details',
             component: OcspResponderCertificate,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: (route: Route): { ocspResponderId: number } => {
+            props: (route: RouteLocationNormalized): { ocspResponderId: number } => {
               const ocspResponderId = Number(route.params.ocspResponderId);
               return { ocspResponderId };
             },
@@ -409,7 +409,7 @@ const routes: RouteConfig[] = [
             path: '/intermediate-cas/:intermediateCaId',
             component: IntermediateCACertificate,
             meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
-            props: (route: Route): { intermediateCaId: number } => {
+            props: (route: RouteLocationNormalized): { intermediateCaId: number } => {
               const intermediateCaId = Number(route.params.intermediateCaId);
               return { intermediateCaId };
             },
@@ -448,7 +448,7 @@ const routes: RouteConfig[] = [
             name: RouteName.ManagementRequestDetails,
             path: ':requestId/details',
             component: ManagementRequestDetails,
-            props(route: Route): { requestId: number } {
+            props(route: RouteLocationNormalized): { requestId: number } {
               const requestId = Number(route.params.requestId);
               return { requestId };
             },
@@ -512,7 +512,11 @@ const routes: RouteConfig[] = [
     component: AppForbidden,
   },
   {
-    path: '*',
+    path: '/:pathMatch(.*)*',
+    component: AppError,
+  },
+  {
+    path: '/:pathMatch(.*)',
     component: AppError,
   },
 ];

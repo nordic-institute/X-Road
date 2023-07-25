@@ -84,20 +84,15 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import Vue, { defineComponent } from 'vue';
 import { Client } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'MemberDeleteDialog',
-  components: {
-    ValidationObserver,
-    ValidationProvider,
-  },
   props: {
     member: {
       type: Object as () => Client,

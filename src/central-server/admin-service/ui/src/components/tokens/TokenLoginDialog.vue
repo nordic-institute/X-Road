@@ -61,20 +61,17 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider } from 'vee-validate';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useToken } from '@/store/modules/tokens';
-import { Prop } from 'vue/types/options';
 import { Token } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'TokenLoginDialog',
-  components: { ValidationProvider },
   props: {
     token: {
-      type: Object as Prop<Token>,
+      type: Object as PropType<Token>,
       required: true,
     },
   },
@@ -102,13 +99,14 @@ export default Vue.extend({
         .catch((error) => {
           const metadata: string[] = error.response?.data?.error?.metadata;
           if (metadata && metadata.length > 0) {
-            (
+           /* TODO vue3 fix this later (
               this.$refs.tokenPin as InstanceType<typeof ValidationProvider>
             ).setErrors(
               metadata.map(
                 (code) => this.$t('tokens.errors.' + code) as string,
               ),
             );
+            */
           }
           this.showError(error);
         })

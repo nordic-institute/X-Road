@@ -45,9 +45,9 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     blockTitleKey: {
       type: String,
@@ -62,7 +62,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~@/assets/tables.scss';
+@import '@/assets/tables.scss';
 
 .card-main-title {
   color: $XRoad-Black100;

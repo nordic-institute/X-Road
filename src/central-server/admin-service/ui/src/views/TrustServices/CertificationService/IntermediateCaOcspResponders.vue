@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import {
   useCertificationService,
@@ -41,7 +41,7 @@ import {
 } from '@/store/modules/trust-services';
 import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'IntermediateCaOcspResponders',
   components: { OcspRespondersList },
   computed: {

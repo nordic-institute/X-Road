@@ -25,27 +25,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <v-icon v-if="closed" class="xrd-icon-closed" @click="closed = false">
-      mdi-magnify
-    </v-icon>
-    <v-text-field
-      v-else
-      v-model="value"
-      :label="label"
-      data-test="search-input"
-      single-line
-      hide-details
-      class="search-input"
-      prepend-inner-icon="mdi-magnify"
-      clearable
-      @update:model-value="$emit('update:model-value', $event)"
-    />
-  </div>
+  <v-text-field
+    v-model="value"
+    data-test="search-input"
+    class="search-input expanding-search"
+    density="compact"
+    variant="underlined"
+    prepend-inner-icon="mdi-magnify"
+    :hide-details="true"
+    :label="label"
+    :class="{ closed }"
+    @focus="hide = false"
+    @blur="hide = true"
+    @update:model-value="$emit('update:model-value', $event)"
+  ></v-text-field>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 /**
  * Wrapper for vuetify button with x-road look
@@ -62,18 +59,34 @@ const props = defineProps({
   },
 });
 
-let closed = ref(!props.modelValue);
-let value = ref(props.modelValue);
+const hide = ref(true);
+const value = ref(props.modelValue);
+const closed = computed(() => hide.value && !value.value);
+
 </script>
 
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-.xrd-icon-closed {
-  margin-top: 20px; // adjusted so that icon stays in the same place open/closed
-  cursor: pointer;
-  color: $XRoad-Purple100;
-  margin-left: 12px;
-  padding-bottom: 4px; // adjusted so that icon takes same space than input
+.expanding-search {
+  transition: 0.4s;
+  min-width: 200px;
+
+  :deep(.v-field__input){
+    margin-bottom: 0;
+  }
+}
+
+.closed {
+  min-width: 10px;
+
+  :deep(.v-field__outline) {
+    display: none;
+  }
+
+  :deep(.v-field__prepend-inner>i) {
+    color: $XRoad-Purple100;
+    opacity: 1;
+  }
 }
 </style>

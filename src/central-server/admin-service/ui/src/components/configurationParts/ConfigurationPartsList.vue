@@ -88,24 +88,23 @@
 /**
  * View for 'backup and restore' tab
  */
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapState, mapStores } from 'pinia';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 import { DataTableHeader } from 'vuetify';
 import { useUser } from '@/store/modules/user';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     ConfigurationPartUploadButton,
     ConfigurationPartDownloadButton,
   },
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
   },
@@ -170,7 +169,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~@/assets/tables';
+@import '@/assets/tables';
 
 .card-top {
   padding-top: 15px;

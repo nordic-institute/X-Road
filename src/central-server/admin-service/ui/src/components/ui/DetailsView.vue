@@ -38,11 +38,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
 import { Colors } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     backTo: {
       type: String,
@@ -58,7 +58,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .navigation-back {
   color: $XRoad-Link;

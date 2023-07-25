@@ -50,11 +50,11 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { ManagementRequestType } from '@/openapi-types';
 import { managementTypeToText } from '@/util/helpers';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     type: {
       type: String as PropType<ManagementRequestType>,
@@ -71,7 +71,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .status-wrapper {
   display: flex;

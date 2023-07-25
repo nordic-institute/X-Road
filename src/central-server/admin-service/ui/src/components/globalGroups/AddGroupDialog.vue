@@ -58,12 +58,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AddGroupDialog',
   props: {
     dialog: {
