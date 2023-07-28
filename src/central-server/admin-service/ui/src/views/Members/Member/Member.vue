@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view id="memberview" :back-to="savedBackTo">
+  <details-view id="memberview" :back-to="backTo">
     <div class="header-row">
       <div class="title-search">
         <div class="xrd-view-title">
@@ -39,10 +39,8 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import PageNavigation, {
-  PageNavigationTab,
-} from '@/components/layout/PageNavigation.vue';
+import { defineComponent } from 'vue';
+import PageNavigation, { PageNavigationTab, } from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
@@ -59,16 +57,13 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    backTo: {
-      type: String,
-      required: false,
-      default: '',
-    },
   },
   data() {
     return {
       colors: Colors,
-      savedBackTo: this.backTo,
+      backTo: {
+        name: RouteName.Members,
+      }
     };
   },
   computed: {
@@ -80,6 +75,8 @@ export default defineComponent({
           name: 'members.member.pagenavigation.details',
           to: {
             name: RouteName.MemberDetails,
+            params: { memberid: this.memberid },
+            replace: true
           },
           permissions: [Permissions.VIEW_MEMBER_DETAILS],
         },
@@ -89,6 +86,8 @@ export default defineComponent({
           name: 'members.member.pagenavigation.subsystems',
           to: {
             name: RouteName.MemberSubsystems,
+            params: { memberid: this.memberid },
+            replace: true
           },
           permissions: [Permissions.VIEW_MEMBER_DETAILS],
         },

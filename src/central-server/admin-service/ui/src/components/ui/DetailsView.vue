@@ -27,7 +27,7 @@
 <template>
   <article>
     <div class="navigation-back" data-test="navigation-back">
-      <router-link :to="backTo">
+      <router-link to="" @click="goBack">
         <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
         {{ $t('global.navigation.back') }}
       </router-link>
@@ -38,14 +38,15 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 import { Colors } from '@/global';
+import { RouteLocationRaw } from "vue-router";
 
 export default defineComponent({
   props: {
     backTo: {
-      type: String,
+      type: Object as PropType<RouteLocationRaw>,
       required: true,
     },
   },
@@ -54,6 +55,15 @@ export default defineComponent({
       colors: Colors,
     };
   },
+  methods:{
+    goBack(){
+      if(this.$router.currentRoute.value.meta?.backTo){
+        this.$router.back();
+      } else {
+        this.$router.push(this.backTo)
+      }
+    }
+  }
 });
 </script>
 

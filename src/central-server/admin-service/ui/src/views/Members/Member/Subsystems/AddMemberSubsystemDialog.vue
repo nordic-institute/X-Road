@@ -27,7 +27,6 @@
 <template>
   <xrd-simple-dialog
     :disable-save="!formReady"
-    :dialog="showDialog"
     :loading="loading"
     cancel-button-text="action.cancel"
     title="members.member.subsystems.addClient"
@@ -39,7 +38,7 @@
         <v-text-field
           v-model="subsystemCode"
           :label="$t('members.member.subsystems.subsystemcode')"
-          outlined
+          variant="outlined"
           autofocus
           data-test="add-subsystem-input"
         ></v-text-field>
@@ -49,7 +48,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { XRoadId } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
@@ -60,13 +59,12 @@ import { useSubsystem } from '@/store/modules/subsystems';
 
 export default defineComponent({
   name: 'AddMemberSubsystemDialog',
-  props: {
-    showDialog: {
-      type: Boolean,
+  props:{
+    member: {
+      type: Object as PropType<{ client_id: ClientId }>,
       required: true,
     },
   },
-
   data() {
     return {
       loading: false,
@@ -80,9 +78,6 @@ export default defineComponent({
       return !!this.subsystemCode;
     },
   },
-  created() {
-    this.memberStore.currentMember;
-  },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
@@ -94,13 +89,11 @@ export default defineComponent({
     },
     add(): void {
       this.loading = true;
-      const instanceId: string = this.getSystemStatus?.initialization_status
-        ?.instance_identifier as string;
       this.subsystemStore
         .addSubsystem({
           subsystem_id: {
-            member_class: this.memberStore.currentMember.client_id.member_class,
-            member_code: this.memberStore.currentMember.client_id.member_code,
+            member_class: this.member.client_id.member_class,
+            member_code: this.member.client_id.member_code,
             subsystem_code: this.subsystemCode,
           },
         })

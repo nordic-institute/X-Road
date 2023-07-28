@@ -26,9 +26,10 @@
  */
 
 @import "./colors";
-
+body,
 .v-application {
   font-family: "Open Sans", sans-serif;
+  letter-spacing: normal;
 }
 
 // Use this to set up font etc. common things for normal views

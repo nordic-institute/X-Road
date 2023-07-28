@@ -55,6 +55,8 @@ import XrdButton from '@shared-ui/components/XrdButton.vue';
 import XrdSearch from '@shared-ui/components/XrdSearch.vue';
 import XrdCloseButton from '@shared-ui/components/XrdCloseButton.vue';
 import XrdSubViewContainer from '@shared-ui/components/XrdSubViewContainer.vue';
+import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
+import XrdConfirmDialog from '@shared-ui/components/XrdConfirmDialog.vue';
 import vuetify from '@/plugins/vuetify';
 import i18n from "@/plugins/i18n";
 
@@ -66,7 +68,7 @@ pinia.use(
   }),
 );
 
-//Vue.config.productionTip = false; TODO probably save to remove
+//Vue.config.productionTip = false; TODO vue3 probably save to remove
 axios.defaults.baseURL = import.meta.env.VITE_VUE_APP_BASE_URL;
 console.log(import.meta.env.VITE_VUE_APP_BASE_URL)
 
@@ -79,6 +81,7 @@ app.use(vuetify);
 app.use(i18n);
 app.use(createFilters());
 app.use(createValidators());
+//icons
 app.component('XrdIconFolderOutline', XrdIconFolderOutline);
 app.component('XrdIconBase', XrdIconBase);
 app.component('XrdIconChecker', XrdIconChecker);
@@ -86,10 +89,14 @@ app.component('XrdIconClose', XrdIconClose);
 app.component('XrdIconChecked', XrdIconChecked);
 app.component('XrdIconAdd', XrdIconAdd);
 app.component('XrdIconCopy', XrdIconCopy);
+//components
 app.component('XrdButton', XrdButton);
 app.component('XrdSearch', XrdSearch);
 app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdSubViewContainer', XrdSubViewContainer);
+app.component('XrdSimpleDialog', XrdSimpleDialog);
+app.component('XrdConfirmDialog', XrdConfirmDialog);
+
 app.mount('#app');
 
 
