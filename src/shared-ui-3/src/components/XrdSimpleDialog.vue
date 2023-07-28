@@ -26,13 +26,13 @@
  -->
 <template>
   <v-dialog
-    v-model="localModelValue"
+    v-model="showDialog"
     :width="width"
     :persistent="true"
     :scrollable="scrollable"
-    @update:model-value="$emit('update:modelValue', $event)"
+    class="xdr-dialog-simple"
   >
-    <v-card class="xrd-card" data-test="dialog-simple">
+    <v-card class="xrd-card " data-test="dialog-simple">
       <template #append>
         <xrd-close-button
           v-if="showClose"
@@ -48,15 +48,18 @@
       />
       <template #title>
         <slot name="title">
-          <span data-test="dialog-title">{{ $t(title) }}</span>
+          <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
         </slot>
       </template>
       <div class="alert-slot">
         <slot name="alert" />
       </div>
-      <v-card-text class="content-wrapper">
-        <slot name="content" />
+      <v-card-text v-if="hasSlot('text')" class="content-wrapper xrd-card-text">
+        <slot name="text" />
       </v-card-text>
+      <v-card-item v-if="hasSlot('content')" class="content-wrapper xrd-card-content">
+        <slot name="content" />
+      </v-card-item>
       <v-card-actions class="xrd-card-actions">
         <v-spacer />
         <xrd-button
@@ -83,18 +86,13 @@
 </template>
 
 <script setup lang="ts">/** Base component for simple dialogs */
-import { computed } from "vue";
+import { computed, ref, useSlots } from "vue";
 
 const props = defineProps({
   // Title of the dialog
   title: {
     type: String,
     required: true,
-  },
-  // Dialog visible / hidden
-  modelValue: {
-    type: Boolean,
-    default: false,
   },
   // Is the content scrollable
   scrollable: {
@@ -144,7 +142,12 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(['cancel', 'save', 'update:modelValue']);
+defineEmits(['cancel', 'save']);
+
+const slots = useSlots();
+const hasSlot = (slot) => {
+  return !!slots[slot];
+}
 
 const disableSaveButton = computed(() => {
   if (props.disableSave !== undefined && props.disableSave !== null) {
@@ -155,15 +158,7 @@ const disableSaveButton = computed(() => {
 });
 
 const disableCancelButton = computed<boolean>(() => props.allowLoadingCancellation ? false : props.loading);
-
-const localModelValue = computed({
-  get() {
-    return props.modelValue;
-  },
-  set(newValue) {
-    emits('update:modelValue', newValue);
-  }
-});
+const showDialog = ref(true);
 
 </script>
 
@@ -176,10 +171,30 @@ const localModelValue = computed({
     height: 72px;
     padding-right: 24px;
   }
+
+  .dialog-title {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: normal;
+  }
+
+  .xrd-card-text.xrd-card-text {
+    font-size: 14px;
+    letter-spacing: normal;
+    color: rgba(0, 0, 0, .6);
+    padding: 16px 24px 8px;
+  }
+
+  .v-card-item.xrd-card-content {
+    padding: 0 24px 0;
+    :deep(.v-card-item__content) {
+      padding-top: 16px;
+      padding-bottom: 16px;
+    }
+  }
 }
 
 .content-wrapper {
-  margin-top: 18px;
 }
 
 .dlg-button-margin {

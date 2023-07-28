@@ -26,28 +26,25 @@
  -->
 
 <template>
-  <xrd-sub-view-container>
-    <xrd-simple-dialog
-      :dialog="true"
-      :loading="loading"
-      title="members.member.details.editMemberName"
-      save-button-text="action.save"
-      cancel-button-text="action.cancel"
-      :disable-save="newMemberName === '' || newMemberName === oldMemberName"
-      @cancel="cancelEdit"
-      @save="saveNewMemberName"
-    >
-      <template #content>
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="newMemberName"
-            outlined
-            data-test="edit-member-name"
-          ></v-text-field>
-        </div>
-      </template>
-    </xrd-simple-dialog>
-  </xrd-sub-view-container>
+  <xrd-simple-dialog
+    :loading="loading"
+    title="members.member.details.editMemberName"
+    save-button-text="action.save"
+    cancel-button-text="action.cancel"
+    :disable-save="!meta.dirty"
+    @cancel="cancelEdit"
+    @save="saveNewMemberName"
+  >
+    <template #content>
+      <div class="dlg-input-width">
+        <v-text-field
+          v-model="value"
+          variant="outlined"
+          data-test="edit-member-name"
+        ></v-text-field>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
@@ -56,7 +53,11 @@ import { mapActions, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
+import { memberStore } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
+import { computed, PropType, ref } from "vue";
+import i18n from "@/plugins/i18n";
+import { useField } from "vee-validate";
 
 export default defineComponent({
   name: 'EditMemberNameDialog',

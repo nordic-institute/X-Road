@@ -26,78 +26,46 @@
  -->
 
 <template>
-  <xrd-sub-view-container>
-    <v-dialog v-if="true" :value="true" width="500" persistent>
-      <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
-        <v-card class="xrd-card">
-          <v-card-title>
-            <span class="headline">
-              {{ $t('members.member.details.deleteMember') }}
-            </span>
-          </v-card-title>
-          <v-card-text class="pt-4" data-test="delete-member">
-            <i18n path="members.member.details.confirmDelete">
-              <template #member>
-                <b>{{ member.member_name }}</b>
-              </template>
-            </i18n>
-            <div class="dlg-input-width pt-4">
-              <ValidationProvider
-                v-slot="{ errors }"
-                name="memberCode"
-                :rules="{ required: true, is: member.client_id.member_code }"
-                data-test="instance-identifier--validation"
-              >
-                <v-text-field
-                  v-model="enteredCode"
-                  outlined
-                  :label="$t('members.member.details.enterCode')"
-                  autofocus
-                  data-test="member-code"
-                  :error-messages="errors"
-                ></v-text-field>
-              </ValidationProvider>
-            </div>
-          </v-card-text>
-          <v-card-actions class="xrd-card-actions">
-            <v-spacer></v-spacer>
-            <xrd-button
-              outlined
-              :disabled="loading"
-              data-test="dialog-cancel-button"
-              @click="cancelDelete()"
-            >
-              {{ $t('action.cancel') }}
-            </xrd-button>
-            <xrd-button
-              :disabled="invalid || loading"
-              data-test="dialog-delete-button"
-              @click="proceedDelete()"
-            >
-              {{ $t('action.delete') }}
-            </xrd-button>
-          </v-card-actions>
-        </v-card>
-      </ValidationObserver>
-    </v-dialog>
-  </xrd-sub-view-container>
+  <xrd-simple-dialog
+    save-button-text="action.delete"
+    title="members.member.details.deleteMember"
+    :loading="loading"
+    :disable-save="!meta.valid"
+    @save="proceedDelete"
+    @cancel="cancelDelete"
+  >
+    <template #text>
+      <i18n-t scope="global" keypath="members.member.details.confirmDelete">
+        <template #member>
+          <b>{{ member.member_name }}</b>
+        </template>
+      </i18n-t>
+    </template>
+    <template #content>
+        <v-text-field
+          v-model="value"
+          variant="outlined"
+          :label="$t('members.member.details.enterCode')"
+          autofocus
+          data-test="member-code"
+          :error-messages="errorMessage as string"
+        />
+    </template>
+  </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import Vue, { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { ref } from 'vue';
 import { Client } from '@/openapi-types';
-import { mapActions, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
+import { useField } from "vee-validate";
 
-export default defineComponent({
-  name: 'MemberDeleteDialog',
-  props: {
-    member: {
-      type: Object as () => Client,
-      required: true,
-    },
+const props = defineProps({
+  member: {
+    type: Object as () => Client,
+    required: true,
   },
   data() {
     return { loading: false, enteredCode: '' };

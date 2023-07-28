@@ -177,7 +177,6 @@ export default defineComponent({
         name: RouteName.MemberDetails,
         params: {
           memberid: toIdentifier(member.client_id),
-          backTo: this.$router.currentRoute.path,
         },
       });
     },
@@ -219,13 +218,4 @@ export default defineComponent({
   font-size: 14px;
 }
 
-.v-enter-active,
-.v-leave-active {
-  transition: opacity 5s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-  opacity: 0;
-}
 </style>

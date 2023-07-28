@@ -26,7 +26,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    v-model="localModelValue"
+    v-model="showDialog"
     :title="title"
     :cancel-button-text="cancelButtonText"
     :save-button-text="acceptButtonText"
@@ -35,10 +35,8 @@
     @save="$emit('accept')"
     @cancel="$emit('cancel')"
   >
-    <template #content>
-      <div data-test="dialog-content-text">
-        {{ $t(text, data) }}
-      </div>
+    <template #text>
+        <slot name="text">{{ $t(text, data) }}</slot>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -49,9 +47,9 @@
  */
 
 import type { PropType } from 'vue';
-import { computed } from "vue";
+import { ref } from "vue";
 
-const emits = defineEmits(['cancel', 'accept', 'update:modelValue']);
+defineEmits(['cancel', 'accept']);
 
 const props = defineProps({
   modelValue: {
@@ -64,7 +62,7 @@ const props = defineProps({
   },
   text: {
     type: String,
-    required: true,
+    default: '',
   },
   cancelButtonText: {
     type: String,
@@ -87,12 +85,7 @@ const props = defineProps({
   },
 });
 
-const localModelValue = computed({
-  get() {
-    return props.modelValue;
-  },
-  set(newValue) {
-    emits('update:modelValue', newValue);
-  }
-});
+const showDialog = ref(true);
 </script>
+<style lang="scss" scoped>
+</style>

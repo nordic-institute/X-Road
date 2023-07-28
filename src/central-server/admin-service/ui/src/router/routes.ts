@@ -199,14 +199,14 @@ const routes: RouteRecordRaw[] = [
             },
             meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
             props: { default: true },
-            redirect: '/members/:memberid/details',
+            redirect: { name: RouteName.MemberDetails},
             children: [
               {
                 name: RouteName.MemberDetails,
                 path: 'details',
                 component: MemberDetails,
                 meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
-                props: true,
+                props: true
               },
               {
                 name: RouteName.MemberSubsystems,
