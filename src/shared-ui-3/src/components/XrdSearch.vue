@@ -34,7 +34,9 @@
     prepend-inner-icon="mdi-magnify"
     :hide-details="true"
     :label="label"
+
     :class="{ closed }"
+    @click:prepend-inner="hide=false"
     @focus="hide = false"
     @blur="hide = true"
     @update:model-value="$emit('update:model-value', $event)"
@@ -70,7 +72,8 @@ const closed = computed(() => hide.value && !value.value);
 
 .expanding-search {
   transition: 0.4s;
-  min-width: 200px;
+  min-width: 220px;
+  max-width: 220px;
 
   :deep(.v-field__input){
     margin-bottom: 0;

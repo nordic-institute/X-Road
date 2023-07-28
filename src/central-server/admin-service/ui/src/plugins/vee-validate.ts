@@ -40,8 +40,25 @@ export function createValidators(i18nMessages = {}) {
           // override the field name.
 
           // values._field_ = i18n.t(`fields.${field}`); TODO refactor to work properly
-
-          return i18n.global.t(`validation.messages.${ctx.rule.name}`, {}) as string;
+          const field = ctx.label || i18n.global.t(`fields.${ctx.field}`) as string;
+          const args:any = { field };
+          switch (ctx.rule?.name){
+            case 'max':
+            case 'min':{
+              args.length = ctx.rule?.params[0];
+              break;
+            }
+            case 'is':{
+              args.other = ctx.rule?.params[0];
+              break;
+            }
+            case 'between':{
+              args.min = ctx.rule?.params[0];
+              args.max = ctx.rule?.params[1];
+              break;
+            }
+          }
+          return i18n.global.t(`validation.messages.${ctx.rule.name}`, args) as string;
         },
       });
 

@@ -76,9 +76,11 @@ router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormali
     Check permissions here
     */
       if (!to?.meta?.permissions) {
+        to.meta.backTo = true;
         next();
       } else if (user.hasAnyOfPermissions(to.meta.permissions)) {
         // This route is allowed
+        to.meta.backTo = from.matched.length > 0;
         next();
       } else {
         // This route is not allowed
@@ -87,8 +89,6 @@ router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormali
         });
       }
     }
-
-    return;
   } else {
     next({
       name: RouteName.Login,

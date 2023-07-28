@@ -30,11 +30,9 @@ import vee_en from '@vee-validate/i18n/dist/locale/en.json'
 import sharedLocals from '@shared-ui/locales/en.json';
 import locals from '@/locales/en.json';
 
-(locals as any).validation = vee_en;
-
-let en = merge(sharedLocals, locals)
-
-console.log(en)
+let en = { validation: vee_en };
+en = merge(en, sharedLocals);
+en = merge(en, locals);
 
 export default createI18n({
   legacy: false,

@@ -26,7 +26,6 @@
  -->
 <template>
   <xrd-simple-dialog
-    v-model="showDialog"
     :disable-save="!formReady"
     :loading="loading"
     cancel-button-text="action.cancel"
@@ -35,7 +34,6 @@
     @save="add"
   >
     <template #content>
-      <div class="dlg-input-width">
         <v-text-field
           v-model="memberName"
           :label="$t('global.memberName')"
@@ -43,8 +41,6 @@
           autofocus
           data-test="add-member-name-input"
         ></v-text-field>
-      </div>
-
       <v-select
         v-model="memberClass"
         :items="memberClasses"
@@ -56,45 +52,33 @@
         z-index="2410"
       ></v-select>
 
-      <div class="dlg-input-width">
-          <v-text-field
+      <v-text-field
             v-model="memberCode.value"
             :label="$t('global.memberCode')"
             variant="outlined"
             data-test="add-member-code-input"
             :error-messages="memberCode.errorMessage as string"
           ></v-text-field>
-      </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import {mapActions, mapState, mapStores} from 'pinia';
-import {ErrorInfo, MemberClass} from '@/openapi-types';
-import {useClient} from '@/store/modules/clients';
-import {useMember} from '@/store/modules/members';
-import {useSystem} from '@/store/modules/system';
-import {useNotifications} from '@/store/modules/notifications';
-import {useMemberClass} from '@/store/modules/member-class';
-import {getErrorInfo, getTranslatedFieldErrors, isFieldError,} from '@/util/helpers';
-import {AxiosError} from 'axios';
+import { mapActions, mapState, mapStores } from 'pinia';
+import { ErrorInfo, MemberClass } from '@/openapi-types';
+import { useClient } from '@/store/modules/clients';
+import { useMember } from '@/store/modules/members';
+import { useSystem } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useMemberClass } from '@/store/modules/member-class';
+import { getErrorInfo, getTranslatedFieldErrors, isFieldError, } from '@/util/helpers';
+import { AxiosError } from 'axios';
 import { useField } from "vee-validate";
-import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
 
 export default defineComponent({
   name: 'AddMemberDialog',
-  components: {
-    XrdSimpleDialog
-  },
-  props: {
-    showDialog: {
-      type: Boolean,
-      required: true,
-    }
-  },
-  emits:['save', 'cancel'],
+  emits: ['save', 'cancel'],
   data() {
     return {
       loading: false,

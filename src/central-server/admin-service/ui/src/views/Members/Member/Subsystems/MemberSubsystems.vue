@@ -40,74 +40,75 @@
           {{ $t('members.member.subsystems.addClient') }}
         </xrd-button>
       </div>
-
       <!-- Table -->
-      <v-data-table
+      <v-table
         :loading="loading"
-        :headers="headers"
-        :items="subsystems"
-        :must-sort="true"
-        :items-per-page="-1"
-        class="elevation-0 data-table"
-        item-key="id"
-        :loader-height="2"
-        hide-default-footer
+        class="elevation-0 data-table subsystems-table"
         data-test="subsystems-table"
       >
-        <template #body="{ items }">
-          <tbody v-for="(item, index) in items" :key="index">
-            <tr v-if="item.used_security_servers.length === 0">
-              <td class="unregistered-subsystem">
-                {{ item.subsystem_id.subsystem_code }}
-              </td>
-              <td class="unregistered-subsystem" />
-              <td class="unregistered-subsystem" />
-              <td class="status unregistered-subsystem">
-                <xrd-icon-base>
-                  <XrdIconError />
-                </xrd-icon-base>
-                {{ getStatusText(undefined) }}
-              </td>
-              <td class="subsystem-actions unregistered-subsystem">
-                <div>
-                  <xrd-button
-                    v-if="allowMemberSubsystemDelete"
-                    text
-                    :outlined="false"
-                    data-test="delete-subsystem"
-                    @click="deleteClicked(item)"
-                  >
-                    {{ $t('action.delete') }}
-                  </xrd-button>
-                </div>
-              </td>
-            </tr>
-            <tr
-              v-for="(subitem, iSub) in item.used_security_servers"
-              :key="`${item.subsystem_id.subsystem_code}:${subitem.server_code}`"
-            >
+        <thead>
+          <tr>
+            <th>{{ `${$t('members.member.subsystems.subsystemcode')} (${subsystems.length})` }}</th>
+            <th>{{ $t('members.member.subsystems.servercode') }}</th>
+            <th>{{ $t('members.member.subsystems.serverOwner') }}</th>
+            <th>{{ $t('members.member.subsystems.status') }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody v-for="(item, index) in subsystems" :key="index">
+          <tr class="" v-if="item.used_security_servers.length === 0">
+            <td class="unregistered-subsystem">
+              {{ item.subsystem_id.subsystem_code }}
+            </td>
+            <td class="unregistered-subsystem" />
+            <td class="unregistered-subsystem" />
+            <td class="status unregistered-subsystem">
+              <xrd-icon-base>
+                <xrd-icon-error />
+              </xrd-icon-base>
+              {{ getStatusText(undefined) }}
+            </td>
+            <td class="subsystem-actions unregistered-subsystem">
+              <div>
+                <xrd-button
+                  v-if="allowMemberSubsystemDelete"
+                  text
+                  :outlined="false"
+                  data-test="delete-subsystem"
+                  @click="deleteClicked(item)"
+                >
+                  {{ $t('action.delete') }}
+                </xrd-button>
+              </div>
+            </td>
+          </tr>
+          <tr
+            v-for="(subitem, iSub) in item.used_security_servers"
+            :key="`${item.subsystem_id.subsystem_code}:${subitem.server_code}`"
+            class=""
+          >
               <td
                 v-if="iSub === 0"
                 :rowspan="item.used_security_servers.length"
               >
                 {{ item.subsystem_id.subsystem_code }}
               </td>
-              <td class="xrd-clickable">{{ subitem.server_code }}</td>
-              <td class="xrd-clickable">{{ subitem.server_owner }}</td>
+              <td>{{ subitem.server_code }}</td>
+              <td>{{ subitem.server_owner }}</td>
               <td class="status">
                 <xrd-icon-base>
                   <XrdIconChecked
                     v-if="subitem.status === 'APPROVED'"
                     :color="colors.Success100"
                   />
-                  <XrdIconInProgress
+                  <xrd-icon-in-progress
                     v-if="
                       subitem.status === 'WAITING' ||
                       subitem.status === 'SUBMITTED FOR APPROVAL'
                     "
                     :color="colors.Success100"
                   />
-                  <XrdIconError v-if="subitem.status === undefined" />
+                  <xrd-icon-error v-if="subitem.status === undefined" />
                 </xrd-icon-base>
                 {{ getStatusText(subitem.status) }}
               </td>
@@ -142,17 +143,16 @@
                   </xrd-button>
                 </div>
               </td>
-            </tr>
-          </tbody>
-        </template>
-        <template #footer>
+          </tr>
+        </tbody>
+
+        <template #bottom>
           <div class="custom-footer"></div>
         </template>
-      </v-data-table>
+      </v-table>
 
       <AddMemberSubsystemDialog
         v-if="showAddSubsystemDialog"
-        :show-dialog="showAddSubsystemDialog"
         :member="memberStore.currentMember"
         data-test="add-member-to-group"
         @cancel="cancel"
@@ -161,7 +161,7 @@
 
       <DeleteMemberSubsystemDialog
         v-if="showDeleteDialog"
-        :show-dialog="showDeleteDialog"
+        :member="memberStore.currentMember"
         :subsystem-code="clickedSubsystemCode"
         data-test="delete-subsystem"
         @cancel="cancel"
@@ -170,7 +170,7 @@
 
       <UnregisterMemberSubsystemDialog
         v-if="showUnregisterDialog"
-        :show-dialog="showUnregisterDialog"
+        :member="memberStore.currentMember"
         :subsystem-code="clickedSubsystemCode"
         :server-code="clickedServerCode"
         data-test="unregister-subsystem"
@@ -182,8 +182,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -193,11 +192,10 @@ import { useNotifications } from '@/store/modules/notifications';
 import AddMemberSubsystemDialog from '@/views/Members/Member/Subsystems/AddMemberSubsystemDialog.vue';
 import DeleteMemberSubsystemDialog from '@/views/Members/Member/Subsystems/DeleteMemberSubsystemDialog.vue';
 import UnregisterMemberSubsystemDialog from '@/views/Members/Member/Subsystems/UnregisterMemberSubsystemDialog.vue';
-import {
-  ManagementRequestStatus,
-  Subsystem,
-  UsedSecurityServers,
-} from '@/openapi-types';
+import XrdIconError from '@shared-ui/components/icons/XrdIconError.vue'
+import XrdIconInProgress from '@shared-ui/components/icons/XrdIconInProgress.vue'
+import { VDataTable } from "vuetify/labs/VDataTable";
+import { ManagementRequestStatus, Subsystem, UsedSecurityServers, } from '@/openapi-types';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,6 +210,9 @@ export default defineComponent({
     DeleteMemberSubsystemDialog,
     AddMemberSubsystemDialog,
     UnregisterMemberSubsystemDialog,
+    VDataTable,
+    XrdIconError,
+    XrdIconInProgress,
   },
   props: {
     memberid: {
@@ -239,44 +240,6 @@ export default defineComponent({
   computed: {
     ...mapState(useUser, ['hasPermission']),
     ...mapStores(useMember, useSubsystem),
-    headers(): DataTableHeader[] {
-      return [
-        {
-          text:
-            (this.$t('members.member.subsystems.subsystemcode') as string) +
-            ' (' +
-            this.subsystems.length +
-            ')',
-          align: 'start',
-          value: 'subsystem_id.subsystem_code',
-          class: 'xrd-table-header subsystems-table-header-code',
-        },
-        {
-          text: this.$t('members.member.subsystems.servercode') as string,
-          align: 'start',
-          value: 'usedSecurityServers[0].server_code',
-          class: 'xrd-table-header subsystems-table-header-server-code',
-        },
-        {
-          text: this.$t('members.member.subsystems.serverOwner') as string,
-          align: 'start',
-          value: 'usedSecurityServers[0].server_owner',
-          class: 'xrd-table-header subsystems-table-header-server-owner',
-        },
-        {
-          text: this.$t('members.member.subsystems.status') as string,
-          align: 'start',
-          value: 'usedSecurityServers[0].status',
-          class: 'xrd-table-header subsystems-table-header-status',
-        },
-        {
-          text: '',
-          value: 'button',
-          sortable: false,
-          class: 'xrd-table-header subsystems-table-header-buttons',
-        },
-      ];
-    },
     allowMemberSubsystemAdd(): boolean {
       return this.hasPermission(Permissions.ADD_MEMBER_SUBSYSTEM);
     },
@@ -371,6 +334,21 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import '@/assets/colors';
+
+.subsystems-table {
+  th {
+    font-size: 12px;
+    font-weight: 700 !important;
+    height: 48px !important;
+  }
+
+  tbody > tr:hover td,
+  tbody:hover td[rowspan] {
+    cursor: pointer;
+    background-color: $XRoad-Purple10;
+  }
+}
+
 
 .card-corner-button {
   display: flex;

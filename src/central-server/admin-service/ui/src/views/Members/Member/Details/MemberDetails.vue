@@ -74,10 +74,9 @@
           class="elevation-0 data-table"
           item-key="id"
           :loader-height="2"
-          hide-default-footer
           data-test="owned-servers-table"
         >
-          <template #footer>
+          <template #bottom>
             <div class="cs-table-custom-footer"></div>
           </template>
         </v-data-table>
@@ -102,15 +101,14 @@
           :search="searchGroups"
           :must-sort="true"
           :items-per-page="-1"
-          class="elevation-0 data-table"
+          class="elevation-0 data-table xrd-data-table"
           :loader-height="2"
-          hide-default-footer
           data-test="global-groups-table"
         >
           <template #[`item.added_to_group`]="{ item }">
-            {{ item.added_to_group | formatDateTime }}
+            {{ $filters.formatDateTime(item.raw.added_to_group) }}
           </template>
-          <template #footer>
+          <template #bottom>
             <div class="cs-table-custom-footer"></div>
           </template>
         </v-data-table>
@@ -154,8 +152,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -165,6 +162,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
 import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
+import { VDataTable } from "vuetify/labs/VDataTable";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,6 +177,7 @@ export default defineComponent({
     EditMemberNameDialog,
     MemberDeleteDialog,
     InfoCard,
+    VDataTable
   },
   props: {
     memberid: {
@@ -200,6 +199,31 @@ export default defineComponent({
       loadingGroups: false,
       searchGroups: '',
       globalGroups: [] as MemberGlobalGroup[],
+
+      serversHeaders: [
+          {
+            title: this.$t('global.server') as string,
+            align: 'start',
+            key: 'server_id.server_code'
+          },
+        ],
+      groupsHeaders: [
+        {
+          key: 'group_code',
+          title: this.$t('members.member.details.group') as string,
+          align: 'start',
+        },
+        {
+          key: 'subsystem',
+          title: this.$t('global.subsystem') as string,
+          align: 'start',
+        },
+        {
+          key: 'added_to_group',
+          title: this.$t('members.member.details.addedToGroup') as string,
+          align: 'start',
+        },
+      ]
     };
   },
   computed: {
@@ -210,39 +234,7 @@ export default defineComponent({
     },
     allowMemberRename(): boolean {
       return this.hasPermission(Permissions.EDIT_MEMBER_NAME);
-    },
-    serversHeaders(): DataTableHeader[] {
-      return [
-        {
-          text: this.$t('global.server') as string,
-          align: 'start',
-          value: 'server_id.server_code',
-          class: 'xrd-table-header servers-table-header-server',
-        },
-      ];
-    },
-    groupsHeaders(): DataTableHeader[] {
-      return [
-        {
-          value: 'group_code',
-          text: this.$t('members.member.details.group') as string,
-          align: 'start',
-          class: 'xrd-table-header groups-table-header-group',
-        },
-        {
-          value: 'subsystem',
-          text: this.$t('global.subsystem') as string,
-          align: 'start',
-          class: 'xrd-table-header groups-table-header-subsystem',
-        },
-        {
-          value: 'added_to_group',
-          text: this.$t('members.member.details.addedToGroup') as string,
-          align: 'start',
-          class: 'xrd-table-header groups-table-header-added',
-        },
-      ];
-    },
+    }
   },
   created() {
     that = this;

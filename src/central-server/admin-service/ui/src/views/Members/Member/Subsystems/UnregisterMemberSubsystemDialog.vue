@@ -25,49 +25,27 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
-    <v-dialog v-if="true" :value="true" width="500" persistent>
-      <v-card class="xrd-card">
-        <v-card-title>
-          <span class="headline">
-            {{ $t('members.member.subsystems.deleteSubsystem') }}
-          </span>
-        </v-card-title>
-        <v-card-text class="pt-4" data-test="unregister-subsystem">
-          <i18n path="members.member.subsystems.areYouSureUnregister">
-            <template #subsystemCode>
-              <b>{{ subsystemCode }}</b>
-            </template>
-            <template #serverCode>
-              <b>{{ serverCode }}</b>
-            </template>
-          </i18n>
-        </v-card-text>
-        <v-card-actions class="xrd-card-actions">
-          <v-spacer></v-spacer>
-          <xrd-button
-            outlined
-            :disabled="loading"
-            data-test="dialog-cancel-button"
-            @click="cancel()"
-          >
-            {{ $t('action.cancel') }}
-          </xrd-button>
-          <xrd-button
-            data-test="dialog-unregister-button"
-            :disabled="loading"
-            @click="unregisterSubsystem()"
-          >
-            {{ $t('action.delete') }}
-          </xrd-button>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </xrd-sub-view-container>
+  <xrd-confirm-dialog
+    :loading="loading"
+    title="members.member.subsystems.deleteSubsystem"
+    @cancel="cancel"
+    @accept="unregisterSubsystem"
+  >
+    <template #text>
+      <i18n-t scope="global" keypath="members.member.subsystems.areYouSureUnregister">
+        <template #subsystemCode>
+          <b>{{ subsystemCode }}</b>
+        </template>
+        <template #serverCode>
+          <b>{{ serverCode }}</b>
+        </template>
+      </i18n-t>
+    </template>
+  </xrd-confirm-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useSystem } from '@/store/modules/system';
@@ -75,21 +53,21 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
-import { Client } from '@/openapi-types';
+import { ClientId } from "@/openapi-types";
 
 export default defineComponent({
   name: 'UnregisterMemberSubsystemDialog',
   props: {
-    showDialog: {
-      type: Boolean,
-      required: true,
-    },
     subsystemCode: {
       type: String,
       required: true,
     },
     serverCode: {
       type: String,
+      required: true,
+    },
+    member: {
+      type: Object as PropType<{ client_id: ClientId }>,
       required: true,
     },
   },
@@ -109,11 +87,10 @@ export default defineComponent({
     },
     unregisterSubsystem(): void {
       this.loading = true;
-      const currentMember = this.memberStore.$state.currentMember;
       this.subsystemStore
         .unregisterById(
-          toIdentifier(currentMember.client_id) + ':' + this.subsystemCode,
-          toIdentifier(currentMember.client_id) + ':' + this.serverCode,
+          toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
+          toIdentifier(this.member.client_id) + ':' + this.serverCode,
         )
         .then(() => {
           this.showSuccess(
