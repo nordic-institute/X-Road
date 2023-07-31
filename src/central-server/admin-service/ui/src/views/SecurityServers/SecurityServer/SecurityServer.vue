@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view back-to="/security-servers" data-test="security-server-view">
+  <details-view :back-to="backTo" data-test="security-server-view">
     <div class="header-row">
       <div class="title-search">
         <div class="xrd-view-title">{{ securityServerCode }}</div>
@@ -61,6 +61,9 @@ export default defineComponent({
   data() {
     return {
       colors: Colors,
+      backTo: {
+        name: RouteName.SecurityServers
+      }
     };
   },
   computed: {
@@ -78,6 +81,8 @@ export default defineComponent({
           name: 'securityServers.securityServer.tabs.details',
           to: {
             name: RouteName.SecurityServerDetails,
+            params: { serverId: this.serverId },
+            replace: true
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
@@ -87,6 +92,8 @@ export default defineComponent({
           name: 'securityServers.securityServer.tabs.clients',
           to: {
             name: RouteName.SecurityServerClients,
+            params: { serverId: this.serverId },
+            replace: true
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
@@ -96,6 +103,8 @@ export default defineComponent({
           name: 'securityServers.securityServer.tabs.authCertificates',
           to: {
             name: RouteName.SecurityServerAuthenticationCertificates,
+            params: { serverId: this.serverId },
+            replace: true
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },

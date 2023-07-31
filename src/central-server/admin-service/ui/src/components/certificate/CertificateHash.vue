@@ -27,14 +27,16 @@
 <template>
   <div class="cert-hash">
     <div class="hash-info">{{ $t('cert.hashInfo') }}</div>
-    <div data-test="cert-hash-value">{{ hash | colonize }}</div>
+    <div data-test="cert-hash-value"><hash :value="hash" /></div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
+import Hash from "@/components/ui/Hash.vue";
 
 export default defineComponent({
+  components: { Hash },
   props: {
     hash: {
       type: String,

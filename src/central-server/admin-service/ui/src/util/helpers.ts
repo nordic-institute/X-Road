@@ -29,7 +29,7 @@
 import { NavigationFailure } from 'vue-router';
 import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
 import { AxiosError, AxiosResponse } from 'axios';
-import { useI18n } from "vue-i18n";
+import i18n from "@/plugins/i18n";
 
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
@@ -173,9 +173,8 @@ export function getTranslatedFieldErrors(
 ): string[] {
   const errors: string[] = fieldError[fieldName];
   if (errors) {
-    const { t } = useI18n();
     return errors.map((errorKey: string) => {
-      return t(`validationError.${errorKey}Field`).toString();
+      return i18n.global.t(`validationError.${errorKey}Field`).toString();
     });
   } else {
     return [];

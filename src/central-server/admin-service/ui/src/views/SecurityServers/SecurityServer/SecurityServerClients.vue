@@ -34,24 +34,24 @@
       :loading="loading"
       :headers="headers"
       :items="clients"
+      :items-length="clients.length"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
     >
       <template #[`item.member_name`]="{ item }">
         <div
           v-if="hasPermissionToMemberDetails"
           class="table-cell-member-name-action"
-          @click="toMemberDetails(item)"
+          @click="toMemberDetails(item.raw)"
         >
           <xrd-icon-base class="xrd-clickable mr-4">
             <xrd-icon-folder-outline
           /></xrd-icon-base>
-          {{ item.member_name }}
+          {{ item.raw.member_name }}
         </div>
 
         <div v-else class="table-cell-member-name">
@@ -62,7 +62,7 @@
         </div>
       </template>
 
-      <template #footer>
+      <template #bottom>
         <div class="cs-table-custom-footer"></div>
       </template>
     </v-data-table>
@@ -73,8 +73,7 @@
 /**
  * View for 'security server clients' tab
  */
-import Vue, { defineComponent } from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 import { Client } from '@/openapi-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
@@ -82,9 +81,10 @@ import { useNotifications } from '@/store/modules/notifications';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
+import { VDataTable } from "vuetify/labs/VDataTable";
 
 export default defineComponent({
-  name: 'SecurityServerClients',
+  components:{VDataTable},
   props: {
     serverId: {
       type: String,
@@ -154,7 +154,6 @@ export default defineComponent({
         name: RouteName.MemberDetails,
         params: {
           memberid: toMemberId(client.client_id),
-          backTo: this.$router.currentRoute.path,
         },
       });
     },

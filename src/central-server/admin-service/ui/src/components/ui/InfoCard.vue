@@ -29,7 +29,10 @@
     <v-card-title class="card-title">{{ titleText }}</v-card-title>
     <v-divider></v-divider>
     <v-card-text class="card-content"
-      ><div>{{ infoText }}</div>
+    >
+      <div>
+        <slot>{{ infoText }}</slot>
+      </div>
       <!-- Use action prop & emit for one button. Use "actions" slot if more customisation is needed. -->
       <slot name="actions">
         <xrd-button
@@ -38,8 +41,9 @@
           :outlined="false"
           class="btn-adjust"
           data-test="info-card-edit-button"
-          @click="emitActionClick"
-          >{{ actionText }}</xrd-button
+          @click="$emit('actionClicked')"
+        >{{ actionText }}
+        </xrd-button
         ></slot
       ></v-card-text
     >
@@ -48,10 +52,10 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: 'InfoCard',
+
   props: {
     // Text for the title
     titleText: {
@@ -61,7 +65,6 @@ export default defineComponent({
     // Information text
     infoText: {
       type: String,
-      required: true,
     },
     // Action in the right end
     actionText: {
@@ -75,11 +78,7 @@ export default defineComponent({
       default: true,
     },
   },
-  methods: {
-    emitActionClick(): void {
-      this.$emit('actionClicked');
-    },
-  },
+  emits: ['actionClicked'],
 });
 </script>
 

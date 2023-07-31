@@ -26,10 +26,8 @@
  -->
 
 <template>
-  <ValidationObserver v-slot="{ invalid }">
     <xrd-simple-dialog
-      :disable-save="invalid"
-      :dialog="true"
+      :disable-save="!serverCode.meta.valid"
       :loading="loading"
       title="securityServers.securityServer.dialog.deleteAuthCertificate.title"
       save-button-text="action.delete"
@@ -37,23 +35,14 @@
       @cancel="cancel"
       @save="deleteCert"
     >
+      <template #text>
+        {{ $t('securityServers.securityServer.dialog.deleteAuthCertificate.content')}}
+      </template>
       <template #content>
-        <p>
-          {{
-            $t(
-              'securityServers.securityServer.dialog.deleteAuthCertificate.content',
-            )
-          }}
-        </p>
-        <ValidationProvider
-          v-slot="{ errors }"
-          :rules="`required|is:${securityServer.server_id.server_code}`"
-          name="securityServerCode"
-        >
           <v-text-field
-            v-model="securityServerCode"
+            v-model="serverCode.value"
             data-test="verify-server-code"
-            outlined
+            variant="outlined"
             autofocus
             :placeholder="
               $t(
@@ -61,22 +50,22 @@
               )
             "
             :label="$t('fields.securityServerCode')"
-            :error-messages="errors"
+            :error-messages="serverCode.errorMessage as string"
           >
           </v-text-field>
-        </ValidationProvider>
       </template>
     </xrd-simple-dialog>
-  </ValidationObserver>
 </template>
 
 <script lang="ts">
-import { SecurityServer } from '@/openapi-types';
+import { SecurityServer, SecurityServerId } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { mapActions, mapStores } from 'pinia';
-import Vue, { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
+import { useField } from "vee-validate";
+
 export default defineComponent({
   name: 'DeleteAuthenticationCertificateDialog',
   props: {
@@ -84,10 +73,17 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    securityServerId: {
+      type: Object as PropType<SecurityServerId>,
+      required: true,
+    },
   },
   data() {
     return {
-      securityServerCode: '',
+      serverCode: useField('securityServerCode', {
+        required: true,
+        is: this.securityServerId.server_code
+      }, { initialValue: '' }),
       loading: false,
     };
   },
@@ -106,7 +102,7 @@ export default defineComponent({
       this.loading = true;
       this.securityServerAuthCertStore
         .delete(
-          this.securityServer?.server_id.encoded_id as string,
+          this.securityServerId.encoded_id as string,
           this.authenticationCertificateId,
         )
         .then(() => {
