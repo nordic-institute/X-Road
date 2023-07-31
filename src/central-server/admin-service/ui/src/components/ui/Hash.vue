@@ -24,12 +24,21 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <xrd-sub-view-container>
-    <router-view></router-view>
-  </xrd-sub-view-container>
+  {{ formatted }}
 </template>
 
 <script lang="ts" setup>
+
+import { computed } from "vue";
+import { colonize } from "@/util/helpers";
+
+const props = defineProps({
+    value: {
+      type: String,
+      required: true
+    }
+  }
+);
+const formatted = computed(() => colonize(props.value));
 </script>

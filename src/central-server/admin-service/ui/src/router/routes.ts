@@ -242,17 +242,16 @@ const routes: RouteRecordRaw[] = [
               pageNavigation: PageNavigation,
             },
             props: { default: true },
-            redirect: '/security-servers/:serverId/details',
+            redirect: {
+              name: RouteName.SecurityServerDetails
+            },
             meta: { permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS] },
             children: [
               {
                 name: RouteName.SecurityServerDetails,
                 path: 'details',
                 component: SecurityServerDetails,
-                props(route: RouteLocationNormalized): { serverId: string } {
-                  const serverId = route.params.serverId;
-                  return { serverId };
-                },
+                props: true,
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },

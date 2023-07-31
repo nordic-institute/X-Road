@@ -51,12 +51,15 @@ import XrdIconClose from '@shared-ui/components/icons/XrdIconClose.vue';
 import XrdIconChecked from '@shared-ui/components/icons/XrdIconChecked.vue';
 import XrdIconAdd from '@shared-ui/components/icons/XrdIconAdd.vue';
 import XrdIconCopy from '@shared-ui/components/icons/XrdIconCopy.vue';
+import XrdIconCertificate from '@shared-ui/components/icons/XrdIconCertificate.vue';
 import XrdButton from '@shared-ui/components/XrdButton.vue';
 import XrdSearch from '@shared-ui/components/XrdSearch.vue';
 import XrdCloseButton from '@shared-ui/components/XrdCloseButton.vue';
 import XrdSubViewContainer from '@shared-ui/components/XrdSubViewContainer.vue';
 import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
 import XrdConfirmDialog from '@shared-ui/components/XrdConfirmDialog.vue';
+import XrdEmptyPlaceholder from '@shared-ui/components/XrdEmptyPlaceholder.vue';
+import XrdSubViewTitle from '@shared-ui/components/XrdSubViewTitle.vue';
 import vuetify from '@/plugins/vuetify';
 import i18n from "@/plugins/i18n";
 
@@ -89,6 +92,7 @@ app.component('XrdIconClose', XrdIconClose);
 app.component('XrdIconChecked', XrdIconChecked);
 app.component('XrdIconAdd', XrdIconAdd);
 app.component('XrdIconCopy', XrdIconCopy);
+app.component('XrdIconCertificate', XrdIconCertificate);
 //components
 app.component('XrdButton', XrdButton);
 app.component('XrdSearch', XrdSearch);
@@ -96,6 +100,8 @@ app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdSubViewContainer', XrdSubViewContainer);
 app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);
+app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
+app.component('XrdSubViewTitle', XrdSubViewTitle);
 
 app.mount('#app');
 

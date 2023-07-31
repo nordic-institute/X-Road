@@ -37,34 +37,31 @@
     </div>
 
     <!-- Table -->
-    <v-data-table
+    <v-data-table-server
       :loading="loading"
       :headers="headers"
       :items="securityServerStore.securityServers"
+      :items-per-page-options="itemsPerPageOptions"
+      :items-length="securityServerStore.securityServerPagingOptions.total_items"
       :search="search"
       :must-sort="true"
       :items-per-page="10"
-      :options.sync="pagingSortingOptions"
-      :server-items-length="
-        securityServerStore.securityServerPagingOptions.total_items
-      "
       disable-filtering
       class="elevation-0 data-table"
       :no-data-text="emptyListReasoning"
       item-key="server_id.server_code"
       :loader-height="2"
-      :footer-props="{ itemsPerPageOptions: [10, 25] }"
       @update:options="findServers"
     >
       <template #[`item.server_id.server_code`]="{ item }">
-        <div class="server-code xrd-clickable" @click="toDetails(item)">
+        <div class="server-code xrd-clickable" @click="toDetails(item.raw)">
           <xrd-icon-base class="mr-4">
-            <XrdIconSecurityServer />
+            <xrd-icon-security-server />
           </xrd-icon-base>
-          {{ item.server_id.server_code }}
+          {{ item.raw.server_id.server_code }}
         </div>
       </template>
-    </v-data-table>
+    </v-data-table-server>
   </div>
 </template>
 
@@ -72,20 +69,24 @@
 /**
  * View for 'security servers' tab
  */
-import Vue, { defineComponent } from 'vue';
-import { DataOptions, DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
+import XrdIconSecurityServer from '@shared-ui/components/icons/XrdIconSecurityServer.vue';
+import { VDataTableServer } from "vuetify/labs/VDataTable";
+import { defaultItemsPerPageOptions } from "@/util/defaults";
+import { DataQuery } from "@/ui-types";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default defineComponent({
+  components: { XrdIconSecurityServer, VDataTableServer },
   data() {
     return {
       search: '',
@@ -99,31 +100,30 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('securityServers.serverCode') as string,
+          title: this.$t('securityServers.serverCode') as string,
           align: 'start',
-          value: 'server_id.server_code',
-          class: 'xrd-table-header ss-table-header-sercer-code',
+          key: 'server_id.server_code',
         },
         {
-          text: this.$t('securityServers.ownerName') as string,
+          title: this.$t('securityServers.ownerName') as string,
           align: 'start',
-          value: 'owner_name',
-          class: 'xrd-table-header ss-table-header-owner-name',
+          key: 'owner_name',
         },
         {
-          text: this.$t('securityServers.ownerCode') as string,
+          title: this.$t('securityServers.ownerCode') as string,
           align: 'start',
-          value: 'server_id.member_code',
-          class: 'xrd-table-header ss-table-header-owner-code',
+          key: 'server_id.member_code',
         },
         {
-          text: this.$t('securityServers.ownerClass') as string,
+          title: this.$t('securityServers.ownerClass') as string,
           align: 'start',
-          value: 'server_id.member_class',
-          class: 'xrd-table-header ss-table-header-owner-class',
+          key: 'server_id.member_class',
         },
-      ];
-    },
+      ]
+    };
+  },
+  computed: {
+    ...mapStores(useSecurityServerStore),
     emptyListReasoning(): string {
       return this.search
         ? this.$t('noData.noMatches')
@@ -143,7 +143,7 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError']),
     debouncedFindServers: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.findServers(that.pagingSortingOptions);
+      that.fetchServers();
     }, 600),
     toDetails(securityServer: SecurityServer): void {
       this.$router.push({
@@ -154,11 +154,18 @@ export default defineComponent({
     changeOptions: async function () {
       this.findServers(this.pagingSortingOptions);
     },
-    findServers: async function (options: DataOptions) {
+    findServers: async function ({ itemsPerPage, page, sortBy }) {
+      this.dataQuery.itemsPerPage = itemsPerPage;
+      this.dataQuery.page = page;
+      this.dataQuery.sortBy= sortBy[0]?.key;
+      this.dataQuery.sortOrder= sortBy[0]?.order;
+      this.fetchServers();
+    },
+    fetchServers: async function () {
       this.loading = true;
-
+      this.dataQuery.search = this.search;
       try {
-        await this.securityServerStore.find(options, this.search);
+        await this.securityServerStore.find(this.dataQuery);
       } catch (error: unknown) {
         this.showError(error);
       } finally {

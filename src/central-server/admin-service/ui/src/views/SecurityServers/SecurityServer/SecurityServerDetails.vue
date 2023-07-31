@@ -26,7 +26,7 @@
  -->
 <template>
   <div>
-    <XrdEmptyPlaceholder
+    <xrd-empty-placeholder
       :data="securityServer"
       :loading="loading"
       :no-items-text="$t('noData.noData')"
@@ -72,19 +72,17 @@
         :info-text="securityServer.server_address"
         :action-text="$t('action.edit')"
         :show-action="canEditAddress"
-        @actionClicked="$refs.editAddressDialog.open()"
+        @actionClicked="showEditAddressDialog = true"
       />
 
       <info-card
         :title-text="$t('securityServers.registered')"
-        :info-text="securityServer.created_at | formatDateTimeSeconds"
-        data-test="security-server-registered"
-      />
+        data-test="security-server-registered"><date-time-s :value="securityServer.created_at"/></info-card>
 
-      <div class="delete-action" @click="$refs.deleteDialog.open()">
+      <div class="delete-action" @click="showDeleteServerDialog=true">
         <div>
           <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-            >mdi-close-circle
+          >mdi-close-circle
           </v-icon>
         </div>
         <div
@@ -100,31 +98,37 @@
         </div>
       </div>
     </main>
-    <delete-security-server-address-dialog
-      ref="deleteDialog"
+    <delete-security-server-dialog
+      v-if="showDeleteServerDialog"
       :server-code="serverCode"
       :security-server-id="serverId"
+      @cancel="showDeleteServerDialog = false"
       @deleted="deleteServer"
     />
     <edit-security-server-address-dialog
-      ref="editAddressDialog"
+      v-if="showEditAddressDialog"
       :address="address"
       :security-server-id="serverId"
+      @cancel="showEditAddressDialog = false"
+      @address-updated="showEditAddressDialog = false"
     />
   </div>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { SecurityServer } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
-import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
-import DeleteSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerAddressDialog.vue';
+import EditSecurityServerAddressDialog
+  from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
+import DeleteSecurityServerDialog
+  from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
 import { useNotifications } from '@/store/modules/notifications';
+import DateTimeS from "@/components/ui/DateTimeS.vue";
 
 /**
  * Component for a Security server details view
@@ -132,7 +136,8 @@ import { useNotifications } from '@/store/modules/notifications';
 export default defineComponent({
   name: 'SecurityServerDetails',
   components: {
-    DeleteSecurityServerAddressDialog,
+    DateTimeS,
+    DeleteSecurityServerDialog,
     EditSecurityServerAddressDialog,
     InfoCard,
   },
@@ -145,6 +150,8 @@ export default defineComponent({
   data() {
     return {
       colors: Colors,
+      showEditAddressDialog: false,
+      showDeleteServerDialog: false
     };
   },
   computed: {
@@ -172,12 +179,13 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showSuccess']),
     deleteServer() {
-      this.$router.replace({
-        name: RouteName.SecurityServers,
-      });
+      this.showDeleteServerDialog = false;
       this.showSuccess(
         this.$t('securityServers.dialogs.deleteAddress.success'),
       );
+      this.$router.replace({
+        name: RouteName.SecurityServers,
+      });
     },
   },
 });
