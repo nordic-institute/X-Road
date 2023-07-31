@@ -2094,7 +2094,7 @@ in the `[configuration-client]` section (add or edit this section).
 
 ```ini
 [configuration-client]
-proxy-configuration-backup-cron=* 15 3 * * ?
+proxy-configuration-backup-cron=0 15 3 * * ?
 ```
 
 **Note:** In cases where automatic backup is not required (ex: extensions which rely on configuration-client) 
