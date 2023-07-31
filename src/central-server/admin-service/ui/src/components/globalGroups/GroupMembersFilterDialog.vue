@@ -233,13 +233,12 @@ export default Vue.extend({
         typeArray.push('SUBSYSTEM');
       }
       this.$emit('apply', {
-        memberClass: this.memberClassModel,
+        member_class: this.memberClassModel,
         instance: this.instanceModel,
         codes: this.codesModel,
         subsystems: this.subsystemsModel,
         types: typeArray,
       });
-      this.clearFields();
     },
   },
 });
