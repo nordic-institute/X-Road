@@ -39,7 +39,6 @@ export function createValidators(i18nMessages = {}) {
         generateMessage: ctx => {
           // override the field name.
 
-          // values._field_ = i18n.t(`fields.${field}`); TODO refactor to work properly
           const field = ctx.label || i18n.global.t(`fields.${ctx.field}`) as string;
           const args:any = { field };
           switch (ctx.rule?.name){

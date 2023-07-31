@@ -39,18 +39,17 @@
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
     >
       <template #[`item.issuer_common_name`]="{ item }">
-        <div class="icon-cell" @click="navigateToCertificateDetails(item.id)">
+        <div class="icon-cell" @click="navigateToCertificateDetails(item.raw.id)">
           <xrd-icon-base icon-name="certificate" class="mr-4"
             ><XrdIconCertificate
           /></xrd-icon-base>
-          {{ item.issuer_common_name }}
+          {{ item.raw.issuer_common_name }}
         </div>
       </template>
       <template #[`item.not_after`]="{ item }">
-        {{ item.not_after | formatDateTime }}
+        <date-time :value="item.raw.not_after"/>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -60,40 +59,43 @@
             data-test="delete-AC-button"
             text
             :outlined="false"
-            @click="openDeleteConfirmationDialog(item.id)"
+            @click="openDeleteConfirmationDialog(item.raw.id)"
           >
             {{ $t('action.delete') }}
           </xrd-button>
         </div>
       </template>
 
-      <template #footer>
+      <template #bottom>
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
 
-    <DeleteAuthenticationCertificateDialog
+    <delete-authentication-certificate-dialog
       v-if="showDeleteConfirmationDialog"
-      :authentication-certificate-id="authCertIdForDeletion"
+      :authentication-certificate-id="authCertIdForDeletion?.toString()"
+      :security-server-id="securityServerId"
       @cancel="cancelDeletion"
       @delete="finishDeletion"
     >
-    </DeleteAuthenticationCertificateDialog>
+    </delete-authentication-certificate-dialog>
   </main>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
+import { VDataTable } from "vuetify/labs/VDataTable";
 import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { mapState, mapStores } from 'pinia';
-import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
+import { SecurityServerAuthenticationCertificateDetails, SecurityServerId } from '@/openapi-types';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
+import DateTime from "@/components/ui/DateTime.vue";
+import { useSecurityServerStore } from "@/store/modules/security-servers";
 
 export default defineComponent({
-  components: { DeleteAuthenticationCertificateDialog },
+  components: { DateTime, DeleteAuthenticationCertificateDialog, VDataTable },
   data() {
     return {
       loading: false,
@@ -110,41 +112,47 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t(
+          title: this.$t(
             'securityServers.securityServer.certificationAuthority',
           ) as string,
           align: 'start',
-          value: 'issuer_common_name',
-          class: 'xrd-table-header',
+          key: 'issuer_common_name',
         },
         {
-          text: this.$t(
+          title: this.$t(
             'securityServers.securityServer.serialNumber',
           ) as string,
           align: 'start',
-          value: 'serial',
-          class: 'xrd-table-header',
+          key: 'serial',
         },
         {
-          text: this.$t('securityServers.securityServer.subject') as string,
+          title: this.$t('securityServers.securityServer.subject') as string,
           align: 'start',
-          value: 'subject_distinguished_name',
-          class: 'xrd-table-header',
+          key: 'subject_distinguished_name',
         },
         {
-          text: this.$t('securityServers.securityServer.expires') as string,
+          title: this.$t('securityServers.securityServer.expires') as string,
           align: 'start',
-          value: 'not_after',
-          class: 'xrd-table-header',
+          key: 'not_after',
         },
         {
-          text: '',
-          value: 'button',
+          title: '',
+          key: 'button',
           sortable: false,
-          class: 'xrd-table-header',
         },
-      ];
+      ],
+    };
+  },
+  computed: {
+    ...mapStores(securityServerAuthCertStore),
+    ...mapStores(useSecurityServerStore),
+    ...mapState(userStore, ['hasPermission']),
+    authenticationCertificates(): SecurityServerAuthenticationCertificateDetails[] {
+      return this.securityServerAuthCertStore.authenticationCertificates;
     },
+    securityServerId(): SecurityServerId {
+      return this.securityServerStore.currentSecurityServer.server_id
+    }
   },
   created() {
     this.fetchSecurityServerAuthenticationCertificates();

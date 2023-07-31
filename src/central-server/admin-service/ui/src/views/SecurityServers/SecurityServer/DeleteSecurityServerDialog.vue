@@ -28,7 +28,6 @@
   Member details view
 -->
 <template>
-  <validation-observer v-slot="{ invalid }">
     <xrd-simple-dialog
       title="securityServers.dialogs.deleteAddress.title"
       data-test="security-server-delete-dialog"
@@ -37,49 +36,37 @@
       :scrollable="false"
       :show-close="true"
       :loading="loading"
-      :disable-save="invalid"
+      :disable-save="!offeredCode.meta.valid"
       @save="deleteSecurityServer"
       @cancel="close"
     >
-      <div slot="content">
-        <v-card-text class="pt-4" data-test="delete-subsystem">
-          <i18n path="securityServers.dialogs.deleteAddress.areYouSure">
-            <template #securityServer>
-              <b>{{ serverCode }}</b>
-            </template>
-          </i18n>
-        </v-card-text>
-        <div class="pt-4 dlg-input-width">
-          <validation-provider
-            v-slot="{ errors }"
-            ref="serverCodeInput"
-            name="serverCode"
-            :rules="{
-              required: true,
-              is: serverCode,
-            }"
-          >
-            <v-text-field
-              v-model="offeredCode"
-              name="serverCode"
-              outlined
-              :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
-              autofocus
-              data-test="verify-server-code"
-              :error-messages="errors"
-            ></v-text-field>
-          </validation-provider>
-        </div>
-      </div>
+      <template #text>
+        <i18n-t scope="global" keypath="securityServers.dialogs.deleteAddress.areYouSure">
+          <template #securityServer>
+            <b>{{ serverCode }}</b>
+          </template>
+        </i18n-t>
+      </template>
+      <template #content>
+        <v-text-field
+          v-model="offeredCode.value"
+          name="serverCode"
+          variant="outlined"
+          :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
+          autofocus
+          data-test="verify-server-code"
+          :error-messages="offeredCode.errorMessage as string"
+        />
+      </template>
     </xrd-simple-dialog>
-  </validation-observer>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
+import { useField } from "vee-validate";
 
 /**
  * Component for a Security server details view
@@ -92,14 +79,17 @@ export default defineComponent({
     },
     serverCode: {
       type: String,
-      required: true,
+      default: '',
     },
   },
   data() {
     return {
       loading: false,
       showDialog: false,
-      offeredCode: '',
+      offeredCode: useField('serverCode', {
+        required: true,
+        is: this.serverCode,
+      }, { initialValue: '' }),
     };
   },
   computed: {
@@ -111,7 +101,7 @@ export default defineComponent({
       this.showDialog = true;
     },
     close(): void {
-      this.offeredCode = '';
+      this.offeredCode.resetField();
       this.showDialog = false;
     },
     deleteSecurityServer: async function () {
