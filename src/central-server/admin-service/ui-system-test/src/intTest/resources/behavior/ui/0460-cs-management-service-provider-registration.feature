@@ -14,7 +14,7 @@ Feature: 0460 - CS: management service provider registration
     And service provider name field should be empty
     And security server field should be empty
     And wsdl address field should have value http://valid-edited.example.org/managementservices.wsdl
-    And central server address field should have value https://valid-edited.example.org:4002/managementservice/manage/
+    And management services address field should have value https://valid-edited.example.org:4002/managementservice/manage/
     And security server owner group code field should have value security-server-owners
 
   Scenario: Registering management service provider
@@ -35,6 +35,6 @@ Feature: 0460 - CS: management service provider registration
     And service provider name field should have value E2E Management Member
     And security server field should be empty
     And wsdl address field should have value http://valid-edited.example.org/managementservices.wsdl
-    And central server address field should have value https://valid-edited.example.org:4002/managementservice/manage/
+    And management services address field should have value https://valid-edited.example.org:4002/managementservice/manage/
     And security server owner group code field should have value security-server-owners
     And success snackbar should be visible

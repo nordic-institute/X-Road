@@ -98,7 +98,7 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useServicesStore } from '@/store/modules/services';
+import { useServices } from '@/store/modules/services';
 
 export default Vue.extend({
   components: {
@@ -121,7 +121,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useServicesStore, ['service']),
+    ...mapState(useServices, ['service']),
 
     endpoints(): Endpoint[] {
       // Check if the service has endpoints

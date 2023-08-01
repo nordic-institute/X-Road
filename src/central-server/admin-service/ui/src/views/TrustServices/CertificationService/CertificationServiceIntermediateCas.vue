@@ -35,14 +35,14 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import IntermediateCasList from '@/components/intermediateCas/IntermediateCasList.vue';
 
 export default Vue.extend({
   name: 'CertificationServiceIntermediateCas',
   components: { IntermediateCasList },
   computed: {
-    ...mapStores(useCertificationServiceStore),
+    ...mapStores(useCertificationService),
   },
 });
 </script>

@@ -130,10 +130,10 @@
 import Vue from 'vue';
 import { Client, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
-import { clientStore } from '@/store/modules/clients';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useClient } from '@/store/modules/clients';
+import { useNotifications } from '@/store/modules/notifications';
 import { DataOptions, DataTableHeader } from 'vuetify';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { useGlobalGroups } from '@/store/modules/global-groups';
 import { debounce, toIdentifier } from '@/util/helpers';
 
 // To provide the Vue instance to debounce
@@ -159,8 +159,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(clientStore),
-    ...mapStores(useGlobalGroupsStore),
+    ...mapStores(useClient),
+    ...mapStores(useGlobalGroups),
     anyClientsSelected(): boolean {
       return !this.selectedClients || this.selectedClients.length === 0;
     },
@@ -234,7 +234,7 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.fetchClients();

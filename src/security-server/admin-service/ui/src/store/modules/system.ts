@@ -28,7 +28,7 @@ import { NodeType, NodeTypeResponse, VersionInfo } from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
-export const useSystemStore = defineStore('systemStore', {
+export const useSystem = defineStore('system', {
   state: () => {
     return {
       securityServerVersion: {} as VersionInfo,

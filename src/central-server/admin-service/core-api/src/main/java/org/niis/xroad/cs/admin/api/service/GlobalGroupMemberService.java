@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.admin.api.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.Builder;
@@ -50,6 +51,8 @@ public interface GlobalGroupMemberService {
     void removeMemberFromGlobalGroup(String groupCode, String memberId);
 
     void removeMemberFromGlobalGroup(String groupCode, MemberId memberId);
+
+    void removeClientFromGlobalGroups(ClientId clientId);
 
     @Builder
     @Getter

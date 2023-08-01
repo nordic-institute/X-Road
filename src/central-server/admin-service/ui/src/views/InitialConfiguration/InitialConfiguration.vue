@@ -155,6 +155,7 @@
         <div class="button-footer">
           <xrd-button
             :disabled="invalid"
+            :loading="submitting"
             data-test="submit-button"
             @click="submit"
             >{{ $t('action.submit') }}
@@ -179,8 +180,8 @@ import {
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { systemStore } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSystem } from '@/store/modules/system';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -233,10 +234,11 @@ export default (
         instanceIdentifier: false,
         pin: false,
       },
+      submitting: false,
     };
   },
   computed: {
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapState(useSystem, ['getSystemStatus']),
   },
   created() {
     if (!this.getSystemStatus?.initialization_status) {
@@ -264,12 +266,12 @@ export default (
     }
   },
   methods: {
-    ...mapActions(notificationsStore, [
+    ...mapActions(useNotifications, [
       'showError',
       'showSuccess',
       'resetNotifications',
     ]),
-    ...mapActions(systemStore, ['fetchSystemStatus', 'initalizationRequest']),
+    ...mapActions(useSystem, ['fetchSystemStatus', 'initalizationRequest']),
     async submit() {
       // validate inputs
       const formData: InitialServerConf = {} as InitialServerConf;
@@ -277,6 +279,7 @@ export default (
       formData.central_server_address = this.address;
       formData.software_token_pin = this.pin;
       this.resetNotifications();
+      this.submitting = true;
       await this.initalizationRequest(formData)
         .then(() => {
           this.$router
@@ -310,6 +313,7 @@ export default (
           this.showError(error);
         })
         .finally(() => {
+          this.submitting = false;
           return this.fetchSystemStatus();
         });
 

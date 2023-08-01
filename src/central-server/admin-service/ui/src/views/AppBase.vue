@@ -66,8 +66,8 @@ import Vue from 'vue';
 import { RouteName, Timeouts } from '@/global';
 import { get } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
-import { systemStore } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
+import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
 
 export default Vue.extend({
@@ -78,7 +78,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['isSessionAlive']),
+    ...mapState(useUser, ['isSessionAlive']),
     showDialog(): boolean {
       return this.isSessionAlive === false;
     },
@@ -94,10 +94,10 @@ export default Vue.extend({
     // Set interval to poll backend for session
   },
   methods: {
-    ...mapActions(userStore, ['setSessionAlive']),
-    ...mapActions(userStore, { storeLogout: 'logout' }),
+    ...mapActions(useUser, ['setSessionAlive']),
+    ...mapActions(useUser, { storeLogout: 'logout' }),
     ...mapActions(useAlerts, ['checkAlerts']),
-    ...mapActions(systemStore, [
+    ...mapActions(useSystem, [
       'fetchSystemStatus',
       'updateCentralServerAddress',
     ]),

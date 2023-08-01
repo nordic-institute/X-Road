@@ -101,9 +101,9 @@ import Vue from 'vue';
 import AddCertificationServiceDialog from '@/components/certificationServices/AddCertificationServiceDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCertificationService } from '@/store/modules/trust-services';
+import { useUser } from '@/store/modules/user';
 import { Permissions, RouteName } from '@/global';
 import {
   ApprovedCertificationService,
@@ -127,8 +127,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore, notificationsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useCertificationService, useNotifications),
+    ...mapState(useUser, ['hasPermission']),
     certificationServices(): ApprovedCertificationServiceListItem[] {
       return this.certificationServiceStore.certificationServices;
     },
@@ -168,7 +168,7 @@ export default Vue.extend({
     this.fetchCertificationServices();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchCertificationServices(): void {
       this.loading = true;
       this.certificationServiceStore

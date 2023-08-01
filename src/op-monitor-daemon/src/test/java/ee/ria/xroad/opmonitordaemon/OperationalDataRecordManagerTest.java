@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,7 +26,6 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 
 import com.google.common.collect.Sets;
@@ -78,7 +77,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
     public void beforeTest() throws Exception {
         int cleaned = doInTransaction(
                 session -> session.createQuery("delete OperationalDataRecord")
-                .executeUpdate());
+                        .executeUpdate());
 
         log.info("Cleaned {} records", cleaned);
 
@@ -116,7 +115,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         result = queryRecords(1474968960L, 1474968980L);
         assertEquals(2, result.size());
 
-        for (OperationalDataRecord rec: result.getRecords()) {
+        for (OperationalDataRecord rec : result.getRecords()) {
             assertTrue(rec.getMonitoringDataTs() >= 1474968960
                     && rec.getMonitoringDataTs() <= 1474968980);
         }
@@ -212,7 +211,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         assertNotNull(record.getRequestInTs());
         assertEquals(14749689780000L, record.getRequestInTs().longValue());
         assertNull(record.getSecurityServerInternalIp());
-        assertEquals(OpMonitoringData.SecurityServerType.CLIENT,
+        assertEquals("Client",
                 record.getSecurityServerType());
         // Other fields are nulls, check some of them..
         assertNull(record.getId());

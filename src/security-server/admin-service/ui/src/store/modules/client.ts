@@ -37,7 +37,7 @@ export interface ClientState {
   ssCertificate: CertificateDetails | null;
   clientLoading: boolean;
 }
-export const useClientStore = defineStore('clientStore', {
+export const useClient = defineStore('client', {
   state: (): ClientState => {
     return {
       client: null,

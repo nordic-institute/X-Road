@@ -69,11 +69,11 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { clientStore } from '@/store/modules/clients';
-import { memberStore } from '@/store/modules/members';
-import { systemStore } from '@/store/modules/system';
-import { notificationsStore } from '@/store/modules/notifications';
-import { subsystemStore } from '@/store/modules/subsystems';
+import { useClient } from '@/store/modules/clients';
+import { useMember } from '@/store/modules/members';
+import { useSystem } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSubsystem } from '@/store/modules/subsystems';
 import { Client } from '@/openapi-types';
 import { toIdentifier } from '@/util/helpers';
 
@@ -96,14 +96,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(clientStore, memberStore, subsystemStore),
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapStores(useClient, useMember, useSubsystem),
+    ...mapState(useSystem, ['getSystemStatus']),
   },
   created() {
     this.currentMember = this.memberStore.$state.currentMember as Client;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
     },

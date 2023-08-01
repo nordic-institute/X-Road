@@ -57,7 +57,7 @@ import { mainTabs } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './UserDropMenu.vue';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -70,7 +70,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['getAllowedTabs']),
+    ...mapState(useUser, ['getAllowedTabs']),
     allowedTabs(): Tab[] {
       return this.getAllowedTabs(mainTabs);
     },

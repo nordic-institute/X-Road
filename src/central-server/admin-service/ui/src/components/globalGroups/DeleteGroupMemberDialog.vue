@@ -68,8 +68,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { useNotifications } from '@/store/modules/notifications';
+import { useGlobalGroups } from '@/store/modules/global-groups';
 import { GroupMemberListView } from '@/openapi-types';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { toIdentifier } from '@/util/helpers';
@@ -93,7 +93,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useGlobalGroupsStore),
+    ...mapStores(useGlobalGroups),
     dialog(): boolean {
       return this.member != null;
     },
@@ -105,7 +105,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     open(member: GroupMemberListView) {
       this.member = member;
     },

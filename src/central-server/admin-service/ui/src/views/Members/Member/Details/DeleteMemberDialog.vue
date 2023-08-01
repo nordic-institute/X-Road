@@ -88,9 +88,9 @@ import Vue from 'vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Client } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
-import { memberStore } from '@/store/modules/members';
+import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'MemberDeleteDialog',
@@ -108,10 +108,10 @@ export default Vue.extend({
     return { loading: false, enteredCode: '' };
   },
   computed: {
-    ...mapStores(memberStore),
+    ...mapStores(useMember),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelDelete(): void {
       this.enteredCode = '';
       this.$emit('cancel');

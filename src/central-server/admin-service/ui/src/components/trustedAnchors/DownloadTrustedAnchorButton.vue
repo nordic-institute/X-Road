@@ -41,10 +41,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import { trustedAnchorStore } from '@/store/modules/trusted-anchors';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   props: {
@@ -59,14 +59,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapStores(trustedAnchorStore),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapStores(useTrustedAnchor),
     canDownload(): boolean {
       return this.hasPermission(Permissions.DOWNLOAD_TRUSTED_ANCHOR);
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
+    ...mapActions(useNotifications, ['showError']),
     download() {
       this.loading = true;
       this.trustedAnchorStore

@@ -33,7 +33,7 @@
 import Vue from 'vue';
 import { RouteName } from '@/global';
 import { mapStores } from 'pinia';
-import { availableSettingsTabsStore } from '@/store/modules/settings-tabs';
+import { useSettingsTabs } from '@/store/modules/settings-tabs';
 
 /**
  * Main view wrapping content all from 'Global resources' main tab.
@@ -41,14 +41,14 @@ import { availableSettingsTabsStore } from '@/store/modules/settings-tabs';
  */
 export default Vue.extend({
   computed: {
-    ...mapStores(availableSettingsTabsStore, ['getAvailableTabs']),
+    ...mapStores(useSettingsTabs, ['getAvailableTabs']),
   },
   created() {
     this.redirectToFirstAllowedTab();
   },
   methods: {
     redirectToFirstAllowedTab(): void {
-      let firstTab = this.settingsTabServiceStore.getAvailableTabs()[0].to;
+      let firstTab = this.settingsTabsStore.getAvailableTabs()[0].to;
       if (firstTab.name != RouteName.GlobalResources) {
         this.$router.push(firstTab);
       }

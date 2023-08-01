@@ -102,7 +102,7 @@ import { RouteName } from '@/global';
 import { KeyUsageType, TokenCertificate } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
 export default Vue.extend({
   props: {
@@ -117,7 +117,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useClientStore, [
+    ...mapState(useClient, [
       'client',
       'signCertificates',
       'clientLoading',
@@ -133,7 +133,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useClientStore, ['fetchSignCertificates']),
+    ...mapActions(useClient, ['fetchSignCertificates']),
     viewCertificate(cert: TokenCertificate) {
       this.$router.push({
         name: RouteName.Certificate,

@@ -107,12 +107,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'pinia';
-import { systemStore } from '@/store/modules/system';
+import { useSystem } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'AppFooter',
   computed: {
-    ...mapState(systemStore, { version: 'getServerVersion' }),
+    ...mapState(useSystem, { version: 'getServerVersion' }),
   },
 });
 </script>

@@ -76,9 +76,9 @@ import Vue from 'vue';
 import { DataOptions, DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import VueI18n from 'vue-i18n';
 import TranslateResult = VueI18n.TranslateResult;
 import { debounce } from '@/util/helpers';
@@ -97,7 +97,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useSecurityServerStore),
+    ...mapStores(useSecurityServer),
     headers(): DataTableHeader[] {
       return [
         {
@@ -142,7 +142,7 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
+    ...mapActions(useNotifications, ['showError']),
     debouncedFindServers: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.findServers(that.pagingSortingOptions);

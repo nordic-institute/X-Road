@@ -72,9 +72,9 @@
 
 <script lang="ts">
 import { SecurityServer } from '@/openapi-types';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
-import { securityServerAuthCertStore } from '@/store/modules/security-servers-authentication-certificates';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { mapActions, mapStores } from 'pinia';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import Vue from 'vue';
@@ -97,13 +97,13 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(securityServerAuthCertStore, useSecurityServerStore),
+    ...mapStores(useSecurityServerAuthCert, useSecurityServer),
     securityServer(): SecurityServer | null {
       return this.securityServerStore.currentSecurityServer;
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showSuccess', 'showError']),
+    ...mapActions(useNotifications, ['showSuccess', 'showError']),
     cancel(): void {
       this.$emit('cancel');
     },

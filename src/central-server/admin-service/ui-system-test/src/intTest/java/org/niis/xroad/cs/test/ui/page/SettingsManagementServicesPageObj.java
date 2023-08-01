@@ -51,8 +51,8 @@ public class SettingsManagementServicesPageObj {
         return $x("//td[@data-test='management-wsdl-address-field']");
     }
 
-    public SelenideElement centralServerAddress() {
-        return $x("//td[@data-test='management-central-server-address-field']");
+    public SelenideElement managementServicesAddress() {
+        return $x("//td[@data-test='management-management-services-address-field']");
     }
 
     public SelenideElement ownerGroupCode() {
@@ -63,8 +63,8 @@ public class SettingsManagementServicesPageObj {
         return $x("//button[@data-test='management-wsdl-address-copy-btn']");
     }
 
-    public SelenideElement centralServerAddressCopyButton() {
-        return $x("//button[@data-test='management-central-server-address-copy-btn']");
+    public SelenideElement managementServicesAddressCopyButton() {
+        return $x("//button[@data-test='management-management-services-address-copy-btn']");
     }
 
     public SelenideElement editManagementSubsystemButton() {

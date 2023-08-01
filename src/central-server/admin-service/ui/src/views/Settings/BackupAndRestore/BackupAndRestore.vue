@@ -58,12 +58,12 @@
 import Vue from 'vue';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useBackupsStore } from '@/store/modules/backups';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useBackups } from '@/store/modules/backups';
+import { useNotifications } from '@/store/modules/notifications';
 import VueI18n from 'vue-i18n';
 import Values = VueI18n.Values;
 import { Backup } from '@/openapi-types';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   data() {
@@ -74,8 +74,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useBackupsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useBackups),
+    ...mapState(useUser, ['hasPermission']),
     canBackup(): boolean {
       return this.hasPermission(Permissions.BACKUP_CONFIGURATION);
     },
@@ -87,7 +87,7 @@ export default Vue.extend({
     this.fetchBackups();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     backupHandler() {
       return {
         showSuccess: this.displaySuccess,

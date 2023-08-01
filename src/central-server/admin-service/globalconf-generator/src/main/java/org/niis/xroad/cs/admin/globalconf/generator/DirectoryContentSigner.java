@@ -27,10 +27,6 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.util.HashCalculator;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
-import ee.ria.xroad.signer.protocol.message.Sign;
-import ee.ria.xroad.signer.protocol.message.SignResponse;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -86,17 +82,16 @@ public class DirectoryContentSigner {
         String digestAlgorithmId = getDigestAlgorithmId(signatureAlgorithmId);
         byte[] digest = calculateDigest(digestAlgorithmId, data);
 
-        SignResponse response = signerProxy.execute(new Sign(keyId, signatureAlgorithmId, digest));
-        return response.getSignature();
+        return signerProxy.sign(keyId, signatureAlgorithmId, digest);
     }
 
     @SneakyThrows
     private String getSignAlgorithmId(String keyId, String digestAlgorithmId) {
         log.trace("getSignAlgorithmId({}, {})", keyId, digestAlgorithmId);
 
-        GetSignMechanismResponse response = signerProxy.execute(new GetSignMechanism(keyId));
+        String signMechanismName = signerProxy.getSignMechanism(keyId);
 
-        return getSignatureAlgorithmId(digestAlgorithmId, response.getSignMechanismName());
+        return getSignatureAlgorithmId(digestAlgorithmId, signMechanismName);
     }
 
 }

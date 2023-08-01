@@ -62,8 +62,8 @@
 import Vue from 'vue';
 import { FileUploadResult } from '@niis/shared-ui';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+import { useNotifications } from '@/store/modules/notifications';
+import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { Prop } from 'vue/types/options';
 import {
   ConfigurationPartContentIdentifier,
@@ -90,10 +90,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useConfigurationSourceStore),
+    ...mapStores(useConfigurationSource),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     onFileUploaded(result: FileUploadResult): void {
       this.partFile = result.file;
       this.partFileTitle = result.file.name;

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.common.util.TokenPinPolicy;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -42,6 +43,11 @@ import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -55,8 +61,12 @@ import java.nio.file.StandardOpenOption;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Signature;
+import java.security.cert.CertPath;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,8 +76,9 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.getKeyInfo;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenActive;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
@@ -87,7 +98,6 @@ import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeySto
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.loginFailed;
 import static ee.ria.xroad.signer.util.ExceptionHelper.pinIncorrect;
@@ -169,9 +179,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             throws Exception {
         log.trace("generateKeys()");
 
-        if (!isTokenActive(tokenId)) {
-            throw tokenNotActive(tokenId);
-        }
+        assertTokenAvailable();
 
         java.security.KeyPair keyPair = generateKeyPair(SystemProperties.getSignerKeyLength());
 
@@ -187,9 +195,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     protected void deleteKey(String keyId) throws Exception {
         log.trace("deleteKey({})", keyId);
 
-        if (!isTokenActive(tokenId)) {
-            throw tokenNotActive(tokenId);
-        }
+        assertTokenAvailable();
 
         Path path = Paths.get(getKeyStoreFileName(keyId));
 
@@ -209,13 +215,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         checkSignatureAlgorithm(signatureAlgorithmId);
 
-        if (!isTokenActive(tokenId)) {
-            throw tokenNotActive(tokenId);
-        }
+        assertTokenAvailable();
 
-        if (!isKeyAvailable(keyId)) {
-            throw keyNotAvailable(keyId);
-        }
+        assertKeyAvailable(keyId);
 
         PrivateKey key = getPrivateKey(keyId);
 
@@ -243,6 +245,27 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
                 throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
                         "Unsupported signature algorithm '%s'", signatureAlgorithmId);
         }
+    }
+
+    protected byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception {
+        log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
+        checkSignatureAlgorithm(signatureAlgorithmId);
+        assertTokenAvailable();
+        assertKeyAvailable(keyId);
+        KeyInfo keyInfo = getKeyInfo(keyId);
+        CertificateInfo certificateInfo = keyInfo.getCerts().get(0);
+        X509Certificate issuerX509Certificate = readCertificate(certificateInfo.getCertificateBytes());
+        PrivateKey privateKey = getPrivateKey(keyId);
+        JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
+                                                                                        issuerX509Certificate);
+
+        log.debug("Signing certificate with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithmId).build(privateKey);
+        X509CertificateHolder certHolder = certificateBuilder.build(signer);
+        X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
+        CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
+        return certPath.getEncoded("PEM");
     }
 
     // ------------------------------------------------------------------------
@@ -520,6 +543,12 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         try (FileOutputStream fos = new FileOutputStream(keyStoreFile)) {
             keyStore.store(fos, password);
+        }
+    }
+
+    private void assertTokenAvailable() {
+        if (!isTokenActive(tokenId)) {
+            throw tokenNotActive(tokenId);
         }
     }
 }

@@ -47,6 +47,7 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
@@ -95,6 +96,8 @@ class MemberServiceImplTest {
     private GlobalGroupMemberRepository globalGroupMemberRepository;
     @Mock
     private MemberClassRepository memberClassRepository;
+    @Mock
+    private GlobalGroupMemberService globalGroupMemberService;
     @Mock
     private SecurityServerMapper securityServerMapper;
     @Mock

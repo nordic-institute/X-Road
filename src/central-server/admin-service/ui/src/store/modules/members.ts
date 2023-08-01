@@ -39,7 +39,7 @@ export interface State {
   currentMember: Client;
 }
 
-export const memberStore = defineStore('member', {
+export const useMember = defineStore('member', {
   state: (): State => ({
     currentMember: {
       client_id: {} as ClientId,

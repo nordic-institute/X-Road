@@ -84,12 +84,12 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useGlobalGroups } from '@/store/modules/global-groups';
+import { useNotifications } from '@/store/modules/notifications';
 import { GlobalGroupResource } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import AddGroupDialog from './AddGroupDialog.vue';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   name: 'GlobalResourcesList',
@@ -100,8 +100,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useGlobalGroupsStore, notificationsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useGlobalGroups, useNotifications),
+    ...mapState(useUser, ['hasPermission']),
     globalGroups(): GlobalGroupResource[] {
       return this.globalGroupStore.globalGroups;
     },
@@ -144,7 +144,7 @@ export default Vue.extend({
     this.fetchAllGroups();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     closeAddGroupDialog(): void {
       this.showAddGroupDialog = false;
     },

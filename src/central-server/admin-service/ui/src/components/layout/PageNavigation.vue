@@ -44,7 +44,7 @@
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Tab } from '@/ui-types';
 
 export interface PageNavigationTab extends Tab {
@@ -60,7 +60,7 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapState(userStore, ['getAllowedTabs']),
+    ...mapState(useUser, ['getAllowedTabs']),
     allowedTabs(): PageNavigationTab[] {
       return this.getAllowedTabs(this.tabs);
     },

@@ -87,6 +87,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final PrivateParametersGenerator privateParametersGenerator;
     private final SharedParametersGenerator sharedParametersGenerator;
     private final ApplicationEventPublisher eventPublisher;
+    private final GlobalConfTLSCertificateGenerator tlsCertificateGenerator;
 
     @SneakyThrows
     @Override
@@ -124,6 +125,8 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
             log.debug("Global conf generated");
             success = true;
+
+            tlsCertificateGenerator.updateGlobalConfTLSCertificates(internalSigningKey, externalSigningKey);
         } finally {
             eventPublisher.publishEvent(success ? SUCCESS : FAILURE);
         }

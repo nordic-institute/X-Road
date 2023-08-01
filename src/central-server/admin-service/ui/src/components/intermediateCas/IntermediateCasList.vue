@@ -137,15 +137,15 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useIntermediateCaStore } from '@/store/modules/trust-services';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useIntermediateCasService } from '@/store/modules/trust-services';
+import { useNotifications } from '@/store/modules/notifications';
 import {
   ApprovedCertificationService,
   CertificateAuthority,
 } from '@/openapi-types';
 import AddIntermediateCaDialog from '@/components/intermediateCas/AddIntermediateCaDialog.vue';
 import { Permissions, RouteName } from '@/global';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   name: 'IntermediateCasList',
@@ -166,8 +166,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useIntermediateCaStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useIntermediateCasService),
+    ...mapState(useUser, ['hasPermission']),
     intermediateCas(): CertificateAuthority[] {
       return this.intermediateCasServiceStore.currentIntermediateCas;
     },
@@ -209,7 +209,7 @@ export default Vue.extend({
     this.intermediateCasServiceStore.loadByCs(this.cs);
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     toDetails(intermediateCa: CertificateAuthority) {
       this.$router.push({
         name: RouteName.IntermediateCaDetails,

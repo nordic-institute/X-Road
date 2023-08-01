@@ -96,7 +96,7 @@
 import Vue from 'vue';
 import { mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
-import { useSystemStore } from '@/store/modules/system';
+import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
 import { formatDateTime } from '@/filters';
 import { Permissions, RouteName } from '@/global';
@@ -109,7 +109,7 @@ export default Vue.extend({
       'showRestoreInProgress',
       'restoreStartTime',
     ]),
-    ...mapState(useSystemStore, ['isSecondaryNode']),
+    ...mapState(useSystem, ['isSecondaryNode']),
     ...mapState(useUser, [
       'authenticated',
       'needsInitialization',

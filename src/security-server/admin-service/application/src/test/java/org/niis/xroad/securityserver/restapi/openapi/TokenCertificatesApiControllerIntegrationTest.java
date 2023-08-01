@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -123,7 +124,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 return signCertificateInfo;
             }
         }).when(signerProxyFacade).getCertForHash(any());
-        doAnswer(answer -> "key-id").when(signerProxyFacade).getKeyIdForCertHash(any());
+        doAnswer(answer -> new SignerProxy.KeyIdInfo("key-id", null)).when(signerProxyFacade).getKeyIdForCertHash(any());
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().build();
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id("key-id").build();
         tokenInfo.getKeyInfo().add(keyInfo);

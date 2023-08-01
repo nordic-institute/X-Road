@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -36,7 +36,6 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
@@ -72,7 +71,7 @@ public class GlobalConfChecker {
 
     @Autowired
     public GlobalConfChecker(GlobalConfCheckerHelper globalConfCheckerHelper, GlobalConfFacade globalConfFacade,
-            SignerProxyFacade signerProxyFacade) {
+                             SignerProxyFacade signerProxyFacade) {
         this.globalConfCheckerHelper = globalConfCheckerHelper;
         this.globalConfFacade = globalConfFacade;
         this.signerProxyFacade = signerProxyFacade;
@@ -86,6 +85,8 @@ public class GlobalConfChecker {
      * next task won't be invoked until the previous one is done. Set an initial delay before running the task
      * for the first time after a startup to be sure that all required components are available, e.g.
      * SignerClient may not be available immediately.
+     *
+     * @throws Exception
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
     @Transactional
@@ -135,7 +136,7 @@ public class GlobalConfChecker {
             updateAuthCertStatuses(securityServerId);
             if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
                 updateTimestampServiceUrls(globalConfFacade.getApprovedTspTypes(
-                        globalConfFacade.getInstanceIdentifier()),
+                                globalConfFacade.getInstanceIdentifier()),
                         serverConf.getTsp()
                 );
             }
@@ -147,8 +148,9 @@ public class GlobalConfChecker {
     /**
      * Matches timestamping services in globalTsps with localTsps by name and checks if the URLs have changed.
      * If the change is unambiguous, it's performed on localTsps. Otherwise a warning is logged.
+     *
      * @param globalTsps timestamping services from global configuration
-     * @param localTsps timestamping services from local database
+     * @param localTsps  timestamping services from local database
      */
     void updateTimestampServiceUrls(List<ApprovedTSAType> globalTsps, List<TspType> localTsps) {
 
@@ -167,7 +169,7 @@ public class GlobalConfChecker {
                 ApprovedTSAType globalTspMatch = globalTspMatches.get(0);
                 if (!globalTspMatch.getUrl().equals(localTsp.getUrl())) {
                     log.info("Timestamping service URL has changed in the global configuration. "
-                            + "Updating the changes to the local configuration, Name: {}, Old URL: {}, New URL: {}",
+                                    + "Updating the changes to the local configuration, Name: {}, Old URL: {}, New URL: {}",
                             localTsp.getName(), localTsp.getUrl(), globalTspMatch.getUrl());
                     localTsp.setUrl(globalTspMatch.getUrl());
                 }
@@ -218,7 +220,7 @@ public class GlobalConfChecker {
     private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
         log.debug("Get auth cert for security server '{}'", serverId);
 
-        AuthKeyInfo keyInfo = signerProxyFacade.execute(new GetAuthKey(serverId));
+        AuthKeyInfo keyInfo = signerProxyFacade.getAuthKey(serverId);
         if (keyInfo != null && keyInfo.getCert() != null) {
             return readCertificate(keyInfo.getCert().getCertificateBytes());
         }
@@ -226,8 +228,7 @@ public class GlobalConfChecker {
         return null;
     }
 
-    private void updateClientStatuses(ServerConfType serverConf,
-            SecurityServerId securityServerId) throws Exception {
+    private void updateClientStatuses(ServerConfType serverConf, SecurityServerId securityServerId) {
         log.debug("Updating client statuses");
 
         for (ClientType client : serverConf.getClient()) {
@@ -283,7 +284,7 @@ public class GlobalConfChecker {
     }
 
     private void updateCertStatus(SecurityServerId securityServerId,
-            CertificateInfo certInfo) throws Exception {
+                                  CertificateInfo certInfo) throws Exception {
         X509Certificate cert =
                 readCertificate(certInfo.getCertificateBytes());
 

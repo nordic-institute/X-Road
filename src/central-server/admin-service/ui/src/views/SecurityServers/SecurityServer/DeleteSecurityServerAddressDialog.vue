@@ -79,8 +79,8 @@
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { mapActions, mapStores } from 'pinia';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { useNotifications } from '@/store/modules/notifications';
 
 /**
  * Component for a Security server details view
@@ -108,10 +108,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useSecurityServerStore),
+    ...mapStores(useSecurityServer),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
+    ...mapActions(useNotifications, ['showError']),
     open(): void {
       this.showDialog = true;
     },
