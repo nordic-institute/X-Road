@@ -135,7 +135,6 @@ public class InitializationServiceImpl implements InitializationService {
             tokenPinValidator.validateSoftwareTokenPin(configDto.getSoftwareTokenPin().toCharArray());
         }
 
-
         if (!isServerAddressInitialized) {
             systemParameterService.updateOrCreateParameter(
                     SystemParameterService.CENTRAL_SERVER_ADDRESS,
