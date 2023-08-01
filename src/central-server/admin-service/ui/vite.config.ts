@@ -28,12 +28,16 @@ export default defineConfig({
     proxy: {
       '/api': {
         secure: false,
-        target:  process.env.PROXY_ADDRESS || 'https://localhost:4000',
+        target: process.env.PROXY_ADDRESS || 'https://localhost:4000',
       },
       '/login': {
         secure: false,
-        target:  'https://localhost:4000',
+        target: 'https://localhost:4000',
       }
+    },
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: ['.', '../../../shared-ui-3/src'],
     }
   }
 })

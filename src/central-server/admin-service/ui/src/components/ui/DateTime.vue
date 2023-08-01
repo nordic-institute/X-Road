@@ -31,14 +31,20 @@
 <script lang="ts" setup>
 
 import { computed } from "vue";
-import dayjs from "dayjs";
+import { formatDateTime } from "@/util/helpers";
 
 const props = defineProps({
     value: {
       type: String,
-      required: true
+    },
+    withSeconds: {
+      type: [Boolean, String],
+      default: false,
     }
   }
 );
-const formatted = computed(() => dayjs(props.value).format('YYYY-MM-DD HH:mm'));
+const regular = 'YYYY-MM-DD HH:mm:ss';
+const withSeconds = regular + ':ss';
+
+const formatted = computed(() => formatDateTime(props.value, props.withSeconds ? withSeconds : regular));
 </script>

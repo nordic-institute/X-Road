@@ -184,7 +184,7 @@ export default defineComponent({
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;
       this.dataQuery.sortBy= sortBy[0]?.key;
-      this.dataQuery.ortOrder= sortBy[0]?.order;
+      this.dataQuery.sortOrder= sortBy[0]?.order;
       this.fetchClients();
     },
     fetchClients: async function () {
