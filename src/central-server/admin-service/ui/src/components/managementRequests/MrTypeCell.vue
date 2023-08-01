@@ -26,18 +26,18 @@
  -->
 <template>
   <div class="status-wrapper">
-    <v-tooltip top>
-      <template #activator="{ on, attrs }">
-        <div v-bind="attrs" v-on="on">
-          <xrd-icon-base v-bind="attrs" class="mr-3" v-on="on">
+    <v-tooltip location="top">
+      <template v-slot:activator="{ props }">
+        <div >
+          <xrd-icon-base class="mr-3" v-bind="props">
             <!-- Decide what icon to show -->
-            <XrdIconChangeOwner v-if="type === 'OWNER_CHANGE_REQUEST'" />
-            <XrdIconAddUser v-if="type === 'CLIENT_REGISTRATION_REQUEST'" />
-            <XrdIconRemoveUser v-if="type === 'CLIENT_DELETION_REQUEST'" />
-            <XrdIconRemoveCertificate
+            <xrd-icon-change-owner v-if="type === 'OWNER_CHANGE_REQUEST'" />
+            <xrd-icon-add-user v-if="type === 'CLIENT_REGISTRATION_REQUEST'" />
+            <xrd-icon-remove-user v-if="type === 'CLIENT_DELETION_REQUEST'" />
+            <xrd-icon-remove-certificate
               v-if="type === 'AUTH_CERT_DELETION_REQUEST'"
             />
-            <XrdIconAddCertificate
+            <xrd-icon-add-certificate
               v-if="type === 'AUTH_CERT_REGISTRATION_REQUEST'"
             />
           </xrd-icon-base>
@@ -50,11 +50,23 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import XrdIconChangeOwner from '@shared-ui/components/icons/XrdIconChangeOwner.vue'
+import XrdIconAddUser from '@shared-ui/components/icons/XrdIconAddUser.vue'
+import XrdIconRemoveUser from '@shared-ui/components/icons/XrdIconRemoveUser.vue'
+import XrdIconRemoveCertificate from '@shared-ui/components/icons/XrdIconRemoveCertificate.vue'
+import XrdIconAddCertificate from '@shared-ui/components/icons/XrdIconAddCertificate.vue'
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestType } from '@/openapi-types';
 import { managementTypeToText } from '@/util/helpers';
 
 export default defineComponent({
+  components: {
+    XrdIconAddCertificate,
+    XrdIconRemoveCertificate,
+    XrdIconRemoveUser,
+    XrdIconAddUser,
+    XrdIconChangeOwner
+  },
   props: {
     type: {
       type: String as PropType<ManagementRequestType>,

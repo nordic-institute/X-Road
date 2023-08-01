@@ -77,7 +77,7 @@
 
       <info-card
         :title-text="$t('securityServers.registered')"
-        data-test="security-server-registered"><date-time-s :value="securityServer.created_at"/></info-card>
+        data-test="security-server-registered"><date-time :value="securityServer.created_at" with-seconds/></info-card>
 
       <div class="delete-action" @click="showDeleteServerDialog=true">
         <div>
@@ -128,7 +128,7 @@ import EditSecurityServerAddressDialog
 import DeleteSecurityServerDialog
   from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
 import { useNotifications } from '@/store/modules/notifications';
-import DateTimeS from "@/components/ui/DateTimeS.vue";
+import DateTime from "@/components/ui/DateTime.vue";
 
 /**
  * Component for a Security server details view
@@ -136,7 +136,7 @@ import DateTimeS from "@/components/ui/DateTimeS.vue";
 export default defineComponent({
   name: 'SecurityServerDetails',
   components: {
-    DateTimeS,
+    DateTime,
     DeleteSecurityServerDialog,
     EditSecurityServerAddressDialog,
     InfoCard,

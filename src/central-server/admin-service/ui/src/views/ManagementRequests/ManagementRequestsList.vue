@@ -46,65 +46,64 @@
           :label="$t('managementRequests.showOnlyPending')"
           class="custom-checkbox"
           data-test="show-only-pending-requests"
-          @change="changeOptions"
+          @change="fetchItems"
         ></v-checkbox>
       </div>
     </div>
 
-    <v-data-table
+    <v-data-table-server
       :loading="loading"
       :headers="headers"
-      :items="managementRequestsStore.items"
-      :search="managementRequestsStore.currentFilter.query"
       :must-sort="true"
+      :items="managementRequestsStore.items"
+      :items-length="managementRequestsStore.pagingOptions.total_items"
       :items-per-page="10"
-      :options.sync="managementRequestsStore.pagingSortingOptions"
-      :server-items-length="managementRequestsStore.pagingOptions.total_items"
+      :items-per-page-options="itemsPerPageOptions"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
       data-test="management-requests-table"
       @update:options="changeOptions"
     >
       <template #[`item.id`]="{ item }">
-        <management-request-id-cell :management-request="item" />
+        <management-request-id-cell :management-request="item.raw" />
       </template>
 
       <template #[`item.created_at`]="{ item }">
-        <div>{{ item.created_at | formatDateTime }}</div>
+        <div>
+          <date-time :value="item.raw.created_at" />
+        </div>
       </template>
 
       <template #[`item.type`]="{ item }">
-        <mr-type-cell :type="item.type" />
+        <mr-type-cell :type="item.raw.type" />
       </template>
 
       <template #[`item.security_server_owner`]="{ item }">
-        <div>{{ item.security_server_owner }}</div>
+        <div>{{ item.raw.security_server_owner }}</div>
       </template>
 
       <template #[`item.security_server_id`]="{ item }">
-        <div>{{ item.security_server_id.encoded_id }}</div>
+        <div>{{ item.raw.security_server_id.encoded_id }}</div>
       </template>
 
       <template #[`item.status`]="{ item }">
-        <mr-status-cell :status="item.status" />
+        <mr-status-cell :status="item.raw.status" />
       </template>
 
       <template #[`item.button`]="{ item }">
         <mr-actions-cell
-          :management-request="item"
-          @approve="changeOptions"
-          @decline="changeOptions"
+          :management-request="item.raw"
+          @approve="fetchItems"
+          @decline="fetchItems"
         />
       </template>
-    </v-data-table>
+    </v-data-table-server>
   </div>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { VDataTableServer } from "vuetify/labs/VDataTable";
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
@@ -114,6 +113,9 @@ import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vu
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
 import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
+import { DataQuery } from "@/ui-types";
+import { defaultItemsPerPageOptions } from "@/util/defaults";
+import DateTime from "@/components/ui/DateTime.vue";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,13 +124,15 @@ let that: any;
 /**
  * General component for Management requests
  */
-export default defineComponent({
+export default {
   name: 'ManagementRequestsList',
   components: {
+    DateTime,
     MrTypeCell,
     MrStatusCell,
     MrActionsCell,
     ManagementRequestIdCell,
+    VDataTableServer
   },
   data() {
     return {
@@ -140,49 +144,45 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('global.id') as string,
+          title: this.$t('global.id') as string,
           align: 'start',
-          value: 'id',
-          class: 'xrd-table-header mr-table-header-id',
+          key: 'id',
         },
         {
-          text: this.$t('global.created') as string,
+          title: this.$t('global.created') as string,
           align: 'start',
-          value: 'created_at',
-          class: 'xrd-table-header mr-table-header-created',
+          key: 'created_at',
         },
         {
-          text: this.$t('global.type') as string,
+          title: this.$t('global.type') as string,
           align: 'start',
-          value: 'type',
-          class: 'xrd-table-header mr-table-header-type',
+          key: 'type',
         },
         {
-          text: this.$t('managementRequests.securityServerOwnerName') as string,
+          title: this.$t('managementRequests.securityServerOwnerName') as string,
           align: 'start',
-          value: 'security_server_owner',
-          class: 'xrd-table-header mr-table-header-owner-name',
+          key: 'security_server_owner',
         },
         {
-          text: this.$t('managementRequests.securityServerId') as string,
+          title: this.$t('managementRequests.securityServerId') as string,
           align: 'start',
-          value: 'security_server_id',
-          class: 'xrd-table-header mr-table-header-owner-id',
+          key: 'security_server_id',
         },
         {
-          text: this.$t('global.status') as string,
+          title: this.$t('global.status') as string,
           align: 'start',
-          value: 'status',
-          class: 'xrd-table-header mr-table-header-status',
+          key: 'status',
         },
         {
-          text: '',
-          value: 'button',
+          title: '',
           sortable: false,
-          class: 'xrd-table-header mr-table-header-buttons',
+          key: 'button',
         },
-      ];
-    },
+      ],
+    };
+  },
+  computed: {
+    ...mapStores(managementRequestsStore),
     showOnlyPending: {
       get(): boolean {
         return (
@@ -223,7 +223,11 @@ export default defineComponent({
       // Debounce is used to reduce unnecessary api calls
       that.fetchItems();
     }, 600),
-    changeOptions: async function () {
+    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
+      this.dataQuery.itemsPerPage = itemsPerPage;
+      this.dataQuery.page = page;
+      this.dataQuery.sortBy = sortBy[0]?.key;
+      this.dataQuery.sortOrder = sortBy[0]?.order;
       await this.fetchItems();
     },
     fetchItems: async function () {
@@ -231,7 +235,7 @@ export default defineComponent({
 
       try {
         await this.managementRequestsStore.find(
-          this.managementRequestsStore.pagingSortingOptions,
+          this.dataQuery,
           this.managementRequestsStore.currentFilter,
         );
       } catch (error: unknown) {
@@ -241,7 +245,7 @@ export default defineComponent({
       }
     },
   },
-});
+};
 </script>
 
 <style lang="scss" scoped>

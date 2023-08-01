@@ -27,8 +27,8 @@
 // Ok to ignore any here because that is the axios contract as well
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 
-export function defaultItemsPerPageOptions() {
-  return [2, 10, 25].map((value) => {
-    return { title: value+'', value }
+export function defaultItemsPerPageOptions(additional: number[] = []) {
+  return [2, 10, 25, ...additional].map((value) => {
+    return { title: value + '', value }
   });
 }
