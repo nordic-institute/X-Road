@@ -30,6 +30,7 @@ import { NavigationFailure } from 'vue-router';
 import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
 import { AxiosError, AxiosResponse } from 'axios';
 import i18n from "@/plugins/i18n";
+import dayjs from "dayjs";
 
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
@@ -224,7 +225,7 @@ export function toShortMemberId(client: ClientId): string {
 export function managementTypeToText(
   type: ManagementRequestType | undefined,
 ): string {
-  const { t } = useI18n();
+  const { t } = i18n.global;
   switch (type) {
     case ManagementRequestType.OWNER_CHANGE_REQUEST:
       return t('managementRequests.changeOwner') as string;
@@ -266,4 +267,12 @@ export function upperCaseWords(value: string): string {
     .split(' ')
     .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
     .join(' ');
+}
+
+export function formatDateTime(valueAsText: string | undefined, format: string): string {
+  if (!valueAsText) {
+    return '-';
+  }
+  const time = dayjs(valueAsText);
+  return time.isValid() ? time.format(format) : '-';
 }

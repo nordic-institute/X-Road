@@ -38,6 +38,7 @@ import {
   PagingMetadata,
   PagingSortingParameters,
 } from '@/openapi-types';
+import { DataQuery } from "@/ui-types";
 
 export interface State {
   currentManagementRequest: ManagementRequestDetailedView | null;
@@ -68,13 +69,13 @@ export const useManagementRequests = defineStore('managementRequests', {
     } as DataOptions,
   }),
   actions: {
-    async find(dataOptions: DataOptions, filter: ManagementRequestsFilter) {
+    async find(dataOptions: DataQuery, filter: ManagementRequestsFilter) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const params: ManagementRequestsFilter & PagingSortingParameters = {
         limit: dataOptions.itemsPerPage,
         offset: offset,
-        sort: dataOptions.sortBy[0],
-        desc: dataOptions.sortDesc[0],
+        sort: dataOptions.sortBy,
+        desc: dataOptions.sortOrder === 'desc',
         ...filter,
       };
 

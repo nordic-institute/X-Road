@@ -32,10 +32,12 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestStatus } from '@/openapi-types';
+import XrdStatusIcon from '@shared-ui/components/XrdStatusIcon.vue'
 
 export default defineComponent({
+  components: { XrdStatusIcon },
   props: {
     status: {
       type: String as PropType<ManagementRequestStatus>,
@@ -101,7 +103,7 @@ export default defineComponent({
   font-size: 12px;
   line-height: 16px;
   color: $XRoad-WarmGrey100;
-  margin-left: 2px;
+  margin-left: 5px;
   text-transform: uppercase;
 }
 </style>

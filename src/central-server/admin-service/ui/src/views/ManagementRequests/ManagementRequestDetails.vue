@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view back-to="/management-requests">
+  <details-view :back-to="backTo">
     <XrdEmptyPlaceholder
       :loading="loading"
       :data="managementRequest"
@@ -105,6 +105,7 @@ import MrSecurityServerInformation from '@/components/managementRequests/details
 import MrInformation from '@/components/managementRequests/details/MrInformation.vue';
 import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
+import { RouteName } from "@/global";
 
 /**
  * Wrapper component for a certification service view
@@ -129,6 +130,9 @@ export default defineComponent({
   data() {
     return {
       loading: false,
+      backTo: {
+        name: RouteName.ManagementRequests
+      }
     };
   },
   computed: {

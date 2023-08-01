@@ -31,7 +31,7 @@
 <script lang="ts" setup>
 
 import { computed } from "vue";
-import dayjs from "dayjs";
+import { formatDateTime } from "@/util/helpers";
 
 const props = defineProps({
     value: {
@@ -40,5 +40,5 @@ const props = defineProps({
     }
   }
 );
-const formatted = computed(() => dayjs(props.value).format('YYYY-MM-DD'));
+const formatted = computed(() => formatDateTime(props.value, 'YYYY-MM-DD'));
 </script>
