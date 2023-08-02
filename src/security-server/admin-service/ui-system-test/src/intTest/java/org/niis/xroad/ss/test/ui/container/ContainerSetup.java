@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.File;
@@ -96,7 +97,9 @@ public class ContainerSetup {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                //do nothing
+                var logDir = Paths.get("build/ss-container-logs/").toFile();
+                logDir.mkdirs();
+                genericContainer.withFileSystemBind(logDir.getAbsolutePath(), "/var/log/xroad", BindMode.READ_WRITE);
             }
 
             @Override
