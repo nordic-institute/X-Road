@@ -52,13 +52,18 @@
         z-index="2410"
       ></v-select>
 
-      <v-text-field
-            v-model="memberCode.value"
-            :label="$t('global.memberCode')"
-            variant="outlined"
-            data-test="add-member-code-input"
-            :error-messages="memberCode.errorMessage as string"
-          ></v-text-field>
+      <field v-model="memberCode"
+             ref="memberCode"
+             name="memberCode"
+             rules="required"
+             v-slot="{ field, errors }"
+      >
+        <v-text-field v-bind="field"
+                      :label="$t('global.memberCode')"
+                      :error-messages="errors" variant="outlined"
+                      data-test="add-member-code-input"
+        />
+      </field>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -74,17 +79,20 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useMemberClass } from '@/store/modules/member-class';
 import { getErrorInfo, getTranslatedFieldErrors, isFieldError, } from '@/util/helpers';
 import { AxiosError } from 'axios';
-import { useField } from "vee-validate";
+import { Field } from 'vee-validate';
+
 
 export default defineComponent({
-  name: 'AddMemberDialog',
+  components: {
+    Field
+  },
   emits: ['save', 'cancel'],
   data() {
     return {
       loading: false,
       memberName: '',
       memberClass: '',
-      memberCode: useField('memberCode', 'required'),
+      memberCode: '',
     };
   },
   computed: {
@@ -96,6 +104,9 @@ export default defineComponent({
     formReady(): boolean {
       return !!(this.memberName && this.memberClass && this.memberCode);
     },
+    memberCodeRef(): InstanceType<typeof Field> {
+      return this.$refs.memberCode as InstanceType<typeof Field>;
+    }
   },
   created() {
     this.memberClassStore.fetchAll();
@@ -109,18 +120,17 @@ export default defineComponent({
     clearForm(): void {
       this.memberName = '';
       this.memberClass = '';
-      this.memberCode.resetField();
+      this.memberCode = '';
+      this.memberCodeRef.reset();
     },
     add(): void {
       this.loading = true;
-      const instanceId: string = this.getSystemStatus?.initialization_status
-        ?.instance_identifier as string;
       this.memberStore
         .add({
           member_name: this.memberName,
           member_id: {
             member_class: this.memberClass,
-            member_code: this.memberCode.value as string,
+            member_code: this.memberCode as string,
           },
         })
         .then(() => {
@@ -136,8 +146,8 @@ export default defineComponent({
           const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
           if (isFieldError(errorInfo)) {
             let fieldErrors = errorInfo.error?.validation_errors;
-            if (fieldErrors && this.$refs?.memberCodeVP) {
-              this.memberCode.setErrors(
+            if (fieldErrors && this.$refs?.memberCode) {
+              this.memberCodeRef.setErrors(
                 getTranslatedFieldErrors(
                   'memberAddDto.memberId.memberCode',
                   fieldErrors,

@@ -41,6 +41,7 @@
           v-model="value"
           variant="outlined"
           data-test="edit-member-name"
+          :error-messages="errors"
         ></v-text-field>
       </div>
     </template>
@@ -55,7 +56,7 @@ import { Client } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { memberStore } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
-import { computed, PropType, ref } from "vue";
+import { defineComponent, PropType } from "vue";
 import i18n from "@/plugins/i18n";
 import { useField } from "vee-validate";
 

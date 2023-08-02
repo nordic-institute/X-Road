@@ -36,7 +36,7 @@
       :scrollable="false"
       :show-close="true"
       :loading="loading"
-      :disable-save="!offeredCode.meta.valid"
+      :disable-save="!meta.valid"
       @save="deleteSecurityServer"
       @cancel="close"
     >
@@ -49,13 +49,13 @@
       </template>
       <template #content>
         <v-text-field
-          v-model="offeredCode.value"
+          v-model="value"
           name="serverCode"
           variant="outlined"
           :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
           autofocus
           data-test="verify-server-code"
-          :error-messages="offeredCode.errorMessage as string"
+          :error-messages="errors"
         />
       </template>
     </xrd-simple-dialog>
@@ -63,7 +63,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import { useField } from "vee-validate";
@@ -72,6 +71,15 @@ import { useField } from "vee-validate";
  * Component for a Security server details view
  */
 export default defineComponent({
+  setup(props) {
+    const securityServerStore = useSecurityServerStore();
+    const { showError } = notificationsStore();
+    const { value, meta, errors, resetField } = useField('serverCode', {
+      required: true,
+      is: props.serverCode,
+    }, { initialValue: '' });
+    return { value, meta, errors, resetField, securityServerStore, showError };
+  },
   props: {
     securityServerId: {
       type: String,
@@ -86,10 +94,7 @@ export default defineComponent({
     return {
       loading: false,
       showDialog: false,
-      offeredCode: useField('serverCode', {
-        required: true,
-        is: this.serverCode,
-      }, { initialValue: '' }),
+
     };
   },
   computed: {
@@ -101,7 +106,7 @@ export default defineComponent({
       this.showDialog = true;
     },
     close(): void {
-      this.offeredCode.resetField();
+      this.resetField();
       this.showDialog = false;
     },
     deleteSecurityServer: async function () {
