@@ -155,7 +155,6 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
     @Step("Following members are {selenideValidation} in local group:")
     public void validateMembers(ParameterMappers.SelenideValidation selenideValidation, DataTable dataTable) {
         dataTable.asList().forEach(member -> clientInfoPageObj.localGroups.details.memberByCode(member)
-                .scrollIntoView(false)
                 .shouldBe(selenideValidation.getSelenideCondition()));
     }
 
