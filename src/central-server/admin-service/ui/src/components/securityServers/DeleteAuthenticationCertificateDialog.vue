@@ -27,7 +27,7 @@
 
 <template>
     <xrd-simple-dialog
-      :disable-save="!serverCode.meta.valid"
+      :disable-save="!meta.valid"
       :loading="loading"
       title="securityServers.securityServer.dialog.deleteAuthCertificate.title"
       save-button-text="action.delete"
@@ -40,7 +40,7 @@
       </template>
       <template #content>
           <v-text-field
-            v-model="serverCode.value"
+            v-model="value"
             data-test="verify-server-code"
             variant="outlined"
             autofocus
@@ -50,7 +50,7 @@
               )
             "
             :label="$t('fields.securityServerCode')"
-            :error-messages="serverCode.errorMessage as string"
+            :error-messages="errors"
           >
           </v-text-field>
       </template>
@@ -62,12 +62,20 @@ import { SecurityServer, SecurityServerId } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
-import { mapActions, mapStores } from 'pinia';
 import { defineComponent, PropType } from 'vue';
 import { useField } from "vee-validate";
 
 export default defineComponent({
-  name: 'DeleteAuthenticationCertificateDialog',
+  setup(props) {
+    const { value, meta, errors } = useField('securityServerCode', {
+      required: true,
+      is: props.securityServerId.server_code
+    }, { initialValue: '' });
+    const { deleteAuthenticationCertificate } = securityServerAuthCertStore();
+    const securityServerStore = useSecurityServerStore();
+    const { showError, showSuccess } = notificationsStore();
+    return { value, meta, errors, showError, showSuccess, securityServerStore, deleteAuthenticationCertificate }
+  },
   props: {
     authenticationCertificateId: {
       type: String,
@@ -80,10 +88,6 @@ export default defineComponent({
   },
   data() {
     return {
-      serverCode: useField('securityServerCode', {
-        required: true,
-        is: this.securityServerId.server_code
-      }, { initialValue: '' }),
       loading: false,
     };
   },
@@ -100,8 +104,7 @@ export default defineComponent({
     },
     deleteCert(): void {
       this.loading = true;
-      this.securityServerAuthCertStore
-        .delete(
+      this.deleteAuthenticationCertificate(
           this.securityServerId.encoded_id as string,
           this.authenticationCertificateId,
         )

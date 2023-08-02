@@ -51,7 +51,7 @@ export const useSecurityServerAuthCert = defineStore(
             this.authenticationCertificates = resp.data || [];
           });
       },
-      async delete(
+      async deleteAuthenticationCertificate(
         securityServerCode: string,
         authenticationCertificateId: string,
       ) {

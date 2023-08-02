@@ -52,12 +52,12 @@
                 <v-form>
                   <v-text-field
                     id="username"
-                    v-model="username.value"
+                    v-bind="username"
                     name="username"
                     data-test="login-username-input"
                     variant="outlined"
                     :label="$t('fields.username')"
-                    :error-messages="username.errorMessage"
+                    :error-messages="errors.username"
                     type="text"
                     autofocus
                     @keyup.enter="submit"
@@ -65,12 +65,12 @@
 
                   <v-text-field
                     id="password"
-                    v-model="password.value"
+                    v-bind="password"
                     name="password"
                     data-test="login-password-input"
                     variant="outlined"
                     :label="$t('fields.password')"
-                    :error-messages="password.errorMessage"
+                    :error-messages="errors.password"
                     type="password"
                     @keyup.enter="submit"
                   ></v-text-field>
@@ -105,13 +105,24 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSystem } from '@/store/modules/system';
-import { useField } from 'vee-validate';
+import { useForm } from 'vee-validate';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import axios from 'axios';
 
 export default defineComponent({
   name: 'Login',
+  setup() {
+    const { meta, defineComponentBinds, resetForm, setFieldError, errors, values } = useForm({
+      validationSchema: {
+        username: 'required',
+        password: 'required',
+      }
+    });
+    const username = defineComponentBinds('username');
+    const password = defineComponentBinds('password');
+    return { meta, username, password, resetForm, setFieldError, errors, values}
+  },
   components: {
     AlertsContainer,
   },
@@ -119,8 +130,7 @@ export default defineComponent({
     return {
       xroad7Large,
       loading: false as boolean,
-      username: useField<string>('username', 'required'),
-      password: useField<string>('password', 'required'),
+
     };
   },
   computed: {
@@ -128,8 +138,8 @@ export default defineComponent({
     isDisabled() {
       // beware: simplified one-liner fails at runtime
       if (
-        (this.username.value?.length|0) < 1 ||
-        (this.password.value?.length|0) < 1 ||
+        (this.values.username?.length | 0) < 1 ||
+        (this.values.password?.length | 0) < 1 ||
         this.loading
       ) {
         return true;
@@ -147,18 +157,20 @@ export default defineComponent({
     ]),
     ...mapActions(useSystem, ['fetchSystemStatus', 'fetchServerVersion']),
     async submit() {
-
+      if(this.isDisabled){
+        return;
+      }
       // Clear old error notifications (if they exist) before submit
       await this.resetNotifications();
 
       // Validate inputs
-      const isValid = this.username.meta.valid && this.password.meta.valid;
+      const isValid = this.meta.valid;
       if (!isValid) {
         return;
       }
       const loginData = {
-        username: this.username.value,
-        password: this.password.value,
+        username: this.values.username,
+        password: this.values.password,
       };
 
       //TODO vue3 reimplent?? this.$refs.form.reset();
@@ -170,10 +182,9 @@ export default defineComponent({
         // Display invalid username/password error in inputs
         if (axios.isAxiosError(error) && error?.response?.status === 401) {
           // Clear inputs
-          this.username.resetField();
-          this.password.resetField();
+          this.resetForm();
 
-          this.password.setErrors(this.$t('login.errorMsg401'));
+          this.setFieldError('password', this.$t('login.errorMsg401'));
           this.showErrorMessage(this.$t('login.generalError'));
         } else {
           this.showError(error);
@@ -192,8 +203,7 @@ export default defineComponent({
       }
     },
     async requestUserData() {
-      this.username.resetField();
-      this.password.resetField();
+      this.resetForm();
       this.loading = true;
       return this.fetchUserData();
     },
@@ -209,6 +219,10 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import '@/assets/colors';
+
+.v-text-field {
+  margin-bottom: 6px;
+}
 
 .alerts {
   top: 40px;

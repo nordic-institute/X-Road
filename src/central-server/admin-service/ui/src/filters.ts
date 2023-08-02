@@ -48,7 +48,6 @@ export function formatDate(value: string): string {
 
 // Format date string. Result YYYY-MM-DD HH:MM.
 export function formatDateTime(value: string): string {
-  console.log(dayjs(value).format('YYYY-MM-DD HH:mm'))
   const timestamp = Date.parse(value);
 
   if (isNaN(timestamp)) {

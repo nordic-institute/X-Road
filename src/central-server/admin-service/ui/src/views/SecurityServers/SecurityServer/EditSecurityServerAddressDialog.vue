@@ -35,20 +35,20 @@
       :scrollable="false"
       :show-close="true"
       :loading="loading"
-      :disable-save="!updatedAddress.meta.valid"
+      :disable-save="!meta.valid || !meta.dirty"
       @save="saveAddress"
       @cancel="close"
     >
       <template #content>
             <v-text-field
-              v-model="updatedAddress.value"
+              v-model="value"
               data-test="security-server-address-edit-field"
               :label="$t('securityServers.dialogs.editAddress.addressField')"
               autofocus
               variant="outlined"
               class="dlg-row-input"
               name="securityServerAddress"
-              :error-messages="updatedAddress.errorMessage as string"
+              :error-messages="errors"
             />
       </template>
     </xrd-simple-dialog>
@@ -56,15 +56,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import { ErrorInfo } from '@/openapi-types';
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
+import { getErrorInfo, getTranslatedFieldErrors, isFieldError, } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useField } from "vee-validate";
 
@@ -72,6 +67,18 @@ import { useField } from "vee-validate";
  * Component for a Security server details view
  */
 export default defineComponent({
+  setup(props) {
+    const {
+      value,
+      meta,
+      errors,
+      resetField,
+      setErrors
+    } = useField<string>('updatedAddress', 'required', { initialValue: props.address });
+    const securityServerStore = useSecurityServerStore();
+    const { showError, showSuccess } = notificationsStore();
+    return { value, meta, errors, resetField, setErrors, securityServerStore, showError, showSuccess };
+  },
   props: {
     securityServerId: {
       type: String,
@@ -87,7 +94,6 @@ export default defineComponent({
     return {
       loading: false,
       showDialog: false,
-      updatedAddress: useField('updatedAddress','required',{initialValue: this.address}),
     };
   },
   computed: {
@@ -96,7 +102,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
-      this.updatedAddress.resetField();
+      this.resetField();
       this.$emit('cancel')
     },
     saveAddress: async function () {
@@ -104,7 +110,7 @@ export default defineComponent({
         this.loading = true;
         await this.securityServerStore.updateAddress(
           this.securityServerId,
-          this.updatedAddress.value,
+          this.value,
         );
         this.showSuccess(
           this.$t('securityServers.dialogs.editAddress.success'),
@@ -116,7 +122,7 @@ export default defineComponent({
           // backend validation error
           let fieldErrors = errorInfo.error?.validation_errors;
           if (fieldErrors) {
-            this.updatedAddress.setErrors(
+            this.setErrors(
               getTranslatedFieldErrors(
                 'securityServerAddressDto.serverAddress',
                 fieldErrors,
