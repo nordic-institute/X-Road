@@ -46,46 +46,58 @@
   </xrd-button>
 </template>
 
-<script lang="ts" setup>
-import { PropType, ref } from 'vue';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
 import { BackupHandler } from '@/types';
-
-const props = defineProps({
-  canBackup: {
-    type: Boolean,
-    required: true,
+import XrdButton from "../XrdButton.vue";
+import XrdConfirmDialog from "../XrdConfirmDialog.vue";
+export default defineComponent({
+  components: {
+    XrdButton,
+    XrdConfirmDialog
   },
-  filename: {
-    type: String,
-    required: true,
+  props: {
+    canBackup: {
+      type: Boolean,
+      required: true,
+    },
+    filename: {
+      type: String,
+      required: true,
+    },
+    backupHandler: {
+      type: Object as PropType<BackupHandler>,
+      required: true,
+    },
   },
-  backupHandler: {
-    type: Object as PropType<BackupHandler>,
-    required: true,
+  emits: ['refresh-backups'],
+  data() {
+    return {
+      showConfirmation: false,
+      restoring: false
+    };
   },
+  computed: {},
+  methods: {
+    restoreFromBackup() {
+      this.restoring = true;
+      this.backupHandler
+        .restore(this.filename)
+        .then(() =>
+          this.backupHandler.showSuccess('backup.restoreFromBackup.success', {
+            file: this.filename,
+          }),
+        )
+        .then(() => this.$emit('refresh-backups'))
+        .catch((error) => this.backupHandler.showError(error))
+        .finally(() => {
+          this.showConfirmation = false;
+          this.restoring = false;
+        });
+    }
+  }
 });
 
-const emit = defineEmits(['refresh-backups']);
-
-let showConfirmation = ref(false);
-let restoring = ref(false);
-
-function restoreFromBackup() {
-  restoring.value = true;
-  props.backupHandler
-    .restore(props.filename)
-    .then(() =>
-      props.backupHandler.showSuccess('backup.restoreFromBackup.success', {
-        file: props.filename,
-      }),
-    )
-    .then(() => emit('refresh-backups'))
-    .catch((error) => props.backupHandler.showError(error))
-    .finally(() => {
-      showConfirmation.value = false;
-      restoring.value = false;
-    });
-}
 </script>
 
 <style lang="scss" scoped></style>

@@ -35,20 +35,23 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
+import { defineComponent } from "vue";
+
 /**
  * Label and help icon that can be used with inputs
  */
-
-defineProps({
-  labelText: {
-    type: String,
-    required: true,
-  },
-  helpText: {
-    type: String,
-    required: false,
-    default: '',
+export default defineComponent({
+  props: {
+    labelText: {
+      type: String,
+      required: true,
+    },
+    helpText: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
 });
 </script>

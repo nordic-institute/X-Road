@@ -54,10 +54,10 @@
       <div class="alert-slot">
         <slot name="alert" />
       </div>
-      <v-card-text v-if="hasSlot('text')" class="content-wrapper xrd-card-text">
+      <v-card-text v-if="hasText" class="content-wrapper xrd-card-text">
         <slot name="text" />
       </v-card-text>
-      <v-card-item v-if="hasSlot('content')" class="content-wrapper xrd-card-content">
+      <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
         <slot name="content" />
       </v-card-item>
       <v-card-actions class="xrd-card-actions">
@@ -66,7 +66,7 @@
           data-test="dialog-cancel-button"
           class="mr-3"
           variant="outlined"
-          :disabled="disableCancelButton"
+          :disabled="cancelDisabled"
           @click="$emit('cancel')"
         >
           {{ $t(cancelButtonText) }}
@@ -74,7 +74,7 @@
         <xrd-button
           v-if="!hideSaveButton"
           data-test="dialog-save-button"
-          :disabled="disableSaveButton"
+          :disabled="saveDisabled"
           :loading="loading"
           @click="$emit('save')"
         >
@@ -85,80 +85,92 @@
   </v-dialog>
 </template>
 
-<script setup lang="ts">/** Base component for simple dialogs */
-import { computed, ref, useSlots } from "vue";
+<script lang="ts">/** Base component for simple dialogs */
 
-const props = defineProps({
-  // Title of the dialog
-  title: {
-    type: String,
-    required: true,
-  },
-  // Is the content scrollable
-  scrollable: {
-    type: Boolean,
-    default: false,
-  },
-  // Disable save button
-  disableSave: {
-    type: Boolean,
-  },
-  //  cancel button
-  allowLoadingCancellation: {
-    type: Boolean,
-    default: false,
-  },
-  // Hide save button
-  hideSaveButton: {
-    type: Boolean,
-    default: false,
-  },
-  cancelButtonText: {
-    type: String,
-    default: 'action.cancel',
-  },
-  // Text of the save button
-  saveButtonText: {
-    type: String,
-    default: 'action.add',
-  },
-  width: {
-    type: [Number, String],
-    default: 620,
-  },
-  showClose: {
-    type: Boolean,
-    default: true,
-  },
-  // Set save button loading spinner
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  // Show indeterminate progress bar at the top
-  showProgressBar: {
-    type: Boolean,
-    default: false,
-  },
-});
+import { defineComponent } from "vue";
+import XrdButton from "./XrdButton.vue";
+import XrdCloseButton from "./XrdCloseButton.vue";
 
-defineEmits(['cancel', 'save']);
+export default defineComponent({
+  components: { XrdCloseButton, XrdButton },
+  props: {
+    // Title of the dialog
+    title: {
+      type: String,
+      required: true,
+    },
+    // Is the content scrollable
+    scrollable: {
+      type: Boolean,
+      default: false,
+    },
+    // Disable save button
+    disableSave: {
+      type: Boolean,
+    },
+    //  cancel button
+    allowLoadingCancellation: {
+      type: Boolean,
+      default: false,
+    },
+    // Hide save button
+    hideSaveButton: {
+      type: Boolean,
+      default: false,
+    },
+    cancelButtonText: {
+      type: String,
+      default: 'action.cancel',
+    },
+    // Text of the save button
+    saveButtonText: {
+      type: String,
+      default: 'action.add',
+    },
+    width: {
+      type: [Number, String],
+      default: 620,
+    },
+    showClose: {
+      type: Boolean,
+      default: true,
+    },
+    // Set save button loading spinner
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    // Show indeterminate progress bar at the top
+    showProgressBar: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ['cancel', 'save'],
+  data() {
+    return {
+      showDialog: true
+    }
+  },
+  computed: {
+    hasText() {
+      return !!this.$slots['text']
+    },
+    hasContent() {
+      return !!this.$slots['content']
+    },
+    saveDisabled() {
+      if (this.disableSave !== undefined && this.disableSave !== null) {
+        return this.disableSave;
+      }
 
-const slots = useSlots();
-const hasSlot = (slot) => {
-  return !!slots[slot];
-}
-
-const disableSaveButton = computed(() => {
-  if (props.disableSave !== undefined && props.disableSave !== null) {
-    return props.disableSave;
+      return false;
+    },
+    cancelDisabled() {
+      return this.allowLoadingCancellation ? false : this.loading
+    }
   }
-
-  return false;
 });
-
-const disableCancelButton = computed<boolean>(() => props.allowLoadingCancellation ? false : props.loading);
-const showDialog = ref(true);
 
 </script>
 

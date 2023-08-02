@@ -48,19 +48,24 @@
   </div>
 </template>
 
-<script setup lang="ts">
-defineProps({
-  // Alert visible / hidden
-  show: {
-    type: Boolean,
-    required: true,
-  },
-  message: {
-    type: String,
-    required: false,
-    default: '',
-  },
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  props: {
+    // Alert visible / hidden
+    show: {
+      type: Boolean,
+      required: true,
+    },
+    message: {
+      type: String,
+      required: false,
+      default: '',
+    }
+  }
 });
+
 </script>
 
 <style lang="scss" scoped>

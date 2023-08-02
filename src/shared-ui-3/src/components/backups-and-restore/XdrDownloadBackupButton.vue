@@ -38,32 +38,43 @@
   </xrd-button>
 </template>
 
-<script lang="ts" setup>
-import { PropType, ref } from 'vue';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
 import { BackupHandler } from '@/types';
+import XrdButton from "./XrdButton.vue";
 
-const props = defineProps({
-  canBackup: {
-    type: Boolean,
-    required: true,
+export default defineComponent({
+  components: { XrdButton },
+  props: {
+    canBackup: {
+      type: Boolean,
+      required: true,
+    },
+    filename: {
+      type: String,
+      required: true,
+    },
+    backupHandler: {
+      type: Object as PropType<BackupHandler>,
+      required: true,
+    },
   },
-  filename: {
-    type: String,
-    required: true,
+  emits: [],
+  data() {
+    return {
+      downloading: false
+    };
   },
-  backupHandler: {
-    type: Object as PropType<BackupHandler>,
-    required: true,
-  },
+  computed: {},
+  methods: {
+    downloadBackup() {
+      this.downloading = true;
+      this.backupHandler
+        .download(this.filename)
+        .finally(() => (this.downloading = false));
+    }
+  }
 });
-let downloading = ref(false);
-
-function downloadBackup() {
-  downloading.value = true;
-  props.backupHandler
-    .download(props.filename)
-    .finally(() => (downloading.value = false));
-}
 </script>
 
 <style lang="scss" scoped></style>
