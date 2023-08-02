@@ -36,8 +36,8 @@
           :style="{ color }"
           @click="toggle"
         >
-          <v-icon v-if="opened" color="primary"> mdi-chevron-down </v-icon>
-          <v-icon v-else color="primary"> mdi-chevron-right </v-icon>
+          <v-icon v-if="opened" color="primary" icon="mdi-chevron-down" />
+          <v-icon v-else color="primary" icon="mdi-chevron-right" />
         </v-btn>
       </div>
       <div :class="{ 'text--disabled': disabled }">
@@ -58,45 +58,50 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { ref } from 'vue';
+<script lang="ts">
+import { defineComponent } from 'vue';
 
 /**
  * Expandable can be clicked open and has slots for a link and ans action
  */
-const emit = defineEmits(['close', 'open', 'update:model-value']);
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    required: false,
-    default: false,
+
+export default defineComponent({
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+    color: {
+      type: String,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
-  color: {
-    type: String,
-    required: false,
+  emits: ['close', 'open', 'update:model-value'],
+  data() {
+    return {
+      opened: this.modelValue
+    };
   },
-  disabled: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
+  computed: {},
+  methods: {
+    toggle() {
+      if (this.disabled) {
+        return;
+      }
+      if (this.opened) {
+        this.$emit('close');
+        this.opened = false;
+      } else {
+        this.$emit('open');
+        this.opened = true;
+      }
+      this.$emit('update:model-value', this.opened);
+    }
+  }
 });
-
-let opened = ref(props.modelValue);
-
-function toggle() {
-  if (props.disabled) {
-    return;
-  }
-  if (opened.value) {
-    emit('close');
-    opened.value = false;
-  } else {
-    emit('open');
-    opened.value = true;
-  }
-  emit('update:model-value', opened.value);
-}
 </script>
 
 <style lang="scss" scoped>

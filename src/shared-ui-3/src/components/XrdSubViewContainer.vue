@@ -32,10 +32,12 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-/**
+<script lang="ts">/**
  * View wrapper component for sub views. See Settings.vue for example
  */
+import { defineComponent } from "vue";
+
+export default defineComponent({});
 </script>
 
 <style lang="scss" scoped>

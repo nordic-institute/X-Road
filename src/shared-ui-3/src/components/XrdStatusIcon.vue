@@ -26,82 +26,65 @@
  -->
 <template>
   <div>
-    <v-icon v-if="status === 'ok'" size="small" color="#0CC177">
-      icon-Checked
-    </v-icon>
-    <v-icon v-if="status === 'ok-disabled'" size="small" color="#575169">
-      icon-Checked
-    </v-icon>
-    <v-icon v-else-if="status === 'saved'" size="x-large" color="#211E1E">
-      icon-Checkmark
-    </v-icon>
+    <v-icon v-if="status === 'ok'" size="small" color="#0CC177" icon="icon-Checked" />
+    <v-icon v-if="status === 'ok-disabled'" size="small" color="#575169" icon="icon-Checked" />
+    <v-icon v-else-if="status === 'saved'" size="x-large" color="#211E1E" icon="icon-Checkmark" />
     <v-icon
       v-else-if="status === 'progress-register'"
       size="small"
       color="#0CC177"
-    >
-      icon-In-progress
-    </v-icon>
+    icon="icon-In-progress" />
     <v-icon
       v-else-if="status === 'progress-register-disabled'"
       size="small"
       color="#575169"
-    >
-      icon-In-progress
-    </v-icon>
+    icon="icon-In-progress" />
     <v-icon
       v-else-if="status === 'progress-delete'"
       size="small"
       color="#211E1E"
-    >
-      icon-Cancel
-    </v-icon>
-    <v-icon v-else-if="status === 'error'" size="small" color="#EC4040">
-      icon-Error
-    </v-icon>
+    icon="icon-Cancel" />
+    <v-icon v-else-if="status === 'error'" size="small" color="#EC4040" icon="icon-Error" />
     <v-icon
       v-else-if="status === 'error-disabled'"
       size="small"
       color="#575169"
-    >
-      icon-Error
-    </v-icon>
-    <v-icon v-else-if="status === 'pending'" size="small" color="#F5A623">
-      icon-Error
-    </v-icon>
+      icon="icon-Error" />
+    <v-icon v-else-if="status === 'pending'" size="small" color="#F5A623" icon="icon-Error" />
     <v-icon
       v-else-if="status === 'pending-disabled'"
       size="small"
       color="#575169"
-    >
-      icon-Error
-    </v-icon>
+      icon="icon-Error" />
   </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
+import { defineComponent } from "vue";
+
 /**
  * General purpose component for status icon with color
  */
-
-defineProps({
-  status: {
-    type: String,
-    required: true,
-    validator: (val: string) =>
-      [
-        '',
-        'ok',
-        'ok-disabled',
-        'saved',
-        'progress-register',
-        'progress-register-disabled',
-        'progress-delete',
-        'error',
-        'error-disabled',
-        'pending',
-        'pending-disabled',
-      ].includes(val),
+export default defineComponent({
+  props: {
+    status: {
+      type: String,
+      required: true,
+      validator: (val: string) =>
+        [
+          '',
+          'ok',
+          'ok-disabled',
+          'saved',
+          'progress-register',
+          'progress-register-disabled',
+          'progress-delete',
+          'error',
+          'error-disabled',
+          'pending',
+          'pending-disabled',
+        ].includes(val),
+    },
   },
 });
 </script>

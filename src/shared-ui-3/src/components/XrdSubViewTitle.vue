@@ -38,17 +38,22 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-defineEmits(['close']);
-defineProps({
-  title: {
-    type: String,
-    required: true,
+<script lang="ts">
+
+import { defineComponent } from "vue";
+
+export default defineComponent({
+  props:{
+    title: {
+      type: String,
+      required: true,
+    },
+    showClose: {
+      type: Boolean,
+      default: true,
+    },
   },
-  showClose: {
-    type: Boolean,
-    default: true,
-  },
+  emits:['close'],
 });
 </script>
 

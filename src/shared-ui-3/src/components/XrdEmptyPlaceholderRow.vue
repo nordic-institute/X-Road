@@ -40,54 +40,57 @@
   </tr>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
 /** Component to show empty states in html tables. Contains one row.  */
 
-import { computed } from 'vue';
+import { defineComponent } from 'vue';
 
-const props = defineProps({
-  // Text shown when there are no items at all
-  noItemsText: {
-    type: String,
-    required: true,
+export default defineComponent({
+  props: {
+    // Text shown when there are no items at all
+    noItemsText: {
+      type: String,
+      required: true,
+    },
+    // Dialog visible / hidden
+    noMatchesText: {
+      type: String,
+      default: '-',
+    },
+    data: {
+      type: [Array, Object],
+      required: false,
+      default: undefined,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    colspan: {
+      type: [Number, String],
+      required: true,
+    },
   },
-  // Dialog visible / hidden
-  noMatchesText: {
-    type: String,
-    default: '-',
-  },
-  data: {
-    type: [Array, Object],
-    required: false,
-    default: undefined,
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  colspan: {
-    type: [Number, String],
-    required: true,
-  },
-});
-
-const showNoItems = computed(() => {
-  if (props.data) {
-    if (Array.isArray(props.data) && props.data.length === 0) {
-      // Empty array
+  computed: {
+    showNoItems() {
+      if (this.data) {
+        if (Array.isArray(this.data) && this.data.length === 0) {
+          // Empty array
+          return true;
+        }
+        // Object
+        return false;
+      }
       return true;
-    }
-    // Object
-    return false;
-  }
-  return true;
-});
-
-const show = computed(() => {
-  if (props.loading) {
-    return true;
-  }
-  return showNoItems;
+    },
+    show() {
+      if (this.loading) {
+        return true;
+      }
+      return this.showNoItems;
+    },
+  },
+  methods: {}
 });
 </script>
 

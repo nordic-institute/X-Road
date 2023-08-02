@@ -34,7 +34,6 @@
     prepend-inner-icon="mdi-magnify"
     :hide-details="true"
     :label="label"
-
     :class="{ closed }"
     @click:prepend-inner="hide=false"
     @focus="hide = false"
@@ -43,28 +42,37 @@
   ></v-text-field>
 </template>
 
-<script lang="ts" setup>
-import { computed, ref } from 'vue';
+<script lang="ts">
+import { defineComponent } from 'vue';
 
 /**
  * Wrapper for vuetify button with x-road look
  * */
-defineEmits(['update:model-value']);
-const props = defineProps({
-  modelValue: {
-    type: String,
-    required: true,
+export default defineComponent({
+  props: {
+    modelValue: {
+      type: String,
+      required: true,
+    },
+    label: {
+      type: String,
+      default: '',
+    },
   },
-  label: {
-    type: String,
-    default: '',
+  emits: ['update:model-value'],
+  data() {
+    return {
+      hide: true,
+      value: this.modelValue
+    };
   },
+  computed: {
+    closed() {
+      return this.hide && !this.value;
+    }
+  },
+  methods: {}
 });
-
-const hide = ref(true);
-const value = ref(props.modelValue);
-const closed = computed(() => hide.value && !value.value);
-
 </script>
 
 <style lang="scss" scoped>

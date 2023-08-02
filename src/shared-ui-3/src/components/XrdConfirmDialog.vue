@@ -26,7 +26,6 @@
  -->
 <template>
   <xrd-simple-dialog
-    v-model="showDialog"
     :title="title"
     :cancel-button-text="cancelButtonText"
     :save-button-text="acceptButtonText"
@@ -41,51 +40,52 @@
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
 /**
  * A dialog for simple "accept or cancel" functions
  */
 
 import type { PropType } from 'vue';
-import { ref } from "vue";
+import { defineComponent } from "vue";
+import XrdSimpleDialog from "./XrdSimpleDialog.vue";
 
-defineEmits(['cancel', 'accept']);
-
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
+export default defineComponent({
+  components: { XrdSimpleDialog },
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    text: {
+      type: String,
+      default: '',
+    },
+    cancelButtonText: {
+      type: String,
+      default: 'action.cancel',
+    },
+    acceptButtonText: {
+      type: String,
+      default: 'action.yes',
+    },
+    // Set save button loading spinner
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    // In case the confirmation text requires additional data
+    data: {
+      type: Object as PropType<Record<string, unknown>>,
+      required: false,
+      default: {} as Record<string, unknown>,
+    },
   },
-  title: {
-    type: String,
-    required: true,
-  },
-  text: {
-    type: String,
-    default: '',
-  },
-  cancelButtonText: {
-    type: String,
-    default: 'action.cancel',
-  },
-  acceptButtonText: {
-    type: String,
-    default: 'action.yes',
-  },
-  // Set save button loading spinner
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  // In case the confirmation text requires additional data
-  data: {
-    type: Object as PropType<Record<string, unknown>>,
-    required: false,
-    default: {} as Record<string, unknown>,
-  },
+  emits: ['cancel', 'accept'],
 });
-
-const showDialog = ref(true);
 </script>
 <style lang="scss" scoped>
 </style>

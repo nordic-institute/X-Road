@@ -47,44 +47,52 @@
   </xrd-button>
 </template>
 
-<script lang="ts" setup>
-import { PropType, ref } from 'vue';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
 import { BackupHandler } from '@/types';
+import XrdButton from "../XrdButton.vue";
+import XrdConfirmDialog from "../XrdConfirmDialog.vue";
 
-const props = defineProps({
-  canBackup: {
-    type: Boolean,
-    required: true,
+export default defineComponent({
+  components: {
+    XrdButton,
+    XrdConfirmDialog
   },
-  filename: {
-    type: String,
-    required: true,
+  props: {
+    canBackup: {
+      type: Boolean,
+      required: true,
+    },
+    filename: {
+      type: String,
+      required: true,
+    },
+    backupHandler: {
+      type: Object as PropType<BackupHandler>,
+      required: true,
+    },
   },
-  backupHandler: {
-    type: Object as PropType<BackupHandler>,
-    required: true,
+  emits: ['refresh-backups'],
+  data() {
+    return { showConfirmation: false, deleting: false };
   },
+  methods: {
+    deleteBackup() {
+      this.deleting = true;
+      this.showConfirmation = false;
+      this.backupHandler
+        .delete(this.filename)
+        .then(() =>
+          this.backupHandler.showSuccess('backup.deleteBackup.success', {
+            file: this.filename,
+          }),
+        )
+        .then(() => this.$emit('refresh-backups'))
+        .catch((error) => this.backupHandler.showError(error))
+        .finally(() => (this.deleting = false));
+    }
+  }
 });
-
-const emit = defineEmits(['refresh-backups']);
-
-let showConfirmation = ref(false);
-let deleting = ref(false);
-
-function deleteBackup() {
-  deleting.value = true;
-  showConfirmation.value = false;
-  props.backupHandler
-    .delete(props.filename)
-    .then(() =>
-      props.backupHandler.showSuccess('backup.deleteBackup.success', {
-        file: props.filename,
-      }),
-    )
-    .then(() => emit('refresh-backups'))
-    .catch((error) => props.backupHandler.showError(error))
-    .finally(() => (deleting.value = false));
-}
 </script>
 
 <style lang="scss" scoped></style>
