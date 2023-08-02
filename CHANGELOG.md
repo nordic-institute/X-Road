@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.3.2 - UNRELEASED
+
 ## 7.3.1 - 2023-07-10
 - XRDDEV-2442: X-Road components fail to start after upgrading to 7.3.0 if Java 8 was used before the upgrade and the component was originally installed before version 7.0.0.
 
