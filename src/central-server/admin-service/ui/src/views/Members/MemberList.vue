@@ -84,8 +84,7 @@
     </v-data-table-server>
     <!-- Dialogs -->
     <add-member-dialog
-      v-model="showAddMemberDialog"
-      :show-dialog="showAddMemberDialog"
+      v-if="showAddMemberDialog"
       @cancel="hideAddMemberDialog"
       @save="hideAddMemberDialogAndRefetch"
     >

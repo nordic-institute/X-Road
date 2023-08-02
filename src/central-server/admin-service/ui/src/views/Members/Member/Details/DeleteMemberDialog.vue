@@ -48,24 +48,35 @@
           :label="$t('members.member.details.enterCode')"
           autofocus
           data-test="member-code"
-          :error-messages="errorMessage as string"
+          :error-messages="errors"
         />
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts" setup>
-import { ref } from 'vue';
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { Client } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
-import { useField } from "vee-validate";
+import { Field, useField } from "vee-validate";
 
-const props = defineProps({
-  member: {
-    type: Object as () => Client,
-    required: true,
+export default defineComponent({
+  setup(props) {
+    const { showSuccess, showError } = notificationsStore();
+    const { deleteById } = memberStore();
+    const { value, errors, meta, resetField } = useField<string>('memberCode', { required: true, is: props.member.client_id.member_code });
+    return { showSuccess, showError,resetField, deleteById, value, errors, meta };
+  },
+  components: {
+    Field
+  },
+  props: {
+    member: {
+      type: Object as () => Client,
+      required: true,
+    },
   },
   data() {
     return { loading: false, enteredCode: '' };
