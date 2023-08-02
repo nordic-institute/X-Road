@@ -69,97 +69,110 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { BackupHandler } from '@/types';
-import { PropType, ref } from 'vue';
-import { FileUploadResult } from '@/types';
+<script lang="ts">
+import { BackupHandler, FileUploadResult } from '@/types';
+import { defineComponent, PropType } from 'vue';
+import XrdButton from "../XrdButton.vue";
+import XrdConfirmDialog from "../XrdConfirmDialog.vue";
+import XrdFileUpload from "../XrdFileUpload.vue";
 
-const emit = defineEmits(['refresh-backups']);
 
-const props = defineProps({
-  accepts: {
-    type: String,
-    required: true,
+export default defineComponent({
+  components: {
+    XrdButton,
+    XrdConfirmDialog,
+    XrdFileUpload
   },
-  canBackup: {
-    type: Boolean,
-    required: true,
+  props: {
+    accepts: {
+      type: String,
+      required: true,
+    },
+    canBackup: {
+      type: Boolean,
+      required: true,
+    },
+    backupHandler: {
+      type: Object as PropType<BackupHandler>,
+      required: true,
+    },
   },
-  backupHandler: {
-    type: Object as PropType<BackupHandler>,
-    required: true,
+  emits: ['refresh-backups'],
+  data() {
+    return {
+      creating: false,
+      uploading: false,
+      needsConfirmation: false,
+      uploadedFile: null as File | null
+    };
   },
-});
-let creating = ref(false);
-let uploading = ref(false);
-let needsConfirmation = ref(false);
-let uploadedFile = ref(null as File | null);
-
-function createBackup() {
-  creating.value = true;
-  return props.backupHandler
-    .create()
-    .then((data) => {
-      props.backupHandler.showSuccess('backup.createBackup.messages.success', {
-        file: data.filename,
+  computed: {},
+  methods: {
+    createBackup() {
+      this.creating = true;
+      return this.backupHandler
+        .create()
+        .then((data) => {
+          this.backupHandler.showSuccess('backup.createBackup.messages.success', {
+            file: data.filename,
+          });
+          if (data.local_conf_present) {
+            this.backupHandler.showWarning(
+              'backup.createBackup.messages.localConfWarning',
+            );
+          }
+        })
+        .then(() => this.$emit('refresh-backups'))
+        .catch((error) => this.backupHandler.showError(error))
+        .finally(() => (this.creating = false));
+    }
+  },
+  onFileUploaded(result: FileUploadResult): void {
+    this.uploading = true;
+    this.uploadedFile = result.file;
+    this.backupHandler
+      .upload(result.file)
+      .then(() =>
+        this.backupHandler.showSuccess('backup.uploadBackup.success', {
+          file: this.uploadedFile?.name,
+        }),
+      )
+      .then(() => this.$emit('refresh-backups'))
+      .catch((error) => {
+        const warnings = error.response?.data?.warnings as Array<{
+          code: string;
+        }>;
+        if (
+          error.response?.status === 400 &&
+          warnings?.some(
+            (warning) => warning.code === 'warning_file_already_exists',
+          )
+        ) {
+          this.needsConfirmation = true;
+          return;
+        }
+        this.backupHandler.showError(error);
+      })
+      .finally(() => (this.uploading = false));
+  },
+  overwriteBackup(): void {
+    this.uploading = true;
+    this.backupHandler
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      .upload(this.uploadedFile!, true)
+      .then(() =>
+        this.backupHandler.showSuccess('backup.uploadBackup.success', {
+          file: this.uploadedFile?.name,
+        }),
+      )
+      .then(() => this.$emit('refresh-backups'))
+      .catch((error) => this.backupHandler.showError(error))
+      .finally(() => {
+        this.uploading = false;
+        this.needsConfirmation = false;
       });
-      if (data.local_conf_present) {
-        props.backupHandler.showWarning(
-          'backup.createBackup.messages.localConfWarning',
-        );
-      }
-    })
-    .then(() => emit('refresh-backups'))
-    .catch((error) => props.backupHandler.showError(error))
-    .finally(() => (creating.value = false));
-}
-
-function onFileUploaded(result: FileUploadResult): void {
-  uploading.value = true;
-  uploadedFile.value = result.file;
-  props.backupHandler
-    .upload(result.file)
-    .then(() =>
-      props.backupHandler.showSuccess('backup.uploadBackup.success', {
-        file: uploadedFile.value?.name,
-      }),
-    )
-    .then(() => emit('refresh-backups'))
-    .catch((error) => {
-      const warnings = error.response?.data?.warnings as Array<{
-        code: string;
-      }>;
-      if (
-        error.response?.status === 400 &&
-        warnings?.some(
-          (warning) => warning.code === 'warning_file_already_exists',
-        )
-      ) {
-        needsConfirmation.value = true;
-        return;
-      }
-      props.backupHandler.showError(error);
-    })
-    .finally(() => (uploading.value = false));
-}
-
-function overwriteBackup(): void {
-  uploading.value = true;
-  props.backupHandler
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    .upload(uploadedFile.value!, true)
-    .then(() =>
-      props.backupHandler.showSuccess('backup.uploadBackup.success', {
-        file: uploadedFile.value?.name,
-      }),
-    )
-    .then(() => emit('refresh-backups'))
-    .catch((error) => props.backupHandler.showError(error))
-    .finally(() => {
-      uploading.value = false;
-      needsConfirmation.value = false;
-    });
-}
+  }
+});
 </script>
 
 <style lang="scss" scoped>

@@ -65,54 +65,59 @@
   </v-card>
 </template>
 
-<script lang="ts" setup>
-import { PropType, ref } from 'vue';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
 import { BackupHandler, BackupItem } from '@/types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
-import { useI18n } from 'vue-i18n';
-import XdrDownloadBackupButton from './XdrDownloadBackupButton.vue';
-import XrdRestoreBackupButton from './XrdRestoreBackupButton.vue';
-import XrdDeleteBackupButton from './XrdDeleteBackupButton.vue';
+import XrdDeleteBackupButton from "./XrdDeleteBackupButton.vue";
+import XrdRestoreBackupButton from "./XrdRestoreBackupButton.vue";
+import XdrDownloadBackupButton from "./XdrDownloadBackupButton.vue";
 
-defineProps({
-  backups: {
-    type: Array as PropType<BackupItem[]>,
-    required: true,
+export default defineComponent({
+  components: {
+    XdrDownloadBackupButton,
+    XrdRestoreBackupButton,
+    XrdDeleteBackupButton },
+  props:{
+    backups: {
+      type: Array as PropType<BackupItem[]>,
+      required: true,
+    },
+    filter: {
+      type: String,
+      default: '',
+    },
+    loading: {
+      type: Boolean,
+      required: true,
+    },
+    backupHandler: {
+      type: Object as PropType<BackupHandler>,
+      required: true,
+    },
+    canBackup: {
+      type: Boolean,
+      required: true,
+    },
   },
-  filter: {
-    type: String,
-    default: '',
-  },
-  loading: {
-    type: Boolean,
-    required: true,
-  },
-  backupHandler: {
-    type: Object as PropType<BackupHandler>,
-    required: true,
-  },
-  canBackup: {
-    type: Boolean,
-    required: true,
+  data(){
+    return {
+      headers: [
+        {
+          title: this.$t('global.name') as string,
+          key: 'filename',
+          value: 'filename',
+          align: 'start' as const,
+        },
+        {
+          title: '',
+          key: 'buttons',
+          align: 'end' as const,
+          sortable: false,
+        },
+      ]
+    };
   },
 });
-
-const { t } = useI18n();
-
-const headers = ref([
-  {
-    title: t('global.name') as string,
-    key: 'filename',
-    value: 'filename',
-    align: 'start' as const,
-  },
-  {
-    title: '',
-    key: 'buttons',
-    align: 'end' as const,
-    sortable: false,
-  },
-]);
 </script>
 
 <style lang="scss" scoped>

@@ -54,31 +54,38 @@
   </v-dialog>
 </template>
 
-<script lang="ts" setup>
-/** Component for help dialogs */
+<script lang="ts">/** Component for help dialogs */
+import { defineComponent } from "vue";
+import XrdButton from "./XrdButton.vue";
+import XrdCloseButton from "./XrdCloseButton.vue";
 
-defineEmits(['cancel']);
-
-defineProps({
-  // Title of the dialog
-  title: {
-    type: String,
-    required: true,
+export default defineComponent({
+  components:{
+    XrdButton,
+    XrdCloseButton
   },
-  // Dialog visible / hidden
-  dialog: {
-    type: Boolean,
-    required: true,
+  props:{
+    // Title of the dialog
+    title: {
+      type: String,
+      required: true,
+    },
+    // Dialog visible / hidden
+    dialog: {
+      type: Boolean,
+      required: true,
+    },
+    width: {
+      type: Number,
+      default: 850,
+    },
+    // Help text
+    text: {
+      type: String,
+      required: true,
+    },
   },
-  width: {
-    type: Number,
-    default: 850,
-  },
-  // Help text
-  text: {
-    type: String,
-    required: true,
-  },
+  emits:['cancel'],
 });
 </script>
 
