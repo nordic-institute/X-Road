@@ -19,7 +19,7 @@ Requires:  systemd
 %if 0%{?el7}
 Requires:  rlwrap
 %endif
-Requires:  jre-11-headless
+Requires:  jre-11-headless, tzdata-java
 Requires:  crudini, hostname, sudo, openssl
 
 %define src %{_topdir}/..
