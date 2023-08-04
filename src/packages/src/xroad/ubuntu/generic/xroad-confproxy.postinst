@@ -1,6 +1,14 @@
 #!/bin/bash
 . /usr/share/debconf/confmodule
 
+handle_error() {
+    ERR=$(</tmp/cert.err)
+    db_subst xroad-common/cert-generation-abort ERR "$(printf %s "$ERR" | debconf-escape -e)"
+    db_input critical xroad-common/cert-generation-abort
+    db_go
+    rm -f /tmp/cert.err
+}
+
 case "$1" in
     configure)
         mkdir -p  /var/lib/xroad/public
@@ -40,6 +48,48 @@ case "$1" in
         exit 1
     ;;
 esac
+
+# check certificates and request necessary subject information from the user
+while :; do
+    if [[ ! -r /etc/xroad/ssl/confproxy.crt || ! -r /etc/xroad/ssl/confproxy.key ]]; then
+        HOST=$(hostname -f)
+        if (( ${#HOST} > 64 )); then
+          HOST="$(hostname -s)"
+        fi
+        LIST=
+        for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+        ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+        echo "Generating new confproxy.[crt|key] files "
+        db_subst xroad-common/service-subject HOST "$HOST"
+        db_subst xroad-common/service-altsubject ALT "$ALT"
+        RET=
+        db_get xroad-common/service-subject
+        if [ -z "$RET" ]; then
+            db_set xroad-common/service-subject "/CN=$HOST"
+        fi
+        RET=
+        db_get xroad-common/service-altsubject
+        if [ -z "$RET" ]; then
+            db_set xroad-common/service-altsubject "$ALT"
+        fi
+        db_input critical xroad-common/service-subject || true
+        db_input critical xroad-common/service-altsubject || true
+        db_go
+        RET=
+        db_get xroad-common/service-subject
+        subj="$RET"
+        RET=
+        db_get xroad-common/service-altsubject
+        altn="$RET"
+        db_go
+        rm -f /etc/xroad/ssl/confproxy.crt //etc/xroad/ssl/confproxy.key
+        echo "generating new service TLS key/certificate with $subj and $altn"
+        /usr/share/xroad/scripts/generate_certificate.sh -n confproxy -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err || handle_error
+
+        invoke-rc.d --quiet nginx try-restart || true
+    fi
+done
 
 #DEBHELPER#
 

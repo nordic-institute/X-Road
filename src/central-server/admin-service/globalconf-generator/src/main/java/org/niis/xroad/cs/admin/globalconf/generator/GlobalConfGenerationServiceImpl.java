@@ -98,6 +98,11 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         try {
             log.debug("Starting global conf generation");
 
+            var internalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL).orElseThrow();
+            var externalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL).orElseThrow();
+
+            tlsCertificateGenerator.updateGlobalConfTLSCertificates(internalSigningKey, externalSigningKey);
+
             generateAndSaveConfiguration();
             var configGenerationTime = Instant.now();
 
@@ -109,9 +114,6 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
             var configDistributor = new ConfigurationDistributor(generatedConfDir, CONFIGURATION_VERSION, configGenerationTime);
             configDistributor.initConfLocation();
             configDistributor.writeConfigurationFiles(allConfigurationParts);
-
-            var internalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL).orElseThrow();
-            var externalSigningKey = configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL).orElseThrow();
 
             writeDirectoryContentFile(configDistributor, internalConfigurationParts, internalSigningKey, getTmpInternalDirectory());
             writeDirectoryContentFile(configDistributor, externalConfigurationParts, externalSigningKey, getTmpExternalDirectory());
@@ -125,8 +127,6 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
             log.debug("Global conf generated");
             success = true;
-
-            tlsCertificateGenerator.updateGlobalConfTLSCertificates(internalSigningKey, externalSigningKey);
         } finally {
             eventPublisher.publishEvent(success ? SUCCESS : FAILURE);
         }

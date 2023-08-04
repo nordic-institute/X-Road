@@ -42,6 +42,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.util.CryptoUtils.getSignatureAlgorithmId;
@@ -55,10 +57,9 @@ public class GlobalConfTLSCertificateGenerator {
     private final SignerProxyFacade signerProxyFacade;
     private final SystemParameterService systemParameterService;
 
-    @SneakyThrows
     void updateGlobalConfTLSCertificates(
             ConfigurationSigningKey internalSigningKey,
-            ConfigurationSigningKey externalSigningKey) {
+            ConfigurationSigningKey externalSigningKey) throws Exception {
         Path internalConfTLSCertPath = Path.of(SystemProperties.getConfPath() + "ssl/internal-conf.crt");
         Path externalConfTLSCertPath = Path.of(SystemProperties.getConfPath() + "ssl/external-conf.crt");
         Path centralAdminServiceCertPath = Path.of(SystemProperties.getConfPath() + "ssl/center-admin-service.crt");
@@ -74,8 +75,9 @@ public class GlobalConfTLSCertificateGenerator {
         X509Certificate signingCertificate = readCertificate(signingKey.getCert());
         try {
             confTLSCertificate.verify(signingCertificate.getPublicKey(), "BC");
-        } catch (SignatureException e) {
-            log.debug("Renewing TLS cert for {}, reason: {}", confTLSCertPath, e.getMessage());
+            confTLSCertificate.checkValidity();
+        } catch (SignatureException | CertificateExpiredException | CertificateNotYetValidException e) {
+            log.info("Renewing TLS cert for {}, reason: {}", confTLSCertPath, e.getMessage());
             signAndSaveGlobalConfTLSCertificate(signingKey, confTLSCertPath.toString(), publicKeyToSign);
         }
     }
