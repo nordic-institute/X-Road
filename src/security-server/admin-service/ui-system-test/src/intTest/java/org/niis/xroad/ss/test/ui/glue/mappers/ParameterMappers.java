@@ -60,4 +60,9 @@ public class ParameterMappers {
     public SelenideValidation selenideValidation(String name) {
         return SelenideValidation.valueOf(name.toUpperCase());
     }
+
+    @ParameterType("checked|unchecked")
+    public Boolean checkbox(String name) {
+        return "checked".equalsIgnoreCase(name);
+    }
 }

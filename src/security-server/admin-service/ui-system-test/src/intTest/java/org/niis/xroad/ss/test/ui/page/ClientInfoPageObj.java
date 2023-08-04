@@ -220,6 +220,11 @@ public class ClientInfoPageObj {
     }
 
     public static class Services {
+        public final ServicesAddSubject addSubject = new ServicesAddSubject();
+        public final ServicesParameters servicesParameters = new ServicesParameters();
+        public final ServicesEndpoints endpoints = new ServicesEndpoints();
+        public final ServicesEdit servicesEdit = new ServicesEdit();
+
         public SelenideElement messageServiceURLBoxError() {
             return $x("//div[contains(@class, 'v-messages__message')]");
         }
@@ -240,12 +245,9 @@ public class ClientInfoPageObj {
             return $x("//input[@data-test='dialog-title']");
         }
 
-        public SelenideElement inputNewServiceUrl() {
-            return $x("//input[contains(@name, 'serviceUrl')]");
-        }
 
-        public SelenideElement inputNewServiceCode() {
-            return $x("//input[contains(@name, 'serviceCode')]");
+        public SelenideElement btnEndpoints() {
+            return $x("//a[@data-test='endpoints']");
         }
 
         public SelenideElement messageServiceUrl() {
@@ -264,33 +266,41 @@ public class ClientInfoPageObj {
             return $x("//button[@data-test='dialog-cancel-button']");
         }
 
-        public SelenideElement radioButtonRESTPath() {
+        public SelenideElement inputRadioRESTPath() {
             return $x("//input[@name='REST']");
         }
 
-        public SelenideElement radioButtonRESTPathClickArea() {
+        public SelenideElement radioRESTPath() {
             return $x("//input[@name='REST']/following-sibling::div");
         }
 
-        public SelenideElement radioButtonOpenAPI() {
+        public SelenideElement inputRadioOpenAPI() {
             return $x("//input[@name='OPENAPI3']");
         }
 
-        public SelenideElement radioButtonOpenAPIClickArea() {
+        public SelenideElement radioOpenAPI() {
             return $x("//input[@name='OPENAPI3']/following-sibling::div");
         }
 
-        public SelenideElement headerServiceDescription() {
-            return $x("//*[@data-test='service-description-header']");
+        public SelenideElement headerServiceDescription(String description) {
+            return $x(format("//*[@data-test='service-description-header' and normalize-space(text())='%s']", description));
         }
 
-        public SelenideElement btnServiceExpand() {
-            return $x("//*[@data-test='service-description-accordion']//button");
+        public SelenideElement headerServiceDescriptionExpand(String description) {
+            return $x(format("//div[contains(@class,'exp-header') "
+                    + "and div/div[@data-test='service-description-header' "
+                    + "and normalize-space(text())='%s']]//div[concat(@class,'exp-header')]/button", description));
         }
 
-        public SelenideElement btnRefresh() {
-            return $x("//button[@data-test='refresh-button']");
+        public SelenideElement headerServiceToggle(String description) {
+            return $x(format("//div[@class='exp-header' and div/div[@data-test='service-description-header' and normalize-space(text())='%s']]"
+                    + "//*[contains(@class, 'v-input--selection-controls__ripple')]/parent::*", description));
         }
+
+        public SelenideElement linkServiceCode(String serviceCode) {
+            return $x(format("//*[@data-test='service-link' and normalize-space(text())='%s']", serviceCode));
+        }
+
 
         public SelenideElement textRefreshTimestamp() {
             return $x("//*[contains(@class, 'refresh-time')]");
@@ -312,20 +322,135 @@ public class ClientInfoPageObj {
             return $x("//*[contains(@class, 'v-input--selection-controls__ripple')]");
         }
 
-        public SelenideElement btnConfirmDisable() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
-
-        public SelenideElement btnCancelDisable() {
-            return $x("//button[@data-test='dialog-cancel-button']");
-        }
 
         public SelenideElement inputDisableNotice() {
             return $x("//div[contains(@class, 'dlg-edit-row') and .//*[contains(@class, 'dlg-row-title')]]//input");
         }
 
-        public SelenideElement cellOperationUrl() {
-            return $x("//td[@data-test='service-url']");
+        public SelenideElement accessRightsTableRowOfId(String id) {
+            return $x(format("//table[contains(@class,'group-members-table')]//td[text()='%s']", id));
+        }
+
+        public SelenideElement accessRightsTableRowRemoveOfId(String id) {
+            return $x(format("//table[contains(@class,'group-members-table')]//tr[ td[text()='%s'] ]//button[@data-test='remove-subject']", id));
+        }
+    }
+
+    public static class ServicesEdit {
+        public SelenideElement btnServiceDelete() {
+            return $x("//button[@data-test='service-description-details-delete-button']");
+        }
+
+        public SelenideElement btnSaveEdit() {
+            return $x("//button[@data-test='service-description-details-save-button']");
+        }
+
+        public SelenideElement inputEditUrl() {
+            return $x("//div[@data-test='service-description-details-dialog']//input[@name='url']");
+        }
+
+        public SelenideElement inputEditServiceCode() {
+            return $x("//div[@data-test='service-description-details-dialog']//input[@name='code_field']");
+        }
+    }
+
+    public static class ServicesParameters {
+        public SelenideElement inputServiceUrl() {
+            return $x("//input[contains(@name, 'serviceUrl')]");
+        }
+
+        public SelenideElement inputServiceCode() {
+            return $x("//input[contains(@name, 'serviceCode')]");
+        }
+
+        public SelenideElement inputServiceTimeout() {
+            return $x("//input[@data-test='service-timeout']");
+        }
+
+        public SelenideElement checkboxVerifyTlsCert() {
+            return $x("//input[@data-test='ssl-auth-all']/following-sibling::div");
+        }
+
+        public SelenideElement inputVerifyTlsCert() {
+            return $x("//input[@data-test='ssl-auth']");
+        }
+
+        public SelenideElement btnSaveEdit() {
+            return $x("//button[@data-test='save-service-parameters']");
+        }
+
+        public SelenideElement btnAddSubjects() {
+            return $x("//button[@data-test='show-add-subjects']");
+        }
+
+        public SelenideElement btnRemoveAllSubjects() {
+            return $x("//button[@data-test='remove-subjects']");
+        }
+
+    }
+
+    public static class ServicesAddSubject {
+        public SelenideElement inputName() {
+            return $x("//input[@data-test='name']");
+        }
+
+        public SelenideElement inputSubsystemCode() {
+            return $x("//input[@data-test='subsystemCode']");
+        }
+
+        public SelenideElement btnSearch() {
+            return $x("//button[@data-test='search-button']");
+        }
+
+        public ElementsCollection memberTableRows() {
+            return $$x("//table[contains(@class,'members-table')]//tbody/tr");
+        }
+
+        public SelenideElement memberTableRowOfId(String id) {
+            return $x(format("//table[contains(@class,'members-table')]//tbody/tr[td[3][text()='%s']]", id));
+        }
+
+        public SelenideElement memberTableRowCheckboxOfId(String id) {
+            return memberTableRowOfId(id).$x("./td[1]//div[contains(@class,'v-input--checkbox')]");
+        }
+
+        public SelenideElement btnSave() {
+            return $x("//button[@data-test='save']");
+        }
+    }
+
+    public static class ServicesEndpoints {
+        public SelenideElement btnAddEndpoint() {
+            return $x("//button[@data-test='endpoint-add']");
+        }
+
+        public SelenideElement btnDeleteEndpoint() {
+            return $x("//button[@data-test='delete-endpoint']");
+        }
+
+        public SelenideElement btnSave() {
+            return $x("//button[span[text()='Save']]");
+        }
+
+        public SelenideElement inputPath() {
+            return $x("//input[@data-test='endpoint-path']");
+        }
+
+        public SelenideElement dropdownHttpMethod() {
+            return $x("//input[@data-test='endpoint-method']/parent::*");
+        }
+
+        public SelenideElement selectDropdownOption(String option) {
+            var xpath = "//div[@role='listbox']//div[@role='option' and contains(./descendant-or-self::*/text(),'%s')]";
+            return $x(String.format(xpath, option));
+        }
+
+        public SelenideElement endpointRow(String httpMethod, String path) {
+            return $x(format("//tbody/tr[ td[1]/span[text()='%s'] and td[2][text()='%s']]", httpMethod, path));
+        }
+
+        public SelenideElement buttonEndpointRowEdit(String httpMethod, String path) {
+            return endpointRow(httpMethod, path).$x(".//button[@data-test='endpoint-edit']");
         }
     }
 }

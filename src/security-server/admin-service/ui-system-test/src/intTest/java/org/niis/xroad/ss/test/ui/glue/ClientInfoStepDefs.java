@@ -60,4 +60,9 @@ public class ClientInfoStepDefs extends BaseUiStepDefs {
     public void navigateInternalServers() {
         clientInfoPageObj.navigation.internalServersTab().click();
     }
+
+    @Step("Services sub-tab is selected")
+    public void navigateServices() {
+        clientInfoPageObj.navigation.servicesTab().click();
+    }
 }

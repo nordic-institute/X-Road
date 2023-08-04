@@ -31,19 +31,15 @@ import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,25 +91,12 @@ public class ContainerSetup {
     }
 
     @Bean
-    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener(
-            @Value("${test-automation.custom.mount-container-logs:true}") final boolean mountContainerLogs) {
+    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
         return new TestContainerConfigurator.TestContainerInitListener() {
 
             @Override
-            @SneakyThrows
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                if (mountContainerLogs) {
-                    var logDirPath = Paths.get("build/ss-container-logs/");
-                    var logDir = logDirPath.toFile();
-                    logDir.mkdirs();
-
-                    if (SystemUtils.IS_OS_UNIX) {
-                        Files.setPosixFilePermissions(logDirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
-                    }
-
-                    genericContainer.withFileSystemBind(logDir.getAbsolutePath(), "/var/log/xroad", BindMode.READ_WRITE);
-                    log.info("Mounting container logs to {}", logDir.getPath());
-                }
+                //do nothing
             }
 
             @Override

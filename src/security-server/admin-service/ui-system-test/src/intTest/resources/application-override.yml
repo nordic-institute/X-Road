@@ -19,6 +19,8 @@ test-automation:
   containers:
     testable-container:
       reuse-between-runs: ${reuse-between-runs}
+      directory-mounts:
+        - "/var/log/xroad/:build/ss-container-logs/" # useful for debugging. This will attach logs
     context-containers:
       ca-server:
         enabled: true

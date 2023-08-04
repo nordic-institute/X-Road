@@ -28,6 +28,8 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 
+import static com.codeborne.selenide.Condition.text;
+
 public class CommonStepDefs extends BaseUiStepDefs {
 
     @Step("error: {string} was displayed")
@@ -36,4 +38,27 @@ public class CommonStepDefs extends BaseUiStepDefs {
                 .shouldBe(Condition.visible);
     }
 
+    @Step("Dialog data is saved and success message {string} is shown")
+    public void dialogSave(String message) {
+        commonPageObj.dialog.btnSave().click();
+
+        commonPageObj.snackBar.success().should(text(message));
+    }
+
+    @Step("Dialog data is saved and error message {string} is shown")
+    public void dialogSaveError(String message) {
+        commonPageObj.dialog.btnSave().click();
+
+        errorIsShown(message);
+    }
+
+    @Step("Dialog is closed")
+    public void dialogClose() {
+        commonPageObj.dialog.btnCancel().click();
+    }
+
+    @Step("Form shows an error {string}")
+    public void formError(String errorMessage) {
+        commonPageObj.form.inputErrorMessage().should(Condition.partialText(errorMessage));
+    }
 }

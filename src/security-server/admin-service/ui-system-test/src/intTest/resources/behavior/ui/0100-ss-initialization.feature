@@ -9,7 +9,6 @@ Feature: 0100 - SS: Initialization
 
   Scenario: Security server is initialized
     Given Initial Configuration form is visible
-    When CentralServer externalConf is mocked
     And Configuration anchor "configuration_anchor_CS_internal.xml" is uploaded
     And Configuration anchor details are confirmed
     Then Configuration anchor selection is submitted

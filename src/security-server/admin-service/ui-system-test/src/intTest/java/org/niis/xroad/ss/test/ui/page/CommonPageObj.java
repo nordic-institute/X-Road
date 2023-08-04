@@ -41,6 +41,7 @@ public class CommonPageObj {
     public final SubMenu subMenu = new SubMenu();
     public final SnackBar snackBar = new SnackBar();
     public final Alerts alerts = new Alerts();
+    public final Form form = new Form();
 
     public class Menu {
 
@@ -90,6 +91,17 @@ public class CommonPageObj {
 
     }
 
+    public class Form {
+
+        public SelenideElement inputErrorMessage() {
+            return $x("//div[contains(@class, 'v-messages__message')]");
+        }
+
+        public SelenideElement inputErrorMessage(String message) {
+            return $x(format("//div[contains(@class, 'v-messages__message') and text()='%s']", message));
+        }
+    }
+
     public class Dialog {
         public SelenideElement title() {
             return $x("//button[@data-test='dialog-title']");
@@ -101,6 +113,10 @@ public class CommonPageObj {
 
         public SelenideElement btnSave() {
             return $x("//button[@data-test='dialog-save-button']");
+        }
+
+        public SelenideElement btnClose() {
+            return $x("//button[@data-test='close']");
         }
 
         public SelenideElement btnConfirm() {
