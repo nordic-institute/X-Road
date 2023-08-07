@@ -35,12 +35,14 @@ import java.io.FileNotFoundException;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.DOWNLOADED_FILE;
 
 public class GlobalConfigurationTrustedAnchorsStepDefs extends BaseUiStepDefs {
     private static final String HASH = "D2:7B:C4:38:C2:9D:1E:4B:B6:E5:47:AB:15:69:14:78:98:0C:38:CD:4A:0C:D0:DA:E3:96:B8:BD";
+    private static final String DATE_TIME_PATTERN = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$";
     private final GlobalConfigurationTrustedAnchorsPageObj trustedAnchorsPageObj = new GlobalConfigurationTrustedAnchorsPageObj();
 
     @Step("trusted anchors list not contains instance {}")
@@ -76,9 +78,10 @@ public class GlobalConfigurationTrustedAnchorsStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("trusted anchor {} with created {} is displayed in list")
-    public void anchorDetailIsDisplayedInList(String instance, String created) {
-        trustedAnchorsPageObj.instanceWithNameAndHashAndCreated(instance, HASH, created).shouldBe(appear);
+    @Step("trusted anchor {} is displayed in list")
+    public void anchorDetailIsDisplayedInList(String instance) {
+        trustedAnchorsPageObj.instanceWithNameAndHash(instance, HASH).shouldBe(appear);
+        trustedAnchorsPageObj.createdAtForInstanceWithName(instance).shouldHave(matchText(DATE_TIME_PATTERN));
     }
 
     @Step("user clicks trusted anchor {} Download button")
