@@ -29,7 +29,6 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.spring.ScenarioScope;
 import org.openqa.selenium.devtools.DevTools;
 import org.openqa.selenium.devtools.HasDevTools;
-import org.openqa.selenium.devtools.v113.emulation.Emulation;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -48,7 +47,6 @@ public class ChromiumDevTools {
         var webDriver = (HasDevTools) Selenide.webdriver().driver().getWebDriver();
         DevTools webDriverDevTools = webDriver.getDevTools();
         webDriverDevTools.createSession();
-        webDriverDevTools.send(Emulation.setTimezoneOverride("Europe/Tallinn"));
         return webDriverDevTools;
     }
 
