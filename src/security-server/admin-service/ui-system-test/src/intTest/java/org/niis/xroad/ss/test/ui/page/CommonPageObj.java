@@ -104,7 +104,7 @@ public class CommonPageObj {
 
     public class Dialog {
         public SelenideElement title() {
-            return $x("//button[@data-test='dialog-title']");
+            return $x("//span[@data-test='dialog-title']");
         }
 
         public SelenideElement btnCancel() {

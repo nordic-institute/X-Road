@@ -237,8 +237,8 @@ public class ClientInfoPageObj {
             return $x("//button[@data-test='add-rest-button']");
         }
 
-        public SelenideElement inputFilterServices() {
-            return $x("//input[@data-test='search-service']");
+        public SelenideElement btnRefresh() {
+            return $x("//button[@data-test='refresh-button']");
         }
 
         public SelenideElement inputAddDialogTitle() {
@@ -294,7 +294,7 @@ public class ClientInfoPageObj {
 
         public SelenideElement headerServiceToggle(String description) {
             return $x(format("//div[@class='exp-header' and div/div[@data-test='service-description-header' and normalize-space(text())='%s']]"
-                    + "//*[contains(@class, 'v-input--selection-controls__ripple')]/parent::*", description));
+                    + "//*[contains(@class, 'v-input--selection-controls__ripple')]", description));
         }
 
         public SelenideElement linkServiceCode(String serviceCode) {
@@ -302,8 +302,12 @@ public class ClientInfoPageObj {
         }
 
 
-        public SelenideElement textRefreshTimestamp() {
-            return $x("//*[contains(@class, 'refresh-time')]");
+        public SelenideElement tableServiceUrlOfServiceCode(String serviceCode) {
+            return $x(format("//tr[td[@data-test='service-link' and normalize-space(text())='%s'] ]//td[@data-test='service-url']",serviceCode));
+        }
+
+        public SelenideElement tableServiceTimeoutOfServiceCode(String serviceCode) {
+            return $x(format("//tr[td[@data-test='service-link' and normalize-space(text())='%s'] ]//td[3]",serviceCode));
         }
 
         public SelenideElement btnServiceDetailsDelete() {
@@ -352,6 +356,23 @@ public class ClientInfoPageObj {
         public SelenideElement inputEditServiceCode() {
             return $x("//div[@data-test='service-description-details-dialog']//input[@name='code_field']");
         }
+
+        public SelenideElement btnContinueWarn() {
+            return $x("//button[ span[contains(text(), 'Continue')]]");
+        }
+
+        public SelenideElement checkboxUrlApplyAll() {
+            return $x("//input[@data-test='url-all']/following-sibling::div");
+        }
+
+        public SelenideElement checkboxTimeoutApplyAll() {
+            return $x("//input[@data-test='timeout-all']/following-sibling::div");
+        }
+
+        public SelenideElement checkboxVerifySslApplyAll() {
+            return $x("//input[@data-test='ssl-auth-all']/following-sibling::div");
+        }
+
     }
 
     public static class ServicesParameters {
@@ -368,7 +389,7 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement checkboxVerifyTlsCert() {
-            return $x("//input[@data-test='ssl-auth-all']/following-sibling::div");
+            return $x("//input[@data-test='ssl-auth']/following-sibling::div");
         }
 
         public SelenideElement inputVerifyTlsCert() {

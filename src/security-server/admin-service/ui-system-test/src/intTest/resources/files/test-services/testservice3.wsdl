@@ -19,7 +19,7 @@
             <wsdl:input message="ns:testOpRequest" wsaw:Action="urn:add" />
             <wsdl:output message="ns:testOpResponse" wsaw:Action="urn:addResponse" />
         </wsdl:operation>
-        <wsdl:operation name="testOpA">
+        <wsdl:operation name="testOpBC">
             <wsdl:input message="ns:testOpRequest" wsaw:Action="urn:add" />
             <wsdl:output message="ns:testOpResponse" wsaw:Action="urn:addResponse" />
         </wsdl:operation>
@@ -35,7 +35,7 @@
                 <soap12:body use="literal" />
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="testOpA">
+        <wsdl:operation name="testOpBC">
             <soap12:operation soapAction="urn:add" style="document" />
             <wsdl:input>
                 <soap12:body use="literal" />

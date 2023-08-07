@@ -8,9 +8,9 @@ Feature: 0550 - SS: Client REST with base path services
     And Clients tab is selected
 
   Scenario: Client service with Base Path is configured
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
-    And Rest service dialog is opened and base path is set to "invalid-url" and service code "asd"
+    When Rest service dialog is opened and base path is set to "invalid-url" and service code "asd"
     Then Form shows an error "URL is not valid"
 
     When Dialog is closed
@@ -26,40 +26,40 @@ Feature: 0550 - SS: Client REST with base path services
     And  Service "REST (http://example2.com)" is present in the list
 
   Scenario: Client Rest service with duplicate service code is not added
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
-    And Rest service dialog is opened and base path is set to "http://example2.com" and service code "s3c1"
+    When Rest service dialog is opened and base path is set to "http://example2.com" and service code "s3c1"
     Then Dialog data is saved and error message "Service code already exists" is shown
 
   Scenario: Client Rest service with duplicate url is not added
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
-    And Rest service dialog is opened and base path is set to "http://example.com" and service code "s3c10"
+    When Rest service dialog is opened and base path is set to "http://example.com" and service code "s3c10"
     Then Dialog data is saved and error message "URL already exists" is shown
 
   Scenario: Client service is edited
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com)" is expanded
     And Service with code "s3c1" is opened
-    And Service URL is set to "http://example.com/v2", timeout to 30 and tls certificate verification is unchecked
+    When Service URL is set to "http://example.com/v2", timeout to 30 and tls certificate verification is unchecked
     Then Service is saved and success message "Service saved" is shown
     When Service with code "s3c1" is opened
     Then Service URL is "http://example.com/v2", timeout is 30 and tls certificate verification is unchecked
 
   Scenario: Client service has access rights added to it
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
     And Service add subjects dialog is opened
     And Service subject lookup is executed with member name "TestGov" and subsystem code "test"
-    And Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:test-consumer" is selected from the table. There are total 3 entries
+    When Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:test-consumer" is selected from the table. There are total 3 entries
     Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
     And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
 
   Scenario: Client service has one access rights removed
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
@@ -69,13 +69,13 @@ Feature: 0550 - SS: Client REST with base path services
     And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
 
   Scenario: Client service has all access rights removed
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
     And Service "REST (http://example.com/v2)" is expanded
     And Service with code "s3c1" is opened
     And Service add subjects dialog is opened
     And Service subject lookup is executed with member name "TestGov" and subsystem code "test"
-    And Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:TestService" is selected from the table. There are total 2 entries
+    When Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:TestService" is selected from the table. There are total 2 entries
     Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
     And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
     When Service has all Access Rights removed

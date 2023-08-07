@@ -27,6 +27,7 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers;
 import org.niis.xroad.ss.test.ui.page.ClientInfoPageObj;
@@ -96,6 +97,15 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service URL is set to {string}, timeout to {} and tls certificate verification is {checkbox}")
     public void editService(String url, String timeout, boolean verifyTlsCert) {
+        editService(url, timeout, verifyTlsCert, false, false, false);
+    }
+
+    @Step("Service URL is set to {string}, timeout to {} and tls certificate verification is {checkbox}. Apply All? Url: {checkbox}, timeout: {checkbox}, verify Tls: {checkbox}")
+    public void editWsdlService(String url, String timeout, boolean verifyTlsCert, boolean urlApplyAll, boolean timeoutApplyAll, boolean verifyTlsApplyAll) {
+        editService(url, timeout, verifyTlsCert, urlApplyAll, timeoutApplyAll, verifyTlsApplyAll);
+    }
+
+    private void editService(String url, String timeout, boolean verifyTlsCert, boolean urlApplyAll, boolean timeoutApplyAll, boolean verifyTlsApplyAll) {
         clearInput(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
         clearInput(clientInfoPageObj.services.servicesParameters.inputServiceTimeout());
 
@@ -110,6 +120,15 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
             clientInfoPageObj.services.servicesParameters.checkboxVerifyTlsCert().click();
         }
 
+        if (urlApplyAll) {
+            clientInfoPageObj.services.servicesEdit.checkboxUrlApplyAll().click();
+        }
+        if (timeoutApplyAll) {
+            clientInfoPageObj.services.servicesEdit.checkboxTimeoutApplyAll().click();
+        }
+        if (verifyTlsApplyAll) {
+            clientInfoPageObj.services.servicesEdit.checkboxVerifySslApplyAll().click();
+        }
     }
 
     @Step("Service URL is {string}, timeout is {} and tls certificate verification is {checkbox}")
@@ -123,8 +142,20 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
     @Step("Service is saved and success message {string} is shown")
     public void dialogSave(String message) {
         clientInfoPageObj.services.servicesParameters.btnSaveEdit().click();
+        commonPageObj.snackBar.success().should(text(message));
+        commonPageObj.snackBar.btnClose().click();
+        commonPageObj.dialog.btnClose().click();
+    }
+
+    @Step("Service with a warning is saved and success message {string} is shown")
+    public void dialogSaveWithWarning(String message) {
+        clientInfoPageObj.services.servicesParameters.btnSaveEdit().click();
+
+        commonPageObj.dialog.title().shouldHave(text("warning"));
+        commonPageObj.dialog.btnSave().click();
 
         commonPageObj.snackBar.success().should(text(message));
+        commonPageObj.snackBar.btnClose().click();
         commonPageObj.dialog.btnClose().click();
     }
 
@@ -151,6 +182,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         clientInfoPageObj.services.addSubject.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Access rights added successfully"));
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("Service Access Rights table member with id {string} is {selenideValidation}")
@@ -167,6 +199,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         commonPageObj.dialog.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Access rights removed successfully"));
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("Service has all Access Rights removed")
@@ -174,6 +207,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.servicesParameters.btnRemoveAllSubjects().click();
         commonPageObj.dialog.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Access rights removed successfully"));
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("Service endpoints view is opened")
@@ -256,8 +290,9 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service {string} is enabled")
     public void enableService(String desc) {
-        clientInfoPageObj.services.headerServiceToggle(desc).click(usingJavaScript());
+        clientInfoPageObj.services.headerServiceToggle(desc).click();
         commonPageObj.snackBar.success().shouldHave(text("Service description enabled"));
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("Service {string} is disabled with notice {string}")
@@ -267,6 +302,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         commonPageObj.dialog.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Service description disabled"));
+        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("Service {string} is updated with url {string} and service code {string}")
@@ -293,5 +329,16 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.servicesEdit.btnServiceDelete().click();
         commonPageObj.dialog.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Service description deleted"));
+    }
+
+    @Step("Services under {string} are as follows:")
+    public void validateSubServiceTable(String service, DataTable dataTable) {
+        var rows = dataTable.asMaps();
+
+        rows.forEach(row -> {
+            var serviceCode = row.get("$serviceCode");
+            clientInfoPageObj.services.tableServiceUrlOfServiceCode(serviceCode).shouldHave(text(row.get("$url")));
+            clientInfoPageObj.services.tableServiceTimeoutOfServiceCode(serviceCode).shouldHave(text(row.get("$timeout")));
+        });
     }
 }

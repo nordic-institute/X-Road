@@ -35,6 +35,10 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
         mockFileResponse(TESTSERVICES_DIR, "testopenapi1.yaml", PREFIX_TESTSERVICES);
         mockFileResponse(TESTSERVICES_DIR, "testopenapi11.yaml", PREFIX_TESTSERVICES);
         mockFileResponse(TESTSERVICES_DIR, "testopenapi2.json", PREFIX_TESTSERVICES);
+
+        mockFileResponse(TESTSERVICES_DIR, "testservice1.wsdl", PREFIX_TESTSERVICES);
+        mockFileResponse(TESTSERVICES_DIR, "testservice2.wsdl", PREFIX_TESTSERVICES);
+        mockFileResponse(TESTSERVICES_DIR, "testservice3.wsdl", PREFIX_TESTSERVICES);
     }
 
     private void mockFileResponse(String fileDir, String fileName, String urlPrefix) {

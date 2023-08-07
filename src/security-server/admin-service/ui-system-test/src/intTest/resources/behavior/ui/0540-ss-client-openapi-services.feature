@@ -8,55 +8,55 @@ Feature: 0540 - SS: Client OpenApi REST services
     And Clients tab is selected
 
   Scenario: Client service with invalid openApi spec is not added
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
-    And Rest service dialog is opened and OpenApi spec is set to "https://www.niis.org/nosuchopenapi.yaml" and service code "s4c1"
+    When Rest service dialog is opened and OpenApi spec is set to "https://www.niis.org/nosuchopenapi.yaml" and service code "s4c1"
     Then Dialog data is saved and error message "Parsing OpenApi3 description failed" is shown
 
   Scenario: Client service with invalid openApi spec is not added
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
-    And Rest service dialog is opened and OpenApi spec is set to "https://www.niis.org/nosuchopenapi.yaml" and service code "s4c1"
+    When Rest service dialog is opened and OpenApi spec is set to "https://www.niis.org/nosuchopenapi.yaml" and service code "s4c1"
     Then Dialog data is saved and error message "Parsing OpenApi3 description failed" is shown
 
   Scenario: Client service with openApi yaml spec is added
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
-    And Rest service dialog is opened and OpenApi spec is set to "http://mock-server:1080/test-services/testopenapi1.yaml" and service code "s4c1"
+    When Rest service dialog is opened and OpenApi spec is set to "http://mock-server:1080/test-services/testopenapi1.yaml" and service code "s4c1"
     Then Dialog data is saved and success message "OpenApi3 service added" is shown
     And  Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi1.yaml)" is present in the list
 
   Scenario: Client service with openApi json spec is added
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
-    And Rest service dialog is opened and OpenApi spec is set to "http://mock-server:1080/test-services/testopenapi2.json" and service code "s4c2"
+    When Rest service dialog is opened and OpenApi spec is set to "http://mock-server:1080/test-services/testopenapi2.json" and service code "s4c2"
     Then Dialog data is saved and success message "OpenApi3 service added" is shown
     And  Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is present in the list
 
   Scenario: Client service is edited
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened
-    And Service URL is set to "https://petstore.swagger.io/v3", timeout to 30 and tls certificate verification is unchecked
+    When Service URL is set to "https://petstore.swagger.io/v3", timeout to 30 and tls certificate verification is unchecked
     Then Service is saved and success message "Service saved" is shown
-    When Service with code "s4c2" is opened
-    Then Service URL is "https://petstore.swagger.io/v3", timeout is 30 and tls certificate verification is unchecked
+    And Service with code "s4c2" is opened
+    And Service URL is "https://petstore.swagger.io/v3", timeout is 30 and tls certificate verification is unchecked
 
   Scenario: Client service has access rights added to it
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened
     And Service add subjects dialog is opened
-    And Service subject lookup is executed with member name "TestGov" and subsystem code "test"
+    When Service subject lookup is executed with member name "TestGov" and subsystem code "test"
     And Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:test-consumer" is selected from the table. There are total 3 entries
     Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
     And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
 
 
   Scenario: Client service has one access rights removed
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened
@@ -66,13 +66,13 @@ Feature: 0540 - SS: Client OpenApi REST services
     And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
 
   Scenario: Client service has all access rights removed
-    When Client "TestService" is opened
+    Given Client "TestService" is opened
     And Services sub-tab is selected
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened
     And Service add subjects dialog is opened
     And Service subject lookup is executed with member name "TestGov" and subsystem code "test"
-    And Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:TestService" is selected from the table. There are total 2 entries
+    When Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:TestService" is selected from the table. There are total 2 entries
     Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
     And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
     When Service has all Access Rights removed
