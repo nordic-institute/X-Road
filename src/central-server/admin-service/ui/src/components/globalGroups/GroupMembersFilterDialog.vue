@@ -154,7 +154,7 @@
 
 import Vue from 'vue';
 import { mapStores } from 'pinia';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { useGlobalGroups } from '@/store/modules/global-groups';
 
 const initialState = () => {
   return {
@@ -207,7 +207,7 @@ export default Vue.extend({
   },
 
   computed: {
-    ...mapStores(useGlobalGroupsStore),
+    ...mapStores(useGlobalGroups),
   },
   created() {
     this.globalGroupStore.getMembersFilterModel(this.groupCode).then((resp) => {
@@ -233,13 +233,12 @@ export default Vue.extend({
         typeArray.push('SUBSYSTEM');
       }
       this.$emit('apply', {
-        memberClass: this.memberClassModel,
+        member_class: this.memberClassModel,
         instance: this.instanceModel,
         codes: this.codesModel,
         subsystems: this.subsystemsModel,
         types: typeArray,
       });
-      this.clearFields();
     },
   },
 });

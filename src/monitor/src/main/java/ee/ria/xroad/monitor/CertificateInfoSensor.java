@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,9 +30,8 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.ListTokens;
 
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
@@ -189,7 +188,7 @@ public class CertificateInfoSensor extends AbstractSensor {
         }
 
         TokenExtractor() {
-            tokenInfoLister = () -> SignerClient.execute(new ListTokens());
+            tokenInfoLister = SignerProxy::getTokens;
         }
 
         @Override

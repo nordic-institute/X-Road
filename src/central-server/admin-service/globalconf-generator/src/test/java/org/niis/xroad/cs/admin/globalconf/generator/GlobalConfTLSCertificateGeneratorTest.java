@@ -28,17 +28,12 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
-import ee.ria.xroad.signer.protocol.message.SignCertificate;
-import ee.ria.xroad.signer.protocol.message.SignCertificateResponse;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -52,14 +47,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.List;
 
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -102,13 +94,16 @@ public class GlobalConfTLSCertificateGeneratorTest {
     void shouldUpdateGlobalConfTLSCertificates() {
         Files.copy(initialInternalConfCrtPath, internalConfCrtPath, StandardCopyOption.REPLACE_EXISTING);
         Files.copy(initialExternalConfCrtPath, externalConfCrtPath, StandardCopyOption.REPLACE_EXISTING);
-        when(signerProxyFacade.execute(isA(GetSignMechanism.class))).thenReturn(
-                new GetSignMechanismResponse(CryptoUtils.CKM_RSA_PKCS_NAME));
+        when(signerProxyFacade.getSignMechanism(INTERNAL_KEY_ID)).thenReturn(CryptoUtils.CKM_RSA_PKCS_NAME);
+        when(signerProxyFacade.getSignMechanism(EXTERNAL_KEY_ID)).thenReturn(CryptoUtils.CKM_RSA_PKCS_NAME);
         X509Certificate signedInternalConfCert = getX509Certificate(signedInternalConfCrtPath);
         X509Certificate signedExternalConfCert = getX509Certificate(signedExternalConfCrtPath);
-        when(signerProxyFacade.execute(isA(SignCertificate.class))).thenReturn(
-                new SignCertificateResponse(signedInternalConfCert.getEncoded()),
-                new SignCertificateResponse(signedExternalConfCert.getEncoded()));
+        X509Certificate certToSign = getX509Certificate(centerAdminServiceCrtPath);
+        PublicKey publicKeyToSign = certToSign.getPublicKey();
+        when(signerProxyFacade.signCertificate(INTERNAL_KEY_ID, CryptoUtils.SHA512WITHRSA_ID, "CN=" + CENTRAL_SERVICE, publicKeyToSign))
+                .thenReturn(signedInternalConfCert.getEncoded(), signedExternalConfCert.getEncoded());
+        when(signerProxyFacade.signCertificate(EXTERNAL_KEY_ID, CryptoUtils.SHA512WITHRSA_ID, "CN=" + CENTRAL_SERVICE, publicKeyToSign))
+                .thenReturn(signedExternalConfCert.getEncoded());
         when(systemParameterService.getConfSignDigestAlgoId()).thenReturn(CryptoUtils.SHA512_ID);
         when(systemParameterService.getCentralServerAddress()).thenReturn(CENTRAL_SERVICE);
         ConfigurationSigningKey internalConfSigningKey =
@@ -118,15 +113,10 @@ public class GlobalConfTLSCertificateGeneratorTest {
 
         tlsCertificateGenerator.updateGlobalConfTLSCertificates(internalConfSigningKey, externalConfSigningKey);
 
-        var signCertCaptor = ArgumentCaptor.forClass(SignCertificate.class);
-        verify(signerProxyFacade, times(4)).execute(signCertCaptor.capture());
-        List<SignCertificate> signProxyArguments = signCertCaptor.getAllValues();
-        SignCertificate signInternalCertArgument = signProxyArguments.get(1);
-        SignCertificate signExternalCertArgument = signProxyArguments.get(3);
-        X509Certificate certToSign = getX509Certificate(centerAdminServiceCrtPath);
-        PublicKey publicKeyToSign = certToSign.getPublicKey();
-        assertSignCertArgumentFields(signInternalCertArgument, INTERNAL_KEY_ID, publicKeyToSign);
-        assertSignCertArgumentFields(signExternalCertArgument, EXTERNAL_KEY_ID, publicKeyToSign);
+        verify(signerProxyFacade)
+                .signCertificate(INTERNAL_KEY_ID, CryptoUtils.SHA512WITHRSA_ID, "CN=" + CENTRAL_SERVICE, publicKeyToSign);
+        verify(signerProxyFacade)
+                .signCertificate(EXTERNAL_KEY_ID, CryptoUtils.SHA512WITHRSA_ID, "CN=" + CENTRAL_SERVICE, publicKeyToSign);
 
         X509Certificate internalConfCrt = getX509Certificate(internalConfCrtPath);
         assertThat(signedInternalConfCert.equals(internalConfCrt)).isTrue();
@@ -146,7 +136,8 @@ public class GlobalConfTLSCertificateGeneratorTest {
 
         tlsCertificateGenerator.updateGlobalConfTLSCertificates(internalConfSigningKey, externalConfSigningKey);
 
-        verify(signerProxyFacade, never()).execute(any());
+        verify(signerProxyFacade, never()).getSignMechanism(any());
+        verify(signerProxyFacade, never()).signCertificate(any(), any(), any(), any());
     }
 
     private static X509Certificate getX509Certificate(Path certPath) throws IOException {
@@ -158,14 +149,6 @@ public class GlobalConfTLSCertificateGeneratorTest {
         confSigningKey.setKeyIdentifier(keyId);
         confSigningKey.setCert(Files.readAllBytes(signingKeyCert));
         return confSigningKey;
-    }
-
-    private static void assertSignCertArgumentFields(SignCertificate signCertArgument, String keyId,
-                                                     PublicKey publicKeyToSign)  {
-        assertThat(signCertArgument.getKeyId()).isEqualTo(keyId);
-        assertThat(signCertArgument.getSignatureAlgorithmId()).isEqualTo(CryptoUtils.SHA512WITHRSA_ID);
-        assertThat(signCertArgument.getSubjectName()).isEqualTo("CN=" + CENTRAL_SERVICE);
-        assertThat(signCertArgument.getPublicKey()).isEqualTo(publicKeyToSign);
     }
 
 }

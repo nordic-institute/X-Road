@@ -115,9 +115,9 @@
 
           <tr>
             <td>
-              {{ $t('systemSettings.centralServerAddress') }}
+              {{ $t('systemSettings.managementServicesAddress') }}
             </td>
-            <td data-test="management-central-server-address-field">
+            <td data-test="management-management-services-address-field">
               {{ managementServicesConfiguration.services_address }}
             </td>
             <td class="action-cell">
@@ -126,7 +126,7 @@
                 text
                 :outlined="false"
                 class="copy-button"
-                data-test="management-central-server-address-copy-btn"
+                data-test="management-management-services-address-copy-btn"
                 @click.prevent="
                   copyUrl(managementServicesConfiguration.services_address)
                 "
@@ -179,11 +179,11 @@ import {
 } from '@/openapi-types';
 import Vue from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { managementServicesStore } from '@/store/modules/management-services';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useManagementServices } from '@/store/modules/management-services';
+import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 import { Permissions } from '@/global';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import SelectSubsystemDialog from '@/components/systemSettings/SelectSubsystemDialog.vue';
 import SelectSecurityServerDialog from '@/components/systemSettings/SelectSecurityServerDialog.vue';
 
@@ -200,8 +200,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(managementServicesStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useManagementServices),
+    ...mapState(useUser, ['hasPermission']),
     managementServicesConfiguration(): ManagementServicesConfiguration {
       return this.managementServicesStore.managementServicesConfiguration;
     },
@@ -220,7 +220,7 @@ export default Vue.extend({
     this.fetchManagementServicesConfiguration();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchManagementServicesConfiguration(): void {
       this.loading = true;
       this.managementServicesStore

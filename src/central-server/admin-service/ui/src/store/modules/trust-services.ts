@@ -42,7 +42,7 @@ export interface CertificationServiceStoreState {
   currentCertificationService: ApprovedCertificationService | null;
 }
 
-export const useCertificationServiceStore = defineStore(
+export const useCertificationService = defineStore(
   'certificationService',
   {
     state: (): CertificationServiceStoreState => ({
@@ -117,7 +117,7 @@ export interface OcspResponderStoreState {
   currentOcspResponders: OcspResponder[];
 }
 
-export const useOcspResponderStore = defineStore('ocspResponderService', {
+export const useOcspResponderService = defineStore('ocspResponderService', {
   state: (): OcspResponderStoreState => ({
     currentCa: null,
     currentOcspResponders: [],
@@ -176,7 +176,7 @@ export interface IntermediateCasStoreState {
   currentSelectedIntermediateCa: CertificateAuthority | null;
 }
 
-export const useIntermediateCaStore = defineStore('intermediateCasService', {
+export const useIntermediateCasService = defineStore('intermediateCasService', {
   state: (): IntermediateCasStoreState => ({
     currentCs: null,
     currentIntermediateCas: [],
@@ -228,12 +228,12 @@ export const useIntermediateCaStore = defineStore('intermediateCasService', {
   },
 });
 
-export interface TimestampingServicesStoreState {
+export interface TimestampingServiceStoreState {
   timestampingServices: TimestampingService[];
 }
 
-export const timestampingServicesStore = defineStore('timestampingServices', {
-  state: (): TimestampingServicesStoreState => ({
+export const useTimestampingService = defineStore('timestampingService', {
+  state: (): TimestampingServiceStoreState => ({
     timestampingServices: [],
   }),
   persist: true,

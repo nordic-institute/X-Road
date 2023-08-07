@@ -71,7 +71,7 @@ import TokenLogoutDialog from '@/components/tokens/TokenLogoutDialog.vue';
 import TokenLoginDialog from '@/components/tokens/TokenLoginDialog.vue';
 import { PossibleTokenAction, Token } from '@/openapi-types';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 
 export default Vue.extend({
@@ -89,7 +89,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
     showLogin(): boolean {
       if (!this.token.possible_actions) {
         return false;

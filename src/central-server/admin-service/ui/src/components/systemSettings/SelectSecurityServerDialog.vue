@@ -125,10 +125,10 @@
 import Vue from 'vue';
 import { SecurityServer } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { DataOptions, DataTableHeader } from 'vuetify';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { useSecurityServer } from '@/store/modules/security-servers';
 import { TranslateResult } from 'vue-i18n';
 
 // To provide the Vue instance to debounce
@@ -153,7 +153,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useSecurityServerStore),
+    ...mapStores(useSecurityServer),
     selectableSecurityServers(): SecurityServer[] {
       return this.securityServerStore.securityServers || [];
     },
@@ -204,7 +204,7 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.findServers(that.pagingSortingOptions);

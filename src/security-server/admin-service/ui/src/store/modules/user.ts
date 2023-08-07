@@ -37,7 +37,7 @@ import {
 import { Tab } from '@/ui-types';
 import i18n from '@/i18n';
 import { routePermissions } from '@/routePermissions';
-import { useSystemStore } from './system';
+import { useSystem } from './system';
 
 export const useUser = defineStore('user', {
   state: () => {
@@ -207,7 +207,7 @@ export const useUser = defineStore('user', {
       this.clearAuth();
 
       // Reset system data
-      const system = useSystemStore();
+      const system = useSystem();
       system.clearSystemStore();
 
       // Call backend for logout

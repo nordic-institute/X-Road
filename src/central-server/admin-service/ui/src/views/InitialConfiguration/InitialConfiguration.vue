@@ -180,8 +180,8 @@ import {
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { systemStore } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSystem } from '@/store/modules/system';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -238,7 +238,7 @@ export default (
     };
   },
   computed: {
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapState(useSystem, ['getSystemStatus']),
   },
   created() {
     if (!this.getSystemStatus?.initialization_status) {
@@ -266,12 +266,12 @@ export default (
     }
   },
   methods: {
-    ...mapActions(notificationsStore, [
+    ...mapActions(useNotifications, [
       'showError',
       'showSuccess',
       'resetNotifications',
     ]),
-    ...mapActions(systemStore, ['fetchSystemStatus', 'initalizationRequest']),
+    ...mapActions(useSystem, ['fetchSystemStatus', 'initalizationRequest']),
     async submit() {
       // validate inputs
       const formData: InitialServerConf = {} as InitialServerConf;

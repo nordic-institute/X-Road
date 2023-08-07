@@ -118,9 +118,9 @@
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
-import { notificationsStore } from '@/store/modules/notifications';
-import { systemStore } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSystem } from '@/store/modules/system';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { RouteName } from '@/global';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
@@ -150,7 +150,7 @@ export default (
     };
   },
   computed: {
-    ...mapState(userStore, ['getFirstAllowedTab']),
+    ...mapState(useUser, ['getFirstAllowedTab']),
     isDisabled() {
       // beware: simplified one-liner fails at runtime
       if (
@@ -165,13 +165,13 @@ export default (
     },
   },
   methods: {
-    ...mapActions(userStore, ['login', 'fetchUserData']),
-    ...mapActions(notificationsStore, [
+    ...mapActions(useUser, ['login', 'fetchUserData']),
+    ...mapActions(useNotifications, [
       'showError',
       'showErrorMessage',
       'resetNotifications',
     ]),
-    ...mapActions(systemStore, ['fetchSystemStatus', 'fetchServerVersion']),
+    ...mapActions(useSystem, ['fetchSystemStatus', 'fetchServerVersion']),
     async submit() {
       // Clear old error notifications (if they exist) before submit
       await this.resetNotifications();

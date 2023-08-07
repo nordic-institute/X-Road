@@ -79,10 +79,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import { FileUploadResult } from '@niis/shared-ui';
-import { timestampingServicesStore } from '@/store/modules/trust-services';
+import { useTimestampingService } from '@/store/modules/trust-services';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'AddTimestampingServiceDialog',
@@ -100,10 +100,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(timestampingServicesStore),
+    ...mapStores(useTimestampingService),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     onFileUploaded(result: FileUploadResult): void {
       this.certFile = result.file;
       this.certFileTitle = result.file.name;
@@ -112,7 +112,7 @@ export default Vue.extend({
       if (!this.certFile) return;
 
       this.loading = true;
-      this.timestampingServicesStore
+      this.timestampingServiceStore
         .addTimestampingService(this.tasUrl, this.certFile)
         .then(() => {
           this.showSuccess(

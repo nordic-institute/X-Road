@@ -67,7 +67,7 @@
 import Vue from 'vue';
 import { Colors } from '@/global';
 import { mapState } from 'pinia';
-import { systemStore } from '@/store/modules/system';
+import { useSystem } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'Toolbar',
@@ -77,8 +77,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(systemStore, ['getSystemStatus']),
-    ...mapState(systemStore, ['getSystemStatus', 'isServerInitialized']),
+    ...mapState(useSystem, ['getSystemStatus']),
+    ...mapState(useSystem, ['getSystemStatus', 'isServerInitialized']),
     initializationParameters() {
       return this.getSystemStatus?.initialization_status;
     },

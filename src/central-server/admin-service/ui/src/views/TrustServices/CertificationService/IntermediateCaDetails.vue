@@ -78,7 +78,7 @@
 import Vue from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapStores } from 'pinia';
-import { useIntermediateCaStore } from '@/store/modules/trust-services';
+import { useIntermediateCasService } from '@/store/modules/trust-services';
 
 /**
  * Component for a Certification Service details view
@@ -89,7 +89,7 @@ export default Vue.extend({
     InfoCard,
   },
   computed: {
-    ...mapStores(useIntermediateCaStore),
+    ...mapStores(useIntermediateCasService),
   },
 });
 </script>

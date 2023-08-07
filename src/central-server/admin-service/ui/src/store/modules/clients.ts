@@ -40,7 +40,7 @@ export interface PagingParams {
   itemPerPage: number;
 }
 
-export const clientStore = defineStore('client', {
+export const useClient = defineStore('client', {
   state: (): State => ({
     clients: [],
     pagingOptions: {

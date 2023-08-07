@@ -133,9 +133,9 @@
 
 <script lang="ts">
 import { ErrorInfo } from '@/openapi-types';
-import { managementServicesStore } from '@/store/modules/management-services';
-import { notificationsStore } from '@/store/modules/notifications';
-import { systemStore } from '@/store/modules/system';
+import { useManagementServices } from '@/store/modules/management-services';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSystem } from '@/store/modules/system';
 
 import {
   getErrorInfo,
@@ -178,7 +178,7 @@ export default (
     };
   },
   computed: {
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapState(useSystem, ['getSystemStatus']),
     serverAddress(): string | undefined {
       return this.getSystemStatus?.initialization_status
         ?.central_server_address;
@@ -191,12 +191,12 @@ export default (
     this.fetchSystemStatus();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    ...mapActions(systemStore, [
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useSystem, [
       'fetchSystemStatus',
       'updateCentralServerAddress',
     ]),
-    ...mapActions(managementServicesStore, [
+    ...mapActions(useManagementServices, [
       'fetchManagementServicesConfiguration',
     ]),
     async onServerAddressSave(serverAddress: string): Promise<void> {

@@ -95,7 +95,7 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 import { AxiosError } from 'axios';
 
 export default Vue.extend({
@@ -120,11 +120,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useCsrStore, ['csrForm', 'csrTokenId']),
+    ...mapState(useCsr, ['csrForm', 'csrTokenId']),
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsrStore, ['requestGenerateCsr', 'generateKeyAndCsr']),
+    ...mapActions(useCsr, ['requestGenerateCsr', 'generateKeyAndCsr']),
     cancel(): void {
       this.$emit('cancel');
     },

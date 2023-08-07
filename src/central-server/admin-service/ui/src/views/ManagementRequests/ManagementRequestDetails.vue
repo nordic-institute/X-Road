@@ -91,7 +91,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { managementRequestsStore } from '@/store/modules/managementRequestStore';
+import { useManagementRequests } from '@/store/modules/management-requests';
 import { managementTypeToText } from '@/util/helpers';
 import {
   ManagementRequestDetailedView,
@@ -103,7 +103,7 @@ import MrCertificateInformation from '@/components/managementRequests/details/Mr
 import MrClientInformation from '@/components/managementRequests/details/MrClientInformation.vue';
 import MrSecurityServerInformation from '@/components/managementRequests/details/MrSecurityServerInformation.vue';
 import MrInformation from '@/components/managementRequests/details/MrInformation.vue';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
@@ -132,7 +132,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(managementRequestsStore),
+    ...mapStores(useManagementRequests),
 
     managementRequest(): ManagementRequestDetailedView | null {
       return this.managementRequestsStore.currentManagementRequest;
@@ -168,7 +168,7 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
+    ...mapActions(useNotifications, ['showError']),
     fetchData: async function () {
       this.loading = true;
       try {

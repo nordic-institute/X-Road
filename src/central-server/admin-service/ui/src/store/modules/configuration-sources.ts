@@ -46,7 +46,7 @@ export interface Source {
   parts: ConfigurationPart[];
 }
 
-export const useConfigurationSourceStore = defineStore('configurationSource', {
+export const useConfigurationSource = defineStore('configurationSource', {
   state: (): State => ({
     internal: {
       downloadUrl: {} as GlobalConfDownloadUrl,

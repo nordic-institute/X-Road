@@ -163,17 +163,17 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 
 export default Vue.extend({
   // Component for contextual notifications
   computed: {
-    ...mapState(notificationsStore, ['errorNotifications']),
+    ...mapState(useNotifications, ['errorNotifications']),
   },
   methods: {
-    ...mapActions(notificationsStore, ['deleteNotification']),
+    ...mapActions(useNotifications, ['deleteNotification']),
 
     closeError(id: number): void {
       this.deleteNotification(id);

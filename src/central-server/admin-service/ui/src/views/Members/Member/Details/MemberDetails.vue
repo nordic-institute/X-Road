@@ -159,10 +159,10 @@ import { DataTableHeader } from 'vuetify';
 import { Colors, Permissions, RouteName } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { memberStore } from '@/store/modules/members';
+import { useMember } from '@/store/modules/members';
 import { MemberGlobalGroup, SecurityServer } from '@/openapi-types';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
 import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
 
@@ -203,8 +203,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapStores(memberStore),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapStores(useMember),
     allowMemberDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_MEMBER);
     },
@@ -274,7 +274,7 @@ export default Vue.extend({
       });
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelEditMemberName() {
       this.showEditNameDialog = false;
     },

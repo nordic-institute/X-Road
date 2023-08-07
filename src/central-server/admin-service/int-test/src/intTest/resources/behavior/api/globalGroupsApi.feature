@@ -211,6 +211,33 @@ Feature: Global groups API
     Then global group "test-group" members list with page size 10 is queried
     And global group "test-group" members list does not contain "CS:E2E:m-2" member
 
+  Scenario: Global Group behavior when deleting member/subsystems
+    Given Authentication header is set to MANAGEMENT_SERVICE
+    And new global group 'test-group' with description 'group description' is added
+    And member class 'E2E' is created
+    And new member 'CS:E2E:m-1' is added
+    And new subsystem 'CS:E2E:m-1:Subsystem-0' is added
+    And new subsystem 'CS:E2E:m-1:Subsystem-1' is added
+    And new subsystem 'CS:E2E:m-1:Subsystem-2' is added
+    And members are added to group 'test-group'
+      | $identifier | $isNew |
+      | CS:E2E:m-1  | true   |
+      | CS:E2E:m-1:Subsystem-0  | true   |
+      | CS:E2E:m-1:Subsystem-1  | true   |
+      | CS:E2E:m-1:Subsystem-2  | true   |
+    And new global group 'test-group' with description 'group description' is added
+    And global group 'test-group' has 4 members
+    When subsystem 'CS:E2E:m-1:Subsystem-0' is deleted
+    Then global group "test-group" members list with page size 10 is queried
+    And global group "test-group" members list does not contain "CS:E2E:m-1:Subsystem-0" member
+    And global group 'test-group' has 3 members
+    When user deletes member 'CS:E2E:m-1'
+    Then global group "test-group" members list with page size 10 is queried
+    And global group "test-group" members list does not contain "CS:E2E:m-1" member
+    And global group "test-group" members list does not contain "CS:E2E:m-1:Subsystem-1" member
+    And global group "test-group" members list does not contain "CS:E2E:m-1:Subsystem-2" member
+    And global group 'test-group' has 0 members
+
   Scenario: Add and delete members to global group fails due to wrong member
     Given Authentication header is set to MANAGEMENT_SERVICE
     And new global group 'test-group' with description 'group description' is added

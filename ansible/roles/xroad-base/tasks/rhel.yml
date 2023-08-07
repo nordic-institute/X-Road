@@ -49,3 +49,4 @@
       - cronie
       - tar
       - acl
+      - tzdata-java

@@ -57,13 +57,13 @@
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import { FileUploadResult } from '@niis/shared-ui';
 import UploadTrustedAnchorDialog from './UploadTrustedAnchorDialog.vue';
-import { trustedAnchorStore } from '@/store/modules/trusted-anchors';
+import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { TrustedAnchor } from '@/openapi-types';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default (
   Vue as VueConstructor<
@@ -83,14 +83,14 @@ export default (
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapStores(trustedAnchorStore),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapStores(useTrustedAnchor),
     canUpload(): boolean {
       return this.hasPermission(Permissions.UPLOAD_TRUSTED_ANCHOR);
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showSuccess', 'showError']),
+    ...mapActions(useNotifications, ['showSuccess', 'showError']),
     onFileUploaded(result: FileUploadResult) {
       this.file = result.file;
       this.uploading = true;
