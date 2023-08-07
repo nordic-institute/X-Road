@@ -1,0 +1,83 @@
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: eks.restrictive
+  annotations:
+    kubernetes.io/description: 'eks.restrictive policy in sidecar-psp-restrictive namespace'
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
+  labels:
+    kubernetes.io/cluster-service: "true"
+    eks.amazonaws.com/component: pod-security-policy
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+    - 'awsElasticBlockStore'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  hostPorts:
+      - min: 1025
+        max: 65535
+  runAsUser:
+    # Running the sidecar requires the container to run as root so we cannot use MustRunAsNonRoot.
+    rule: 'RunAsAny'
+  seLinux:
+    # Assuming the nodes are using AppArmor rather than SELinux
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      # Forbid adding the root group
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      # Forbid adding the root group
+      - min: 1
+        max: 65535
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: sidecar:psp:unprivileged
+  namespace: sidecar-psp-restrictive
+  labels:
+      kubernetes.io/cluster-service: "true"
+      eks.amazonaws.com/component: pod-security-policy
+rules:
+- apiGroups:
+  - policy
+  resourceNames:
+  - eks.restrictive
+  resources:
+  - podsecuritypolicy
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sidecar-user:psp:unprivileged
+  namespace: sidecar-psp-restrictive
+  annotations:
+    kubernetes.io/description: 'Allow service account sidecar-eks-user to use eks.restrictive psp in sidecar-psp-restrictive namespace.'
+  labels:
+    kubernetes.io/cluster-service: "true"
+    eks.amazonaws.com/component: pod-security-policy
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: sidecar:psp:unprivileged
+  subjects:
+  - kind: ServiceAccount
+    name: sidecar-eks-user
+    namespace: sidecar-psp-restrictive

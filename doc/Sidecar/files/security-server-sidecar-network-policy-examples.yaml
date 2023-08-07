@@ -1,0 +1,81 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: sidecar-psp-restrictive 
+  name: allow-internet-access
+spec:
+  podSelector:
+    matchLabels:
+      networking/allow-internet-access: "true"
+  policyTypes:
+  - Ingress
+  ingress:
+  - {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: sidecar-psp-restrictive 
+  name: allow-same-namespace
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: sidecar-psp-restrictive 
+  name: allow-sidecar-access
+spec:
+  podSelector:
+    matchLabels:
+      app: "security-server-sidecar"
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          networking/allow-sidecar-access: "true"
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: sidecar-psp-restrictive 
+  name: allow-deployment-to-access-sidecar
+spec:
+  podSelector:
+    matchLabels:
+      sidecar-deployment-pod-label-key: sidecar-deployment-pod-label-value
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          deployment-pod-label-key: deployment-pod-label-value
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: sidecar-psp-restrictive 
+  name: allow-namespace-and-deployment-to-access-sidecar
+spec:
+  podSelector:
+    matchLabels:
+      sidecar-deployment-pod-label-key: sidecar-deployment-pod-label-value
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    -  namespaceSelector:
+        matchLabels:
+          networking/namespace: test-namespace
+       podSelector:
+        matchLabels:
+          deployment-pod-label-key: deployment-pod-label-value

@@ -1,0 +1,57 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Path to the Dockerfile to build", name: "DOCKERFILE_PATH", defaultValue: "${params?.DOCKERFILE_PATH}")
+    }
+    stages {
+        stage('Clone X-Road Security Server Sidecar repository') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'develop']],
+                    doGenerateSubmoduleConfigurations: false,
+                    gitTool: 'Default',
+                    userRemoteConfigs: [
+                        [
+                            url: 'https://github.com/nordic-institute/X-Road.git',
+                            refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
+                        ]
+                    ]
+                ])
+            }
+        }
+        stage('Build X-Road Security Server Sidecar image') {
+            steps {
+                sh 'docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
+            }
+        }
+        stage('Run container') {
+            steps {
+                sh 'docker run --detach -p 4100:4000 -p 4101:8080 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss-${IMAGE_TAG} niis/xroad-security-server-sidecar:${IMAGE_TAG}'
+            }
+        }
+        stage('Test') {
+            steps {
+                retry (5) {
+                    sleep(time: 40, unit: 'SECONDS')
+                    script {
+                        def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://localhost:4100', returnStdout: true)
+                        if(response == '200') {
+                            echo '========> X-Road Security Server Sidecar is successfully running'
+                            currentBuild.result = 'SUCCESS'
+                        } else {
+                            error("========> X-Road Security Server Sidecar returned " + response + " . Try again in 20s")
+                        }
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh '''
+                docker rm -f sss-${IMAGE_TAG}
+            '''
+        }
+    }
+}

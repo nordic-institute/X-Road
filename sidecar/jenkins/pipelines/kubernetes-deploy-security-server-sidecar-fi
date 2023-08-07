@@ -1,0 +1,55 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Tag of the Security Server Sidecar docker image", name: "IMAGE_TAG", defaultValue: "${params?.IMAGE_TAG}")
+        string(description: "Log level of Security Server Sidecar", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
+        string(description: "Volume claim name", name: "VOLUME_CLAIM", defaultValue: "${params?.VOLUME_CLAIM}")
+    }
+    environment {
+        XROAD_DB_HOST = '127.0.0.1'
+        XROAD_DB_PORT = '5432'
+        XROAD_DB_PWD = 'secret1234'
+    }
+    stages {
+        stage('Deploy Security Server Sidecar image in AWS EKS environment') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'cat "sidecar/kubernetes/security-server-sidecar-local.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" | sed "s/{{IMAGE_TAG}}/$IMAGE_TAG/g" | kubectl apply -f -'
+                }
+            }
+        }
+        stage('Rollout status') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-${IMAGE_TAG}'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    retry (8) {
+                        sleep(time: 10, unit: 'SECONDS')
+                        script {
+                            def response = sh (script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://$(kubectl get pods -l run=security-server-sidecar-${IMAGE_TAG} -o jsonpath={.items[].status.podIP}):4000', returnStdout: true)
+                            if (response == '302') {
+                                echo '========> Security server sidecar is successfully running'
+                                currentBuild.result = 'SUCCESS'
+                            } else {
+                                error("========> Security server sidecar returned " + response + " . Try again in 10s")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage ('Clean up') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl delete deployment.apps/security-server-sidecar-${IMAGE_TAG}'
+                    sh 'kubectl delete service/security-server-sidecar-${IMAGE_TAG}'
+                }
+            }
+        }
+    }
+}

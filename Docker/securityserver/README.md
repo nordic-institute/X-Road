@@ -1,6 +1,6 @@
 # Security Server Docker Image
 
-***This Security Server image is strictly meant for testing and development purposes. Do not use it in production environment! See [X-Road Security Server Sidecar](https://github.com/nordic-institute/X-Road-Security-Server-Sidecar) for production use.***
+***This Security Server image is strictly meant for testing and development purposes. Do not use it in production environment! See [X-Road Security Server Sidecar](https://github.com/nordic-institute/X-Road/blob/develop/sidecar/SIDECAR.md) for production use.***
 
 The Docker image (`niis/xroad-security-server`) is published on [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server).
 

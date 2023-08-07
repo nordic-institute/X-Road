@@ -1,0 +1,25 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Deployment template path", name: "DEPLOYMENT_PATH", defaultValue:  "${params?.DEPLOYMENT_PATH}" )
+    }
+    stages {
+        stage('Check if provider is deployed on kubernetes ') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar'
+                }
+            }
+        }
+        stage('Delete deployment') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh '''
+                        template=`cat "${DEPLOYMENT_PATH}" `
+                        echo "$template" | kubectl delete -f -
+                    '''
+                }
+            }
+        }
+    }
+}
