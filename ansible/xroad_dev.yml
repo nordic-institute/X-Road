@@ -26,7 +26,7 @@
 - hosts: compile_servers
   roles:
     - build-packages
-  tags: 
+  tags:
     - build-packages
   
 - hosts: ss_servers, cs_servers, cp_servers

@@ -35,6 +35,7 @@ import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
@@ -73,6 +74,7 @@ public class SubsystemServiceImpl implements SubsystemService {
     private final SubsystemRepository subsystemRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
     private final ServerClientRepository serverClientRepository;
+    private final GlobalGroupMemberService globalGroupMemberService;
     private final SecurityServerClientMapper subsystemConverter;
     private final AuditDataHelper auditDataHelper;
 
@@ -145,6 +147,7 @@ public class SubsystemServiceImpl implements SubsystemService {
             throw new ValidationFailureException(SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED);
         }
 
+        globalGroupMemberService.removeClientFromGlobalGroups(subsystemClientId);
         subsystemRepository.deleteById(subsystem.getId());
     }
 
