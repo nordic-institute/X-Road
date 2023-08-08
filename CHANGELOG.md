@@ -1,5 +1,13 @@
 # Change Log
 
+## 7.3.2 - 2023-08-07
+- XRDDEV-2447: The securityServerType property value is stored in the operational monitoring database using capital letters.
+- XRDDEV-2449: Security Server automatic backups creating excess files
+- XRDDEV-2450: Incorrect count show for global group members on different views
+- XRDDEV-2451: Central Server does not remove deleted subsystem from global groups it is part of
+- XRDDEV-2453: Central Server global groups member list search filtering does not work correctly
+- XRDDEV-2458: As a Security Server Administrator I want the X-Road software to install tzdata-java as a dependnecy on RHEL systems so that I wouldn't be affected by the JDK bug
+
 ## 7.3.1 - 2023-07-10
 - XRDDEV-2442: X-Road components fail to start after upgrading to 7.3.0 if Java 8 was used before the upgrade and the component was originally installed before version 7.0.0.
 
