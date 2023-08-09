@@ -26,13 +26,10 @@
  -->
 <template>
   <details-view :back-to="backTo" data-test="security-server-view">
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">{{ securityServerCode }}</div>
-      </div>
-    </div>
-    <PageNavigation :tabs="securityServerNavigationTabs"></PageNavigation>
-    <router-view />
+    <titled-view :title="securityServerCode">
+      <PageNavigation :tabs="securityServerNavigationTabs"></PageNavigation>
+      <router-view />
+    </titled-view>
   </details-view>
 </template>
 
@@ -46,12 +43,13 @@ import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
+import TitledView from "@/components/ui/TitledView.vue";
 
 /**
  * Wrapper component for a security server view
  */
 export default defineComponent({
-  components: { DetailsView, PageNavigation },
+  components: { TitledView, DetailsView, PageNavigation },
   props: {
     serverId: {
       type: String,

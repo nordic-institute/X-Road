@@ -25,13 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="download-url" class="mt-5">
-    <v-card flat>
-      <div class="card-top">
-        <div class="card-main-title">
-          {{ $t('globalConf.downloadUrl.title') }}
-        </div>
-      </div>
+  <article id="download-url" class="mt-5">
       <v-data-table
         v-if="urls"
         :headers="headers"
@@ -40,33 +34,39 @@
         :loading="loading"
         item-key="url"
         hide-default-footer
-        class="anchors-table"
+        class="elevation-0 data-table"
       >
+        <template #top>
+          <data-table-toolbar title-key="globalConf.downloadUrl.title" />
+        </template>
         <template #[`item.url`]="{ item }">
-          <div class="xrd-clickable" @click="openInNewTab(item.url)">
+          <div class="xrd-clickable" @click="openInNewTab(item.raw.url)">
             <v-icon class="internal-conf-icon">mdi-link</v-icon>
-            {{ item.url }}
+            {{ item.raw.url }}
           </div>
         </template>
-        <template #footer>
-          <div class="custom-footer"></div>
+        <template #bottom>
+          <custom-data-table-footer />
         </template>
       </v-data-table>
-    </v-card>
-  </div>
+  </article>
 </template>
 
 <script lang="ts">
 /**
  * View for 'backup and restore' tab
  */
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import { DataTableHeader } from 'vuetify';
+import { DataTableHeader } from "@/ui-types";
+import { VDataTable } from "vuetify/labs/VDataTable";
+import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
+import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
 
 export default defineComponent({
+  components: { CustomDataTableFooter, DataTableToolbar, VDataTable },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -88,10 +88,9 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('globalConf.downloadUrl.urlAddress') as string,
+          title: this.$t('globalConf.downloadUrl.urlAddress') as string,
           align: 'start',
-          value: 'url',
-          class: 'xrd-table-header text-uppercase',
+          key: 'url',
         },
       ];
     },
@@ -115,42 +114,12 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import '@/assets/colors';
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: $XRoad-Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-main-title {
-  color: $XRoad-Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
-.card-top {
-  padding-top: 15px;
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
+@import "@/assets/tables";
 
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
 }
 
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
+
 </style>

@@ -29,7 +29,6 @@
     <xrd-button
       v-if="showDownloadButton"
       :data-test="`configuration-part-${configurationPart.content_identifier}-download`"
-      :outlined="false"
       :loading="loading"
       text
       @click="download"

@@ -29,6 +29,7 @@
     <div class="exp-header">
       <div>
         <v-btn
+          variant="flat"
           icon
           size="small"
           class="no-hover rounded-circle"

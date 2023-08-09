@@ -25,69 +25,54 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <input
-      v-show="false"
-      ref="fileInput"
-      type="file"
-      :accept="accepts"
-      @change="onUploadFileChanged"
-    />
-    <slot :upload="upload" />
-  </div>
+  <header class="header-row d-flex mb-6 align-center">
+    <div class="xrd-header-title ma-2 pa-2 me-auto">
+      <div class="xrd-view-title ">{{ titleValue }}</div>
+      <slot name="append-title" />
+    </div>
+
+    <div class="xrd-header-buttons ma-2 pa-2 me-6">
+      <slot name="header-buttons" />
+    </div>
+  </header>
+  <section class="xrd-view-content">
+    <slot />
+  </section>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { FileUploadResult } from '../types';
-
-type FileUploadEvent = Event | DragEvent;
-
-// https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
-const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
-  return (event as DragEvent).dataTransfer !== undefined;
-};
 
 export default defineComponent({
   props: {
-    accepts: {
-      type: String,
-      required: true,
+    title: {
+      type: String
     },
+    titleKey: {
+      type: String
+    }
   },
-  emits: ['file-changed'],
-  methods: {
-    upload() {
-      (this.$refs.fileInput as HTMLInputElement).click();
-    },
-    onUploadFileChanged(event: FileUploadEvent) {
-      const files = isDragEvent(event)
-        ? event.dataTransfer?.files
-        : (event.target as HTMLInputElement).files;
-      if (!files) {
-        return; // No files uploaded
-      }
-      const file = files[0];
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (!e?.target?.result || !files) {
-          return;
-        }
-        this.$emit('file-changed', {
-          buffer: e.target.result as ArrayBuffer,
-          file: file,
-        } as FileUploadResult);
-      };
-      reader.readAsArrayBuffer(file);
-      (this.$refs.fileInput as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
-    },
-  },
+  computed: {
+    titleValue() {
+      return this.titleKey ? this.$t(this.titleKey) : this.title;
+    }
+  }
 });
 </script>
 
-<style scoped lang="scss">
-div {
-  display: inline;
+<style lang="scss" scoped>
+.xrd-header-title {
+  display: flex;
+  align-items: center;
 }
+
+header.header-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  margin-bottom: 0 !important;
+}
+
 </style>

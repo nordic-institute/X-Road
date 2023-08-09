@@ -61,13 +61,12 @@ import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { Field, useField } from "vee-validate";
+import { mapActions, mapStores } from "pinia";
 
 export default defineComponent({
   setup(props) {
-    const { showSuccess, showError } = notificationsStore();
-    const { deleteById } = memberStore();
     const { value, errors, meta, resetField } = useField<string>('memberCode', { required: true, is: props.member.client_id.member_code });
-    return { showSuccess, showError,resetField, deleteById, value, errors, meta };
+    return { resetField, value, errors, meta };
   },
   components: {
     Field

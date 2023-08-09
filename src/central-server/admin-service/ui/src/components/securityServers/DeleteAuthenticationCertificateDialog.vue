@@ -64,6 +64,7 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { defineComponent, PropType } from 'vue';
 import { useField } from "vee-validate";
+import { mapActions, mapStores } from "pinia";
 
 export default defineComponent({
   setup(props) {
@@ -71,10 +72,7 @@ export default defineComponent({
       required: true,
       is: props.securityServerId.server_code
     }, { initialValue: '' });
-    const { deleteAuthenticationCertificate } = securityServerAuthCertStore();
-    const securityServerStore = useSecurityServerStore();
-    const { showError, showSuccess } = notificationsStore();
-    return { value, meta, errors, showError, showSuccess, securityServerStore, deleteAuthenticationCertificate }
+    return { value, meta, errors }
   },
   props: {
     authenticationCertificateId: {
@@ -104,7 +102,7 @@ export default defineComponent({
     },
     deleteCert(): void {
       this.loading = true;
-      this.deleteAuthenticationCertificate(
+      this.securityServerAuthCertStore.deleteAuthenticationCertificate(
           this.securityServerId.encoded_id as string,
           this.authenticationCertificateId,
         )

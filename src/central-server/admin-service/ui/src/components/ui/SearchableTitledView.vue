@@ -25,69 +25,51 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <input
-      v-show="false"
-      ref="fileInput"
-      type="file"
-      :accept="accepts"
-      @change="onUploadFileChanged"
-    />
-    <slot :upload="upload" />
-  </div>
+  <titled-view :title="title" :title-key="titleKey">
+    <template #append-title>
+      <xrd-search class="search-box" data-test="search-query-field" v-model="query" />
+    </template>
+    <template #header-buttons>
+      <slot name="header-buttons" />
+    </template>
+    <slot />
+  </titled-view>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { FileUploadResult } from '../types';
-
-type FileUploadEvent = Event | DragEvent;
-
-// https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
-const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
-  return (event as DragEvent).dataTransfer !== undefined;
-};
+import TitledView from "@/components/ui/TitledView.vue";
 
 export default defineComponent({
+  components: { TitledView },
   props: {
-    accepts: {
+    title: {
+      type: String
+    },
+    titleKey: {
+      type: String
+    },
+    modelValue: {
       type: String,
-      required: true,
-    },
+      default: ''
+    }
   },
-  emits: ['file-changed'],
-  methods: {
-    upload() {
-      (this.$refs.fileInput as HTMLInputElement).click();
-    },
-    onUploadFileChanged(event: FileUploadEvent) {
-      const files = isDragEvent(event)
-        ? event.dataTransfer?.files
-        : (event.target as HTMLInputElement).files;
-      if (!files) {
-        return; // No files uploaded
+  emits: ['update:model-value'],
+  computed: {
+    query: {
+      get() {
+        return this.modelValue;
+      },
+      set(newValue: string) {
+        this.$emit('update:model-value', newValue)
       }
-      const file = files[0];
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (!e?.target?.result || !files) {
-          return;
-        }
-        this.$emit('file-changed', {
-          buffer: e.target.result as ArrayBuffer,
-          file: file,
-        } as FileUploadResult);
-      };
-      reader.readAsArrayBuffer(file);
-      (this.$refs.fileInput as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
-    },
-  },
+    }
+  }
 });
 </script>
 
-<style scoped lang="scss">
-div {
-  display: inline;
+<style lang="scss" scoped>
+.search-box {
+  margin: 0 0 5px 20px;
 }
 </style>

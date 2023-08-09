@@ -32,6 +32,7 @@
     title="members.addMember"
     @cancel="cancel"
     @save="add"
+    z-index="1999"
   >
     <template #content>
         <v-text-field
@@ -40,7 +41,7 @@
           variant="outlined"
           autofocus
           data-test="add-member-name-input"
-        ></v-text-field>
+        />
       <v-select
         v-model="memberClass"
         :items="memberClasses"
@@ -50,20 +51,13 @@
         variant="outlined"
         data-test="add-member-class-input"
         z-index="2410"
-      ></v-select>
-
-      <field v-model="memberCode"
-             ref="memberCode"
-             name="memberCode"
-             rules="required"
-             v-slot="{ field, errors }"
-      >
-        <v-text-field v-bind="field"
+      />
+      <v-text-field v-bind="memberCode"
                       :label="$t('global.memberCode')"
-                      :error-messages="errors" variant="outlined"
-                      data-test="add-member-code-input"
-        />
-      </field>
+                    :error-messages="errors.memberCode"
+                    variant="outlined"
+                    data-test="add-member-code-input"
+      />
     </template>
   </xrd-simple-dialog>
 </template>
@@ -79,12 +73,28 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useMemberClass } from '@/store/modules/member-class';
 import { getErrorInfo, getTranslatedFieldErrors, isFieldError, } from '@/util/helpers';
 import { AxiosError } from 'axios';
-import { Field } from 'vee-validate';
+import { useForm } from 'vee-validate';
 
 
 export default defineComponent({
-  components: {
-    Field
+  setup() {
+    const {
+      defineComponentBinds,
+      values,
+      meta,
+      errors,
+      setFieldError,
+      resetForm
+    } = useForm({ validationSchema: { memberCode: 'required' } });
+    const memberCode = defineComponentBinds('memberCode');
+    return {
+      values,
+      meta,
+      errors,
+      setFieldError,
+      memberCode,
+      resetForm
+    };
   },
   emits: ['save', 'cancel'],
   data() {
@@ -92,7 +102,6 @@ export default defineComponent({
       loading: false,
       memberName: '',
       memberClass: '',
-      memberCode: '',
     };
   },
   computed: {
@@ -102,10 +111,7 @@ export default defineComponent({
       return this.memberClassStore.memberClasses;
     },
     formReady(): boolean {
-      return !!(this.memberName && this.memberClass && this.memberCode);
-    },
-    memberCodeRef(): InstanceType<typeof Field> {
-      return this.$refs.memberCode as InstanceType<typeof Field>;
+      return !!(this.memberName && this.memberClass && this.meta.valid);
     }
   },
   created() {
@@ -120,8 +126,7 @@ export default defineComponent({
     clearForm(): void {
       this.memberName = '';
       this.memberClass = '';
-      this.memberCode = '';
-      this.memberCodeRef.reset();
+      this.resetForm();
     },
     add(): void {
       this.loading = true;
@@ -130,7 +135,7 @@ export default defineComponent({
           member_name: this.memberName,
           member_id: {
             member_class: this.memberClass,
-            member_code: this.memberCode as string,
+            member_code: this.values.memberCode,
           },
         })
         .then(() => {
@@ -146,8 +151,8 @@ export default defineComponent({
           const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
           if (isFieldError(errorInfo)) {
             let fieldErrors = errorInfo.error?.validation_errors;
-            if (fieldErrors && this.$refs?.memberCode) {
-              this.memberCodeRef.setErrors(
+            if (fieldErrors) {
+              this.setFieldError('memberCode',
                 getTranslatedFieldErrors(
                   'memberAddDto.memberId.memberCode',
                   fieldErrors,

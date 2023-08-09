@@ -25,26 +25,30 @@
    THE SOFTWARE.
  -->
 <template>
-  {{ formatted }}
+  <span>{{ formatted }}</span>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
 
-import { computed } from "vue";
+import { defineComponent } from "vue";
 import { formatDateTime } from "@/util/helpers";
 
-const props = defineProps({
+const regular = 'YYYY-MM-DD HH:mm:ss';
+const withSeconds = regular + ':ss';
+export default defineComponent({
+  props: {
     value: {
       type: String,
     },
     withSeconds: {
-      type: [Boolean, String],
+      type: Boolean,
       default: false,
     }
-  }
-);
-const regular = 'YYYY-MM-DD HH:mm:ss';
-const withSeconds = regular + ':ss';
-
-const formatted = computed(() => formatDateTime(props.value, props.withSeconds ? withSeconds : regular));
+  },
+  computed: {
+    formatted() {
+      return formatDateTime(this.value, this.withSeconds ? withSeconds : regular);
+    },
+  },
+});
 </script>

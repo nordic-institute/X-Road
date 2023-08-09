@@ -29,16 +29,17 @@
     v-if="canDelete"
     data-test="delete-anchor-button"
     outlined
-    @click="$refs.dialog.open()"
+    @click="showDialog=true"
   >
     {{ $t('action.delete') }}
-    <delete-trusted-anchor-dialog
-      ref="dialog"
-      :hash="hash"
-      :identifier="identifier"
-      @deleted="$emit('deleted')"
-    />
   </xrd-button>
+  <delete-trusted-anchor-dialog
+    v-if="showDialog"
+    :hash="hash"
+    :identifier="identifier"
+    @deleted="$emit('deleted')"
+    @cancel="showDialog=false"
+  />
 </template>
 <script lang="ts">
 import Vue, { defineComponent } from 'vue';
@@ -59,12 +60,24 @@ export default defineComponent({
       required: true,
     },
   },
+  emits:['deleted'],
+  data(){
+    return {
+      showDialog: false
+    };
+  },
   computed: {
     ...mapState(useUser, ['hasPermission']),
     canDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_TRUSTED_ANCHOR);
     },
   },
+  methods:{
+    onDelete(){
+      this.$emit('deleted');
+      this.showDialog=false;
+    }
+  }
 });
 </script>
 <style lang="scss" scoped></style>

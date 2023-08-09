@@ -25,14 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="global-groups" class="mt-5">
-    <v-card flat>
-      <div class="card-top">
-        <div class="card-main-title">{{ $t('globalConf.cfgParts.title') }}</div>
-      </div>
-
-      <v-card-text class="px-0">
-        <v-data-table
+  <article id="global-groups" class="mt-5">
+    <v-data-table
           :loading="loading"
           :headers="headers"
           :items="configurationParts"
@@ -40,65 +34,73 @@
           :sort-by="['file_name']"
           :must-sort="true"
           :items-per-page="-1"
-          item-key="content_identifier"
+          item-value="content_identifier"
           :loader-height="2"
-          hide-default-footer
+          class="elevation-0 data-table"
         >
-          <template #[`item.file_updated_at`]="{ item }">
-            <span
-              :data-test="`configuration-part-${item.content_identifier}-updated-at`"
-            >
-              {{ item.file_updated_at | formatDateTimeSeconds }}
-            </span>
-          </template>
-          <template #[`item.content_identifier`]="{ item }">
-            <span :data-test="`configuration-part-${item.content_identifier}`">
-              {{ item.content_identifier }}
-            </span>
-          </template>
-          <template #[`item.version`]="{ item }">
-            <template v-if="item.version === 0">
-              {{ $t('globalConf.cfgParts.allVersions') }}
-            </template>
-            <template v-else>
-              {{ item.version }}
-            </template>
-          </template>
-          <template #[`item.actions`]="{ item }">
-            <configuration-part-download-button
-              :configuration-type="configurationType"
-              :configuration-part="item"
-            />
-            <configuration-part-upload-button
-              :configuration-type="configurationType"
-              :configuration-part="item"
-              @save="fetchConfigurationParts"
-            />
-          </template>
-          <template #footer>
-            <div class="custom-footer"></div>
-          </template>
-        </v-data-table>
-      </v-card-text>
-    </v-card>
-  </div>
+      <template #top>
+        <data-table-toolbar title-key="globalConf.cfgParts.title" />
+      </template>
+      <template #[`item.file_updated_at`]="{ item }">
+        <span
+          :data-test="`configuration-part-${item.raw.content_identifier}-updated-at`">
+          <date-time :value="item.raw.file_updated_at" with-seconds />
+        </span>
+      </template>
+      <template #[`item.content_identifier`]="{ item }">
+        <span :data-test="`configuration-part-${item.raw.content_identifier}`">
+          {{ item.raw.content_identifier }}
+        </span>
+      </template>
+      <template #[`item.version`]="{ item }">
+        <template v-if="item.raw.version === 0">
+          {{ $t('globalConf.cfgParts.allVersions') }}
+        </template>
+        <template v-else>
+          {{ item.raw.version }}
+        </template>
+      </template>
+      <template #[`item.actions`]="{ item }">
+        <configuration-part-download-button
+          :configuration-type="configurationType"
+          :configuration-part="item.raw"
+        />
+        <configuration-part-upload-button
+          :configuration-type="configurationType"
+          :configuration-part="item.raw"
+          @save="fetchConfigurationParts"
+        />
+      </template>
+      <template #bottom>
+        <custom-data-table-footer />
+      </template>
+    </v-data-table>
+  </article>
 </template>
 
 <script lang="ts">
 /**
  * View for 'backup and restore' tab
  */
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapState, mapStores } from 'pinia';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import { DataTableHeader } from 'vuetify';
+import { DataTableHeader } from "@/ui-types";
+import { VDataTable } from "vuetify/labs/VDataTable";
 import { useUser } from '@/store/modules/user';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
+import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
+import DateTime from "@/components/ui/DateTime.vue";
+import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
 
 export default defineComponent({
   components: {
+    DataTableToolbar,
+    DateTime,
+    CustomDataTableFooter,
+    VDataTable,
     ConfigurationPartUploadButton,
     ConfigurationPartDownloadButton,
   },
@@ -126,29 +128,24 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('globalConf.cfgParts.file') as string,
-          value: 'file_name',
-          class: 'xrd-table-header ts-table-header-server-code text-uppercase',
+          title: this.$t('globalConf.cfgParts.file') as string,
+          key: 'file_name',
         },
         {
-          text: this.$t('globalConf.cfgParts.contentIdentifier') as string,
-          value: 'content_identifier',
-          class: 'xrd-table-header ts-table-header-valid-from text-uppercase',
+          title: this.$t('globalConf.cfgParts.contentIdentifier') as string,
+          key: 'content_identifier',
         },
         {
-          text: this.$t('globalConf.cfgParts.version') as string,
-          value: 'version',
-          class: 'xrd-table-header ts-table-header-valid-to text-uppercase',
+          title: this.$t('globalConf.cfgParts.version') as string,
+          key: 'version',
         },
         {
-          text: this.$t('globalConf.cfgParts.updated') as string,
-          value: 'file_updated_at',
-          class: 'xrd-table-header ts-table-header-valid-to text-uppercase',
+          title: this.$t('globalConf.cfgParts.updated') as string,
+          key: 'file_updated_at',
         },
         {
-          text: '',
-          value: 'actions',
-          class: 'xrd-table-header ts-table-header-valid-to text-uppercase',
+          title: '',
+          key: 'actions',
           align: 'end',
         },
       ];
@@ -171,32 +168,8 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '@/assets/tables';
 
-.card-top {
-  padding-top: 15px;
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-main-title {
-  color: $XRoad-Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 </style>

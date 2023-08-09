@@ -25,10 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver v-slot="{ invalid }">
     <xrd-simple-dialog
-      :disable-save="invalid"
-      :dialog="true"
+      :disable-save="!meta.valid"
       title="trustServices.trustService.ocspResponders.edit.dialog.title"
       save-button-text="action.save"
       cancel-button-text="action.cancel"
@@ -37,21 +35,14 @@
       @save="update"
     >
       <template #content>
-        <div class="dlg-input-width">
-          <ValidationProvider
-            v-slot="{ errors }"
-            rules="required|url"
-            name="url"
-          >
+        <div class="oscp-url dlg-input-width">
             <v-text-field
-              v-model="ocspUrl"
+              v-bind="ocspUrl"
               :label="$t('trustServices.trustService.ocspResponders.url')"
-              :error-messages="errors"
-              outlined
+              :error-messages="errors.url"
+              variant="outlined"
               persistent-hint
-              data-test="ocsp-responder-url-input"
-            ></v-text-field>
-          </ValidationProvider>
+              data-test="ocsp-responder-url-input" />
         </div>
 
         <div v-if="!certUploadActive">
@@ -87,40 +78,51 @@
             >
               <v-text-field
                 v-model="certFileTitle"
-                outlined
+                variant="outlined"
                 autofocus
                 :label="$t('trustServices.uploadCertificate')"
-                append-icon="icon-Upload"
-                @click="upload"
-              ></v-text-field>
+                append-inner-icon="icon-Upload"
+                @click="upload" />
             </xrd-file-upload>
           </div>
         </div>
       </template>
     </xrd-simple-dialog>
-  </ValidationObserver>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
-import { FileUploadResult } from '@niis/shared-ui';
+import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
+import { FileUploadResult } from '@shared-ui/types';
 import { OcspResponder } from '@/openapi-types';
 import { RouteName } from '@/global';
+import { useForm } from "vee-validate";
 
 export default defineComponent({
-  name: 'EditOcspResponderDialog',
+  components: {
+    XrdFileUpload
+  },
+  setup(props) {
+    const { defineComponentBinds, errors, values, meta } = useForm({
+      validationSchema: { url: 'required|url' },
+      initialValues: { url: props.ocspResponder.url }
+    });
+    const ocspUrl = defineComponentBinds('url');
+
+    return { errors, values, meta, ocspUrl };
+  },
   props: {
     ocspResponder: {
       type: Object as () => OcspResponder,
       required: true,
     },
   },
+  emits: ['cancel', 'cancel'],
   data() {
     return {
-      ocspUrl: this.ocspResponder.url,
       certFile: null as File | null,
       certFileTitle: '',
       certUploadActive: false,
@@ -150,7 +152,7 @@ export default defineComponent({
     update(): void {
       this.loading = true;
       this.ocspResponderServiceStore
-        .updateOcspResponder(this.ocspResponder.id, this.ocspUrl, this.certFile)
+        .updateOcspResponder(this.ocspResponder.id, this.values.url, this.certFile)
         .then(() => {
           this.showSuccess(
             this.$t('trustServices.trustService.ocspResponders.edit.success'),
@@ -168,3 +170,8 @@ export default defineComponent({
   },
 });
 </script>
+<style lang="scss" scoped>
+.oscp-url {
+  margin-bottom: 8px;
+}
+</style>

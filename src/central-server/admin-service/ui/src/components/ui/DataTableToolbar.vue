@@ -25,69 +25,56 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <input
-      v-show="false"
-      ref="fileInput"
-      type="file"
-      :accept="accepts"
-      @change="onUploadFileChanged"
-    />
-    <slot :upload="upload" />
+  <div class="xrd-table-toolbar d-flex flex-row mb-6">
+    <div class="ma-2 pa-2 me-auto align-self-center">
+      <slot name="title">
+        <div class="xdr-table-title">
+          {{ titleKey ? $t(titleKey) : titleValue }}
+        </div>
+      </slot>
+    </div>
+    <div v-if="$slots.default" class="ma-2 pa-2">
+      <slot />
+    </div>
+    <div v-if="$slots.item2" class="ma-2 pa-2">
+      <slot name="item2" />
+    </div>
+    <div v-if="$slots.item3" class="ma-2 pa-2">
+      <slot name="item3" />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { FileUploadResult } from '../types';
 
-type FileUploadEvent = Event | DragEvent;
-
-// https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
-const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
-  return (event as DragEvent).dataTransfer !== undefined;
-};
+import { defineComponent } from "vue";
 
 export default defineComponent({
   props: {
-    accepts: {
+    titleKey: {
       type: String,
-      required: true,
+      default: ''
     },
-  },
-  emits: ['file-changed'],
-  methods: {
-    upload() {
-      (this.$refs.fileInput as HTMLInputElement).click();
-    },
-    onUploadFileChanged(event: FileUploadEvent) {
-      const files = isDragEvent(event)
-        ? event.dataTransfer?.files
-        : (event.target as HTMLInputElement).files;
-      if (!files) {
-        return; // No files uploaded
-      }
-      const file = files[0];
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (!e?.target?.result || !files) {
-          return;
-        }
-        this.$emit('file-changed', {
-          buffer: e.target.result as ArrayBuffer,
-          file: file,
-        } as FileUploadResult);
-      };
-      reader.readAsArrayBuffer(file);
-      (this.$refs.fileInput as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
-    },
-  },
+    titleValue: {
+      type: String,
+      default: ''
+    }
+  }
 });
 </script>
 
-<style scoped lang="scss">
-div {
-  display: inline;
+<style lang="scss" scoped>
+@import '@/assets/colors';
+
+div.xrd-table-toolbar {
+    margin-bottom: 0 !important;
+
+  .xdr-table-title {
+    color: $XRoad-Black100;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 24px;
+  }
 }
 </style>

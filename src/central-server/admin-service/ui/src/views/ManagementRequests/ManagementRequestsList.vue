@@ -26,79 +26,68 @@
  -->
 <template>
   <div>
-    <!-- Toolbar buttons -->
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-title-search align-fix mt-0 pt-0">
-        <div class="xrd-view-title align-fix">
-          {{ $t('tab.main.managementRequests') }}
-        </div>
-        <xrd-search
-          v-model="filterQuery"
-          class="margin-fix"
-          data-test="management-requests-search"
-        />
-        <!-- Not yet implemented -->
-        <!--<xrd-filter class="ml-4 margin-fix" />-->
-      </div>
-      <div class="only-pending">
-        <v-checkbox
-          v-model="showOnlyPending"
-          :label="$t('managementRequests.showOnlyPending')"
-          class="custom-checkbox"
-          data-test="show-only-pending-requests"
-          @change="fetchItems"
-        ></v-checkbox>
-      </div>
-    </div>
-
-    <v-data-table-server
-      :loading="loading"
-      :headers="headers"
-      :must-sort="true"
-      :items="managementRequestsStore.items"
-      :items-length="managementRequestsStore.pagingOptions.total_items"
-      :items-per-page="10"
-      :items-per-page-options="itemsPerPageOptions"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      data-test="management-requests-table"
-      @update:options="changeOptions"
-    >
-      <template #[`item.id`]="{ item }">
-        <management-request-id-cell :management-request="item.raw" />
-      </template>
-
-      <template #[`item.created_at`]="{ item }">
-        <div>
-          <date-time :value="item.raw.created_at" />
+    <searchable-titled-view title-key="tab.main.managementRequests" v-model="filterQuery">
+      <template #header-buttons>
+        <div class="only-pending">
+          <v-checkbox
+            v-model="showOnlyPending"
+            density="compact"
+            :label="$t('managementRequests.showOnlyPending')"
+            class="custom-checkbox"
+            data-test="show-only-pending-requests"
+            @change="fetchItems"
+          hide-details/>
         </div>
       </template>
+      <v-data-table-server
+        :loading="loading"
+        :headers="headers"
+        :must-sort="true"
+        :items="managementRequestsStore.items"
+        :items-length="managementRequestsStore.pagingOptions.total_items"
+        :items-per-page="10"
+        :items-per-page-options="itemsPerPageOptions"
+        class="elevation-0 data-table"
+        item-key="id"
+        :loader-height="2"
+        data-test="management-requests-table"
+        @update:options="changeOptions"
+      >
+        <template #[`item.id`]="{ item }">
+          <management-request-id-cell :management-request="item.raw" />
+        </template>
 
-      <template #[`item.type`]="{ item }">
-        <mr-type-cell :type="item.raw.type" />
-      </template>
+        <template #[`item.created_at`]="{ item }">
+          <div>
+            <date-time :value="item.raw.created_at" />
+          </div>
+        </template>
 
-      <template #[`item.security_server_owner`]="{ item }">
-        <div>{{ item.raw.security_server_owner }}</div>
-      </template>
+        <template #[`item.type`]="{ item }">
+          <mr-type-cell :type="item.raw.type" />
+        </template>
 
-      <template #[`item.security_server_id`]="{ item }">
-        <div>{{ item.raw.security_server_id.encoded_id }}</div>
-      </template>
+        <template #[`item.security_server_owner`]="{ item }">
+          <div>{{ item.raw.security_server_owner }}</div>
+        </template>
 
-      <template #[`item.status`]="{ item }">
-        <mr-status-cell :status="item.raw.status" />
-      </template>
+        <template #[`item.security_server_id`]="{ item }">
+          <div>{{ item.raw.security_server_id.encoded_id }}</div>
+        </template>
 
-      <template #[`item.button`]="{ item }">
-        <mr-actions-cell
-          :management-request="item.raw"
-          @approve="fetchItems"
-          @decline="fetchItems"
-        />
-      </template>
-    </v-data-table-server>
+        <template #[`item.status`]="{ item }">
+          <mr-status-cell :status="item.raw.status" />
+        </template>
+
+        <template #[`item.button`]="{ item }">
+          <mr-actions-cell
+            :management-request="item.raw"
+            @approve="fetchItems"
+            @decline="fetchItems"
+          />
+        </template>
+      </v-data-table-server>
+    </searchable-titled-view>
   </div>
 </template>
 
@@ -113,9 +102,11 @@ import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vu
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
 import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
-import { DataQuery } from "@/ui-types";
+import { DataQuery, DataTableHeader } from "@/ui-types";
 import { defaultItemsPerPageOptions } from "@/util/defaults";
 import DateTime from "@/components/ui/DateTime.vue";
+import { defineComponent } from "vue";
+import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,9 +115,10 @@ let that: any;
 /**
  * General component for Management requests
  */
-export default {
+export default defineComponent({
   name: 'ManagementRequestsList',
   components: {
+    SearchableTitledView,
     DateTime,
     MrTypeCell,
     MrStatusCell,
@@ -137,10 +129,35 @@ export default {
   data() {
     return {
       loading: false, //is data being loaded
+      dataQuery: {} as DataQuery,
+      itemsPerPageOptions: defaultItemsPerPageOptions(50)
     };
   },
   computed: {
     ...mapStores(useManagementRequests),
+    showOnlyPending: {
+      get(): boolean {
+        return (
+          this.managementRequestsStore.currentFilter.status ===
+          ManagementRequestStatus.WAITING
+        );
+      },
+      set(value: boolean) {
+        this.managementRequestsStore.pagingSortingOptions.page = 1;
+        this.managementRequestsStore.currentFilter.status = value
+          ? ManagementRequestStatus.WAITING
+          : undefined;
+      },
+    },
+    filterQuery: {
+      get(): string {
+        return this.managementRequestsStore.currentFilter.query || '';
+      },
+      set(value: string) {
+        this.managementRequestsStore.pagingSortingOptions.page = 1;
+        this.managementRequestsStore.currentFilter.query = value;
+      },
+    },
     headers(): DataTableHeader[] {
       return [
         {
@@ -178,38 +195,12 @@ export default {
           sortable: false,
           key: 'button',
         },
-      ],
-    };
-  },
-  computed: {
-    ...mapStores(managementRequestsStore),
-    showOnlyPending: {
-      get(): boolean {
-        return (
-          this.managementRequestsStore.currentFilter.status ===
-          ManagementRequestStatus.WAITING
-        );
-      },
-      set(value: boolean) {
-        this.managementRequestsStore.pagingSortingOptions.page = 1;
-        this.managementRequestsStore.currentFilter.status = value
-          ? ManagementRequestStatus.WAITING
-          : undefined;
-      },
-    },
-    filterQuery: {
-      get(): string {
-        return this.managementRequestsStore.currentFilter.query || '';
-      },
-      set(value: string) {
-        this.managementRequestsStore.pagingSortingOptions.page = 1;
-        this.managementRequestsStore.currentFilter.query = value;
-      },
-    },
+      ];
+    }
   },
   watch: {
     filterQuery: {
-      handler(newValue, oldValue) {
+      handler() {
         this.debouncedFetchItems();
       },
     },
@@ -245,24 +236,11 @@ export default {
       }
     },
   },
-};
+});
 </script>
 
 <style lang="scss" scoped>
 @import '@/assets/tables';
-
-#management-request-filters {
-  display: flex;
-  justify-content: space-between;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
 
 .custom-checkbox {
   .v-label {
@@ -270,8 +248,5 @@ export default {
   }
 }
 
-.only-pending {
-  display: flex;
-  justify-content: flex-end;
-}
+
 </style>
