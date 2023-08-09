@@ -65,4 +65,9 @@ public class ClientInfoStepDefs extends BaseUiStepDefs {
     public void navigateServices() {
         clientInfoPageObj.navigation.servicesTab().click();
     }
+
+    @Step("Service clients sub-tab is selected")
+    public void navigateServiceClients() {
+        clientInfoPageObj.navigation.serviceClientsTab().click();
+    }
 }

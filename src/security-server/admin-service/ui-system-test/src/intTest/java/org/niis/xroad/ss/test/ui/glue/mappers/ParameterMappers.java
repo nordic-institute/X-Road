@@ -51,6 +51,10 @@ public class ParameterMappers {
         }
     }
 
+    public enum SortDir {
+        ASC, DESC
+    }
+
     /**
      * Note: Annotation provides autocomplete functionality and validation.
      *
@@ -64,5 +68,10 @@ public class ParameterMappers {
     @ParameterType("checked|unchecked")
     public Boolean checkbox(String name) {
         return "checked".equalsIgnoreCase(name);
+    }
+
+    @ParameterType("asc|desc")
+    public SortDir sortDir(String name) {
+        return SortDir.ASC.name().equalsIgnoreCase(name) ? SortDir.ASC : SortDir.DESC;
     }
 }

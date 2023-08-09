@@ -341,4 +341,47 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
             clientInfoPageObj.services.tableServiceTimeoutOfServiceCode(serviceCode).shouldHave(text(row.get("$timeout")));
         });
     }
+
+    @Step("WSDL service dialog is opened and url is set to {string}")
+    public void addWsdl(String url) {
+        clientInfoPageObj.services.btnAddWSDL()
+                .shouldBe(visible)
+                .click();
+
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+
+        clientInfoPageObj.services.servicesParameters.inputServiceUrl().shouldBe(empty).setValue(" ");
+        commonPageObj.form.inputErrorMessage("The URL field is required").shouldBe(visible);
+        clearInput(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
+
+        clientInfoPageObj.services.servicesParameters.inputServiceUrl().shouldBe(empty).setValue("invalid");
+        commonPageObj.form.inputErrorMessage("URL is not valid").shouldBe(visible);
+        clearInput(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
+
+        clientInfoPageObj.services.servicesParameters.inputServiceUrl().setValue(url);
+
+        commonPageObj.dialog.btnSave().click();
+    }
+
+    @Step("Service {string} is updated with url {string}")
+    public void editWsdlService(String name, String url) {
+        clientInfoPageObj.services.headerServiceDescription(name).click();
+
+        clearInput(clientInfoPageObj.services.servicesEdit.inputEditUrl());
+
+        commonPageObj.form.inputErrorMessage("The URL field is required").shouldBe(visible);
+
+        clientInfoPageObj.services.servicesEdit.inputEditUrl().setValue(url);
+
+        clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
+        clientInfoPageObj.services.servicesEdit.btnContinueWarn().click();
+        commonPageObj.snackBar.success().shouldHave(text("Description saved"));
+    }
+
+    @Step("WSDL Service is refreshed")
+    public void refreshWsdl() {
+        clientInfoPageObj.services.btnRefresh().shouldBe(visible).click();
+
+        commonPageObj.snackBar.success().shouldHave(text("Refreshed"));
+    }
 }
