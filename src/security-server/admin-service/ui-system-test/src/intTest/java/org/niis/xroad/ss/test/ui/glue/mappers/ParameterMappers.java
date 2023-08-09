@@ -30,7 +30,6 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.ParameterType;
 import lombok.Getter;
 
-// TODO move to commons
 public class ParameterMappers {
 
     public enum SelenideValidation {
