@@ -21,10 +21,12 @@ ENV JRUBY_VERSION=9.1.17.0
 
 RUN cd ~ \
   && gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB \
-  && curl -L https://get.rvm.io | bash -s stable
+  && curl -L https://get.rvm.io | bash -s stable \
+  && curl -o /tmp/jruby-launcher-1.1.19-java.gem https://rubygems.org/downloads/jruby-launcher-1.1.19-java.gem
+
 
 RUN ~/.rvm/bin/rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets \
-  && ~/.rvm/bin/rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl jruby-launcher \
+  && ~/.rvm/bin/rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl /tmp/jruby-launcher-1.1.19-java.gem \
     gem-wrappers rubygems-bundler rake:13.0.6 rvm jruby-jars:$JRUBY_VERSION rexml:3.2.5 racc:1.4.16 bundler:1.14.6 warbler:2.0.4 bundler-audit parallel:1.19 rubocop:0.81 ruby-maven:3.3.11 \
   && mkdir -p /var/tmp/xroad
 
