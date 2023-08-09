@@ -51,7 +51,7 @@ spec:
           claimName: "sidecar-config-slim-claim"
       containers:
       - name: security-server-sidecar-slim
-        image: niis/xroad-security-server-sidecar:7.3.0-slim
+        image: niis/xroad-security-server-sidecar:7.3.2-slim
         imagePullPolicy: "Always"
         volumeMounts:
         - name: sidecar-config-slim-volume

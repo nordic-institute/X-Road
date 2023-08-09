@@ -1,4 +1,4 @@
-ARG VERSION=7.3.0
+ARG VERSION
 ARG TAG=niis/xroad-security-server-sidecar
 FROM $TAG:$VERSION-slim
 RUN apt-get -qq update \
