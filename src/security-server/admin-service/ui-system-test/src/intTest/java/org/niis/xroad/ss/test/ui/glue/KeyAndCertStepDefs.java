@@ -156,9 +156,11 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.addKeyWizardCsrDetails.csrFormat().click();
         keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(csrFormat).click();
 
-        keyAndCertPageObj.addKeyWizardCsrDetails.previousButton().click();
-        keyAndCertPageObj.addKeyWizardDetails.nextButton().click();
-        keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().click();
+        keyAndCertPageObj.addKeyWizardCsrDetails.previousButton().shouldBe(visible).click();
+        keyAndCertPageObj.addKeyWizardCsrDetails.csrService().shouldNotBe(visible);
+        keyAndCertPageObj.addKeyWizardDetails.nextButton().shouldBe(visible).click();
+        keyAndCertPageObj.addKeyWizardCsrDetails.csrService().shouldBe(visible);
+        keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(visible).click();
     }
 
     @SneakyThrows
