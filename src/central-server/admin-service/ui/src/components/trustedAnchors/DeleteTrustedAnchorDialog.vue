@@ -26,12 +26,11 @@
  -->
 <template>
   <xrd-confirm-dialog
-    :dialog="opened"
     title="globalConf.trustedAnchor.dialog.delete.title"
     text="globalConf.trustedAnchor.dialog.delete.confirmation"
     :data="{ hash, identifier }"
     :loading="deleting"
-    @cancel="opened = false"
+    @cancel="$emit('cancel')"
     @accept="deleteAnchor"
   />
 </template>
@@ -52,9 +51,9 @@ export default defineComponent({
       required: true,
     },
   },
+  emits:['cancel', 'deleted'],
   data() {
     return {
-      opened: false,
       deleting: false,
     };
   },
@@ -63,15 +62,11 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    open() {
-      this.opened = true;
-    },
     deleteAnchor() {
       this.deleting = true;
       this.trustedAnchorStore
         .deleteTrustedAnchor(this.hash)
         .then(() => this.$emit('deleted'))
-        .then(() => (this.opened = false))
         .then(() =>
           this.showSuccess(
             this.$t('globalConf.trustedAnchor.dialog.delete.success'),

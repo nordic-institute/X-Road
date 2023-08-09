@@ -32,7 +32,7 @@
     density="compact"
     variant="underlined"
     prepend-inner-icon="mdi-magnify"
-    :hide-details="true"
+    hide-details
     :label="label"
     :class="{ closed }"
     @click:prepend-inner="hide=false"

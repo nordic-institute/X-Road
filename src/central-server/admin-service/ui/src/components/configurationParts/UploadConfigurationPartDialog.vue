@@ -44,11 +44,11 @@
         >
           <v-text-field
             v-model="partFileTitle"
-            outlined
+            variant="outlined"
             :label="
               $t('globalConf.cfgParts.dialog.upload.uploadConfigurationPart')
             "
-            append-icon="icon-Upload"
+            append-inner-icon="icon-Upload"
             data-test="timestamping-service-file-input"
             @click="upload"
           ></v-text-field>
@@ -67,9 +67,11 @@ import {
   ConfigurationPartContentIdentifier,
   ConfigurationType,
 } from '@/openapi-types';
+import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
+import { FileUploadResult } from '@shared-ui/types';
 
 export default defineComponent({
-  name: 'UploadConfigurationPartDialog',
+  components:{XrdFileUpload},
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -80,6 +82,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits:['save', 'cancel'],
   data() {
     return {
       partFile: null as File | null,

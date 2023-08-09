@@ -72,8 +72,8 @@
     </v-data-table>
 
     <delete-authentication-certificate-dialog
-      v-if="showDeleteConfirmationDialog"
-      :authentication-certificate-id="authCertIdForDeletion?.toString()"
+      v-if="securityServerId && authCertIdForDeletion && showDeleteConfirmationDialog"
+      :authentication-certificate-id="authCertIdForDeletion.toString()"
       :security-server-id="securityServerId"
       @cancel="cancelDeletion"
       @delete="finishDeletion"
@@ -91,8 +91,9 @@ import { useUser } from '@/store/modules/user';
 import { mapState, mapStores } from 'pinia';
 import { SecurityServerAuthenticationCertificateDetails, SecurityServerId } from '@/openapi-types';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
+import { useSecurityServer } from "@/store/modules/security-servers";
 import DateTime from "@/components/ui/DateTime.vue";
-import { useSecurityServerStore } from "@/store/modules/security-servers";
+import { DataTableHeader } from "@/ui-types";
 
 export default defineComponent({
   components: { DateTime, DeleteAuthenticationCertificateDialog, VDataTable },
@@ -105,6 +106,7 @@ export default defineComponent({
   },
   computed: {
     ...mapStores(useSecurityServerAuthCert),
+    ...mapStores(useSecurityServer),
     ...mapState(useUser, ['hasPermission']),
     authenticationCertificates(): SecurityServerAuthenticationCertificateDetails[] {
       return this.securityServerAuthCertStore.authenticationCertificates;
@@ -140,18 +142,10 @@ export default defineComponent({
           key: 'button',
           sortable: false,
         },
-      ],
-    };
-  },
-  computed: {
-    ...mapStores(securityServerAuthCertStore),
-    ...mapStores(useSecurityServerStore),
-    ...mapState(userStore, ['hasPermission']),
-    authenticationCertificates(): SecurityServerAuthenticationCertificateDetails[] {
-      return this.securityServerAuthCertStore.authenticationCertificates;
+      ];
     },
-    securityServerId(): SecurityServerId {
-      return this.securityServerStore.currentSecurityServer.server_id
+    securityServerId(): SecurityServerId | undefined {
+      return this.securityServerStore.currentSecurityServer?.server_id
     }
   },
   created() {
@@ -161,6 +155,7 @@ export default defineComponent({
     fetchSecurityServerAuthenticationCertificates(): void {
       this.loading = true;
       this.securityServerAuthCertStore
+        //TODO vue3 can be better
         .fetch(this.$route.params.serverId)
         .finally(() => (this.loading = false));
     },

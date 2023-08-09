@@ -59,19 +59,6 @@ export function selectedFilter<T, K extends keyof T>(
   });
 }
 
-// Checks if the given URL is valid
-export function isValidUrl(str: string): boolean {
-  try {
-    const url = new URL(str);
-    const protocolPattern = /^https?:$/;
-    const hostPattern =
-      /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/;
-    return protocolPattern.test(url.protocol) && hostPattern.test(url.hostname);
-  } catch (_) {
-    return false;
-  }
-}
-
 // Save response data as a file
 export function saveResponseAsFile(
   response: AxiosResponse,

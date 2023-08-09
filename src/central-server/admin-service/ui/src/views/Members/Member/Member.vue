@@ -26,15 +26,10 @@
  -->
 <template>
   <details-view id="memberview" :back-to="backTo">
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">
-          {{ memberStore.currentMember.member_name }}
-        </div>
-      </div>
-    </div>
-    <PageNavigation :tabs="memberNavigationTabs"></PageNavigation>
-    <router-view />
+    <titled-view :title="memberStore.currentMember.member_name">
+      <page-navigation :tabs="memberNavigationTabs"/>
+      <router-view />
+    </titled-view>
   </details-view>
 </template>
 
@@ -45,13 +40,14 @@ import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import DetailsView from '@/components/ui/DetailsView.vue';
+import TitledView from "@/components/ui/TitledView.vue";
 
 /**
  * Wrapper component for a member view
  */
 export default defineComponent({
   name: 'Member',
-  components: { DetailsView, PageNavigation },
+  components: { TitledView, DetailsView, PageNavigation },
   props: {
     memberid: {
       type: String,

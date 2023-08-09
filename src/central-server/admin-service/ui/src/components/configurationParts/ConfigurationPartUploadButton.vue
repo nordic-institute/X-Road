@@ -29,7 +29,6 @@
     <xrd-button
       v-if="showUploadButton"
       :data-test="`configuration-part-${configurationPart.content_identifier}-upload`"
-      :outlined="false"
       text
       @click="showUploadDialog = true"
     >
@@ -68,6 +67,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits:['save'],
   data() {
     return {
       showUploadDialog: false,

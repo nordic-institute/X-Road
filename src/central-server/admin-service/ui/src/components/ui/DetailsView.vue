@@ -28,7 +28,7 @@
   <article>
     <div class="navigation-back" data-test="navigation-back">
       <router-link to="" @click="goBack">
-        <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
+        <v-icon :color="colors.Purple100" icon="mdi-chevron-left" />
         {{ $t('global.navigation.back') }}
       </router-link>
     </div>
@@ -39,7 +39,6 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-
 import { Colors } from '@/global';
 import { RouteLocationRaw } from "vue-router";
 

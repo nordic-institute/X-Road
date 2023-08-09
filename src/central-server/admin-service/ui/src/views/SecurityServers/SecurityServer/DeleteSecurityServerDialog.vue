@@ -66,19 +66,18 @@ import { defineComponent } from 'vue';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import { useField } from "vee-validate";
+import { mapActions, mapStores } from "pinia";
 
 /**
  * Component for a Security server details view
  */
 export default defineComponent({
   setup(props) {
-    const securityServerStore = useSecurityServerStore();
-    const { showError } = notificationsStore();
     const { value, meta, errors, resetField } = useField('serverCode', {
       required: true,
       is: props.serverCode,
     }, { initialValue: '' });
-    return { value, meta, errors, resetField, securityServerStore, showError };
+    return { value, meta, errors, resetField };
   },
   props: {
     securityServerId: {

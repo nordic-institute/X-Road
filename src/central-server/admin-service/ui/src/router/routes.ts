@@ -309,7 +309,7 @@ const routes: RouteRecordRaw[] = [
           },
           {
             name: RouteName.TimestampingServiceCertificateDetails,
-            path: '',
+            path: '/timestamping-service-certificate/:timestampingServiceId',
             component: TimestampingServiceCertificate,
             meta: { permissions: [Permissions.VIEW_APPROVED_TSAS] },
             props(route: RouteLocationNormalized): { timestampingServiceId: number } {
@@ -470,10 +470,11 @@ const routes: RouteRecordRaw[] = [
           subTabs: true,
         },
         meta: { permissions: [Permissions.VIEW_CONFIGURATION_MANAGEMENT] },
+        redirect: {name: RouteName.InternalConfiguration},
         children: [
           {
             name: RouteName.InternalConfiguration,
-            path: '',
+            path: 'internal-configuration',
             component: InternalConfiguration,
             props: true,
             meta: {

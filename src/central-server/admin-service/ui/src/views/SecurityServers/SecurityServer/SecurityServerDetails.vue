@@ -99,14 +99,14 @@
       </div>
     </main>
     <delete-security-server-dialog
-      v-if="showDeleteServerDialog"
+      v-if="serverCode && showDeleteServerDialog"
       :server-code="serverCode"
       :security-server-id="serverId"
       @cancel="showDeleteServerDialog = false"
       @deleted="deleteServer"
     />
     <edit-security-server-address-dialog
-      v-if="showEditAddressDialog"
+      v-if="address && showEditAddressDialog"
       :address="address"
       :security-server-id="serverId"
       @cancel="showEditAddressDialog = false"

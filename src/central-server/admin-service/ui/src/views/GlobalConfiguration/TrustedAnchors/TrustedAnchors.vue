@@ -25,15 +25,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <!-- Internal configuration -->
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">Trusted anchors</div>
-      </div>
-
+  <titled-view title-key="tab.globalConf.trustedAnchors">
+    <template #header-buttons>
       <upload-trusted-anchor-button @uploaded="fetchTrustedAnchors" />
-    </div>
+    </template>
 
     <!-- Anchor -->
     <div id="anchors" class="mt-4">
@@ -56,18 +51,15 @@
         />
       </configuration-anchor-item>
     </div>
-  </div>
+  </titled-view>
 </template>
 
 <script lang="ts">
 /**
  * View for 'backup and restore' tab
  */
-import Vue, { defineComponent } from 'vue';
-import { DataTableHeader } from 'vuetify';
-import ConfigurationAnchorItem, {
-  Anchor,
-} from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
+import { defineComponent } from 'vue';
+import ConfigurationAnchorItem, { Anchor, } from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
 import { TrustedAnchor } from '@/openapi-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -76,6 +68,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import UploadTrustedAnchorButton from '@/components/trustedAnchors/UploadTrustedAnchorButton.vue';
 import DownloadTrustedAnchorButton from '@/components/trustedAnchors/DownloadTrustedAnchorButton.vue';
 import DeleteTrustedAnchorButton from '@/components/trustedAnchors/DeleteTrustedAnchorButton.vue';
+import TitledView from "@/components/ui/TitledView.vue";
 
 function convert(source: TrustedAnchor): Anchor {
   return {
@@ -87,6 +80,7 @@ function convert(source: TrustedAnchor): Anchor {
 
 export default defineComponent({
   components: {
+    TitledView,
     DeleteTrustedAnchorButton,
     DownloadTrustedAnchorButton,
     UploadTrustedAnchorButton,
@@ -101,29 +95,6 @@ export default defineComponent({
   computed: {
     ...mapStores(useTrustedAnchor),
     ...mapState(useUser, ['hasPermission']),
-    headers(): DataTableHeader[] {
-      return [
-        {
-          text: 'Certificate HASH (SHA-224)',
-          align: 'start',
-          value: 'hash',
-          class: 'xrd-table-header tra-table-header-hash',
-        },
-        {
-          text: this.$t('global.created') as string,
-          align: 'start',
-          value: 'created',
-          class: 'xrd-table-header tra-table-header-created',
-        },
-
-        {
-          text: '',
-          value: 'button',
-          sortable: false,
-          class: 'xrd-table-header tra-table-header-buttons',
-        },
-      ];
-    },
   },
   created() {
     this.fetchTrustedAnchors();

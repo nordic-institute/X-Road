@@ -37,8 +37,7 @@
         $t('trustServices.trustService.details.subjectDistinguishedName')
       "
       :info-text="
-        certificationServiceStore.currentCertificationService
-          .subject_distinguished_name || ''
+        certificationServiceStore.currentCertificationService?.subject_distinguished_name || ''
       "
       data-test="subject-distinguished-name-card"
     />
@@ -49,8 +48,7 @@
         $t('trustServices.trustService.details.issuerDistinguishedName')
       "
       :info-text="
-        certificationServiceStore.currentCertificationService
-          .issuer_distinguished_name || ''
+        certificationServiceStore.currentCertificationService?.issuer_distinguished_name || ''
       "
       data-test="issuer-distinguished-name-card"
     />
@@ -58,20 +56,16 @@
     <div class="certification-service-info-card-group">
       <info-card
         :title-text="$t('trustServices.validFrom')"
-        :info-text="
-          certificationServiceStore.currentCertificationService.not_before
-            | formatDateTime
-        "
         data-test="valid-from-card"
-      />
+      >
+        <date-time :value="certificationServiceStore.currentCertificationService?.not_before" />
+      </info-card>
       <info-card
         :title-text="$t('trustServices.validTo')"
-        :info-text="
-          certificationServiceStore.currentCertificationService.not_after
-            | formatDateTime
-        "
         data-test="valid-to-card"
-      />
+      >
+        <date-time :value="certificationServiceStore.currentCertificationService?.not_after" />
+      </info-card>
     </div>
 
     <div
@@ -87,14 +81,13 @@
       </div>
       <div class="action-text">
         {{ $t('trustServices.trustService.delete.action') }} "{{
-          certificationServiceStore.currentCertificationService.name
+          certificationServiceStore.currentCertificationService?.name
         }}"
       </div>
     </div>
     <xrd-confirm-dialog
-      v-if="certificationServiceStore.currentCertificationService"
+      v-if="certificationServiceStore.currentCertificationService && showDeleteDialog"
       data-test="delete-trust-service-confirm-dialog"
-      :dialog="showDeleteDialog"
       :loading="deleting"
       :data="{
         name: certificationServiceStore.currentCertificationService.name,
@@ -108,13 +101,14 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { Colors, Permissions, RouteName } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import DateTime from "@/components/ui/DateTime.vue";
 
 /**
  * Component for a Certification Service details view
@@ -122,6 +116,7 @@ import { useUser } from '@/store/modules/user';
 export default defineComponent({
   name: 'CertificationServiceDetails',
   components: {
+    DateTime,
     InfoCard,
   },
   data() {

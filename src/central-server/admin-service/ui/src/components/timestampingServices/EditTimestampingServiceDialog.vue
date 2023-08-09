@@ -25,10 +25,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver v-slot="{ invalid }">
     <xrd-simple-dialog
-      :disable-save="invalid"
-      :dialog="true"
+      :disable-save="!meta.valid"
       title="trustServices.timestampingService.dialog.edit.title"
       save-button-text="action.save"
       cancel-button-text="action.cancel"
@@ -38,21 +36,15 @@
     >
       <template #content>
         <div class="dlg-input-width">
-          <ValidationProvider
-            v-slot="{ errors }"
-            rules="required|url"
-            name="url"
-          >
             <v-text-field
-              v-model="tasUrl"
+              v-bind="tasUrl"
               :label="$t('trustServices.timestampingService.url')"
-              :error-messages="errors"
-              outlined
+              :error-messages="errors.url"
+              variant="outlined"
               autofocus
               persistent-hint
               data-test="timestamping-service-url-input"
             ></v-text-field>
-          </ValidationProvider>
         </div>
 
         <div v-if="!certUploadActive">
@@ -88,10 +80,10 @@
             >
               <v-text-field
                 v-model="certFileTitle"
-                outlined
+                variant="outlined"
                 autofocus
                 :label="$t('trustServices.uploadCertificate')"
-                append-icon="icon-Upload"
+                append-inner-icon="icon-Upload"
                 @click="upload"
               ></v-text-field>
             </xrd-file-upload>
@@ -99,37 +91,48 @@
         </div>
       </template>
     </xrd-simple-dialog>
-  </ValidationObserver>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { FileUploadResult } from '@niis/shared-ui';
+import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
+import { FileUploadResult } from '@shared-ui/types';
 import { TimestampingService } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
-import { useTimestampingService } from '@/store/modules/trust-services';
-import { useNotifications } from '@/store/modules/notifications';
+import { useTimestampingServicesStore } from '@/store/modules/trust-services';
+import { useForm } from "vee-validate";
+import { useNotifications } from "@/store/modules/notifications";
 
 export default defineComponent({
-  name: 'EditTimestampingServiceDialog',
+  components: {
+    XrdFileUpload
+  },
+  setup(props) {
+    const { defineComponentBinds, errors, values, meta } = useForm({
+      validationSchema: { url: 'required|url' },
+      initialValues: { url: props.tsaService.url }
+    });
+    const tasUrl = defineComponentBinds('url');
+    return { defineComponentBinds, errors, values, tasUrl, meta };
+  },
   props: {
     tsaService: {
       type: Object as () => TimestampingService,
       required: true,
     },
   },
+  emits: ['save', 'cancel'],
   data() {
     return {
       certFile: null as File | null,
       certFileTitle: '',
       certUploadActive: false,
-      tasUrl: this.tsaService?.url,
       loading: false,
     };
   },
   computed: {
-    ...mapStores(useTimestampingService),
+    ...mapStores(useTimestampingServicesStore),
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
@@ -140,10 +143,10 @@ export default defineComponent({
     update(): void {
       this.loading = true;
 
-      this.timestampingServiceStore
+      this.timestampingServicesStore
         .updateTimestampingService(
           this.tsaService.id,
-          this.tasUrl,
+          this.values.url,
           this.certFile,
         )
         .then(() => {
