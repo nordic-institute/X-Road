@@ -42,7 +42,6 @@ public class ClientPageObj {
     public final AddClientGenerateCsr addClientGenerateCsr = new AddClientGenerateCsr();
     public final AddClientFinish addClientFinish = new AddClientFinish();
 
-
     public SelenideElement btnSearch() {
         return $x("//*[contains(@class, 'mdi-magnify')]");
     }
@@ -53,10 +52,6 @@ public class ClientPageObj {
 
     public SelenideElement btnAddClient() {
         return $x("//button[@data-test='add-client-button']");
-    }
-
-    public SelenideElement btnAddMember() {
-        return $x("//button[@data-test='add-member-button']");
     }
 
     public SelenideElement linkClientDetailsOfName(String name) {
@@ -157,14 +152,10 @@ public class ClientPageObj {
             return $x("//button[@data-test='next-button']");
         }
 
-        public SelenideElement cancelButton() {
-            return $x("(//button[@data-test='cancel-button'])[1]");
-        }
     }
 
 
     public static class AddClientToken {
-
 
         public SelenideElement checkedRadioByTokenName(String name) {
             return $x(format("//div[@class='radio-row' and //input[@data-test='token-radio-button' and @aria-checked='true']]"
@@ -187,10 +178,6 @@ public class ClientPageObj {
 
         public SelenideElement btnNext() {
             return $x("(//button[@data-test='next-button'])[3]");
-        }
-
-        public SelenideElement cancelButton() {
-            return $x("(//button[@data-test='cancel-button'])[3]");
         }
     }
 

@@ -70,13 +70,17 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
 
     @Step("Message log archive encryption is enabled")
     public void messageLogArchiveEncryptionIsEnabled() {
-        diagnosticsPage.messageLogEncryptionStatus().shouldHave(text("Enabled"));
+        diagnosticsPage.messageLogEncryptionStatus()
+                .scrollIntoView(false)
+                .shouldHave(text("Enabled"));
     }
 
 
     @Step("Message log database encryption is enabled")
     public void messageLogDatabaseEncryptionIsEnabled() {
-        diagnosticsPage.messageLogDatabaseEncryptionStatus().shouldHave(text("Enabled"));
+        diagnosticsPage.messageLogDatabaseEncryptionStatus()
+                .scrollIntoView(false)
+                .shouldHave(text("Enabled"));
     }
 
     @Step("Message log grouping is set to {}")

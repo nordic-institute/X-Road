@@ -118,14 +118,6 @@ public class CommonPageObj {
         public SelenideElement btnClose() {
             return $x("//button[@data-test='close']");
         }
-
-        public SelenideElement btnConfirm() {
-            return $x("//button[@data-test='dialog-confirm-button']");
-        }
-
-        public SelenideElement btnDelete() {
-            return $x("//button[@data-test='dialog-delete-button']");
-        }
     }
 
     public class SnackBar {
@@ -146,14 +138,6 @@ public class CommonPageObj {
         public SelenideElement btnClose() {
             return $x("//div[@data-test='contextual-alert']//button[@data-test='close-alert']");
         }
-    }
-
-    public SelenideElement inputFile() {
-        return $x("//input[@type='file']");
-    }
-
-    public SelenideElement backLink() {
-        return $x("//div[@data-test='navigation-back']/a");
     }
 
     public SelenideElement btnSessionExpired() {

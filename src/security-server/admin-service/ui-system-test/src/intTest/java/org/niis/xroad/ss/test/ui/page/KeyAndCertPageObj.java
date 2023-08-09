@@ -43,6 +43,9 @@ public class KeyAndCertPageObj {
     public final TokenLoginDialog tokenLoginDialog = new TokenLoginDialog();
     public final TokenLogoutDialog tokenLogoutDialog = new TokenLogoutDialog();
     public final TlsKey tlsKey = new TlsKey();
+    public final AddKeyWizardDetails addKeyWizardDetails = new AddKeyWizardDetails();
+    public final AddKeyWizardCsrDetails addKeyWizardCsrDetails = new AddKeyWizardCsrDetails();
+    public final AddKeyWizardGenerate addKeyWizardGenerate = new AddKeyWizardGenerate();
 
     public static class TokenLoginDialog {
         public SelenideElement inputPin() {
@@ -58,15 +61,6 @@ public class KeyAndCertPageObj {
         public SelenideElement btnLogout() {
             return $x("//button[@data-test='dialog-save-button']");
         }
-    }
-
-
-    public SelenideElement inputTokenName() {
-        return $x("//*[contains(@data-test, 'token-name')]");
-    }
-
-    public SelenideElement buttonCreateAPIKey() {
-        return $x("//*[contains(@data-test, 'api-key-create-key-button')]");
     }
 
     public static class TlsKey {
@@ -120,28 +114,14 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement btnDeleteAuthCsrByPos(int pos) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING
-                            + "div[@data-test='auth-keys-table']"
-                            + "//tr//button[contains(span/text(), 'Delete CSR')][%d]",
-                    token, pos));
+            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='auth-keys-table']"
+                    + "//tr//button[contains(span/text(), 'Delete CSR')][%d]", token, pos));
         }
 
         public SelenideElement btnDeleteSignCsrByPos(int pos) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING
-                            + "div[@data-test='sign-keys-table']"
-                            + "//tr//button[contains(span/text(), 'Delete CSR')][%d]",
-                    token, pos));
+            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='sign-keys-table']"
+                    + "//tr//button[contains(span/text(), 'Delete CSR')][%d]", token, pos));
         }
-
-
-        public SelenideElement btnActivateSigningKey(final String keyLabel) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "button[@data-test='key-%s-activate-button']", token, keyLabel));
-        }
-
-        public SelenideElement btnDeleteSigningKey(final String keyLabel) {
-            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "button[@data-test='key-%s-delete-button']", token, keyLabel));
-        }
-
 
         public SelenideElement btnImportCert() {
             return $x("//button[@data-test='token-import-cert-button']");
@@ -149,11 +129,6 @@ public class KeyAndCertPageObj {
 
         public SelenideElement inputCert() {
             return $x("//input[@type='file']");
-        }
-
-        public SelenideElement buttonAuthGenerateCSR() {
-            return $x("//table[./thead//th[@class='title-col' and contains(text(), 'AUTH Key and Certificate')]]"
-                    + "//button[.//*[contains(text(), 'Generate CSR')]]");
         }
 
         public SelenideElement keyLabelByName(String label) {
@@ -167,78 +142,8 @@ public class KeyAndCertPageObj {
 
     }
 
-    public static class AuthKeyDetails {
-        public SelenideElement saveButton() {
-            return $x("//button[.//*[contains(text(), 'Save')]]");
-        }
+    public static class AddKeyWizardDetails {
 
-        public SelenideElement cancelButton() {
-            return $x("//button[.//*[contains(text(), 'Cancel')]]");
-        }
-
-        public SelenideElement deleteButton() {
-            return $x("//button[.//*[contains(text(), 'Delete')]]");
-        }
-
-        public SelenideElement friendlyName() {
-            return $x("//input[@name='keys.friendlyName']");
-        }
-
-        public SelenideElement label() {
-            return $x("//div[contains(@class, 'row-title') and contains(text(), 'Label:')]"
-                    + "//following-sibling::div[contains(@class, 'row-data')]");
-        }
-    }
-
-    public static class SignKeyDetails {
-        public SelenideElement saveButton() {
-            return $x("//button[.//*[contains(text(), 'Save')]]");
-        }
-
-        public SelenideElement cancelButton() {
-            return $x("//button[.//*[contains(text(), 'Cancel')]]");
-        }
-
-        public SelenideElement deleteButton() {
-            return $x("//button[.//*[contains(text(), 'Delete')]]");
-        }
-
-        public SelenideElement friendlyName() {
-            return $x("//input[@name='keys.friendlyName']");
-        }
-
-        public SelenideElement friendlyNameMessage() {
-            return $x("//span[contains(@class, 'validation-provider')]//div[contains(@class, 'v-messages__message')]");
-        }
-
-        public SelenideElement label() {
-            return $x("//div[contains(@class, 'row-title') and contains(text(), 'Label:')]"
-                    + "//following-sibling::div[contains(@class, 'row-data')]");
-        }
-    }
-
-    public static class TokenDetails {
-        public SelenideElement saveButton() {
-            return $x("//button[.//*[contains(text(), 'Save')]]");
-        }
-
-        public SelenideElement cancelButton() {
-            return $x("//button[.//*[contains(text(), 'Cancel')]]");
-        }
-
-        public SelenideElement friendlyName() {
-            return $x("//input[@name='keys.friendlyName']");
-        }
-
-        public SelenideElement type() {
-            return $x("//div[contains(@class, 'row-title') and contains(text(), 'Type:')]"
-                    + "//following-sibling::div[contains(@class, 'row-data')]");
-        }
-    }
-
-    public final AddKeyWizarDetails addKeyWizarDetails = new AddKeyWizarDetails();
-
-    public static class AddKeyWizarDetails {
         public SelenideElement nextButton() {
             return $x("//button[@data-test='next-button']");
         }
@@ -250,9 +155,8 @@ public class KeyAndCertPageObj {
         public SelenideElement keyLabel() {
             return $x("//input[@data-test='key-label-button']");
         }
-    }
 
-    public final AddKeyWizardCsrDetails addKeyWizardCsrDetails = new AddKeyWizardCsrDetails();
+    }
 
     public static class AddKeyWizardCsrDetails {
         public SelenideElement continueButton() {
@@ -261,10 +165,6 @@ public class KeyAndCertPageObj {
 
         public SelenideElement previousButton() {
             return $x("//button[@data-test='previous-button']");
-        }
-
-        public SelenideElement cancelButton() {
-            return $x("(//button[@data-test='cancel-button'])[2]");
         }
 
         public SelenideElement csrUsage() {
@@ -290,16 +190,11 @@ public class KeyAndCertPageObj {
         }
     }
 
-    public final AddKeyWizardGenerate addKeyWizardGenerate = new AddKeyWizardGenerate();
-
     public static class AddKeyWizardGenerate {
         public SelenideElement doneButton() {
             return $x("(//button[@data-test='save-button'])[2]");
         }
 
-        public SelenideElement previousButton() {
-            return $x("//button[@data-test='previous-button']");
-        }
 
         public SelenideElement cancelButton() {
             return $x("(//button[@data-test='cancel-button'])[3]");
@@ -318,60 +213,4 @@ public class KeyAndCertPageObj {
         }
     }
 
-    public static class GenerateKeyCsrWizard {
-        public SelenideElement continueButton() {
-            return $x("//button[@data-test='save-button']");
-        }
-
-        public SelenideElement previousButton() {
-            return $x("//button[@data-test='previous-button']");
-        }
-
-        public SelenideElement cancelButton() {
-            return $x("//button[@data-test='cancel-button']");
-        }
-
-        public SelenideElement csrUsage() {
-            return $x("//div[@role='button' and .//div[contains(@class, 'v-select__selections') and "
-                    + "input[@data-test='csr-usage-select']]]");
-        }
-
-        public SelenideElement csrService() {
-            return $x("//div[contains(@class, 'v-select__selections') and input[@data-test='csr-certification-service-select']]");
-        }
-
-        public SelenideElement csrFormat() {
-            return $x("//div[contains(@class, 'v-select__selections') and input[@data-test='csr-format-select']]");
-        }
-
-        public SelenideElement csrClient() {
-            return $x("//div[contains(@class, 'v-select__selections') and input[@data-test='csr-client-select']]");
-        }
-    }
-
-    public static class GenerateKeyCsrWizardGen {
-        public SelenideElement doneButton() {
-            return $x("(//button[@data-test='save-button'])[2]");
-        }
-
-        public SelenideElement previousButton() {
-            return $x("//button[@data-test='previous-button']");
-        }
-
-        public SelenideElement cancelButton() {
-            return $x("(//button[@data-test='cancel-button'])[2]");
-        }
-
-        public SelenideElement generateButton() {
-            return $x("//button[@data-test='generate-csr-button']");
-        }
-
-        public SelenideElement organizationName() {
-            return $x("//input[@name='O' and @data-test='dynamic-csr-input']");
-        }
-
-        public SelenideElement serverDNS() {
-            return $x("//input[@name='CN' and @data-test='dynamic-csr-input']");
-        }
-    }
 }

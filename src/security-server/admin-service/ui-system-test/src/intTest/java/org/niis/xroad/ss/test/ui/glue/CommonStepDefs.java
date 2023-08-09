@@ -28,14 +28,17 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 
+import java.time.Duration;
+
 import static com.codeborne.selenide.Condition.text;
+import static java.time.Duration.ofSeconds;
 
 public class CommonStepDefs extends BaseUiStepDefs {
 
     @Step("error: {string} was displayed")
     public void errorIsShown(final String error) {
         commonPageObj.alerts.alert(error)
-                .shouldBe(Condition.visible);
+                .shouldBe(Condition.visible, ofSeconds(15));
     }
 
     @Step("Dialog data is saved and success message {string} is shown")

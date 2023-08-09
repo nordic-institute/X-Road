@@ -122,7 +122,7 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
     @Step("Add key wizard is closed")
     public void closeAddKeyWizard() {
-        keyAndCertPageObj.addKeyWizarDetails.cancelButton().click();
+        keyAndCertPageObj.addKeyWizardDetails.cancelButton().click();
     }
 
     @Step("Add key wizard Generate CSR step is closed")
@@ -133,9 +133,9 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
     @Step("Key Label is set to {string}")
     public void setKeyLabel(String label) {
         if (StringUtils.isNotBlank(label)) {
-            keyAndCertPageObj.addKeyWizarDetails.keyLabel().setValue(label);
+            keyAndCertPageObj.addKeyWizardDetails.keyLabel().setValue(label);
         }
-        keyAndCertPageObj.addKeyWizarDetails.nextButton().click();
+        keyAndCertPageObj.addKeyWizardDetails.nextButton().click();
     }
 
     @Step("CSR details Usage is set to {string}, Client set to {string}, Certification Service to {string} and CSR format {string}")
@@ -157,7 +157,7 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(csrFormat).click();
 
         keyAndCertPageObj.addKeyWizardCsrDetails.previousButton().click();
-        keyAndCertPageObj.addKeyWizarDetails.nextButton().click();
+        keyAndCertPageObj.addKeyWizardDetails.nextButton().click();
         keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().click();
     }
 

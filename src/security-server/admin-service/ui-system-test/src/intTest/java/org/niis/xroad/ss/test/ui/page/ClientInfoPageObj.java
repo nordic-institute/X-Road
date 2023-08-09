@@ -64,9 +64,6 @@ public class ClientInfoPageObj {
     }
 
     public static class InternalServers {
-        public SelenideElement btnAdd() {
-            return $x("//button[.//*[contains(text(), 'Add')]]");
-        }
 
         public SelenideElement btnExport() {
             return $x("//button[.//*[contains(text(), 'Export')]]");
@@ -226,10 +223,6 @@ public class ClientInfoPageObj {
         public final ServicesEndpoints endpoints = new ServicesEndpoints();
         public final ServicesEdit servicesEdit = new ServicesEdit();
 
-        public SelenideElement messageServiceURLBoxError() {
-            return $x("//div[contains(@class, 'v-messages__message')]");
-        }
-
         public SelenideElement btnAddWSDL() {
             return $x("//button[@data-test='add-wsdl-button']");
         }
@@ -242,29 +235,8 @@ public class ClientInfoPageObj {
             return $x("//button[@data-test='refresh-button']");
         }
 
-        public SelenideElement inputAddDialogTitle() {
-            return $x("//input[@data-test='dialog-title']");
-        }
-
-
         public SelenideElement btnEndpoints() {
             return $x("//a[@data-test='endpoints']");
-        }
-
-        public SelenideElement messageServiceUrl() {
-            return $x("//div[contains(@class, 'v-messages__message')]");
-        }
-
-        public SelenideElement messageServiceCode() {
-            return $x("//div[contains(@class, 'v-input') and .//input[@name='serviceCode']]//div[contains(@class, 'v-messages__message')]");
-        }
-
-        public SelenideElement btnConfirmAddService() {
-            return $x("//button[@data-test='dialog-save-button']");
-        }
-
-        public SelenideElement btnCancelAddService() {
-            return $x("//button[@data-test='dialog-cancel-button']");
         }
 
         public SelenideElement inputRadioRESTPath() {
@@ -310,23 +282,6 @@ public class ClientInfoPageObj {
         public SelenideElement tableServiceTimeoutOfServiceCode(String serviceCode) {
             return $x(format("//tr[td[@data-test='service-link' and normalize-space(text())='%s'] ]//td[3]", serviceCode));
         }
-
-        public SelenideElement btnServiceDetailsDelete() {
-            return $x("//button[.//*[contains(text(), 'Delete')]]");
-        }
-
-        public SelenideElement btnServiceDetailsSave() {
-            return $x("//button[.//*[contains(text(), 'Save')]]");
-        }
-
-        public SelenideElement btnServiceDetailsCancel() {
-            return $x("//button[.//*[contains(text(), 'Cancel')]]");
-        }
-
-        public SelenideElement toggleServiceEnable() {
-            return $x("//*[contains(@class, 'v-input--selection-controls__ripple')]");
-        }
-
 
         public SelenideElement inputDisableNotice() {
             return $x("//div[contains(@class, 'dlg-edit-row') and .//*[contains(@class, 'dlg-row-title')]]//input");

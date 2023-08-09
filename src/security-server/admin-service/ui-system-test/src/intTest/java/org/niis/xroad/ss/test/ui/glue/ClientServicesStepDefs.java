@@ -267,6 +267,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
                 .click();
 
         clearInput(clientInfoPageObj.services.endpoints.inputPath());
+        clientInfoPageObj.services.endpoints.inputPath().shouldBe(empty);
         clientInfoPageObj.services.endpoints.btnSave().shouldBe(disabled);
 
         clientInfoPageObj.services.endpoints.inputPath().setValue(newPath);
@@ -327,6 +328,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.headerServiceDescription(name).click();
 
         clientInfoPageObj.services.servicesEdit.btnServiceDelete().click();
+        commonPageObj.dialog.title().shouldBe(visible);
         commonPageObj.dialog.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Service description deleted"));
     }
