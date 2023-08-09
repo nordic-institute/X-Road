@@ -27,46 +27,46 @@
 
 <template>
   <xrd-simple-dialog
-    :dialog="true"
     title="keys.dialog.add.title"
     save-button-text="keys.dialog.add.confirmButton"
     :loading="loading"
-    :disable-save="!isValid"
+    :disable-save="!meta.valid"
     @save="addKey"
     @cancel="cancel"
   >
-    <div slot="content">
-      <div class="pt-5 dlg-input-width">
-        <ValidationProvider
-          ref="keyLabel"
-          v-slot="{ errors }"
-          rules="required|min:1|max:255"
-          name="keyLabel"
-          class="validation-provider"
-        >
+    <template #content>
           <v-text-field
-            v-model="label"
+            v-bind="keyLabel"
             :label="$t('keys.dialog.add.labelField')"
-            :error-messages="errors"
+            :error-messages="errors.keyLabel"
             name="keyLabel"
             data-test="signing-key-label-input"
-            outlined
+            variant="outlined"
             autofocus
           />
-        </ValidationProvider>
-      </div>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSigningKey } from '@/store/modules/signing-keys';
 import { ConfigurationSigningKey, ConfigurationType } from '@/openapi-types';
+import { useForm } from "vee-validate";
 
 export default defineComponent({
+  setup() {
+    const {
+      defineComponentBinds,
+      errors,
+      values,
+      meta
+    } = useForm({ validationSchema: { keyLabel: 'required|min:1|max:255' } });
+    const keyLabel = defineComponentBinds('keyLabel')
+    return { errors, values, meta, keyLabel };
+  },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -77,29 +77,25 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['cancel', 'key-add'],
   data() {
     return {
       loading: false,
-      label: '',
     };
   },
   computed: {
     ...mapStores(useSigningKey),
-    isValid(): boolean {
-      return this.label?.length > 0 && this.label?.length < 256;
-    },
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
-      this.label = '';
       this.$emit('cancel');
     },
     addKey(): void {
       this.loading = true;
       this.signingKeyStore
         .addSigningKey(this.configurationType, {
-          key_label: this.label,
+          key_label: this.values.keyLabel,
           token_id: this.tokenId,
         })
         .then((res) => {

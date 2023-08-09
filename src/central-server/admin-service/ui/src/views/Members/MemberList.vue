@@ -26,26 +26,21 @@
  -->
 <template>
   <div>
-    <div class="header-row">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title ">{{ $t('members.header') }}</div>
-        <xrd-search v-model="search" @update:model-value="debouncedFetchClients"/>
-      </div>
+    <searchable-titled-view title-key="members.header" v-model="search" @update:model-value="debouncedFetchClients">
+      <template #header-buttons>
+        <xrd-button
+          v-if="hasPermissionToAddMember"
+          data-test="add-member-button"
+          @click="showAddMemberDialog = true"
+        >
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-add></xrd-icon-add>
+          </xrd-icon-base>
+          {{ $t('members.addMember') }}
+        </xrd-button>
+      </template>
 
-      <xrd-button
-        v-if="hasPermissionToAddMember"
-        data-test="add-member-button"
-        @click="showAddMemberDialog = true"
-      >
-        <xrd-icon-base class="xrd-large-button-icon">
-          <xrd-icon-add></xrd-icon-add>
-        </xrd-icon-base>
-        {{ $t('members.addMember') }}
-      </xrd-button>
-
-    </div>
-    <!-- Table -->
-    <v-data-table-server
+      <v-data-table-server
       :loading="loading"
       :headers="headers"
       :items="clientStore.clients"
@@ -82,7 +77,7 @@
         </div>
       </template>
     </v-data-table-server>
-    <!-- Dialogs -->
+    </searchable-titled-view>
     <add-member-dialog
       v-if="showAddMemberDialog"
       @cancel="hideAddMemberDialog"
@@ -105,14 +100,17 @@ import { Client } from '@/openapi-types';
 import { VDataTableServer } from "vuetify/labs/VDataTable";
 import { DataQuery } from "@/ui-types";
 import { defaultItemsPerPageOptions } from "@/util/defaults";
+import GenericView from "@/components/ui/TitledView.vue";
+import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default defineComponent({
-  name: 'MemberList',
   components: {
+    SearchableTitledView,
+    GenericView,
     AddMemberDialog,
     VDataTableServer
   },

@@ -32,32 +32,25 @@
       :no-items-text="$t('noData.noData')"
       skeleton-type="table-heading"
     />
-    <main v-if="managementRequest && !loading" id="management-request-view">
-      <header class="table-toolbar align-fix mt-0 pl-0">
-        <h1 class="xrd-view-title">{{ typeText }}</h1>
-        <div
-          v-if="managementRequest.status === 'WAITING'"
-          :data-test="`actions-for-MR-${managementRequest.id}`"
+    <titled-view v-if="managementRequest && !loading" :title="typeText">
+      <template  v-if="managementRequest.status === 'WAITING'" #header-buttons>
+        <xrd-button
+          outlined
+          class="mr-4"
+          data-test="approve-button"
+          @click="$refs.approveDialog.openDialog()"
         >
-          <xrd-button
-            outlined
-            class="mr-4"
-            data-test="approve-button"
-            @click="$refs.approveDialog.openDialog()"
-          >
-            {{ $t('action.approve') }}
-          </xrd-button>
-          <xrd-button
-            outlined
-            class="mr-4"
-            data-test="decline-button"
-            @click="$refs.declineDialog.openDialog()"
-          >
-            {{ $t('action.decline') }}
-          </xrd-button>
-        </div>
-      </header>
-
+          {{ $t('action.approve') }}
+        </xrd-button>
+        <xrd-button
+          outlined
+          class="mr-4"
+          data-test="decline-button"
+          @click="$refs.declineDialog.openDialog()"
+        >
+          {{ $t('action.decline') }}
+        </xrd-button>
+      </template>
       <mr-information :management-request="managementRequest" />
       <div class="management-request-additional-details">
         <mr-security-server-information
@@ -84,7 +77,7 @@
         :security-server-id="managementRequest.security_server_id.encoded_id"
         @decline="fetchData"
       />
-    </main>
+    </titled-view>
   </details-view>
 </template>
 
@@ -106,6 +99,7 @@ import MrInformation from '@/components/managementRequests/details/MrInformation
 import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
 import { RouteName } from "@/global";
+import TitledView from "@/components/ui/TitledView.vue";
 
 /**
  * Wrapper component for a certification service view
@@ -113,6 +107,7 @@ import { RouteName } from "@/global";
 export default defineComponent({
   name: 'ManagementRequestDetails',
   components: {
+    TitledView,
     DetailsView,
     MrInformation,
     MrSecurityServerInformation,

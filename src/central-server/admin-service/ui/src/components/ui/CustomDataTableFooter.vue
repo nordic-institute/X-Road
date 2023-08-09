@@ -25,60 +25,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    v-if="canDownload"
-    data-test="download-anchor-button"
-    outlined
-    :loading="loading"
-    @click="download"
-  >
-    <xrd-icon-base class="xrd-large-button-icon">
-      <XrdIconDownload />
-    </xrd-icon-base>
-    {{ $t('action.download') }}
-  </xrd-button>
+  <div class="custom-footer"></div>
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import { Permissions } from '@/global';
-import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
-import { useNotifications } from '@/store/modules/notifications';
-import XrdIconDownload from '@shared-ui/components/icons/XrdIconDownload.vue';
 
-export default defineComponent({
-  components: {
-    XrdIconDownload,
-  },
-  props: {
-    hash: {
-      type: String,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapState(useUser, ['hasPermission']),
-    ...mapStores(useTrustedAnchor),
-    canDownload(): boolean {
-      return this.hasPermission(Permissions.DOWNLOAD_TRUSTED_ANCHOR);
-    },
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError']),
-    download() {
-      this.loading = true;
-      this.trustedAnchorStore
-        .downloadTrustedAnchor(this.hash)
-        .catch((error) => this.showError(error))
-        .finally(() => (this.loading = false));
-    },
-  },
-});
+<script lang="ts">
+
+import { defineComponent } from "vue";
+
+export default defineComponent({});
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.custom-footer {
+  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
+  height: 16px;
+}
+</style>

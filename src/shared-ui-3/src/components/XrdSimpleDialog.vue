@@ -30,8 +30,10 @@
     :width="width"
     :persistent="true"
     :scrollable="scrollable"
+    :z-index="zIndex"
     class="xdr-dialog-simple"
   >
+<!-- TODO vue3 should work just fine without z-index (AddMemberDialog)   -->
     <v-card class="xrd-card " data-test="dialog-simple">
       <template #append>
         <xrd-close-button
@@ -54,7 +56,7 @@
       <div class="alert-slot">
         <slot name="alert" />
       </div>
-      <v-card-text v-if="hasText" class="content-wrapper xrd-card-text">
+      <v-card-text v-if="hasText" class="content-wrapper xrd-card-text" :class="{'no-content': !hasContent }">
         <slot name="text" />
       </v-card-text>
       <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
@@ -145,6 +147,10 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    zIndex:{
+      type: [Number, String],
+      default: 2400
+    }
   },
   emits: ['cancel', 'save'],
   data() {
@@ -177,35 +183,40 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-.xrd-card {
-  .xrd-card-actions {
-    background-color: $XRoad-WarmGrey10;
-    height: 72px;
-    padding-right: 24px;
-  }
+.xdr-dialog-simple {
+  .xrd-card {
+    .xrd-card-actions {
+      background-color: $XRoad-WarmGrey10;
+      height: 72px;
+      padding-right: 24px;
+    }
 
-  .dialog-title {
-    font-size: 20px;
-    font-weight: 500;
-    letter-spacing: normal;
-  }
+    .dialog-title {
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: normal;
+    }
 
-  .xrd-card-text.xrd-card-text {
-    font-size: 14px;
-    letter-spacing: normal;
-    color: rgba(0, 0, 0, .6);
-    padding: 16px 24px 8px;
-  }
+    .v-card-text.xrd-card-text {
+      font-size: 14px;
+      letter-spacing: normal;
+      color: rgba(0, 0, 0, .6);
+      padding: 16px 24px 8px;
+      &.no-content {
+        padding-bottom: 16px;
+      }
+    }
 
-  .v-card-item.xrd-card-content {
-    padding: 0 24px 0;
-    :deep(.v-card-item__content) {
-      padding-top: 16px;
-      padding-bottom: 16px;
+    .v-card-item.xrd-card-content {
+      padding: 0 24px 0;
+
+      :deep(.v-card-item__content) {
+        padding-top: 16px;
+        padding-bottom: 16px;
+      }
     }
   }
 }
-
 .content-wrapper {
 }
 

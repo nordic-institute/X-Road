@@ -232,8 +232,8 @@ export interface TimestampingServiceStoreState {
   timestampingServices: TimestampingService[];
 }
 
-export const useTimestampingService = defineStore('timestampingService', {
-  state: (): TimestampingServiceStoreState => ({
+export const useTimestampingServicesStore = defineStore('timestampingServices', {
+  state: (): TimestampingServicesStoreState => ({
     timestampingServices: [],
   }),
   persist: true,

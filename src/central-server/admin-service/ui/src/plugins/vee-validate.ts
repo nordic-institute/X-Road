@@ -25,12 +25,12 @@
  * THE SOFTWARE.
  */
 import { configure, defineRule } from 'vee-validate';
-import { between, is, max, min, required } from '@vee-validate/rules';
-import * as Helpers from '@/util/helpers';
+import { between, is, max, min, required, url } from '@vee-validate/rules';
 import { App } from "vue";
 import i18n from "@/plugins/i18n";
 
 export function createValidators(i18nMessages = {}) {
+  const { t } = i18n.global;
   return {
     install(app: App) {
       configure({
@@ -57,7 +57,7 @@ export function createValidators(i18nMessages = {}) {
               break;
             }
           }
-          return i18n.global.t(`validation.messages.${ctx.rule.name}`, args) as string;
+          return t(`validation.messages.${ctx.rule.name}`, args) as string;
         },
       });
 
@@ -76,12 +76,7 @@ export function createValidators(i18nMessages = {}) {
 // Install is rule and message.
       defineRule('is', is);
 
-      defineRule('url', (value: any) => {
-        if (Helpers.isValidUrl(value)) {
-          return true;
-        }
-        return t('customValidation.invalidUrl') as string;
-      });
+      defineRule('url', url);
     },
   };
 }

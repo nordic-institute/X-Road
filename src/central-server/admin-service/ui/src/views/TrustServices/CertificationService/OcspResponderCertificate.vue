@@ -29,7 +29,7 @@
 -->
 <template>
   <main id="ocsp-responder-certificate-details" class="mt-8">
-    <CertificateDetails :certificate-details="certificateDetails" />
+    <certificate-details v-if="certificateDetails" :certificate-details="certificateDetails" />
   </main>
 </template>
 
@@ -41,7 +41,6 @@ import CertificateDetails from '@/components/certificate/CertificateDetails.vue'
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
 export default defineComponent({
-  name: 'OcspResponderCertificate',
   components: { CertificateDetails },
   props: {
     ocspResponderId: {

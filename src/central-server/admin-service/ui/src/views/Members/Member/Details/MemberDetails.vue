@@ -55,15 +55,7 @@
 
     <!-- Owned Servers -->
     <div id="owned-servers">
-      <div class="xrd-title-search mb-8">
-        <div class="xrd-view-title">
-          {{ $t('members.member.details.ownedServers') }}
-        </div>
-        <xrd-search v-model="searchServers" data-test="search-owned-servers" />
-      </div>
-
-      <v-card flat>
-        <!-- Table -->
+      <searchable-titled-view title-key="members.member.details.ownedServers" v-model="searchServers">
         <v-data-table
           :loading="loadingServers"
           :headers="serversHeaders"
@@ -77,23 +69,15 @@
           data-test="owned-servers-table"
         >
           <template #bottom>
-            <div class="cs-table-custom-footer"></div>
+            <custom-data-table-footer />
           </template>
         </v-data-table>
-      </v-card>
+      </searchable-titled-view>
     </div>
 
     <!-- Global Groups -->
     <div id="global-groups">
-      <div class="xrd-title-search mt-8 mb-8">
-        <div class="xrd-view-title">
-          {{ $t('members.member.details.globalGroups') }}
-        </div>
-        <xrd-search v-model="searchGroups" data-test="search-global-groups" />
-      </div>
-
-      <v-card flat>
-        <!-- Table -->
+      <searchable-titled-view title-key="members.member.details.globalGroups" v-model="searchGroups">
         <v-data-table
           :loading="loadingGroups"
           :headers="groupsHeaders"
@@ -106,13 +90,13 @@
           data-test="global-groups-table"
         >
           <template #[`item.added_to_group`]="{ item }">
-            {{ $filters.formatDateTime(item.raw.added_to_group) }}
+            <date-time :value="item.raw.added_to_group" />
           </template>
           <template #bottom>
-            <div class="cs-table-custom-footer"></div>
+            <custom-data-table-footer />
           </template>
         </v-data-table>
-      </v-card>
+      </searchable-titled-view>
 
       <div
         v-if="allowMemberDelete"
@@ -163,6 +147,10 @@ import { useUser } from '@/store/modules/user';
 import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
 import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
 import { VDataTable } from "vuetify/labs/VDataTable";
+import TitledView from "@/components/ui/TitledView.vue";
+import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
+import DateTime from "@/components/ui/DateTime.vue";
+import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -174,6 +162,10 @@ let that: any;
 export default defineComponent({
   name: 'MemberDetails',
   components: {
+    CustomDataTableFooter,
+    DateTime,
+    SearchableTitledView,
+    TitledView,
     EditMemberNameDialog,
     MemberDeleteDialog,
     InfoCard,

@@ -27,7 +27,6 @@
 <template>
   <main>
     <xrd-simple-dialog
-      :dialog="showUploadCertificateDialog"
       cancel-button-text="action.cancel"
       save-button-text="action.upload"
       title="trustServices.addCertificationService"
@@ -45,10 +44,10 @@
           >
             <v-text-field
               v-model="certFileTitle"
-              outlined
+              variant="outlined"
               autofocus
               :label="$t('trustServices.uploadCertificate')"
-              append-icon="icon-Upload"
+              append-inner-icon="icon-Upload"
               @click="upload"
             ></v-text-field>
           </xrd-file-upload>
@@ -58,7 +57,6 @@
 
     <xrd-simple-dialog
       v-if="showCASettingsDialog"
-      :dialog="showCASettingsDialog"
       cancel-button-text="action.cancel"
       save-button-text="action.save"
       title="trustServices.caSettings"
@@ -75,7 +73,7 @@
           />
           <v-text-field
             v-model="certProfile"
-            outlined
+            variant="outlined"
             :label="$t('trustServices.certProfileInput')"
             :hint="$t('trustServices.certProfileInputExplanation')"
             persistent-hint
@@ -88,17 +86,12 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
-import { FileUploadResult } from '@niis/shared-ui';
+import { defineComponent } from 'vue';
+import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
+import { FileUploadResult } from '@shared-ui/types';
 
 export default defineComponent({
-  name: 'AddCertificationServiceDialog',
-  props: {
-    showDialog: {
-      type: Boolean as PropType<boolean>,
-      required: true,
-    },
-  },
+  components: { XrdFileUpload },
   data() {
     return {
       showCASettingsDialog: false,
@@ -106,7 +99,7 @@ export default defineComponent({
       certFileTitle: '',
       certProfile: '',
       tlsAuthOnly: false,
-      showUploadCertificateDialog: this.showDialog,
+      showUploadCertificateDialog: true,
       loading: false,
     };
   },

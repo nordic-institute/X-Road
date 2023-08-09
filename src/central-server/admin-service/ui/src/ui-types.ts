@@ -38,12 +38,6 @@ export interface Tab {
   permissions?: string[]; // Permissions needed to view this tab
 }
 
-// The result of the FileUpload components fileChanged event
-export type FileUploadResult = {
-  buffer: ArrayBuffer;
-  file: File;
-};
-
 // Action info for notification. In practise the "action" is navigtion to a given route.
 export interface NotificationAction {
   icon: string;
@@ -87,4 +81,11 @@ export interface DataQuery {
   sortBy?: string,
   sortOrder?: string,
   search?: string
+}
+
+export interface DataTableHeader {
+  title: string,
+  align?: string,
+  key: string,
+  sortable?: boolean
 }

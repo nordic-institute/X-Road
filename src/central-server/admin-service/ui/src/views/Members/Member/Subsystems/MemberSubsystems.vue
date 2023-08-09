@@ -27,25 +27,29 @@
 <template>
   <main>
     <v-card class="mt-8" flat>
-      <div class="card-corner-button pt-4 pr-4">
-        <xrd-button
-          v-if="allowMemberSubsystemAdd"
-          outlined
-          data-test="add-subsystem"
-          @click="showAddSubsystemDialog = true"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
-          </xrd-icon-base>
-          {{ $t('members.member.subsystems.addClient') }}
-        </xrd-button>
-      </div>
       <!-- Table -->
       <v-table
         :loading="loading"
         class="elevation-0 data-table subsystems-table"
         data-test="subsystems-table"
       >
+        <template #top>
+          <data-table-toolbar>
+            <template #default>
+              <xrd-button
+                v-if="allowMemberSubsystemAdd"
+                outlined
+                data-test="add-subsystem"
+                @click="showAddSubsystemDialog = true"
+              >
+                <xrd-icon-base class="xrd-large-button-icon">
+                  <xrd-icon-add />
+                </xrd-icon-base>
+                {{ $t('members.member.subsystems.addClient') }}
+              </xrd-button>
+            </template>
+          </data-table-toolbar>
+        </template>
         <thead>
           <tr>
             <th>{{ `${$t('members.member.subsystems.subsystemcode')} (${subsystems.length})` }}</th>
@@ -147,10 +151,10 @@
         </tbody>
 
         <template #bottom>
-          <div class="custom-footer"></div>
+          <custom-data-table-footer />
         </template>
       </v-table>
-
+    </v-card>
       <AddMemberSubsystemDialog
         v-if="showAddSubsystemDialog"
         :member="memberStore.currentMember"
@@ -177,7 +181,6 @@
         @cancel="cancel"
         @unregisteredSubsystem="unregisteredSubsystem"
       ></UnregisterMemberSubsystemDialog>
-    </v-card>
   </main>
 </template>
 
@@ -196,6 +199,8 @@ import XrdIconError from '@shared-ui/components/icons/XrdIconError.vue'
 import XrdIconInProgress from '@shared-ui/components/icons/XrdIconInProgress.vue'
 import { VDataTable } from "vuetify/labs/VDataTable";
 import { ManagementRequestStatus, Subsystem, UsedSecurityServers, } from '@/openapi-types';
+import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
+import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -207,6 +212,8 @@ let that: any;
 export default defineComponent({
   name: 'MemberSubsystems',
   components: {
+    CustomDataTableFooter,
+    DataTableToolbar,
     DeleteMemberSubsystemDialog,
     AddMemberSubsystemDialog,
     UnregisterMemberSubsystemDialog,

@@ -31,17 +31,17 @@
     title="members.member.details.editMemberName"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
-    :disable-save="!meta.dirty"
+    :disable-save="!meta.valid || !meta.dirty"
     @cancel="cancelEdit"
     @save="saveNewMemberName"
   >
     <template #content>
       <div class="dlg-input-width">
         <v-text-field
-          v-model="value"
+          v-bind="memberName"
           variant="outlined"
           data-test="edit-member-name"
-          :error-messages="errors"
+          :error-messages="errors.memberName"
         ></v-text-field>
       </div>
     </template>
@@ -49,30 +49,32 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
-import { memberStore } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { defineComponent, PropType } from "vue";
-import i18n from "@/plugins/i18n";
-import { useField } from "vee-validate";
+import { useForm } from "vee-validate";
 
 export default defineComponent({
-  name: 'EditMemberNameDialog',
+  setup(props) {
+    const { defineComponentBinds, values, errors, meta, setFieldError } = useForm({
+      validationSchema: { memberName: 'required' },
+      initialValues: { memberName: props.member.member_name }
+    })
+    const memberName = defineComponentBinds('memberName');
+    return { values, errors, setFieldError, meta, memberName };
+  },
   props: {
     member: {
-      type: Object as () => Client,
+      type: Object as PropType<Client>,
       required: true,
     },
   },
   data() {
     return {
       loading: false,
-      newMemberName: this.member.member_name,
-      oldMemberName: this.member.member_name,
     };
   },
   computed: {
@@ -87,7 +89,7 @@ export default defineComponent({
       this.loading = true;
       this.memberStore
         .editMemberName(toIdentifier(this.member.client_id), {
-          member_name: this.newMemberName,
+          member_name: this.values.memberName,
         })
         .then(() => {
           this.showSuccess(this.$t('members.member.details.memberNameSaved'));

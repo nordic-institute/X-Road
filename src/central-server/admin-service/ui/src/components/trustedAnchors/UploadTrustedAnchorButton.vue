@@ -48,9 +48,8 @@
       ref="dialog"
       :file="file"
       :preview="preview"
-      @uploaded="$emit('uploaded')"
       @close="clear"
-      @uploade="clear(true)"
+      @uploaded="clear(true)"
     />
   </div>
 </template>
@@ -59,14 +58,15 @@ import { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import { FileUploadResult } from '@niis/shared-ui';
+import { FileUploadResult } from '@shared-ui/types';
+import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
 import UploadTrustedAnchorDialog from './UploadTrustedAnchorDialog.vue';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { TrustedAnchor } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
-  components: { UploadTrustedAnchorDialog },
+  components: { UploadTrustedAnchorDialog, XrdFileUpload },
   data() {
     return {
       uploading: false,
@@ -89,7 +89,6 @@ export default defineComponent({
       this.trustedAnchorStore
         .previewTrustedAnchors(result.file)
         .then((resp) => (this.preview = resp.data))
-        .then(() => this.$refs.dialog.open())
         .catch((error) => this.showError(error))
         .finally(() => (this.uploading = false));
     },

@@ -25,21 +25,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view id="certification-service-view" back-to="/trust-services">
-    <div class="table-toolbar mt-0 pl-0">
-      <div class="xrd-view-title">
-        {{ certificationServiceStore.currentCertificationService.name }}
-      </div>
-      <xrd-button
-        outlined
-        data-test="view-certificate-button"
-        @click="navigateToCertificateDetails()"
-      >
-        {{ $t('trustServices.viewCertificate') }}
-      </xrd-button>
-    </div>
-    <PageNavigation :tabs="certificationServiceNavigationTabs"></PageNavigation>
-    <router-view />
+  <details-view id="certification-service-view" :back-to="backTo">
+    <titled-view :title="certificationServiceStore.currentCertificationService.name">
+      <template #header-buttons>
+        <xrd-button
+          variant="outlined"
+          data-test="view-certificate-button"
+          @click="navigateToCertificateDetails()"
+        >
+          {{ $t('trustServices.viewCertificate') }}
+        </xrd-button>
+      </template>
+      <PageNavigation :tabs="certificationServiceNavigationTabs"></PageNavigation>
+      <router-view />
+    </titled-view>
   </details-view>
 </template>
 
@@ -52,13 +51,14 @@ import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import DetailsView from '@/components/ui/DetailsView.vue';
+import TitledView from "@/components/ui/TitledView.vue";
 
 /**
  * Wrapper component for a certification service view
  */
 export default defineComponent({
   name: 'CertificationService',
-  components: { DetailsView, PageNavigation },
+  components: { TitledView, DetailsView, PageNavigation },
   props: {
     certificationServiceId: {
       type: Number,
@@ -68,6 +68,9 @@ export default defineComponent({
   data() {
     return {
       colors: Colors,
+      backTo: {
+        name: RouteName.TrustServices
+      }
     };
   },
   computed: {
@@ -79,6 +82,8 @@ export default defineComponent({
           name: 'trustServices.trustService.pagenavigation.details',
           to: {
             name: RouteName.CertificationServiceDetails,
+            params: {certificationServiceId: this.certificationServiceId},
+            replace: true
           },
           permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },
@@ -88,6 +93,8 @@ export default defineComponent({
           name: 'trustServices.trustService.pagenavigation.settings',
           to: {
             name: RouteName.CertificationServiceSettings,
+            params: {certificationServiceId: this.certificationServiceId},
+            replace: true
           },
           permissions: [Permissions.EDIT_APPROVED_CA],
         },
@@ -97,6 +104,8 @@ export default defineComponent({
           name: 'trustServices.trustService.pagenavigation.ocspResponders',
           to: {
             name: RouteName.CertificationServiceOcspResponders,
+            params: {certificationServiceId: this.certificationServiceId},
+            replace: true
           },
           permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },
@@ -106,6 +115,8 @@ export default defineComponent({
           name: 'trustServices.trustService.pagenavigation.intermediateCas',
           to: {
             name: RouteName.CertificationServiceIntermediateCas,
+            params: {certificationServiceId: this.certificationServiceId},
+            replace: true
           },
           permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },

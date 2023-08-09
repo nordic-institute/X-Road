@@ -59,17 +59,18 @@
 import { Permissions } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import Vue, { defineComponent, PropType } from 'vue';
+import  { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { ConfigurationType } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import { DataTableHeader } from 'vuetify';
+import { DataTableHeader } from "@/ui-types";
 import ConfigurationAnchorItem, {
   Anchor,
 } from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
+import XrdIconDownload from '@shared-ui/components/icons/XrdIconDownload.vue'
 
 export default defineComponent({
-  components: { ConfigurationAnchorItem },
+  components: { ConfigurationAnchorItem, XrdIconDownload },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -98,16 +99,14 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('globalConf.anchor.certificateHash') as string,
+          title: this.$t('globalConf.anchor.certificateHash') as string,
           align: 'start',
-          value: 'hash',
-          class: 'xrd-table-header text-uppercase',
+          key: 'hash',
         },
         {
-          text: this.$t('globalConf.anchor.created') as string,
+          title: this.$t('globalConf.anchor.created') as string,
           align: 'start',
-          value: 'created_at',
-          class: 'xrd-table-header text-uppercase',
+          key: 'created_at',
         },
       ];
     },

@@ -26,42 +26,32 @@
  -->
 <template>
   <div data-test="security-servers-view">
-    <!-- Toolbar buttons -->
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-title-search align-fix mt-0 pt-0">
-        <div class="xrd-view-title align-fix">
-          {{ $t('tab.main.securityServers') }}
-        </div>
-        <xrd-search v-model="search" class="margin-fix" />
-      </div>
-    </div>
-
-    <!-- Table -->
-    <v-data-table-server
-      :loading="loading"
-      :headers="headers"
-      :items="securityServerStore.securityServers"
-      :items-per-page-options="itemsPerPageOptions"
-      :items-length="securityServerStore.securityServerPagingOptions.total_items"
-      :search="search"
-      :must-sort="true"
-      :items-per-page="10"
-      disable-filtering
-      class="elevation-0 data-table"
-      :no-data-text="emptyListReasoning"
-      item-key="server_id.server_code"
-      :loader-height="2"
-      @update:options="findServers"
-    >
-      <template #[`item.server_id.server_code`]="{ item }">
-        <div class="server-code xrd-clickable" @click="toDetails(item.raw)">
-          <xrd-icon-base class="mr-4">
-            <xrd-icon-security-server />
-          </xrd-icon-base>
-          {{ item.raw.server_id.server_code }}
-        </div>
-      </template>
-    </v-data-table-server>
+    <searchable-titled-view title-key="tab.main.securityServers" v-model="search">
+      <v-data-table-server
+        :loading="loading"
+        :headers="headers"
+        :items="securityServerStore.securityServers"
+        :items-per-page-options="itemsPerPageOptions"
+        :items-length="securityServerStore.securityServerPagingOptions.total_items"
+        :must-sort="true"
+        :items-per-page="10"
+        disable-filtering
+        class="elevation-0 data-table"
+        :no-data-text="emptyListReasoning"
+        item-key="server_id.server_code"
+        :loader-height="2"
+        @update:options="findServers"
+      >
+        <template #[`item.server_id.server_code`]="{ item }">
+          <div class="server-code xrd-clickable" @click="toDetails(item.raw)">
+            <xrd-icon-base class="mr-4">
+              <xrd-icon-security-server />
+            </xrd-icon-base>
+            {{ item.raw.server_id.server_code }}
+          </div>
+        </template>
+      </v-data-table-server>
+    </searchable-titled-view>
   </div>
 </template>
 
@@ -76,23 +66,25 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import XrdIconSecurityServer from '@shared-ui/components/icons/XrdIconSecurityServer.vue';
 import { VDataTableServer } from "vuetify/labs/VDataTable";
 import { defaultItemsPerPageOptions } from "@/util/defaults";
-import { DataQuery } from "@/ui-types";
+import { DataQuery, DataTableHeader } from "@/ui-types";
+import XrdIconSecurityServer from "@shared-ui/components/icons/XrdIconSecurityServer.vue";
+import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default defineComponent({
-  components: { XrdIconSecurityServer, VDataTableServer },
+  components: { SearchableTitledView, XrdIconSecurityServer, VDataTableServer },
   data() {
     return {
       search: '',
       loading: false,
       showOnlyPending: false,
-      pagingSortingOptions: {} as DataOptions,
+      dataQuery: {} as DataQuery,
+      itemsPerPageOptions: defaultItemsPerPageOptions()
     };
   },
   computed: {
@@ -119,11 +111,8 @@ export default defineComponent({
           align: 'start',
           key: 'server_id.member_class',
         },
-      ]
-    };
-  },
-  computed: {
-    ...mapStores(useSecurityServerStore),
+      ];
+    },
     emptyListReasoning(): string {
       return this.search
         ? this.$t('noData.noMatches')
@@ -152,6 +141,7 @@ export default defineComponent({
       });
     },
     changeOptions: async function () {
+      //TODO vue3 can be better
       this.findServers(this.pagingSortingOptions);
     },
     findServers: async function ({ itemsPerPage, page, sortBy }) {

@@ -82,6 +82,7 @@ import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
 import { VDataTable } from "vuetify/labs/VDataTable";
+import { DataTableHeader } from "@/ui-types";
 
 export default defineComponent({
   components:{VDataTable},
@@ -104,28 +105,24 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('global.memberName') as string,
+          title: this.$t('global.memberName') as string,
           align: 'start',
-          value: 'member_name',
-          class: 'xrd-table-header clients-table-header-name',
+          key: 'member_name',
         },
         {
-          text: this.$t('global.class') as string,
+          title: this.$t('global.class') as string,
           align: 'start',
-          value: 'client_id.member_class',
-          class: 'xrd-table-header clients-table-header-class',
+          key: 'client_id.member_class',
         },
         {
-          text: this.$t('global.code') as string,
+          title: this.$t('global.code') as string,
           align: 'start',
-          value: 'client_id.member_code',
-          class: 'xrd-table-header clients-table-header-code',
+          key: 'client_id.member_code',
         },
         {
-          text: this.$t('global.subsystem') as string,
+          title: this.$t('global.subsystem') as string,
           align: 'start',
-          value: 'client_id.subsystem_code',
-          class: 'xrd-table-header clients-table-header-subsystem',
+          key: 'client_id.subsystem_code',
         },
       ];
     },

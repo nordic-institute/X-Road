@@ -38,7 +38,7 @@
             <b>{{ subsystemCode }}</b>
           </template>
           <template #memberId>
-            <b>{{ memberId }}</b>
+            <b>{{ shortMemberId }}</b>
           </template>
         </i18n-t>
       </div>
@@ -47,31 +47,38 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useMember } from '@/store/modules/members';
 import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
-import { Client } from '@/openapi-types';
-import { toIdentifier } from '@/util/helpers';
+import { ClientId } from '@/openapi-types';
+import { toIdentifier, toShortMemberId } from '@/util/helpers';
 
-const props = defineProps({
-  subsystemCode: {
-    type: String,
-    required: true,
+export default defineComponent({
+  props: {
+    subsystemCode: {
+      type: String,
+      required: true,
+    },
+    member: {
+      type: Object as PropType<{ client_id: ClientId }>,
+      required: true,
+    }
   },
-  member: {
-    type: Object as PropType<{ client_id: ClientId }>,
-    required: true,
+  data() {
+    return {
+      loading: false
+    };
   },
   computed: {
     ...mapStores(useClient, useMember, useSubsystem),
     ...mapState(useSystem, ['getSystemStatus']),
-  },
-  created() {
-    this.currentMember = this.memberStore.$state.currentMember as Client;
+    shortMemberId(){
+      return toShortMemberId(this.member.client_id)
+    }
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
@@ -82,7 +89,7 @@ const props = defineProps({
       this.loading = true;
       this.subsystemStore
         .deleteById(
-          toIdentifier(this.currentMember.client_id) + ':' + this.subsystemCode,
+          toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
         )
         .then(() => {
           this.showSuccess(

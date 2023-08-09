@@ -25,69 +25,55 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="opened" :value="preview" persistent max-width="850">
-    <v-card class="xrd-card">
-      <v-card-title>
-        <span data-test="dialog-title" class="headline">
-          {{ $t('globalConf.trustedAnchor.dialog.upload.title') }}
-        </span>
-      </v-card-title>
-      <v-card-text class="content-wrapper">
-        <v-container>
-          <v-row class="mb-5">
-            <v-col>
-              {{ $t('globalConf.trustedAnchor.dialog.upload.info') }}
-            </v-col>
-          </v-row>
-          <v-row no-gutters>
-            <v-col class="font-weight-bold" cols="12" sm="3">
-              {{ $t('globalConf.trustedAnchor.dialog.upload.field.hash') }}
-            </v-col>
-            <v-col cols="12" sm="9">{{ preview.hash }}</v-col>
-          </v-row>
-          <v-row no-gutters>
-            <v-col class="font-weight-bold" cols="12" sm="3">
-              {{ $t('globalConf.trustedAnchor.dialog.upload.field.generated') }}
-            </v-col>
-            <v-col cols="12" sm="9">{{
-              preview.generated_at | formatDateTime
-            }}</v-col>
-          </v-row>
-          <v-row class="mt-5">
-            <v-col>
-              {{ $t('globalConf.trustedAnchor.dialog.upload.confirmation') }}
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-        <xrd-button
-          data-test="dialog-cancel-button"
-          outlined
-          :disabled="uploading"
-          @click="close"
-          >{{ $t('action.cancel') }}
-        </xrd-button>
-        <xrd-button
-          data-test="dialog-confirm-button"
-          :loading="uploading"
-          @click="confirm"
-          >{{ $t('action.confirm') }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <xrd-simple-dialog :title="$t('globalConf.trustedAnchor.dialog.upload.title')"
+                     save-button-text="action.confirm"
+                     :loading="uploading"
+                     width="850"
+                     @cancel="close"
+                     @save="confirm"
+  >
+    <template #text>
+      <v-container>
+        <v-row class="mb-5">
+          <v-col>
+            {{ $t('globalConf.trustedAnchor.dialog.upload.info') }}
+          </v-col>
+        </v-row>
+        <v-row no-gutters>
+          <v-col class="font-weight-bold" cols="12" sm="3">
+            {{ $t('globalConf.trustedAnchor.dialog.upload.field.hash') }}
+          </v-col>
+          <v-col cols="12" sm="9">{{ preview.hash }}</v-col>
+        </v-row>
+        <v-row no-gutters>
+          <v-col class="font-weight-bold" cols="12" sm="3">
+            {{ $t('globalConf.trustedAnchor.dialog.upload.field.generated') }}
+          </v-col>
+          <v-col cols="12" sm="9">
+            <date-time :value="preview.generated_at" />
+          </v-col>
+        </v-row>
+        <v-row class="mt-5">
+          <v-col>
+            {{ $t('globalConf.trustedAnchor.dialog.upload.confirmation') }}
+          </v-col>
+        </v-row>
+      </v-container>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { TrustedAnchor } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
+import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
+import DateTime from "@/components/ui/DateTime.vue";
 
 export default defineComponent({
+  components: { DateTime, XrdSimpleDialog },
   props: {
     preview: {
       type: Object as PropType<TrustedAnchor>,
@@ -98,6 +84,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['uploaded', 'close'],
   data() {
     return {
       opened: false,

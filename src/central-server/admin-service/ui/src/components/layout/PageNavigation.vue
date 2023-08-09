@@ -26,7 +26,7 @@
  -->
 <template>
   <div>
-    <v-tabs :background-color="'transparent'" class="page-navigation-row">
+    <v-tabs>
       <v-tab
         v-for="tab in allowedTabs"
         :key="tab.key"
