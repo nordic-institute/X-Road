@@ -28,11 +28,10 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 
-import java.time.Duration;
-
 import static com.codeborne.selenide.Condition.text;
 import static java.time.Duration.ofSeconds;
 
+@SuppressWarnings("checkstyle:MagicNumber")
 public class CommonStepDefs extends BaseUiStepDefs {
 
     @Step("error: {string} was displayed")

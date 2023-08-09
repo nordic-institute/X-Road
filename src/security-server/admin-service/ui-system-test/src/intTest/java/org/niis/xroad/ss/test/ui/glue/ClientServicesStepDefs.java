@@ -100,12 +100,15 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         editService(url, timeout, verifyTlsCert, false, false, false);
     }
 
-    @Step("Service URL is set to {string}, timeout to {} and tls certificate verification is {checkbox}. Apply All? Url: {checkbox}, timeout: {checkbox}, verify Tls: {checkbox}")
-    public void editWsdlService(String url, String timeout, boolean verifyTlsCert, boolean urlApplyAll, boolean timeoutApplyAll, boolean verifyTlsApplyAll) {
+    @Step("Service URL is set to {string}, timeout to {} and tls certificate verification is {checkbox}. "
+            + "Apply All? Url: {checkbox}, timeout: {checkbox}, verify Tls: {checkbox}")
+    public void editWsdlService(String url, String timeout, boolean verifyTlsCert, boolean urlApplyAll, boolean timeoutApplyAll,
+                                boolean verifyTlsApplyAll) {
         editService(url, timeout, verifyTlsCert, urlApplyAll, timeoutApplyAll, verifyTlsApplyAll);
     }
 
-    private void editService(String url, String timeout, boolean verifyTlsCert, boolean urlApplyAll, boolean timeoutApplyAll, boolean verifyTlsApplyAll) {
+    private void editService(String url, String timeout, boolean verifyTlsCert, boolean urlApplyAll, boolean timeoutApplyAll,
+                             boolean verifyTlsApplyAll) {
         clearInput(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
         clearInput(clientInfoPageObj.services.servicesParameters.inputServiceTimeout());
 

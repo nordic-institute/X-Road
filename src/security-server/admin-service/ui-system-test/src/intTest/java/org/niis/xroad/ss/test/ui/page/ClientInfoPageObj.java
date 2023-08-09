@@ -266,7 +266,8 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement headerServiceToggle(String description) {
-            return $x(format("//div[@class='exp-header' and div/div[@data-test='service-description-header' and normalize-space(text())='%s']]"
+            return $x(format("//div[@class='exp-header' "
+                    + "and div/div[@data-test='service-description-header' and normalize-space(text())='%s']]"
                     + "//*[contains(@class, 'v-input--selection-controls__ripple')]", description));
         }
 
@@ -276,7 +277,8 @@ public class ClientInfoPageObj {
 
 
         public SelenideElement tableServiceUrlOfServiceCode(String serviceCode) {
-            return $x(format("//tr[td[@data-test='service-link' and normalize-space(text())='%s'] ]//td[@data-test='service-url']", serviceCode));
+            return $x(format("//tr[td[@data-test='service-link' and normalize-space(text())='%s'] ]//td[@data-test='service-url']",
+                    serviceCode));
         }
 
         public SelenideElement tableServiceTimeoutOfServiceCode(String serviceCode) {
@@ -292,7 +294,8 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement accessRightsTableRowRemoveOfId(String id) {
-            return $x(format("//table[contains(@class,'group-members-table')]//tr[ td[text()='%s'] ]//button[@data-test='remove-subject']", id));
+            return $x(format("//table[contains(@class,'group-members-table')]//tr[ td[text()='%s'] ]//button[@data-test='remove-subject']",
+                    id));
         }
     }
 
