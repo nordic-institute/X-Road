@@ -27,6 +27,8 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
@@ -134,6 +136,12 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
                 .findFirst();
 
         globalGroupMember.ifPresent(globalGroupMemberRepository::delete);
+    }
+
+    @Override
+    public void removeClientFromGlobalGroups(ClientId clientId) {
+        globalGroupMemberRepository.findMemberGroups(clientId)
+                .forEach(globalGroupMemberRepository::delete);
     }
 
     private XRoadMemberEntity getMemberIdEntity(MemberId memberId) {

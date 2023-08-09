@@ -1,4 +1,4 @@
 ---
 #controls lxd versions, if changed, check epel version and repo urls
-centos_releasever: 7
-ubuntu_releasever: focal
+centos_releasever: 8
+ubuntu_releasever: jammy

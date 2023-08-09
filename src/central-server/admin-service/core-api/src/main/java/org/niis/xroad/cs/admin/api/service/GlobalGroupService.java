@@ -60,5 +60,6 @@ public interface GlobalGroupService {
         private final String memberClass;
         private final String instance;
         private final String code;
+        private final String subsystemCode;
     }
 }

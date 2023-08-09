@@ -1,6 +1,6 @@
 ---
-- import_tasks: ubuntu.yml
+- include_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 
-- import_tasks: rhel.yml
+- include_tasks: rhel.yml
   when: ansible_os_family == "RedHat"

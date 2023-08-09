@@ -1,5 +1,15 @@
 # Change Log
 
+## 7.3.2 - 2023-08-07
+- XRDDEV-2447: The securityServerType property value is stored in the operational monitoring database using capital letters.
+- XRDDEV-2449: Security Server automatic backups creating excess files
+- XRDDEV-2450: Incorrect count show for global group members on different views
+- XRDDEV-2451: Central Server does not remove deleted subsystem from global groups it is part of
+- XRDDEV-2453: Central Server global groups member list search filtering does not work correctly
+- XRDDEV-2458: As a Security Server Administrator I want the X-Road software to install tzdata-java as a dependnecy on RHEL systems so that I wouldn't be affected by the JDK bug
+
+## 7.3.1 - 2023-07-10
+- XRDDEV-2442: X-Road components fail to start after upgrading to 7.3.0 if Java 8 was used before the upgrade and the component was originally installed before version 7.0.0.
 
 ## 7.3.0 - 2023-05-30
 - XRDDEV-409: As a Security Expert I want to investigate the possibility to use secure connection (HTTPS) for distributing global configuration so that the implementation would be more secure.
@@ -293,11 +303,6 @@
 - XRDDEV-2435: As a Security Server user I would like it to be possible for me to override the default password store key token path so that I can customize it's location
 - XRDDEV-2436: The Central Server API doesn't have request and file size limiting.
 - XRDDEV-2437: New Central Server configuration database unnecessary database objects
-
-## 7.2.1 - 2023-02-10
-- XRDDEV-2210: As a Security Server Administrator I want that the Security Server uses the ocspFreshnessSeconds value of the X-Road instance where it has been registered so that the configuration of federated instances doesn't affect my Security Server's operations.
-- XRDDEV-2230: Gpg is not marked as a dependency so initial configuration might fail.
-- XRDDEV-2235: As a Developer I want to check vulnerable dependencies and fix them for the 7.1.2 and 7.2.1 releases so that we don't have potential security issues in the software.
 
 ## 7.2.0 - 2022-11-10
 - XRDDEV-2167: As an X-Road user I would like the default maximum memory for the X-Road message log addon to be increased to 200m so that it wouldn't cause failures on higher traffic servers

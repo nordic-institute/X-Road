@@ -1,84 +1,56 @@
 ---
-- name: build docker image for building focal deb packages
-  docker_image:
-    name: xroad-deb-focal
-    source: build
-    build:
-      path: ../src/packages/docker/deb-focal
+- name: "build {{ ubuntu_releasever }} deb packages"
   tags: deb
-  when: ubuntu_releasever == "focal"
+  block:
+    - name: build docker image for building {{ ubuntu_releasever }} deb packages
+      docker_image:
+        name: xroad-deb-{{ ubuntu_releasever }}
+        source: build
+        build:
+          path: ../src/packages/docker/deb-{{ ubuntu_releasever }}
 
-- name: build focal deb packages in docker
-  docker_container:
-    name: xroad-deb-focal
-    image: xroad-deb-focal
-    state: started
-    restart: true
-    detach: false
-    cleanup: yes
-    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
-    env:
-        HOME: "/workspace/src/packages"
-    volumes:
-      - ..:/workspace
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
-    command: "/workspace/src/packages/build-deb.sh focal"
-  tags: deb
-  when: ubuntu_releasever == "focal"
+    - name: build {{ ubuntu_releasever }} deb packages in docker
+      docker_container:
+        name: xroad-deb-{{ ubuntu_releasever }}
+        image: xroad-deb-{{ ubuntu_releasever }}
+        state: started
+        restart: true
+        detach: false
+        cleanup: yes
+        user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
+        env:
+            HOME: "/workspace/src/packages"
+        volumes:
+          - ..:/workspace
+          - /etc/passwd:/etc/passwd:ro
+          - /etc/group:/etc/group:ro
+        command: "/workspace/src/packages/build-deb.sh {{ ubuntu_releasever }}"
 
-- name: build docker image for building RHEL 7 packages
-  docker_image:
-    name: xroad-rpm
-    source: build
-    build:
-      path: ../src/packages/docker/rpm
+- name: "build RHEL {{ centos_releasever }} packages"
   tags: rpm
-  when: centos_releasever == 7
+  vars:
+    rpm_version_suffix: "{{ (centos_releasever|int > 7) | ternary('-el' + centos_releasever|string, '') }}"
+  block:
+    - name: "build docker image for building RHEL {{ centos_releasever }} packages"
+      docker_image:
+        name: xroad-rpm{{ rpm_version_suffix }}
+        source: build
+        build:
+          path: ../src/packages/docker/rpm{{ rpm_version_suffix }}
 
-- name: build RHEL 7 packages in docker
-  docker_container:
-    name: xroad-rpm
-    image: xroad-rpm
-    state: started
-    restart: true
-    detach: false
-    cleanup: yes
-    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
-    env:
-        HOME: "/workspace/src/packages"
-    volumes:
-      - ..:/workspace
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
-    command: "/workspace/src/packages/build-rpm.sh"
-  tags: rpm
-  when: centos_releasever == 7
-
-- name: build docker image for building RHEL 8 packages
-  docker_image:
-    name: xroad-rpm-el8
-    source: build
-    build:
-      path: ../src/packages/docker/rpm-el8
-  tags: rpm
-  when: centos_releasever == 8
-
-- name: build RHEL 8 packages in docker
-  docker_container:
-    name: xroad-rpm-el8
-    image: xroad-rpm-el8
-    state: started
-    restart: true
-    detach: false
-    cleanup: yes
-    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
-    env:
-        HOME: "/workspace/src/packages"
-    volumes:
-      - ..:/workspace
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
-    command: "/workspace/src/packages/build-rpm.sh"
-  tags: rpm
-  when: centos_releasever == 8
+    - name: "build RHEL {{ centos_releasever }} packages in docker"
+      docker_container:
+        name: xroad-rpm{{ rpm_version_suffix }}
+        image: xroad-rpm{{ rpm_version_suffix }}
+        state: started
+        restart: true
+        detach: false
+        cleanup: yes
+        user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
+        env:
+            HOME: "/workspace/src/packages"
+        volumes:
+          - ..:/workspace
+          - /etc/passwd:/etc/passwd:ro
+          - /etc/group:/etc/group:ro
+        command: "/workspace/src/packages/build-rpm.sh"

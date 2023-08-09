@@ -48,6 +48,7 @@ import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
@@ -95,6 +96,8 @@ public class SubsystemServiceImplTest implements WithInOrder {
     private XRoadMemberRepository xRoadMemberRepository;
     @Mock
     private ServerClientRepository serverClientRepository;
+    @Mock
+    private GlobalGroupMemberService globalGroupMemberService;
     @Mock
     private AuditDataHelper auditDataHelper;
 

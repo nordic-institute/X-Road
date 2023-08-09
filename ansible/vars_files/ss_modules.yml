@@ -30,13 +30,8 @@ ss_modules:
     build: build
     lib: configuration-client-1.0.jar
     target: /usr/share/xroad/jlib
-  proxy-ui:
-    dir: proxy-ui
-    build: warble
-    lib: proxy-ui.war
-    target: /usr/share/xroad/jlib/webapps
   proxy-ui-api:
-    dir: proxy-ui-api
+    dir: security-server/admin-service/application
     build: build
     lib: proxy-ui-api-1.0.jar
     target: /usr/share/xroad/jlib
