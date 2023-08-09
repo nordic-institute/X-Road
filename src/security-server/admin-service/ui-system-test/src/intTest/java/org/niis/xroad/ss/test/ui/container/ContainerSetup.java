@@ -103,6 +103,8 @@ public class ContainerSetup {
             @SneakyThrows
             public void afterStart(@NotNull GenericContainer<?> genericContainer) {
                 genericContainer.execInContainer("sudo", "-u", "xroad", "/etc/xroad/backup-keys/init_backup_encryption.sh");
+                genericContainer.execInContainer("keytool", "-keystore", "/etc/xroad/messagelog/messagelog.p12",
+                        "-storetype", "pkcs12", "-importpassword", "-alias", "key1");
             }
         };
     }
