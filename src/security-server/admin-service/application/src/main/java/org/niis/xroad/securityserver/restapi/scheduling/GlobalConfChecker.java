@@ -102,7 +102,6 @@ public class GlobalConfChecker {
             updateServerConf();
         } catch (Exception e) {
             log.error("Checking globalconf for updates failed", e);
-            throw e;
         }
     }
 
