@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.7  
+Version: 1.8  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -15,6 +15,7 @@ Doc. ID: UG-K-SS-SIDECAR
  16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                  | Jarkko Hyöty
  11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process | Monika Liutkute
  06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets
+ 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets
 
 ## License
 
@@ -381,20 +382,20 @@ See [Kubernetes documentation](https://kubernetes.io/docs/tasks/configure-pod-co
 The X-Road proxy consumer interface can be used for checking that the server is alive. Since the startup can take some time, it is recommended to also use a startup probe.
 
 ```yaml
-  startupProbe
-    httpget:
+  startupProbe:
+    httpGet:
       path: /
       port: 8080
     periodSeconds: 10
     failureThreshold: 60
 
   livenessProbe:
-    httpget:
+    httpGet:
       path: /
       port: 8080
-    periodseconds: 10
-    successthreshold: 1
-    failurethreshold: 5
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 5
 ```
 
 ##### Readiness probe
@@ -478,19 +479,19 @@ spec:
       value: "<xroad db password>"
     - name: XROAD_DATABASE_NAME
       value: "<database name>"
-  startupProbe
-    httpget:
+  startupProbe:
+    httpGet:
       path: /
       port: 8080
     periodSeconds: 10
     failureThreshold: 60
   livenessProbe:
-    httpget:
+    httpGet:
       path: /
       port: 8080
-    periodseconds: 10
-    successthreshold: 1
-    failurethreshold: 5
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 5
     ports:
     - containerPort: 4000
     - containerPort: 5588
