@@ -70,6 +70,7 @@
     "trim-newlines": "4.0.2",
     "glob-parent": "^5.1.2",
     "minimatch": "^3.1.2",
-    "loader-utils": "^2.0.4"
+    "loader-utils": "^2.0.4",
+    "decode-uri-component": "^0.2.2"
   }
 }
