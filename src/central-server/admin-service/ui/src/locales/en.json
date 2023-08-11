@@ -292,14 +292,14 @@
   },
   "footer": {
     "copyright": {
-      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
+      "company": "Cambodia Data Exchange (CamDX)",
       "licenceInfo": "Licence info",
       "title": "Copyright"
     },
     "software": {
       "feedback": "Feedback",
       "title": "Software",
-      "versionPrefix": "X-Road"
+      "versionPrefix": "CamDX"
     }
   },
   "global": {
