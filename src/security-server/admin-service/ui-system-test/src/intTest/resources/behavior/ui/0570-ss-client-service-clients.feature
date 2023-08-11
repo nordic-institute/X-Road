@@ -4,6 +4,7 @@ Feature: 0570 - SS: Client Service clients
 
   Background:
     Given SecurityServer login page is open
+    And Page is prepared to be tested
     And User xrd logs in to SecurityServer with password secret
     And Clients tab is selected
 

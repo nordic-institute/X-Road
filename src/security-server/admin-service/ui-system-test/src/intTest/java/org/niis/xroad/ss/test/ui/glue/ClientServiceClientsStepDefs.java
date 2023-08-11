@@ -45,9 +45,9 @@ public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
 
     @Step("Service clients add subject wizard is opened")
     public void openSubjectWizard() {
-        serviceClients.btnAddSubject().click();
-        serviceClients.addSubject.btnCancelWizardMemberPage().click();
-        serviceClients.btnAddSubject().click();
+        serviceClients.btnAddSubject().shouldBe(visible).click();
+        serviceClients.addSubject.btnCancelWizardMemberPage().shouldBe(visible).click();
+        serviceClients.btnAddSubject().shouldBe(visible).click();
     }
 
     @Step("Service clients wizard is filtered to {string} with {} results and subject {string} is selected")

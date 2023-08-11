@@ -4,6 +4,7 @@ Feature: 0700 - SS: Permissions
 
   Background:
     Given SecurityServer login page is open
+    And Page is prepared to be tested
 
   Scenario: System administrator sees only relevant pages
     Given Login form is visible

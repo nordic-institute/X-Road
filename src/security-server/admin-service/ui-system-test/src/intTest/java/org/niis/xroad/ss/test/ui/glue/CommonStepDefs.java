@@ -26,6 +26,7 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 
 import static com.codeborne.selenide.Condition.text;
@@ -33,6 +34,18 @@ import static java.time.Duration.ofSeconds;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class CommonStepDefs extends BaseUiStepDefs {
+
+    @Step("Page is prepared to be tested")
+    public void preparePage() {
+        Selenide.executeJavaScript("window.e2eTestingMode = true;\n"
+                + "      const style = `\n"
+                + "      <style>\n"
+                + "        *, ::before, ::after {\n"
+                + "            transition:none !important;\n"
+                + "        }\n"
+                + "      </style>`;\n"
+                + "      document.head.insertAdjacentHTML('beforeend', style);");
+    }
 
     @Step("error: {string} was displayed")
     public void errorIsShown(final String error) {

@@ -1,10 +1,12 @@
 @SecurityServer
 @Initialization
+  @This
 Feature: 0100 - SS: Initialization
   Verify that SS can be initialized from fresh state.
 
   Background:
     Given SecurityServer login page is open
+    And Page is prepared to be tested
     And User xrd logs in to SecurityServer with password secret
 
   Scenario: Security server is initialized

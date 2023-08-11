@@ -5,6 +5,7 @@ Feature: 0400 - SS: System Parameters
 
   Background:
     Given SecurityServer login page is open
+    And Page is prepared to be tested
     And User xrd logs in to SecurityServer with password secret
     And Settings tab is selected
     And System Parameters sub-tab is selected

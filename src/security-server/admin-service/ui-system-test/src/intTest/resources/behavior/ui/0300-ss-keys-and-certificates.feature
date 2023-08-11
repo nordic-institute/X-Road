@@ -4,6 +4,7 @@ Feature: 0300 - SS: Keys and certificates
 
   Background:
     Given SecurityServer login page is open
+    And Page is prepared to be tested
     And User xrd logs in to SecurityServer with password secret
 
   Scenario Outline: <$label> key is added and imported

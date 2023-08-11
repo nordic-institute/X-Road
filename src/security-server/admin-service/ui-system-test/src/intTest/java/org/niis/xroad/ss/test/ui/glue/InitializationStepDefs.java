@@ -30,6 +30,7 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.InitializationPageObj;
 
 import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
 public class InitializationStepDefs extends BaseUiStepDefs {
@@ -99,6 +100,9 @@ public class InitializationStepDefs extends BaseUiStepDefs {
     @Step("Server id exist warning is confirmed")
     public void confirmExistingServer() {
         commonPageObj.dialog.btnSave().click();
+
+        commonPageObj.snackBar.success().shouldHave(text("Server initialised"));
+        commonPageObj.snackBar.btnClose().shouldBe(visible).click();
     }
 
     @Step("Initial Configuration is submitted")

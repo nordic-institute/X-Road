@@ -39,6 +39,7 @@ import org.springframework.http.MediaType;
 
 import java.util.Optional;
 
+import static com.codeborne.selenide.Condition.empty;
 import static org.openqa.selenium.Keys.COMMAND;
 import static org.openqa.selenium.Keys.CONTROL;
 import static org.openqa.selenium.Keys.DELETE;
@@ -64,9 +65,11 @@ public abstract class BaseUiStepDefs {
      * @param element element to clear
      */
     protected SelenideElement clearInput(SelenideElement element) {
+        element.clear();
         element.sendKeys(isMacOsBrowser() ? COMMAND : CONTROL, "a");
         element.sendKeys(DELETE);
 
+        element.shouldBe(empty);
         return element;
     }
 

@@ -4,6 +4,7 @@ Feature: 0600 - SS: Backup and Restore
 
   Background:
     Given SecurityServer login page is open
+    And Page is prepared to be tested
     And User xrd logs in to SecurityServer with password secret
     And Settings tab is selected
     And Backup and Restore sub-tab is selected

@@ -4,6 +4,7 @@ Feature: 0550 - SS: Client REST with base path services
 
   Background:
     Given SecurityServer login page is open
+    And Page is prepared to be tested
     And User xrd logs in to SecurityServer with password secret
     And Clients tab is selected
 
@@ -116,7 +117,7 @@ Feature: 0550 - SS: Client REST with base path services
   Scenario: Newly added services are enabled and one of them disabled
     Given Client "TestService" is opened
     And Services sub-tab is selected
-    When Service "REST (http://example.com/v2)" is enabled
+    When Service "REST (http://example2.com)" is enabled
     And Service "REST (http://example.com/v2)" is enabled
     Then Service "REST (http://example.com/v2)" is disabled with notice "just disabled."
 

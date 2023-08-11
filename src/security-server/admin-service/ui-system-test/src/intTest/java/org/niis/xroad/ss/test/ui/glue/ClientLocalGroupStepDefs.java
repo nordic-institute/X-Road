@@ -39,6 +39,8 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.openqa.selenium.Keys.ENTER;
 
 public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj clientInfoPageObj = new ClientInfoPageObj();
@@ -123,6 +125,12 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
     public void setDescription(String desc) {
         clearInput(clientInfoPageObj.localGroups.details.inputLocalGroupDescription());
         clientInfoPageObj.localGroups.details.inputLocalGroupDescription().setValue(desc);
+        clientInfoPageObj.localGroups.details.inputLocalGroupDescription().sendKeys(ENTER);
+
+        if (isNotBlank(desc)) {
+            commonPageObj.snackBar.success().shouldHave(text("Description saved"));
+            commonPageObj.snackBar.btnClose().click();
+        }
     }
 
     @Step("Local group search dialog is opened and members for instance {string} and member class {string} are filtered")

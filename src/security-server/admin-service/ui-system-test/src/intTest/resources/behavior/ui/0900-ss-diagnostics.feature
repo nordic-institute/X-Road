@@ -4,6 +4,7 @@ Feature: 0900 - SS:Diagnostics
 
   Background:
     Given SecurityServer login page is open
+    And Page is prepared to be tested
     And User xrd logs in to SecurityServer with password secret
 
   Scenario: Diagnostics checks are successful

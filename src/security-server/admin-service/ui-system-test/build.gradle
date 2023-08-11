@@ -1,4 +1,3 @@
-
 dependencies {
   intTestImplementation project(":security-server:openapi-model")
 
@@ -8,7 +7,7 @@ dependencies {
   intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
   intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
   intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
-  intTestImplementation( "org.awaitility:awaitility:${awaitilityVersion}")
+  intTestImplementation("org.awaitility:awaitility:${awaitilityVersion}")
 }
 
 task systemTest(type: Test) {
@@ -20,7 +19,7 @@ task systemTest(type: Test) {
   testClassesDirs = sourceSets.intTest.output.classesDirs
   classpath = sourceSets.intTest.runtimeClasspath
 
-  def systemTestArgs = []
+  def systemTestArgs = ["-XX:MaxMetaspaceSize=200m"]
   if (project.hasProperty('systemTestSsTags')) {
     systemTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('systemTestTags')
   }
@@ -31,6 +30,8 @@ task systemTest(type: Test) {
     systemTestArgs += "-Dtest-automation.custom.package-host=" + project.getProperty('systemTestSsPackageHost')
   }
   jvmArgs systemTestArgs
+
+  maxHeapSize("256m")
 
   testLogging {
     showStackTraces(true)
