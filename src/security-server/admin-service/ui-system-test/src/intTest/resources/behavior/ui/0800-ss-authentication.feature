@@ -23,7 +23,6 @@ Feature: 0800 - SS: Authentication
     When logout button is being clicked
     Then SecurityServer login page is open
 
-  @Skip
   Scenario: Automatic logout happens when timeout passes
     Given Login form is visible
     And User xrd logs in to SecurityServer with password secret
