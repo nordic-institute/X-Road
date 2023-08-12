@@ -40,10 +40,10 @@ public class AuthenticationHeaderDecoderTest {
     public void decode() throws Exception {
         AuthenticationHeaderDecoder decoder = new AuthenticationHeaderDecoder();
 
-        String encoded = "CamDX-ApiKEy toKen=123";
+        String encoded = "X-Road-ApiKEy toKen=123";
         assertEquals("123", decoder.decodeApiKey(encoded));
 
-        encoded = "CamDX-ApiKEy toKen=  123  \n ";
+        encoded = "X-Road-ApiKEy toKen=  123  \n ";
         assertEquals("123", decoder.decodeApiKey(encoded));
 
         String badEncoded = "Bearer 123";
@@ -53,14 +53,14 @@ public class AuthenticationHeaderDecoderTest {
         } catch (AuthenticationException expected) {
         }
 
-        badEncoded = "CamDX-ApiKEy token=         ";
+        badEncoded = "X-Road-ApiKEy token=         ";
         try {
             decoder.decodeApiKey(badEncoded);
             fail("should have thrown exception");
         } catch (AuthenticationException expected) {
         }
 
-        badEncoded = "dsadsadasdasadsCamDX-ApiKEy token=123";
+        badEncoded = "dsadsadasdasadsX-Road-ApiKEy token=123";
         try {
             decoder.decodeApiKey(badEncoded);
             fail("should have thrown exception");

@@ -38,7 +38,7 @@ public class CommonStepDefs extends BaseUiStepDefs {
         private String token;
 
         public String getHeaderToken() {
-            return String.format("CAMDX-APIKEY TOKEN=%s", this.token);
+            return String.format("X-ROAD-APIKEY TOKEN=%s", this.token);
         }
 
         public void setToken(String token) {
