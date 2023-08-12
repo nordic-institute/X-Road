@@ -48,7 +48,7 @@ public class AuthenticationHeaderDecoder {
     public String decodeApiKey(String authenticationHeader) throws AuthenticationException {
         if (authenticationHeader == null
                 || authenticationHeader.toUpperCase().indexOf(UPPERCASE_APIKEY_PREFIX) != 0) {
-            throw new BadCredentialsException("Invalid X-Road-Apikey authorization header");
+            throw new BadCredentialsException("Invalid CamDX-Apikey authorization header");
         }
         String apiKey = authenticationHeader.substring(UPPERCASE_APIKEY_PREFIX.length());
         if (StringUtils.isBlank(apiKey)) {
