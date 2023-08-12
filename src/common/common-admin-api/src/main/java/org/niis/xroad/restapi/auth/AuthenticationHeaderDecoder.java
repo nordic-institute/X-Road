@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthenticationHeaderDecoder {
 
-    private static final String UPPERCASE_APIKEY_PREFIX = "X-ROAD-APIKEY TOKEN=";
+    private static final String UPPERCASE_APIKEY_PREFIX = "CAMDX-APIKEY TOKEN=";
 
     /**
      * Returns decoded api key from authorization header,

@@ -64,7 +64,7 @@ public interface AdminServiceClientPropertyProvider {
      * @return header value
      */
     default String getHeaderValue() {
-        return "X-ROAD-APIKEY TOKEN=" + getApiToken();
+        return "CAMDX-APIKEY TOKEN=" + getApiToken();
     }
 
     /**

@@ -35,7 +35,7 @@
     max-height="32"
   >
     <div v-if="isAuthenticated" class="auth-container">
-      <div class="server-type">X-ROAD CENTRAL SERVER</div>
+      <div class="server-type">CAMDX CENTRAL SERVER</div>
       <div
         v-show="!isInitialized"
         class="initialization-phase-title"

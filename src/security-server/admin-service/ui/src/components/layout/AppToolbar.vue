@@ -35,7 +35,7 @@
     max-height="32"
   >
     <div v-if="authenticated" class="auth-container">
-      <div class="server-type">X-ROAD SECURITY SERVER</div>
+      <div class="server-type">CAMDX SECURITY SERVER</div>
       <div
         v-show="currentSecurityServer.id"
         class="server-name"
