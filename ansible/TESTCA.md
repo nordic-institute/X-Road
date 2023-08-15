@@ -1,17 +1,17 @@
 # Test-CA with TSA and OCSP
 
-**Note**. The test CA is for _testing and development purposes only_. It is not a secure certification authority.
+**Note**. The test CA is for _testing and development purposes only_. It is not a secure certification authority and therefore, it's not suitable for production use.
 
 The `roles/xroad-ca/` directory contains a collection of scripts to set up an openssl-based test-CA environment for signing certificates and providing TSA and OCSP services during development. 
-The scripts require Ubuntu 18.04.
+The scripts require Ubuntu 20.04 or Ubuntu 22.04.
 
-You can initialize the test-CA server automatically [with Ansible.](README.md). This initializes a new test-CA server if one is listed in `ca_servers` category.
+You can initialize the test-CA server automatically [with Ansible](README.md). This initializes a new test-CA server if one is listed in `ca_servers` category.
 
 Alternatively, you can initialize the server manually. This is described in chapters 2-4. If you use Ansible, skip those chapters.
 
 Chapters 1 and 5-7 describe usage of the initialized CA server and are useful for both manual and ansible installation.
 
-To customize test-CA DN details for Ansible installation, specify parameters in a file in group_vars ([read more about group_vars](README.md))
+To customize test-CA DN details for Ansible installation, specify parameters in a file in group_vars ([read more](README.md) about `group_vars`).
 
 Example group_vars configuration file with all of the test-CA parameters:
 
@@ -28,11 +28,11 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 
 ## 1. Contents of the roles/xroad-ca directory
 
-* `bionic-files/lib/systemd/system` - systemd services for the TSA and OCSP
-* `common-files/etc/nginx` - nginx configuration for proxying TSA and OCSP requests
-* `common-files/home/ca/CA` - CA configuration, and scripts for signing certificates locally
-* `common-files/home/ca/TSA` - the TSA server
-* `common-files/usr` - scripts for signing certificates
+* `files/lib/systemd/system` - systemd services for the TSA and OCSP
+* `files/etc/nginx` - nginx configuration for proxying TSA and OCSP requests
+* `files/home/ca/CA` - CA configuration, and scripts for signing certificates locally
+* `files/home/ca/TSA` - the TSA server
+* `files/usr` - scripts for signing certificates
 * `templates/init.sh` - script for creating the test-CA environment
 
 ---------------------------------------------
@@ -41,16 +41,16 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 
 (Ansible does these steps automatically)
 
-1. Install nginx-light on the target machine
-2. Create the following users on the target machine
-	- `ca`
-	- `ocsp`
-3. Copy the following directories from the `roles/xroad-ca/[UBUNTU_RELEASE]-files` and `roles/xroad-ca/common-files` directories to target machine root
-	- `etc`
-	- `home`
-	- `usr`
-  - `lib`
-4. Copy `roles/xroad-ca/templates/init.sh` to `home/ca/CA/`
+1. Install nginx-light on the target machine (`sudo apt install nginx-light`)
+2. Create the following users on the target machine:
+    - `ca`
+    - `ocsp`
+3. Copy the following directories from the `roles/xroad-ca/files` directory to the target machine root:
+    - `etc`
+    - `home`
+    - `usr`
+    - `lib`
+4. Copy `roles/xroad-ca/templates/init.sh` to `/home/ca/CA/`
 5. Add user `ocsp` to group `ca`
 6. Grant `ca` ownership and all permissions to files under `/home/ca/CA`
 7. Grant read permission for group `ca` to files under `/home/ca/CA`
@@ -86,8 +86,8 @@ Using recognizable and meaningful values helps to distinguish the certification 
 
 (Ansible does these steps automatically)
 
-1. Before starting the jobs, restart the nginx service to apply the proxy changes (sudo systemctl reload nginx)
-2. start the jobs by calling `sudo systemctl start ca ocsp tsa`
+1. Before starting the jobs, restart the nginx service to apply the proxy changes (`sudo systemctl reload nginx`)
+2. Start the jobs by calling `sudo systemctl start ca ocsp tsa`
 
 ---------------------------------------------
 
@@ -117,7 +117,16 @@ To configure the central server to use the test-CA:
 
 To sign a CSR, you have three options:
 
-### 7.1. Use command `sign` on a file
+### 7.1 Use the web interface
+
+There is a simple web interface running at `http://some-ca-server:8888/testca/` which can be used to sign requests.
+
+It is also possible to use a command line http client (e.g. curl):
+```
+curl -Fcertreq=@auth_csr.pem http://some-ca-server:8888/testca/sign
+```
+
+### 7.2 Use command `sign` on a file
 
 1. Upload the CSR to test CA server
 2. Register the certificate using command `sign` (user needs to have sudo rights)
@@ -147,7 +156,7 @@ Data Base Updated
 ```
 The signed certificate is stored in `/home/ca/CA/newcerts/??.pem`, where ?? = serial number
 
-### 7.2. Use commands `sign-sign` and `sign-auth` on piped data
+### 7.3 Use commands `sign-sign` and `sign-auth` on piped data
 
 You can use SSH to pipe the CSR and signed certificate remotely.
 Pick either `sign-sign` or `sign-auth` based on the certificate type.
@@ -175,14 +184,6 @@ Certificate Details:
 Certificate is to be certified until Oct 15 12:50:35 2036 GMT (7300 days)
 Write out database with 1 new entries
 Data Base Updated
-```
-### 7.3 Use the web interface
-
-There is a simple web interface running at http://some-ca-server:8888/testca/ which can be used to sign requests.
-
-It is also possible to use a command line http client (e.g. curl):
-```
-curl -Fcertreq=@auth_csr.pem http://some-ca-server:8888/testca/sign
 ```
 
 ### 7.4 Certificate revocation
