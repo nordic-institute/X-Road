@@ -65,13 +65,13 @@ include "security-server:admin-service:application"
 include 'security-server:admin-service:infra-jpa'
 include "security-server:admin-service:ui"
 include "security-server:admin-service:int-test"
+include "security-server:admin-service:ui-system-test"
 
 // Utils
 include "signer-console"
 
 // Tests
 include "common:common-test"
-include "e2e-tests"
 // Addons
 include "addons:hwtoken"
 include "addons:messagelog:messagelog-addon"
