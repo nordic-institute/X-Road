@@ -49,7 +49,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: debian-packages
-          path: ./github/docker/centralserver/build/packages
+          path: ./.github/docker/centralserver/build/packages
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestDockerfile=${{ vars.GITHUB_WORKSPACE }}/.github/docker/centralserver
+        run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestDockerfile=${{ github.workspace }}/.github/docker/centralserver
