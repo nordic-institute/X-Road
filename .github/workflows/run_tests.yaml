@@ -52,4 +52,4 @@ jobs:
           path: ./.github/docker/centralserver/build/packages
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestDockerfile=${{ github.workspace }}/.github/docker/centralserver
+        run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestDockerRoot=${{ github.workspace }}/.github/docker/centralserver
