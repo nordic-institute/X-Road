@@ -28,6 +28,7 @@ jobs:
           name: debian-packages
           path: src/packages/build/ubuntu22.04/*.deb
   RunCSSystemTests:
+    needs: BuildAndpackageWithUnitTests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
