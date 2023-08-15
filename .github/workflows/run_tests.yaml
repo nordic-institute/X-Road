@@ -12,11 +12,13 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+      - name: Ensure required packages
+        run: sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
       - name: Build and run unit-tests
         working-directory: ./src
-        run: ./gradlew -PxroadBuildType=RELEASE --stacktrace build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit -x intTest
+        run: ./gradlew -PxroadBuildType=RELEASE --stacktrace build test intTests runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
       - name: Build Jammy packages
         env:
           DEBEMAIL: 'info@niis.org'
