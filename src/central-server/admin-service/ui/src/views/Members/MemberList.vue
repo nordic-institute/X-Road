@@ -34,7 +34,7 @@
           @click="showAddMemberDialog = true"
         >
           <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add></xrd-icon-add>
+            <xrd-icon-add />
           </xrd-icon-base>
           {{ $t('members.addMember') }}
         </xrd-button>
@@ -53,6 +53,7 @@
       data-test="members-table"
       @update:options="changeOptions"
     >
+        <template #top></template>
       <template #[`item.member_name`]="{ item }">
         <div
           v-if="hasPermissionToMemberDetails"
@@ -98,7 +99,7 @@ import { debounce, toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { Client } from '@/openapi-types';
 import { VDataTableServer } from "vuetify/labs/VDataTable";
-import { DataQuery } from "@/ui-types";
+import { DataQuery, DataTableHeader } from "@/ui-types";
 import { defaultItemsPerPageOptions } from "@/util/defaults";
 import GenericView from "@/components/ui/TitledView.vue";
 import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
@@ -127,7 +128,7 @@ export default defineComponent({
   computed: {
     ...mapStores(useClient),
     ...mapState(useUser, ['hasPermission']),
-    headers() {
+    headers(): DataTableHeader[] {
       return [
         {
           title: `${this.$t('global.memberName')} (${this.clientStore.clients?.length})`,

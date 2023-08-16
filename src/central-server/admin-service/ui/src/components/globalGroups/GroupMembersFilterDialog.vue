@@ -25,32 +25,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog
-    v-if="dialog"
-    :value="dialog"
-    :width="width"
-    persistent
-    :scrollable="scrollable"
+  <xrd-simple-dialog
+    title="filters.chooseFilters"
     data-test="group-members-filter-dialog"
+    save-button-text="filters.apply"
+    width="824"
+    z-index="1999"
+    @save="apply"
+    @cancel="cancel"
   >
-    <v-card class="xrd-card" data-test="dialog-simple">
-      <v-card-title>
-        <slot name="title">
-          <span data-test="dialog-title" class="dialog-title-text">{{
-            $t('filters.chooseFilters')
-          }}</span>
-        </slot>
-        <v-spacer />
-        <xrd-close-button
-          id="dlg-close-x"
-          data-test="dlg-close-x"
-          @click="cancel()"
-        />
-      </v-card-title>
-      <div class="alert-slot">
-        <slot name="alert"></slot>
-      </div>
-      <v-card-text class="filters-content-wrapper">
+    <template #content>
         <v-container fluid class="ma-0 pa-0 mb-9">
           <!-- By type -->
           <div class="filter-title-row field-title">
@@ -61,13 +45,13 @@
               <v-checkbox
                 v-model="typeMemberModel"
                 :label="$t('filters.groupMembers.member')"
-              ></v-checkbox>
+              />
             </v-col>
             <v-col class="d-flex" cols="4" sm="4" md="4">
               <v-checkbox
                 v-model="typeSubsystemModel"
                 :label="$t('filters.groupMembers.subsystem')"
-              ></v-checkbox>
+              />
             </v-col>
           </v-row>
           <v-divider class="custom-divider"></v-divider>
@@ -81,8 +65,8 @@
                 v-model="instanceModel"
                 :items="instances"
                 :label="$t('filters.groupMembers.instance')"
-                outlined
-              ></v-select>
+                variant="outlined"
+              />
             </v-col>
 
             <v-col class="d-flex flex-column" cols="12" sm="6">
@@ -92,9 +76,9 @@
               <v-select
                 v-model="memberClassModel"
                 :items="memberClasses"
-                outlined
+                variant="outlined"
                 :label="$t('filters.groupMembers.class')"
-              ></v-select>
+              />
             </v-col>
           </v-row>
 
@@ -109,7 +93,8 @@
                 clearable
                 multiple
                 :items="codes"
-              ></v-autocomplete>
+                variant="underlined"
+              />
             </v-col>
 
             <!-- By subsystem -->
@@ -122,39 +107,22 @@
                 clearable
                 multiple
                 :items="subsystems"
-              ></v-autocomplete>
+                variant="underlined"
+              />
             </v-col>
           </v-row>
         </v-container>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-        <xrd-button
-          data-test="dialog-cancel-button"
-          class="mr-3"
-          outlined
-          @click="clearFields()"
-        >
-          {{ $t('filters.clearFields') }}
-        </xrd-button>
-        <xrd-button
-          data-test="dialog-save-button"
-          :loading="loading"
-          @click="apply()"
-        >
-          {{ $t('filters.apply') }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 /** Base component for simple dialogs */
 
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
+import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
 
 const initialState = () => {
   return {
@@ -169,25 +137,16 @@ const initialState = () => {
 
 export default defineComponent({
   name: 'GroupMembersFilterDialog',
-  components: {},
+  components: { XrdSimpleDialog },
   props: {
     groupCode: {
       type: String,
-      required: true,
-    },
-    // Dialog visible / hidden
-    dialog: {
-      type: Boolean,
       required: true,
     },
     // Is the content scrollable
     scrollable: {
       type: Boolean,
       default: false,
-    },
-    width: {
-      type: [Number, String],
-      default: 824,
     },
     // Set save button loading spinner
     loading: {
@@ -198,6 +157,7 @@ export default defineComponent({
 
   data() {
     return {
+      opened: true,
       instances: [] as string[] | null | undefined,
       memberClasses: [] as string[] | null | undefined,
       subsystems: [] as string[] | null | undefined,

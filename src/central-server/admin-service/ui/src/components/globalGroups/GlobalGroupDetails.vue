@@ -25,28 +25,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <section>
-    <header class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">{{ globalGroup.code }}</div>
-      </div>
+  <titled-view :title="globalGroup.code" :loading="loading" :data="globalGroup">
+    <template #header-buttons>
       <xrd-button
         v-if="allowGroupDelete"
         data-test="remove-group-button"
         outlined
         @click="showDeleteGroupDialog = true"
       >
-        <v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
+        <v-icon class="xrd-large-button-icon" size="x-large" icon="mdi-close-circle" />
         {{ $t('globalGroup.deleteGroup') }}
       </xrd-button>
-    </header>
-
-    <xrd-empty-placeholder
-      :loading="loading"
-      :data="globalGroup"
-      :no-items-text="$t('noData.noData')"
-      skeleton-type="table-heading"
-    />
+    </template>
 
     <info-card
       v-if="!loading"
@@ -61,29 +51,25 @@
     <!-- Edit Description Dialog -->
     <global-group-edit-description-dialog
       v-if="showEditDescriptionDialog"
-      :show-dialog="showEditDescriptionDialog"
       :group-code="globalGroup.code"
       :group-description="globalGroup.description"
-      @edit="editDescription"
-      @cancel="cancelEdit"
+      @edit="globalGroup=$event; showEditDescriptionDialog = false"
+      @cancel="showEditDescriptionDialog = false"
     />
 
     <!-- Delete Group Dialog -->
     <global-group-delete-dialog
       v-if="showDeleteGroupDialog"
-      :show-dialog="showDeleteGroupDialog"
       :group-code="globalGroup.code"
-      @delete="deleteGlobalGroup"
-      @cancel="cancelDelete"
+      @cancel="showDeleteGroupDialog = false"
     />
-  </section>
+  </titled-view>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 
-import { Colors, Permissions, RouteName } from '@/global';
-import { DataOptions } from 'vuetify';
+import { Colors, Permissions } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -92,12 +78,14 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import GlobalGroupDeleteDialog from './GlobalGroupDeleteDialog.vue';
 import GlobalGroupEditDescriptionDialog from './GlobalGroupEditDescriptionDialog.vue';
+import TitledView from "@/components/ui/TitledView.vue";
 
 /**
  * Global group view
  */
 export default defineComponent({
   components: {
+    TitledView,
     GlobalGroupEditDescriptionDialog,
     GlobalGroupDeleteDialog,
     InfoCard,
@@ -112,9 +100,7 @@ export default defineComponent({
     return {
       colors: Colors,
       globalGroup: {} as GlobalGroupResource,
-      pagingSortingOptions: {} as DataOptions,
       loading: false,
-      showAddDialog: false,
       showDeleteGroupDialog: false,
       showEditDescriptionDialog: false,
     };
@@ -147,41 +133,7 @@ export default defineComponent({
       });
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancelDelete(): void {
-      this.showDeleteGroupDialog = false;
-    },
-    cancelEdit(): void {
-      this.showEditDescriptionDialog = false;
-    },
-    deleteGlobalGroup(): void {
-      this.globalGroupStore
-        .deleteByCode(this.groupCode)
-        .then(() => {
-          this.$router.replace({ name: RouteName.GlobalResources });
-          this.showSuccess(this.$t('globalGroup.groupDeletedSuccessfully'));
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.showDeleteGroupDialog = false;
-        });
-    },
-    editDescription(newDescription: string): void {
-      this.globalGroupStore
-        .editGroupDescription(this.groupCode, { description: newDescription })
-        .then((resp) => {
-          this.globalGroup = resp.data;
-          this.showSuccess(this.$t('globalGroup.descriptionSaved'));
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.showEditDescriptionDialog = false;
-        });
-    },
+    ...mapActions(useNotifications, ['showError']),
   },
 });
 </script>

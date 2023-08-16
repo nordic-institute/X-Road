@@ -35,11 +35,17 @@
   >
 <!-- TODO vue3 should work just fine without z-index (AddMemberDialog)   -->
     <v-card class="xrd-card " data-test="dialog-simple">
+      <template #title>
+        <slot name="title">
+          <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
+        </slot>
+      </template>
       <template #append>
-        <xrd-close-button
-          v-if="showClose"
-          id="dlg-close-x"
+        <v-icon
+          v-if="showClose" icon="mdi-close"
           data-test="dlg-close-x"
+          color="primary"
+          size="default"
           @click="$emit('cancel')"
         />
       </template>
@@ -48,11 +54,6 @@
         height="10"
         :indeterminate="true"
       />
-      <template #title>
-        <slot name="title">
-          <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
-        </slot>
-      </template>
       <div class="alert-slot">
         <slot name="alert" />
       </div>

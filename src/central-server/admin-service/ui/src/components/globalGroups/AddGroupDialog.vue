@@ -27,7 +27,6 @@
 <template>
   <xrd-simple-dialog
     :disable-save="!formReady"
-    :dialog="dialog"
     :loading="loading"
     cancel-button-text="action.cancel"
     title="globalResources.addGlobalGroup"
@@ -35,58 +34,56 @@
     @save="save"
   >
     <template #content>
-      <div class="dlg-input-width">
         <v-text-field
-          v-model="code"
-          outlined
+          v-bind="code"
+          variant="outlined"
           :label="$t('globalResources.code')"
+          :error-messages="errors.code"
           autofocus
           data-test="add-global-group-code-input"
-        ></v-text-field>
-      </div>
+        />
 
-      <div class="dlg-input-width">
         <v-text-field
-          v-model="description"
+          v-bind="description"
           :label="$t('globalResources.description')"
-          outlined
+          :error-messages="errors.description"
+          variant="outlined"
           data-test="add-global-group-description-input"
-        ></v-text-field>
-      </div>
+        />
+
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { useNotifications } from '@/store/modules/notifications';
+import { useForm } from "vee-validate";
 
 export default defineComponent({
-  name: 'AddGroupDialog',
-  props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
+  setup() {
+    const { values, errors, defineComponentBinds, meta, resetForm } = useForm({
+      validationSchema: {
+        code: 'required',
+        description: 'required'
+      }
+    });
+    const code = defineComponentBinds('code');
+    const description = defineComponentBinds('description');
+    return { values, errors, meta, resetForm, code, description };
   },
-
+  emits: ['cancel', 'group-added'],
   data() {
     return {
       loading: false,
-      code: '',
-      description: '',
     };
   },
   computed: {
     ...mapStores(useGlobalGroups, useNotifications),
     formReady(): boolean {
-      return !!(
-        this.code &&
-        this.code.length > 0 &&
-        this.description.length > 0
-      );
+      return this.meta.valid;
     },
   },
 
@@ -99,7 +96,7 @@ export default defineComponent({
     save(): void {
       this.loading = true;
       this.globalGroupStore
-        .add({ code: this.code, description: this.description })
+        .add({ code: this.values.code, description: this.values.description })
         .then(() => {
           this.notificationsStore.showSuccess(
             this.$t('globalResources.globalGroupSuccessfullyAdded'),
@@ -115,9 +112,16 @@ export default defineComponent({
         });
     },
     clearForm(): void {
-      this.code = '';
-      this.description = '';
+      this.resetForm()
     },
   },
 });
 </script>
+<style lang="scss" scoped>
+@import '@/assets/tables';
+
+
+div.v-input {
+  padding-bottom: 8px;
+}
+</style>

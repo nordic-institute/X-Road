@@ -123,21 +123,20 @@
       :member="memberStore.currentMember"
       @cancel="cancelEditMemberName"
       @nameChanged="memberNameChanged"
-    ></EditMemberNameDialog>
+    />
 
     <!-- Delete member - Check member code dialog -->
     <MemberDeleteDialog
       v-if="showDeleteDialog"
       :member="memberStore.currentMember"
       @cancel="cancelDelete"
-      @deleted="memberDeleted"
-    ></MemberDeleteDialog>
+    />
   </main>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import { Colors, Permissions } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
@@ -264,11 +263,6 @@ export default defineComponent({
     },
     memberNameChanged() {
       this.showEditNameDialog = false;
-    },
-    memberDeleted() {
-      this.showDeleteDialog = false;
-      this.$router.replace({ name: RouteName.Members });
-      this.showSuccess(this.$t('members.member.details.memberDeleted'));
     },
     cancelDelete() {
       this.showDeleteDialog = false;

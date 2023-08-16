@@ -67,6 +67,7 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import { useField } from "vee-validate";
 import { mapActions, mapStores } from "pinia";
+import { RouteName } from "@/global";
 
 /**
  * Component for a Security server details view
@@ -100,7 +101,7 @@ export default defineComponent({
     ...mapStores(useSecurityServer),
   },
   methods: {
-    ...mapActions(useNotifications, ['showError']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     open(): void {
       this.showDialog = true;
     },
@@ -112,8 +113,10 @@ export default defineComponent({
       try {
         this.loading = true;
         await this.securityServerStore.delete(this.securityServerId);
-        this.close();
-        this.$emit('deleted');
+        this.showSuccess(this.$t('securityServers.dialogs.deleteAddress.success'), true);
+        this.$router.replace({
+          name: RouteName.SecurityServers,
+        });
       } catch (error: unknown) {
         this.showError(error);
       } finally {

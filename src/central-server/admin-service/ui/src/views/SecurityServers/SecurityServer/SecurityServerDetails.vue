@@ -103,7 +103,6 @@
       :server-code="serverCode"
       :security-server-id="serverId"
       @cancel="showDeleteServerDialog = false"
-      @deleted="deleteServer"
     />
     <edit-security-server-address-dialog
       v-if="address && showEditAddressDialog"
@@ -178,15 +177,6 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showSuccess']),
-    deleteServer() {
-      this.showDeleteServerDialog = false;
-      this.showSuccess(
-        this.$t('securityServers.dialogs.deleteAddress.success'),
-      );
-      this.$router.replace({
-        name: RouteName.SecurityServers,
-      });
-    },
   },
 });
 </script>
