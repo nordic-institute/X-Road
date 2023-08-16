@@ -52,9 +52,10 @@ jobs:
           name: debian-packages
           path: ./.github/docker/centralserver/build/packages/develop/debian
       - name: Initialize docker setup
+        working-directory: ./.github/docker/centralserver
         run: |
-          ./.github/docker/centralserver/init_context.sh
-          ls -lah .github/docker/centralserver/build
+          ./init_context.sh
+          ls -lah build
       - name: Run Central Server system tests
         working-directory: ./src
         run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/docker/centralserver
@@ -79,4 +80,4 @@ jobs:
           path: ./.github/docker/securityserver/build/packages/develop/debian
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew :security-server:admin-service:ui-system-test:systemTest -PsystemTestSwwFckageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver
+        run: ./gradlew :security-server:admin-service:ui-system-test:systemTest -PsystemTestSSPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver
