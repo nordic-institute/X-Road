@@ -43,13 +43,15 @@ jobs:
           distribution: 'temurin'
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
-      - name: Initialize docker setup
-        run: ./.github/docker/centralserver/init_context.sh
       - name: Download debian packages
         uses: actions/download-artifact@v3
         with:
           name: debian-packages
           path: ./.github/docker/centralserver/build/packages/develop/debian
+      - name: Initialize docker setup
+        run: |
+          ./.github/docker/centralserver/init_context.sh
+          ls -lah .github/docker/centralserver/build
       - name: Run Central Server system tests
         working-directory: ./src
         run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/docker/centralserver
