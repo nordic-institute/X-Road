@@ -12,6 +12,7 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+          cache: 'gradle'
       - name: Ensure required packages
         run: sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up Gradle
@@ -44,6 +45,7 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+          cache: 'gradle'
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
       - name: Download debian packages
@@ -71,6 +73,7 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
+          cache: 'gradle'
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
       - name: Download debian packages
