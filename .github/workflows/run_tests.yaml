@@ -16,9 +16,12 @@ jobs:
         run: sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
-      - name: Build and run unit-tests
+      - name: Build in parallel
         working-directory: ./src
-        run: ./gradlew -PxroadBuildType=RELEASE --stacktrace build test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
+        run: ./gradlew -PxroadBuildType=RELEASE --parallel --stacktrace build -x test -x intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
+      - name: Run tests
+        working-directory: ./src
+        run: ./gradlew -PxroadBuildType=RELEASE --stacktrace test intTest
       - name: Build Jammy packages
         env:
           DEBEMAIL: 'info@niis.org'
