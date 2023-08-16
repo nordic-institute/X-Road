@@ -145,10 +145,8 @@ export default defineComponent({
         .then(() => {
           this.showDeleteDialog = false;
           this.deleting = false;
+          this.showSuccess(this.$t('trustServices.trustService.delete.success'), true);
           this.$router.replace({ name: RouteName.TrustServices });
-          this.showSuccess(
-            this.$t('trustServices.trustService.delete.success'),
-          );
         })
         .catch((error) => {
           this.showDeleteDialog = false;

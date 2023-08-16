@@ -25,23 +25,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <section>
-    <header class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-view-title align-fix">
-        {{ $t('globalResources.globalGroups') }}
-      </div>
-
+  <titled-view title-key="globalResources.globalGroups">
+    <template #header-buttons>
       <xrd-button
         v-if="allowAddGlobalGroup"
         data-test="add-global-group-button"
         @click="showAddGroupDialog = true"
       >
         <xrd-icon-base class="xrd-large-button-icon">
-          <XrdIconAdd />
+          <xrd-icon-add />
         </xrd-icon-base>
         {{ $t('globalResources.addGlobalGroup') }}
       </xrd-button>
-    </header>
+    </template>
 
     <!-- Table 1 - Global Groups -->
     <v-data-table
@@ -57,32 +53,32 @@
       data-test="global-groups-table"
     >
       <template #[`item.code`]="{ item }">
-        <div class="group-code xrd-clickable" @click="toDetails(item)">
+        <div class="group-code xrd-clickable" @click="toDetails(item.raw)">
           <xrd-icon-base class="mr-4">
             <XrdIconFolder />
           </xrd-icon-base>
-          <div data-test="group-code">{{ item.code }}</div>
+          <div data-test="group-code">{{ item.raw.code }}</div>
         </div>
       </template>
       <template #[`item.updated_at`]="{ item }">
-        {{ item.updated_at | formatDateTime }}
+        <date-time :value="item.raw.updated_at" />
       </template>
 
       <template #footer>
-        <div class="cs-table-custom-footer"></div>
+        <custom-data-table-footer />
       </template>
     </v-data-table>
 
     <add-group-dialog
-      :dialog="showAddGroupDialog"
+      v-if="showAddGroupDialog"
       @cancel="closeAddGroupDialog()"
       @group-added="groupAdded()"
     />
-  </section>
+  </titled-view>
 </template>
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
+import { DataTableHeader } from '@/ui-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { useNotifications } from '@/store/modules/notifications';
@@ -90,10 +86,15 @@ import { GlobalGroupResource } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import AddGroupDialog from './AddGroupDialog.vue';
 import { useUser } from '@/store/modules/user';
+import TitledView from "@/components/ui/TitledView.vue";
+import DateTime from "@/components/ui/DateTime.vue";
+import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
+import XrdIconFolder from "@shared-ui/components/icons/XrdIconFolder.vue";
+import { VDataTable } from "vuetify/labs/VDataTable";
 
 export default defineComponent({
   name: 'GlobalResourcesList',
-  components: { AddGroupDialog },
+  components: { CustomDataTableFooter, DateTime, TitledView, AddGroupDialog, XrdIconFolder, VDataTable },
   data() {
     return {
       showAddGroupDialog: false,
@@ -114,28 +115,24 @@ export default defineComponent({
     globalGroupsHeaders(): DataTableHeader[] {
       return [
         {
-          text: this.$t('globalResources.code') as string,
+          title: this.$t('globalResources.code') as string,
           align: 'start',
-          value: 'code',
-          class: 'xrd-table-header ss-table-header-sercer-code',
+          key: 'code',
         },
         {
-          text: this.$t('globalResources.description') as string,
+          title: this.$t('globalResources.description') as string,
           align: 'start',
-          value: 'description',
-          class: 'xrd-table-header ss-table-header-owner-name',
+          key: 'description',
         },
         {
-          text: this.$t('globalResources.memberCount') as string,
+          title: this.$t('globalResources.memberCount') as string,
           align: 'start',
-          value: 'member_count',
-          class: 'xrd-table-header ss-table-header-owner-code',
+          key: 'member_count',
         },
         {
-          text: this.$t('globalResources.updated') as string,
+          title: this.$t('globalResources.updated') as string,
           align: 'start',
-          value: 'updated_at',
-          class: 'xrd-table-header ss-table-header-owner-class',
+          key: 'updated_at',
         },
       ];
     },
@@ -174,13 +171,5 @@ export default defineComponent({
   font-size: 14px;
   display: flex;
   align-items: center;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
 }
 </style>

@@ -25,9 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view :title="title" :title-key="titleKey">
+  <titled-view>
+    <template #title>
+      <slot name="title">{{titleValue}}</slot>
+    </template>
     <template #append-title>
       <xrd-search class="search-box" data-test="search-query-field" v-model="query" />
+      <slot name="append-search" />
     </template>
     <template #header-buttons>
       <slot name="header-buttons" />
@@ -52,7 +56,7 @@ export default defineComponent({
     modelValue: {
       type: String,
       default: ''
-    }
+    },
   },
   emits: ['update:model-value'],
   computed: {
@@ -63,6 +67,9 @@ export default defineComponent({
       set(newValue: string) {
         this.$emit('update:model-value', newValue)
       }
+    },
+    titleValue() {
+      return this.titleKey ? this.$t(this.titleKey) : this.title;
     }
   }
 });

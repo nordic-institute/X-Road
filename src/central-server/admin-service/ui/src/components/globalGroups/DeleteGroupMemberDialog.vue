@@ -25,100 +25,88 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver v-slot="{ invalid }">
     <xrd-simple-dialog
-      v-if="dialog"
       title="globalGroup.dialog.deleteMember.title"
       save-button-text="action.delete"
       cancel-button-text="action.cancel"
-      :dialog="dialog"
       :loading="deleting"
-      :disable-save="invalid"
-      @cancel="close"
+      :disable-save="!meta.valid"
+      @cancel="$emit('cancel')"
       @save="deleteGroupMember"
     >
-      <template #content>
-        <p>
-          <i18n path="globalGroup.dialog.deleteMember.confirmation">
+      <template #text>
+        <i18n-t scope="global" keypath="globalGroup.dialog.deleteMember.confirmation">
             <template #identifier>
               <b class="no-break">{{ identifier }}</b>
             </template>
-          </i18n>
-        </p>
-        <ValidationProvider
-          v-slot="{ errors }"
-          :rules="`required|is:${member.client_id.member_code}`"
-          name="memberCode"
-        >
+        </i18n-t>
+      </template>
+      <template #content>
           <v-text-field
-            v-model="memberCode"
+            v-bind="memberCode"
             data-test="verify-member-code"
-            outlined
+            variant="outlined"
             autofocus
             :placeholder="$t('globalGroup.dialog.deleteMember.placeholder')"
             :label="$t('fields.memberCode')"
-            :error-messages="errors"
+            :error-messages="errors.memberCode"
           >
           </v-text-field>
-        </ValidationProvider>
       </template>
     </xrd-simple-dialog>
-  </ValidationObserver>
 </template>
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { GroupMemberListView } from '@/openapi-types';
 import { toIdentifier } from '@/util/helpers';
+import { useForm } from "vee-validate";
+import { Event } from "@/ui-types";
 
 export default defineComponent({
+  setup(props) {
+    const {
+      meta,
+      errors,
+      defineComponentBinds
+    } = useForm({ validationSchema: { memberCode: `required|is:${props.groupMember.client_id.member_code}` } });
+    const memberCode = defineComponentBinds('memberCode');
+    return { meta, errors, memberCode };
+  },
   props: {
     groupCode: {
       type: String,
       required: true,
     },
+    groupMember: {
+      type: Object as PropType<GroupMemberListView>,
+      required: true,
+    },
   },
+  emits: [Event.Cancel, Event.Delete],
   data() {
     return {
-      memberCode: '',
       deleting: false,
-      member: null as GroupMemberListView | null,
     };
   },
   computed: {
     ...mapStores(useGlobalGroups),
-    dialog(): boolean {
-      return this.member != null;
-    },
     identifier(): string {
-      if (this.member == null || this.member.client_id === undefined) {
-        return '';
-      }
-      return toIdentifier(this.member.client_id);
+      return toIdentifier(this.groupMember.client_id);
     },
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    open(member: GroupMemberListView) {
-      this.member = member;
-    },
-    close() {
-      this.member = null;
-      this.memberCode = '';
-    },
     deleteGroupMember() {
-      if (this.member == null) {
-        return;
-      }
       this.deleting = true;
       this.globalGroupStore
         .deleteGroupMember(
           this.groupCode,
-          this.member.client_id.encoded_id || '',
+          this.groupMember.client_id.encoded_id || '',
         )
-        .then(() => this.$emit('deleted'))
+        .then(() => this.$emit(Event.Delete))
         .then(() =>
           this.showSuccess(
             this.$t('globalGroup.dialog.deleteMember.success', {
@@ -126,7 +114,6 @@ export default defineComponent({
             }),
           ),
         )
-        .then(() => this.close())
         .catch((error) => this.showError(error))
         .finally(() => (this.deleting = false));
     },

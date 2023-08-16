@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view back-to="/settings/global-resources">
+  <details-view :back-to="backTo">
     <global-group-details :group-code="groupCode" />
 
     <global-group-members :group-code="groupCode" />
@@ -33,10 +33,11 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import GlobalGroupDetails from '@/components/globalGroups/GlobalGroupDetails.vue';
 import GlobalGroupMembers from '@/components/globalGroups/GlobalGroupMembers.vue';
 import DetailsView from '@/components/ui/DetailsView.vue';
+import { RouteName } from "@/global";
 
 /**
  * Global group view
@@ -53,6 +54,13 @@ export default defineComponent({
       required: true,
     },
   },
+  data() {
+    return {
+      backTo: {
+        name: RouteName.GlobalResources
+      }
+    }
+  }
 });
 </script>
 

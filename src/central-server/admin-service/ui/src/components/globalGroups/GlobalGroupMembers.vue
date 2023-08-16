@@ -25,50 +25,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <section>
-    <header class="table-toolbar align-fix mt-8 pl-0">
-      <div class="xrd-title-search align-fix mt-0 pt-0">
-        <div class="xrd-view-title align-fix">
-          <i18n path="globalGroup.groupMembers">
-            <template #memberCount>
-              <span data-test="member-count">{{ memberCount }}</span>
-            </template>
-          </i18n>
-        </div>
-        <xrd-search v-model="filter.query" class="margin-fix" />
-        <v-icon
-          color="primary"
-          class="ml-4 mt-1"
-          @click="showFilterDialog = true"
-          >mdi-filter-outline
-        </v-icon>
-      </div>
-      <div class="only-pending mt-0">
-        <xrd-button
-          v-if="allowAddAndRemoveGroupMembers"
-          data-test="add-member-button"
-          @click="$refs.addDialog.open()"
-        >
-          <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>
-          {{ $t('globalGroup.addMembers') }}
-        </xrd-button>
-      </div>
-    </header>
-
+  <searchable-titled-view v-model="filter.query" @update:model-value="debouncedFetchItems">
+    <template #title>
+      <i18n-t scope="global" keypath="globalGroup.groupMembers">
+        <template #memberCount>
+          <span data-test="member-count">{{ memberCount }}</span>
+        </template>
+      </i18n-t>
+    </template>
+    <template #append-search>
+      <v-icon
+        color="primary"
+        class="filter-button"
+        icon="mdi-filter-outline"
+        @click="showFilterDialog = true" />
+    </template>
+    <template #header-buttons>
+      <xrd-button
+        v-if="allowAddAndRemoveGroupMembers"
+        data-test="add-member-button"
+        @click="showAddMemberDialog = true"
+      >
+        <v-icon class="xrd-large-button-icon" icon="mdi-plus-circle" size="x-large" />
+        {{ $t('globalGroup.addMembers') }}
+      </xrd-button>
+    </template>
     <!-- Table - Members -->
-    <v-data-table
+    <v-data-table-server
       data-test="global-group-members"
       class="elevation-0 data-table"
       item-key="id"
       :loading="loading"
       :headers="membersHeaders"
       :items="globalGroupStore.members"
-      :search="filter.query"
+      :items-length="globalGroupStore.pagingOptions.total_items"
+      :items-per-page-options="itemsPerPageOptions"
+      :page="paging.page"
       :must-sort="true"
-      :options.sync="pagingSortingOptions"
-      :server-items-length="globalGroupStore.pagingOptions.total_items"
       :loader-height="2"
-      :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
       @update:options="changeOptions"
     >
       <template #[`item.name`]="{ item }">
@@ -76,7 +70,7 @@
           <xrd-icon-base class="mr-4">
             <XrdIconFolderOutline />
           </xrd-icon-base>
-          <div data-test="member-name">{{ item.name }}</div>
+          <div data-test="member-name">{{ item.raw.name }}</div>
         </div>
       </template>
 
@@ -87,72 +81,81 @@
             data-test="delete-member-button"
             text
             :outlined="false"
-            @click="$refs.deleteDialog.open(item)"
+            @click="groupMemberToDelete = item.raw"
             >{{ $t('action.remove') }}
           </xrd-button>
         </div>
       </template>
 
       <template #[`item.type`]="{ item }">
-        <div>{{ item.client_id.type }}</div>
+        <div>{{ item.raw.client_id.type }}</div>
       </template>
 
       <template #[`item.instance`]="{ item }">
-        <span data-test="instance">{{ item.client_id.instance_id }}</span>
+        <span data-test="instance">{{ item.raw.client_id.instance_id }}</span>
       </template>
 
       <template #[`item.class`]="{ item }">
-        <span data-test="class">{{ item.client_id.member_class }}</span>
+        <span data-test="class">{{ item.raw.client_id.member_class }}</span>
       </template>
 
       <template #[`item.code`]="{ item }">
-        <span data-test="code">{{ item.client_id.member_code }}</span>
+        <span data-test="code">{{ item.raw.client_id.member_code }}</span>
       </template>
 
       <template #[`item.subsystem`]="{ item }">
-        <span data-test="subsystem">{{ item.client_id.subsystem_code }}</span>
+        <span data-test="subsystem">{{ item.raw.client_id.subsystem_code }}</span>
       </template>
 
       <template #[`item.created_at`]="{ item }">
-        <div>{{ item.created_at | formatDateTime }}</div>
+        <date-time :value="item.raw.created_at" />
       </template>
-    </v-data-table>
+    </v-data-table-server>
 
     <!-- Dialogs -->
     <group-members-filter-dialog
+      v-if="showFilterDialog"
       :group-code="groupCode"
-      :dialog="showFilterDialog"
       cancel-button-text="action.cancel"
       @cancel="cancelFilter"
       @apply="applyFilter"
     />
     <add-group-members-dialog
-      ref="addDialog"
+      v-if="showAddMemberDialog"
       :group-code="groupCode"
-      @added="refreshList"
+      @add="refreshList"
+      @cancel="showAddMemberDialog = false"
     />
     <delete-group-member-dialog
+      v-if="groupMemberToDelete"
       ref="deleteDialog"
       :group-code="groupCode"
-      @deleted="refreshList"
+      :group-member="groupMemberToDelete"
+      @delete="refreshList"
+      @cancel="groupMemberToDelete = null"
     />
-  </section>
+  </searchable-titled-view>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 
 import { Permissions } from '@/global';
-import { DataOptions, DataTableHeader } from 'vuetify';
+import { DataTableHeader, PagingOptions } from "@/ui-types";
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { GroupMembersFilter } from '@/openapi-types';
+import { GroupMemberListView, GroupMembersFilter } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import GroupMembersFilterDialog from './GroupMembersFilterDialog.vue';
 import { debounce } from '@/util/helpers';
 import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
 import DeleteGroupMemberDialog from './DeleteGroupMemberDialog.vue';
+import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
+import { VDataTableServer } from "vuetify/labs/VDataTable";
+import DateTime from "@/components/ui/DateTime.vue";
+import { defaultItemsPerPageOptions } from "@/util/defaults";
+
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -160,9 +163,12 @@ let that: any;
 
 export default defineComponent({
   components: {
+    DateTime,
+    SearchableTitledView,
     DeleteGroupMemberDialog,
     AddGroupMembersDialog,
     GroupMembersFilterDialog,
+    VDataTableServer
   },
   props: {
     groupCode: {
@@ -172,10 +178,13 @@ export default defineComponent({
   },
   data() {
     return {
-      pagingSortingOptions: {} as DataOptions,
-      filter: {} as GroupMembersFilter,
+      itemsPerPageOptions: defaultItemsPerPageOptions(),
+      paging: { itemsPerPage: 10, page: 1 } as PagingOptions,
+      filter: { query: '' } as GroupMembersFilter,
       loading: false,
       showFilterDialog: false,
+      groupMemberToDelete: null as GroupMemberListView | null,
+      showAddMemberDialog: false,
     };
   },
   computed: {
@@ -192,63 +201,46 @@ export default defineComponent({
     membersHeaders(): DataTableHeader[] {
       return [
         {
-          text: this.$t('globalGroup.memberName') as string,
+          title: this.$t('globalGroup.memberName') as string,
           align: 'start',
-          value: 'name',
-          class: 'xrd-table-header gp-table-header-member-name',
+          key: 'name',
         },
         {
-          text: this.$t('globalGroup.type') as string,
+          title: this.$t('globalGroup.type') as string,
           align: 'start',
-          value: 'type',
-          class: 'xrd-table-header gp-table-header-member-type',
+          key: 'type',
         },
         {
-          text: this.$t('globalGroup.instance') as string,
+          title: this.$t('globalGroup.instance') as string,
           align: 'start',
-          value: 'instance',
-          class: 'xrd-table-header gp-table-header-member-instance',
+          key: 'instance',
         },
         {
-          text: this.$t('globalGroup.class') as string,
+          title: this.$t('globalGroup.class') as string,
           align: 'start',
-          value: 'class',
-          class: 'xrd-table-header gp-table-header-member-class',
+          key: 'class',
         },
         {
-          text: this.$t('globalGroup.code') as string,
+          title: this.$t('globalGroup.code') as string,
           align: 'start',
-          value: 'code',
-          class: 'xrd-table-header gp-table-header-member-code',
+          key: 'code',
         },
         {
-          text: this.$t('globalGroup.subsystem') as string,
+          title: this.$t('globalGroup.subsystem') as string,
           align: 'start',
-          value: 'subsystem',
-          class: 'xrd-table-header gp-table-header-member-subsystem',
+          key: 'subsystem',
         },
         {
-          text: this.$t('globalGroup.added') as string,
+          title: this.$t('globalGroup.added') as string,
           align: 'start',
-          value: 'created_at',
-          class: 'xrd-table-header gp-table-header-member-created',
+          key: 'created_at',
         },
         {
-          value: 'button',
-          text: '',
+          key: 'button',
+          title: '',
           sortable: false,
-          class: 'xrd-table-header groups-table-header-buttons',
         },
       ];
-    },
-  },
-  watch: {
-    filter: {
-      handler() {
-        this.pagingSortingOptions.page = 1;
-        this.debouncedFetchItems();
-      },
-      deep: true,
     },
   },
   created() {
@@ -258,21 +250,20 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.fetchItems(that.pagingSortingOptions, that.filter);
+      that.paging.page=1
+      that.fetchItems();
     }, 600),
-    changeOptions: async function () {
-      await this.fetchItems(this.pagingSortingOptions, this.filter);
+    changeOptions: async function (options: PagingOptions) {
+      this.paging = options
+      await this.fetchItems();
     },
-    fetchItems: async function (
-      options: DataOptions,
-      filter: GroupMembersFilter,
-    ) {
+    fetchItems: async function () {
       this.loading = true;
       try {
         await this.globalGroupStore.findMembers(
           this.groupCode,
-          options,
-          filter,
+          this.paging,
+          this.filter,
         );
       } catch (error: unknown) {
         this.showError(error);
@@ -284,12 +275,14 @@ export default defineComponent({
       this.showFilterDialog = false;
     },
     applyFilter(filter: GroupMembersFilter): void {
-      this.filter.query = '';
-      this.fetchItems(this.pagingSortingOptions, filter);
+      this.filter = filter
+      this.fetchItems();
       this.showFilterDialog = false;
     },
     refreshList() {
-      this.fetchItems(this.pagingSortingOptions, this.filter);
+      this.showAddMemberDialog = false;
+      this.groupMemberToDelete = null
+      this.fetchItems();
     },
   },
 });
@@ -307,16 +300,7 @@ export default defineComponent({
   align-items: center;
 }
 
-.align-fix {
-  align-items: center;
-}
+.filter-button {
 
-.margin-fix {
-  margin-top: -10px;
-}
-
-.only-pending {
-  display: flex;
-  justify-content: flex-end;
 }
 </style>

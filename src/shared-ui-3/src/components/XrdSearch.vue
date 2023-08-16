@@ -29,6 +29,7 @@
     v-model="value"
     data-test="search-input"
     class="search-input expanding-search"
+    single-line
     density="compact"
     variant="underlined"
     prepend-inner-icon="mdi-magnify"
@@ -91,8 +92,12 @@ export default defineComponent({
 .closed {
   min-width: 10px;
 
-  :deep(.v-field__outline) {
-    display: none;
+  :deep(.v-field__outline:before) {
+    border-color: $XRoad-WarmGrey30;
+  }
+
+  :deep(.v-field__input) {
+    width: 5px;
   }
 
   :deep(.v-field__prepend-inner>i) {

@@ -5,7 +5,9 @@
   "fields": {
     "password": "Password",
     "username": "LIB-Username",
-    "shared": "sharedlib"
+    "shared": "sharedlib",
+    "code": "Code",
+    "description": "Description"
   },
   "action": {
     "cancel": "Cancel",

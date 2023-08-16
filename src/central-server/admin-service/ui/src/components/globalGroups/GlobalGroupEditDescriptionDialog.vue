@@ -25,36 +25,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
     <xrd-simple-dialog
-      :dialog="showDialog"
       :loading="loading"
       cancel-button-text="action.cancel"
       save-button-text="action.save"
       title="globalGroup.editDescription"
-      :disable-save="newDescription === ''"
+      :disable-save="!meta.valid || !meta.dirty"
       @save="saveDescription"
       @cancel="cancelEdit"
     >
       <template #content>
-        <div class="dlg-input-width">
           <v-text-field
-            v-model="newDescription"
-            outlined
+            v-bind="newDescription"
+            variant="outlined"
             :label="$t('globalGroup.description')"
+            :error-messages="errors.description"
             persistent-hint
-          ></v-text-field>
-        </div>
+          />
       </template>
     </xrd-simple-dialog>
-  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent } from 'vue';
+import { useForm } from "vee-validate";
+import { Event } from "@/ui-types";
+import { mapActions, mapStores } from "pinia";
+import { useGlobalGroups } from "@/store/modules/global-groups";
+import { useNotifications } from "@/store/modules/notifications";
 
 export default defineComponent({
-  name: 'GlobalGroupEditDescriptionDialog',
+  setup(props) {
+    const { values, errors, meta, defineComponentBinds } = useForm({
+      validationSchema: { description: 'required' },
+      initialValues: { description: props.groupDescription }
+    })
+    const newDescription = defineComponentBinds('description');
+    return { values, errors, meta, newDescription };
+  },
   props: {
     groupCode: {
       type: String,
@@ -64,24 +72,36 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    showDialog: {
-      type: Boolean as PropType<boolean>,
-      required: true,
-    },
   },
+  emits: [Event.Cancel, Event.Edit],
   data() {
     return {
       loading: false,
       newDescription: this.groupDescription,
     };
   },
+  computed: {
+    ...mapStores(useGlobalGroups),
+  },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelEdit(): void {
-      this.$emit('cancel');
+      this.$emit(Event.Cancel);
     },
     saveDescription(): void {
       this.loading = true;
-      this.$emit('edit', this.newDescription);
+      this.globalGroupStore
+        .editGroupDescription(this.groupCode, { description: this.values.description })
+        .then((resp) => {
+          this.showSuccess(this.$t('globalGroup.descriptionSaved'));
+          this.$emit(Event.Edit, resp.data);
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   },
 });

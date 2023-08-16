@@ -25,10 +25,10 @@
  * THE SOFTWARE.
  */
 import axios, { AxiosRequestConfig } from 'axios';
-import { PagedClients, PagingMetadata, Client } from '@/openapi-types';
+import { Client, PagedClients, PagingMetadata } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataOptions } from 'vuetify';
-import { DataQuery } from "@/ui-types";
+import { DataQuery, PagingOptions } from "@/ui-types";
 
 export interface State {
   clients: Client[];
@@ -75,7 +75,7 @@ export const useClient = defineStore('client', {
     getByExcludingGroup(
       groupId: string,
       query: string | null,
-      dataOptions: DataOptions,
+      dataOptions: PagingOptions,
     ) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const params: unknown = {
