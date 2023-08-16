@@ -62,6 +62,7 @@ export interface Notification {
   url?: string;
   status?: string; // http status code
   action?: NotificationAction;
+  preserve?: boolean;
 }
 
 export type ValidationError = {
@@ -83,9 +84,23 @@ export interface DataQuery {
   search?: string
 }
 
+export interface PagingOptions {
+  itemsPerPage: number;
+  page: number,
+  sortBy: { key: string, order?: boolean | 'asc' | 'desc' }[]
+}
+
 export interface DataTableHeader {
   title: string,
   align?: string,
   key: string,
   sortable?: boolean
+}
+
+export enum Event {
+  Add = 'add',
+  Edit = 'edit',
+  Delete = 'delete',
+  Cancel = 'cancel',
+  ModelValue = 'update:model-value'
 }

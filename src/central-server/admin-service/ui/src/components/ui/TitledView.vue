@@ -27,7 +27,9 @@
 <template>
   <header class="header-row d-flex mb-6 align-center">
     <div class="xrd-header-title ma-2 pa-2 me-auto">
-      <div class="xrd-view-title ">{{ titleValue }}</div>
+      <div class="xrd-view-title">
+        <slot name="title">{{ titleValue }}</slot>
+      </div>
       <slot name="append-title" />
     </div>
 
@@ -35,9 +37,15 @@
       <slot name="header-buttons" />
     </div>
   </header>
-  <section class="xrd-view-content">
+  <xrd-empty-placeholder
+    :loading="loading"
+    :data="data"
+    :no-items-text="$t('noData.noData')"
+    skeleton-type="table-heading"
+  />
+
     <slot />
-  </section>
+
 </template>
 
 <script lang="ts">
@@ -48,8 +56,16 @@ export default defineComponent({
     title: {
       type: String
     },
+    loading: {
+      type: Boolean,
+      default: false
+    },
     titleKey: {
       type: String
+    },
+    data: {
+      type: [Object, Array],
+      default: {a:1}
     }
   },
   computed: {
@@ -73,6 +89,17 @@ header.header-row {
   align-items: flex-end;
   width: 100%;
   margin-bottom: 0 !important;
+  min-height: 80px;
+
+  .xrd-header-title {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  .xrd-header-buttons {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+  }
 }
 
 </style>

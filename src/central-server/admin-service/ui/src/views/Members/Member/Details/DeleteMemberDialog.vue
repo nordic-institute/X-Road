@@ -62,6 +62,7 @@ import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { Field, useField } from "vee-validate";
 import { mapActions, mapStores } from "pinia";
+import { RouteName } from "@/global";
 
 export default defineComponent({
   setup(props) {
@@ -94,7 +95,8 @@ export default defineComponent({
       this.memberStore
         .deleteById(toIdentifier(this.member.client_id))
         .then(() => {
-          this.$emit('deleted');
+          this.showSuccess(this.$t('members.member.details.memberDeleted'), true);
+          this.$router.replace({ name: RouteName.Members });
         })
         .catch((error) => {
           this.showError(error);

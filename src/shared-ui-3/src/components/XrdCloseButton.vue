@@ -25,7 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <i id="dlg-close-x" @click="click" />
+  <v-btn variant="plain" @click="$emit('click', $event)" color="primary" size="normal">
+    <v-icon icon="mdi-close" />
+  </v-btn>
 </template>
 
 <script lang="ts">

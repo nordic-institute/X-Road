@@ -42,14 +42,14 @@
     >
       <div class="row-wrapper-top scrollable identifier-wrap">
         <xrd-icon-base :color="colors.Success100">
-          <XrdIconChecker />
+          <xrd-icon-checker />
         </xrd-icon-base>
 
-        <div class="row-wrapper">
-          <div v-if="notification.successMessage">
+        <div  v-if="notification.successMessage" class="row-wrapper">
             {{ notification.successMessage }}
-          </div>
         </div>
+      </div>
+      <template #actions>
         <v-btn
           icon
           variant="text" rounded
@@ -58,10 +58,10 @@
           @click="closeSuccess(notification.timeAdded)"
         >
           <xrd-icon-base>
-            <XrdIconClose />
+            <xrd-icon-close />
           </xrd-icon-base>
         </v-btn>
-      </div>
+      </template>
     </v-snackbar>
   </div>
 </template>
@@ -71,7 +71,6 @@ import { defineComponent } from 'vue';
 import { Colors } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { Notification } from '@/ui-types';
 
 declare global {
   interface Window {
@@ -97,8 +96,8 @@ export default defineComponent({
       this.deleteSuccessNotification(id);
     },
     // Check global window value to see if e2e testing mode should be enabled
-    snackbarTimeout(notification: Notification) {
-      return window.e2eTestingMode === true ? -1 : notification.timeout;
+    snackbarTimeout(timeout: number) {
+      return window.e2eTestingMode === true ? -1 : timeout;
     },
   },
 });
@@ -123,7 +122,6 @@ export default defineComponent({
   .row-wrapper {
     display: flex;
     flex-direction: column;
-    overflow: auto;
     width: 100%;
     overflow-wrap: break-word;
     justify-content: flex-start;
