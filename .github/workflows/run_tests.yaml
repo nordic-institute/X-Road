@@ -18,7 +18,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
       - name: Build and run unit-tests
         working-directory: ./src
-        run: ./gradlew -PxroadBuildType=RELEASE --stacktrace build test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
+        run: ./gradlew -PxroadBuildType=RELEASE --parallel --stacktrace build test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
       - name: Build Jammy packages
         env:
           DEBEMAIL: 'info@niis.org'
