@@ -52,4 +52,28 @@ jobs:
           path: ./.github/docker/centralserver/build/packages/develop/debian
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestDockerRoot=${{ github.workspace }}/.github/docker/centralserver
+        run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/docker/centralserver
+  RunSSSystemTests:
+    needs: BuildAndpackageWithUnitTests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+      - name: Set up JDK 11 
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Initialize docker setup
+        run: ./.github/docker/securityserver/init_context.sh
+      - name: Download debian packages
+        uses: actions/download-artifact@v3
+        with:
+          name: debian-packages
+          path: ./.github/docker/securityserver/build/packages/develop/debian
+      - name: Run Security Server system tests
+        working-directory: ./src
+        run: ./gradlew :security-server:admin-service:ui-system-test:systemTest -PsystemTestSwwFckageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver

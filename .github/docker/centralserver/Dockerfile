@@ -3,7 +3,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
-  && apt-get -qq install sudo dpkg-dev ca-certificates gnupg supervisor net-tools locales openjdk-11-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog wget python3 \
+  && apt-get -qq install \
+    sudo dpkg-dev ca-certificates gnupg supervisor \
+    net-tools locales openjdk-11-jre-headless rlwrap \
+    ca-certificates-java crudini adduser expect \
+    nginx-light curl rsyslog wget python3 \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -12,9 +16,6 @@ RUN apt-get -qq update \
   && echo "xroad-center xroad-common/username string xrd" | debconf-set-selections \
   && apt-get -qq install postgresql postgresql-contrib \
   && apt-get -qq clean
-
-ARG REPO=https://artifactory.niis.org/xroad-release-deb
-ARG COMPONENT=main
 
 ADD ["${REPO}/", "/tmp/repo"]
 RUN cd /tmp/repo && dpkg-scanpackages -m . > Packages

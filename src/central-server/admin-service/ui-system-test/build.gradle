@@ -33,8 +33,8 @@ task systemTest(type: Test) {
     if (project.hasProperty('systemTestCsPackageHost')) {
         systemTestArgs += "-Dtest-automation.custom.package-host=" + project.getProperty('systemTestCsPackageHost')
     }
-    if (project.hasProperty('systemTestDockerRoot')) {
-        systemTestArgs += "-Dtest-automation.custom.docker-root=" + project.getProperty('systemTestDockerRoot')
+    if (project.hasProperty('systemTestCsDockerRoot')) {
+        systemTestArgs += "-Dtest-automation.custom.docker-root=" + project.getProperty('systemTestCsDockerRoot')
     }
     jvmArgs systemTestArgs
 
