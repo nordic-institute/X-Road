@@ -35,9 +35,11 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Tests
+          name: Unit and integration tests
           path: src/**/build/test-results/**/TEST-*.xml
           reporter: java-junit
+          list-suites: 'failed'
+          list-tests: 'failed'
       - name: Build Jammy packages
         env:
           DEBEMAIL: 'info@niis.org'
@@ -79,11 +81,13 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/docker/centralserver
       - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Tests
-          path: src/**/build/test-results/**/TEST-*.xml
+          name: Central Server system test
+          path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
   RunSSSystemTests:
     needs: BuildAndpackageWithUnitTests
@@ -111,9 +115,11 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:admin-service:ui-system-test:systemTest -PsystemTestSsPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver
       - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Tests
-          path: src/**/build/test-results/**/TEST-*.xml
+          name: Security Server system tests
+          path: src/security-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
