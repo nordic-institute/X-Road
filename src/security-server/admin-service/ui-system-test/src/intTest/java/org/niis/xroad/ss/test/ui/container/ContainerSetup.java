@@ -53,7 +53,7 @@ public class ContainerSetup {
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties,
-            @Value("${test-automation.custom.docker-root") String dockerRoot,
+            @Value("${test-automation.custom.docker-root}") String dockerRoot,
             @Value("${test-automation.custom.package-repo}") String packageRepo,
             @Value("${test-automation.custom.package-repo-key}") String packageRepoKey) {
         return new TestContainerConfigurator() {
