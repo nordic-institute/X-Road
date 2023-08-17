@@ -1,5 +1,12 @@
 name: X-Road tests
-on: [push]
+on: 
+  # Capture this event so that gradle caches are updated when a PR is merged to develop
+  # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
+  push:
+    branches:
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened]
 jobs:
   BuildAndPackageWithUnitTests:
     runs-on: ubuntu-22.04
@@ -12,14 +19,23 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          cache: 'gradle'
       - name: Ensure required packages
         run: sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          gradle-home-cache-cleanup: true
       - name: Build and test source
         working-directory: ./src
         run: ./gradlew -PxroadBuildType=RELEASE --stacktrace build test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
+      - name: Test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Tests
+          path: src/**/build/test-results/**/TEST-*.xml
+          reporter: java-junit
       - name: Build Jammy packages
         env:
           DEBEMAIL: 'info@niis.org'
@@ -42,9 +58,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          cache: 'gradle'
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          gradle-home-cache-cleanup: true
       - name: Initialize docker setup
         working-directory: ./.github/docker/centralserver
         run: ./init_context.sh
@@ -58,6 +76,13 @@ jobs:
       - name: Run Central Server system tests
         working-directory: ./src
         run: ./gradlew :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/docker/centralserver
+      - name: Test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Tests
+          path: src/**/build/test-results/**/TEST-*.xml
+          reporter: java-junit
   RunSSSystemTests:
     needs: BuildAndpackageWithUnitTests
     runs-on: ubuntu-22.04
@@ -70,9 +95,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          cache: 'gradle'
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          gradle-home-cache-cleanup: true
       - name: Download debian packages
         uses: actions/download-artifact@v3
         with:
@@ -81,3 +108,10 @@ jobs:
       - name: Run Security Server system tests
         working-directory: ./src
         run: ./gradlew :security-server:admin-service:ui-system-test:systemTest -PsystemTestSsPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver
+      - name: Test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Tests
+          path: src/**/build/test-results/**/TEST-*.xml
+          reporter: java-junit
