@@ -102,5 +102,6 @@ export enum Event {
   Edit = 'edit',
   Delete = 'delete',
   Cancel = 'cancel',
+  Select = 'select',
   ModelValue = 'update:model-value'
 }

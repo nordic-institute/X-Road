@@ -263,3 +263,9 @@ export function formatDateTime(valueAsText: string | undefined, format: string):
   const time = dayjs(valueAsText);
   return time.isValid() ? time.format(format) : '-';
 }
+
+export function toPagingOptions(...options: number[]): { title: string, value: number }[] {
+  return options.map((value) => {
+    return { title: value + '', value }
+  });
+}

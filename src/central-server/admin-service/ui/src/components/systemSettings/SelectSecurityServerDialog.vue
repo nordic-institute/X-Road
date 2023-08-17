@@ -25,179 +25,134 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" width="824" scrollable persistent>
-    <v-card class="xrd-card">
-      <v-card-title>
-        <slot name="title">
-          <span class="dialog-title-text">{{
-            $t('systemSettings.selectSecurityServer.title')
-          }}</span>
-        </slot>
-        <v-spacer />
-        <xrd-close-button id="dlg-close-x" @click="cancel()" />
-      </v-card-title>
-
-      <v-card-text style="height: 500px" class="elevation-0">
+  <xrd-simple-dialog
+    title="systemSettings.selectSecurityServer.title"
+    save-button-text="action.select"
+    width="824"
+    z-index="1999"
+    scrollable
+    :disable-save="!selected || !changed"
+    @cancel="cancel"
+    @save="registerServiceProvider"
+  >
+    <template #content>
+      <div style="height: 500px">
         <v-text-field
-          v-model="search"
+          v-model="pagingOptions.search"
           :label="$t('systemSettings.selectSecurityServer.search')"
           single-line
           hide-details
           class="search-input"
           autofocus
-          append-icon="icon-Search"
+          append-inner-icon="icon-Search"
+          variant="underlined"
           data-test="management-security-server-search-field"
+          @update:model-value="debouncedFetchItems"
         >
         </v-text-field>
-
         <!-- Table -->
-        <v-data-table
+        <v-data-table-server
           v-model="selectedSecurityServers"
-          class="elevation-0 data-table"
-          item-key="server_id.encoded_id"
+          class="elevation-0 xrd-table"
+          item-value="server_id.encoded_id"
           show-select
-          single-select
+          select-strategy="single"
           :loading="loading"
           :headers="headers"
           :items="selectableSecurityServers"
-          :server-items-length="
-            securityServerStore.securityServerPagingOptions.total_items
-          "
-          :options.sync="pagingSortingOptions"
+          :items-length="securityServerStore.securityServerPagingOptions.total_items"
+          :items-per-page-options="itemsPerPageOptions"
+          :items-per-page="pagingOptions.itemsPerPage"
+          :page="pagingOptions.page"
           :no-data-text="emptyListReasoning"
           :loader-height="2"
-          :footer-props="{ itemsPerPageOptions: [10, 25] }"
           @update:options="changeOptions"
-        >
-          <template #[`item.data-table-select`]="{ isSelected, select }">
-            <v-simple-checkbox
-              data-test="management-security-server-checkbox"
-              :ripple="false"
-              :value="isSelected"
-              @input="select($event)"
-            ></v-simple-checkbox>
-          </template>
-          <template #[`item.member_name`]="{ item }">
-            <div>{{ item.member_name }}</div>
-          </template>
-          <template #[`item.server_id.member_code`]="{ item }">
-            <div>{{ item.server_id.member_code }}</div>
-          </template>
-          <template #[`item.server_id.member_class`]="{ item }">
-            <div>{{ item.server_id.member_class }}</div>
-          </template>
-          <template #[`item.server_id.subsystem_code`]="{ item }">
-            <div>{{ item.server_id.subsystem_code }}</div>
-          </template>
-          <template #[`item.server_id.instance_id`]="{ item }">
-            <div>{{ item.server_id.instance_id }}</div>
-          </template>
-          <template #[`item.server_id.type`]="{ item }">
-            <div>{{ item.server_id.type }}</div>
-          </template>
-        </v-data-table>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-
-        <xrd-button
-          class="button-margin"
-          outlined
-          data-test="cancel-button"
-          @click="cancel()"
-          >{{ $t('action.cancel') }}</xrd-button
-        >
-
-        <xrd-button
-          :disabled="
-            !selectedSecurityServers || selectedSecurityServers.length === 0
-          "
-          data-test="management-security-server-select-button"
-          @click="selectSecurityServer()"
-          >{{ $t('action.select') }}</xrd-button
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        />
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import { SecurityServer } from '@/openapi-types';
+import { defineComponent } from 'vue';
+import { ManagementServicesConfiguration, SecurityServer } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { DataOptions, DataTableHeader } from 'vuetify';
+import { DataQuery, DataTableHeader, Event } from '@/ui-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { TranslateResult } from 'vue-i18n';
+import { VDataTableServer } from "vuetify/labs/VDataTable";
+import { defaultItemsPerPageOptions } from "@/util/defaults";
+import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
+import { useManagementServices } from "@/store/modules/management-services";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default defineComponent({
-  name: 'SelectSecurityServerDialog',
-  props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
+  components: {
+    XrdSimpleDialog,
+    VDataTableServer
   },
-
+  props: {
+    currentSecurityServer: {
+      type: String
+    }
+  },
+  emits: [Event.Cancel, Event.Select],
   data() {
+    const options = defaultItemsPerPageOptions();
     return {
       loading: false,
-      pagingSortingOptions: {} as DataOptions,
-      search: '',
-      selectedSecurityServers: [] as SecurityServer[],
+      itemsPerPageOptions: options,
+      pagingOptions: { page: 1, itemsPerPage: options[0].value } as DataQuery,
+      selectedSecurityServers: (this.currentSecurityServer ? [this.currentSecurityServer?.replace('SERVER:','')] : []) as string[],
     };
   },
   computed: {
-    ...mapStores(useSecurityServer),
+    ...mapStores(useSecurityServer, useManagementServices),
+    managementServicesConfiguration(): ManagementServicesConfiguration {
+      return this.managementServicesStore.managementServicesConfiguration;
+    },
     selectableSecurityServers(): SecurityServer[] {
       return this.securityServerStore.securityServers || [];
     },
     emptyListReasoning(): TranslateResult {
-      return this.search
+      return this.pagingOptions.search
         ? this.$t('noData.noMatches')
         : this.$t('noData.noSecurityServers');
+    },
+    changed(): boolean {
+      return this.currentSecurityServer?.replace('SERVER:','') !== this.selectedSecurityServers[0]
+    },
+    selected(): boolean {
+      return this.selectedSecurityServers?.length === 1;
     },
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('securityServers.serverCode') as string,
+          title: this.$t('securityServers.serverCode') as string,
           align: 'start',
-          value: 'server_id.server_code',
-          class: 'xrd-table-header ss-table-header-sercer-code',
+          key: 'server_id.server_code',
         },
         {
-          text: this.$t('securityServers.ownerName') as string,
+          title: this.$t('securityServers.ownerName') as string,
           align: 'start',
-          value: 'owner_name',
-          class: 'xrd-table-header ss-table-header-owner-name',
+          key: 'owner_name',
         },
         {
-          text: this.$t('securityServers.ownerCode') as string,
+          title: this.$t('securityServers.ownerCode') as string,
           align: 'start',
-          value: 'server_id.member_code',
-          class: 'xrd-table-header ss-table-header-owner-code',
+          key: 'server_id.member_code',
         },
         {
-          text: this.$t('securityServers.ownerClass') as string,
+          title: this.$t('securityServers.ownerClass') as string,
           align: 'start',
-          value: 'server_id.member_class',
-          class: 'xrd-table-header ss-table-header-owner-class',
+          key: 'server_id.member_class',
         },
       ];
-    },
-  },
-  watch: {
-    search: {
-      handler() {
-        this.pagingSortingOptions.page = 1;
-        this.debouncedFetchItems();
-      },
-      deep: true,
     },
   },
   created() {
@@ -207,41 +162,59 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.findServers(that.pagingSortingOptions);
+      that.pagingOptions.page = 1;
+      that.findServers(that.pagingOptions);
     }, 600),
-    findServers: async function (options: DataOptions) {
+    findServers: async function () {
       this.loading = true;
 
       try {
-        await this.securityServerStore.find(options, this.search);
+        await this.securityServerStore.find(this.pagingOptions);
       } catch (error: unknown) {
         this.showError(error);
       } finally {
         this.loading = false;
       }
     },
-    changeOptions: async function () {
-      await this.findServers(this.pagingSortingOptions);
+    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
+      this.pagingOptions.itemsPerPage = itemsPerPage;
+      this.pagingOptions.page = page;
+      this.pagingOptions.sortBy = sortBy[0]?.key;
+      this.pagingOptions.sortOrder = sortBy[0]?.order;
+      await this.findServers();
     },
     cancel(): void {
-      this.$emit('cancel');
-      this.clearForm();
+      this.$emit(Event.Cancel);
     },
-    selectSecurityServer(): void {
-      this.$emit('select', this.selectedSecurityServers);
-      this.clearForm();
-    },
-    clearForm(): void {
-      this.pagingSortingOptions.page = 1;
-      this.selectedSecurityServers = [];
-      this.search = '';
+    registerServiceProvider(): void {
+      this.loading = true;
+      this.managementServicesStore.registerServiceProvider({
+        security_server_id: this.selectedSecurityServers[0] || '',
+      })
+        .then(() => {
+          this.showSuccess(
+            this.$t('systemSettings.serviceProvider.registeredSuccess', {
+              subsystemId:
+              this.managementServicesConfiguration.service_provider_id,
+              securityServerId:
+              this.managementServicesConfiguration.security_server_id,
+            }),
+          );
+          this.$emit(Event.Select, this.selectedSecurityServers);
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/tables';
+@import '@/assets/tables';
 
 .checkbox-column {
   width: 50px;
@@ -250,10 +223,13 @@ export default defineComponent({
   width: 300px;
 }
 
-.dialog-title-text {
-  color: $XRoad-WarmGrey100;
-  font-weight: bold;
-  font-size: 24px;
-  line-height: 32px;
+.xrd-table {
+  :deep(th span) {
+    text-transform: uppercase;
+  }
+
+  :deep(td) {
+    font-size: 14px;
+  }
 }
 </style>

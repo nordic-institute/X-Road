@@ -27,7 +27,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { Client, PagedClients, PagingMetadata } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { DataOptions } from 'vuetify';
 import { DataQuery, PagingOptions } from "@/ui-types";
 
 export interface State {
@@ -96,13 +95,16 @@ export const useClient = defineStore('client', {
     getByClientType(
       clientType: string,
       query: string | null,
-      dataOptions: DataOptions,
+      dataOptions: DataQuery,
     ) {
+      console.log(dataOptions)
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const params: unknown = {
         client_type: clientType,
         offset,
         limit: dataOptions.itemsPerPage,
+        sort: dataOptions.sortBy,
+        desc: dataOptions.sortOrder === 'desc',
         q: query,
       };
       const axiosParams: AxiosRequestConfig = { params };
