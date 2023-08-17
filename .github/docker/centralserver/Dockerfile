@@ -1,5 +1,6 @@
 FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
+ARG REPO
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \

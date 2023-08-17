@@ -73,7 +73,6 @@ public class ContainerSetup {
                         .withFileFromPath("files/ss-entrypoint.sh", dockerfileRoot.resolve("files/ss-entrypoint.sh"))
                         .withFileFromPath("files/ss-xroad.conf", dockerfileRoot.resolve("files/ss-xroad.conf"))
                         .withFileFromPath("files/override-docker.ini", dockerfileRoot.resolve("files/override-docker.ini"))
-
                         .withFileFromFile(".", filesToAdd);
             }
 

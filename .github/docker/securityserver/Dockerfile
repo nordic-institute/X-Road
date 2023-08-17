@@ -1,5 +1,6 @@
 FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
+ARG REPO
 
 RUN apt-get -qq update \
     && apt-get -qq upgrade \
@@ -15,7 +16,6 @@ RUN apt-get -qq update \
     && echo "xroad-proxy xroad-common/username string xrd" | debconf-set-selections \
     && apt-get -qq install postgresql postgresql-contrib \
     && apt-get -qq clean
-
 ADD ["${REPO}/", "/tmp/repo"]
 RUN cd /tmp/repo && dpkg-scanpackages -m . > Packages
 RUN echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list

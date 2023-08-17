@@ -77,7 +77,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: debian-packages
-          path: ./.github/docker/securityserver/packages/develop/debian
+          path: ./src/security-server/admin-service/ui-system-test/src/intTest/resources/container-files/packages/develop/debian
       - name: Run Security Server system tests
         working-directory: ./src
         run: ./gradlew :security-server:admin-service:ui-system-test:systemTest -PsystemTestSsPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver
