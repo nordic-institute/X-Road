@@ -34,7 +34,7 @@
       </div>
 
       <table class="xrd-table mt-0 pb-3">
-        <XrdEmptyPlaceholderRow
+        <xrd-empty-placeholder-row
           :colspan="2"
           :loading="loading"
           :data="managementServicesConfiguration"
@@ -82,7 +82,6 @@
               <xrd-button
                 v-if="canEditSecurityServer"
                 text
-                :outlined="false"
                 data-test="edit-management-security-server"
                 @click="openSelectSecurityServerDialog"
                 >{{ $t('action.edit') }}
@@ -150,47 +149,39 @@
         </tbody>
       </table>
     </v-card>
-    <SelectSubsystemDialog
-      :dialog="showSelectSubsystemDialog"
-      :default-subsystem-id="
-        managementServicesConfiguration.service_provider_id
-      "
-      @select="updateServiceProvider"
-      @cancel="hideSelectSubsystemDialog"
+    <select-subsystem-dialog
+      v-if="showSelectSubsystemDialog"
+      :current-subsystem-id="managementServicesConfiguration.service_provider_id || '' "
+      @select="showSelectSubsystemDialog=false"
+      @cancel="showSelectSubsystemDialog=false"
     >
-    </SelectSubsystemDialog>
-    <SelectSecurityServerDialog
-      :dialog="showSelectSecurityServerDialog"
-      :default-security-server-id="
-        managementServicesConfiguration.security_server_id
-      "
-      @select="registerServiceProvider"
-      @cancel="hideSelectSecurityServerDialog"
-    >
-    </SelectSecurityServerDialog>
+    </select-subsystem-dialog>
+    <select-security-server-dialog
+      v-if="showSelectSecurityServerDialog"
+      :current-security-server="managementServicesConfiguration.security_server_id"
+      @select="showSelectSecurityServerDialog=false"
+      @cancel="showSelectSecurityServerDialog=false"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import {
-  Client,
-  ManagementServicesConfiguration,
-  SecurityServer,
-} from '@/openapi-types';
-import Vue, { defineComponent } from 'vue';
+import { ManagementServicesConfiguration, } from '@/openapi-types';
+import { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useManagementServices } from '@/store/modules/management-services';
 import { useNotifications } from '@/store/modules/notifications';
-import { toIdentifier } from '@/util/helpers';
 import { Permissions } from '@/global';
 import { useUser } from '@/store/modules/user';
 import SelectSubsystemDialog from '@/components/systemSettings/SelectSubsystemDialog.vue';
 import SelectSecurityServerDialog from '@/components/systemSettings/SelectSecurityServerDialog.vue';
+import XrdEmptyPlaceholderRow from '@shared-ui/components/XrdEmptyPlaceholderRow.vue';
 
 export default defineComponent({
   components: {
     SelectSubsystemDialog,
     SelectSecurityServerDialog,
+    XrdEmptyPlaceholderRow
   },
   data() {
     return {
@@ -252,52 +243,6 @@ export default defineComponent({
     },
     openSelectSecurityServerDialog(): void {
       this.showSelectSecurityServerDialog = true;
-    },
-    hideSelectSecurityServerDialog(): void {
-      this.showSelectSecurityServerDialog = false;
-    },
-    updateServiceProvider(subsystems: Client[]): void {
-      this.loading = true;
-      this.managementServicesStore
-        .updateManagementServicesConfiguration({
-          service_provider_id: toIdentifier(subsystems[0].client_id),
-        })
-        .then(() => {
-          this.showSuccess(
-            this.$t('systemSettings.serviceProvider.changedSuccess'),
-          );
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.showSelectSubsystemDialog = false;
-          this.loading = false;
-        });
-    },
-    registerServiceProvider(securityServers: SecurityServer[]): void {
-      this.loading = true;
-      this.managementServicesStore
-        .registerServiceProvider({
-          security_server_id: securityServers[0].server_id.encoded_id || '',
-        })
-        .then(() => {
-          this.showSuccess(
-            this.$t('systemSettings.serviceProvider.registeredSuccess', {
-              subsystemId:
-                this.managementServicesConfiguration.service_provider_id,
-              securityServerId:
-                this.managementServicesConfiguration.security_server_id,
-            }),
-          );
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.showSelectSecurityServerDialog = false;
-          this.loading = false;
-        });
     },
   },
 });

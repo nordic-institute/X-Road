@@ -151,6 +151,9 @@ body,
 .v-data-table > .v-table__wrapper > table > thead .v-data-table__th {
   font-weight: 700;
   font-size: 12px;
+  &.v-data-table__th--sorted {
+    color: $XRoad-Black100;
+  }
 }
 
 .v-data-table > .v-data-table-footer {
