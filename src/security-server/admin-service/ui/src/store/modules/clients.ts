@@ -44,7 +44,7 @@ export interface ClientsState {
 
 import { defineStore } from 'pinia';
 
-export const useClientsStore = defineStore('clientsStore', {
+export const useClients = defineStore('clients', {
   state: (): ClientsState => {
     return {
       clients: [] as Client[],

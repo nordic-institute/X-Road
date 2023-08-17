@@ -268,7 +268,7 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useServicesStore } from '@/store/modules/services';
+import { useServices } from '@/store/modules/services';
 
 type NullableServiceClient = undefined | ServiceClient;
 
@@ -308,7 +308,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useServicesStore, ['service', 'serviceClients']),
+    ...mapState(useServices, ['service', 'serviceClients']),
     ...mapState(useUser, ['hasPermission']),
     hasServiceClients(): boolean {
       return this.serviceClients?.length > 0;
@@ -330,7 +330,7 @@ export default Vue.extend({
 
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useServicesStore, ['setServiceClients']),
+    ...mapActions(useServices, ['setServiceClients']),
     cancelSubmit(): void {
       this.warningDialog = false;
     },

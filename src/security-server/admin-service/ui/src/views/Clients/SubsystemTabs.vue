@@ -42,7 +42,7 @@ import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapState } from 'pinia';
 
 import { useUser } from '@/store/modules/user';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
 export default Vue.extend({
   components: {
@@ -63,7 +63,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission', 'getAllowedTabs']),
-    ...mapState(useClientStore, ['client']),
+    ...mapState(useClient, ['client']),
 
     showUnregister(): boolean {
       if (!this.client) return false;

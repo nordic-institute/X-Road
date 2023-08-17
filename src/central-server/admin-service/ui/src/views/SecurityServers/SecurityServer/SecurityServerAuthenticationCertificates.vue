@@ -87,10 +87,10 @@ import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
 import { Permissions, RouteName } from '@/global';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { mapState, mapStores } from 'pinia';
 import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
-import { securityServerAuthCertStore } from '@/store/modules/security-servers-authentication-certificates';
+import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 
 export default Vue.extend({
   components: { DeleteAuthenticationCertificateDialog },
@@ -102,8 +102,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(securityServerAuthCertStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useSecurityServerAuthCert),
+    ...mapState(useUser, ['hasPermission']),
     authenticationCertificates(): SecurityServerAuthenticationCertificateDetails[] {
       return this.securityServerAuthCertStore.authenticationCertificates;
     },

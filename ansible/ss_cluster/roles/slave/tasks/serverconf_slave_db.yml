@@ -48,7 +48,7 @@
       - {option: 'listen_addresses', value: "'localhost'"}
       - {option: 'wal_level', value: "'hot_standby'"}
       - {option: 'max_wal_senders', value: '10'}
-      - {option: 'wal_keep_segments', value: '8'}
+      - {option: 'wal_keep_size', value: '128'}
       - {option: 'hot_standby', value: 'on'}
       - {option: 'hot_standby_feedback', value: 'on'}
 # listen_addresses = 'localhost' for security, but changing it to '*' if the

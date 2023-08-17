@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.utility.LazyFuture;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,7 +55,7 @@ public class ContainerSetup {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
-            public LazyFuture<String> imageDefinition() {
+            public ImageFromDockerfile imageDefinition() {
                 Path csDockerRoot = Paths.get("../../../../Docker/centralserver/");
                 Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
 

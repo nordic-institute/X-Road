@@ -67,15 +67,15 @@ import Vue from 'vue';
 import { formatDateTime, formatDateTimeSeconds } from '@/filters';
 import { mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
-import { userStore } from '@/store/modules/user';
-import { systemStore } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
+import { useSystem } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'AlertsContainer',
   computed: {
     ...mapState(useAlerts, ['alerts']),
-    ...mapState(userStore, ['isAuthenticated']),
-    ...mapState(systemStore, ['isServerInitialized']),
+    ...mapState(useUser, ['isAuthenticated']),
+    ...mapState(useSystem, ['isServerInitialized']),
     hasAlerts(): boolean {
       return this.showRestoreInProgress || this.alerts?.length > 0;
     },

@@ -32,7 +32,7 @@ interface SecurityServerAuthCertState {
   authenticationCertificates: SecurityServerAuthenticationCertificateDetails[];
 }
 
-export const securityServerAuthCertStore = defineStore(
+export const useSecurityServerAuthCert = defineStore(
   'securityServerAuthCert',
   {
     state: (): SecurityServerAuthCertState => {

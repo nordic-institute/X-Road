@@ -118,7 +118,7 @@ import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import axios, { AxiosError } from 'axios';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { useSystemStore } from '@/store/modules/system';
+import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 
 export default (
@@ -170,7 +170,7 @@ export default (
       'fetchCurrentSecurityServer',
       'clearAuth',
     ]),
-    ...mapActions(useSystemStore, [
+    ...mapActions(useSystem, [
       'fetchSecurityServerVersion',
       'fetchSecurityServerNodeType',
       'clearSystemStore',

@@ -53,11 +53,15 @@ public class GlobalConfigurationTrustedAnchorsPageObj {
         return $x(String.format(xpath, title));
     }
 
-    public SelenideElement instanceWithNameAndHashAndCreated(String title, String hash, String created) {
+    public SelenideElement instanceWithNameAndHash(String title, String hash) {
         var hashXpath = "../..//span[@data-test='anchor-hash' and contains(text(), '%s')]";
-        var createdXpath = "../..//span[@data-test='anchor-created-at' and contains(text(), '%s')]";
         return instanceWithName(title)
-                .find(xpath(String.format(hashXpath, hash)))
-                .find(xpath(String.format(createdXpath, created)));
+                .find(xpath(String.format(hashXpath, hash)));
+    }
+
+    public SelenideElement createdAtForInstanceWithName(String title) {
+        var createdXpath = "../..//span[@data-test='anchor-created-at']";
+        return instanceWithName(title)
+                .find(xpath(String.format(createdXpath)));
     }
 }

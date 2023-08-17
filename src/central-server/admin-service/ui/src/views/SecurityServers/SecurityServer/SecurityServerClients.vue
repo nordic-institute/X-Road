@@ -77,10 +77,10 @@ import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { Client } from '@/openapi-types';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { clientStore } from '@/store/modules/clients';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useClient } from '@/store/modules/clients';
+import { useNotifications } from '@/store/modules/notifications';
 import { Permissions, RouteName } from '@/global';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
 
 export default Vue.extend({
@@ -99,8 +99,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(clientStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useClient),
+    ...mapState(useUser, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -148,7 +148,7 @@ export default Vue.extend({
       });
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     toMemberDetails(client: Client): void {
       this.$router.push({
         name: RouteName.MemberDetails,

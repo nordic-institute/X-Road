@@ -53,9 +53,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { memberStore } from '@/store/modules/members';
+import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 
 export default Vue.extend({
@@ -74,10 +74,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(memberStore),
+    ...mapStores(useMember),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelEdit(): void {
       this.$emit('cancel');
     },

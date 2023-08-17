@@ -53,7 +53,7 @@ import Vue from 'vue';
 import { mapState } from 'pinia';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import UploadConfigurationPartDialog from '@/components/configurationParts/UploadConfigurationPartDialog.vue';
 
@@ -75,7 +75,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
 
     showUploadButton(): boolean {
       return (

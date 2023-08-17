@@ -69,7 +69,7 @@ import { Tab } from '@/ui-types';
 import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useServicesStore } from '@/store/modules/services';
+import { useServices } from '@/store/modules/services';
 import { ServiceClient, Service } from '@/openapi-types';
 
 export default Vue.extend({
@@ -90,7 +90,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useServicesStore, ['service']),
+    ...mapState(useServices, ['service']),
     tabs(): Tab[] {
       return [
         {
@@ -127,7 +127,7 @@ export default Vue.extend({
 
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useServicesStore, ['setService', 'setServiceClients']),
+    ...mapActions(useServices, ['setService', 'setServiceClients']),
     fetchData(serviceId: string): void {
       api
         .get<Service>(`/services/${encodePathParameter(serviceId)}`)

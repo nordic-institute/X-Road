@@ -202,7 +202,7 @@ import { ApiKey } from '@/api-types';
 import * as api from '@/util/api';
 import { toClipboard } from '@/util/helpers';
 import { mapActions } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'CreateApiKeyStepper',
@@ -231,7 +231,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.back();
     },

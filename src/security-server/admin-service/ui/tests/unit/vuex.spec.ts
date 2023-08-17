@@ -25,7 +25,7 @@
  */
 import mockJson from './mockClients.json';
 import compareJson from './mockClientsResult.json';
-import { useClientsStore } from '@/store/modules/clients';
+import { useClients } from '@/store/modules/clients';
 import { useUser } from '@/store/modules/user';
 import { InitializationStatus, TokenInitStatus, Client } from '@/openapi-types';
 import { createPinia } from 'pinia';
@@ -40,7 +40,7 @@ describe('clients actions', () => {
   });
 
   it('Get clients', () => {
-    const store = useClientsStore();
+    const store = useClients();
     store.storeClients(mockJson as Client[]);
 
     const result = store.getClients;

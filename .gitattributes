@@ -1,2 +1,4 @@
 *.sh    eol=lf
 
+internalconf    binary
+externalconf    binary

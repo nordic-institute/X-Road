@@ -122,8 +122,8 @@
 import Vue from 'vue';
 import { Client, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
-import { clientStore } from '@/store/modules/clients';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useClient } from '@/store/modules/clients';
+import { useNotifications } from '@/store/modules/notifications';
 import { debounce, toIdentifier } from '@/util/helpers';
 import { DataOptions, DataTableHeader } from 'vuetify';
 
@@ -154,7 +154,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(clientStore),
+    ...mapStores(useClient),
     totalItems(): number {
       return this.clients.paging_metadata?.total_items || 0;
     },
@@ -219,7 +219,7 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.fetchClients();

@@ -54,17 +54,17 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'InitNotification',
   computed: {
-    ...mapState(notificationsStore, {
+    ...mapState(useNotifications, {
       showNotification: 'continueInitialisation',
     }),
   },
   methods: {
-    ...mapActions(notificationsStore, ['setContinueInit']),
+    ...mapActions(useNotifications, ['setContinueInit']),
   },
 });
 </script>

@@ -13,7 +13,7 @@
       - { option: 'listen_addresses', value: "'*'" }
       - { option: 'wal_level', value: "'hot_standby'" }
       - { option: 'max_wal_senders', value: '10' }
-      - { option: 'wal_keep_segments', value: '8' }
+      - { option: 'wal_keep_size', value: '128' }
 
 - name: enable replication connections
   lineinfile:

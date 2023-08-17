@@ -45,14 +45,14 @@ import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
     SubTabs,
   },
   computed: {
-    ...mapState(userStore, ['getAllowedTabs']),
+    ...mapState(useUser, ['getAllowedTabs']),
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {

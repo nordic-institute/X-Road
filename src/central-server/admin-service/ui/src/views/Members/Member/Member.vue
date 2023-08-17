@@ -45,7 +45,7 @@ import PageNavigation, {
 } from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
-import { memberStore } from '@/store/modules/members';
+import { useMember } from '@/store/modules/members';
 import DetailsView from '@/components/ui/DetailsView.vue';
 
 /**
@@ -72,7 +72,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(memberStore),
+    ...mapStores(useMember),
     memberNavigationTabs(): PageNavigationTab[] {
       return [
         {

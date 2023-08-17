@@ -62,8 +62,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useSigningKeyStore } from '@/store/modules/signing-keys';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSigningKey } from '@/store/modules/signing-keys';
 import { ConfigurationSigningKey, ConfigurationType } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { ValidationProvider } from 'vee-validate';
@@ -87,13 +87,13 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useSigningKeyStore),
+    ...mapStores(useSigningKey),
     isValid(): boolean {
       return this.label?.length > 0 && this.label?.length < 256;
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.label = '';
       this.$emit('cancel');

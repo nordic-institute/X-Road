@@ -186,10 +186,10 @@ import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { userStore } from '@/store/modules/user';
-import { memberStore } from '@/store/modules/members';
-import { subsystemStore } from '@/store/modules/subsystems';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useMember } from '@/store/modules/members';
+import { useSubsystem } from '@/store/modules/subsystems';
+import { useNotifications } from '@/store/modules/notifications';
 import AddMemberSubsystemDialog from '@/views/Members/Member/Subsystems/AddMemberSubsystemDialog.vue';
 import DeleteMemberSubsystemDialog from '@/views/Members/Member/Subsystems/DeleteMemberSubsystemDialog.vue';
 import UnregisterMemberSubsystemDialog from '@/views/Members/Member/Subsystems/UnregisterMemberSubsystemDialog.vue';
@@ -237,8 +237,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapStores(memberStore, subsystemStore),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapStores(useMember, useSubsystem),
     headers(): DataTableHeader[] {
       return [
         {
@@ -304,7 +304,7 @@ export default Vue.extend({
       });
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     deleteClicked(subsystem: Subsystem) {
       this.clickedSubsystemCode = subsystem.subsystem_id
         ?.subsystem_code as string;

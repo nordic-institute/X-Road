@@ -32,7 +32,7 @@ export interface State {
   memberClasses: MemberClass[];
 }
 
-export const useMemberClassStore = defineStore('memberClass', {
+export const useMemberClass = defineStore('memberClass', {
   state: (): State => ({
     memberClasses: [],
   }),

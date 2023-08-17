@@ -1017,10 +1017,10 @@ public final class SystemProperties {
 
     /**
      * @return the proxy configuration auto backup cron expression.
-     * defaults to '* 15 3 * * ?'
+     * defaults to '0 15 3 * * ?'
      */
     public static String getConfigurationClientProxyConfigurationBackupCron() {
-        return System.getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "* 15 3 * * ?");
+        return System.getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "0 15 3 * * ?");
     }
 
     public static String getConfigurationClientAllowedFederations() {

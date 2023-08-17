@@ -27,9 +27,9 @@
 import Router, { NavigationGuardNext, Route } from 'vue-router';
 import routes from './routes';
 import { RouteName } from '@/global';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
-import { systemStore } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useSystem } from '@/store/modules/system';
 
 // Create the router
 const router = new Router({
@@ -44,9 +44,9 @@ router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
   }
 
   // Pinia stores
-  const user = userStore();
-  const notifications = notificationsStore();
-  const system = systemStore();
+  const user = useUser();
+  const notifications = useNotifications();
+  const system = useSystem();
 
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing

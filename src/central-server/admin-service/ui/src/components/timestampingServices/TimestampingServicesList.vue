@@ -146,10 +146,10 @@ import AddTimestampingServiceDialog from '@/components/timestampingServices/AddT
 import EditTimestampingServiceDialog from '@/components/timestampingServices/EditTimestampingServiceDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
-import { timestampingServicesStore } from '@/store/modules/trust-services';
+import { useTimestampingService } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
@@ -170,11 +170,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(timestampingServicesStore, notificationsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useTimestampingService, useNotifications),
+    ...mapState(useUser, ['hasPermission']),
 
     timestampingServices(): TimestampingService[] {
-      return this.timestampingServicesStore.timestampingServices;
+      return this.timestampingServiceStore.timestampingServices;
     },
     showTsaList(): boolean {
       return this.hasPermission(Permissions.VIEW_APPROVED_TSAS);
@@ -227,10 +227,10 @@ export default Vue.extend({
     this.fetchTimestampingServices();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchTimestampingServices(): void {
       this.loading = true;
-      this.timestampingServicesStore
+      this.timestampingServiceStore
         .fetchTimestampingServices()
         .finally(() => (this.loading = false));
     },
@@ -251,7 +251,7 @@ export default Vue.extend({
     deleteTimestampingService(): void {
       if (!this.selectedTimestampingService) return;
       this.deletingTimestampingService = true;
-      this.timestampingServicesStore
+      this.timestampingServiceStore
         .delete(this.selectedTimestampingService.id)
         .then(() => {
           this.showSuccess(

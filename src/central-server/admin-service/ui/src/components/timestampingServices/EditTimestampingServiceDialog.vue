@@ -109,8 +109,8 @@ import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { TimestampingService } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
-import { timestampingServicesStore } from '@/store/modules/trust-services';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useTimestampingService } from '@/store/modules/trust-services';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'EditTimestampingServiceDialog',
@@ -134,10 +134,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(timestampingServicesStore),
+    ...mapStores(useTimestampingService),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     onFileUploaded(result: FileUploadResult): void {
       this.certFile = result.file;
       this.certFileTitle = result.file.name;
@@ -145,7 +145,7 @@ export default Vue.extend({
     update(): void {
       this.loading = true;
 
-      this.timestampingServicesStore
+      this.timestampingServiceStore
         .updateTimestampingService(
           this.tsaService.id,
           this.tasUrl,

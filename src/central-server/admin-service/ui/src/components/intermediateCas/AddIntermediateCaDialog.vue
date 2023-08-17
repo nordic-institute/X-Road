@@ -60,8 +60,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { useIntermediateCaStore } from '@/store/modules/trust-services';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useIntermediateCasService } from '@/store/modules/trust-services';
+import { useNotifications } from '@/store/modules/notifications';
 import { FileUploadResult } from '@niis/shared-ui';
 
 export default Vue.extend({
@@ -80,13 +80,13 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useIntermediateCaStore),
+    ...mapStores(useIntermediateCasService),
     formReady(): boolean {
       return !!(this.certFile && this.certFileTitle);
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelEdit(): void {
       this.$emit('cancel');
     },

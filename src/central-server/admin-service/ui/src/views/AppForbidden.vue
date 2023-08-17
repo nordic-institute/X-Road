@@ -71,7 +71,7 @@ import Vue from 'vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -79,7 +79,7 @@ export default Vue.extend({
     AlertsContainer,
   },
   computed: {
-    ...mapState(userStore, ['getFirstAllowedTab']),
+    ...mapState(useUser, ['getFirstAllowedTab']),
   },
   methods: {
     home(): void {

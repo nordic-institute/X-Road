@@ -67,7 +67,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapWritableState } from 'pinia';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   props: {
@@ -83,7 +83,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapWritableState(useCsrStore, ['keyLabel']),
+    ...mapWritableState(useCsr, ['keyLabel']),
     keyLabelText(): string {
       if (this.$props.tokenType === 'HARDWARE') {
         return 'wizard.signKey.keyLabel';

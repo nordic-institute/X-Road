@@ -53,14 +53,14 @@
 import Vue from 'vue';
 import { RouteName } from '@/global';
 import { mapActions, mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   computed: {
-    ...mapState(userStore, ['getUsername']),
+    ...mapState(useUser, ['getUsername']),
   },
   methods: {
-    ...mapActions(userStore, { storeLogout: 'logout' }),
+    ...mapActions(useUser, { storeLogout: 'logout' }),
     logout(): void {
       this.storeLogout();
       sessionStorage.clear();

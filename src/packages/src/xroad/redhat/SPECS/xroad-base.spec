@@ -19,7 +19,7 @@ Requires:  systemd
 %if 0%{?el7}
 Requires:  rlwrap
 %endif
-Requires:  jre-11-headless
+Requires:  jre-11-headless, tzdata-java
 Requires:  crudini, hostname, sudo, openssl
 
 %define src %{_topdir}/..
@@ -119,6 +119,19 @@ if [ $1 -gt 1 ] ; then
         echo "$java_home" >>/etc/xroad/services/local.conf
       fi
     fi
+
+    # 7.3.0 remove JAVA_HOME from local.conf if it points to java < 11
+    if [ -f /etc/xroad/services/local.conf ]; then
+      java_home=$(grep -oP '^\s*JAVA_HOME=\K(.*)' /etc/xroad/services/local.conf | tail -n 1)
+      if [ -n "$java_home" ]; then
+        java_version=$("$java_home"/bin/java -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)
+        if [[ $java_version -lt 11 ]]; then
+          sed -E -i 's/^(\s*JAVA_HOME=)/# \1/g' /etc/xroad/services/local.conf \
+                  && echo "Removed JAVA_HOME from /etc/xroad/services/local.conf" >&2 \
+                  || echo "Failed to remove JAVA_HOME from /etc/xroad/services/local.conf" >&2
+        fi
+      fi
+    fi
 fi
 
 %verifyscript
@@ -162,5 +175,21 @@ chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
+
+if [ $1 -gt 1 ] ; then
+  # 7.3.0. Check that the default java version is at least 11
+  java_version_supported() {
+    local java_exec=$1
+    local java_version=$("$java_exec" -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)
+    [[ $java_version -ge 11 ]]
+  }
+  if ! java_version_supported /etc/alternatives/java; then
+    if [ -x /etc/alternatives/jre_11/bin/java ] && java_version_supported /etc/alternatives/jre_11/bin/java; then
+      alternatives --set java $(readlink -f /etc/alternatives/jre_11)/bin/java
+    else
+      echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2
+    fi
+  fi
+fi
 
 %changelog

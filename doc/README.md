@@ -45,7 +45,10 @@
 - [\[UG-CP\] Configuration Proxy Manual](Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md)
 - [\[UG-SYSPAR\] System Parameters](Manuals/ug-syspar_x-road_v6_system_parameters.md)
 - [\[UG-OPMONSYSPAR\] Operational Monitoring System Parameters](OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
-
+- [\[UG-SS-SIDECAR\] Security Server Sidecar User Guide](Sidecar/security_server_sidecar_user_guide.md)
+- [\[UG-SS-SEC-SIDECAR\] Security Server Sidecar Security Guide](Sidecar/security_server_sidecar_security_guide.md)
+- [\[UG-K-SS-SIDECAR\] Kubernetes Security Server Sidecar User Guide](Sidecar/kubernetes_security_server_sidecar_user_guide.md)
+- [\[UG-K-SS-SEC-SIDECAR\] Kubernetes Security Server Sidecar Security User Guide](Sidecar/kubernetes_security_guide.md)
 
 ## Use Cases
 - [\[UC-SS\] Security Server Management](UseCases/uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.md)

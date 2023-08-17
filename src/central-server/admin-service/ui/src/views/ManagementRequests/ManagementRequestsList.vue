@@ -106,9 +106,9 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { managementRequestsStore } from '@/store/modules/managementRequestStore';
+import { useManagementRequests } from '@/store/modules/management-requests';
 import { ManagementRequestStatus } from '@/openapi-types';
 import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vue';
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
@@ -136,7 +136,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(managementRequestsStore),
+    ...mapStores(useManagementRequests),
     headers(): DataTableHeader[] {
       return [
         {
@@ -218,7 +218,7 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.fetchItems();

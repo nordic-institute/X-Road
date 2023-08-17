@@ -60,8 +60,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useGlobalGroups } from '@/store/modules/global-groups';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'AddGroupDialog',
@@ -80,7 +80,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useGlobalGroupsStore, notificationsStore),
+    ...mapStores(useGlobalGroups, useNotifications),
     formReady(): boolean {
       return !!(
         this.code &&
@@ -91,7 +91,7 @@ export default Vue.extend({
   },
 
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.clearForm();
       this.$emit('cancel');
@@ -101,14 +101,14 @@ export default Vue.extend({
       this.globalGroupStore
         .add({ code: this.code, description: this.description })
         .then(() => {
-          this.notificationsStoreStore.showSuccess(
+          this.notificationsStore.showSuccess(
             this.$t('globalResources.globalGroupSuccessfullyAdded'),
           );
           this.clearForm();
           this.$emit('group-added');
         })
         .catch((error) => {
-          this.notificationsStoreStore.showError(error);
+          this.notificationsStore.showError(error);
         })
         .finally(() => {
           this.loading = false;

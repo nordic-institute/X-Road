@@ -1,0 +1,19 @@
+pipeline {
+   agent { label 'dev-test' }
+   parameters {
+       string(description: "Nodes max size", name: "MAX_SIZE", defaultValue: "${params?.MAX_SIZE}")
+       string(description: "Nodes min size", name: "MIN_SIZE", defaultValue: "${params?.MIN_SIZE}")
+       string(description: "Nodes desired size", name: "DESIRED_SIZE", defaultValue: "${params?.DESIRED_SIZE}")
+       string(description: "Name of the node group", name: "NODE_GROUP_NAME", defaultValue: "${params?.NODE_GROUP_NAME}")
+       string(description: "Name of the cluster", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+   }
+   stages {
+       stage('Update node group') {
+           steps {
+               withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                   sh 'aws eks --region eu-west-1  update-nodegroup-config --cluster-name ${CLUSTER_NAME} --nodegroup-name ${NODE_GROUP_NAME} --scaling-config minSize=${MIN_SIZE},maxSize=${MAX_SIZE},desiredSize=${DESIRED_SIZE}'
+               }
+           }
+       }
+   }
+}

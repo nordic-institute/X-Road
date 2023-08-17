@@ -1,0 +1,37 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+        string(description: "Node group name", name: "NODEGROUP_NAME", defaultValue: "${params?.NODEGROUP_NAME}")
+    }
+    stages {
+        stage('Delete nodegroup') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks delete-nodegroup --cluster-name ${CLUSTER_NAME} --nodegroup-name ${NODEGROUP_NAME}'
+                }
+            }
+        }
+        stage('Wait until the nodegroup is deleted') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks wait nodegroup-deleted --cluster-name ${CLUSTER_NAME} --nodegroup-name ${NODEGROUP_NAME}'
+                }
+            }
+        }
+        stage('Delete cluster') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks delete-cluster --name ${CLUSTER_NAME}'
+                }
+            }
+        }
+        stage('Wait until the cluster is deleted') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks wait cluster-deleted --name ${CLUSTER_NAME}'
+                }
+            }
+        }
+    }
+}

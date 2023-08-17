@@ -56,7 +56,7 @@ import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import { ConfigurationType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
-import { tokenStore } from '@/store/modules/tokens';
+import { useToken } from '@/store/modules/tokens';
 import TokenExpandable from '@/components/tokens/TokenExpandable.vue';
 
 export default Vue.extend({
@@ -74,13 +74,13 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(tokenStore, { tokens: 'getSortedTokens' }),
+    ...mapState(useToken, { tokens: 'getSortedTokens' }),
   },
   created() {
     this.fetchData();
   },
   methods: {
-    ...mapActions(tokenStore, ['fetchTokens']),
+    ...mapActions(useToken, ['fetchTokens']),
 
     fetchData(): void {
       this.tokensLoading = true;
