@@ -25,19 +25,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" width="824" scrollable persistent>
-    <v-card class="xrd-card">
-      <v-card-title>
-        <slot name="title">
-          <span class="dialog-title-text">
-            {{ $t('systemSettings.selectSubsystem.title') }}
-          </span>
-        </slot>
-        <v-spacer />
-        <xrd-close-button id="dlg-close-x" @click="cancel()" />
-      </v-card-title>
-
-      <v-card-text style="height: 500px" class="elevation-0">
+  <xrd-simple-dialog
+    width="824"
+    scrollable
+    persistent
+    title="systemSettings.selectSubsystem.title"
+    save-button-text="action.select"
+    z-index="1999"
+    :disable-save="!selected || !changed"
+    @cancel="cancel"
+    @save="updateServiceProvider"
+  >
+    <template #content>
+      <div style="height: 500px">
         <v-text-field
           v-model="search"
           :label="$t('systemSettings.selectSubsystem.search')"
@@ -45,174 +45,122 @@
           hide-details
           class="search-input"
           autofocus
-          append-icon="icon-Search"
+          variant="underlined"
+          append-inner-icon="icon-Search"
           data-test="management-subsystem-search-field"
+          @update:model-value="debouncedFetchItems"
         >
         </v-text-field>
-
         <!-- Table -->
-        <v-data-table
+        <v-data-table-server
           v-model="selectedSubsystems"
-          class="elevation-0 data-table"
-          item-key="client_id.encoded_id"
+          class="elevation-0 data-table xrd-table"
+          item-value="client_id.encoded_id"
           show-select
-          single-select
+          select-strategy="single"
           :loading="loading"
           :headers="headers"
           :items="selectableSubsystems"
-          :server-items-length="totalItems"
-          :options.sync="pagingSortingOptions"
+          :items-length="totalItems"
+          :page="pagingOptions.page"
+          :items-per-page="pagingOptions.itemsPerPage"
+          :items-per-page-options="itemsPerPageOptions"
           :loader-height="2"
-          :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
           @update:options="changeOptions"
         >
-          <template #[`item.data-table-select`]="{ isSelected, select }">
-            <v-simple-checkbox
-              data-test="management-subsystem-checkbox"
-              :ripple="false"
-              :value="isSelected"
-              @input="select($event)"
-            ></v-simple-checkbox>
-          </template>
-          <template #[`item.member_name`]="{ item }">
-            <div>{{ item.member_name }}</div>
-          </template>
-          <template #[`item.client_id.member_code`]="{ item }">
-            <div>{{ item.client_id.member_code }}</div>
-          </template>
-          <template #[`item.client_id.member_class`]="{ item }">
-            <div>{{ item.client_id.member_class }}</div>
-          </template>
-          <template #[`item.client_id.subsystem_code`]="{ item }">
-            <div>{{ item.client_id.subsystem_code }}</div>
-          </template>
-          <template #[`item.client_id.instance_id`]="{ item }">
-            <div>{{ item.client_id.instance_id }}</div>
-          </template>
-          <template #[`item.client_id.type`]="{ item }">
-            <div>{{ item.client_id.type }}</div>
-          </template>
-        </v-data-table>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-
-        <xrd-button
-          class="button-margin"
-          outlined
-          data-test="cancel-button"
-          @click="cancel()"
-        >
-          {{ $t('action.cancel') }}
-        </xrd-button>
-
-        <xrd-button
-          :disabled="!selectedSubsystems || selectedSubsystems.length === 0"
-          data-test="management-subsystem-select-button"
-          @click="selectSubSystem()"
-        >
-          {{ $t('action.select') }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </v-data-table-server>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { Client, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useNotifications } from '@/store/modules/notifications';
-import { debounce, toIdentifier } from '@/util/helpers';
-import { DataOptions, DataTableHeader } from 'vuetify';
+import { debounce } from '@/util/helpers';
+import { DataQuery, DataTableHeader, Event } from '@/ui-types';
+import { defaultItemsPerPageOptions } from "@/util/defaults";
+import { VDataTableServer } from "vuetify/labs/VDataTable";
+import { useManagementServices } from "@/store/modules/management-services";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default defineComponent({
-  name: 'SelectSubsystemDialog',
+  components: { VDataTableServer },
   props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-    defaultSubsystemId: {
+    currentSubsystemId: {
       type: String,
       required: true,
     },
   },
-
+  emits: [Event.Cancel, Event.Select],
   data() {
+    const itemsPerPageOptions = defaultItemsPerPageOptions(50);
     return {
+      itemsPerPageOptions: itemsPerPageOptions,
       loading: false,
-      pagingSortingOptions: {} as DataOptions,
+      pagingOptions: { page: 1, itemsPerPage: itemsPerPageOptions[0].value } as DataQuery,
       clients: {} as PagedClients,
       search: '',
-      selectedSubsystems: [] as Client[],
+      selectedSubsystems: (this.currentSubsystemId ? [this.currentSubsystemId.replace('SUBSYSTEM:', '')] : []) as string[],
     };
   },
   computed: {
-    ...mapStores(useClient),
+    ...mapStores(useClient, useManagementServices),
     totalItems(): number {
       return this.clients.paging_metadata?.total_items || 0;
     },
     selectableSubsystems(): Client[] {
       return this.clients.clients || [];
     },
+    changed(): boolean {
+      return this.currentSubsystemId?.replace('SUBSYSTEM:', '') !== this.selectedSubsystems[0];
+    },
+    selected(): boolean {
+      return this.selectedSubsystems?.length === 1;
+    },
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('systemSettings.selectSubsystem.name') as string,
+          title: this.$t('systemSettings.selectSubsystem.name') as string,
           align: 'start',
-          value: 'member_name',
-          class: 'xrd-table-header text-uppercase',
+          key: 'member_name',
         },
         {
-          text: this.$t('systemSettings.selectSubsystem.memberCode') as string,
+          title: this.$t('systemSettings.selectSubsystem.memberCode') as string,
           align: 'start',
-          value: 'client_id.member_code',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.member_code',
         },
         {
-          text: this.$t('systemSettings.selectSubsystem.memberClass') as string,
+          title: this.$t('systemSettings.selectSubsystem.memberClass') as string,
           align: 'start',
-          value: 'client_id.member_class',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.member_class',
         },
         {
-          text: this.$t(
+          title: this.$t(
             'systemSettings.selectSubsystem.subsystemCode',
           ) as string,
           align: 'start',
-          value: 'client_id.subsystem_code',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.subsystem_code',
         },
         {
-          text: this.$t(
+          title: this.$t(
             'systemSettings.selectSubsystem.xroadInstance',
           ) as string,
           align: 'start',
-          value: 'client_id.instance_id',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.instance_id',
         },
         {
-          text: this.$t('systemSettings.selectSubsystem.type') as string,
+          title: this.$t('systemSettings.selectSubsystem.type') as string,
           align: 'start',
-          value: 'client_id.type',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.type',
         },
       ];
-    },
-  },
-  watch: {
-    search: {
-      handler() {
-        this.pagingSortingOptions.page = 1;
-        this.debouncedFetchItems();
-      },
-      deep: true,
     },
   },
   created() {
@@ -222,15 +170,15 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
+      that.pagingOptions.page = 1;
       that.fetchClients();
     }, 600),
     fetchClients() {
       this.loading = true;
       this.clientStore
-        .getByClientType('SUBSYSTEM', this.search, this.pagingSortingOptions)
+        .getByClientType('SUBSYSTEM', this.search, this.pagingOptions)
         .then((resp) => {
           this.clients = resp;
-          this.setSelectedSubsystems();
         })
         .catch((error) => {
           this.showError(error);
@@ -239,32 +187,34 @@ export default defineComponent({
           this.loading = false;
         });
     },
-    changeOptions: async function () {
+    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
+      this.pagingOptions.itemsPerPage = itemsPerPage;
+      this.pagingOptions.page = page;
+      this.pagingOptions.sortBy = sortBy[0]?.key;
+      this.pagingOptions.sortOrder = sortBy[0]?.order;
       this.fetchClients();
     },
-    setSelectedSubsystems() {
-      const filteredList = this.selectableSubsystems?.filter(
-        (subsystem) =>
-          `SUBSYSTEM:${toIdentifier(subsystem.client_id)}` ===
-          this.defaultSubsystemId,
-      );
-
-      if (filteredList) {
-        this.selectedSubsystems = filteredList;
-      }
-    },
     cancel(): void {
-      this.$emit('cancel');
-      this.clearForm();
+      this.$emit(Event.Cancel);
     },
-    selectSubSystem(): void {
-      this.$emit('select', this.selectedSubsystems);
-      this.clearForm();
-    },
-    clearForm(): void {
-      this.pagingSortingOptions.page = 1;
-      this.selectedSubsystems = [];
-      this.search = '';
+    updateServiceProvider(): void {
+      this.loading = true;
+      this.managementServicesStore
+        .updateManagementServicesConfiguration({
+          service_provider_id: this.selectedSubsystems[0],
+        })
+        .then(() => {
+          this.showSuccess(
+            this.$t('systemSettings.serviceProvider.changedSuccess'),
+          );
+          this.$emit(Event.Select, this.selectedSubsystems);
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   },
 });
@@ -273,17 +223,17 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '../../assets/tables';
 
-.checkbox-column {
-  width: 50px;
-}
 .search-input {
   width: 300px;
 }
 
-.dialog-title-text {
-  color: $XRoad-WarmGrey100;
-  font-weight: bold;
-  font-size: 24px;
-  line-height: 32px;
+.xrd-table {
+  :deep(th span) {
+    text-transform: uppercase;
+  }
+
+  :deep(td) {
+    font-size: 14px;
+  }
 }
 </style>
