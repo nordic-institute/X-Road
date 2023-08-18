@@ -26,33 +26,40 @@
  -->
 <template>
   <xrd-sub-view-container data-test="create-api-key-stepper-view">
-    <v-stepper v-model="step" :alt-labels="true" class="stepper mt-2">
+
+    <v-stepper
+      v-model="step"
+      :alt-labels="true"
+      class="stepper mt-2"
+      alt-labels
+      hide-actions
+    >
       <xrd-sub-view-title
         :title="$t('apiKey.createApiKey.title')"
         :show-close="true"
         class="pa-4"
-        @close="close"
-      ></xrd-sub-view-title>
-
-      <v-stepper-header class="stepper-header">
-        <v-stepper-step :complete="step > 1" step="1">{{
-          $t('apiKey.createApiKey.step.roles.name')
-        }}</v-stepper-step>
+        @close="close" />
+      <v-stepper-header>
+        <v-stepper-item
+          value="1"
+          :complete="step > 0"
+          :title="$t('apiKey.createApiKey.step.roles.name')"
+        />
         <v-divider />
-        <v-stepper-step :complete="keyGenerated" step="2">{{
-          $t('apiKey.createApiKey.step.keyDetails.name')
-        }}</v-stepper-step>
+        <v-stepper-item
+          value="2"
+          :complete="keyGenerated"
+          :title="$t('apiKey.createApiKey.step.keyDetails.name')"
+        />
+
       </v-stepper-header>
-      <v-stepper-items>
-        <v-stepper-content
-          data-test="create-api-key-step-1"
-          step="1"
-          class="pa-0 centered"
-        >
+
+      <v-stepper-window>
+        <v-stepper-window-item value="1">
           <v-container class="wide-width">
             <v-row class="mt-4">
               <v-col
-                ><h3>{{ $t('apiKey.createApiKey.step.roles.name') }}</h3></v-col
+              ><h3>{{ $t('apiKey.createApiKey.step.roles.name') }}</h3></v-col
               >
             </v-row>
           </v-container>
@@ -68,7 +75,7 @@
                   <v-col class="underline">
                     <v-checkbox
                       v-model="selectedRoles"
-                      height="10px"
+                      hide-details
                       :value="role"
                       :label="$t(`apiKey.role.${role}`)"
                       :data-test="`role-${role}-checkbox`"
@@ -92,18 +99,14 @@
               {{ $t('action.next') }}
             </xrd-button>
           </v-row>
-        </v-stepper-content>
-        <v-stepper-content
-          data-test="create-api-key-step-2"
-          step="2"
-          class="pa-0"
-        >
+        </v-stepper-window-item>
+        <v-stepper-window-item value="2">
           <v-container class="wide-width mb-8">
             <v-row class="mt-4">
               <v-col
-                ><h3>
-                  {{ $t('apiKey.createApiKey.step.keyDetails.name') }}
-                </h3></v-col
+              ><h3>
+                {{ $t('apiKey.createApiKey.step.keyDetails.name') }}
+              </h3></v-col
               >
               <v-spacer></v-spacer>
 
@@ -114,8 +117,10 @@
                 @click="generateKey"
               >
                 <xrd-icon-base class="xrd-large-button-icon"
-                  ><XrdIconAdd
-                /></xrd-icon-base>
+                >
+                  <XrdIconAdd
+                  />
+                </xrd-icon-base>
                 {{ $t('apiKey.createApiKey.step.keyDetails.createKeyButton') }}
               </xrd-button>
             </v-row>
@@ -135,8 +140,12 @@
                   class="copy-button"
                   data-test="copy-key-button"
                   @click.prevent="copyKey()"
-                  ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
-                  >{{ $t('action.copy') }}</xrd-button
+                >
+                  <v-icon class="xrd-large-button-icon">icon-Copy
+                  </v-icon
+                  >
+                  {{ $t('action.copy') }}
+                </xrd-button
                 >
               </v-col>
             </v-row>
@@ -153,7 +162,7 @@
                 {{ $t('apiKey.createApiKey.step.keyDetails.assignedRoles') }}
               </v-col>
               <v-col cols="6" sm="9">
-                {{ translatedRoles | commaSeparate }}
+                {{ translatedRoles?.join(', ') }}
               </v-col>
             </v-row>
             <v-row class="mt-12">
@@ -189,26 +198,33 @@
               {{ $t('action.finish') }}
             </xrd-button>
           </v-row>
-        </v-stepper-content>
-      </v-stepper-items>
+        </v-stepper-window-item>
+      </v-stepper-window>
     </v-stepper>
   </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/api-types';
 import * as api from '@/util/api';
 import { toClipboard } from '@/util/helpers';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
+import { VStepper, VStepperHeader, VStepperItem, VStepperWindow, VStepperWindowItem } from 'vuetify/labs/VStepper'
 
 export default defineComponent({
-  name: 'CreateApiKeyStepper',
+  components: {
+    VStepper,
+    VStepperItem,
+    VStepperHeader,
+    VStepperWindowItem,
+    VStepperWindow
+  },
   data() {
     return {
-      step: 1,
+      step: 0,
       roles: Roles,
       generatingKey: false,
       selectedRoles: [] as string[],
@@ -259,6 +275,19 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '@/assets/forms';
 @import '@/assets/colors';
+
+:deep(.v-stepper-window) {
+  margin-right: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+}
+
+:deep(.v-stepper-header) {
+  width: 50%;
+  margin-right: auto;
+  margin-left: auto;
+  box-shadow: none;
+}
 
 .stepper {
   box-shadow: unset;

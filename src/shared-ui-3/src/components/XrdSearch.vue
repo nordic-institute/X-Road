@@ -28,7 +28,7 @@
   <v-text-field
     v-model="value"
     data-test="search-input"
-    class="search-input expanding-search"
+    class="expanding-search"
     single-line
     density="compact"
     variant="underlined"

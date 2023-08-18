@@ -37,7 +37,7 @@
   >
     {{ $t('action.delete') }}
     <xrd-confirm-dialog
-      :dialog="showConfirmation"
+      v-if="showConfirmation"
       title="backup.deleteBackup.dialog.title"
       text="backup.deleteBackup.dialog.confirmation"
       :data="{ file: filename }"
@@ -72,7 +72,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['refresh-backups'],
+  emits: ['delete'],
   data() {
     return { showConfirmation: false, deleting: false };
   },
@@ -87,7 +87,7 @@ export default defineComponent({
             file: this.filename,
           }),
         )
-        .then(() => this.$emit('refresh-backups'))
+        .then(() => this.$emit('delete'))
         .catch((error) => this.backupHandler.showError(error))
         .finally(() => (this.deleting = false));
     }
