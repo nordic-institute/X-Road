@@ -5,8 +5,16 @@ on:
   push:
     branches:
       - develop
+    paths:
+      - 'src/**'
+      - '.github/**'
+      - 'ansible/**'
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - 'src/**'
+      - '.github/**'
+      - 'ansible/**'
 jobs:
   BuildAndPackageWithUnitTests:
     runs-on: ubuntu-22.04
