@@ -35,7 +35,7 @@
   >
     {{ $t('action.restore') }}
     <xrd-confirm-dialog
-      :dialog="showConfirmation"
+      v-if="showConfirmation"
       :loading="restoring"
       title="backup.restoreFromBackup.dialog.title"
       text="backup.restoreFromBackup.dialog.confirmation"

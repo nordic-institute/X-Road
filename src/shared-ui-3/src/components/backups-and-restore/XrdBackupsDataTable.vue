@@ -54,6 +54,7 @@
             :backup-handler="backupHandler"
             :filename="item.raw.filename"
             :can-backup="canBackup"
+            @refresh-backups="$emit('delete')"
           />
         </div>
       </template>
@@ -71,12 +72,15 @@ import { BackupHandler, BackupItem } from '@/types';
 import XrdDeleteBackupButton from "./XrdDeleteBackupButton.vue";
 import XrdRestoreBackupButton from "./XrdRestoreBackupButton.vue";
 import XdrDownloadBackupButton from "./XdrDownloadBackupButton.vue";
+import { VDataTable } from "vuetify/labs/VDataTable";
 
 export default defineComponent({
   components: {
     XdrDownloadBackupButton,
     XrdRestoreBackupButton,
-    XrdDeleteBackupButton },
+    XrdDeleteBackupButton,
+    VDataTable
+  },
   props:{
     backups: {
       type: Array as PropType<BackupItem[]>,
@@ -99,13 +103,16 @@ export default defineComponent({
       required: true,
     },
   },
+  emits:['delete'],
   data(){
-    return {
-      headers: [
+    return {};
+  },
+  computed: {
+    headers() {
+      return [
         {
           title: this.$t('global.name') as string,
           key: 'filename',
-          value: 'filename',
           align: 'start' as const,
         },
         {
@@ -115,8 +122,8 @@ export default defineComponent({
           sortable: false,
         },
       ]
-    };
-  },
+    }
+  }
 });
 </script>
 

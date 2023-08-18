@@ -25,46 +25,41 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="api-keys-view">
-    <!-- Title and button -->
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-view-title align-fix">
-        {{ $t('tab.settings.apiKeys') }}
-      </div>
-
+  <titled-view title-key="tab.settings.apiKeys">
+    <template #header-buttons>
       <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
-        <xrd-icon-base class="xrd-large-button-icon"
-          ><XrdIconAdd
-        /></xrd-icon-base>
-        {{ $t('apiKey.createApiKey.title') }}</xrd-button
-      >
-    </div>
-
-    <!-- Table -->
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add />
+        </xrd-icon-base>
+        {{ $t('apiKey.createApiKey.title') }}
+      </xrd-button>
+    </template>
     <v-data-table
+      v-model:sort-by="sortBy"
       :loading="loading"
       :headers="headers"
       :items="apiKeys"
       :search="search"
-      :sort-by="['id']"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
-      item-key="id"
+      item-value="id"
       :loader-height="2"
       hide-default-footer
     >
       <template #[`item.id`]="{ item }">
         <div data-test="api-key-id" class="server-code">
-          <xrd-icon-base class="mr-4"><XrdIconKey /></xrd-icon-base>
-          {{ item.id }}
+          <xrd-icon-base class="mr-4">
+            <xrd-icon-key />
+          </xrd-icon-base>
+          {{ item.raw.id }}
         </div>
       </template>
 
       <template #[`item.roles`]="{ item }">
         <span :data-test="`api-key-row-${item.id}-roles`">{{
-          translateRoles(item.roles) | commaSeparate
-        }}</span>
+            translateRoles(item.raw.roles).join(', ')
+          }}</span>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -72,75 +67,78 @@
           <xrd-button
             v-if="canEdit"
             text
-            :data-test="`api-key-row-${item.id}-edit-button`"
+            :data-test="`api-key-row-${item.raw.id}-edit-button`"
             :outlined="false"
-            @click="editKey(item)"
-            >{{ $t('action.edit') }}</xrd-button
+            @click="editKey(item.raw)"
           >
+            {{ $t('action.edit') }}
+          </xrd-button>
 
           <xrd-button
             v-if="canRevoke"
             text
-            :data-test="`api-key-row-${item.id}-revoke-button`"
+            :data-test="`api-key-row-${item.raw.id}-revoke-button`"
             :outlined="false"
-            @click="showRevokeDialog(item)"
-            >{{ $t('apiKey.table.action.revoke.button') }}</xrd-button
+            @click="showRevokeDialog(item.raw)"
           >
+            {{ $t('apiKey.table.action.revoke.button') }}
+          </xrd-button>
         </div>
       </template>
 
-      <template #footer>
-        <div class="custom-footer"></div>
+      <template #bottom>
+        <custom-data-table-footer />
       </template>
     </v-data-table>
-
     <!-- Edit dialog -->
     <xrd-simple-dialog
-      v-if="showEditDialog"
-      :dialog="showEditDialog"
+      v-if="selectedKey && showEditDialog"
       save-button-text="action.save"
+      title=""
       :disable-save="selectedRoles.length === 0"
       :loading="savingChanges"
       @save="save"
       @cancel="showEditDialog = false"
     >
-      <span
-        slot="title"
-        class="headline"
-        :data-test="`api-key-row-${selectedKey.id}-edit-dialog-title`"
-      >
+      <template #title>
+        <span
+          :data-test="`api-key-row-${selectedKey.id}-edit-dialog-title`"
+        >
         {{
-          $t('apiKey.table.action.edit.dialog.title', { id: selectedKey.id })
-        }}
+            $t('apiKey.table.action.edit.dialog.title', { id: selectedKey.id })
+          }}
       </span>
-      <div
-        slot="content"
-        :data-test="`api-key-row-${selectedKey.id}-edit-dialog-content`"
-      >
-        <v-row class="mt-12">
-          <v-col>
-            {{ $t('apiKey.table.action.edit.dialog.message') }}
-          </v-col>
-        </v-row>
-        <v-row v-for="role in roles" :key="role" no-gutters>
-          <v-col class="checkbox-wrapper">
-            <v-checkbox
-              v-model="selectedRoles"
-              height="10px"
-              :value="role"
-              :label="$t(`apiKey.role.${role}`)"
-              :data-test="`role-${role}-checkbox`"
-            />
-          </v-col>
-        </v-row>
-      </div>
+      </template>
+      <template #content>
+        <div
+          :data-test="`api-key-row-${selectedKey.id}-edit-dialog-content`"
+        >
+          <v-row class="mt-12">
+            <v-col>
+              {{ $t('apiKey.table.action.edit.dialog.message') }}
+            </v-col>
+          </v-row>
+          <v-row v-for="role in roles" :key="role" no-gutters>
+            <v-col class="checkbox-wrapper">
+              <v-checkbox
+                v-model="selectedRoles"
+                height="10px"
+                :value="role"
+                :label="$t(`apiKey.role.${role}`)"
+                :data-test="`role-${role}-checkbox`"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+        </div>
+      </template>
+
     </xrd-simple-dialog>
 
     <!-- Confirm revoke dialog -->
     <xrd-confirm-dialog
-      v-if="confirmRevoke"
+      v-if="selectedKey && confirmRevoke"
       :data-test="`api-key-row-${selectedKey.id}-revoke-confirmation`"
-      :dialog="confirmRevoke"
       title="apiKey.table.action.revoke.confirmationDialog.title"
       text="apiKey.table.action.revoke.confirmationDialog.message"
       :data="{ id: selectedKey.id }"
@@ -148,26 +146,36 @@
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
     />
-  </div>
+  </titled-view>
 </template>
 
 <script lang="ts">
 /**
  * View for 'API keys' tab
  */
-import Vue, { defineComponent } from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
+import { DataTableHeader } from '@/ui-types';
 import { ApiKey } from '@/api-types';
-import { RouteName, Roles } from '@/global';
+import { Permissions, Roles, RouteName } from '@/global';
 import * as api from '@/util/api';
-import { Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
+import { VDataTable } from "vuetify/labs/VDataTable";
+import XrdIconKey from "@shared-ui/components/icons/XrdIconKey.vue";
+import TitledView from "@/components/ui/TitledView.vue";
+import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
 
 export default defineComponent({
+  components: {
+    CustomDataTableFooter,
+    TitledView,
+    VDataTable,
+    XrdIconKey
+  },
   data() {
     return {
+      sortBy: [{ key: 'id', order: 'asc' }],
       search: '' as string,
       loading: false,
       showOnlyPending: false,
@@ -192,23 +200,20 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('apiKey.table.header.id') as string,
+          title: this.$t('apiKey.table.header.id') as string,
           align: 'start',
-          value: 'id',
-          class: 'xrd-table-header ts-table-header-server-code',
+          key: 'id',
         },
         {
-          text: this.$t('apiKey.table.header.roles') as string,
+          title: this.$t('apiKey.table.header.roles') as string,
           align: 'start',
-          value: 'roles',
-          class: 'xrd-table-header ts-table-header-valid-from',
+          key: 'roles',
         },
 
         {
-          text: '',
-          value: 'button',
+          title: '',
+          key: 'button',
           sortable: false,
-          class: 'xrd-table-header mr-table-header-buttons',
         },
       ];
     },
@@ -310,16 +315,4 @@ export default defineComponent({
   font-size: 14px;
 }
 
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
 </style>
