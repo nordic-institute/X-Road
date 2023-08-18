@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202306161128-requests-remove-unused-columns.xml">
+
+    <changeSet author="niis" id="202308181600-system-param-unique-keys">
+        <comment>Make system parameters unique based on key and ha_node_name.
+        </comment>
+        <createIndex indexName="unique_sys_param_key" tableName="system_parameters" unique="true">
+            <column name="key"/>
+            <column name="ha_node_name"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
