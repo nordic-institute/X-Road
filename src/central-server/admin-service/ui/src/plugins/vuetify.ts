@@ -32,6 +32,17 @@ import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import { Colors } from "@/global";
 
 export default createVuetify({
+  defaults: {
+    VProgressLinear: {
+      color:"primary"
+    },
+    VCheckbox: {
+      color:"primary"
+    },
+    VTextField: {
+      color:"primary"
+    }
+  },
   icons: {
     defaultSet: 'mdi',
     aliases,
@@ -43,10 +54,10 @@ export default createVuetify({
     //TODO check customProperties in https://vuetifyjs.com/en/getting-started/upgrade-guide/
     themes: {
       light: {
+        dark: false,
         colors: {
           primary: Colors.Purple100,
-          accent: Colors.Purple70,
-          grey: Colors.Black50,
+          secondary: Colors.Purple70,
         },
       },
     },

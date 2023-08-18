@@ -34,7 +34,7 @@
       :loading="creating"
       @click="createBackup"
     >
-      <v-icon class="xrd-large-button-icon"> icon-Database-backup </v-icon>
+      <v-icon class="xrd-large-button-icon" icon="icon-Database-backup" />
       {{ $t('backup.createBackup.button') }}
     </xrd-button>
     <xrd-file-upload
@@ -50,17 +50,16 @@
         data-test="backup-upload"
         @click="upload"
       >
-        <v-icon class="xrd-large-button-icon"> icon-Upload </v-icon>
+        <v-icon class="xrd-large-button-icon" icon="icon-Upload" />
 
         {{ $t('backup.uploadBackup.button') }}
       </xrd-button>
     </xrd-file-upload>
     <xrd-confirm-dialog
-      v-if="uploadedFile !== null"
+      v-if="uploadedFile !== null && needsConfirmation"
       data-test="backup-upload-confirm-overwrite-dialog"
       title="backup.uploadBackup.confirmationDialog.title"
       text="backup.uploadBackup.confirmationDialog.confirmation"
-      :dialog="needsConfirmation"
       :data="{ name: uploadedFile.name }"
       :loading="uploading"
       @cancel="needsConfirmation = false"
@@ -97,7 +96,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['refresh-backups'],
+  emits: ['create-backup', 'upload-backup'],
   data() {
     return {
       creating: false,
@@ -106,7 +105,6 @@ export default defineComponent({
       uploadedFile: null as File | null
     };
   },
-  computed: {},
   methods: {
     createBackup() {
       this.creating = true;
@@ -122,12 +120,11 @@ export default defineComponent({
             );
           }
         })
-        .then(() => this.$emit('refresh-backups'))
+        .then(() => this.$emit('create-backup'))
         .catch((error) => this.backupHandler.showError(error))
         .finally(() => (this.creating = false));
-    }
-  },
-  onFileUploaded(result: FileUploadResult): void {
+    },
+    onFileUploaded(result: FileUploadResult) {
     this.uploading = true;
     this.uploadedFile = result.file;
     this.backupHandler
@@ -137,7 +134,7 @@ export default defineComponent({
           file: this.uploadedFile?.name,
         }),
       )
-      .then(() => this.$emit('refresh-backups'))
+      .then(() => this.$emit('upload-backup'))
       .catch((error) => {
         const warnings = error.response?.data?.warnings as Array<{
           code: string;
@@ -165,12 +162,13 @@ export default defineComponent({
           file: this.uploadedFile?.name,
         }),
       )
-      .then(() => this.$emit('refresh-backups'))
+      .then(() => this.$emit('upload-backup'))
       .catch((error) => this.backupHandler.showError(error))
       .finally(() => {
         this.uploading = false;
         this.needsConfirmation = false;
       });
+  }
   }
 });
 </script>

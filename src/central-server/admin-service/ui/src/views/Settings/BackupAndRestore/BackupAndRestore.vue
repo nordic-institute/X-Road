@@ -25,30 +25,31 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="backup-and-restore-view">
-    <div class="table-toolbar mt-0 pl-0">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">
-          {{ $t('tab.settings.backupAndRestore') }}
-        </div>
-        <xrd-search v-model="filter" />
-      </div>
+  <searchable-titled-view
+    v-model="filter"
+    title-key="tab.settings.backupAndRestore"
+    data-test="backup-and-restore-view"
+  >
+    <template #header-buttons>
       <xrd-backups-toolbar
         accepts=".gpg"
         :backup-handler="backupHandler()"
         :can-backup="canBackup"
         @refresh-backups="fetchBackups"
+        @create-backup="fetchBackups"
+        @upload-backup="fetchBackups"
       />
-    </div>
+    </template>
+
     <xrd-backups-data-table
       :filter="filter"
       :backups="backups"
       :loading="loading"
       :can-backup="canBackup"
       :backup-handler="backupHandler()"
-      @refresh-backups="fetchBackups"
+      @delete="fetchBackups"
     />
-  </div>
+  </searchable-titled-view>
 </template>
 
 <script lang="ts">
@@ -62,8 +63,17 @@ import { useBackups } from '@/store/modules/backups';
 import { useNotifications } from '@/store/modules/notifications';
 import { Backup } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
+import { BackupHandler } from '@shared-ui/types';
+import XrdBackupsToolbar from '@shared-ui/components/backups-and-restore/XrdBackupsToolbar.vue';
+import XrdBackupsDataTable from '@shared-ui/components/backups-and-restore/XrdBackupsDataTable.vue';
+import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
 
 export default defineComponent({
+  components: {
+    SearchableTitledView,
+    XrdBackupsToolbar,
+    XrdBackupsDataTable
+  },
   data() {
     return {
       filter: '',
@@ -86,7 +96,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    backupHandler() {
+    backupHandler(): BackupHandler {
       return {
         showSuccess: this.displaySuccess,
         showError: this.showError,
@@ -95,6 +105,8 @@ export default defineComponent({
         upload: this.uploadBackup,
         create: this.createBackup,
         restore: this.restoreFromBackup,
+        showWarning(textKey: string, data?: Record<string, unknown>) {
+        }
       };
     },
     fetchBackups() {
@@ -117,7 +129,7 @@ export default defineComponent({
       return this.backupStore.downloadBackup(filename);
     },
     uploadBackup(backupFile: File, ignoreWarnings = false) {
-      return this.backupStore.uploadBackup(backupFile, ignoreWarnings);
+      return this.backupStore.uploadBackup(backupFile, ignoreWarnings).then(resp => resp.data);
     },
     displaySuccess(textKey: string, data: Record<string, any> = {}) {
       this.showSuccess(this.$t(textKey, data));

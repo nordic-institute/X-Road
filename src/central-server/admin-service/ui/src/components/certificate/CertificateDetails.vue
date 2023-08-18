@@ -46,7 +46,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import { CertificateDetails } from '@/openapi-types';
