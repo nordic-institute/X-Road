@@ -331,6 +331,13 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.alerts.alert(message).shouldBe(Condition.visible, ofSeconds(15));
     }
 
+    @Step("Rest service parameters are saved and error message {string} is shown")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void saveRestServiceParamsSaveError(String message) {
+        clientInfoPageObj.services.servicesParameters.btnSaveEdit().click();
+        commonPageObj.alerts.alert(message).shouldBe(Condition.visible, ofSeconds(15));
+    }
+
     @Step("Rest service details are saved and success message {string} is shown")
     public void saveRestServiceSuccess(String message) {
         clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();

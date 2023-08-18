@@ -54,7 +54,7 @@ Feature: 0550 - SS: Client REST with base path services
     When Service with code "s3c1" is opened
     Then Service URL is "http://example.com/v2", timeout is 30 and tls certificate verification is unchecked
     When Service URL is set to "http://example2.com", timeout to 30 and tls certificate verification is unchecked
-    Then Dialog data is saved and error message "URL already exists" is shown
+    Then Rest service parameters are saved and error message "URL already exists" is shown
 
   Scenario: Client service has access rights added to it
     Given Client "TestService" is opened
