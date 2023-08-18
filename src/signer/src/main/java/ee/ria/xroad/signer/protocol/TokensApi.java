@@ -50,7 +50,7 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class ListTokensRequestHandler extends TokensApiGrpc.TokensApiImplBase {
+public class TokensApi extends TokensApiGrpc.TokensApiImplBase {
     private final ActorSystem actorSystem;
 
     @Override
