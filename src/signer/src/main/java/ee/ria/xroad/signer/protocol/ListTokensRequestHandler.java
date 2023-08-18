@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.handler;
+package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
 import org.niis.xroad.signer.proto.Empty;
 import org.niis.xroad.signer.proto.ListTokensResponse;
-import org.niis.xroad.signer.proto.SignerApiGrpc;
+import org.niis.xroad.signer.proto.TokensApiGrpc;
 import scala.concurrent.Await;
 
 import java.util.concurrent.TimeUnit;
@@ -50,7 +50,7 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class ListTokensRequestHandler extends SignerApiGrpc.SignerApiImplBase {
+public class ListTokensRequestHandler extends TokensApiGrpc.TokensApiImplBase {
     private final ActorSystem actorSystem;
 
     @Override

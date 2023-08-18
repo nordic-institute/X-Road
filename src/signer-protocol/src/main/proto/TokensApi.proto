@@ -1,15 +1,13 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-//option java_package = "org.niis.xroad.signer.proto";
 
 import "Tokens.proto";
 import "TokenStatusInfo.proto";
 
-
 package org.niis.xroad.signer.proto;
 
-service SignerApi {
+service TokensApi {
 
   rpc listTokens (Empty) returns (ListTokensResponse) {}
 

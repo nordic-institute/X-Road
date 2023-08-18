@@ -32,7 +32,7 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
-import ee.ria.xroad.signer.protocol.handler.ListTokensRequestHandler;
+import ee.ria.xroad.signer.protocol.ListTokensRequestHandler;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import akka.actor.ActorSystem;

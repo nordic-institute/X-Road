@@ -5,23 +5,23 @@ import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.proto.SignerApiGrpc;
+import org.niis.xroad.signer.proto.TokensApiGrpc;
 
 import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createClientCredentials;
 
 @Slf4j
 public class RpcSignerClient {
     @Getter
-    private final SignerApiGrpc.SignerApiStub signerApiStub;
+    private final TokensApiGrpc.TokensApiStub signerApiStub;
     @Getter
-    private final SignerApiGrpc.SignerApiBlockingStub signerApiBlockingStub;
+    private final TokensApiGrpc.TokensApiBlockingStub signerApiBlockingStub;
 
     /**
      * Construct client for accessing RouteGuide server using the existing channel.
      */
     public RpcSignerClient(Channel channel) {
-        signerApiStub = SignerApiGrpc.newStub(channel);
-        signerApiBlockingStub = SignerApiGrpc.newBlockingStub(channel);
+        signerApiStub = TokensApiGrpc.newStub(channel);
+        signerApiBlockingStub = TokensApiGrpc.newBlockingStub(channel);
     }
 
     /**
