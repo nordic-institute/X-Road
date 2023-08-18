@@ -36,7 +36,7 @@ jobs:
           gradle-home-cache-cleanup: true
       - name: Build and test source
         working-directory: ./src
-        run: ./gradlew -PxroadBuildType=RELEASE --stacktrace build test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PxroadBuildType=RELEASE --stacktrace build test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
