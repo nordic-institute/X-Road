@@ -1,0 +1,81 @@
+syntax = "proto3";
+import "TokenStatusInfo.proto";
+
+//package protocol;
+
+option java_multiple_files = true;
+option java_package = "ee.ria.xroad.signer.protocol.dto";
+//option java_outer_classname = "TokenStatusInfo";
+//option objc_class_prefix = "HLW";
+
+//import "google/protobuf/empty.proto";
+
+
+message TokenInfoProto {
+  string type = 1;
+  string friendlyName = 2;
+  string id = 3;
+  bool readOnly = 4;
+  bool available = 5;
+  bool active = 6;
+  string serialNumber = 7;
+  string label = 8;
+  int32 slotIndex = 9;
+  TokenStatusInfo status = 10;
+  repeated KeyInfoProto keyInfo = 11;
+  map<string, string> tokenInfo = 12;
+}
+
+message KeyInfoProto {
+  bool available = 1;
+  KeyUsageInfo usage = 2;
+  string friendly_name = 3;
+  string id = 4;
+  string label = 5;
+  string public_key = 6;
+  repeated CertificateInfoProto certs = 7;
+  repeated CertRequestInfoProto cert_requests = 8;
+  string sign_mechanism_name = 9;
+}
+
+message CertificateInfoProto {
+  ClientIdProto memberId = 1;
+  bool active = 2;
+  bool savedToConfiguration = 3;
+  string status = 4;
+  string id = 5;
+  bytes certificate_bytes = 6;
+  bytes ocsp_bytes = 7;
+  // Add other fields as needed
+}
+
+message CertRequestInfoProto {
+  string id = 1;
+  ClientIdProto memberId = 2;
+  string subject_name = 3;
+  // Add other fields as needed
+}
+
+message ClientIdProto {
+  string member_class = 1;
+  string member_code = 2;
+  string subsystem_code = 3;
+
+  string xroad_instance = 4;
+  XRoadObjectType object_type = 5;
+}
+
+enum XRoadObjectType {
+  SERVER = 0;
+  SERVICE = 1;
+  MEMBER = 2;
+  SUBSYSTEM = 3;
+  GLOBALGROUP = 4;
+  LOCALGROUP = 5 [deprecated = true]; // Deprecated
+}
+
+/* Key usage can either be signing or authentication. */
+enum KeyUsageInfo {
+  SIGNING = 0;
+  AUTHENTICATION = 1;
+}

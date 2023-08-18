@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+//option java_package = "org.niis.xroad.signer.proto";
+
+import "Tokens.proto";
+import "TokenStatusInfo.proto";
+
+
+package org.niis.xroad.signer.proto;
+
+service SignerApi {
+
+  rpc listTokens (Empty) returns (ListTokensResponse) {}
+
+  rpc activateToken (ActivateTokenRequest) returns (Empty) {}
+}
+
+/* Generic empty request/response. */
+message Empty {
+}
+
+message ListTokensResponse {
+  repeated TokenInfoProto tokens = 1;
+}
+
+message ActivateTokenRequest{
+  string tokenId = 1;
+  bool  activate = 2;
+}
+

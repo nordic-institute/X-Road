@@ -157,11 +157,9 @@ public class ImportCertRequestHandler
             TokenManager.removeCert(existingCert.getId());
         }
 
-        CertificateInfo certType = new CertificateInfo(memberId,
+        TokenManager.addCert(keyInfo.getId(), memberId,
                 !authentication, true, initialStatus, SignerUtil.randomId(),
-                cert.getEncoded(), null);
-
-        TokenManager.addCert(keyInfo.getId(), certType);
+                cert.getEncoded());
         TokenManager.setKeyUsage(keyInfo.getId(), keyUsage);
         updateOcspResponse(cert);
 

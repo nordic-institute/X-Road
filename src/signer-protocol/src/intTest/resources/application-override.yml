@@ -1,0 +1,20 @@
+---
+#Logging configuration
+logging:
+  level:
+    ROOT: INFO
+    cucumber: TRACE
+    liquibase: WARN
+    org.springframework: INFO
+    com.nortal.test: INFO # TRACE is helpful for development
+
+test-automation:
+  report-name: xroad-signer-test-suite
+  spring-component-scan: "ee.ria.xroad.signer"
+  cucumber:
+    execution:
+      parallel:
+        enabled: false
+    glue-append: "ee.ria.xroad.signer.glue"
+    filter:
+      tags: "not @Skip"

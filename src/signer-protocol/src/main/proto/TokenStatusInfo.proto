@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+//package protocol;
+
+option java_multiple_files = true;
+option java_package = "ee.ria.xroad.signer.protocol.dto";
+
+//option java_outer_classname = "TokenStatusInfo";
+//option objc_class_prefix = "HLW";
+
+//import "google/protobuf/empty.proto";
+
+/* Token status info DTO. */
+enum TokenStatusInfo {
+  OK = 0; // Normal operation status
+  USER_PIN_LOCKED = 1;// Blocked
+  USER_PIN_INCORRECT = 2; // Incorrect PIN was entered
+  USER_PIN_INVALID = 3; // Invalid PIN
+  USER_PIN_EXPIRED = 4; // PIN expired
+  USER_PIN_COUNT_LOW = 5; // Only a few tries left
+  USER_PIN_FINAL_TRY = 6; // Final try
+  NOT_INITIALIZED = 7; // PIN not initialized
+}

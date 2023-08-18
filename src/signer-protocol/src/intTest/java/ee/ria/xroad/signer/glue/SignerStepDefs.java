@@ -41,6 +41,7 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
 
 import akka.actor.ActorSystem;
+import com.nortal.test.core.report.TestReportService;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.cucumber.java.AfterAll;
@@ -50,8 +51,11 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -76,9 +80,13 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Slf4j
 public class SignerStepDefs {
 
     private static Process signerProcess;
+
+    @Autowired
+    private TestReportService testReportService;
 
     private String keyId;
     private String csrId;
@@ -148,9 +156,13 @@ public class SignerStepDefs {
         SignerProxy.deactivateToken(tokenId);
     }
 
+    @SneakyThrows
     @Then("token {string} is active")
     public void tokenIsActive(String tokenId) throws Exception {
-        assertThat(SignerProxy.getToken(tokenId).isActive()).isTrue();
+        var tokenInfo = SignerProxy.getToken(tokenId);
+
+        testReportService.attachText("TokenInfo", tokenInfo.toString());
+        assertThat(tokenInfo.isActive()).isTrue();
     }
 
     @When("token {string} pin is updated from {string} to {string}")
@@ -352,6 +364,7 @@ public class SignerStepDefs {
             try {
                 ProcessBuilder pb = new ProcessBuilder("java",
                         "-Dxroad.signer.port=" + port,
+                        "-Dlogback.configurationFile=build/resources/intTest/signer-logback.xml",
                         "-Dxroad.signer.key-configuration-file="
                                 + "build/resources/intTest/keyconf.xml",
                         "-Dxroad.signer.device-configuration-file="
@@ -381,10 +394,10 @@ public class SignerStepDefs {
                 BufferedReader br = new BufferedReader(new InputStreamReader(is));
                 String line;
                 while ((line = br.readLine()) != null) {
-                    System.out.println(line);
+                    log.info("[Signer] {}", line);
                 }
             } catch (IOException ioe) {
-                ioe.printStackTrace();
+                log.error("Failed to read process logs", ioe);
             }
         }
     }

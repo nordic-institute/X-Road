@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -116,6 +116,7 @@ public final class TokenManager {
     /**
      * Merge the in-memory configuration and the on-disk configuration if the configuration on
      * disk has changed.
+     *
      * @param listener
      */
     public static void merge(TokenMergeAddedCertificatesListener listener) {
@@ -157,7 +158,7 @@ public final class TokenManager {
     public static synchronized List<TokenInfo> listTokens() {
         return unmodifiableList(
                 currentTokens.stream()
-                        .map(t -> t.toDTO())
+                        .map(Token::toDTO)
                         .collect(Collectors.toList()));
     }
 
@@ -214,7 +215,7 @@ public final class TokenManager {
 
         return currentTokens.stream()
                 .filter(t -> t.getId().equals(tokenId))
-                .map(t -> t.toDTO())
+                .map(Token::toDTO)
                 .findFirst().orElse(null);
     }
 
@@ -728,6 +729,11 @@ public final class TokenManager {
         key.addCert(cert);
     }
 
+    public static synchronized void addCert(String keyId,
+                                            CertificateInfo certInfo) {
+        //TODO check if needed
+
+    }
     /**
      * Adds a certificate to a key. Throws exception, if key cannot be found.
      *
@@ -735,18 +741,18 @@ public final class TokenManager {
      * @param certInfo the certificate info
      */
     public static synchronized void addCert(String keyId,
-                                            CertificateInfo certInfo) {
+                                            ClientId.Conf memberId, boolean active,boolean savedToConfiguration,
+                                            String initialStatus,String id,byte[] certificate) {
         log.trace("addCert({})", keyId);
 
         Key key = findKey(keyId);
 
-        Cert cert = new Cert(certInfo.getId());
-        cert.setActive(certInfo.isActive());
-        cert.setCertificate(certInfo.getCertificateBytes());
-        cert.setOcspResponse(certInfo.getOcspBytes());
-        cert.setMemberId(certInfo.getMemberId());
-        cert.setSavedToConfiguration(certInfo.isSavedToConfiguration());
-        cert.setStatus(certInfo.getStatus());
+        Cert cert = new Cert(id);
+        cert.setActive(active);
+        cert.setCertificate(certificate);
+        cert.setMemberId(memberId);
+        cert.setSavedToConfiguration(savedToConfiguration);
+        cert.setStatus(initialStatus);
 
         key.addCert(cert);
     }

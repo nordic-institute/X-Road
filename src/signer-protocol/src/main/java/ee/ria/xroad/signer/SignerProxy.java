@@ -28,6 +28,7 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -37,7 +38,6 @@ import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.ActivateCert;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
@@ -69,7 +69,6 @@ import ee.ria.xroad.signer.protocol.message.GetTokenInfoForKeyId;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
-import ee.ria.xroad.signer.protocol.message.ListTokens;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.SetCertStatus;
@@ -84,6 +83,9 @@ import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.ActivateTokenRequest;
+import org.niis.xroad.signer.proto.Empty;
+import org.niis.xroad.signer.proto.ListTokensResponse;
 
 import java.security.PublicKey;
 import java.util.Arrays;
@@ -96,6 +98,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public final class SignerProxy {
+    private static RpcSignerClient signerClient;
 
     private SignerProxy() {
     }
@@ -121,7 +124,23 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static List<TokenInfo> getTokens() throws Exception {
-        return execute(new ListTokens());
+        ListTokensResponse response = getSignerClient().getSignerApiBlockingStub().listTokens(Empty.newBuilder().build());
+
+        return response.getTokensList().stream()
+                .map(TokenInfo::new)
+                .collect(Collectors.toList());
+    }
+
+    private static RpcSignerClient getSignerClient() {
+        //TODO this is unsafe, but works for poc.
+        if (signerClient == null) {
+            try {
+                signerClient = RpcSignerClient.init(5560);
+            } catch (Exception e) {
+                log.error("Failed to init client", e);
+            }
+        }
+        return signerClient;
     }
 
     /**
@@ -132,7 +151,9 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static TokenInfo getToken(String tokenId) throws Exception {
+
         return execute(new GetTokenInfo(tokenId));
+
     }
 
     /**
@@ -147,7 +168,11 @@ public final class SignerProxy {
 
         log.trace("Activating token '{}'", tokenId);
 
-        execute(new ActivateToken(tokenId, true));
+        getSignerClient().getSignerApiBlockingStub()
+                .activateToken(ActivateTokenRequest.newBuilder()
+                        .setTokenId(tokenId)
+                        .setActivate(true)
+                        .build());
     }
 
     /**
@@ -175,7 +200,11 @@ public final class SignerProxy {
 
         log.trace("Deactivating token '{}'", tokenId);
 
-        execute(new ActivateToken(tokenId, false));
+        getSignerClient().getSignerApiBlockingStub()
+                .activateToken(ActivateTokenRequest.newBuilder()
+                        .setTokenId(tokenId)
+                        .setActivate(false)
+                        .build());
     }
 
     /**

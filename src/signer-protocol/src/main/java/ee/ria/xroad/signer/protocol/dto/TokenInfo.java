@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,51 +25,86 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
-import lombok.Value;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 
 /**
  * Token info DTO.
  */
-@Value
+@ToString
+@RequiredArgsConstructor
 public final class TokenInfo implements Serializable {
 
     public static final String SOFTWARE_MODULE_TYPE = "softToken";
 
-    private final String type;
+    private final TokenInfoProto message;
 
-    private final String friendlyName;
+    public String getType() {
+        return message.getType();
+    }
 
-    private final String id;
+    public String getFriendlyName() {
+        return message.getFriendlyName();
+    }
 
-    private final boolean readOnly;
+    public String getId() {
+        return message.getId();
+    }
 
-    private final boolean available;
+    public boolean isReadOnly() {
+        return message.getReadOnly();
+    }
 
-    private final boolean active;
+    public boolean isAvailable() {
+        return message.getAvailable();
+    }
 
-    private final String serialNumber;
+    public boolean isActive() {
+        return message.getActive();
+    }
 
-    private final String label;
+    public String getSerialNumber() {
+        return message.getSerialNumber();
+    }
 
-    private final int slotIndex;
+    public String getLabel() {
+        return message.getLabel();
+    }
 
-    private final TokenStatusInfo status;
+    public int getSlotIndex() {
+        return message.getSlotIndex();
+    }
 
-    private final List<KeyInfo> keyInfo;
+    public TokenStatusInfo getStatus() {
+        return message.getStatus();
+    }
 
-    /** Contains label-value pairs of information about token. */
-    private final Map<String, String> tokenInfo;
+    public List<KeyInfo> getKeyInfo() {
+        return message.getKeyInfoList().stream()
+                .map(KeyInfo::new)
+                .collect(Collectors.toList());
+    }
+
+    public Map<String, String> getTokenInfo() {
+        return message.getTokenInfoMap();
+    }
+
+    public TokenInfoProto asMessage() {
+        return message;
+    }
 
     /**
      * Logic to determine if a token is saved to configuration.
      * True if there is at least one key which is saved to configuration
      */
     public boolean isSavedToConfiguration() {
-        return keyInfo.stream()
-                .anyMatch(k -> k.isSavedToConfiguration());
+        return getKeyInfo().stream()
+                .anyMatch(KeyInfo::isSavedToConfiguration);
     }
 }

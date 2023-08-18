@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,6 +32,7 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+import ee.ria.xroad.signer.protocol.handler.ListTokensRequestHandler;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import akka.actor.ActorSystem;
@@ -40,6 +41,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.grpc.RpcServer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -82,6 +84,7 @@ public final class SignerMain {
 
     /**
      * Entry point to Signer.
+     *
      * @param args the arguments
      * @throws Exception if an error occurs
      */
@@ -95,6 +98,7 @@ public final class SignerMain {
     }
 
     private static void startup() throws Exception {
+        long start=System.currentTimeMillis();
         Version.outputVersionInfo(APP_NAME);
         int signerPort = SystemProperties.getSignerPort();
         log.info("Starting Signer on port {}...", signerPort);
@@ -105,6 +109,17 @@ public final class SignerMain {
         CoordinatedShutdown.get(actorSystem).addJvmShutdownHook(SignerMain::shutdown);
         signer.start();
         adminPort.start();
+
+        initGrpc();
+        log.info("Signer has been initialized in {} ms.", System.currentTimeMillis() - start);
+    }
+
+    private static void initGrpc() throws Exception {
+        int port = 5560;
+        log.info("Initializing GRPC server on port {}.. ", port);
+        RpcServer.init(port, builder -> {
+            builder.addService(new ListTokensRequestHandler(actorSystem));
+        });
     }
 
     private static void shutdown() {

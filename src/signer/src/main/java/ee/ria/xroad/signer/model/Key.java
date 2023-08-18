@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,18 +25,20 @@
  */
 package ee.ria.xroad.signer.model;
 
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.Data;
 import lombok.ToString;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Model object representing a key.
@@ -46,35 +48,54 @@ import java.util.stream.Collectors;
 @ToString(exclude = {"token"})
 public final class Key {
 
-    /** Reference to the token this key belongs to. */
+    /**
+     * Reference to the token this key belongs to.
+     */
     private final Token token;
 
-    /** The unique key id. */
+    /**
+     * The unique key id.
+     */
     private final String id;
 
-    /** Whether of not this key is available. */
+    /**
+     * Whether of not this key is available.
+     */
     private boolean available;
 
-    /** Key usage info. */
+    /**
+     * Key usage info.
+     */
     private KeyUsageInfo usage;
 
-    /** The friendly name of the key. */
+    /**
+     * The friendly name of the key.
+     */
     private String friendlyName;
 
-    /** The label of the key. */
+    /**
+     * The label of the key.
+     */
     private String label;
 
-    /** The X509 encoded public key. */
+    /**
+     * The X509 encoded public key.
+     */
     private String publicKey;
 
-    /** List of certificates. */
+    /**
+     * List of certificates.
+     */
     private final List<Cert> certs = new ArrayList<>();
 
-    /** List of certificate requests. */
+    /**
+     * List of certificate requests.
+     */
     private final List<CertRequest> certRequests = new ArrayList<>();
 
     /**
      * Adds a certificate to this key.
+     *
      * @param cert the certificate to add
      */
     public void addCert(Cert cert) {
@@ -83,20 +104,47 @@ public final class Key {
 
     /**
      * Adds a certificate request to this key.
+     *
      * @param certReq the certificate request to add
      */
     public void addCertRequest(CertRequest certReq) {
         certRequests.add(certReq);
     }
 
+    public KeyInfoProto toProtoDTO() {
+        var builder = KeyInfoProto.newBuilder()
+                .setId(id)
+                .setAvailable(available)
+                .addAllCerts(unmodifiableList(getCertsAsDTOs()))
+                .addAllCertRequests(unmodifiableList(getCertRequestsAsDTOs()))
+                .setSignMechanismName(token.getSignMechanismName());
+
+        if (usage != null) {
+            builder.setUsage(usage);
+        }
+
+        if (friendlyName != null) {
+            builder.setFriendlyName(friendlyName);
+        }
+
+        if (label != null) {
+            builder.setLabel(label);
+        }
+
+        if (publicKey != null) {
+            builder.setPublicKey(publicKey);
+        }
+
+        return builder.build();
+    }
+
     /**
      * Converts this object to value object.
+     *
      * @return the value object
      */
     public KeyInfo toDTO() {
-        return new KeyInfo(available, usage, friendlyName, id, label, publicKey,
-                Collections.unmodifiableList(getCertsAsDTOs()), Collections.unmodifiableList(getCertRequestsAsDTOs()),
-                token.getSignMechanismName());
+        return new KeyInfo(toProtoDTO());
     }
 
     /**
@@ -106,12 +154,12 @@ public final class Key {
         return isAvailable() && getUsage() == KeyUsageInfo.SIGNING;
     }
 
-    private List<CertificateInfo> getCertsAsDTOs() {
-        return certs.stream().map(c -> c.toDTO()).collect(Collectors.toList());
+    private List<CertificateInfoProto> getCertsAsDTOs() {
+        return certs.stream().map(Cert::toProtoDTO).collect(Collectors.toList());
     }
 
-    private List<CertRequestInfo> getCertRequestsAsDTOs() {
-        return certRequests.stream().map(c -> c.toDTO()).collect(Collectors.toList());
+    private List<CertRequestInfoProto> getCertRequestsAsDTOs() {
+        return certRequests.stream().map(CertRequest::toProtoDTO).collect(Collectors.toList());
     }
 
 }
