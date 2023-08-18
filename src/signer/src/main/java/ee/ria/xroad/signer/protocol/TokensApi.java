@@ -25,18 +25,25 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
+import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
 import org.niis.xroad.signer.proto.Empty;
+import org.niis.xroad.signer.proto.GetTokenByCertHashRequest;
+import org.niis.xroad.signer.proto.GetTokenByCertRequestIdRequest;
+import org.niis.xroad.signer.proto.GetTokenByIdRequest;
+import org.niis.xroad.signer.proto.GetTokenByKeyIdRequest;
 import org.niis.xroad.signer.proto.ListTokensResponse;
 import org.niis.xroad.signer.proto.TokensApiGrpc;
 import scala.concurrent.Await;
@@ -59,8 +66,7 @@ public class TokensApi extends TokensApiGrpc.TokensApiImplBase {
 
         TokenManager.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));
 
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
+        emitSingleAndClose(responseObserver, builder.build());
     }
 
     @SneakyThrows
@@ -74,7 +80,35 @@ public class TokensApi extends TokensApiGrpc.TokensApiImplBase {
         Await.result(Patterns.ask(actorSystem.actorSelection("/user/" + REQUEST_PROCESSOR), actorMsg, timeout),
                 timeout.duration());
 
-        responseObserver.onNext(Empty.getDefaultInstance());
+        emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+    }
+
+    @Override
+    public void getTokenById(GetTokenByIdRequest request, StreamObserver<TokenInfoProto> responseObserver) {
+        var token = TokenManager.findTokenInfo(request.getTokenId());
+        emitSingleAndClose(responseObserver, token.asMessage());
+    }
+
+    @Override
+    public void getTokenByKey(GetTokenByKeyIdRequest request, StreamObserver<TokenInfoProto> responseObserver) {
+        var token = TokenManager.findTokenInfoForKeyId(request.getKeyId());
+        emitSingleAndClose(responseObserver, token.asMessage());
+    }
+
+    @Override
+    public void getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdRequest request, StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
+        var token = TokenManager.findTokenAndKeyIdForCertRequestId(request.getCertRequestId());
+        emitSingleAndClose(responseObserver, token.asMessage());
+    }
+
+    @Override
+    public void getTokenAndKeyIdByCertHash(GetTokenByCertHashRequest request, StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
+        var token = TokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
+        emitSingleAndClose(responseObserver, token.asMessage());
+    }
+
+    private <T extends AbstractMessage> void emitSingleAndClose(StreamObserver<T> responseObserver, T value) {
+        responseObserver.onNext(value);
         responseObserver.onCompleted();
     }
 }

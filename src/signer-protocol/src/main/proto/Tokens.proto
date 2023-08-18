@@ -1,15 +1,8 @@
 syntax = "proto3";
 import "TokenStatusInfo.proto";
 
-//package protocol;
-
 option java_multiple_files = true;
 option java_package = "ee.ria.xroad.signer.protocol.dto";
-//option java_outer_classname = "TokenStatusInfo";
-//option objc_class_prefix = "HLW";
-
-//import "google/protobuf/empty.proto";
-
 
 message TokenInfoProto {
   string type = 1;
@@ -24,6 +17,11 @@ message TokenInfoProto {
   TokenStatusInfo status = 10;
   repeated KeyInfoProto keyInfo = 11;
   map<string, string> tokenInfo = 12;
+}
+
+message TokenInfoAndKeyIdProto {
+  TokenInfoProto tokenInfo = 1;
+  string keyId = 2;
 }
 
 message KeyInfoProto {

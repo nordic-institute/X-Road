@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -44,11 +44,18 @@ public final class TokenInfoAndKeyId implements Serializable {
      * or null if no match
      */
     public KeyInfo getKeyInfo() {
-        for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
+        for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
             if (keyId.equals(keyInfo.getId())) {
                 return keyInfo;
             }
         }
         return null;
+    }
+
+    public TokenInfoAndKeyIdProto asMessage() {
+        return TokenInfoAndKeyIdProto.newBuilder()
+                .setTokenInfo(tokenInfo.asMessage())
+                .setKeyId(keyId)
+                .build();
     }
 }

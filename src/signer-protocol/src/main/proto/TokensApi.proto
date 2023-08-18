@@ -8,6 +8,13 @@ import "TokenStatusInfo.proto";
 package org.niis.xroad.signer.proto;
 
 service TokensApi {
+  rpc getTokenById (GetTokenByIdRequest) returns (TokenInfoProto) {}
+
+  rpc getTokenByKey (GetTokenByKeyIdRequest) returns (TokenInfoProto) {}
+
+  rpc getTokenAndKeyIdByCertRequestId (GetTokenByCertRequestIdRequest) returns (TokenInfoAndKeyIdProto) {}
+
+  rpc getTokenAndKeyIdByCertHash (GetTokenByCertHashRequest) returns (TokenInfoAndKeyIdProto) {}
 
   rpc listTokens (Empty) returns (ListTokensResponse) {}
 
@@ -27,3 +34,18 @@ message ActivateTokenRequest{
   bool  activate = 2;
 }
 
+message GetTokenByIdRequest {
+  string tokenId = 1;
+}
+
+message GetTokenByKeyIdRequest {
+  string keyId = 1;
+}
+
+message GetTokenByCertRequestIdRequest {
+  string certRequestId = 1;
+}
+
+message GetTokenByCertHashRequest {
+  string certHash = 1;
+}

@@ -62,10 +62,6 @@ import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
 import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
 import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
-import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
-import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertHash;
-import ee.ria.xroad.signer.protocol.message.GetTokenInfoAndKeyIdForCertRequestId;
-import ee.ria.xroad.signer.protocol.message.GetTokenInfoForKeyId;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
@@ -85,6 +81,10 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
 import org.niis.xroad.signer.proto.Empty;
+import org.niis.xroad.signer.proto.GetTokenByCertHashRequest;
+import org.niis.xroad.signer.proto.GetTokenByCertRequestIdRequest;
+import org.niis.xroad.signer.proto.GetTokenByIdRequest;
+import org.niis.xroad.signer.proto.GetTokenByKeyIdRequest;
 import org.niis.xroad.signer.proto.ListTokensResponse;
 
 import java.security.PublicKey;
@@ -151,9 +151,10 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static TokenInfo getToken(String tokenId) throws Exception {
-
-        return execute(new GetTokenInfo(tokenId));
-
+        return new TokenInfo(getSignerClient().getSignerApiBlockingStub()
+                .getTokenById(GetTokenByIdRequest.newBuilder()
+                        .setTokenId(tokenId)
+                        .build()));
     }
 
     /**
@@ -483,11 +484,13 @@ public final class SignerProxy {
         hash = hash.toLowerCase();
         log.trace("Getting token and key id by cert hash '{}'", hash);
 
-        TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertHash(hash));
-
+        var response = getSignerClient().getSignerApiBlockingStub()
+                .getTokenAndKeyIdByCertHash(GetTokenByCertHashRequest.newBuilder()
+                        .setCertHash(hash)
+                        .build());
         log.trace("Token and key id with hash '{}' found", hash);
 
-        return response;
+        return new TokenInfoAndKeyId(new TokenInfo(response.getTokenInfo()), response.getKeyId());
     }
 
     /**
@@ -536,11 +539,14 @@ public final class SignerProxy {
     public static TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
         log.trace("Getting token and key id by cert request id '{}'", certRequestId);
 
-        TokenInfoAndKeyId response = execute(new GetTokenInfoAndKeyIdForCertRequestId(certRequestId));
+        var response = getSignerClient().getSignerApiBlockingStub()
+                .getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdRequest.newBuilder()
+                        .setCertRequestId(certRequestId)
+                        .build());
 
         log.trace("Token and key id with cert request id '{}' found", certRequestId);
 
-        return response;
+        return new TokenInfoAndKeyId(new TokenInfo(response.getTokenInfo()), response.getKeyId());
     }
 
     /**
@@ -551,7 +557,8 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static TokenInfo getTokenForKeyId(String keyId) throws Exception {
-        return execute(new GetTokenInfoForKeyId(keyId));
+        return new TokenInfo(getSignerClient().getSignerApiBlockingStub()
+                .getTokenByKey(GetTokenByKeyIdRequest.newBuilder().setKeyId(keyId).build()));
     }
 
     public static String getSignMechanism(String keyId) throws Exception {
