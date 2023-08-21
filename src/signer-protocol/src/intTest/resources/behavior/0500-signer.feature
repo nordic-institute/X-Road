@@ -46,6 +46,7 @@ Feature: 0500 - Signer
 
   Scenario: Sign
     Given digest can be signed using key "KeyX" from token "0"
+    And Signing with unknown algorithm fails using key "KeyX" from token "0"
 
   Scenario: Generate/Regenerate cert request
     When cert request is generated for token "0" key "Second key" for client "cs:test:member-2"
@@ -80,6 +81,11 @@ Feature: 0500 - Signer
     * Set token name fails with TokenNotFound exception when token does not exist
     * Deleting not existing certificate from token fails
     * Retrieving token info by not existing key fails
+    * Deleting not existing certRequest fails
+    * Signing with unknown key fails
+    * Getting key by not existing cert hash fails
+    * Not existing certificate can not be activated
+
 
 
 #  not covered SignerProxy methods:
