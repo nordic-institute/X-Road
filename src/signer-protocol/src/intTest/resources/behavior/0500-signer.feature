@@ -76,6 +76,12 @@ Feature: 0500 - Signer
   Scenario: Miscellaneous checks
     * check token "0" key "First key" batch signing enabled
 
+  Scenario: Exceptions
+    * Set token name fails with TokenNotFound exception when token does not exist
+    * Deleting not existing certificate from token fails
+    * Retrieving token info by not existing key fails
+
+
 #  not covered SignerProxy methods:
 #  String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) #partly in GenerateSelfSignedCert
 #  AuthKeyInfo getAuthKey(SecurityServerId serverId)                            #requires valid ocsp response

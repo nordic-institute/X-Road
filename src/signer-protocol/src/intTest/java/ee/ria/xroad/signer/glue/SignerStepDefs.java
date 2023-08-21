@@ -27,6 +27,7 @@
 
 package ee.ria.xroad.signer.glue;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
@@ -77,8 +78,11 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 public class SignerStepDefs {
@@ -349,6 +353,45 @@ public class SignerStepDefs {
 
         final byte[] bytes = SignerProxy.signCertificate(key.getId(), SHA256WITHRSA_ID, "CN=cs", publicKey);
         assertThat(bytes).isNotEmpty();
+    }
+
+    @Then("Set token name fails with TokenNotFound exception when token does not exist")
+    public void setTokenNameFail() throws Exception {
+        String tokenId = randomUUID().toString();
+        try {
+            SignerProxy.setTokenFriendlyName(tokenId, randomUUID().toString());
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertEquals("Signer.TokenNotFound", codedException.getFaultCode());
+            assertEquals("token_not_found", codedException.getTranslationCode());
+            assertEquals("Signer.TokenNotFound: Token '" + tokenId + "' not found", codedException.getMessage());
+        }
+    }
+
+    @Then("Deleting not existing certificate from token fails")
+    public void failOnDeleteCert() throws Exception {
+        String cerId = randomUUID().toString();
+        try {
+            SignerProxy.deleteCert(cerId);
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertEquals("Signer.CertNotFound", codedException.getFaultCode());
+            assertEquals("cert_with_id_not_found", codedException.getTranslationCode());
+            assertEquals("Signer.CertNotFound: Certificate with id '" + cerId + "' not found", codedException.getMessage());
+        }
+    }
+
+    @Then("Retrieving token info by not existing key fails")
+    public void retrievingTokenInfoCanByNotExistingKeyFails() throws Exception {
+        String keyId = randomUUID().toString();
+        try {
+            SignerProxy.getTokenForKeyId(keyId);
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertEquals("Signer.KeyNotFound", codedException.getFaultCode());
+            assertEquals("key_not_found", codedException.getTranslationCode());
+            assertEquals("Signer.KeyNotFound: Key '" + keyId + "' not found", codedException.getMessage());
+        }
     }
 
     private static Config getConf() {
