@@ -364,9 +364,8 @@ public class SignerStepDefs {
             SignerProxy.setTokenFriendlyName(tokenId, randomUUID().toString());
             fail("Exception expected");
         } catch (CodedException codedException) {
-            assertEquals("Signer.TokenNotFound", codedException.getFaultCode());
-            assertEquals("token_not_found", codedException.getTranslationCode());
-            assertEquals("Signer.TokenNotFound: Token '" + tokenId + "' not found", codedException.getMessage());
+            assertException("Signer.TokenNotFound", "token_not_found",
+                    "Signer.TokenNotFound: Token '" + tokenId + "' not found", codedException);
         }
     }
 
@@ -377,9 +376,8 @@ public class SignerStepDefs {
             SignerProxy.deleteCert(cerId);
             fail("Exception expected");
         } catch (CodedException codedException) {
-            assertEquals("Signer.CertNotFound", codedException.getFaultCode());
-            assertEquals("cert_with_id_not_found", codedException.getTranslationCode());
-            assertEquals("Signer.CertNotFound: Certificate with id '" + cerId + "' not found", codedException.getMessage());
+            assertException("Signer.CertNotFound", "cert_with_id_not_found",
+                    "Signer.CertNotFound: Certificate with id '" + cerId + "' not found", codedException);
         }
     }
 
@@ -390,10 +388,76 @@ public class SignerStepDefs {
             SignerProxy.getTokenForKeyId(keyId);
             fail("Exception expected");
         } catch (CodedException codedException) {
-            assertEquals("Signer.KeyNotFound", codedException.getFaultCode());
-            assertEquals("key_not_found", codedException.getTranslationCode());
-            assertEquals("Signer.KeyNotFound: Key '" + keyId + "' not found", codedException.getMessage());
+            assertException("Signer.KeyNotFound", "key_not_found",
+                    "Signer.KeyNotFound: Key '" + keyId + "' not found", codedException);
         }
+    }
+
+    @Then("Deleting not existing certRequest fails")
+    public void deletingCertRequestFails() throws Exception {
+        String csrId = randomUUID().toString();
+        try {
+            SignerProxy.deleteCertRequest(csrId);
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertException("Signer.CsrNotFound", "csr_not_found",
+                    "Signer.CsrNotFound: Certificate request '" + csrId + "' not found", codedException);
+        }
+    }
+
+    @Then("Signing with unknown key fails")
+    public void signKeyFail() throws Exception {
+        String keyId = randomUUID().toString();
+        try {
+            SignerProxy.sign(keyId, randomUUID().toString(), new byte[0]);
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertException("Signer.KeyNotFound", "key_not_found",
+                    "Signer.KeyNotFound: Key '" + keyId + "' not found", codedException);
+        }
+    }
+
+    @Then("Signing with unknown algorithm fails using key {string} from token {string}")
+    public void signAlgorithmFail(String keyName, String tokenId) throws Exception {
+        try {
+            final KeyInfo key = findKeyInToken(tokenId, keyName);
+            SignerProxy.sign(key.getId(), "NOT-ALGORITHM-ID", calculateDigest(SHA256_ID, "digest".getBytes(UTF_8)));
+
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertException("Signer.CannotSign.InternalError", null,
+                    "Signer.CannotSign.InternalError: Unknown sign algorithm id: NOT-ALGORITHM-ID", codedException);
+        }
+    }
+
+    @Then("Getting key by not existing cert hash fails")
+    public void getKeyIdByHashFail() throws Exception {
+        String hash = randomUUID().toString();
+        try {
+            SignerProxy.getKeyIdForCertHash(hash);
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertException("Signer.CertNotFound", "certificate_with_hash_not_found",
+                    "Signer.CertNotFound: Certificate with hash '" + hash + "' not found", codedException);
+        }
+    }
+
+    @Then("Not existing certificate can not be activated")
+    public void notExistingCertActivateFail() throws Exception {
+        String certId = randomUUID().toString();
+        try {
+            SignerProxy.activateCert(certId);
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertException("Signer.CertNotFound", "cert_with_id_not_found",
+                    "Signer.CertNotFound: Certificate with id '" + certId + "' not found", codedException);
+        }
+    }
+
+    private void assertException(String faultCode, String translationCode, String message, CodedException codedException) {
+        assertEquals(faultCode, codedException.getFaultCode());
+        assertEquals(translationCode, codedException.getTranslationCode());
+        assertEquals(message, codedException.getMessage());
     }
 
     private static Config getConf() {
