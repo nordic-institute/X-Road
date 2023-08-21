@@ -68,7 +68,9 @@ import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.SIGNER_PORT;
@@ -412,8 +414,16 @@ public class SignerStepDefs {
                                 + "build/resources/intTest/keyconf.xml",
                         "-Dxroad.signer.device-configuration-file="
                                 + "build/resources/intTest/devices.ini",
+                        "-Dxroad.grpc.internal.keystore=build/resources/intTest/transport-keystore/grpc-internal-keystore.jks",
+                        "-Dxroad.grpc.internal.keystore-password=111111",
+                        "-Dxroad.grpc.internal.truststore=build/resources/intTest/transport-keystore/grpc-internal-keystore.jks",
+                        "-Dxroad.grpc.internal.truststore-password=111111",
                         "-Djava.library.path=../passwordstore/",
                         "-jar", signerPath);
+
+                var transportKeystore = getTransportProperties();
+                transportKeystore.forEach((key, value) -> pb.environment().put(key, value));
+                transportKeystore.forEach(System::setProperty);
 
                 signerProcess = pb.start();
 
@@ -426,6 +436,23 @@ public class SignerStepDefs {
 
         t.start();
         MILLISECONDS.sleep(3000);
+    }
+
+    private static Map<String, String> getTransportProperties() {
+        var transportKeystore = new HashMap<String, String>();
+
+        transportKeystore.put("XROAD_COMMON_AKKA_REMOTE_TRANSPORT", "tls-tcp");
+        transportKeystore.put("XROAD_COMMON_AKKA_KEYSTORE", "build/resources/intTest/transport-keystore/akka-keystore.p12");
+        transportKeystore.put("XROAD_COMMON_AKKA_KEYSTORE_PASSWORD", "xJllPJVmRoEAf2ApuJxeMpBxSOxCHBbJ");
+        transportKeystore.put("XROAD_COMMON_AKKA_TRUSTSTORE", "build/resources/intTest/transport-keystore/akka-keystore.p12");
+        transportKeystore.put("XROAD_COMMON_AKKA_TRUSTSTORE_PASSWORD", "xJllPJVmRoEAf2ApuJxeMpBxSOxCHBbJ");
+
+        transportKeystore.put("xroad.grpc.internal.keystore", "build/resources/intTest/transport-keystore/grpc-internal-keystore.jks");
+        transportKeystore.put("xroad.grpc.internal.keystore-password", "111111");
+        transportKeystore.put("xroad.grpc.internal.truststore", "build/resources/intTest/transport-keystore/grpc-internal-keystore.jks");
+        transportKeystore.put("xroad.grpc.internal.truststore-password", "111111");
+
+        return transportKeystore;
     }
 
     @RequiredArgsConstructor

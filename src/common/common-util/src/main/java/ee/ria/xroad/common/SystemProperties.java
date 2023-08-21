@@ -614,6 +614,31 @@ public final class SystemProperties {
 
     public static final String ONE_DAY_AS_SECONDS = String.valueOf(24 * 60 * 60);
 
+    // gRPC internal cross-component transport configuration  -------------------------- //
+
+    /**
+     * Property name for gRPC internal keystore location.
+     */
+    public static final String GRPC_INTERNAL_KEYSTORE =
+            PREFIX + "grpc.internal.keystore";
+
+    /**
+     * Property name for gRPC internal keystore password.
+     */
+    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
+            PREFIX + "grpc.internal.keystore-password";
+
+    /**
+     * Property name for gRPC internal truststore location.
+     */
+    public static final String GRPC_INTERNAL_TRUSTSTORE =
+            PREFIX + "grpc.internal.truststore";
+
+    /**
+     * Property name for gRPC internal truststore password.
+     */
+    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
+            PREFIX + "grpc.internal.truststore-password";
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -1652,5 +1677,33 @@ public final class SystemProperties {
      */
     public static boolean isHSMHealthCheckEnabled() {
         return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
+    }
+
+    /**
+     * @return gRPC internal key store path. Uses JKS format.
+     */
+    public static String getGrpcInternalKeyStore() {
+        return System.getProperty(GRPC_INTERNAL_KEYSTORE, "var/run/xroad/xroad-grpc-internal-keystore.jks");
+    }
+
+    /**
+     * @return gRPC internal key store password.
+     */
+    public static String getGrpcInternalKeyStorePassword() {
+        return System.getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, "");
+    }
+
+    /**
+     * @return gRPC internal trust store path. Uses JKS format.
+     */
+    public static String getGrpcInternalTrustStore() {
+        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE, "var/run/xroad/xroad-grpc-internal-truststore.jks");
+    }
+
+    /**
+     * @return gRPC internal trust store path password.
+     */
+    public static String getGrpcInternalTruststorePassword() {
+        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, "");
     }
 }

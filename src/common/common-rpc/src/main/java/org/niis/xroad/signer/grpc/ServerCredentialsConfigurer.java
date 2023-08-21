@@ -26,54 +26,87 @@
  */
 package org.niis.xroad.signer.grpc;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import io.grpc.ChannelCredentials;
-import io.grpc.InsecureChannelCredentials;
-import io.grpc.InsecureServerCredentials;
 import io.grpc.ServerCredentials;
 import io.grpc.TlsChannelCredentials;
 import io.grpc.TlsServerCredentials;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ServerCredentialsConfigurer {
-    //TODO will be enabled in live env.
-    private static final boolean USE_TLS = false;
 
-    public static ServerCredentials createServerCredentials() throws IOException {
-        if (USE_TLS) {
-            //TODO fill to use tls auth.
-            File certChain = null;
-            File privateKey = null;
-            String privateKeyPassword = null;
-            File trustRootCert = null;
+    public static ServerCredentials createServerCredentials() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+        TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
+                .keyManager(getKeyManagers())
+                .trustManager(getTrustManagers())
+                .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
 
-            TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
-                    .keyManager(certChain, privateKey, privateKeyPassword)
-                    .trustManager(trustRootCert)
-                    .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
-
-            return tlsBuilder.build();
-        } else {
-            return InsecureServerCredentials.create();
-        }
+        return tlsBuilder.build();
     }
 
-    public static ChannelCredentials createClientCredentials() throws IOException {
-        if (USE_TLS) {
-            //TODO fill to use tls auth.
-            File certChain = null;
-            File privateKey = null;
-            String privateKeyPassword = null;
-            File trustRootCert = null;
+    public static ChannelCredentials createClientCredentials() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+        TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
+                .keyManager(getKeyManagers())
+                .trustManager(getTrustManagers());
 
-            TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
-                    .keyManager(certChain, privateKey, privateKeyPassword)
-                    .trustManager(trustRootCert);
+        return tlsBuilder.build();
+    }
 
-            return tlsBuilder.build();
-        } else {
-            return InsecureChannelCredentials.create();
+    private static KeyManager[] getKeyManagers()
+            throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
+        final var path = SystemProperties.getGrpcInternalKeyStore();
+        final var password = SystemProperties.getGrpcInternalKeyStorePassword();
+
+        KeyStore keystore = getKeystore(path, password);
+        KeyManagerFactory keyManagerFactory =
+                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keystore, password.toCharArray());
+        return keyManagerFactory.getKeyManagers();
+    }
+
+    private static TrustManager[] getTrustManagers()
+            throws NoSuchAlgorithmException, KeyStoreException {
+        final var path = SystemProperties.getGrpcInternalTrustStore();
+        final var password = SystemProperties.getGrpcInternalTruststorePassword();
+
+        KeyStore truststore = getKeystore(path, password);
+        TrustManagerFactory trustManagerFactory =
+                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(truststore);
+        return trustManagerFactory.getTrustManagers();
+    }
+
+    private static KeyStore getKeystore(String filePath, String password) {
+        log.trace("Loading keystore for RPC operation from path {}", filePath);
+        Path path = Paths.get(filePath);
+        KeyStore keystore = null;
+        try (InputStream in = Files.newInputStream(path)) {
+            keystore = KeyStore.getInstance("JKS");
+            keystore.load(in, password.toCharArray());
+        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+            log.error("Failed to read gRPC keystore.", e);
         }
+        return keystore;
     }
 }
