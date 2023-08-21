@@ -53,13 +53,14 @@ public class ContainerSetup {
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties,
+            @Value("${test-automation.custom.docker-root}") String dockerRoot,
             @Value("${test-automation.custom.package-repo}") String packageRepo,
             @Value("${test-automation.custom.package-repo-key}") String packageRepoKey) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
             public ImageFromDockerfile imageDefinition() {
-                Path dockerfileRoot = Paths.get("../../../../Docker/securityserver/");
+                Path dockerfileRoot = Paths.get(dockerRoot);
                 File filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
 
                 return new ReusableImageFromDockerfile("ss-system-test",
@@ -72,7 +73,6 @@ public class ContainerSetup {
                         .withFileFromPath("files/ss-entrypoint.sh", dockerfileRoot.resolve("files/ss-entrypoint.sh"))
                         .withFileFromPath("files/ss-xroad.conf", dockerfileRoot.resolve("files/ss-xroad.conf"))
                         .withFileFromPath("files/override-docker.ini", dockerfileRoot.resolve("files/override-docker.ini"))
-
                         .withFileFromFile(".", filesToAdd);
             }
 

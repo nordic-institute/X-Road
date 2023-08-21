@@ -50,13 +50,14 @@ public class ContainerSetup {
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
+            @Value("${test-automation.custom.docker-root}") String dockerRoot,
             @Value("${test-automation.custom.package-repo}") String packageRepo,
             @Value("${test-automation.custom.package-repo-key}") String packageRepoKey) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
             public ImageFromDockerfile imageDefinition() {
-                Path csDockerRoot = Paths.get("../../../../Docker/centralserver/");
+                Path csDockerRoot = Paths.get(dockerRoot);
                 Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
 
                 return new ImageFromDockerfile("cs-system-test", true)
