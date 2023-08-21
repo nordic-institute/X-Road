@@ -41,7 +41,6 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.eclipse.jetty.server.Request;
 import org.semver4j.Semver;
 
@@ -74,7 +73,7 @@ class ServerProxyHandler extends HandlerBase {
     private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
     static {
-        MIN_SUPPORTED_CLIENT_VERSION = Optional.of(SystemProperties.getServerProxyMinSupportedClientVersion())
+        MIN_SUPPORTED_CLIENT_VERSION = Optional.ofNullable(SystemProperties.getServerProxyMinSupportedClientVersion())
                 .map(Semver::new)
                 .orElse(null);
     }
