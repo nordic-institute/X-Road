@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -32,6 +33,7 @@ import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
@@ -77,6 +79,9 @@ import ee.ria.xroad.signer.protocol.message.SignCertificateResponse;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.grpc.StatusRuntimeException;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
@@ -91,7 +96,10 @@ import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
@@ -104,6 +112,30 @@ public final class SignerProxy {
     }
 
     public static final String SSL_TOKEN_ID = "0";
+
+    private static <V> V executeAndHandleException(Callable<V> grpcCall) {
+        try {
+            return grpcCall.call();
+        } catch (StatusRuntimeException error) {
+            com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
+            if (status != null) {
+                for (Any any : status.getDetailsList()) {
+                    if (any.is(CodedExceptionProto.class)) {
+                        try {
+                            final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
+                            throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
+                                    .withPrefix(SIGNER_X);
+                        } catch (InvalidProtocolBufferException e) {
+                            throw new RuntimeException("Failed to parse grpc message", e);
+                        }
+                    }
+                }
+            }
+            throw error;
+        } catch (Exception e) {
+            throw new RuntimeException("Error in grpc call", e);
+        }
+    }
 
     /**
      * Initialize the software token with the given password.
@@ -124,7 +156,8 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static List<TokenInfo> getTokens() throws Exception {
-        ListTokensResponse response = getSignerClient().getSignerApiBlockingStub().listTokens(Empty.newBuilder().build());
+        ListTokensResponse response = executeAndHandleException(() ->
+                getSignerClient().getSignerApiBlockingStub().listTokens(Empty.newBuilder().build()));
 
         return response.getTokensList().stream()
                 .map(TokenInfo::new)
@@ -151,10 +184,10 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static TokenInfo getToken(String tokenId) throws Exception {
-        return new TokenInfo(getSignerClient().getSignerApiBlockingStub()
+        return executeAndHandleException(() -> new TokenInfo(getSignerClient().getSignerApiBlockingStub()
                 .getTokenById(GetTokenByIdRequest.newBuilder()
                         .setTokenId(tokenId)
-                        .build()));
+                        .build())));
     }
 
     /**
@@ -169,11 +202,11 @@ public final class SignerProxy {
 
         log.trace("Activating token '{}'", tokenId);
 
-        getSignerClient().getSignerApiBlockingStub()
+        executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
                 .activateToken(ActivateTokenRequest.newBuilder()
                         .setTokenId(tokenId)
                         .setActivate(true)
-                        .build());
+                        .build()));
     }
 
     /**
@@ -201,11 +234,11 @@ public final class SignerProxy {
 
         log.trace("Deactivating token '{}'", tokenId);
 
-        getSignerClient().getSignerApiBlockingStub()
+        executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
                 .activateToken(ActivateTokenRequest.newBuilder()
                         .setTokenId(tokenId)
                         .setActivate(false)
-                        .build());
+                        .build()));
     }
 
     /**
@@ -480,15 +513,15 @@ public final class SignerProxy {
      * @return TokenInfoAndKeyId
      * @throws Exception
      */
-    public static TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
-        hash = hash.toLowerCase();
-        log.trace("Getting token and key id by cert hash '{}'", hash);
+    public static TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) {
+        String hashLowercase = hash.toLowerCase();
+        log.trace("Getting token and key id by cert hash '{}'", hashLowercase);
 
-        var response = getSignerClient().getSignerApiBlockingStub()
+        var response = executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
                 .getTokenAndKeyIdByCertHash(GetTokenByCertHashRequest.newBuilder()
-                        .setCertHash(hash)
-                        .build());
-        log.trace("Token and key id with hash '{}' found", hash);
+                        .setCertHash(hashLowercase)
+                        .build()));
+        log.trace("Token and key id with hash '{}' found", hashLowercase);
 
         return new TokenInfoAndKeyId(new TokenInfo(response.getTokenInfo()), response.getKeyId());
     }
@@ -539,10 +572,10 @@ public final class SignerProxy {
     public static TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
         log.trace("Getting token and key id by cert request id '{}'", certRequestId);
 
-        var response = getSignerClient().getSignerApiBlockingStub()
+        var response = executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
                 .getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdRequest.newBuilder()
                         .setCertRequestId(certRequestId)
-                        .build());
+                        .build()));
 
         log.trace("Token and key id with cert request id '{}' found", certRequestId);
 
@@ -557,8 +590,8 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static TokenInfo getTokenForKeyId(String keyId) throws Exception {
-        return new TokenInfo(getSignerClient().getSignerApiBlockingStub()
-                .getTokenByKey(GetTokenByKeyIdRequest.newBuilder().setKeyId(keyId).build()));
+        return executeAndHandleException(() -> new TokenInfo(getSignerClient().getSignerApiBlockingStub()
+                .getTokenByKey(GetTokenByKeyIdRequest.newBuilder().setKeyId(keyId).build())));
     }
 
     public static String getSignMechanism(String keyId) throws Exception {
