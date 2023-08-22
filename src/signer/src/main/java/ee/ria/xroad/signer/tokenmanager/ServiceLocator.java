@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,7 +32,6 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_SIGNER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_WORKER;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 
 /**
@@ -70,18 +69,6 @@ public final class ServiceLocator {
             String tokenId) {
         String path = String.format("/user/%s/%s/%s", MODULE_MANAGER,
                 getModuleId(tokenId), tokenId);
-        return context.actorSelection(path);
-    }
-
-    /**
-     * @param context the actor context
-     * @param tokenId the token id
-     * @return the token worker actor
-     */
-    public static ActorSelection getTokenWorker(ActorContext context,
-            String tokenId) {
-        String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
-                getModuleId(tokenId), tokenId, TOKEN_WORKER);
         return context.actorSelection(path);
     }
 
