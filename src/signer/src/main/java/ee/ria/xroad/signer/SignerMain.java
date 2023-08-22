@@ -32,6 +32,7 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+import ee.ria.xroad.signer.protocol.SignerExceptionHandlerInterceptor;
 import ee.ria.xroad.signer.protocol.TokensApi;
 import ee.ria.xroad.signer.util.SignerUtil;
 
@@ -119,6 +120,7 @@ public final class SignerMain {
         log.info("Initializing GRPC server on port {}.. ", port);
         RpcServer.init(port, builder -> {
             builder.addService(new TokensApi(actorSystem));
+            builder.intercept(new SignerExceptionHandlerInterceptor());
         });
     }
 
