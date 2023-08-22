@@ -41,6 +41,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static java.time.Duration.ofSeconds;
 
 public class ClientServicesStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj clientInfoPageObj = new ClientInfoPageObj();
@@ -321,9 +322,26 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         clientInfoPageObj.services.servicesEdit.inputEditUrl().setValue(url);
         clientInfoPageObj.services.servicesEdit.inputEditServiceCode().setValue(serviceCode);
+    }
 
+    @Step("Rest service details are saved and error message {string} is shown")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void saveRestServiceError(String message) {
         clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
-        commonPageObj.snackBar.success().shouldHave(text("Description saved"));
+        commonPageObj.alerts.alert(message).shouldBe(Condition.visible, ofSeconds(15));
+    }
+
+    @Step("Rest service parameters are saved and error message {string} is shown")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void saveRestServiceParamsSaveError(String message) {
+        clientInfoPageObj.services.servicesParameters.btnSaveEdit().click();
+        commonPageObj.alerts.alert(message).shouldBe(Condition.visible, ofSeconds(15));
+    }
+
+    @Step("Rest service details are saved and success message {string} is shown")
+    public void saveRestServiceSuccess(String message) {
+        clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
+        commonPageObj.snackBar.success().shouldHave(text(message));
     }
 
     @Step("Service {string} is deleted")
