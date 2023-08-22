@@ -33,6 +33,9 @@ import io.grpc.ServerCredentials;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.function.Consumer;
 
 import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createServerCredentials;
@@ -74,9 +77,10 @@ public class RpcServer {
         }
     }
 
-    public static void init(int port, Consumer<ServerBuilder<?>> configFunc) throws IOException {
-        log.info("Initializing grpc..");
-        final RpcServer server = new RpcServer(port, createServerCredentials());
+    public static void init(int port, Consumer<ServerBuilder<?>> configFunc) throws IOException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+        var serverCredentials = createServerCredentials();
+        log.info("Initializing grpc with {} credentials..",serverCredentials.getClass().getSimpleName());
+        final RpcServer server = new RpcServer(port, serverCredentials);
         server.start(configFunc);
         log.info("Grpc is running..");
     }

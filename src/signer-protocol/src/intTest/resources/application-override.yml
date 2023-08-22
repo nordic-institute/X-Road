@@ -6,6 +6,7 @@ logging:
     cucumber: TRACE
     liquibase: WARN
     org.springframework: INFO
+    org.niis: TRACE
     com.nortal.test: INFO # TRACE is helpful for development
 
 test-automation:
