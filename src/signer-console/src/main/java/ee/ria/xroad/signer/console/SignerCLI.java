@@ -41,7 +41,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
-import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
 
 import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
@@ -279,11 +278,11 @@ public class SignerCLI {
     @Command(description = "Returns all certificates of a member")
     public void getMemberCerts(
             @Param(name = "memberId", description = "Member identifier") ClientId memberId) throws Exception {
-        GetMemberCertsResponse response = SignerProxy.getMemberCerts(memberId);
+        List<CertificateInfo> certificateInfos = SignerProxy.getMemberCerts(memberId);
 
         System.out.println("Certs of member " + memberId + ":");
 
-        for (CertificateInfo cert : response.getCerts()) {
+        for (CertificateInfo cert : certificateInfos) {
             System.out.println("\tId:\t" + cert.getId());
             System.out.println("\t\tStatus:\t" + cert.getStatus());
             System.out.println("\t\tActive:\t" + cert.isActive());

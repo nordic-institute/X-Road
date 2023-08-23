@@ -4,6 +4,10 @@ import "TokenStatusInfo.proto";
 option java_multiple_files = true;
 option java_package = "ee.ria.xroad.signer.protocol.dto";
 
+/* Generic empty request/response. */
+message Empty {
+}
+
 message TokenInfoProto {
   string type = 1;
   string friendlyName = 2;

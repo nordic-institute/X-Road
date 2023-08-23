@@ -30,23 +30,31 @@ import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.proto.TokensApiGrpc;
+import org.niis.xroad.signer.proto.CertificateServiceGrpc;
+import org.niis.xroad.signer.proto.KeyServiceGrpc;
+import org.niis.xroad.signer.proto.TokenServiceGrpc;
 
 import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createClientCredentials;
 
 @Slf4j
 public class RpcSignerClient {
     @Getter
-    private final TokensApiGrpc.TokensApiStub signerApiStub;
+    private final TokenServiceGrpc.TokenServiceStub signerApiStub;
     @Getter
-    private final TokensApiGrpc.TokensApiBlockingStub signerApiBlockingStub;
+    private final TokenServiceGrpc.TokenServiceBlockingStub signerApiBlockingStub;
+    @Getter
+    private final CertificateServiceGrpc.CertificateServiceBlockingStub certificateServiceBlockingStub;
+    @Getter
+    private final KeyServiceGrpc.KeyServiceBlockingStub keyServiceBlockingStub;
 
     /**
      * Construct client for accessing RouteGuide server using the existing channel.
      */
     public RpcSignerClient(Channel channel) {
-        signerApiStub = TokensApiGrpc.newStub(channel);
-        signerApiBlockingStub = TokensApiGrpc.newBlockingStub(channel);
+        signerApiStub = TokenServiceGrpc.newStub(channel);
+        signerApiBlockingStub = TokenServiceGrpc.newBlockingStub(channel);
+        certificateServiceBlockingStub = CertificateServiceGrpc.newBlockingStub(channel);
+        keyServiceBlockingStub = KeyServiceGrpc.newBlockingStub(channel);
     }
 
     /**
@@ -54,8 +62,9 @@ public class RpcSignerClient {
      * greeting.
      */
     public static RpcSignerClient init(int port) throws Exception {
-        log.info("Starting grpc client init..");
-        ManagedChannel channel = Grpc.newChannelBuilderForAddress("127.0.0.1", port, createClientCredentials())
+        var credentials = createClientCredentials();
+        log.info("Starting grpc client with {} credentials..", credentials.getClass().getSimpleName());
+        ManagedChannel channel = Grpc.newChannelBuilderForAddress("127.0.0.1", port, credentials)
                 .build();
 
         return new RpcSignerClient(channel);

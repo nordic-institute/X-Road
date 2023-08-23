@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+import "Tokens.proto";
+import "TokenStatusInfo.proto";
+
+package org.niis.xroad.signer.proto;
+
+service TokenService {
+  rpc GetTokenById (GetTokenByIdRequest) returns (TokenInfoProto) {}
+
+  rpc GetTokenByKey (GetTokenByKeyIdRequest) returns (TokenInfoProto) {}
+
+  rpc GetTokenAndKeyIdByCertRequestId (GetTokenByCertRequestIdRequest) returns (TokenInfoAndKeyIdProto) {}
+
+  rpc GetTokenAndKeyIdByCertHash (GetTokenByCertHashRequest) returns (TokenInfoAndKeyIdProto) {}
+
+  rpc ListTokens (Empty) returns (ListTokensResponse) {}
+
+  rpc ActivateToken (ActivateTokenRequest) returns (Empty) {}
+
+  rpc SetTokenFriendlyName (SetTokenFriendlyNameRequest) returns (Empty) {}
+
+  rpc GetTokenBatchSigningEnabled(GetTokenBatchSigningEnabledRequest) returns (GetTokenBatchSigningEnabledResponse){}
+
+  rpc InitSoftwareToken(InitSoftwareTokenRequest) returns (Empty) {}
+}
+
+message ListTokensResponse {
+  repeated TokenInfoProto tokens = 1;
+}
+
+message ActivateTokenRequest{
+  string tokenId = 1;
+  bool  activate = 2;
+}
+
+message GetTokenByIdRequest {
+  string tokenId = 1;
+}
+
+message GetTokenByKeyIdRequest {
+  string keyId = 1;
+}
+
+message GetTokenByCertRequestIdRequest {
+  string certRequestId = 1;
+}
+
+message GetTokenByCertHashRequest {
+  string certHash = 1;
+}
+
+message SetTokenFriendlyNameRequest {
+  string tokenId = 1;
+  string friendlyName = 2;
+}
+
+message GetTokenBatchSigningEnabledRequest {
+  string keyId = 1;
+}
+
+message GetTokenBatchSigningEnabledResponse {
+  bool batchingSigningEnabled = 1;
+}
+
+message InitSoftwareTokenRequest {
+  string pin = 1;
+}

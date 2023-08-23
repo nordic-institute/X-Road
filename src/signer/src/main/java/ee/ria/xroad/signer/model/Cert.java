@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 
@@ -41,7 +42,6 @@ import java.security.cert.X509Certificate;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.signer.model.CertRequest.toDto;
 
 /**
  * Model object that holds the information associated with a certificate.
@@ -158,7 +158,7 @@ public class Cert {
     public CertificateInfoProto toProtoDTO() {
         try {
             var builder = CertificateInfoProto.newBuilder()
-                    .setMemberId(toDto(memberId))
+                    .setMemberId(ClientIdMapper.toDto(memberId))
                     .setActive(active)
                     .setSavedToConfiguration(savedToConfiguration)
                     .setStatus(status)

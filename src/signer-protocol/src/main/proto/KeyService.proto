@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+import "Tokens.proto";
+import "TokenStatusInfo.proto";
+
+package org.niis.xroad.signer.proto;
+
+service KeyService {
+  rpc SetKeyFriendlyName (SetKeyFriendlyNameRequest) returns (Empty) {}
+
+  rpc GetKeyIdForCertHash (GetKeyIdForCertHashRequest) returns (GetKeyIdForCertHashResponse) {}
+
+  rpc GetSignMechanism (GetSignMechanismRequest) returns (GetSignMechanismResponse) {}
+
+}
+
+
+message GetKeyIdForCertHashRequest {
+  string certHash = 1;
+}
+
+message GetKeyIdForCertHashResponse {
+  string keyId = 1;
+  string signMechanismName = 2;
+}
+
+message SetKeyFriendlyNameRequest {
+  string keyId = 1;
+  string friendlyName = 2;
+}
+
+
+message GetSignMechanismRequest {
+  string keyId = 1;
+}
+
+message GetSignMechanismResponse {
+  string signMechanismName = 1;
+}

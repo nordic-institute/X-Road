@@ -1,4 +1,5 @@
 plugins {
+  id 'java-library'
   id 'com.google.protobuf'
 }
 
@@ -14,7 +15,7 @@ sourceSets {
 
 dependencies {
   implementation project(':common:common-util')
-  implementation project(':common:common-rpc')
+  api project(':common:common-rpc')
 
   intTestRuntimeOnly project(':signer')
   intTestRuntimeOnly project(':common:common-util')

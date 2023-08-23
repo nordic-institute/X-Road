@@ -25,9 +25,12 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.dto.Empty;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import akka.actor.ActorSystem;
@@ -39,17 +42,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
-import org.niis.xroad.signer.proto.Empty;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledRequest;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResponse;
 import org.niis.xroad.signer.proto.GetTokenByCertHashRequest;
 import org.niis.xroad.signer.proto.GetTokenByCertRequestIdRequest;
 import org.niis.xroad.signer.proto.GetTokenByIdRequest;
 import org.niis.xroad.signer.proto.GetTokenByKeyIdRequest;
+import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
 import org.niis.xroad.signer.proto.ListTokensResponse;
-import org.niis.xroad.signer.proto.TokensApiGrpc;
+import org.niis.xroad.signer.proto.SetTokenFriendlyNameRequest;
+import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import scala.concurrent.Await;
 
 import java.util.concurrent.TimeUnit;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 
 /**
@@ -57,7 +64,10 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TokensApi extends TokensApiGrpc.TokensApiImplBase {
+public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
+    @Deprecated
+    private static final Timeout AKKA_TIMEOUT = new Timeout(10, TimeUnit.SECONDS);
+
     private final ActorSystem actorSystem;
 
     @Override
@@ -75,10 +85,8 @@ public class TokensApi extends TokensApiGrpc.TokensApiImplBase {
         ActivateToken actorMsg = new ActivateToken(request.getTokenId(), request.getActivate());
         //TODO:grpc this is for debugging purposes.
         log.info("Resending back to actor system..");
-
-        Timeout timeout = new Timeout(10, TimeUnit.SECONDS);
-        Await.result(Patterns.ask(actorSystem.actorSelection("/user/" + REQUEST_PROCESSOR), actorMsg, timeout),
-                timeout.duration());
+        Await.result(Patterns.ask(actorSystem.actorSelection("/user/" + REQUEST_PROCESSOR), actorMsg, AKKA_TIMEOUT),
+                AKKA_TIMEOUT.duration());
 
         emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
     }
@@ -105,6 +113,39 @@ public class TokensApi extends TokensApiGrpc.TokensApiImplBase {
     public void getTokenAndKeyIdByCertHash(GetTokenByCertHashRequest request, StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
         var token = TokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
         emitSingleAndClose(responseObserver, token.asMessage());
+    }
+
+    @Override
+    public void setTokenFriendlyName(SetTokenFriendlyNameRequest request, StreamObserver<Empty> responseObserver) {
+        TokenManager.setTokenFriendlyName(
+                request.getTokenId(),
+                request.getFriendlyName());
+
+        emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+    }
+
+    @Override
+    public void getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledRequest request, StreamObserver<GetTokenBatchSigningEnabledResponse> responseObserver) {
+        String tokenId = TokenManager.findTokenIdForKeyId(request.getKeyId());
+
+        emitSingleAndClose(responseObserver, GetTokenBatchSigningEnabledResponse.newBuilder()
+                .setBatchingSigningEnabled(TokenManager.isBatchSigningEnabled(tokenId))
+                .build());
+    }
+
+    @Override
+    @SneakyThrows
+    public void initSoftwareToken(InitSoftwareTokenRequest request, StreamObserver<Empty> responseObserver) {
+        String softwareTokenId = TokenManager.getSoftwareTokenId();
+        if (softwareTokenId != null) {
+            log.info("Resending back to actor system..");
+            var actorMsg = new InitSoftwareToken(request.getPin().toCharArray());
+            Await.result(Patterns.ask(actorSystem.actorSelection("/user/" + REQUEST_PROCESSOR), actorMsg, AKKA_TIMEOUT),
+                    AKKA_TIMEOUT.duration());
+            emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+        }
+
+        throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
     }
 
     private <T extends AbstractMessage> void emitSingleAndClose(StreamObserver<T> responseObserver, T value) {

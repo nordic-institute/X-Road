@@ -26,10 +26,9 @@
 package ee.ria.xroad.signer.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
-import ee.ria.xroad.signer.protocol.dto.ClientIdProto;
-import ee.ria.xroad.signer.protocol.dto.XRoadObjectType;
 
 import lombok.Value;
 
@@ -53,23 +52,9 @@ public class CertRequest {
     public CertRequestInfoProto toProtoDTO() {
         return CertRequestInfoProto.newBuilder()
                 .setId(id)
-                .setMemberId(toDto(memberId))
+                .setMemberId(ClientIdMapper.toDto(memberId))
                 .setSubjectName(subjectName)
                 .build();
-    }
-
-    //TODO:grpc move to a separate place.
-    public static ClientIdProto toDto(ClientId.Conf input) {
-        var builder = ClientIdProto.newBuilder()
-                .setMemberClass(input.getMemberClass())
-                .setMemberCode(input.getMemberCode())
-                .setXroadInstance(input.getXRoadInstance())
-                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()));
-
-        if (input.getSubsystemCode() != null) {
-            builder.setSubsystemCode(input.getSubsystemCode());
-        }
-        return builder.build();
     }
 
     /**

@@ -39,7 +39,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
-import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
 
 import akka.actor.ActorSystem;
 import com.nortal.test.core.report.TestReportService;
@@ -271,8 +270,8 @@ public class SignerStepDefs {
 
     @Then("member {string} has {int} certificate")
     public void memberHasCertificate(String memberId, int certCount) throws Exception {
-        final GetMemberCertsResponse memberCerts = SignerProxy.getMemberCerts(getClientId(memberId));
-        assertThat(memberCerts.getCerts()).hasSize(certCount);
+        final List<CertificateInfo> memberCerts = SignerProxy.getMemberCerts(getClientId(memberId));
+        assertThat(memberCerts).hasSize(certCount);
     }
 
     @When("check token {string} key {string} batch signing enabled")

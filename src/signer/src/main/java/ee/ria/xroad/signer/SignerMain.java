@@ -32,8 +32,10 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+import ee.ria.xroad.signer.protocol.CertificateService;
+import ee.ria.xroad.signer.protocol.KeyService;
 import ee.ria.xroad.signer.protocol.SignerExceptionHandlerInterceptor;
-import ee.ria.xroad.signer.protocol.TokensApi;
+import ee.ria.xroad.signer.protocol.TokensService;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import akka.actor.ActorSystem;
@@ -119,7 +121,9 @@ public final class SignerMain {
         int port = 5560;
         log.info("Initializing GRPC server on port {}.. ", port);
         RpcServer.init(port, builder -> {
-            builder.addService(new TokensApi(actorSystem));
+            builder.addService(new CertificateService(actorSystem));
+            builder.addService(new TokensService(actorSystem));
+            builder.addService(new KeyService(actorSystem));
             builder.intercept(new SignerExceptionHandlerInterceptor());
         });
     }

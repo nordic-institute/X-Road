@@ -33,6 +33,7 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
+@Deprecated
 public class ActivateToken implements Serializable {
 
     private final String tokenId;
