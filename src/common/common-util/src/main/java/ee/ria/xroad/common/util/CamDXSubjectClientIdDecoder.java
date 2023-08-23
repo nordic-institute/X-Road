@@ -109,7 +109,7 @@ public final class CamDXSubjectClientIdDecoder {
         }
 
         // Note. components[1] = serverCode, unused
-        return ClientId.create(
+        return ClientId.Conf.create(
                 components[0], // instanceId
                 components[2], // memberClass
                 memberCode);
@@ -151,6 +151,6 @@ public final class CamDXSubjectClientIdDecoder {
                     "Certificate subject name does not contain common name");
         }
 
-        return ClientId.create(instanceId, memberClass, memberCode);
+        return ClientId.Conf.create(instanceId, memberClass, memberCode);
     }
 }

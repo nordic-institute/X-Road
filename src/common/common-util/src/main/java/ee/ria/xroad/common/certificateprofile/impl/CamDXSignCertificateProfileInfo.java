@@ -27,7 +27,7 @@ package ee.ria.xroad.common.certificateprofile.impl;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CamDXSubjectClientIdDecoder;
+import ee.ria.xroad.common.util.CertUtils;
 
 import java.security.cert.X509Certificate;
 
@@ -71,8 +71,8 @@ public class CamDXSignCertificateProfileInfo
         this.params = params;
     }
     @Override
-    public ClientId getSubjectIdentifier(X509Certificate certificate) {
-        return CamDXSubjectClientIdDecoder.getSubjectClientId(certificate);
+    public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
+        return CertUtils.getSubjectClientId(certificate);
     }
 
 }
