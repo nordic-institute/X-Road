@@ -43,6 +43,8 @@ import '@fontsource/open-sans';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createValidators } from "@/plugins/vee-validate";
+import vuetify from '@/plugins/vuetify';
+import i18n from "@/plugins/i18n";
 import '@shared-ui/assets/icons.css';
 import XrdIconFolderOutline from '@shared-ui/components/icons/XrdIconFolderOutline.vue';
 import XrdIconBase from '@shared-ui/components/icons/XrdIconBase.vue';
@@ -60,8 +62,6 @@ import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
 import XrdConfirmDialog from '@shared-ui/components/XrdConfirmDialog.vue';
 import XrdEmptyPlaceholder from '@shared-ui/components/XrdEmptyPlaceholder.vue';
 import XrdSubViewTitle from '@shared-ui/components/XrdSubViewTitle.vue';
-import vuetify from '@/plugins/vuetify';
-import i18n from "@/plugins/i18n";
 
 
 const pinia = createPinia();
@@ -71,10 +71,7 @@ pinia.use(
   }),
 );
 
-//Vue.config.productionTip = false; TODO vue3 probably save to remove
-axios.defaults.baseURL = import.meta.env.VITE_VUE_APP_BASE_URL;
-console.log(import.meta.env.VITE_VUE_APP_BASE_URL)
-
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';
 
 const app = createApp(App);

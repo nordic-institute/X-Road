@@ -97,6 +97,12 @@ import { DataTableHeader } from "@/ui-types";
 
 export default defineComponent({
   components: { DateTime, DeleteAuthenticationCertificateDialog, VDataTable },
+  props: {
+    serverId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       loading: false,
@@ -155,8 +161,7 @@ export default defineComponent({
     fetchSecurityServerAuthenticationCertificates(): void {
       this.loading = true;
       this.securityServerAuthCertStore
-        //TODO vue3 can be better
-        .fetch(this.$route.params.serverId)
+        .fetch(this.serverId)
         .finally(() => (this.loading = false));
     },
     hasDeletePermission(): boolean {
