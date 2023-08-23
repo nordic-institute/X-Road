@@ -28,25 +28,25 @@
 <template>
   <div>
     <router-view name="top" />
-    <v-layout align-center justify-center>
+    <v-row  align="center" justify="center" style="margin-top: 0" >
       <transition name="fade" mode="out-in">
         <div class="base-full-width">
           <router-view name="subTabs" />
           <div class="sticky">
             <router-view name="alerts" />
           </div>
-          <v-layout
-            align-center
-            justify-center
+          <v-row
+            align="center"
+            justify="center"
             class="base-full-width bottom-pad"
           >
             <router-view />
-          </v-layout>
+          </v-row>
         </div>
       </transition>
-    </v-layout>
+    </v-row>
 
-    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
+    <v-dialog v-if="showDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
           <span class="headline">{{ $t('logout.sessionExpired') }}</span>

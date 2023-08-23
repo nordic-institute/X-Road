@@ -32,7 +32,7 @@
         :key="tab.key"
         :to="tab.to"
         :data-test="tab.key"
-        exact-path
+        exact
         >{{ $t(tab.name) }}
         <span v-if="tab.showAttention" class="dot mb-3"></span>
       </v-tab>
@@ -41,7 +41,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Tab } from '@/ui-types';

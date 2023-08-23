@@ -41,11 +41,10 @@
         border-color="error"
         variant="outlined"
         class="alert mb-2"
-        color="red"
+        icon="icon-Error-notification"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="icon-wrapper">
-            <v-icon class="icon"> icon-Error-notification</v-icon>
             <div class="row-wrapper">
               <!-- Show error message text -->
               <div v-if="notification.errorMessage">
@@ -127,7 +126,6 @@
             <xrd-icon-base class="xrd-large-button-icon">
               <XrdIconCopy />
             </xrd-icon-base>
-
             {{ $t('action.copyId') }}</xrd-button
           >
 
@@ -149,7 +147,7 @@
               color="primary"
               data-test="close-alert"
               @click="closeError(notification.timeAdded)"
-              variant="text"
+              variant="plain"
             >
               <xrd-icon-base><xrd-icon-close /></xrd-icon-base>
             </v-btn>
