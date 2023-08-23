@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,23 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.message;
+package ee.ria.xroad.signer;
 
-import lombok.Value;
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 
-import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Signer API message for updating software token pin.
+ * FOR TEMPORARY USE DURING MIGRATION FROM AKKA ONLY!!!!
  */
-@Value
-@Deprecated
-public class UpdateSoftwareTokenPin implements Serializable {
+@Deprecated(forRemoval = true)
+public class TemporaryHelper {
 
-    private final String tokenId;
+    @Deprecated
+    private static Map<String, AbstractTokenWorker> TOKEN_WORKERS = new HashMap<>();
 
-    private final char[] oldPin;
+    @Deprecated
+    public static AbstractTokenWorker getTokenWorker(String tokenId) {
+        if (!TOKEN_WORKERS.containsKey(tokenId)) {
+            throw new RuntimeException("Token workder not available");
+        }
+        return TOKEN_WORKERS.get(tokenId);
+    }
 
-    private final char[] newPin;
-
+    @Deprecated
+    public static void addTokenWorker(String tokenId, AbstractTokenWorker tokenWorker) {
+        TOKEN_WORKERS.put(tokenId, tokenWorker);
+    }
 }

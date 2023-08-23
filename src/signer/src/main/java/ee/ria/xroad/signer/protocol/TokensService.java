@@ -1,20 +1,20 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,12 +26,13 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
-import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
-import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
+import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
 
 import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;
@@ -77,10 +78,10 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     @Override
     public void activateToken(ActivateTokenRequest request, StreamObserver<Empty> responseObserver) {
         ActivateToken actorMsg = new ActivateToken(request.getTokenId(), request.getActivate());
-        //TODO:grpc this is for debugging purposes.
 
-        log.info("Resending back to actor system..");
-        temporaryAkkaMessenger.tellToken(actorMsg, request.getTokenId());
+        final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(request.getTokenId());
+        tokenWorker.handleActivateToken(actorMsg);
+
         emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
     }
 
@@ -129,11 +130,20 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     @Override
     public void initSoftwareToken(InitSoftwareTokenRequest request, StreamObserver<Empty> responseObserver) {
         String softwareTokenId = TokenManager.getSoftwareTokenId();
-        if (softwareTokenId != null) {
-            var message = new InitSoftwareToken(request.getPin().toCharArray());
-            temporaryAkkaMessenger.tellToken(message, softwareTokenId);
 
-            emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+        if (softwareTokenId != null) {
+
+            final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(softwareTokenId);
+            if (tokenWorker instanceof SoftwareTokenWorker) {
+                try {
+                    ((SoftwareTokenWorker) tokenWorker).initializeToken(request.getPin().toCharArray());
+                } catch (Exception e) {
+                    throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker
+                }
+                emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+            } else {
+                throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+            }
         } else {
             throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
         }
@@ -141,11 +151,18 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
 
     @Override
     public void updateSoftwareTokenPin(UpdateSoftwareTokenPinRequest request, StreamObserver<Empty> responseObserver) {
-        var message = new UpdateSoftwareTokenPin(request.getTokenId(),
-                request.getOldPin().toCharArray(),
-                request.getNewPin().toCharArray());
+        final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(request.getTokenId());
+        if (tokenWorker instanceof SoftwareTokenWorker) {
+            try {
+                ((SoftwareTokenWorker) tokenWorker).handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
+            } catch (Exception e) {
+                // todo move to tokenworker
+                throw new CodedException(X_INTERNAL_ERROR, e);
+            }
+        } else {
+            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+        }
 
-        temporaryAkkaMessenger.tellToken(message, message.getTokenId());
         emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
     }
 

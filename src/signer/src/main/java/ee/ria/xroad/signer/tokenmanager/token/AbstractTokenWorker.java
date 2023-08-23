@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.PasswordStore;
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
@@ -69,6 +70,12 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
     private final String workerId;
 
+    @Override
+    @Deprecated
+    public void preStart() throws Exception {
+        TemporaryHelper.addTokenWorker(tokenId, this);
+    }
+
     AbstractTokenWorker(TokenInfo tokenInfo) {
         this.tokenId = tokenInfo.getId();
         this.workerId = SignerUtil.getWorkerId(tokenInfo);
@@ -100,9 +107,9 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
     protected void onMessage(Object message) throws Exception {
         log.trace("onMessage()");
 
-        if (message instanceof ActivateToken) {
-            handleActivateToken((ActivateToken) message);
-        } else if (message instanceof GenerateKey) {
+//        if (message instanceof ActivateToken) {
+//            handleActivateToken((ActivateToken) message);
+        if (message instanceof GenerateKey) {
             handleGenerateKey((GenerateKey) message);
         } else if (message instanceof DeleteKey) {
             handleDeleteKey((DeleteKey) message);
@@ -122,13 +129,13 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         setTokenAvailable(tokenId, false);
     }
 
-    private void handleActivateToken(ActivateToken message) throws Exception {
+    public void handleActivateToken(ActivateToken message) throws Exception {
         try {
             activateToken(message);
 
             onUpdate();
 
-            sendSuccessResponse();
+//            sendSuccessResponse();
         } catch (Exception e) {
             log.error("Failed to activate token '{}': {}", getWorkerId(), e.getMessage());
 
