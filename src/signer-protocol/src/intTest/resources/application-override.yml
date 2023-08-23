@@ -11,7 +11,7 @@ logging:
 
 test-automation:
   report-name: xroad-signer-test-suite
-  spring-component-scan: "ee.ria.xroad.signer"
+  spring-component-scan: "ee.ria.xroad.signer.glue"
   cucumber:
     execution:
       parallel:

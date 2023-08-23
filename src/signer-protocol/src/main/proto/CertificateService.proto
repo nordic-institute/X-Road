@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 
+import "CommonMessages.proto";
 import "Tokens.proto";
 import "TokenStatusInfo.proto";
 
@@ -15,6 +16,8 @@ service CertificateService {
   rpc GetMemberCerts (GetMemberCertsRequest) returns (GetMemberCertsResponse) {}
 
   rpc SetCertStatus (SetCertStatusRequest) returns (Empty) {}
+
+  rpc RegenerateCertReq (RegenerateCertReqRequest) returns (RegenerateCertReqResponse) {}
 }
 
 message GetCertificateInfoForHashRequest {
@@ -41,4 +44,23 @@ message GetMemberCertsRequest{
 
 message GetMemberCertsResponse{
   repeated CertificateInfoProto certs = 1;
+}
+
+message RegenerateCertReqRequest {//TODO:grpc consider swapping req and request places..
+  string certRequestId = 1;
+  CertificateRequestFormat format = 2;
+}
+
+message RegenerateCertReqResponse {
+  string certReqId = 1;
+  bytes certRequest = 2;
+  CertificateRequestFormat format = 3;
+  ClientIdProto memberId = 4;
+  KeyUsageInfo keyUsage = 5;
+}
+
+/** Specifies the cert request format to return. */
+enum CertificateRequestFormat {
+  PEM = 0;
+  DER = 1;
 }

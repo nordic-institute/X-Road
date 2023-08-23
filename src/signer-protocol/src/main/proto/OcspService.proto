@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+package org.niis.xroad.signer.proto;
+
+import "CommonMessages.proto";
+
+service OcspService {
+  rpc SetOcspResponses (SetOcspResponsesRequest) returns (Empty) {}
+
+  rpc GetOcspResponses (GetOcspResponsesRequest) returns (GetOcspResponsesResponse) {}
+}
+
+message SetOcspResponsesRequest {
+  repeated string certHashes = 1;
+  repeated string base64EncodedResponses = 2;
+}
+
+message GetOcspResponsesRequest{
+  repeated string certHash = 1;
+}
+
+message GetOcspResponsesResponse{
+  repeated string base64EncodedResponses = 1;
+}

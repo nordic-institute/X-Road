@@ -34,6 +34,7 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
+@Deprecated
 @ToString(exclude = "base64EncodedResponses")
 public class GetOcspResponsesResponse implements Serializable {
 

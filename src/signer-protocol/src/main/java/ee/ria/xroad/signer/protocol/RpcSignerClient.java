@@ -32,6 +32,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
+import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 
 import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createClientCredentials;
@@ -46,6 +47,8 @@ public class RpcSignerClient {
     private final CertificateServiceGrpc.CertificateServiceBlockingStub certificateServiceBlockingStub;
     @Getter
     private final KeyServiceGrpc.KeyServiceBlockingStub keyServiceBlockingStub;
+    @Getter
+    private final OcspServiceGrpc.OcspServiceBlockingStub ocspServiceBlockingStub;
 
     /**
      * Construct client for accessing RouteGuide server using the existing channel.
@@ -55,6 +58,7 @@ public class RpcSignerClient {
         signerApiBlockingStub = TokenServiceGrpc.newBlockingStub(channel);
         certificateServiceBlockingStub = CertificateServiceGrpc.newBlockingStub(channel);
         keyServiceBlockingStub = KeyServiceGrpc.newBlockingStub(channel);
+        ocspServiceBlockingStub = OcspServiceGrpc.newBlockingStub(channel);
     }
 
     /**

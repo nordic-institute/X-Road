@@ -28,7 +28,6 @@ package ee.ria.xroad.signer.protocol;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.dto.Empty;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignCertificate;
@@ -50,6 +49,8 @@ import org.niis.xroad.signer.proto.SignCertificateRequest;
 import org.niis.xroad.signer.proto.SignCertificateResponse;
 import org.niis.xroad.signer.proto.SignRequest;
 import org.niis.xroad.signer.proto.SignResponse;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Service;
 
 import java.security.PublicKey;
 
@@ -60,6 +61,7 @@ import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
  * Handles requests for token list.
  */
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
 

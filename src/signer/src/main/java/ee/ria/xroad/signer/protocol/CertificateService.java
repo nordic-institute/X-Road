@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
-import ee.ria.xroad.signer.protocol.dto.Empty;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
@@ -43,7 +42,11 @@ import org.niis.xroad.signer.proto.GetCertificateInfoForHashRequest;
 import org.niis.xroad.signer.proto.GetCertificateInfoResponse;
 import org.niis.xroad.signer.proto.GetMemberCertsRequest;
 import org.niis.xroad.signer.proto.GetMemberCertsResponse;
+import org.niis.xroad.signer.proto.RegenerateCertReqRequest;
+import org.niis.xroad.signer.proto.RegenerateCertReqResponse;
 import org.niis.xroad.signer.proto.SetCertStatusRequest;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,12 +57,13 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
  * Handles requests for token list.
  */
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class CertificateService extends CertificateServiceGrpc.CertificateServiceImplBase {
     private final TemporaryAkkaMessenger temporaryAkkaMessenger;
 
     @Override
-    public void activateCert(ActivateCertRequest request, StreamObserver<ee.ria.xroad.signer.protocol.dto.Empty> responseObserver) {
+    public void activateCert(ActivateCertRequest request, StreamObserver<Empty> responseObserver) {
         TokenManager.setCertActive(request.getCertIdOrHash(),
                 request.getActive());
         emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
@@ -108,6 +112,12 @@ public class CertificateService extends CertificateServiceGrpc.CertificateServic
         }
 
         return first.equals(second) || second.subsystemContainsMember(first);
+    }
+
+
+    @Override
+    public void regenerateCertReq(RegenerateCertReqRequest request, StreamObserver<RegenerateCertReqResponse> responseObserver) {
+        super.regenerateCertReq(request, responseObserver);
     }
 
     private <T extends AbstractMessage> void emitSingleAndClose(StreamObserver<T> responseObserver, T value) {

@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.TokenAndKey;
@@ -45,6 +44,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -91,11 +91,10 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
 
     static byte[] convert(PKCS10CertificationRequest request, CertificateRequestFormat format)
             throws Exception {
-        switch (format) {
-            case PEM:
-                return toPem(request);
-            default:
-                return request.getEncoded(); // DER
+        if (CertificateRequestFormat.PEM == format) {
+            return toPem(request);
+        } else {
+            return request.getEncoded(); // DER
         }
     }
 

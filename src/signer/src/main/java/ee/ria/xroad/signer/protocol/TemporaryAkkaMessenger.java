@@ -2,21 +2,23 @@ package ee.ria.xroad.signer.protocol;
 
 import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
-
 import akka.util.Timeout;
 
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.stereotype.Component;
 import scala.concurrent.Await;
 
 import java.util.concurrent.TimeUnit;
 
+import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
 import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getToken;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
 
 @Deprecated
+@Component
 @RequiredArgsConstructor
 public class TemporaryAkkaMessenger {
     @Deprecated
@@ -24,7 +26,7 @@ public class TemporaryAkkaMessenger {
 
     private final ActorSystem actorSystem;
 
-    public  <T> T tellTokenWithResponse(Object message, String tokenId) {
+    public <T> T tellTokenWithResponse(Object message, String tokenId) {
         return (T) tellToken(message, tokenId);
     }
 
@@ -41,4 +43,21 @@ public class TemporaryAkkaMessenger {
         }
         return response;
     }
+
+    public <T> T tellOcspManagerWithResponse(Object message) {
+        return (T) tellOcspManager(message);
+    }
+
+    @SneakyThrows
+    public Object tellOcspManager(Object message) {
+
+
+        Object response = Await.result(Patterns.ask(getOcspResponseManager(actorSystem), message, AKKA_TIMEOUT),
+                AKKA_TIMEOUT.duration());
+        if (response instanceof Exception) {
+            throw (Throwable) response;
+        }
+        return response;
+    }
+
 }

@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer.protocol.message;
 
 import lombok.Value;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.io.Serializable;
 

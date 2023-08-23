@@ -46,6 +46,9 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.grpc.RpcServer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -78,6 +81,8 @@ public final class SignerMain {
         diagnosticsDefault = new CertificationServiceDiagnostics();
     }
 
+    private static GenericApplicationContext springCtx;
+
     private static ActorSystem actorSystem;
     private static Signer signer;
     private static AdminPort adminPort;
@@ -107,7 +112,10 @@ public final class SignerMain {
         int signerPort = SystemProperties.getSignerPort();
         log.info("Starting Signer on port {}...", signerPort);
 
-        actorSystem = ActorSystem.create(SIGNER, getConf(signerPort));
+        springCtx = new AnnotationConfigApplicationContext(SignerConfig.class);
+        springCtx.registerShutdownHook();
+
+        actorSystem = springCtx.getBean(ActorSystem.class);
         signer = new Signer(actorSystem);
         adminPort = createAdminPort(SystemProperties.getSignerAdminPort());
         CoordinatedShutdown.get(actorSystem).addJvmShutdownHook(SignerMain::shutdown);
@@ -121,11 +129,13 @@ public final class SignerMain {
     private static void initGrpc() throws Exception {
         int port = 5560;
         log.info("Initializing GRPC server on port {}.. ", port);
-        var temporaryAkkaMessnger = new TemporaryAkkaMessenger(actorSystem);
+
         RpcServer.init(port, builder -> {
-            builder.addService(new CertificateService(temporaryAkkaMessnger));
-            builder.addService(new TokensService(temporaryAkkaMessnger));
-            builder.addService(new KeyService(temporaryAkkaMessnger));
+            springCtx.getBeansOfType(io.grpc.BindableService.class).forEach((s, bindableService) -> {
+                log.info("Registering {} gRPC service.",bindableService.getClass().getSimpleName());
+                builder.addService(bindableService);
+            });
+
             builder.intercept(new SignerExceptionHandlerInterceptor());
         });
     }
@@ -198,10 +208,4 @@ public final class SignerMain {
         return port;
     }
 
-    private static Config getConf(int signerPort) {
-        Config conf = ConfigFactory.load().getConfig("signer-main")
-                .withFallback(ConfigFactory.load());
-        return conf.withValue("akka.remote.artery.canonical.port",
-                ConfigValueFactory.fromAnyRef(signerPort));
-    }
 }

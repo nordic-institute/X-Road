@@ -1,6 +1,9 @@
 plugins {
-    id 'com.github.johnrengelman.shadow'
+  id 'io.spring.dependency-management'
+  id 'org.springframework.boot'
+  id 'com.github.johnrengelman.shadow'
 }
+
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
@@ -19,6 +22,7 @@ dependencies {
     implementation project(':common:common-rpc')
     implementation project(':signer-protocol')
 
+    implementation('org.springframework:spring-context')
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../libs', include: '*.jar')
 
@@ -38,6 +42,10 @@ jar {
         attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
     }
     archiveClassifier = 'plain'
+}
+
+bootJar {
+  enabled = false
 }
 
 shadowJar {

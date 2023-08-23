@@ -26,7 +26,6 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.dto.Empty;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
@@ -51,6 +50,8 @@ import org.niis.xroad.signer.proto.ListTokensResponse;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameRequest;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Service;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
@@ -58,6 +59,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
  * Handles requests for token list.
  */
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     private final TemporaryAkkaMessenger temporaryAkkaMessenger;

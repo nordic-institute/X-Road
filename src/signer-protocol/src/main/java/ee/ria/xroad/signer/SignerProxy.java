@@ -35,13 +35,11 @@ import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
-import ee.ria.xroad.signer.protocol.dto.Empty;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
@@ -54,14 +52,10 @@ import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfo;
 import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
 import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
-import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
@@ -71,9 +65,11 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateCertRequest;
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.proto.GetCertificateInfoForHashRequest;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashRequest;
 import org.niis.xroad.signer.proto.GetMemberCertsRequest;
+import org.niis.xroad.signer.proto.GetOcspResponsesRequest;
 import org.niis.xroad.signer.proto.GetSignMechanismRequest;
 import org.niis.xroad.signer.proto.GetSignMechanismResponse;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledRequest;
@@ -85,10 +81,12 @@ import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
 import org.niis.xroad.signer.proto.ListTokensResponse;
 import org.niis.xroad.signer.proto.SetCertStatusRequest;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameRequest;
+import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameRequest;
 import org.niis.xroad.signer.proto.SignCertificateRequest;
 import org.niis.xroad.signer.proto.SignRequest;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
+import org.niis.xroad.signer.protocol.dto.Empty;
 
 import java.security.PublicKey;
 import java.util.Arrays;
@@ -98,6 +96,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static java.util.Arrays.asList;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
@@ -566,20 +565,27 @@ public final class SignerProxy {
      * @throws Exception if something failed
      */
     public static String[] getOcspResponses(String[] certHashes) throws Exception {
-        String[] lowerCaseHashes = toLowerCase(certHashes);
-        GetOcspResponsesResponse response = execute(new GetOcspResponses(lowerCaseHashes));
-        return response.getBase64EncodedResponses();
+
+        var response = executeAndHandleException(() -> getSignerClient().getOcspServiceBlockingStub()
+                .getOcspResponses(GetOcspResponsesRequest.newBuilder()
+                        .addAllCertHash(toLowerCase(certHashes))
+                        .build()));
+
+        return response.getBase64EncodedResponsesList().toArray(new String[0]);
     }
 
     public static void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) throws Exception {
-        execute(new SetOcspResponses(certHashes, base64EncodedResponses));
+        executeAndHandleException(() -> getSignerClient().getOcspServiceBlockingStub()
+                .setOcspResponses(SetOcspResponsesRequest.newBuilder()
+                        .addAllCertHashes(asList(certHashes))
+                        .addAllBase64EncodedResponses(asList(base64EncodedResponses))
+                        .build()));
     }
 
-    private static String[] toLowerCase(String[] certHashes) {
+    private static List<String> toLowerCase(String[] certHashes) {
         return Arrays.stream(certHashes)
                 .map(String::toLowerCase)
-                .collect(Collectors.toList())
-                .toArray(new String[]{});
+                .collect(Collectors.toList());
     }
 
     /**

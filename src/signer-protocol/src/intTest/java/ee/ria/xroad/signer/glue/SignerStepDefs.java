@@ -38,7 +38,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import akka.actor.ActorSystem;
 import com.nortal.test.core.report.TestReportService;
@@ -55,6 +54,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;

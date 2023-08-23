@@ -61,13 +61,19 @@ public final class ServiceLocator {
         return context.actorSelection("/user/" + OCSP_RESPONSE_MANAGER);
     }
 
+    @Deprecated
+    public static ActorSelection getOcspResponseManager(
+            ActorSystem actorSystem) {
+        return actorSystem.actorSelection("/user/" + OCSP_RESPONSE_MANAGER);
+    }
+
     /**
      * @param context the actor context
      * @param tokenId the token id
      * @return the token actor
      */
     public static ActorSelection getToken(ActorContext context,
-            String tokenId) {
+                                          String tokenId) {
         String path = String.format("/user/%s/%s/%s", MODULE_MANAGER,
                 getModuleId(tokenId), tokenId);
         return context.actorSelection(path);
@@ -80,13 +86,14 @@ public final class ServiceLocator {
                 getModuleId(tokenId), tokenId);
         return actorSystem.actorSelection(path);
     }
+
     /**
      * @param context the actor context
      * @param tokenId the token id
      * @return the token signer actor
      */
     public static ActorSelection getTokenSigner(ActorContext context,
-            String tokenId) {
+                                                String tokenId) {
         String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
                 getModuleId(tokenId), tokenId, TOKEN_SIGNER);
         return context.actorSelection(path);
