@@ -32,8 +32,7 @@
       :background-color="colors.WarmGrey10"
       slider-size="2"
     >
-
-      <slot></slot>
+      <slot />
     </v-tabs>
   </div>
 </template>
@@ -51,10 +50,16 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .v-tabs-slider.xrd-sub-tabs-slider {
   width: 40px;
   margin-left: auto;
   margin-right: auto;
+}
+
+:deep(.v-tab) {
+  text-transform: none;
+  font-weight: 600;
+  color: rgb(0 0 0 / 54%);
 }
 </style>

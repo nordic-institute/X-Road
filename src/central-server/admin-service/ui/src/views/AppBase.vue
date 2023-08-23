@@ -46,12 +46,12 @@
       </transition>
     </v-row>
 
-    <v-dialog v-if="showDialog" width="500" persistent>
+    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
           <span class="headline">{{ $t('logout.sessionExpired') }}</span>
         </v-card-title>
-        <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
+        <v-card-text class="logout-text pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
           <xrd-button @click="logout()">{{ $t('action.ok') }}</xrd-button>
@@ -125,6 +125,10 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import '@/assets/shared';
+
+.logout-text {
+  font-size: 14px !important;
+}
 
 .sticky {
   position: -webkit-sticky;

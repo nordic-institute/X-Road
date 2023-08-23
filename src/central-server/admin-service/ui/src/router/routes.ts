@@ -263,7 +263,9 @@ const routes: RouteRecordRaw[] = [
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
                 },
-                props: true,
+                props: (route: RouteLocationNormalized): { serverId: string } => {
+                  return { serverId: route.params.serverId };
+                },
               },
               {
                 name: RouteName.SecurityServerAuthenticationCertificate,

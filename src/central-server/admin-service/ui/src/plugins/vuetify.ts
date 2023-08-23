@@ -54,7 +54,6 @@ export default createVuetify({
     }
   },
   theme: {
-    //TODO check customProperties in https://vuetifyjs.com/en/getting-started/upgrade-guide/
     themes: {
       light: {
         dark: false,

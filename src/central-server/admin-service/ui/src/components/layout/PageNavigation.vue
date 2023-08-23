@@ -66,3 +66,10 @@ export default defineComponent({
   },
 });
 </script>
+<style lang="scss" scoped>
+:deep(.v-tab) {
+  text-transform: none;
+  font-weight: 600;
+  color: rgb(0 0 0 / 54%);
+}
+</style>
