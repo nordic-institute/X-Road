@@ -57,7 +57,8 @@ import scala.concurrent.Await;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
+import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getToken;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
 
 /**
  * Handles requests for token list.
@@ -84,10 +85,9 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     public void activateToken(ActivateTokenRequest request, StreamObserver<Empty> responseObserver) {
         ActivateToken actorMsg = new ActivateToken(request.getTokenId(), request.getActivate());
         //TODO:grpc this is for debugging purposes.
-        log.info("Resending back to actor system..");
-        Await.result(Patterns.ask(actorSystem.actorSelection("/user/" + REQUEST_PROCESSOR), actorMsg, AKKA_TIMEOUT),
-                AKKA_TIMEOUT.duration());
 
+        log.info("Resending back to actor system..");
+        tellToken(actorMsg, request.getTokenId());
         emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
     }
 
@@ -134,22 +134,30 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     }
 
     @Override
-    @SneakyThrows
     public void initSoftwareToken(InitSoftwareTokenRequest request, StreamObserver<Empty> responseObserver) {
         String softwareTokenId = TokenManager.getSoftwareTokenId();
         if (softwareTokenId != null) {
-            log.info("Resending back to actor system..");
-            var actorMsg = new InitSoftwareToken(request.getPin().toCharArray());
-            Await.result(Patterns.ask(actorSystem.actorSelection("/user/" + REQUEST_PROCESSOR), actorMsg, AKKA_TIMEOUT),
-                    AKKA_TIMEOUT.duration());
-            emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
-        }
+            var message = new InitSoftwareToken(request.getPin().toCharArray());
+            tellToken(message, softwareTokenId);
 
-        throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+            emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+        } else {
+            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+        }
     }
 
     private <T extends AbstractMessage> void emitSingleAndClose(StreamObserver<T> responseObserver, T value) {
         responseObserver.onNext(value);
         responseObserver.onCompleted();
+    }
+
+    @SneakyThrows
+    protected void tellToken(Object message, String tokenId) {
+        if (!TokenManager.isTokenAvailable(tokenId)) {
+            throw tokenNotAvailable(tokenId);
+        }
+
+        Await.result(Patterns.ask(getToken(actorSystem, tokenId), message, AKKA_TIMEOUT),
+                AKKA_TIMEOUT.duration());
     }
 }

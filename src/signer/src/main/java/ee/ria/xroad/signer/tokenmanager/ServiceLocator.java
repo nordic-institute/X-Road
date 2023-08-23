@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.tokenmanager;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
 
 import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
@@ -72,6 +73,13 @@ public final class ServiceLocator {
         return context.actorSelection(path);
     }
 
+    @Deprecated
+    public static ActorSelection getToken(ActorSystem actorSystem,
+                                          String tokenId) {
+        String path = String.format("/user/%s/%s/%s", MODULE_MANAGER,
+                getModuleId(tokenId), tokenId);
+        return actorSystem.actorSelection(path);
+    }
     /**
      * @param context the actor context
      * @param tokenId the token id

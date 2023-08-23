@@ -15,7 +15,7 @@ OPTS=("--rm" "-v" "$XROAD_HOME/:/mnt" "-u" "$(id -u):$(id -g)" "-e" "HOME=/works
 
 echo "Rebuilding signer locally.."
 cd "$XROAD_HOME/src"
-./gradlew assemble -p signer
+./gradlew clean assemble -p signer
 ./gradlew clean -p $gradleModule
 
 echo "Running signer-protocol int tests.."
