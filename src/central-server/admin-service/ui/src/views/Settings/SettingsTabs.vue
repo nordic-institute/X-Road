@@ -25,18 +25,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
     <sub-tabs>
       <v-tab
         v-for="tab in tabs"
         :key="tab.key"
         :to="tab.to"
         :data-test="tab.key"
-        exact-path
+        exact
         >{{ $t(tab.name) }}</v-tab
       >
     </sub-tabs>
-  </div>
 </template>
 
 <script lang="ts">

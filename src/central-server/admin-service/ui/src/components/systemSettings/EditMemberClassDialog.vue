@@ -67,7 +67,7 @@ import { useForm } from "vee-validate";
 import { Event } from "@/ui-types";
 import { ErrorInfo, MemberClass } from "@/openapi-types";
 import { getErrorInfo, getTranslatedFieldErrors, isFieldError } from "@/util/helpers";
-import { AxiosError } from "axios/index";
+import { AxiosError } from "axios";
 import { mapStores } from "pinia";
 import { useMemberClass } from "@/store/modules/member-class";
 import { useNotifications } from "@/store/modules/notifications";

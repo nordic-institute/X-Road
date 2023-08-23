@@ -32,7 +32,7 @@
         :key="tab.key"
         :to="tab.to"
         :data-test="tab.key"
-        exact-path
+        exact
         >{{ $t(tab.name) }}
       </v-tab>
     </sub-tabs>

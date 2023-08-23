@@ -41,6 +41,9 @@ export default createVuetify({
     },
     VTextField: {
       color:"primary"
+    },
+    VTabs: {
+      color: "primary"
     }
   },
   icons: {
@@ -58,6 +61,7 @@ export default createVuetify({
         colors: {
           primary: Colors.Purple100,
           secondary: Colors.Purple70,
+          'on-error': Colors.Black100
         },
       },
     },
