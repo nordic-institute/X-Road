@@ -34,7 +34,7 @@
 /**
  * View for 'management requests' tab
  */
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 
 export default defineComponent({});
 </script>

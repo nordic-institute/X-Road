@@ -26,7 +26,6 @@
  -->
 <template>
   <main id="initial-configuration" class="form-view-wrap">
-    <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
       <v-form>
         <div class="form-content-wrap">
           <div
@@ -44,25 +43,17 @@
               :help-text="$t('init.instanceIdentifier.info')"
             />
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="initializationParamsVP"
-              name="init.identifier"
-              rules="required"
-              data-test="instance-identifier--validation"
-            >
               <v-text-field
-                v-model="instanceIdentifier"
+                v-bind="instanceIdentifier"
                 class="form-input"
                 type="text"
                 :label="$t('fields.init.identifier')"
-                :error-messages="errors"
+                :error-messages="errors['init.identifier']"
                 :disabled="disabledFields.instanceIdentifier"
-                outlined
+                variant="outlined"
                 autofocus
                 data-test="instance-identifier--input"
-              ></v-text-field>
-            </ValidationProvider>
+              />
           </div>
 
           <div class="form-row-wrap">
@@ -71,24 +62,16 @@
               :help-text="$t('init.address.info')"
             />
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              ref="initializationParamsVP"
-              name="init.address"
-              rules="required"
-              data-test="address--validation"
-            >
-              <v-text-field
-                v-model="address"
+            <v-text-field
+              v-bind="address"
                 class="form-input"
                 type="text"
                 :label="$t('fields.init.address')"
-                :error-messages="errors"
+              :error-messages="errors['init.address']"
                 :disabled="disabledFields.address"
-                outlined
+              variant="outlined"
                 data-test="address--input"
-              ></v-text-field>
-            </ValidationProvider>
+            />
           </div>
           <div class="form-sub-title">{{ $t('init.softwareToken') }}</div>
           <div class="form-row-wrap">
@@ -97,64 +80,48 @@
               :help-text="$t('init.pin.info')"
             />
 
-            <ValidationProvider
-              v-slot="{ errors }"
-              name="init.pin"
-              rules="required"
-              data-test="pin--validation"
-            >
               <v-text-field
-                v-model="pin"
+                v-bind="pin"
                 class="form-input"
                 type="password"
                 autocomplete="pin-code"
                 name="init.pin"
                 :label="$t('fields.init.pin')"
-                :error-messages="errors"
+                :error-messages="errors['init.pin']"
                 :disabled="disabledFields.pin"
-                outlined
+                variant="outlined"
                 data-test="pin--input"
-              ></v-text-field>
-            </ValidationProvider>
+              />
           </div>
 
           <div class="form-row-wrap">
             <xrd-form-label :label-text="$t('fields.init.confirmPin')" />
-
-            <ValidationProvider
-              v-slot="{ errors, passed }"
-              ref="confirmPinFieldVP"
-              name="init.confirmPin"
-              rules="required|password:@init.pin"
-              data-test="confirm-pin--validation"
-            >
               <v-text-field
-                v-model="pinConfirm"
+                v-bind="pinConfirm"
                 class="form-input"
                 type="password"
                 autocomplete="pin-code"
                 name="init.confirmPin"
                 :label="$t('fields.init.confirmPin')"
-                :error-messages="errors"
+                :error-messages="errors['init.confirmPin']"
                 :disabled="disabledFields.pin"
-                outlined
+                variant="outlined"
                 data-test="confirm-pin--input"
               >
-                <xrd-icon-base
-                  v-if="passed"
-                  slot="append"
-                  :color="colors.Success100"
-                  data-test="confirm-pin-append-input-icon"
-                >
-                  <XrdIconChecked />
-                </xrd-icon-base>
+                <template v-if="pinConfirmValid" #append-inner>
+                  <xrd-icon-base
+                    :color="colors.Success100"
+                    data-test="confirm-pin-append-input-icon"
+                  >
+                    <xrd-icon-checked />
+                  </xrd-icon-base>
+                </template>
               </v-text-field>
-            </ValidationProvider>
           </div>
         </div>
         <div class="button-footer">
           <xrd-button
-            :disabled="invalid"
+            :disabled="!meta.valid"
             :loading="submitting"
             data-test="submit-button"
             @click="submit"
@@ -162,58 +129,55 @@
           </xrd-button>
         </div>
       </v-form>
-    </ValidationObserver>
   </main>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Colors, RouteName } from '@/global';
-import {
-  ErrorInfo,
-  InitializationStatus,
-  InitialServerConf,
-  TokenInitStatus,
-} from '@/openapi-types';
-import { swallowRedirectedNavigationError } from '@/util/helpers';
+import { ErrorInfo, InitializationStatus, InitialServerConf, TokenInitStatus, } from '@/openapi-types';
+import { getTranslatedFieldErrors, swallowRedirectedNavigationError } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSystem } from '@/store/modules/system';
-import { defineRule } from "vee-validate";
+import { defineRule, useForm, useIsFieldValid } from "vee-validate";
+import XrdFormLabel from "@shared-ui/components/XrdFormLabel.vue";
+import { confirmed } from "@vee-validate/rules";
 
-//const { t } = useI18n();
-const PASSWORD_MATCH_ERROR: string = 'FIX ME'; //TODO vue3 fixme later t('init.pin.pinMatchError') as string;
-
-defineRule('password', (value, [target]) => {
-  if (value === target) {
-    return true;
-  }
-
-  return PASSWORD_MATCH_ERROR;
-});
-
-function getTranslatedFieldErrors(
-  fieldName: string,
-  fieldError: Record<string, string[]>,
-): string[] {
-  const errors: string[] = fieldError[fieldName];
-  if (errors) {
-    return errors.map((errorKey: string) => {
-      return t(`validationError.${errorKey}Field`).toString();
-    });
-  } else {
-    return [];
-  }
-}
+defineRule('confirmed', confirmed);
 
 export default defineComponent({
+  components: { XrdFormLabel },
+  setup() {
+    const { defineComponentBinds, errors, meta, values, setFieldValue, setFieldError } = useForm({
+      validationSchema: {
+        'init.identifier': 'required',
+        'init.address': 'required',
+        'init.pin': 'required',
+        'init.confirmPin': 'required|confirmed:@init.pin'
+      }
+    });
+    const instanceIdentifier = defineComponentBinds('init.identifier');
+    const address = defineComponentBinds('init.address');
+    const pin = defineComponentBinds('init.pin');
+    const pinConfirm = defineComponentBinds('init.confirmPin');
+    const pinConfirmValid = useIsFieldValid('init.confirmPin');
+    return {
+      instanceIdentifier,
+      address,
+      pin,
+      pinConfirm,
+      errors,
+      meta,
+      values,
+      setFieldValue,
+      setFieldError,
+      pinConfirmValid
+    };
+  },
   props: {},
   data() {
     return {
-      address: '',
-      instanceIdentifier: '',
-      pin: '',
-      pinConfirm: '',
       colors: Colors,
       disabledFields: {
         address: false,
@@ -239,16 +203,16 @@ export default defineComponent({
       TokenInitStatus.INITIALIZED == statusAtFirst?.software_token_init_status
     ) {
       this.disabledFields.pin = true;
-      this.pin = '****';
-      this.pinConfirm = '****';
+      this.setFieldValue('init.pin', '****');
+      this.setFieldValue('init.confirmPin', '****');
     }
     if (statusAtFirst?.central_server_address.length > 0) {
       this.disabledFields.address = true;
-      this.address = statusAtFirst?.central_server_address;
+      this.setFieldValue('init.address', statusAtFirst?.central_server_address);
     }
     if (statusAtFirst?.instance_identifier.length > 0) {
       this.disabledFields.instanceIdentifier = true;
-      this.instanceIdentifier = statusAtFirst.instance_identifier;
+      this.setFieldValue('init.identifier', statusAtFirst.instance_identifier);
     }
   },
   methods: {
@@ -261,9 +225,9 @@ export default defineComponent({
     async submit() {
       // validate inputs
       const formData: InitialServerConf = {} as InitialServerConf;
-      formData.instance_identifier = this.instanceIdentifier;
-      formData.central_server_address = this.address;
-      formData.software_token_pin = this.pin;
+      formData.instance_identifier = this.values.init.identifier;
+      formData.central_server_address = this.values.init.address;
+      formData.software_token_pin = this.values.init.pin;
       this.resetNotifications();
       this.submitting = true;
       await this.initalizationRequest(formData)
@@ -287,10 +251,8 @@ export default defineComponent({
                 'initialServerConfDto.centralServerAddress',
                 fieldErrors,
               );
-              this.$refs.initializationForm.setErrors({
-                'init.identifier': identifierErrors,
-                'init.address': addressErrors,
-              });
+              this.setFieldError('init.identifier', identifierErrors);
+              this.setFieldError('init.address', addressErrors);
               this.showError(error);
             }
             return;

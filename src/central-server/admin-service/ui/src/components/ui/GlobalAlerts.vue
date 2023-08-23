@@ -32,26 +32,24 @@
   >
     <v-alert
       v-if="alerts"
-      :value="true"
-      color="red"
-      border="left"
-      colored-border
+      border="start"
+      variant="outlined"
       class="alert"
       icon="icon-Error-notification"
+      type="error"
     >
       <span v-for="item in alerts" :key="item.errorCode" class="alert-text">
         {{ $t(item.errorCode, reformatDates(item.metadata)) }}
       </span>
     </v-alert>
-
     <v-alert
+      v-if="showRestoreInProgress"
       data-test="global-alert-restore"
-      :value="showRestoreInProgress"
-      color="red"
-      border="left"
-      colored-border
+      border="start"
+      variant="outlined"
       class="alert"
       icon="icon-Error-notification"
+      type="error"
     >
       <span class="alert-text">{{
         $t('globalAlert.backupRestoreInProgress', {
@@ -123,6 +121,7 @@ export default defineComponent({
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
+  background-color: $XRoad-White100;
 }
 
 .alert-text {
