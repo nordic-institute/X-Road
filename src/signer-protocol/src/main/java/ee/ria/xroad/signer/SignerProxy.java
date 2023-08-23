@@ -61,7 +61,6 @@ import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;

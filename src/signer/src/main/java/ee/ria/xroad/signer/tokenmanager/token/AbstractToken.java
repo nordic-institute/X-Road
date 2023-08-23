@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,7 +28,6 @@ package ee.ria.xroad.signer.tokenmanager.token;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
-import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
@@ -130,8 +129,8 @@ public abstract class AbstractToken extends AbstractSignerActor {
 
     boolean isTokenActive(Object message) {
         if (message instanceof Update
-                || message instanceof ActivateToken
-                || message instanceof InitSoftwareToken) {
+                || message instanceof ActivateToken) {
+//                || message instanceof InitSoftwareToken) {
             return true;
         }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -36,8 +36,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
-import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
-import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 
@@ -146,19 +144,19 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    @Override
-    protected void onMessage(Object message) throws Exception {
-        if (message instanceof InitSoftwareToken) {
-            initializeToken(((InitSoftwareToken) message).getPin());
-            sendSuccessResponse();
-        } else if (message instanceof UpdateSoftwareTokenPin) {
-            UpdateSoftwareTokenPin updateTokenPinMessage = (UpdateSoftwareTokenPin) message;
-            handleUpdateTokenPin(updateTokenPinMessage.getOldPin(), updateTokenPinMessage.getNewPin());
-            sendSuccessResponse();
-        } else {
-            super.onMessage(message);
-        }
-    }
+//    @Override
+//    protected void onMessage(Object message) throws Exception {
+//        if (message instanceof InitSoftwareToken) {
+//            initializeToken(((InitSoftwareToken) message).getPin());
+//            sendSuccessResponse();
+//        if (message instanceof UpdateSoftwareTokenPin) {
+//            UpdateSoftwareTokenPin updateTokenPinMessage = (UpdateSoftwareTokenPin) message;
+//            handleUpdateTokenPin(updateTokenPinMessage.getOldPin(), updateTokenPinMessage.getNewPin());
+//            sendSuccessResponse();
+//        } else {
+//            super.onMessage(message);
+//        }
+//    }
 
     @Override
     protected void activateToken(ActivateToken message) {
@@ -349,7 +347,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void initializeToken(char[] pin) throws Exception {
+    public void initializeToken(char[] pin) throws Exception {
         verifyPinProvided(pin);
 
         log.info("Initializing software token with new pin...");
@@ -429,7 +427,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         Files.move(getKeyDir().toPath(), getBackupKeyDir(), ATOMIC_MOVE);
     }
 
-    private void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
+    public void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
         log.info("Updating the software token pin to a new one...");
 
         isTokenLoginAllowed = false; // Prevent token login for the time of pin update
