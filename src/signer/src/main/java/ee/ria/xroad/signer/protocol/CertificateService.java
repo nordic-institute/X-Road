@@ -33,8 +33,6 @@ import ee.ria.xroad.signer.protocol.dto.Empty;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import akka.actor.ActorSystem;
-import akka.util.Timeout;
 import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +46,6 @@ import org.niis.xroad.signer.proto.GetMemberCertsResponse;
 import org.niis.xroad.signer.proto.SetCertStatusRequest;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
@@ -59,10 +56,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 @Slf4j
 @RequiredArgsConstructor
 public class CertificateService extends CertificateServiceGrpc.CertificateServiceImplBase {
-    @Deprecated
-    private static final Timeout AKKA_TIMEOUT = new Timeout(10, TimeUnit.SECONDS);
-
-    private final ActorSystem actorSystem;
+    private final TemporaryAkkaMessenger temporaryAkkaMessenger;
 
     @Override
     public void activateCert(ActivateCertRequest request, StreamObserver<ee.ria.xroad.signer.protocol.dto.Empty> responseObserver) {

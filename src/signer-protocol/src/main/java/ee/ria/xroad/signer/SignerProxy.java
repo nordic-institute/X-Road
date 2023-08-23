@@ -25,9 +25,6 @@
  */
 package ee.ria.xroad.signer;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -35,13 +32,63 @@ import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.SignerClient;
-import ee.ria.xroad.signer.protocol.dto.*;
-import ee.ria.xroad.signer.protocol.message.*;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
+import ee.ria.xroad.signer.protocol.dto.Empty;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
+import ee.ria.xroad.signer.protocol.message.DeleteCert;
+import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
+import ee.ria.xroad.signer.protocol.message.DeleteKey;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
+import ee.ria.xroad.signer.protocol.message.GenerateKey;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetAuthKey;
+import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfo;
+import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
+import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
+import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
+import ee.ria.xroad.signer.protocol.message.ImportCert;
+import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
+import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
+import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.StatusRuntimeException;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.proto.*;
+import org.niis.xroad.signer.proto.ActivateCertRequest;
+import org.niis.xroad.signer.proto.ActivateTokenRequest;
+import org.niis.xroad.signer.proto.GetCertificateInfoForHashRequest;
+import org.niis.xroad.signer.proto.GetKeyIdForCertHashRequest;
+import org.niis.xroad.signer.proto.GetMemberCertsRequest;
+import org.niis.xroad.signer.proto.GetSignMechanismRequest;
+import org.niis.xroad.signer.proto.GetSignMechanismResponse;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledRequest;
+import org.niis.xroad.signer.proto.GetTokenByCertHashRequest;
+import org.niis.xroad.signer.proto.GetTokenByCertRequestIdRequest;
+import org.niis.xroad.signer.proto.GetTokenByIdRequest;
+import org.niis.xroad.signer.proto.GetTokenByKeyIdRequest;
+import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
+import org.niis.xroad.signer.proto.ListTokensResponse;
+import org.niis.xroad.signer.proto.SetCertStatusRequest;
+import org.niis.xroad.signer.proto.SetKeyFriendlyNameRequest;
+import org.niis.xroad.signer.proto.SetTokenFriendlyNameRequest;
+import org.niis.xroad.signer.proto.SignCertificateRequest;
+import org.niis.xroad.signer.proto.SignRequest;
+import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
 
 import java.security.PublicKey;
 import java.util.Arrays;
@@ -174,7 +221,12 @@ public final class SignerProxy {
     public static void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
         log.trace("Updating token pin '{}'", tokenId);
 
-        execute(new UpdateSoftwareTokenPin(tokenId, oldPin, newPin));
+        executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
+                .updateSoftwareTokenPin(UpdateSoftwareTokenPinRequest.newBuilder()
+                        .setTokenId(tokenId)
+                        .setOldPin(new String(oldPin))//TODO:grpc its not great that we're doing this transformation
+                        .setNewPin(new String(newPin))
+                        .build()));
     }
 
     /**
@@ -583,8 +635,14 @@ public final class SignerProxy {
     }
 
     public static byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception {
-        final SignResponse signResponse = execute(new Sign(keyId, signatureAlgorithmId, digest));
-        return signResponse.getSignature();
+        var response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
+                .sign(SignRequest.newBuilder()
+                        .setKeyId(keyId)
+                        .setSignatureAlgorithmId(signatureAlgorithmId)
+                        .setDigest(ByteString.copyFrom(digest))
+                        .build()));
+
+        return response.getSignature().toByteArray();
     }
 
     public static Boolean isTokenBatchSigningEnabled(String keyId) {
@@ -617,9 +675,15 @@ public final class SignerProxy {
 
     public static byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey)
             throws Exception {
-        final SignCertificateResponse signCertificateResponse =
-                execute(new SignCertificate(keyId, signatureAlgorithmId, subjectName, publicKey));
-        return signCertificateResponse.getCertificateChain();
+        var response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
+                .signCertificate(SignCertificateRequest.newBuilder()
+                        .setKeyId(keyId)
+                        .setSignatureAlgorithmId(signatureAlgorithmId)
+                        .setSubjectName(subjectName)
+                        .setPublicKey(ByteString.copyFrom(publicKey.getEncoded()))
+                        .build()));
+
+        return response.getCertificateChain().toByteArray();
     }
 
     private static <T> T execute(Object message) throws Exception {

@@ -35,6 +35,7 @@ import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.protocol.CertificateService;
 import ee.ria.xroad.signer.protocol.KeyService;
 import ee.ria.xroad.signer.protocol.SignerExceptionHandlerInterceptor;
+import ee.ria.xroad.signer.protocol.TemporaryAkkaMessenger;
 import ee.ria.xroad.signer.protocol.TokensService;
 import ee.ria.xroad.signer.util.SignerUtil;
 
@@ -120,10 +121,11 @@ public final class SignerMain {
     private static void initGrpc() throws Exception {
         int port = 5560;
         log.info("Initializing GRPC server on port {}.. ", port);
+        var temporaryAkkaMessnger = new TemporaryAkkaMessenger(actorSystem);
         RpcServer.init(port, builder -> {
-            builder.addService(new CertificateService(actorSystem));
-            builder.addService(new TokensService(actorSystem));
-            builder.addService(new KeyService(actorSystem));
+            builder.addService(new CertificateService(temporaryAkkaMessnger));
+            builder.addService(new TokensService(temporaryAkkaMessnger));
+            builder.addService(new KeyService(temporaryAkkaMessnger));
             builder.intercept(new SignerExceptionHandlerInterceptor());
         });
     }

@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.security.PublicKey;
 
 @Value
+@Deprecated
 public class SignCertificate implements Serializable {
 
     String keyId;

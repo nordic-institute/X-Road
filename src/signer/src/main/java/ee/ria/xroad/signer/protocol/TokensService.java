@@ -31,11 +31,9 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import akka.actor.ActorSystem;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
 import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -52,13 +50,9 @@ import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
 import org.niis.xroad.signer.proto.ListTokensResponse;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameRequest;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
-import scala.concurrent.Await;
-
-import java.util.concurrent.TimeUnit;
+import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getToken;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
 
 /**
  * Handles requests for token list.
@@ -66,10 +60,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
 @Slf4j
 @RequiredArgsConstructor
 public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
-    @Deprecated
-    private static final Timeout AKKA_TIMEOUT = new Timeout(10, TimeUnit.SECONDS);
-
-    private final ActorSystem actorSystem;
+    private final TemporaryAkkaMessenger temporaryAkkaMessenger;
 
     @Override
     public void listTokens(Empty request, StreamObserver<ListTokensResponse> responseObserver) {
@@ -87,7 +78,7 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
         //TODO:grpc this is for debugging purposes.
 
         log.info("Resending back to actor system..");
-        tellToken(actorMsg, request.getTokenId());
+        temporaryAkkaMessenger.tellToken(actorMsg, request.getTokenId());
         emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
     }
 
@@ -138,7 +129,7 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
         String softwareTokenId = TokenManager.getSoftwareTokenId();
         if (softwareTokenId != null) {
             var message = new InitSoftwareToken(request.getPin().toCharArray());
-            tellToken(message, softwareTokenId);
+            temporaryAkkaMessenger.tellToken(message, softwareTokenId);
 
             emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
         } else {
@@ -146,18 +137,20 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
         }
     }
 
+    @Override
+    public void updateSoftwareTokenPin(UpdateSoftwareTokenPinRequest request, StreamObserver<Empty> responseObserver) {
+        var message = new UpdateSoftwareTokenPin(request.getTokenId(),
+                request.getOldPin().toCharArray(),
+                request.getNewPin().toCharArray());
+
+        temporaryAkkaMessenger.tellToken(message, message.getTokenId());
+        emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+    }
+
     private <T extends AbstractMessage> void emitSingleAndClose(StreamObserver<T> responseObserver, T value) {
         responseObserver.onNext(value);
         responseObserver.onCompleted();
     }
 
-    @SneakyThrows
-    protected void tellToken(Object message, String tokenId) {
-        if (!TokenManager.isTokenAvailable(tokenId)) {
-            throw tokenNotAvailable(tokenId);
-        }
 
-        Await.result(Patterns.ask(getToken(actorSystem, tokenId), message, AKKA_TIMEOUT),
-                AKKA_TIMEOUT.duration());
-    }
 }

@@ -34,6 +34,7 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
+@Deprecated
 @ToString(exclude = "digest")
 public class Sign implements Serializable {
 

@@ -27,15 +27,18 @@ package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.Empty;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.message.Sign;
+import ee.ria.xroad.signer.protocol.message.SignCertificate;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import akka.actor.ActorSystem;
-import akka.util.Timeout;
 import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashRequest;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResponse;
@@ -43,10 +46,15 @@ import org.niis.xroad.signer.proto.GetSignMechanismRequest;
 import org.niis.xroad.signer.proto.GetSignMechanismResponse;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameRequest;
+import org.niis.xroad.signer.proto.SignCertificateRequest;
+import org.niis.xroad.signer.proto.SignCertificateResponse;
+import org.niis.xroad.signer.proto.SignRequest;
+import org.niis.xroad.signer.proto.SignResponse;
 
-import java.util.concurrent.TimeUnit;
+import java.security.PublicKey;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
 
 /**
  * Handles requests for token list.
@@ -54,10 +62,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 @Slf4j
 @RequiredArgsConstructor
 public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
-    @Deprecated
-    private static final Timeout AKKA_TIMEOUT = new Timeout(10, TimeUnit.SECONDS);
 
-    private final ActorSystem actorSystem;
+    private final TemporaryAkkaMessenger temporaryAkkaMessenger;
 
     @Override
     public void getKeyIdForCertHash(GetKeyIdForCertHashRequest request, StreamObserver<GetKeyIdForCertHashResponse> responseObserver) {
@@ -93,6 +99,37 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
 
         emitSingleAndClose(responseObserver, GetSignMechanismResponse.newBuilder()
                 .setSignMechanismName(keyInfo.getSignMechanismName())
+                .build());
+    }
+
+    @Override
+    public void sign(SignRequest request, StreamObserver<SignResponse> responseObserver) {
+        var message = new Sign(request.getKeyId(),
+                request.getSignatureAlgorithmId(),
+                request.getDigest().toByteArray());
+
+        ee.ria.xroad.signer.protocol.message.SignResponse response = temporaryAkkaMessenger
+                .tellTokenWithResponse(message, findTokenIdForKeyId(message.getKeyId()));
+
+        emitSingleAndClose(responseObserver, SignResponse.newBuilder()
+                .setSignature(ByteString.copyFrom(response.getSignature()))
+                .build());
+    }
+
+    @SneakyThrows //TODO:grpc handle it
+    @Override
+    public void signCertificate(SignCertificateRequest request, StreamObserver<SignCertificateResponse> responseObserver) {
+        PublicKey publicKey = CryptoUtils.readX509PublicKey(request.getPublicKey().toByteArray());
+        var message = new SignCertificate(request.getKeyId(),
+                request.getSignatureAlgorithmId(),
+                request.getSubjectName(),
+                publicKey);
+
+        ee.ria.xroad.signer.protocol.message.SignCertificateResponse response = temporaryAkkaMessenger
+                .tellTokenWithResponse(message, findTokenIdForKeyId(message.getKeyId()));
+
+        emitSingleAndClose(responseObserver, SignCertificateResponse.newBuilder()
+                .setCertificateChain(ByteString.copyFrom(response.getCertificateChain()))
                 .build());
     }
 

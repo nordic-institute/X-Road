@@ -25,6 +25,9 @@ service TokenService {
   rpc GetTokenBatchSigningEnabled(GetTokenBatchSigningEnabledRequest) returns (GetTokenBatchSigningEnabledResponse){}
 
   rpc InitSoftwareToken(InitSoftwareTokenRequest) returns (Empty) {}
+
+  rpc UpdateSoftwareTokenPin(UpdateSoftwareTokenPinRequest) returns (Empty) {}
+
 }
 
 message ListTokensResponse {
@@ -67,4 +70,10 @@ message GetTokenBatchSigningEnabledResponse {
 
 message InitSoftwareTokenRequest {
   string pin = 1;
+}
+
+message UpdateSoftwareTokenPinRequest {
+  string tokenId = 1;
+  string oldPin = 2;
+  string newPin = 3;
 }

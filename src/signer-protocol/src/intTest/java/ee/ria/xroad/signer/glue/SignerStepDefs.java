@@ -424,7 +424,7 @@ public class SignerStepDefs {
 
             fail("Exception expected");
         } catch (CodedException codedException) {
-            assertException("Signer.CannotSign.InternalError", null,
+            assertException("Signer.CannotSign.InternalError", "",
                     "Signer.CannotSign.InternalError: Unknown sign algorithm id: NOT-ALGORITHM-ID", codedException);
         }
     }

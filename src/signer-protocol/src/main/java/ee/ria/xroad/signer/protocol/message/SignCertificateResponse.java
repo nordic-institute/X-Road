@@ -32,6 +32,7 @@ import lombok.Value;
 import java.io.Serializable;
 
 @Value
+@Deprecated
 @ToString(exclude = "certificateChain")
 public class SignCertificateResponse implements Serializable {
 

@@ -14,6 +14,10 @@ service KeyService {
 
   rpc GetSignMechanism (GetSignMechanismRequest) returns (GetSignMechanismResponse) {}
 
+
+  rpc Sign(SignRequest) returns (SignResponse) {}
+
+  rpc SignCertificate(SignCertificateRequest) returns (SignCertificateResponse) {}
 }
 
 
@@ -38,4 +42,26 @@ message GetSignMechanismRequest {
 
 message GetSignMechanismResponse {
   string signMechanismName = 1;
+}
+
+message SignRequest {
+  string keyId = 1;
+  string signatureAlgorithmId = 2;
+  bytes digest = 3;
+}
+
+message SignResponse {
+  bytes signature = 1;
+}
+
+message SignCertificateRequest {
+  string keyId = 1;
+  string signatureAlgorithmId = 2;
+  string subjectName = 3;
+  bytes publicKey = 4;
+
+}
+
+message SignCertificateResponse {
+  bytes certificateChain = 1;
 }

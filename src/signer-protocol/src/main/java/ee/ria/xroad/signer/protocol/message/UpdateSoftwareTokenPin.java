@@ -33,6 +33,7 @@ import java.io.Serializable;
  * Signer API message for updating software token pin.
  */
 @Value
+@Deprecated
 public class UpdateSoftwareTokenPin implements Serializable {
 
     private final String tokenId;
