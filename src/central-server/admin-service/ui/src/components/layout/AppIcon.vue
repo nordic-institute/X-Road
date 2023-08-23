@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts">
-import xrdLogo from '../../assets/xroad7_logo.svg';
+import xrdLogo from '@/assets/xroad7_logo.svg';
 import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';

@@ -43,13 +43,15 @@ public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter 
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .requestMatchers()
-                .antMatchers("/favicon.ico",
+                .antMatchers(
+                        "/favicon.ico",
                         "/",
                         "/index.html",
                         "/img/**",
                         "/css/**",
                         "/js/**",
-                        "/fonts/**")
+                        "/fonts/**",
+                        "/assets/**")
                     .and()
                 .headers()
                     .contentSecurityPolicy(

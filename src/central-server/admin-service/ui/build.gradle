@@ -14,10 +14,6 @@ configurations {
     dist
 }
 
-dependencies {
-    npm project(path: ":shared-ui", configuration: "npm")
-}
-
 node {
     download = true
     version = nodeVersion
@@ -59,9 +55,8 @@ task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
         'public/',
         'package.json',
         'package-lock.json',
-        'vue.config.js',
+        'vite.config.js',
         'tsconfig.js',
-        'babel.config.js',
         fileTree('node_modules') {
             exclude '.cache'
             exclude 'webpack-dev-server/ssl'

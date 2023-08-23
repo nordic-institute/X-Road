@@ -97,7 +97,6 @@ export const useClient = defineStore('client', {
       query: string | null,
       dataOptions: DataQuery,
     ) {
-      console.log(dataOptions)
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const params: unknown = {
         client_type: clientType,
