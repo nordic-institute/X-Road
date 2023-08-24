@@ -6,6 +6,6 @@
  * token type
  */
 export enum TokenType {
-    SOFTWARE = 'SOFTWARE',
-    HARDWARE = 'HARDWARE',
+  SOFTWARE = 'SOFTWARE',
+  HARDWARE = 'HARDWARE',
 }
