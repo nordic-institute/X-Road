@@ -25,10 +25,8 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
-import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
+
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
@@ -42,10 +40,8 @@ public class ActivateTokenRequestHandler
 
     @Override
     protected Empty handle(ActivateTokenRequest request) throws Exception {
-        ActivateToken actorMsg = new ActivateToken(request.getTokenId(), request.getActivate());
-
-        final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(request.getTokenId());
-        tokenWorker.handleActivateToken(actorMsg);
+        getTokenWorker(request.getTokenId())
+                .handleActivateToken(request);
 
         return Empty.getDefaultInstance();
     }

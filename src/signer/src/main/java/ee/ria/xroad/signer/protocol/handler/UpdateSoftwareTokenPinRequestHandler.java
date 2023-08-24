@@ -26,10 +26,10 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
+
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
@@ -45,10 +45,11 @@ public class UpdateSoftwareTokenPinRequestHandler
 
     @Override
     protected Empty handle(UpdateSoftwareTokenPinRequest request) throws Exception {
-        final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(request.getTokenId());
+        final AbstractTokenWorker tokenWorker = getTokenWorker(request.getTokenId());
         if (tokenWorker instanceof SoftwareTokenWorker) {
             try {
                 ((SoftwareTokenWorker) tokenWorker).handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
+                return Empty.getDefaultInstance();
             } catch (Exception e) {
                 // todo move to tokenworker
                 throw new CodedException(X_INTERNAL_ERROR, e);
@@ -56,7 +57,5 @@ public class UpdateSoftwareTokenPinRequestHandler
         } else {
             throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
         }
-
-        return Empty.getDefaultInstance();
     }
 }

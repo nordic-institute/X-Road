@@ -32,7 +32,6 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.ModuleConf;
@@ -55,6 +54,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.niis.xroad.signer.proto.ActivateTokenRequest;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -251,8 +251,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     // ----------------------- Message handlers -------------------------------
 
     @Override
-    protected void activateToken(ActivateToken message) throws Exception {
-        if (message.isActivate()) { // login
+    protected void activateToken(ActivateTokenRequest message) throws Exception {
+        if (message.getActivate()) { // login
             log.info("Logging in token '{}'", getWorkerId());
 
             try {

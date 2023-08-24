@@ -25,9 +25,9 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import com.google.protobuf.ByteString;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.Sign;
+
+import com.google.protobuf.ByteString;
 import org.niis.xroad.signer.proto.SignRequest;
 import org.niis.xroad.signer.proto.SignResponse;
 import org.springframework.stereotype.Component;
@@ -42,15 +42,11 @@ public class SignRequestHandler extends AbstractRpcHandler<SignRequest, SignResp
 
     @Override
     protected SignResponse handle(SignRequest request) throws Exception {
-        var message = new Sign(request.getKeyId(),
-                request.getSignatureAlgorithmId(),
-                request.getDigest().toByteArray());
-
-        ee.ria.xroad.signer.protocol.message.SignResponse response = temporaryAkkaMessenger
-                .tellTokenWithResponse(message, findTokenIdForKeyId(message.getKeyId()));
+        final byte[] signature = getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
+                .handleSign(request);
 
         return SignResponse.newBuilder()
-                .setSignature(ByteString.copyFrom(response.getSignature()))
+                .setSignature(ByteString.copyFrom(signature))
                 .build();
     }
 }

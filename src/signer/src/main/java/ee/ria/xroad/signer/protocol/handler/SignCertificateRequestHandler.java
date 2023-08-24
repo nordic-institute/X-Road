@@ -26,15 +26,12 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import com.google.protobuf.ByteString;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SignCertificate;
+
+import com.google.protobuf.ByteString;
 import org.niis.xroad.signer.proto.SignCertificateRequest;
 import org.niis.xroad.signer.proto.SignCertificateResponse;
 import org.springframework.stereotype.Component;
-
-import java.security.PublicKey;
 
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
 
@@ -43,17 +40,11 @@ public class SignCertificateRequestHandler extends AbstractRpcHandler<SignCertif
 
     @Override
     protected SignCertificateResponse handle(SignCertificateRequest request) throws Exception {
-        PublicKey publicKey = CryptoUtils.readX509PublicKey(request.getPublicKey().toByteArray());
-        var message = new SignCertificate(request.getKeyId(),
-                request.getSignatureAlgorithmId(),
-                request.getSubjectName(),
-                publicKey);
-
-        ee.ria.xroad.signer.protocol.message.SignCertificateResponse response = temporaryAkkaMessenger
-                .tellTokenWithResponse(message, findTokenIdForKeyId(message.getKeyId()));
+        final byte[] signedCertificate = getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
+                .handleSignCertificate(request);
 
         return SignCertificateResponse.newBuilder()
-                .setCertificateChain(ByteString.copyFrom(response.getCertificateChain()))
+                .setCertificateChain(ByteString.copyFrom(signedCertificate))
                 .build();
     }
 }

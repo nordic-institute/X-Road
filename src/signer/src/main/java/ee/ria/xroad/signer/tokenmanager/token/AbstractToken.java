@@ -27,7 +27,6 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
@@ -112,6 +111,7 @@ public abstract class AbstractToken extends AbstractSignerActor {
     }
 
     protected abstract Props createSigner();
+
     protected abstract Props createWorker();
 
     ActorRef createWatchedActor(Props props, String name) {
@@ -128,8 +128,8 @@ public abstract class AbstractToken extends AbstractSignerActor {
     }
 
     boolean isTokenActive(Object message) {
-        if (message instanceof Update
-                || message instanceof ActivateToken) {
+        if (message instanceof Update) {
+//                || message instanceof ActivateToken) {
 //                || message instanceof InitSoftwareToken) {
             return true;
         }

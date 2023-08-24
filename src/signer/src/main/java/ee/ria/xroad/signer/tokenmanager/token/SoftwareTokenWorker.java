@@ -34,7 +34,6 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
@@ -46,6 +45,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.niis.xroad.signer.proto.ActivateTokenRequest;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -159,8 +159,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 //    }
 
     @Override
-    protected void activateToken(ActivateToken message) {
-        if (message.isActivate()) {
+    protected void activateToken(ActivateTokenRequest message) {
+        if (message.getActivate()) {
             if (!isTokenLoginAllowed) {
                 throw loginFailed("PIN change in progress – token login not allowed");
             }

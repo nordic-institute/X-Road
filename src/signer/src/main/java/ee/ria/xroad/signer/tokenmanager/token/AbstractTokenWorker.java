@@ -26,21 +26,20 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
-import ee.ria.xroad.signer.protocol.message.SignCertificate;
-import ee.ria.xroad.signer.protocol.message.SignCertificateResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.SignerUtil;
 
+import com.google.protobuf.ByteString;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -49,6 +48,9 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.niis.xroad.signer.proto.ActivateTokenRequest;
+import org.niis.xroad.signer.proto.SignCertificateRequest;
+import org.niis.xroad.signer.proto.SignRequest;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
@@ -117,8 +119,8 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
             handleDeleteCert((DeleteCert) message);
         } else if (message instanceof CalculateSignature) {
             handleCalculateSignature((CalculateSignature) message);
-        } else if (message instanceof SignCertificate) {
-            handleSignCertificate((SignCertificate) message);
+//        } else if (message instanceof SignCertificate) {
+//            handleSignCertificate((SignCertificate) message);
         } else {
             unhandled(message);
         }
@@ -129,7 +131,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         setTokenAvailable(tokenId, false);
     }
 
-    public void handleActivateToken(ActivateToken message) throws Exception {
+    public void handleActivateToken(ActivateTokenRequest message) throws Exception {
         try {
             activateToken(message);
 
@@ -196,12 +198,19 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         sendSuccessResponse();
     }
 
+    @Deprecated
     private void handleCalculateSignature(CalculateSignature signRequest) {
         try {
-            byte data[] = SignerUtil.createDataToSign(signRequest.getDigest(), signRequest.getSignatureAlgorithmId());
+            SignRequest request = SignRequest.newBuilder()
+                    .setKeyId(signRequest.getKeyId())
+                    .setSignatureAlgorithmId(signRequest.getSignatureAlgorithmId())
+                    .setDigest(ByteString.copyFrom(signRequest.getDigest()))
+                    .build();
 
-            byte[] signature = sign(signRequest.getKeyId(), signRequest.getSignatureAlgorithmId(), data);
+            byte[] signature = handleSign(request);
             sendResponse(new CalculatedSignature(signRequest, signature, null));
+        } catch (CodedException codedException) {
+            sendResponse(new CalculatedSignature(signRequest, null, codedException));
         } catch (Exception e) { // catch-log-rethrow
             log.error("Error while signing with key '{}'", signRequest.getKeyId(), e);
 
@@ -210,24 +219,37 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         }
     }
 
-    private void handleSignCertificate(SignCertificate message) {
+    public byte[] handleSign(SignRequest request) {
         try {
-            byte[] certificate = signCertificate(message.getKeyId(), message.getSignatureAlgorithmId(),
-                                                 message.getSubjectName(), message.getPublicKey());
-            sendResponse(new SignCertificateResponse(certificate));
+            byte data[] = SignerUtil.createDataToSign(request.getDigest().toByteArray(), request.getSignatureAlgorithmId());
+
+            return sign(request.getKeyId(), request.getSignatureAlgorithmId(), data);
         } catch (Exception e) {
-            log.error("Error while signing certificate with key '{}'", message.getKeyId(), e);
+            log.error("Error while signing with key '{}'", request.getKeyId(), e);
+
+            throw translateError(customizeException(e)).withPrefix(X_CANNOT_SIGN);
+        }
+    }
+
+    public byte[] handleSignCertificate(SignCertificateRequest request) {
+        try {
+            PublicKey publicKey = CryptoUtils.readX509PublicKey(request.getPublicKey().toByteArray());
+            return signCertificate(request.getKeyId(), request.getSignatureAlgorithmId(),
+                    request.getSubjectName(), publicKey);
+        } catch (Exception e) {
+            log.error("Error while signing certificate with key '{}'", request.getKeyId(), e);
             throw translateError(customizeException(e)).withPrefix(X_CANNOT_SIGN);
         }
     }
 
     // ------------------------------------------------------------------------
 
-    protected abstract void activateToken(ActivateToken message) throws Exception;
+    protected abstract void activateToken(ActivateTokenRequest message) throws Exception;
 
     protected abstract GenerateKeyResult generateKey(GenerateKey message) throws Exception;
 
     protected abstract void deleteKey(String keyId) throws Exception;
+
     protected abstract void deleteCert(String certId) throws Exception;
 
     protected abstract byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception;
