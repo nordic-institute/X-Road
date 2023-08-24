@@ -30,8 +30,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.DeleteCert;
-import ee.ria.xroad.signer.protocol.message.DeleteKey;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
@@ -108,19 +106,10 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
     @Override
     protected void onMessage(Object message) throws Exception {
         log.trace("onMessage()");
-
-//        if (message instanceof ActivateToken) {
-//            handleActivateToken((ActivateToken) message);
         if (message instanceof GenerateKey) {
             handleGenerateKey((GenerateKey) message);
-        } else if (message instanceof DeleteKey) {
-            handleDeleteKey((DeleteKey) message);
-        } else if (message instanceof DeleteCert) {
-            handleDeleteCert((DeleteCert) message);
         } else if (message instanceof CalculateSignature) {
             handleCalculateSignature((CalculateSignature) message);
-//        } else if (message instanceof SignCertificate) {
-//            handleSignCertificate((SignCertificate) message);
         } else {
             unhandled(message);
         }
@@ -136,8 +125,6 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
             activateToken(message);
 
             onUpdate();
-
-//            sendSuccessResponse();
         } catch (Exception e) {
             log.error("Failed to activate token '{}': {}", getWorkerId(), e.getMessage());
 
@@ -172,30 +159,25 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         sendResponse(TokenManager.findKeyInfo(keyId));
     }
 
-    private void handleDeleteKey(DeleteKey message) {
+    public void handleDeleteKey(String keyId) {
         try {
-            deleteKey(message.getKeyId());
+            deleteKey(keyId);
         } catch (Exception e) {
-            log.error("Failed to delete key '{}'", message.getKeyId(), e);
+            log.error("Failed to delete key '{}'", keyId, e);
 
             throw translateError(customizeException(e));
         }
 
-        TokenManager.removeKey(message.getKeyId());
-
-        sendSuccessResponse();
+        TokenManager.removeKey(keyId);
     }
 
-    private void handleDeleteCert(DeleteCert message) {
+    public void handleDeleteCert(String certificateId) {
         try {
-            deleteCert(message.getCertId());
+            deleteCert(certificateId);
         } catch (Exception e) {
-            log.error("Failed to delete cert '{}'", message.getCertId(), e);
-
+            log.error("Failed to delete cert '{}'", certificateId, e);
             throw translateError(customizeException(e));
         }
-
-        sendSuccessResponse();
     }
 
     @Deprecated

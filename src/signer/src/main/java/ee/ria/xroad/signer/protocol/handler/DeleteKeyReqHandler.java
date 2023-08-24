@@ -29,7 +29,6 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.message.DeleteKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
@@ -64,8 +63,8 @@ public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty>
 
 
     private void deleteKeyFile(String tokenId, DeleteKeyReq request) {
-        var message = new DeleteKey(request.getKeyId(), request.getDeleteFromDevice());
-        temporaryAkkaMessenger.tellToken(message, tokenId);
+        getTokenWorker(tokenId)
+                .handleDeleteKey(request.getKeyId());
     }
 
     private static void removeCertsFromKey(KeyInfo keyInfo) {
