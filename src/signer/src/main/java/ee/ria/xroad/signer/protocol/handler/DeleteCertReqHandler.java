@@ -30,7 +30,6 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import org.niis.xroad.signer.proto.DeleteCertReq;
@@ -71,8 +70,8 @@ public class DeleteCertReqHandler
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
                     if (deleteCert.getCertId().equals(certInfo.getId())) {
-                        var message = new DeleteCert(deleteCert.getCertId());
-                        temporaryAkkaMessenger.tellToken(message, tokenInfo.getId());
+                        getTokenWorker(tokenInfo.getId())
+                                .handleDeleteCert(deleteCert.getCertId());
                         return;
                     }
                 }
