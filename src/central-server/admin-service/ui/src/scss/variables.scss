@@ -35,9 +35,10 @@ List of Vuetify SASS variables: https://vuetifyjs.com/en/api/vuetify/#sass-varia
 */
 
 // Globals
-$body-font-family: "Open Sans", sans-serif;
+$body-font-family: 'Open Sans', sans-serif;
 $container-max-widths: (
-  'md': 1600px, // containers are as wide as viewport even on smaller screens
+  'md': 1600px,
+  // containers are as wide as viewport even on smaller screens
   'lg': 1600px,
-  'xl': 1600px
+  'xl': 1600px,
 );

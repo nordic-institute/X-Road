@@ -6,16 +6,16 @@
  * group member
  */
 export type GroupMember = {
-    /**
-     * group member id
-     */
-    id: string;
-    /**
-     * group member name
-     */
-    name: string;
-    /**
-     * group member created at
-     */
-    created_at: string;
-}
+  /**
+   * group member id
+   */
+  id: string;
+  /**
+   * group member name
+   */
+  name: string;
+  /**
+   * group member created at
+   */
+  created_at: string;
+};

@@ -3,8 +3,8 @@
 /* eslint-disable */
 
 export type KeyLabel = {
-    /**
-     * label for the new key
-     */
-    label?: string;
-}
+  /**
+   * label for the new key
+   */
+  label?: string;
+};

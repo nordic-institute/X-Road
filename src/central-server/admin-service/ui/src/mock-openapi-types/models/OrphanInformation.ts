@@ -3,5 +3,5 @@
 /* eslint-disable */
 
 export type OrphanInformation = {
-    orphans_exist: boolean;
-}
+  orphans_exist: boolean;
+};

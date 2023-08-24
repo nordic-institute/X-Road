@@ -6,5 +6,5 @@
  * security server backup archive file
  */
 export type BackupArchive = {
-    file?: string;
-}
+  file?: string;
+};
