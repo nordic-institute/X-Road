@@ -9,7 +9,7 @@ import "TokenStatusInfo.proto";
 package org.niis.xroad.signer.proto;
 
 service CertificateService {
-  rpc ActivateCert (ActivateCertRequest) returns (Empty) {}
+  rpc ActivateCert (ActivateCertReq) returns (Empty) {}
 
   rpc GetCertificateInfoForHash (GetCertificateInfoForHashRequest) returns (GetCertificateInfoResponse) {}
 
@@ -18,6 +18,14 @@ service CertificateService {
   rpc SetCertStatus (SetCertStatusRequest) returns (Empty) {}
 
   rpc RegenerateCertReq (RegenerateCertReqRequest) returns (RegenerateCertReqResponse) {}
+
+  rpc DeleteCert (DeleteCertReq) returns (Empty) {}
+
+  rpc DeleteCertRequest (DeleteCertRequestReq) returns (Empty) {}
+
+  rpc ImportCert (ImportCertReq) returns (ImportCertResp) {}
+
+  rpc GenerateSelfSignedCert (GenerateSelfSignedCertReq) returns (GenerateSelfSignedCertResp) {}
 }
 
 message GetCertificateInfoForHashRequest {
@@ -28,7 +36,7 @@ message GetCertificateInfoResponse {
   CertificateInfoProto certificateInfo = 1;
 }
 
-message ActivateCertRequest {
+message ActivateCertReq {
   string certIdOrHash = 1;
   bool  active = 2;
 }
@@ -63,4 +71,35 @@ message RegenerateCertReqResponse {
 enum CertificateRequestFormat {
   PEM = 0;
   DER = 1;
+}
+
+message DeleteCertReq {
+  string certId = 1;
+}
+
+message DeleteCertRequestReq {
+  string certRequestId = 1;
+}
+
+message ImportCertReq {
+  bytes certData = 1;
+  string initialStatus = 2;
+  ClientIdProto memberId = 3;
+}
+
+message ImportCertResp {
+  string keyId = 1;
+}
+
+message GenerateSelfSignedCertReq {
+  string keyId = 1;
+  string commonName = 2;
+  int64 dateNotBefore = 3;
+  int64 dateNotAfter = 4;
+  KeyUsageInfo keyUsage = 5;
+  ClientIdProto memberId = 6;
+}
+
+message GenerateSelfSignedCertResp {
+  bytes certificateBytes = 1;
 }

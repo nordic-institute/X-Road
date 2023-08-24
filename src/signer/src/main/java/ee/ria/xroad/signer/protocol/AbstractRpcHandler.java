@@ -42,17 +42,18 @@ import static com.google.protobuf.Any.pack;
 import static java.util.Optional.ofNullable;
 
 /**
- * @param <R>
- * @param <T>
+ * @param <ReqT>
+ * @param <RespT>
  */
 @Slf4j
-public abstract class AbstractRpcHandler<R extends AbstractMessage, T extends AbstractMessage> {
+@SuppressWarnings("squid:S119")
+public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
     @Autowired
     protected TemporaryAkkaMessenger temporaryAkkaMessenger;
 
-    protected abstract T handle(R request) throws Exception;
+    protected abstract RespT handle(ReqT request) throws Exception;
 
-    public void processSingle(R request, StreamObserver<T> responseObserver) {
+    public void processSingle(ReqT request, StreamObserver<RespT> responseObserver) {
         try {
             var response = handle(request);
 
@@ -67,7 +68,7 @@ public abstract class AbstractRpcHandler<R extends AbstractMessage, T extends Ab
         return TemporaryHelper.getTokenWorker(tokenId);
     }
 
-    private void handleException(Exception exception, StreamObserver<T> responseObserver) {
+    private void handleException(Exception exception, StreamObserver<RespT> responseObserver) {
         if (exception instanceof CodedException) {
             CodedException codedException = (CodedException) exception;
 

@@ -45,6 +45,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
  */
 @SuppressWarnings("unchecked")
 @Slf4j
+@Deprecated
 public abstract class AbstractRequestHandler<T> extends UntypedAbstractActor {
 
     private static final Object SUCCESS = new SuccessResponse();

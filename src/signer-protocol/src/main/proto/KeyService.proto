@@ -15,10 +15,11 @@ service KeyService {
 
   rpc GetSignMechanism (GetSignMechanismRequest) returns (GetSignMechanismResponse) {}
 
-
   rpc Sign(SignRequest) returns (SignResponse) {}
 
   rpc SignCertificate(SignCertificateRequest) returns (SignCertificateResponse) {}
+
+  rpc DeleteKey (DeleteKeyReq) returns (Empty) {}
 }
 
 
@@ -65,4 +66,9 @@ message SignCertificateRequest {
 
 message SignCertificateResponse {
   bytes certificateChain = 1;
+}
+
+message DeleteKeyReq {
+  string keyId = 1;
+  bool deleteFromDevice = 2;
 }

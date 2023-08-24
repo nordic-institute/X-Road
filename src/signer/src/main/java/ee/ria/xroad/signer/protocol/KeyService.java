@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.signer.protocol.handler.DeleteKeyReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetKeyIdForCertHashRequestHandler;
 import ee.ria.xroad.signer.protocol.handler.GetSignMechanismRequestHandler;
 import ee.ria.xroad.signer.protocol.handler.SetKeyFriendlyNameRequestHandler;
@@ -33,6 +34,7 @@ import ee.ria.xroad.signer.protocol.handler.SignRequestHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.signer.proto.DeleteKeyReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashRequest;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResponse;
 import org.niis.xroad.signer.proto.GetSignMechanismRequest;
@@ -57,6 +59,7 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     private final GetSignMechanismRequestHandler getSignMechanismRequestHandler;
     private final GetKeyIdForCertHashRequestHandler getKeyIdForCertHashRequestHandler;
     private final SetKeyFriendlyNameRequestHandler setKeyFriendlyNameRequestHandler;
+    private final DeleteKeyReqHandler deleteKeyReqHandler;
 
     @Override
     public void getKeyIdForCertHash(GetKeyIdForCertHashRequest request, StreamObserver<GetKeyIdForCertHashResponse> responseObserver) {
@@ -83,4 +86,8 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
         signCertificateRequestHandler.processSingle(request, responseObserver);
     }
 
+    @Override
+    public void deleteKey(DeleteKeyReq request, StreamObserver<Empty> responseObserver) {
+        deleteKeyReqHandler.processSingle(request, responseObserver);
+    }
 }
