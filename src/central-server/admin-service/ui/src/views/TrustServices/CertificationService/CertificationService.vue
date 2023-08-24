@@ -27,7 +27,7 @@
 <template>
   <details-view id="certification-service-view" :back-to="backTo">
     <titled-view
-      :title="certificationServiceStore.currentCertificationService.name"
+      :title="certificationServiceStore.currentCertificationService?.name"
     >
       <template #header-buttons>
         <xrd-button
