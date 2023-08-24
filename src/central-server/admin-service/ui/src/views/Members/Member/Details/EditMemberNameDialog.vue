@@ -54,23 +54,25 @@ import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
-import { defineComponent, PropType } from "vue";
-import { useForm } from "vee-validate";
+import { defineComponent, PropType } from 'vue';
+import { useForm } from 'vee-validate';
 
 export default defineComponent({
-  setup(props) {
-    const { defineComponentBinds, values, errors, meta, setFieldError } = useForm({
-      validationSchema: { memberName: 'required' },
-      initialValues: { memberName: props.member.member_name }
-    })
-    const memberName = defineComponentBinds('memberName');
-    return { values, errors, setFieldError, meta, memberName };
-  },
   props: {
     member: {
       type: Object as PropType<Client>,
       required: true,
     },
+  },
+  emits: ['cancel', 'name-changed'],
+  setup(props) {
+    const { defineComponentBinds, values, errors, meta, setFieldError } =
+      useForm({
+        validationSchema: { memberName: 'required' },
+        initialValues: { memberName: props.member.member_name },
+      });
+    const memberName = defineComponentBinds('memberName');
+    return { values, errors, setFieldError, meta, memberName };
   },
   data() {
     return {
@@ -93,7 +95,7 @@ export default defineComponent({
         })
         .then(() => {
           this.showSuccess(this.$t('members.member.details.memberNameSaved'));
-          this.$emit('nameChanged');
+          this.$emit('name-changed');
         })
         .catch((error) => {
           this.showError(error);

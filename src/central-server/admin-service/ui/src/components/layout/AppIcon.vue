@@ -43,10 +43,10 @@ import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
-  data(){
+  data() {
     return {
-      xrdLogo
-    }
+      xrdLogo,
+    };
   },
   computed: {
     ...mapState(useUser, ['getFirstAllowedTab']),

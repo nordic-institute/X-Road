@@ -25,46 +25,46 @@
    THE SOFTWARE.
  -->
 <template>
-    <xrd-simple-dialog
-      title="trustServices.timestampingService.dialog.add.title"
-      save-button-text="action.add"
-      cancel-button-text="action.cancel"
-      :loading="loading"
-      :disable-save="!meta.valid || !certFile || !certFileTitle"
-      @save="save"
-      @cancel="cancel"
-    >
-      <template #content>
-        <div class="dlg-input-width">
-            <v-text-field
-              v-bind="tasUrl"
-              :label="$t('trustServices.timestampingService.url')"
-              :error-messages="errors.url"
-              variant="outlined"
-              autofocus
-              persistent-hint
-              data-test="timestamping-service-url-input"
-            ></v-text-field>
-        </div>
+  <xrd-simple-dialog
+    title="trustServices.timestampingService.dialog.add.title"
+    save-button-text="action.add"
+    cancel-button-text="action.cancel"
+    :loading="loading"
+    :disable-save="!meta.valid || !certFile || !certFileTitle"
+    @save="save"
+    @cancel="cancel"
+  >
+    <template #content>
+      <div class="dlg-input-width">
+        <v-text-field
+          v-bind="tasUrl"
+          :label="$t('trustServices.timestampingService.url')"
+          :error-messages="errors.url"
+          variant="outlined"
+          autofocus
+          persistent-hint
+          data-test="timestamping-service-url-input"
+        ></v-text-field>
+      </div>
 
-        <div class="dlg-input-width">
-          <xrd-file-upload
-            v-slot="{ upload }"
-            accepts=".der, .crt, .pem, .cer"
-            @file-changed="onFileUploaded"
-          >
-            <v-text-field
-              v-model="certFileTitle"
-              variant="outlined"
-              :label="$t('trustServices.uploadCertificate')"
-              append-inner-icon="icon-Upload"
-              data-test="timestamping-service-file-input"
-              @click="upload"
-            ></v-text-field>
-          </xrd-file-upload>
-        </div>
-      </template>
-    </xrd-simple-dialog>
+      <div class="dlg-input-width">
+        <xrd-file-upload
+          v-slot="{ upload }"
+          accepts=".der, .crt, .pem, .cer"
+          @file-changed="onFileUploaded"
+        >
+          <v-text-field
+            v-model="certFileTitle"
+            variant="outlined"
+            :label="$t('trustServices.uploadCertificate')"
+            append-inner-icon="icon-Upload"
+            data-test="timestamping-service-file-input"
+            @click="upload"
+          ></v-text-field>
+        </xrd-file-upload>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
@@ -74,18 +74,18 @@ import { FileUploadResult } from '@shared-ui/types';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useForm } from "vee-validate";
+import { useForm } from 'vee-validate';
 
 export default defineComponent({
   components: { XrdFileUpload },
+  emits: ['save', 'cancel'],
   setup() {
     const { values, errors, meta, defineComponentBinds } = useForm({
-      validationSchema: { url: 'required|url' }
+      validationSchema: { url: 'required|url' },
     });
     const tasUrl = defineComponentBinds('url');
-    return { values, errors, meta, tasUrl }
+    return { values, errors, meta, tasUrl };
   },
-  emits: ['save', 'cancel'],
   data() {
     return {
       showCASettingsDialog: false,

@@ -33,7 +33,7 @@
     :aria-labelledby="iconName"
     role="presentation"
   >
-    <title :id="iconName" lang="en">{{ iconName }} icon</title>
+    <title :id="iconName" lang="en">{{ iconName + ' icon'}}</title>
     <g :fill="iconColor">
       <template v-if="iconName === 'addUser'">
         <path

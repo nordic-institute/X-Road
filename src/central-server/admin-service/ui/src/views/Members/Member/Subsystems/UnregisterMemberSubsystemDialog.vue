@@ -32,7 +32,10 @@
     @accept="unregisterSubsystem"
   >
     <template #text>
-      <i18n-t scope="global" keypath="members.member.subsystems.areYouSureUnregister">
+      <i18n-t
+        scope="global"
+        keypath="members.member.subsystems.areYouSureUnregister"
+      >
         <template #subsystemCode>
           <b>{{ subsystemCode }}</b>
         </template>
@@ -53,7 +56,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
-import { ClientId } from "@/openapi-types";
+import { ClientId } from '@/openapi-types';
 
 export default defineComponent({
   name: 'UnregisterMemberSubsystemDialog',
@@ -71,6 +74,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['cancel', 'unregistered-subsystem'],
   data() {
     return {
       loading: false,
@@ -102,7 +106,7 @@ export default defineComponent({
               },
             ),
           );
-          this.$emit('unregisteredSubsystem');
+          this.$emit('unregistered-subsystem');
         })
         .catch((error) => {
           this.showError(error);

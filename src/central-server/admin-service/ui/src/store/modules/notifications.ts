@@ -114,14 +114,14 @@ export const useNotifications = defineStore('notifications', {
     resetNotifications() {
       const preserved: Notification[] = [];
       this.successNotifications
-        .filter(not => not.preserve)
-        .forEach(not => {
+        .filter((not) => not.preserve)
+        .forEach((not) => {
           not.preserve = false;
           preserved.push(not);
         });
       // Clear the store state
       this.$reset();
-      this.successNotifications.push(...preserved)
+      this.successNotifications.push(...preserved);
     },
 
     // Show error notification with axios error object

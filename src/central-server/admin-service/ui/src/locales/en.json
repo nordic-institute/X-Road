@@ -296,6 +296,8 @@
     }
   },
   "global": {
+    "appTitle": "X-Road Central Server",
+    "pageNotFound": "oops, page not found",
     "approve": "Approve",
     "class": "Class",
     "code": "Code",
@@ -424,6 +426,7 @@
     "softwareToken": "Software Token"
   },
   "keys": {
+    "title": "Signing Keys",
     "addKey": "Add key",
     "created": "Created",
     "logIn": "Log in",

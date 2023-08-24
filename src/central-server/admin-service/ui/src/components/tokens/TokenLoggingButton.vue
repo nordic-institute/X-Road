@@ -65,7 +65,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import TokenLogoutDialog from '@/components/tokens/TokenLogoutDialog.vue';
 import TokenLoginDialog from '@/components/tokens/TokenLoginDialog.vue';
 import { PossibleTokenAction, Token } from '@/openapi-types';
@@ -81,6 +81,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['token-login', 'token-logout'],
   data() {
     return {
       showLoginDialog: false,

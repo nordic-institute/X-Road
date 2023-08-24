@@ -26,7 +26,7 @@
  */
 import { createI18n } from 'vue-i18n';
 import merge from 'deepmerge';
-import vee_en from '@vee-validate/i18n/dist/locale/en.json'
+import vee_en from '@vee-validate/i18n/dist/locale/en.json';
 import sharedLocals from '@shared-ui/locales/en.json';
 import locals from '@/locales/en.json';
 

@@ -67,7 +67,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits:['save'],
+  emits: ['save'],
   data() {
     return {
       showUploadDialog: false,

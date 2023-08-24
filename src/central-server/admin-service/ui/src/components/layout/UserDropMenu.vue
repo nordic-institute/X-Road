@@ -27,10 +27,15 @@
 <template>
   <div class="drop-menu">
     <v-menu location="bottom">
-      <template v-slot:activator="{ props }">
-        <v-btn variant="text" class="no-uppercase" data-test="username-button" v-bind="props">
+      <template #activator="{ props }">
+        <v-btn
+          variant="text"
+          class="no-uppercase"
+          data-test="username-button"
+          v-bind="props"
+        >
           {{ getUsername }}
-          <v-icon>mdi-chevron-down</v-icon>
+          <v-icon icon="mdi-chevron-down" />
         </v-btn>
       </template>
 

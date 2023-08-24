@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import  { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
@@ -71,7 +71,7 @@ import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
 import { FileUploadResult } from '@shared-ui/types';
 
 export default defineComponent({
-  components:{XrdFileUpload},
+  components: { XrdFileUpload },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -82,7 +82,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits:['save', 'cancel'],
+  emits: ['save', 'cancel'],
   data() {
     return {
       partFile: null as File | null,

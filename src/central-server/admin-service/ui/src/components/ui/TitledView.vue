@@ -26,24 +26,24 @@
  -->
 <template>
   <section>
-  <header class="header-row d-flex mb-6 align-center">
-    <div class="xrd-header-title ma-2 pa-2 me-auto">
-      <div class="xrd-view-title">
-        <slot name="title">{{ titleValue }}</slot>
+    <header class="header-row d-flex mb-6 align-center">
+      <div class="xrd-header-title ma-2 pa-2 me-auto">
+        <div class="xrd-view-title">
+          <slot name="title">{{ titleValue }}</slot>
+        </div>
+        <slot name="append-title" />
       </div>
-      <slot name="append-title" />
-    </div>
 
-    <div class="xrd-header-buttons ma-2 pa-2 me-6">
-      <slot name="header-buttons" />
-    </div>
-  </header>
-  <xrd-empty-placeholder
-    :loading="loading"
-    :data="data"
-    :no-items-text="$t('noData.noData')"
-    skeleton-type="table-heading"
-  />
+      <div class="xrd-header-buttons ma-2 pa-2 me-6">
+        <slot name="header-buttons" />
+      </div>
+    </header>
+    <xrd-empty-placeholder
+      :loading="loading"
+      :data="data"
+      :no-items-text="$t('noData.noData')"
+      skeleton-type="table-heading"
+    />
 
     <slot />
   </section>
@@ -55,25 +55,29 @@ import { defineComponent } from 'vue';
 export default defineComponent({
   props: {
     title: {
-      type: String
+      type: String,
+      default: '',
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     titleKey: {
-      type: String
+      type: String,
+      default: '',
     },
     data: {
       type: [Object, Array],
-      default: {a:1}
-    }
+      default() {
+        return { a: 1 };
+      },
+    },
   },
   computed: {
-    titleValue() {
+    titleValue(): string {
       return this.titleKey ? this.$t(this.titleKey) : this.title;
-    }
-  }
+    },
+  },
 });
 </script>
 
@@ -102,5 +106,4 @@ header.header-row {
     padding-right: 0 !important;
   }
 }
-
 </style>

@@ -28,11 +28,11 @@
   <div>
     <div class="header-row">
       <div class="title-search">
-        <div class="xrd-view-title">Signing Keys</div>
+        <div class="xrd-view-title">{{ $t('keys.title') }}</div>
       </div>
     </div>
 
-    <tokens
+    <tokens-list
       :configuration-type="configurationType"
       @update-keys="refreshAnchor"
     />
@@ -65,11 +65,11 @@ import ConfigurationAnchor from './ConfigurationAnchor.vue';
 import ConfigurationPartsList from '@/components/configurationParts/ConfigurationPartsList.vue';
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
 import { ConfigurationType } from '@/openapi-types';
-import Tokens from '@/components/tokens/Tokens.vue';
+import TokensList from '@/components/tokens/TokensList.vue';
 
 export default defineComponent({
   components: {
-    Tokens,
+    TokensList,
     ConfigurationDownloadUrl,
     ConfigurationAnchor,
     ConfigurationPartsList,

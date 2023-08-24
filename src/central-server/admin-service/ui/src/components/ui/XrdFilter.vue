@@ -26,9 +26,12 @@
  -->
 <template>
   <div>
-    <v-icon v-if="closed" class="icon-closed" @click="closed = false"
-      >mdi-filter-outline</v-icon
-    >
+    <v-icon
+      v-if="closed"
+      class="icon-closed"
+      icon="mdi-filter-outline"
+      @click="closed = false"
+    />
     <v-text-field
       v-if="!closed"
       ref="textField"
@@ -39,9 +42,9 @@
       class="search-input"
       prepend-inner-icon="mdi-filter-outline"
       clearable
-      :value="value"
+      :model-value="value"
       autofocus
-      @input="$emit('input', $event)"
+      @update:model-value="$emit('input', $event)"
       @blur="inputBlur"
     >
     </v-text-field>
@@ -49,7 +52,8 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
+
 /**
  * Component for launching the filter view
  * */
@@ -66,7 +70,7 @@ export default defineComponent({
       default: '',
     },
   },
-
+  emits: ['input'],
   data() {
     return {
       closed: true,

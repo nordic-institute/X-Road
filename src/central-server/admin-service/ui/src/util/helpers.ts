@@ -29,8 +29,8 @@
 import { NavigationFailure } from 'vue-router';
 import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
 import { AxiosError, AxiosResponse } from 'axios';
-import i18n from "@/plugins/i18n";
-import dayjs from "dayjs";
+import i18n from '@/plugins/i18n';
+import dayjs from 'dayjs';
 
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
@@ -256,7 +256,10 @@ export function upperCaseWords(value: string): string {
     .join(' ');
 }
 
-export function formatDateTime(valueAsText: string | undefined, format: string): string {
+export function formatDateTime(
+  valueAsText: string | undefined,
+  format: string,
+): string {
   if (!valueAsText) {
     return '-';
   }
@@ -264,8 +267,10 @@ export function formatDateTime(valueAsText: string | undefined, format: string):
   return time.isValid() ? time.format(format) : '-';
 }
 
-export function toPagingOptions(...options: number[]): { title: string, value: number }[] {
+export function toPagingOptions(
+  ...options: number[]
+): { title: string; value: number }[] {
   return options.map((value) => {
-    return { title: value + '', value }
+    return { title: value + '', value };
   });
 }

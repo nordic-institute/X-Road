@@ -26,19 +26,18 @@
  -->
 <template>
   <xrd-sub-view-container data-test="create-api-key-stepper-view">
-
     <v-stepper
       v-model="step"
       :alt-labels="true"
       class="stepper mt-2"
-      alt-labels
       hide-actions
     >
       <xrd-sub-view-title
         :title="$t('apiKey.createApiKey.title')"
         :show-close="true"
         class="pa-4"
-        @close="close" />
+        @close="close"
+      />
       <v-stepper-header>
         <v-stepper-item
           value="1"
@@ -51,7 +50,6 @@
           :complete="keyGenerated"
           :title="$t('apiKey.createApiKey.step.keyDetails.name')"
         />
-
       </v-stepper-header>
 
       <v-stepper-window>
@@ -59,7 +57,7 @@
           <v-container class="wide-width">
             <v-row class="mt-4">
               <v-col
-              ><h3>{{ $t('apiKey.createApiKey.step.roles.name') }}</h3></v-col
+                ><h3>{{ $t('apiKey.createApiKey.step.roles.name') }}</h3></v-col
               >
             </v-row>
           </v-container>
@@ -104,9 +102,9 @@
           <v-container class="wide-width mb-8">
             <v-row class="mt-4">
               <v-col
-              ><h3>
-                {{ $t('apiKey.createApiKey.step.keyDetails.name') }}
-              </h3></v-col
+                ><h3>
+                  {{ $t('apiKey.createApiKey.step.keyDetails.name') }}
+                </h3></v-col
               >
               <v-spacer></v-spacer>
 
@@ -116,10 +114,8 @@
                 :loading="generatingKey"
                 @click="generateKey"
               >
-                <xrd-icon-base class="xrd-large-button-icon"
-                >
-                  <XrdIconAdd
-                  />
+                <xrd-icon-base class="xrd-large-button-icon">
+                  <XrdIconAdd />
                 </xrd-icon-base>
                 {{ $t('apiKey.createApiKey.step.keyDetails.createKeyButton') }}
               </xrd-button>
@@ -141,12 +137,9 @@
                   data-test="copy-key-button"
                   @click.prevent="copyKey()"
                 >
-                  <v-icon class="xrd-large-button-icon">icon-Copy
-                  </v-icon
-                  >
+                  <v-icon class="xrd-large-button-icon" icon="icon-copy" />
                   {{ $t('action.copy') }}
-                </xrd-button
-                >
+                </xrd-button>
               </v-col>
             </v-row>
             <v-row class="underline">
@@ -212,7 +205,13 @@ import * as api from '@/util/api';
 import { toClipboard } from '@/util/helpers';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { VStepper, VStepperHeader, VStepperItem, VStepperWindow, VStepperWindowItem } from 'vuetify/labs/VStepper'
+import {
+  VStepper,
+  VStepperHeader,
+  VStepperItem,
+  VStepperWindow,
+  VStepperWindowItem,
+} from 'vuetify/labs/VStepper';
 
 export default defineComponent({
   components: {
@@ -220,7 +219,7 @@ export default defineComponent({
     VStepperItem,
     VStepperHeader,
     VStepperWindowItem,
-    VStepperWindow
+    VStepperWindow,
   },
   data() {
     return {

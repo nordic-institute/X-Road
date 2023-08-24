@@ -33,7 +33,10 @@
   >
     <template #text>
       <div data-test="delete-subsystem">
-        <i18n-t scope="global" keypath="members.member.subsystems.areYouSureDelete">
+        <i18n-t
+          scope="global"
+          keypath="members.member.subsystems.areYouSureDelete"
+        >
           <template #subsystemCode>
             <b>{{ subsystemCode }}</b>
           </template>
@@ -66,19 +69,20 @@ export default defineComponent({
     member: {
       type: Object as PropType<{ client_id: ClientId }>,
       required: true,
-    }
+    },
   },
+  emits: ['cancel', 'deleted-subsystem'],
   data() {
     return {
-      loading: false
+      loading: false,
     };
   },
   computed: {
     ...mapStores(useClient, useMember, useSubsystem),
     ...mapState(useSystem, ['getSystemStatus']),
-    shortMemberId(){
-      return toShortMemberId(this.member.client_id)
-    }
+    shortMemberId() {
+      return toShortMemberId(this.member.client_id);
+    },
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
@@ -97,7 +101,7 @@ export default defineComponent({
               subsystemCode: this.subsystemCode,
             }),
           );
-          this.$emit('deletedSubsystem');
+          this.$emit('deleted-subsystem');
         })
         .catch((error) => {
           this.showError(error);

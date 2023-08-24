@@ -27,7 +27,7 @@
 <template>
   <details-view id="memberview" :back-to="backTo">
     <titled-view :title="memberStore.currentMember.member_name">
-      <page-navigation :tabs="memberNavigationTabs"/>
+      <page-navigation :tabs="memberNavigationTabs" />
       <router-view />
     </titled-view>
   </details-view>
@@ -35,18 +35,19 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, { PageNavigationTab, } from '@/components/layout/PageNavigation.vue';
+import PageNavigation, {
+  PageNavigationTab,
+} from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import DetailsView from '@/components/ui/DetailsView.vue';
-import TitledView from "@/components/ui/TitledView.vue";
+import TitledView from '@/components/ui/TitledView.vue';
 
 /**
  * Wrapper component for a member view
  */
 export default defineComponent({
-  name: 'Member',
   components: { TitledView, DetailsView, PageNavigation },
   props: {
     memberid: {
@@ -59,7 +60,7 @@ export default defineComponent({
       colors: Colors,
       backTo: {
         name: RouteName.Members,
-      }
+      },
     };
   },
   computed: {
@@ -72,7 +73,7 @@ export default defineComponent({
           to: {
             name: RouteName.MemberDetails,
             params: { memberid: this.memberid },
-            replace: true
+            replace: true,
           },
           permissions: [Permissions.VIEW_MEMBER_DETAILS],
         },
@@ -83,7 +84,7 @@ export default defineComponent({
           to: {
             name: RouteName.MemberSubsystems,
             params: { memberid: this.memberid },
-            replace: true
+            replace: true,
           },
           permissions: [Permissions.VIEW_MEMBER_DETAILS],
         },

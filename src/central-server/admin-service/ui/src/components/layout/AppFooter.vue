@@ -116,7 +116,7 @@ export default defineComponent({
     ...mapState(useSystem, { version: 'getServerVersion' }),
     xroad7Logo(): string {
       return xroad7Logo;
-    }
+    },
   },
 });
 </script>

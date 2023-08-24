@@ -27,8 +27,8 @@
 <template>
   <article id="anchor" class="mt-4">
     <v-data-table
-      class="elevation-0 data-table"
       v-if="anchors"
+      class="elevation-0 data-table"
       :headers="headers"
       :items="anchors"
       :items-per-page="-1"
@@ -47,7 +47,11 @@
         <span data-test="anchor-hash">{{ item.raw.hash }}</span>
       </template>
       <template #[`item.createdAt`]="{ item }">
-        <date-time data-test="anchor-created-at" :value="item.raw.createdAt" with-seconds />
+        <date-time
+          data-test="anchor-created-at"
+          :value="item.raw.createdAt"
+          with-seconds
+        />
       </template>
       <template #bottom>
         <custom-data-table-footer />
@@ -58,11 +62,11 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { DataTableHeader } from "@/ui-types";
-import { VDataTable } from "vuetify/labs/VDataTable";
-import DateTime from "@/components/ui/DateTime.vue";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
-import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import DateTime from '@/components/ui/DateTime.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 
 export interface Anchor {
   title: string;

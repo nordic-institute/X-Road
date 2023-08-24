@@ -28,17 +28,21 @@
   {{ formatted }}
 </template>
 
-<script lang="ts" setup>
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { colonize } from '@/util/helpers';
 
-import { computed } from "vue";
-import { formatDateTime } from "@/util/helpers";
-
-const props = defineProps({
+export default defineComponent({
+  props: {
     value: {
       type: String,
-      required: true
-    }
-  }
-);
-const formatted = computed(() => formatDateTime(props.value, 'YYYY-MM-DD'));
+      required: true,
+    },
+  },
+  computed: {
+    formatted() {
+      return colonize(this.value);
+    },
+  },
+});
 </script>

@@ -33,7 +33,7 @@
       skeleton-type="table-heading"
     />
     <titled-view v-if="managementRequest && !loading" :title="typeText">
-      <template  v-if="managementRequest.status === 'WAITING'" #header-buttons>
+      <template v-if="managementRequest.status === 'WAITING'" #header-buttons>
         <xrd-button
           outlined
           class="mr-4"
@@ -98,8 +98,8 @@ import MrSecurityServerInformation from '@/components/managementRequests/details
 import MrInformation from '@/components/managementRequests/details/MrInformation.vue';
 import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
-import { RouteName } from "@/global";
-import TitledView from "@/components/ui/TitledView.vue";
+import { RouteName } from '@/global';
+import TitledView from '@/components/ui/TitledView.vue';
 
 /**
  * Wrapper component for a certification service view
@@ -126,8 +126,8 @@ export default defineComponent({
     return {
       loading: false,
       backTo: {
-        name: RouteName.ManagementRequests
-      }
+        name: RouteName.ManagementRequests,
+      },
     };
   },
   computed: {

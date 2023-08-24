@@ -39,7 +39,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSigningKey } from '@/store/modules/signing-keys';
@@ -52,6 +52,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['cancel', 'key-activate'],
   data() {
     return {
       loading: false,

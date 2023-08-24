@@ -27,10 +27,8 @@
 <template>
   <div>
     <div v-if="sourceObject[childKey]">
-      <b v-if="label" class="cert-label">{{ label }}:</b>
-      <b v-else class="cert-label"
-      >{{ formattedChildKey }}:</b
-      >
+      <b v-if="label" class="cert-label">{{ label + ':' }}</b>
+      <b v-else class="cert-label">{{ formattedChildKey + ':' }}</b>
 
       <div v-if="chunk" class="chunk">
         <pre>{{ formattedChunk }}</pre>
@@ -43,7 +41,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { colonize, upperCaseWords } from "@/util/helpers";
+import { colonize, upperCaseWords } from '@/util/helpers';
 
 export default defineComponent({
   props: {
@@ -83,11 +81,11 @@ export default defineComponent({
   },
   computed: {
     formattedChildKey() {
-      return upperCaseWords(this.prettyTitle(this.childKey))
+      return upperCaseWords(this.prettyTitle(this.childKey));
     },
     formattedChunk() {
-      return this.lineBreaks(colonize(this.sourceObject[this.childKey]))
-    }
+      return this.lineBreaks(colonize(this.sourceObject[this.childKey]));
+    },
   },
   methods: {
     prettyTitle(value: string) {

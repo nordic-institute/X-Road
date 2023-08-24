@@ -81,11 +81,11 @@ import { useNotifications } from '@/store/modules/notifications';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
-import { VDataTable } from "vuetify/labs/VDataTable";
-import { DataTableHeader } from "@/ui-types";
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
-  components:{VDataTable},
+  components: { VDataTable },
   props: {
     serverId: {
       type: String,

@@ -25,7 +25,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <searchable-titled-view v-model="filter.query" @update:model-value="debouncedFetchItems">
+  <searchable-titled-view
+    v-model="filter.query"
+    @update:model-value="debouncedFetchItems"
+  >
     <template #title>
       <i18n-t scope="global" keypath="globalGroup.groupMembers">
         <template #memberCount>
@@ -38,7 +41,8 @@
         color="primary"
         class="filter-button"
         icon="mdi-filter-outline"
-        @click="showFilterDialog = true" />
+        @click="showFilterDialog = true"
+      />
     </template>
     <template #header-buttons>
       <xrd-button
@@ -46,7 +50,11 @@
         data-test="add-member-button"
         @click="showAddMemberDialog = true"
       >
-        <v-icon class="xrd-large-button-icon" icon="mdi-plus-circle" size="x-large" />
+        <v-icon
+          class="xrd-large-button-icon"
+          icon="mdi-plus-circle"
+          size="x-large"
+        />
         {{ $t('globalGroup.addMembers') }}
       </xrd-button>
     </template>
@@ -104,7 +112,9 @@
       </template>
 
       <template #[`item.subsystem`]="{ item }">
-        <span data-test="subsystem">{{ item.raw.client_id.subsystem_code }}</span>
+        <span data-test="subsystem">{{
+          item.raw.client_id.subsystem_code
+        }}</span>
       </template>
 
       <template #[`item.created_at`]="{ item }">
@@ -141,7 +151,7 @@
 import { defineComponent } from 'vue';
 
 import { Permissions } from '@/global';
-import { DataTableHeader, PagingOptions } from "@/ui-types";
+import { DataTableHeader, PagingOptions } from '@/ui-types';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { GroupMemberListView, GroupMembersFilter } from '@/openapi-types';
@@ -151,11 +161,10 @@ import GroupMembersFilterDialog from './GroupMembersFilterDialog.vue';
 import { debounce } from '@/util/helpers';
 import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
 import DeleteGroupMemberDialog from './DeleteGroupMemberDialog.vue';
-import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
-import { VDataTableServer } from "vuetify/labs/VDataTable";
-import DateTime from "@/components/ui/DateTime.vue";
-import { defaultItemsPerPageOptions } from "@/util/defaults";
-
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
+import DateTime from '@/components/ui/DateTime.vue';
+import { defaultItemsPerPageOptions } from '@/util/defaults';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -168,7 +177,7 @@ export default defineComponent({
     DeleteGroupMemberDialog,
     AddGroupMembersDialog,
     GroupMembersFilterDialog,
-    VDataTableServer
+    VDataTableServer,
   },
   props: {
     groupCode: {
@@ -250,11 +259,11 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.paging.page=1
+      that.paging.page = 1;
       that.fetchItems();
     }, 600),
     changeOptions: async function (options: PagingOptions) {
-      this.paging = options
+      this.paging = options;
       await this.fetchItems();
     },
     fetchItems: async function () {
@@ -275,13 +284,13 @@ export default defineComponent({
       this.showFilterDialog = false;
     },
     applyFilter(filter: GroupMembersFilter): void {
-      this.filter = filter
+      this.filter = filter;
       this.fetchItems();
       this.showFilterDialog = false;
     },
     refreshList() {
       this.showAddMemberDialog = false;
-      this.groupMemberToDelete = null
+      this.groupMemberToDelete = null;
       this.fetchItems();
     },
   },
@@ -301,6 +310,5 @@ export default defineComponent({
 }
 
 .filter-button {
-
 }
 </style>

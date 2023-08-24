@@ -31,5 +31,4 @@
   </xrd-sub-view-container>
 </template>
 
-<script lang="ts" setup>
-</script>
+<script lang="ts" setup></script>

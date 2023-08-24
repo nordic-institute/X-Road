@@ -34,7 +34,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { ManagementRequestStatus } from '@/openapi-types';
-import XrdStatusIcon from '@shared-ui/components/XrdStatusIcon.vue'
+import XrdStatusIcon from '@shared-ui/components/XrdStatusIcon.vue';
 
 export default defineComponent({
   components: { XrdStatusIcon },

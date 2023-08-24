@@ -26,8 +26,8 @@
  */
 import { configure, defineRule } from 'vee-validate';
 import { between, is, max, min, required, url } from '@vee-validate/rules';
-import { App } from "vue";
-import i18n from "@/plugins/i18n";
+import { App } from 'vue';
+import i18n from '@/plugins/i18n';
 
 export function createValidators(i18nMessages = {}) {
   const { t } = i18n.global;
@@ -36,22 +36,23 @@ export function createValidators(i18nMessages = {}) {
       configure({
         // This should be ok, as it is the vee-validate contract
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        generateMessage: ctx => {
+        generateMessage: (ctx) => {
           // override the field name.
 
-          const field = ctx.label || i18n.global.t(`fields.${ctx.field}`) as string;
-          const args:any = { field };
-          switch (ctx.rule?.name){
+          const field =
+            ctx.label || (i18n.global.t(`fields.${ctx.field}`) as string);
+          const args: Record<string, unknown> = { field };
+          switch (ctx.rule?.name) {
             case 'max':
-            case 'min':{
+            case 'min': {
               args.length = ctx.rule?.params[0];
               break;
             }
-            case 'is':{
+            case 'is': {
               args.other = ctx.rule?.params[0];
               break;
             }
-            case 'between':{
+            case 'between': {
               args.min = ctx.rule?.params[0];
               args.max = ctx.rule?.params[1];
               break;
@@ -61,19 +62,19 @@ export function createValidators(i18nMessages = {}) {
         },
       });
 
-// Install required rule and message.
+      // Install required rule and message.
       defineRule('required', required);
 
-// Install min rule and message.
+      // Install min rule and message.
       defineRule('min', min);
 
-// Install max rule and message.
+      // Install max rule and message.
       defineRule('max', max);
 
-// Install between rule and message.
+      // Install between rule and message.
       defineRule('between', between);
 
-// Install is rule and message.
+      // Install is rule and message.
       defineRule('is', is);
 
       defineRule('url', url);

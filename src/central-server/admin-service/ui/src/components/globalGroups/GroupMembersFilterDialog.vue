@@ -35,83 +35,83 @@
     @cancel="cancel"
   >
     <template #content>
-        <v-container fluid class="ma-0 pa-0 mb-9">
-          <!-- By type -->
-          <div class="filter-title-row field-title">
-            {{ $t('filters.groupMembers.byType') }}
-          </div>
-          <v-row class="filter-dlg-row">
-            <v-col class="d-flex" cols="4" sm="4" md="4">
-              <v-checkbox
-                v-model="typeMemberModel"
-                :label="$t('filters.groupMembers.member')"
-              />
-            </v-col>
-            <v-col class="d-flex" cols="4" sm="4" md="4">
-              <v-checkbox
-                v-model="typeSubsystemModel"
-                :label="$t('filters.groupMembers.subsystem')"
-              />
-            </v-col>
-          </v-row>
-          <v-divider class="custom-divider"></v-divider>
+      <v-container fluid class="ma-0 pa-0 mb-9">
+        <!-- By type -->
+        <div class="filter-title-row field-title">
+          {{ $t('filters.groupMembers.byType') }}
+        </div>
+        <v-row class="filter-dlg-row">
+          <v-col class="d-flex" cols="4" sm="4" md="4">
+            <v-checkbox
+              v-model="typeMemberModel"
+              :label="$t('filters.groupMembers.member')"
+            />
+          </v-col>
+          <v-col class="d-flex" cols="4" sm="4" md="4">
+            <v-checkbox
+              v-model="typeSubsystemModel"
+              :label="$t('filters.groupMembers.subsystem')"
+            />
+          </v-col>
+        </v-row>
+        <v-divider class="custom-divider"></v-divider>
 
-          <v-row align="center" class="filter-dlg-row">
-            <v-col class="d-flex flex-column" cols="12" sm="6">
-              <div class="field-title mt-6 mb-6">
-                {{ $t('filters.groupMembers.byInstance') }}
-              </div>
-              <v-select
-                v-model="instanceModel"
-                :items="instances"
-                :label="$t('filters.groupMembers.instance')"
-                variant="outlined"
-              />
-            </v-col>
+        <v-row align="center" class="filter-dlg-row">
+          <v-col class="d-flex flex-column" cols="12" sm="6">
+            <div class="field-title mt-6 mb-6">
+              {{ $t('filters.groupMembers.byInstance') }}
+            </div>
+            <v-select
+              v-model="instanceModel"
+              :items="instances"
+              :label="$t('filters.groupMembers.instance')"
+              variant="outlined"
+            />
+          </v-col>
 
-            <v-col class="d-flex flex-column" cols="12" sm="6">
-              <div class="field-title mt-6 mb-6">
-                {{ $t('filters.groupMembers.byClass') }}
-              </div>
-              <v-select
-                v-model="memberClassModel"
-                :items="memberClasses"
-                variant="outlined"
-                :label="$t('filters.groupMembers.class')"
-              />
-            </v-col>
-          </v-row>
+          <v-col class="d-flex flex-column" cols="12" sm="6">
+            <div class="field-title mt-6 mb-6">
+              {{ $t('filters.groupMembers.byClass') }}
+            </div>
+            <v-select
+              v-model="memberClassModel"
+              :items="memberClasses"
+              variant="outlined"
+              :label="$t('filters.groupMembers.class')"
+            />
+          </v-col>
+        </v-row>
 
-          <!-- By code -->
-          <v-row align="center" class="filter-dlg-row">
-            <v-col class="d-flex flex-column" cols="12" sm="6">
-              <div class="field-title mt-0 mb-6">
-                {{ $t('filters.groupMembers.byCode') }}
-              </div>
-              <v-autocomplete
-                v-model="codesModel"
-                clearable
-                multiple
-                :items="codes"
-                variant="underlined"
-              />
-            </v-col>
+        <!-- By code -->
+        <v-row align="center" class="filter-dlg-row">
+          <v-col class="d-flex flex-column" cols="12" sm="6">
+            <div class="field-title mt-0 mb-6">
+              {{ $t('filters.groupMembers.byCode') }}
+            </div>
+            <v-autocomplete
+              v-model="codesModel"
+              clearable
+              multiple
+              :items="codes"
+              variant="underlined"
+            />
+          </v-col>
 
-            <!-- By subsystem -->
-            <v-col class="d-flex flex-column" cols="12" sm="6">
-              <div class="field-title mt-0 mb-6">
-                {{ $t('filters.groupMembers.bySubsystem') }}
-              </div>
-              <v-autocomplete
-                v-model="subsystemsModel"
-                clearable
-                multiple
-                :items="subsystems"
-                variant="underlined"
-              />
-            </v-col>
-          </v-row>
-        </v-container>
+          <!-- By subsystem -->
+          <v-col class="d-flex flex-column" cols="12" sm="6">
+            <div class="field-title mt-0 mb-6">
+              {{ $t('filters.groupMembers.bySubsystem') }}
+            </div>
+            <v-autocomplete
+              v-model="subsystemsModel"
+              clearable
+              multiple
+              :items="subsystems"
+              variant="underlined"
+            />
+          </v-col>
+        </v-row>
+      </v-container>
     </template>
   </xrd-simple-dialog>
 </template>
@@ -122,7 +122,7 @@
 import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
-import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
+import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
 
 const initialState = () => {
   return {
@@ -154,7 +154,7 @@ export default defineComponent({
       default: false,
     },
   },
-
+  emits: ['cancel', 'apply'],
   data() {
     return {
       opened: true,

@@ -52,7 +52,13 @@
         </template>
         <thead>
           <tr>
-            <th>{{ `${$t('members.member.subsystems.subsystemcode')} (${subsystems.length})` }}</th>
+            <th>
+              {{
+                `${$t('members.member.subsystems.subsystemcode')} (${
+                  subsystems.length
+                })`
+              }}
+            </th>
             <th>{{ $t('members.member.subsystems.servercode') }}</th>
             <th>{{ $t('members.member.subsystems.serverOwner') }}</th>
             <th>{{ $t('members.member.subsystems.status') }}</th>
@@ -60,7 +66,7 @@
           </tr>
         </thead>
         <tbody v-for="(item, index) in subsystems" :key="index">
-          <tr class="" v-if="item.used_security_servers.length === 0">
+          <tr v-if="item.used_security_servers.length === 0" class="">
             <td class="unregistered-subsystem">
               {{ item.subsystem_id.subsystem_code }}
             </td>
@@ -91,62 +97,59 @@
             :key="`${item.subsystem_id.subsystem_code}:${subitem.server_code}`"
             class=""
           >
-              <td
-                v-if="iSub === 0"
-                :rowspan="item.used_security_servers.length"
-              >
-                {{ item.subsystem_id.subsystem_code }}
-              </td>
-              <td>{{ subitem.server_code }}</td>
-              <td>{{ subitem.server_owner }}</td>
-              <td class="status">
-                <xrd-icon-base>
-                  <XrdIconChecked
-                    v-if="subitem.status === 'APPROVED'"
-                    :color="colors.Success100"
-                  />
-                  <xrd-icon-in-progress
-                    v-if="
-                      subitem.status === 'WAITING' ||
-                      subitem.status === 'SUBMITTED FOR APPROVAL'
-                    "
-                    :color="colors.Success100"
-                  />
-                  <xrd-icon-error v-if="subitem.status === undefined" />
-                </xrd-icon-base>
-                {{ getStatusText(subitem.status) }}
-              </td>
-              <td class="subsystem-actions">
-                <div>
-                  <xrd-button
-                    v-if="
-                      subitem.status === 'APPROVED' &&
-                      allowToUnregisterMemberSubsystem
-                    "
-                    text
-                    :outlined="false"
-                    @click="unregisterClicked(item, subitem)"
-                  >
-                    {{ $t('action.unregister') }}
-                  </xrd-button>
+            <td v-if="iSub === 0" :rowspan="item.used_security_servers.length">
+              {{ item.subsystem_id.subsystem_code }}
+            </td>
+            <td>{{ subitem.server_code }}</td>
+            <td>{{ subitem.server_owner }}</td>
+            <td class="status">
+              <xrd-icon-base>
+                <XrdIconChecked
+                  v-if="subitem.status === 'APPROVED'"
+                  :color="colors.Success100"
+                />
+                <xrd-icon-in-progress
+                  v-if="
+                    subitem.status === 'WAITING' ||
+                    subitem.status === 'SUBMITTED FOR APPROVAL'
+                  "
+                  :color="colors.Success100"
+                />
+                <xrd-icon-error v-if="subitem.status === undefined" />
+              </xrd-icon-base>
+              {{ getStatusText(subitem.status) }}
+            </td>
+            <td class="subsystem-actions">
+              <div>
+                <xrd-button
+                  v-if="
+                    subitem.status === 'APPROVED' &&
+                    allowToUnregisterMemberSubsystem
+                  "
+                  text
+                  :outlined="false"
+                  @click="unregisterClicked(item, subitem)"
+                >
+                  {{ $t('action.unregister') }}
+                </xrd-button>
 
-                  <xrd-button
-                    v-if="subitem.status === 'WAITING'"
-                    text
-                    :outlined="false"
-                  >
-                    {{ $t('action.approve') }}
-                  </xrd-button>
+                <xrd-button
+                  v-if="subitem.status === 'WAITING'"
+                  text
+                  :outlined="false"
+                >
+                  {{ $t('action.approve') }}
+                </xrd-button>
 
-                  <xrd-button
-                    v-if="subitem.status === 'WAITING'"
-                    text
-                    :outlined="false"
-                  >
-                    {{ $t('action.decline') }}
-                  </xrd-button>
-                </div>
-              </td>
+                <xrd-button
+                  v-if="subitem.status === 'WAITING'"
+                  text
+                  :outlined="false"
+                >
+                  {{ $t('action.decline') }}
+                </xrd-button>
+              </div>
+            </td>
           </tr>
         </tbody>
 
@@ -155,32 +158,32 @@
         </template>
       </v-table>
     </v-card>
-      <AddMemberSubsystemDialog
-        v-if="showAddSubsystemDialog"
-        :member="memberStore.currentMember"
-        data-test="add-member-to-group"
-        @cancel="cancel"
-        @addedSubsystem="addedSubsystem"
-      ></AddMemberSubsystemDialog>
+    <AddMemberSubsystemDialog
+      v-if="showAddSubsystemDialog"
+      :member="memberStore.currentMember"
+      data-test="add-member-to-group"
+      @cancel="cancel"
+      @added-subsystem="addedSubsystem"
+    ></AddMemberSubsystemDialog>
 
-      <DeleteMemberSubsystemDialog
-        v-if="showDeleteDialog"
-        :member="memberStore.currentMember"
-        :subsystem-code="clickedSubsystemCode"
-        data-test="delete-subsystem"
-        @cancel="cancel"
-        @deletedSubsystem="deletedSubsystem"
-      ></DeleteMemberSubsystemDialog>
+    <DeleteMemberSubsystemDialog
+      v-if="showDeleteDialog"
+      :member="memberStore.currentMember"
+      :subsystem-code="clickedSubsystemCode"
+      data-test="delete-subsystem"
+      @cancel="cancel"
+      @deleted-sbsystem="deletedSubsystem"
+    ></DeleteMemberSubsystemDialog>
 
-      <UnregisterMemberSubsystemDialog
-        v-if="showUnregisterDialog"
-        :member="memberStore.currentMember"
-        :subsystem-code="clickedSubsystemCode"
-        :server-code="clickedServerCode"
-        data-test="unregister-subsystem"
-        @cancel="cancel"
-        @unregisteredSubsystem="unregisteredSubsystem"
-      ></UnregisterMemberSubsystemDialog>
+    <UnregisterMemberSubsystemDialog
+      v-if="showUnregisterDialog"
+      :member="memberStore.currentMember"
+      :subsystem-code="clickedSubsystemCode"
+      :server-code="clickedServerCode"
+      data-test="unregister-subsystem"
+      @cancel="cancel"
+      @unregistered-subsystem="unregisteredSubsystem"
+    ></UnregisterMemberSubsystemDialog>
   </main>
 </template>
 
@@ -195,12 +198,15 @@ import { useNotifications } from '@/store/modules/notifications';
 import AddMemberSubsystemDialog from '@/views/Members/Member/Subsystems/AddMemberSubsystemDialog.vue';
 import DeleteMemberSubsystemDialog from '@/views/Members/Member/Subsystems/DeleteMemberSubsystemDialog.vue';
 import UnregisterMemberSubsystemDialog from '@/views/Members/Member/Subsystems/UnregisterMemberSubsystemDialog.vue';
-import XrdIconError from '@shared-ui/components/icons/XrdIconError.vue'
-import XrdIconInProgress from '@shared-ui/components/icons/XrdIconInProgress.vue'
-import { VDataTable } from "vuetify/labs/VDataTable";
-import { ManagementRequestStatus, Subsystem, UsedSecurityServers, } from '@/openapi-types';
-import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
+import XrdIconError from '@shared-ui/components/icons/XrdIconError.vue';
+import XrdIconInProgress from '@shared-ui/components/icons/XrdIconInProgress.vue';
+import {
+  ManagementRequestStatus,
+  Subsystem,
+  UsedSecurityServers,
+} from '@/openapi-types';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -217,7 +223,6 @@ export default defineComponent({
     DeleteMemberSubsystemDialog,
     AddMemberSubsystemDialog,
     UnregisterMemberSubsystemDialog,
-    VDataTable,
     XrdIconError,
     XrdIconInProgress,
   },
@@ -355,7 +360,6 @@ export default defineComponent({
     background-color: $XRoad-Purple10;
   }
 }
-
 
 .card-corner-button {
   display: flex;

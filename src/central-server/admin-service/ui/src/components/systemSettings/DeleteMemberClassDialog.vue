@@ -35,48 +35,49 @@
   />
 </template>
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import { useForm } from "vee-validate";
-import { Event } from "@/ui-types";
-import { MemberClass } from "@/openapi-types";
-import { mapStores } from "pinia";
-import { useMemberClass } from "@/store/modules/member-class";
-import { useNotifications } from "@/store/modules/notifications";
+import { defineComponent, PropType } from 'vue';
+import { useForm } from 'vee-validate';
+import { Event } from '@/ui-types';
+import { MemberClass } from '@/openapi-types';
+import { mapStores } from 'pinia';
+import { useMemberClass } from '@/store/modules/member-class';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
+  props: {
+    memberClass: {
+      type: Object as PropType<MemberClass>,
+      required: true,
+    },
+  },
+  emits: [Event.Cancel, Event.Delete],
   setup(props) {
-    const { meta, values, errors, setFieldError, defineComponentBinds } = useForm({
-      validationSchema: {
-        code: 'required|min:1|max:255',
-        description: 'required|min:1'
-      },
-      initialValues: {
-        code: props.memberClass?.code || '',
-        description: props.memberClass?.description || ''
-      }
-    });
+    const { meta, values, errors, setFieldError, defineComponentBinds } =
+      useForm({
+        validationSchema: {
+          code: 'required|min:1|max:255',
+          description: 'required|min:1',
+        },
+        initialValues: {
+          code: props.memberClass?.code || '',
+          description: props.memberClass?.description || '',
+        },
+      });
     const classCode = defineComponentBinds('code');
     const classDescription = defineComponentBinds('description');
     return { meta, values, errors, setFieldError, classCode, classDescription };
   },
-  props: {
-    memberClass: {
-      type: Object as PropType<MemberClass>,
-      required: true
-    }
-  },
-  emits: [Event.Cancel, Event.Delete],
   data() {
     return {
-      deleting: false
+      deleting: false,
     };
   },
   computed: {
-    ...mapStores(useMemberClass, useNotifications)
+    ...mapStores(useMemberClass, useNotifications),
   },
   methods: {
     cancelDelete() {
-      this.$emit(Event.Cancel)
+      this.$emit(Event.Cancel);
     },
     async acceptDelete() {
       this.deleting = true;
@@ -85,13 +86,13 @@ export default defineComponent({
         this.notificationsStore.showSuccess(
           this.$t('systemSettings.memberClassDeleted'),
         );
-        this.$emit(Event.Delete)
+        this.$emit(Event.Delete);
       } catch (error: unknown) {
         this.notificationsStore.showError(error);
-        this.$emit(Event.Cancel)
+        this.$emit(Event.Cancel);
       }
       this.deleting = false;
-    }
-  }
+    },
+  },
 });
 </script>

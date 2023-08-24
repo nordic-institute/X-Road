@@ -26,136 +26,152 @@
  -->
 <template>
   <main id="initial-configuration" class="form-view-wrap">
-      <v-form>
-        <div class="form-content-wrap">
-          <div
-            class="form-main-title"
-            data-test="central-server-initialization-page-title"
+    <v-form>
+      <div class="form-content-wrap">
+        <div
+          class="form-main-title"
+          data-test="central-server-initialization-page-title"
+        >
+          {{ $t('init.initialConfiguration') }}
+        </div>
+
+        <div class="form-sub-title">{{ $t('init.csIdentification') }}</div>
+
+        <div class="form-row-wrap">
+          <xrd-form-label
+            :label-text="$t('fields.init.identifier')"
+            :help-text="$t('init.instanceIdentifier.info')"
+          />
+
+          <v-text-field
+            v-bind="instanceIdentifier"
+            class="form-input"
+            type="text"
+            :label="$t('fields.init.identifier')"
+            :error-messages="errors['init.identifier']"
+            :disabled="disabledFields.instanceIdentifier"
+            variant="outlined"
+            autofocus
+            data-test="instance-identifier--input"
+          />
+        </div>
+
+        <div class="form-row-wrap">
+          <xrd-form-label
+            :label-text="$t('fields.init.address')"
+            :help-text="$t('init.address.info')"
+          />
+
+          <v-text-field
+            v-bind="address"
+            class="form-input"
+            type="text"
+            :label="$t('fields.init.address')"
+            :error-messages="errors['init.address']"
+            :disabled="disabledFields.address"
+            variant="outlined"
+            data-test="address--input"
+          />
+        </div>
+        <div class="form-sub-title">{{ $t('init.softwareToken') }}</div>
+        <div class="form-row-wrap">
+          <xrd-form-label
+            :label-text="$t('fields.init.pin')"
+            :help-text="$t('init.pin.info')"
+          />
+
+          <v-text-field
+            v-bind="pin"
+            class="form-input"
+            type="password"
+            autocomplete="pin-code"
+            name="init.pin"
+            :label="$t('fields.init.pin')"
+            :error-messages="errors['init.pin']"
+            :disabled="disabledFields.pin"
+            variant="outlined"
+            data-test="pin--input"
+          />
+        </div>
+
+        <div class="form-row-wrap">
+          <xrd-form-label :label-text="$t('fields.init.confirmPin')" />
+          <v-text-field
+            v-bind="pinConfirm"
+            class="form-input"
+            type="password"
+            autocomplete="pin-code"
+            name="init.confirmPin"
+            :label="$t('fields.init.confirmPin')"
+            :error-messages="errors['init.confirmPin']"
+            :disabled="disabledFields.pin"
+            variant="outlined"
+            data-test="confirm-pin--input"
           >
-            {{ $t('init.initialConfiguration') }}
-          </div>
-
-          <div class="form-sub-title">{{ $t('init.csIdentification') }}</div>
-
-          <div class="form-row-wrap">
-            <xrd-form-label
-              :label-text="$t('fields.init.identifier')"
-              :help-text="$t('init.instanceIdentifier.info')"
-            />
-
-              <v-text-field
-                v-bind="instanceIdentifier"
-                class="form-input"
-                type="text"
-                :label="$t('fields.init.identifier')"
-                :error-messages="errors['init.identifier']"
-                :disabled="disabledFields.instanceIdentifier"
-                variant="outlined"
-                autofocus
-                data-test="instance-identifier--input"
-              />
-          </div>
-
-          <div class="form-row-wrap">
-            <xrd-form-label
-              :label-text="$t('fields.init.address')"
-              :help-text="$t('init.address.info')"
-            />
-
-            <v-text-field
-              v-bind="address"
-                class="form-input"
-                type="text"
-                :label="$t('fields.init.address')"
-              :error-messages="errors['init.address']"
-                :disabled="disabledFields.address"
-              variant="outlined"
-                data-test="address--input"
-            />
-          </div>
-          <div class="form-sub-title">{{ $t('init.softwareToken') }}</div>
-          <div class="form-row-wrap">
-            <xrd-form-label
-              :label-text="$t('fields.init.pin')"
-              :help-text="$t('init.pin.info')"
-            />
-
-              <v-text-field
-                v-bind="pin"
-                class="form-input"
-                type="password"
-                autocomplete="pin-code"
-                name="init.pin"
-                :label="$t('fields.init.pin')"
-                :error-messages="errors['init.pin']"
-                :disabled="disabledFields.pin"
-                variant="outlined"
-                data-test="pin--input"
-              />
-          </div>
-
-          <div class="form-row-wrap">
-            <xrd-form-label :label-text="$t('fields.init.confirmPin')" />
-              <v-text-field
-                v-bind="pinConfirm"
-                class="form-input"
-                type="password"
-                autocomplete="pin-code"
-                name="init.confirmPin"
-                :label="$t('fields.init.confirmPin')"
-                :error-messages="errors['init.confirmPin']"
-                :disabled="disabledFields.pin"
-                variant="outlined"
-                data-test="confirm-pin--input"
+            <template v-if="pinConfirmValid" #append-inner>
+              <xrd-icon-base
+                :color="colors.Success100"
+                data-test="confirm-pin-append-input-icon"
               >
-                <template v-if="pinConfirmValid" #append-inner>
-                  <xrd-icon-base
-                    :color="colors.Success100"
-                    data-test="confirm-pin-append-input-icon"
-                  >
-                    <xrd-icon-checked />
-                  </xrd-icon-base>
-                </template>
-              </v-text-field>
-          </div>
+                <xrd-icon-checked />
+              </xrd-icon-base>
+            </template>
+          </v-text-field>
         </div>
-        <div class="button-footer">
-          <xrd-button
-            :disabled="!meta.valid"
-            :loading="submitting"
-            data-test="submit-button"
-            @click="submit"
-            >{{ $t('action.submit') }}
-          </xrd-button>
-        </div>
-      </v-form>
+      </div>
+      <div class="button-footer">
+        <xrd-button
+          :disabled="!meta.valid"
+          :loading="submitting"
+          data-test="submit-button"
+          @click="submit"
+          >{{ $t('action.submit') }}
+        </xrd-button>
+      </div>
+    </v-form>
   </main>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Colors, RouteName } from '@/global';
-import { ErrorInfo, InitializationStatus, InitialServerConf, TokenInitStatus, } from '@/openapi-types';
-import { getTranslatedFieldErrors, swallowRedirectedNavigationError } from '@/util/helpers';
+import {
+  ErrorInfo,
+  InitializationStatus,
+  InitialServerConf,
+  TokenInitStatus,
+} from '@/openapi-types';
+import {
+  getTranslatedFieldErrors,
+  swallowRedirectedNavigationError,
+} from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSystem } from '@/store/modules/system';
-import { defineRule, useForm, useIsFieldValid } from "vee-validate";
-import XrdFormLabel from "@shared-ui/components/XrdFormLabel.vue";
-import { confirmed } from "@vee-validate/rules";
+import { defineRule, useForm, useIsFieldValid } from 'vee-validate';
+import XrdFormLabel from '@shared-ui/components/XrdFormLabel.vue';
+import { confirmed } from '@vee-validate/rules';
 
 defineRule('confirmed', confirmed);
 
 export default defineComponent({
   components: { XrdFormLabel },
+  props: {},
   setup() {
-    const { defineComponentBinds, errors, meta, values, setFieldValue, setFieldError } = useForm({
+    const {
+      defineComponentBinds,
+      errors,
+      meta,
+      values,
+      setFieldValue,
+      setFieldError,
+    } = useForm({
       validationSchema: {
         'init.identifier': 'required',
         'init.address': 'required',
         'init.pin': 'required',
-        'init.confirmPin': 'required|confirmed:@init.pin'
-      }
+        'init.confirmPin': 'required|confirmed:@init.pin',
+      },
     });
     const instanceIdentifier = defineComponentBinds('init.identifier');
     const address = defineComponentBinds('init.address');
@@ -172,10 +188,9 @@ export default defineComponent({
       values,
       setFieldValue,
       setFieldError,
-      pinConfirmValid
+      pinConfirmValid,
     };
   },
-  props: {},
   data() {
     return {
       colors: Colors,

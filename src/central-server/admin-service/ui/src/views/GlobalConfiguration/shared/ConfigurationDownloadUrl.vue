@@ -26,29 +26,29 @@
  -->
 <template>
   <article id="download-url" class="mt-5">
-      <v-data-table
-        v-if="urls"
-        :headers="headers"
-        :items="urls"
-        :items-per-page="-1"
-        :loading="loading"
-        item-key="url"
-        hide-default-footer
-        class="elevation-0 data-table"
-      >
-        <template #top>
-          <data-table-toolbar title-key="globalConf.downloadUrl.title" />
-        </template>
-        <template #[`item.url`]="{ item }">
-          <div class="xrd-clickable" @click="openInNewTab(item.raw.url)">
-            <v-icon class="internal-conf-icon">mdi-link</v-icon>
-            {{ item.raw.url }}
-          </div>
-        </template>
-        <template #bottom>
-          <custom-data-table-footer />
-        </template>
-      </v-data-table>
+    <v-data-table
+      v-if="urls"
+      :headers="headers"
+      :items="urls"
+      :items-per-page="-1"
+      :loading="loading"
+      item-key="url"
+      hide-default-footer
+      class="elevation-0 data-table"
+    >
+      <template #top>
+        <data-table-toolbar title-key="globalConf.downloadUrl.title" />
+      </template>
+      <template #[`item.url`]="{ item }">
+        <div class="xrd-clickable" @click="openInNewTab(item.raw.url)">
+          <v-icon class="internal-conf-icon" icon="mdi-link" />
+          {{ item.raw.url }}
+        </div>
+      </template>
+      <template #bottom>
+        <custom-data-table-footer />
+      </template>
+    </v-data-table>
   </article>
 </template>
 
@@ -60,10 +60,10 @@ import { defineComponent, PropType } from 'vue';
 import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import { DataTableHeader } from "@/ui-types";
-import { VDataTable } from "vuetify/labs/VDataTable";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
-import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 
 export default defineComponent({
   components: { CustomDataTableFooter, DataTableToolbar, VDataTable },
@@ -114,12 +114,10 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import '@/assets/colors';
-@import "@/assets/tables";
+@import '@/assets/tables';
 
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
 }
-
-
 </style>

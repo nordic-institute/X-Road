@@ -86,15 +86,22 @@ import { GlobalGroupResource } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import AddGroupDialog from './AddGroupDialog.vue';
 import { useUser } from '@/store/modules/user';
-import TitledView from "@/components/ui/TitledView.vue";
-import DateTime from "@/components/ui/DateTime.vue";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
-import XrdIconFolder from "@shared-ui/components/icons/XrdIconFolder.vue";
-import { VDataTable } from "vuetify/labs/VDataTable";
+import TitledView from '@/components/ui/TitledView.vue';
+import DateTime from '@/components/ui/DateTime.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import XrdIconFolder from '@shared-ui/components/icons/XrdIconFolder.vue';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 
 export default defineComponent({
   name: 'GlobalResourcesList',
-  components: { CustomDataTableFooter, DateTime, TitledView, AddGroupDialog, XrdIconFolder, VDataTable },
+  components: {
+    CustomDataTableFooter,
+    DateTime,
+    TitledView,
+    AddGroupDialog,
+    XrdIconFolder,
+    VDataTable,
+  },
   data() {
     return {
       showAddGroupDialog: false,

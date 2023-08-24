@@ -42,14 +42,14 @@
       </i18n-t>
     </template>
     <template #content>
-        <v-text-field
-          v-model="value"
-          variant="outlined"
-          :label="$t('members.member.details.enterCode')"
-          autofocus
-          data-test="member-code"
-          :error-messages="errors"
-        />
+      <v-text-field
+        v-model="value"
+        variant="outlined"
+        :label="$t('members.member.details.enterCode')"
+        autofocus
+        data-test="member-code"
+        :error-messages="errors"
+      />
     </template>
   </xrd-simple-dialog>
 </template>
@@ -60,23 +60,24 @@ import { Client } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
-import { Field, useField } from "vee-validate";
-import { mapActions, mapStores } from "pinia";
-import { RouteName } from "@/global";
+import { useField } from 'vee-validate';
+import { mapActions, mapStores } from 'pinia';
+import { RouteName } from '@/global';
 
 export default defineComponent({
-  setup(props) {
-    const { value, errors, meta, resetField } = useField<string>('memberCode', { required: true, is: props.member.client_id.member_code });
-    return { resetField, value, errors, meta };
-  },
-  components: {
-    Field
-  },
   props: {
     member: {
       type: Object as () => Client,
       required: true,
     },
+  },
+  emits: ['cancel'],
+  setup(props) {
+    const { value, errors, meta, resetField } = useField<string>('memberCode', {
+      required: true,
+      is: props.member.client_id.member_code,
+    });
+    return { resetField, value, errors, meta };
   },
   data() {
     return { loading: false, enteredCode: '' };
@@ -95,7 +96,10 @@ export default defineComponent({
       this.memberStore
         .deleteById(toIdentifier(this.member.client_id))
         .then(() => {
-          this.showSuccess(this.$t('members.member.details.memberDeleted'), true);
+          this.showSuccess(
+            this.$t('members.member.details.memberDeleted'),
+            true,
+          );
           this.$router.replace({ name: RouteName.Members });
         })
         .catch((error) => {

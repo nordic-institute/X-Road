@@ -30,18 +30,18 @@
     :loading="loading"
     cancel-button-text="action.cancel"
     title="members.addMember"
+    z-index="1999"
     @cancel="cancel"
     @save="add"
-    z-index="1999"
   >
     <template #content>
-        <v-text-field
-          v-model="memberName"
-          :label="$t('global.memberName')"
-          variant="outlined"
-          autofocus
-          data-test="add-member-name-input"
-        />
+      <v-text-field
+        v-model="memberName"
+        :label="$t('global.memberName')"
+        variant="outlined"
+        autofocus
+        data-test="add-member-name-input"
+      />
       <v-select
         v-model="memberClass"
         :items="memberClasses"
@@ -52,11 +52,12 @@
         data-test="add-member-class-input"
         z-index="2410"
       />
-      <v-text-field v-bind="memberCode"
-                      :label="$t('global.memberCode')"
-                    :error-messages="errors.memberCode"
-                    variant="outlined"
-                    data-test="add-member-code-input"
+      <v-text-field
+        v-bind="memberCode"
+        :label="$t('global.memberCode')"
+        :error-messages="errors.memberCode"
+        variant="outlined"
+        data-test="add-member-code-input"
       />
     </template>
   </xrd-simple-dialog>
@@ -71,12 +72,16 @@ import { useMember } from '@/store/modules/members';
 import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import { useMemberClass } from '@/store/modules/member-class';
-import { getErrorInfo, getTranslatedFieldErrors, isFieldError, } from '@/util/helpers';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
 
-
 export default defineComponent({
+  emits: ['save', 'cancel'],
   setup() {
     const {
       defineComponentBinds,
@@ -84,7 +89,7 @@ export default defineComponent({
       meta,
       errors,
       setFieldError,
-      resetForm
+      resetForm,
     } = useForm({ validationSchema: { memberCode: 'required' } });
     const memberCode = defineComponentBinds('memberCode');
     return {
@@ -93,10 +98,9 @@ export default defineComponent({
       errors,
       setFieldError,
       memberCode,
-      resetForm
+      resetForm,
     };
   },
-  emits: ['save', 'cancel'],
   data() {
     return {
       loading: false,
@@ -112,7 +116,7 @@ export default defineComponent({
     },
     formReady(): boolean {
       return !!(this.memberName && this.memberClass && this.meta.valid);
-    }
+    },
   },
   created() {
     this.memberClassStore.fetchAll();
@@ -152,7 +156,8 @@ export default defineComponent({
           if (isFieldError(errorInfo)) {
             let fieldErrors = errorInfo.error?.validation_errors;
             if (fieldErrors) {
-              this.setFieldError('memberCode',
+              this.setFieldError(
+                'memberCode',
                 getTranslatedFieldErrors(
                   'memberAddDto.memberId.memberCode',
                   fieldErrors,

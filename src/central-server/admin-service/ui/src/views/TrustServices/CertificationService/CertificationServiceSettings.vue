@@ -42,7 +42,7 @@
           : 'False'
       "
       data-test="tls-auth-card"
-      @actionClicked="showEditTlsAuthDialog = true"
+      @action-clicked="showEditTlsAuthDialog = true"
     />
 
     <info-card
@@ -55,7 +55,7 @@
           .certificate_profile_info || ''
       "
       data-test="cert-profile-card"
-      @actionClicked="showEditCertProfileDialog = true"
+      @action-clicked="showEditCertProfileDialog = true"
     />
 
     <!-- Edit TLS auth dialog -->
@@ -65,7 +65,7 @@
         certificationServiceStore.currentCertificationService
       "
       @cancel="hideEditTlsAuthDialog"
-      @tlsAuthChanged="hideEditTlsAuthDialog"
+      @tls-auth-changed="hideEditTlsAuthDialog"
     ></EditTlsAuthDialog>
 
     <!-- Edit cert profile dialog -->
@@ -75,7 +75,7 @@
         certificationServiceStore.currentCertificationService
       "
       @cancel="hideEditCertProfileDialog"
-      @tlsAuthChanged="hideEditCertProfileDialog"
+      @tls-auth-changed="hideEditCertProfileDialog"
     ></EditCertProfileDialog>
   </main>
 </template>
@@ -84,7 +84,7 @@
 /**
  * Component for a Certification Service details view
  */
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapState, mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';

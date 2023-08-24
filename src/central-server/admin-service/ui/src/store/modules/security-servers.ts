@@ -32,7 +32,7 @@ import {
   SecurityServerAddress,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { DataQuery } from "@/ui-types";
+import { DataQuery } from '@/ui-types';
 
 export interface State {
   currentSecurityServerLoading: boolean;

@@ -26,13 +26,18 @@
  -->
 <template>
   <div data-test="security-servers-view">
-    <searchable-titled-view title-key="tab.main.securityServers" v-model="search">
+    <searchable-titled-view
+      v-model="search"
+      title-key="tab.main.securityServers"
+    >
       <v-data-table-server
         :loading="loading"
         :headers="headers"
         :items="securityServerStore.securityServers"
         :items-per-page-options="itemsPerPageOptions"
-        :items-length="securityServerStore.securityServerPagingOptions.total_items"
+        :items-length="
+          securityServerStore.securityServerPagingOptions.total_items
+        "
         :must-sort="true"
         :items-per-page="10"
         disable-filtering
@@ -66,11 +71,11 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { VDataTableServer } from "vuetify/labs/VDataTable";
-import { defaultItemsPerPageOptions } from "@/util/defaults";
-import { DataQuery, DataTableHeader } from "@/ui-types";
-import XrdIconSecurityServer from "@shared-ui/components/icons/XrdIconSecurityServer.vue";
-import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
+import { defaultItemsPerPageOptions } from '@/util/defaults';
+import { DataQuery, DataTableHeader } from '@/ui-types';
+import XrdIconSecurityServer from '@shared-ui/components/icons/XrdIconSecurityServer.vue';
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,7 +89,7 @@ export default defineComponent({
       loading: false,
       showOnlyPending: false,
       dataQuery: {} as DataQuery,
-      itemsPerPageOptions: defaultItemsPerPageOptions()
+      itemsPerPageOptions: defaultItemsPerPageOptions(),
     };
   },
   computed: {
@@ -143,8 +148,8 @@ export default defineComponent({
     findServers: async function ({ itemsPerPage, page, sortBy }) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;
-      this.dataQuery.sortBy= sortBy[0]?.key;
-      this.dataQuery.sortOrder= sortBy[0]?.order;
+      this.dataQuery.sortBy = sortBy[0]?.key;
+      this.dataQuery.sortOrder = sortBy[0]?.order;
       this.fetchServers();
     },
     fetchServers: async function () {
