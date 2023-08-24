@@ -29,7 +29,10 @@
 -->
 <template>
   <main id="ocsp-responder-certificate-details" class="mt-8">
-    <certificate-details v-if="certificateDetails" :certificate-details="certificateDetails" />
+    <certificate-details
+      v-if="certificateDetails"
+      :certificate-details="certificateDetails"
+    />
   </main>
 </template>
 

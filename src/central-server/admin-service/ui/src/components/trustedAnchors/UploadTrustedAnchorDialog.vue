@@ -25,12 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog :title="$t('globalConf.trustedAnchor.dialog.upload.title')"
-                     save-button-text="action.confirm"
-                     :loading="uploading"
-                     width="850"
-                     @cancel="close"
-                     @save="confirm"
+  <xrd-simple-dialog
+    :title="$t('globalConf.trustedAnchor.dialog.upload.title')"
+    save-button-text="action.confirm"
+    :loading="uploading"
+    width="850"
+    @cancel="close"
+    @save="confirm"
   >
     <template #text>
       <v-container>
@@ -69,8 +70,8 @@ import { TrustedAnchor } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
-import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
-import DateTime from "@/components/ui/DateTime.vue";
+import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
+import DateTime from '@/components/ui/DateTime.vue';
 
 export default defineComponent({
   components: { DateTime, XrdSimpleDialog },

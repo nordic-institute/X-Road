@@ -29,7 +29,7 @@
     <v-tabs
       class="xrd-tabs"
       color="primary"
-      :background-color="colors.WarmGrey10"
+      :bg-color="colors.WarmGrey10"
       slider-size="2"
     >
       <slot />

@@ -43,7 +43,7 @@ import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
-import TitledView from "@/components/ui/TitledView.vue";
+import TitledView from '@/components/ui/TitledView.vue';
 
 /**
  * Wrapper component for a security server view
@@ -60,8 +60,8 @@ export default defineComponent({
     return {
       colors: Colors,
       backTo: {
-        name: RouteName.SecurityServers
-      }
+        name: RouteName.SecurityServers,
+      },
     };
   },
   computed: {
@@ -80,7 +80,7 @@ export default defineComponent({
           to: {
             name: RouteName.SecurityServerDetails,
             params: { serverId: this.serverId },
-            replace: true
+            replace: true,
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
@@ -91,7 +91,7 @@ export default defineComponent({
           to: {
             name: RouteName.SecurityServerClients,
             params: { serverId: this.serverId },
-            replace: true
+            replace: true,
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
@@ -102,7 +102,7 @@ export default defineComponent({
           to: {
             name: RouteName.SecurityServerAuthenticationCertificates,
             params: { serverId: this.serverId },
-            replace: true
+            replace: true,
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },

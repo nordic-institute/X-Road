@@ -46,20 +46,19 @@
 </template>
 
 <script lang="ts">
-
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   props: {
     titleKey: {
       type: String,
-      default: ''
+      default: '',
     },
     titleValue: {
       type: String,
-      default: ''
-    }
-  }
+      default: '',
+    },
+  },
 });
 </script>
 
@@ -67,7 +66,7 @@ export default defineComponent({
 @import '@/assets/colors';
 
 div.xrd-table-toolbar {
-    margin-bottom: 0 !important;
+  margin-bottom: 0 !important;
 
   .xdr-table-title {
     color: $XRoad-Black100;

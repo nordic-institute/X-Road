@@ -27,23 +27,24 @@
 <template>
   <article id="global-groups" class="mt-5">
     <v-data-table
-          :loading="loading"
-          :headers="headers"
-          :items="configurationParts"
-          :search="search"
-          :sort-by="['file_name']"
-          :must-sort="true"
-          :items-per-page="-1"
-          item-value="content_identifier"
-          :loader-height="2"
-          class="elevation-0 data-table"
-        >
+      :loading="loading"
+      :headers="headers"
+      :items="configurationParts"
+      :search="search"
+      :sort-by="['file_name']"
+      :must-sort="true"
+      :items-per-page="-1"
+      item-value="content_identifier"
+      :loader-height="2"
+      class="elevation-0 data-table"
+    >
       <template #top>
         <data-table-toolbar title-key="globalConf.cfgParts.title" />
       </template>
       <template #[`item.file_updated_at`]="{ item }">
         <span
-          :data-test="`configuration-part-${item.raw.content_identifier}-updated-at`">
+          :data-test="`configuration-part-${item.raw.content_identifier}-updated-at`"
+        >
           <date-time :value="item.raw.file_updated_at" with-seconds />
         </span>
       </template>
@@ -86,14 +87,14 @@ import { defineComponent, PropType } from 'vue';
 import { mapState, mapStores } from 'pinia';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import { DataTableHeader } from "@/ui-types";
-import { VDataTable } from "vuetify/labs/VDataTable";
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import { useUser } from '@/store/modules/user';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
-import DateTime from "@/components/ui/DateTime.vue";
-import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import DateTime from '@/components/ui/DateTime.vue';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 
 export default defineComponent({
   components: {

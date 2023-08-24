@@ -27,7 +27,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { Client, PagedClients, PagingMetadata } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { DataQuery, PagingOptions } from "@/ui-types";
+import { DataQuery, PagingOptions } from '@/ui-types';
 
 export interface State {
   clients: Client[];
@@ -53,7 +53,6 @@ export const useClient = defineStore('client', {
   persist: true,
   actions: {
     async find(dataOptions: DataQuery) {
-
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
 
       const params: unknown = {

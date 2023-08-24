@@ -59,7 +59,9 @@
  * View for 'backup and restore' tab
  */
 import { defineComponent } from 'vue';
-import ConfigurationAnchorItem, { Anchor, } from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
+import ConfigurationAnchorItem, {
+  Anchor,
+} from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
 import { TrustedAnchor } from '@/openapi-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -68,7 +70,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import UploadTrustedAnchorButton from '@/components/trustedAnchors/UploadTrustedAnchorButton.vue';
 import DownloadTrustedAnchorButton from '@/components/trustedAnchors/DownloadTrustedAnchorButton.vue';
 import DeleteTrustedAnchorButton from '@/components/trustedAnchors/DeleteTrustedAnchorButton.vue';
-import TitledView from "@/components/ui/TitledView.vue";
+import TitledView from '@/components/ui/TitledView.vue';
 
 function convert(source: TrustedAnchor): Anchor {
   return {

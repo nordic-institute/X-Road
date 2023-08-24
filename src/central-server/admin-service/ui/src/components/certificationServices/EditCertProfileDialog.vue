@@ -38,7 +38,7 @@
       <div class="dlg-input-width">
         <v-text-field
           v-model="certProfile"
-          outlined
+          variant="outlined"
           :label="$t('trustServices.certProfileInput')"
           :hint="$t('trustServices.certProfileInputExplanation')"
           persistent-hint
@@ -64,6 +64,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['cancel', 'tls-auth-changed'],
   data() {
     return {
       certProfile: this.certificationService.certificate_profile_info,
@@ -89,7 +90,7 @@ export default defineComponent({
           this.showSuccess(
             this.$t('trustServices.trustService.settings.saveSuccess'),
           );
-          this.$emit('tlsAuthChanged');
+          this.$emit('tls-auth-changed');
         })
         .catch((error) => {
           this.showError(error);

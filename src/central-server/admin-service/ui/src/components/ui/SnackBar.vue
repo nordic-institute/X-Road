@@ -38,21 +38,22 @@
       data-test="success-snackbar"
       multi-line
       class="success-snackbar"
-      @input="closeSuccess(notification.timeAdded)"
+      @update:model-value="closeSuccess(notification.timeAdded)"
     >
       <div class="row-wrapper-top scrollable identifier-wrap">
         <xrd-icon-base :color="colors.Success100">
           <xrd-icon-checker />
         </xrd-icon-base>
 
-        <div  v-if="notification.successMessage" class="row-wrapper">
-            {{ notification.successMessage }}
+        <div v-if="notification.successMessage" class="row-wrapper">
+          {{ notification.successMessage }}
         </div>
       </div>
       <template #actions>
         <v-btn
           icon
-          variant="text" rounded
+          variant="text"
+          rounded
           :color="colors.Black100"
           data-test="close-snackbar"
           @click="closeSuccess(notification.timeAdded)"

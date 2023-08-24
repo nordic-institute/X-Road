@@ -35,15 +35,15 @@
     @cancel="cancel"
   >
     <template #content>
-          <v-text-field
-            v-bind="keyLabel"
-            :label="$t('keys.dialog.add.labelField')"
-            :error-messages="errors.keyLabel"
-            name="keyLabel"
-            data-test="signing-key-label-input"
-            variant="outlined"
-            autofocus
-          />
+      <v-text-field
+        v-bind="keyLabel"
+        :label="$t('keys.dialog.add.labelField')"
+        :error-messages="errors.keyLabel"
+        name="keyLabel"
+        data-test="signing-key-label-input"
+        variant="outlined"
+        autofocus
+      />
     </template>
   </xrd-simple-dialog>
 </template>
@@ -54,19 +54,9 @@ import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSigningKey } from '@/store/modules/signing-keys';
 import { ConfigurationSigningKey, ConfigurationType } from '@/openapi-types';
-import { useForm } from "vee-validate";
+import { useForm } from 'vee-validate';
 
 export default defineComponent({
-  setup() {
-    const {
-      defineComponentBinds,
-      errors,
-      values,
-      meta
-    } = useForm({ validationSchema: { keyLabel: 'required|min:1|max:255' } });
-    const keyLabel = defineComponentBinds('keyLabel')
-    return { errors, values, meta, keyLabel };
-  },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -78,6 +68,13 @@ export default defineComponent({
     },
   },
   emits: ['cancel', 'key-add'],
+  setup() {
+    const { defineComponentBinds, errors, values, meta } = useForm({
+      validationSchema: { keyLabel: 'required|min:1|max:255' },
+    });
+    const keyLabel = defineComponentBinds('keyLabel');
+    return { errors, values, meta, keyLabel };
+  },
   data() {
     return {
       loading: false,

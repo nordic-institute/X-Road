@@ -28,58 +28,54 @@
   Member details view
 -->
 <template>
-    <xrd-simple-dialog
-      title="securityServers.dialogs.deleteAddress.title"
-      data-test="security-server-delete-dialog"
-      save-button-text="action.delete"
-      :dialog="showDialog"
-      :scrollable="false"
-      :show-close="true"
-      :loading="loading"
-      :disable-save="!meta.valid"
-      @save="deleteSecurityServer"
-      @cancel="close"
-    >
-      <template #text>
-        <i18n-t scope="global" keypath="securityServers.dialogs.deleteAddress.areYouSure">
-          <template #securityServer>
-            <b>{{ serverCode }}</b>
-          </template>
-        </i18n-t>
-      </template>
-      <template #content>
-        <v-text-field
-          v-model="value"
-          name="serverCode"
-          variant="outlined"
-          :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
-          autofocus
-          data-test="verify-server-code"
-          :error-messages="errors"
-        />
-      </template>
-    </xrd-simple-dialog>
+  <xrd-simple-dialog
+    title="securityServers.dialogs.deleteAddress.title"
+    data-test="security-server-delete-dialog"
+    save-button-text="action.delete"
+    :dialog="showDialog"
+    :scrollable="false"
+    :show-close="true"
+    :loading="loading"
+    :disable-save="!meta.valid"
+    @save="deleteSecurityServer"
+    @cancel="close"
+  >
+    <template #text>
+      <i18n-t
+        scope="global"
+        keypath="securityServers.dialogs.deleteAddress.areYouSure"
+      >
+        <template #securityServer>
+          <b>{{ serverCode }}</b>
+        </template>
+      </i18n-t>
+    </template>
+    <template #content>
+      <v-text-field
+        v-model="value"
+        name="serverCode"
+        variant="outlined"
+        :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
+        autofocus
+        data-test="verify-server-code"
+        :error-messages="errors"
+      />
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
-import { useField } from "vee-validate";
-import { mapActions, mapStores } from "pinia";
-import { RouteName } from "@/global";
+import { useField } from 'vee-validate';
+import { mapActions, mapStores } from 'pinia';
+import { RouteName } from '@/global';
 
 /**
  * Component for a Security server details view
  */
 export default defineComponent({
-  setup(props) {
-    const { value, meta, errors, resetField } = useField('serverCode', {
-      required: true,
-      is: props.serverCode,
-    }, { initialValue: '' });
-    return { value, meta, errors, resetField };
-  },
   props: {
     securityServerId: {
       type: String,
@@ -90,11 +86,21 @@ export default defineComponent({
       default: '',
     },
   },
+  setup(props) {
+    const { value, meta, errors, resetField } = useField(
+      'serverCode',
+      {
+        required: true,
+        is: props.serverCode,
+      },
+      { initialValue: '' },
+    );
+    return { value, meta, errors, resetField };
+  },
   data() {
     return {
       loading: false,
       showDialog: false,
-
     };
   },
   computed: {
@@ -113,7 +119,10 @@ export default defineComponent({
       try {
         this.loading = true;
         await this.securityServerStore.delete(this.securityServerId);
-        this.showSuccess(this.$t('securityServers.dialogs.deleteAddress.success'), true);
+        this.showSuccess(
+          this.$t('securityServers.dialogs.deleteAddress.success'),
+          true,
+        );
         this.$router.replace({
           name: RouteName.SecurityServers,
         });

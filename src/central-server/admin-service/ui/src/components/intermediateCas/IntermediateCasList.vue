@@ -105,7 +105,9 @@
 
     <!-- Add Intermediate CA dialog -->
     <add-intermediate-ca-dialog
-      v-if="intermediateCasServiceStore.currentCs && showAddIntermediateCaDialog"
+      v-if="
+        intermediateCasServiceStore.currentCs && showAddIntermediateCaDialog
+      "
       :ca-id="intermediateCasServiceStore.currentCs.id"
       @cancel="hideAddIntermediateCaDialog"
       @save="hideAddIntermediateCaDialog"
@@ -129,21 +131,30 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { DataTableHeader } from "@/ui-types";
+import { DataTableHeader } from '@/ui-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
-import { VDataTable } from "vuetify/labs/VDataTable";
-import { ApprovedCertificationService, CertificateAuthority, } from '@/openapi-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import {
+  ApprovedCertificationService,
+  CertificateAuthority,
+} from '@/openapi-types';
 import AddIntermediateCaDialog from '@/components/intermediateCas/AddIntermediateCaDialog.vue';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
-import DateTime from "@/components/ui/DateTime.vue";
-import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
+import DateTime from '@/components/ui/DateTime.vue';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
 export default defineComponent({
-  components: { DataTableToolbar, CustomDataTableFooter, DateTime, AddIntermediateCaDialog, VDataTable },
+  components: {
+    DataTableToolbar,
+    CustomDataTableFooter,
+    DateTime,
+    AddIntermediateCaDialog,
+    VDataTable,
+  },
   props: {
     cs: {
       type: Object as () => ApprovedCertificationService,
@@ -250,5 +261,4 @@ export default defineComponent({
   },
 });
 </script>
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

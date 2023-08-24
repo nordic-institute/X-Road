@@ -85,18 +85,24 @@
  */
 import { defineComponent, PropType } from 'vue';
 import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
-import { DataTableHeader } from "@/ui-types";
-import { VDataTable } from "vuetify/labs/VDataTable";
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDialog.vue';
 import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
-import DateTime from "@/components/ui/DateTime.vue";
-import XrdIconKey from "@shared-ui/components/icons/XrdIconKey.vue";
+import DateTime from '@/components/ui/DateTime.vue';
+import XrdIconKey from '@shared-ui/components/icons/XrdIconKey.vue';
 
 export default defineComponent({
-  components: { DateTime, SigningKeyActivateDialog, SigningKeyDeleteDialog, VDataTable, XrdIconKey },
+  components: {
+    DateTime,
+    SigningKeyActivateDialog,
+    SigningKeyDeleteDialog,
+    VDataTable,
+    XrdIconKey,
+  },
   props: {
     keys: {
       type: Array as PropType<ConfigurationSigningKey[]>,
@@ -107,6 +113,7 @@ export default defineComponent({
       default: false,
     },
   },
+  emits: ['update-keys'],
   data() {
     return {
       selectedKey: null as ConfigurationSigningKey | null,

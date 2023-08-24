@@ -40,7 +40,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { Colors } from '@/global';
-import { RouteLocationRaw } from "vue-router";
+import { RouteLocationRaw } from 'vue-router';
 
 export default defineComponent({
   props: {
@@ -54,15 +54,15 @@ export default defineComponent({
       colors: Colors,
     };
   },
-  methods:{
-    goBack(){
-      if(this.$router.currentRoute.value.meta?.backTo){
+  methods: {
+    goBack() {
+      if (this.$router.currentRoute.value.meta?.backTo) {
         this.$router.back();
       } else {
-        this.$router.push(this.backTo)
+        this.$router.push(this.backTo);
       }
-    }
-  }
+    },
+  },
 });
 </script>
 

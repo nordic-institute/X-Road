@@ -26,7 +26,10 @@
  -->
 <template>
   <main id="intermediate-ca-certificate-details" class="mt-8">
-    <certificate-details v-if="certificateDetails" :certificate-details="certificateDetails" />
+    <certificate-details
+      v-if="certificateDetails"
+      :certificate-details="certificateDetails"
+    />
   </main>
 </template>
 

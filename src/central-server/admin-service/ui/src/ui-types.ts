@@ -78,23 +78,23 @@ export interface ActionError {
 
 export interface DataQuery {
   itemsPerPage: number;
-  page: number,
-  sortBy?: string,
-  sortOrder?: string,
-  search?: string
+  page: number;
+  sortBy?: string;
+  sortOrder?: string;
+  search?: string;
 }
 
 export interface PagingOptions {
   itemsPerPage: number;
-  page: number,
-  sortBy: { key: string, order?: boolean | 'asc' | 'desc' }[]
+  page: number;
+  sortBy: { key: string; order?: boolean | 'asc' | 'desc' }[];
 }
 
 export interface DataTableHeader {
-  title: string,
-  align?: string,
-  key: string,
-  sortable?: boolean
+  title: string;
+  align?: string;
+  key: string;
+  sortable?: boolean;
 }
 
 export enum Event {
@@ -103,5 +103,5 @@ export enum Event {
   Delete = 'delete',
   Cancel = 'cancel',
   Select = 'select',
-  ModelValue = 'update:model-value'
+  ModelValue = 'update:model-value',
 }

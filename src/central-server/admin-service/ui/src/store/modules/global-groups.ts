@@ -37,7 +37,7 @@ import {
   PagedGroupMemberListView,
   PagingMetadata,
 } from '@/openapi-types';
-import { PagingOptions } from "@/ui-types";
+import { PagingOptions } from '@/ui-types';
 
 export interface State {
   globalGroups: GlobalGroupResource[];

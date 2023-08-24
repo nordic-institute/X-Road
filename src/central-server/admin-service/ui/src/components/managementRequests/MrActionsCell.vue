@@ -66,7 +66,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestListView } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -88,6 +88,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['approve', 'decline'],
   data() {
     return {
       showApproveDialog: false,

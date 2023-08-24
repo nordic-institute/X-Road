@@ -33,7 +33,11 @@
         outlined
         @click="showDeleteGroupDialog = true"
       >
-        <v-icon class="xrd-large-button-icon" size="x-large" icon="mdi-close-circle" />
+        <v-icon
+          class="xrd-large-button-icon"
+          size="x-large"
+          icon="mdi-close-circle"
+        />
         {{ $t('globalGroup.deleteGroup') }}
       </xrd-button>
     </template>
@@ -45,7 +49,7 @@
       :info-text="globalGroup.description || ''"
       :action-text="$t('action.edit')"
       :show-action="allowDescriptionEdit"
-      @actionClicked="showEditDescriptionDialog = true"
+      @action-clicked="showEditDescriptionDialog = true"
     />
 
     <!-- Edit Description Dialog -->
@@ -53,7 +57,10 @@
       v-if="showEditDescriptionDialog"
       :group-code="globalGroup.code"
       :group-description="globalGroup.description"
-      @edit="globalGroup=$event; showEditDescriptionDialog = false"
+      @edit="
+        globalGroup = $event;
+        showEditDescriptionDialog = false;
+      "
       @cancel="showEditDescriptionDialog = false"
     />
 
@@ -78,7 +85,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import GlobalGroupDeleteDialog from './GlobalGroupDeleteDialog.vue';
 import GlobalGroupEditDescriptionDialog from './GlobalGroupEditDescriptionDialog.vue';
-import TitledView from "@/components/ui/TitledView.vue";
+import TitledView from '@/components/ui/TitledView.vue';
 
 /**
  * Global group view

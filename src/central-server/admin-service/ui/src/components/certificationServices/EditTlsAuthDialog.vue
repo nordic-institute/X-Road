@@ -60,6 +60,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['cancel', 'tls-auth-changed'],
   data() {
     return {
       tlsAuth: this.certificationService.tls_auth,
@@ -86,7 +87,7 @@ export default defineComponent({
           this.showSuccess(
             this.$t('trustServices.trustService.settings.saveSuccess'),
           );
-          this.$emit('tlsAuthChanged');
+          this.$emit('tls-auth-changed');
         })
         .catch((error) => {
           this.showError(error);

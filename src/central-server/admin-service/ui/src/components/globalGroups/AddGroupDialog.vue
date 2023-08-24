@@ -34,23 +34,22 @@
     @save="save"
   >
     <template #content>
-        <v-text-field
-          v-bind="code"
-          variant="outlined"
-          :label="$t('globalResources.code')"
-          :error-messages="errors.code"
-          autofocus
-          data-test="add-global-group-code-input"
-        />
+      <v-text-field
+        v-bind="code"
+        variant="outlined"
+        :label="$t('globalResources.code')"
+        :error-messages="errors.code"
+        autofocus
+        data-test="add-global-group-code-input"
+      />
 
-        <v-text-field
-          v-bind="description"
-          :label="$t('globalResources.description')"
-          :error-messages="errors.description"
-          variant="outlined"
-          data-test="add-global-group-description-input"
-        />
-
+      <v-text-field
+        v-bind="description"
+        :label="$t('globalResources.description')"
+        :error-messages="errors.description"
+        variant="outlined"
+        data-test="add-global-group-description-input"
+      />
     </template>
   </xrd-simple-dialog>
 </template>
@@ -60,21 +59,21 @@ import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { useNotifications } from '@/store/modules/notifications';
-import { useForm } from "vee-validate";
+import { useForm } from 'vee-validate';
 
 export default defineComponent({
+  emits: ['cancel', 'group-added'],
   setup() {
     const { values, errors, defineComponentBinds, meta, resetForm } = useForm({
       validationSchema: {
         code: 'required',
-        description: 'required'
-      }
+        description: 'required',
+      },
     });
     const code = defineComponentBinds('code');
     const description = defineComponentBinds('description');
     return { values, errors, meta, resetForm, code, description };
   },
-  emits: ['cancel', 'group-added'],
   data() {
     return {
       loading: false,
@@ -112,14 +111,13 @@ export default defineComponent({
         });
     },
     clearForm(): void {
-      this.resetForm()
+      this.resetForm();
     },
   },
 });
 </script>
 <style lang="scss" scoped>
 @import '@/assets/tables';
-
 
 div.v-input {
   padding-bottom: 8px;

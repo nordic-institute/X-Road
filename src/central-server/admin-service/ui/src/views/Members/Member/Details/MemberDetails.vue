@@ -37,7 +37,7 @@
         :show-action="allowMemberRename"
         :info-text="memberStore.currentMember.member_name || ''"
         data-test="member-name-card"
-        @actionClicked="showEditNameDialog = true"
+        @action-clicked="showEditNameDialog = true"
       />
 
       <info-card
@@ -55,7 +55,10 @@
 
     <!-- Owned Servers -->
     <div id="owned-servers">
-      <searchable-titled-view title-key="members.member.details.ownedServers" v-model="searchServers">
+      <searchable-titled-view
+        v-model="searchServers"
+        title-key="members.member.details.ownedServers"
+      >
         <v-data-table
           :loading="loadingServers"
           :headers="serversHeaders"
@@ -77,7 +80,10 @@
 
     <!-- Global Groups -->
     <div id="global-groups">
-      <searchable-titled-view title-key="members.member.details.globalGroups" v-model="searchGroups">
+      <searchable-titled-view
+        v-model="searchGroups"
+        title-key="members.member.details.globalGroups"
+      >
         <v-data-table
           :loading="loadingGroups"
           :headers="groupsHeaders"
@@ -105,14 +111,18 @@
         @click="showDeleteDialog = true"
       >
         <div>
-          <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-            >mdi-close-circle</v-icon
-          >
+          <v-icon
+            class="xrd-large-button-icon"
+            :color="colors.Purple100"
+            icon="mdi-close-circle"
+          />
         </div>
         <div class="action-text">
-          {{ $t('members.member.details.deleteMember') }} "{{
-            memberStore.currentMember.member_name || ''
-          }}"
+          {{
+            `${$t('members.member.details.deleteMember')} "${
+              memberStore.currentMember.member_name || ''
+            }"`
+          }}
         </div>
       </div>
     </div>
@@ -122,7 +132,7 @@
       v-if="showEditNameDialog"
       :member="memberStore.currentMember"
       @cancel="cancelEditMemberName"
-      @nameChanged="memberNameChanged"
+      @name-changed="memberNameChanged"
     />
 
     <!-- Delete member - Check member code dialog -->
@@ -145,11 +155,10 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
 import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
-import { VDataTable } from "vuetify/labs/VDataTable";
-import TitledView from "@/components/ui/TitledView.vue";
-import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
-import DateTime from "@/components/ui/DateTime.vue";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
+import DateTime from '@/components/ui/DateTime.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -164,11 +173,10 @@ export default defineComponent({
     CustomDataTableFooter,
     DateTime,
     SearchableTitledView,
-    TitledView,
     EditMemberNameDialog,
     MemberDeleteDialog,
     InfoCard,
-    VDataTable
+    VDataTable,
   },
   props: {
     memberid: {
@@ -192,12 +200,12 @@ export default defineComponent({
       globalGroups: [] as MemberGlobalGroup[],
 
       serversHeaders: [
-          {
-            title: this.$t('global.server') as string,
-            align: 'start',
-            key: 'server_id.server_code'
-          },
-        ],
+        {
+          title: this.$t('global.server') as string,
+          align: 'start',
+          key: 'server_id.server_code',
+        },
+      ],
       groupsHeaders: [
         {
           key: 'group_code',
@@ -214,7 +222,7 @@ export default defineComponent({
           title: this.$t('members.member.details.addedToGroup') as string,
           align: 'start',
         },
-      ]
+      ],
     };
   },
   computed: {
@@ -225,7 +233,7 @@ export default defineComponent({
     },
     allowMemberRename(): boolean {
       return this.hasPermission(Permissions.EDIT_MEMBER_NAME);
-    }
+    },
   },
   created() {
     that = this;

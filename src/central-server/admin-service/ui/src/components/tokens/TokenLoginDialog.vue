@@ -35,16 +35,16 @@
     @cancel="cancel"
   >
     <template #content>
-          <v-text-field
-            v-bind="tokenPin"
-            :label="$t('tokens.pin')"
-            :error-messages="errors.tokenPin"
-            type="password"
-            name="tokenPin"
-            data-test="token-pin-input"
-            variant="outlined"
-            autofocus
-          />
+      <v-text-field
+        v-bind="tokenPin"
+        :label="$t('tokens.pin')"
+        :error-messages="errors.tokenPin"
+        type="password"
+        name="tokenPin"
+        data-test="token-pin-input"
+        variant="outlined"
+        autofocus
+      />
     </template>
   </xrd-simple-dialog>
 </template>
@@ -55,20 +55,9 @@ import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useToken } from '@/store/modules/tokens';
 import { Token } from '@/openapi-types';
-import { useForm } from "vee-validate";
+import { useForm } from 'vee-validate';
 
 export default defineComponent({
-  setup() {
-    const {
-      errors,
-      values,
-      meta,
-      defineComponentBinds,
-      setFieldError
-    } = useForm({ validationSchema: { tokenPin: 'required' } });
-    const tokenPin = defineComponentBinds('tokenPin');
-    return { errors, values, meta, tokenPin, setFieldError };
-  },
   props: {
     token: {
       type: Object as PropType<Token>,
@@ -76,6 +65,12 @@ export default defineComponent({
     },
   },
   emits: ['token-login', 'cancel'],
+  setup() {
+    const { errors, values, meta, defineComponentBinds, setFieldError } =
+      useForm({ validationSchema: { tokenPin: 'required' } });
+    const tokenPin = defineComponentBinds('tokenPin');
+    return { errors, values, meta, tokenPin, setFieldError };
+  },
   data() {
     return {
       loading: false,
@@ -94,8 +89,9 @@ export default defineComponent({
         .catch((error) => {
           const metadata: string[] = error.response?.data?.error?.metadata;
           if (metadata && metadata.length > 0) {
-
-            this.setFieldError('tokenPin', metadata.map(
+            this.setFieldError(
+              'tokenPin',
+              metadata.map(
                 (code) => this.$t('tokens.errors.' + code) as string,
               ),
             );

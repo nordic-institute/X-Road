@@ -50,7 +50,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { XRoadId } from '@/openapi-types';
+import { ClientId } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
 import { useMember } from '@/store/modules/members';
 import { useSystem } from '@/store/modules/system';
@@ -59,12 +59,13 @@ import { useSubsystem } from '@/store/modules/subsystems';
 
 export default defineComponent({
   name: 'AddMemberSubsystemDialog',
-  props:{
+  props: {
     member: {
       type: Object as PropType<{ client_id: ClientId }>,
       required: true,
     },
   },
+  emits: ['cancel', 'added-subsystem'],
   data() {
     return {
       loading: false,
@@ -103,7 +104,7 @@ export default defineComponent({
               subsystemCode: this.subsystemCode,
             }),
           );
-          this.$emit('addedSubsystem');
+          this.$emit('added-subsystem');
           this.clearForm();
         })
         .catch((error) => {

@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import type { App } from 'vue';
-import * as dayjs from 'dayjs'
+import * as dayjs from 'dayjs';
 
 // Format date string. Result YYYY-MM-DD.
 export function formatDate(value: string): string {
@@ -87,7 +87,11 @@ export function formatDateTimeSeconds(value: string): string {
 export function createFilters(i18nMessages = {}) {
   return {
     install(app: App) {
-      app.config.globalProperties.$filters = { formatDate, formatDateTime, formatDateTimeSeconds };
+      app.config.globalProperties.$filters = {
+        formatDate,
+        formatDateTime,
+        formatDateTimeSeconds,
+      };
     },
   };
 }

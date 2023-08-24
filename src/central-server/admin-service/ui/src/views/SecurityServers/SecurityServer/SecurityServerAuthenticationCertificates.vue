@@ -41,7 +41,10 @@
       :loader-height="2"
     >
       <template #[`item.issuer_common_name`]="{ item }">
-        <div class="icon-cell" @click="navigateToCertificateDetails(item.raw.id)">
+        <div
+          class="icon-cell"
+          @click="navigateToCertificateDetails(item.raw.id)"
+        >
           <xrd-icon-base icon-name="certificate" class="mr-4"
             ><XrdIconCertificate
           /></xrd-icon-base>
@@ -49,7 +52,7 @@
         </div>
       </template>
       <template #[`item.not_after`]="{ item }">
-        <date-time :value="item.raw.not_after"/>
+        <date-time :value="item.raw.not_after" />
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -72,7 +75,11 @@
     </v-data-table>
 
     <delete-authentication-certificate-dialog
-      v-if="securityServerId && authCertIdForDeletion && showDeleteConfirmationDialog"
+      v-if="
+        securityServerId &&
+        authCertIdForDeletion &&
+        showDeleteConfirmationDialog
+      "
       :authentication-certificate-id="authCertIdForDeletion.toString()"
       :security-server-id="securityServerId"
       @cancel="cancelDeletion"
@@ -84,16 +91,19 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { VDataTable } from "vuetify/labs/VDataTable";
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { mapState, mapStores } from 'pinia';
-import { SecurityServerAuthenticationCertificateDetails, SecurityServerId } from '@/openapi-types';
+import {
+  SecurityServerAuthenticationCertificateDetails,
+  SecurityServerId,
+} from '@/openapi-types';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
-import { useSecurityServer } from "@/store/modules/security-servers";
-import DateTime from "@/components/ui/DateTime.vue";
-import { DataTableHeader } from "@/ui-types";
+import { useSecurityServer } from '@/store/modules/security-servers';
+import DateTime from '@/components/ui/DateTime.vue';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: { DateTime, DeleteAuthenticationCertificateDialog, VDataTable },
@@ -151,8 +161,8 @@ export default defineComponent({
       ];
     },
     securityServerId(): SecurityServerId | undefined {
-      return this.securityServerStore.currentSecurityServer?.server_id
-    }
+      return this.securityServerStore.currentSecurityServer?.server_id;
+    },
   },
   created() {
     this.fetchSecurityServerAuthenticationCertificates();

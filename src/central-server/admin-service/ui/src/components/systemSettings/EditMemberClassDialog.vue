@@ -62,42 +62,47 @@
   </xrd-simple-dialog>
 </template>
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import { useForm } from "vee-validate";
-import { Event } from "@/ui-types";
-import { ErrorInfo, MemberClass } from "@/openapi-types";
-import { getErrorInfo, getTranslatedFieldErrors, isFieldError } from "@/util/helpers";
-import { AxiosError } from "axios";
-import { mapStores } from "pinia";
-import { useMemberClass } from "@/store/modules/member-class";
-import { useNotifications } from "@/store/modules/notifications";
+import { defineComponent, PropType } from 'vue';
+import { useForm } from 'vee-validate';
+import { Event } from '@/ui-types';
+import { ErrorInfo, MemberClass } from '@/openapi-types';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
+import { AxiosError } from 'axios';
+import { mapStores } from 'pinia';
+import { useMemberClass } from '@/store/modules/member-class';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
+  props: {
+    memberClass: {
+      type: Object as PropType<MemberClass>,
+      default: undefined,
+    },
+  },
+  emits: [Event.Cancel, Event.Edit],
   setup(props) {
-    const { meta, values, errors, setFieldError, defineComponentBinds } = useForm({
-      validationSchema: {
-        code: 'required|min:1|max:255',
-        description: 'required|min:1'
-      },
-      initialValues: {
-        code: props.memberClass?.code || '',
-        description: props.memberClass?.description || ''
-      }
-    });
+    const { meta, values, errors, setFieldError, defineComponentBinds } =
+      useForm({
+        validationSchema: {
+          code: 'required|min:1|max:255',
+          description: 'required|min:1',
+        },
+        initialValues: {
+          code: props.memberClass?.code || '',
+          description: props.memberClass?.description || '',
+        },
+      });
     const classCode = defineComponentBinds('code');
     const classDescription = defineComponentBinds('description');
     return { meta, values, errors, setFieldError, classCode, classDescription };
   },
-  props: {
-    memberClass: {
-      type: Object as PropType<MemberClass>,
-      default: undefined
-    }
-  },
-  emits: [Event.Cancel, Event.Edit],
   data() {
     return {
-      saving: false
+      saving: false,
     };
   },
   computed: {
@@ -109,31 +114,46 @@ export default defineComponent({
       return !this.memberClass;
     },
     title(): string {
-      return this.modeAdd ? 'systemSettings.addMemberClassTitle' : 'systemSettings.editMemberClassTitle';
-    }
+      return this.modeAdd
+        ? 'systemSettings.addMemberClassTitle'
+        : 'systemSettings.editMemberClassTitle';
+    },
   },
   methods: {
     onCancel() {
-      this.$emit(Event.Cancel)
+      this.$emit(Event.Cancel);
     },
     async onSaveMemberClass() {
       this.saving = true;
       try {
         await (this.modeAdd
-          ? this.memberClassStore.add({ code: this.values.code, description: this.values.description })
-          : this.memberClassStore.update(this.values.code, this.values.description));
-        this.notificationsStore.showSuccess(this.$t('systemSettings.memberClassSaved'));
+          ? this.memberClassStore.add({
+              code: this.values.code,
+              description: this.values.description,
+            })
+          : this.memberClassStore.update(
+              this.values.code,
+              this.values.description,
+            ));
+        this.notificationsStore.showSuccess(
+          this.$t('systemSettings.memberClassSaved'),
+        );
         this.$emit(Event.Edit);
       } catch (error: unknown) {
         const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
         if (isFieldError(errorInfo)) {
           let fieldErrors = errorInfo.error?.validation_errors;
           if (fieldErrors) {
-            this.setFieldError('code',
+            this.setFieldError(
+              'code',
               getTranslatedFieldErrors('memberClassDto.code', fieldErrors),
             );
-            this.setFieldError('description',
-              getTranslatedFieldErrors('memberClassDto.description', fieldErrors),
+            this.setFieldError(
+              'description',
+              getTranslatedFieldErrors(
+                'memberClassDto.description',
+                fieldErrors,
+              ),
             );
             return;
           }
@@ -143,7 +163,7 @@ export default defineComponent({
       } finally {
         this.saving = false;
       }
-    }
-  }
+    },
+  },
 });
 </script>

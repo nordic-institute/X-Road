@@ -25,72 +25,72 @@
    THE SOFTWARE.
  -->
 <template>
-    <xrd-simple-dialog
-      :disable-save="!meta.valid"
-      title="trustServices.timestampingService.dialog.edit.title"
-      save-button-text="action.save"
-      cancel-button-text="action.cancel"
-      :loading="loading"
-      @cancel="cancel"
-      @save="update"
-    >
-      <template #content>
+  <xrd-simple-dialog
+    :disable-save="!meta.valid"
+    title="trustServices.timestampingService.dialog.edit.title"
+    save-button-text="action.save"
+    cancel-button-text="action.cancel"
+    :loading="loading"
+    @cancel="cancel"
+    @save="update"
+  >
+    <template #content>
+      <div class="dlg-input-width">
+        <v-text-field
+          v-bind="tasUrl"
+          :label="$t('trustServices.timestampingService.url')"
+          :error-messages="errors.url"
+          variant="outlined"
+          autofocus
+          persistent-hint
+          data-test="timestamping-service-url-input"
+        ></v-text-field>
+      </div>
+
+      <div v-if="!certUploadActive">
+        <div class="dlg-input-width mb-6">
+          <xrd-button
+            outlined
+            class="mr-3"
+            data-test="view-timestamping-service-certificate"
+            @click="navigateToTsaDetails()"
+          >
+            {{ $t('trustServices.viewCertificate') }}
+          </xrd-button>
+          <xrd-button
+            text
+            data-test="upload-timestamping-service-certificate"
+            @click="certUploadActive = true"
+          >
+            <v-icon class="xrd-large-button-icon" icon="icon-upload" />
+            {{
+              $t(
+                'trustServices.timestampingService.dialog.edit.uploadCertificate',
+              )
+            }}
+          </xrd-button>
+        </div>
+      </div>
+      <div v-else>
         <div class="dlg-input-width">
+          <xrd-file-upload
+            v-slot="{ upload }"
+            accepts=".der, .crt, .pem, .cer"
+            @file-changed="onFileUploaded"
+          >
             <v-text-field
-              v-bind="tasUrl"
-              :label="$t('trustServices.timestampingService.url')"
-              :error-messages="errors.url"
+              v-model="certFileTitle"
               variant="outlined"
               autofocus
-              persistent-hint
-              data-test="timestamping-service-url-input"
+              :label="$t('trustServices.uploadCertificate')"
+              append-inner-icon="icon-Upload"
+              @click="upload"
             ></v-text-field>
+          </xrd-file-upload>
         </div>
-
-        <div v-if="!certUploadActive">
-          <div class="dlg-input-width mb-6">
-            <xrd-button
-              outlined
-              class="mr-3"
-              data-test="view-timestamping-service-certificate"
-              @click="navigateToTsaDetails()"
-            >
-              {{ $t('trustServices.viewCertificate') }}
-            </xrd-button>
-            <xrd-button
-              text
-              data-test="upload-timestamping-service-certificate"
-              @click="certUploadActive = true"
-            >
-              <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
-              {{
-                $t(
-                  'trustServices.timestampingService.dialog.edit.uploadCertificate',
-                )
-              }}
-            </xrd-button>
-          </div>
-        </div>
-        <div v-else>
-          <div class="dlg-input-width">
-            <xrd-file-upload
-              v-slot="{ upload }"
-              accepts=".der, .crt, .pem, .cer"
-              @file-changed="onFileUploaded"
-            >
-              <v-text-field
-                v-model="certFileTitle"
-                variant="outlined"
-                autofocus
-                :label="$t('trustServices.uploadCertificate')"
-                append-inner-icon="icon-Upload"
-                @click="upload"
-              ></v-text-field>
-            </xrd-file-upload>
-          </div>
-        </div>
-      </template>
-    </xrd-simple-dialog>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
@@ -101,20 +101,12 @@ import { TimestampingService } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
-import { useForm } from "vee-validate";
-import { useNotifications } from "@/store/modules/notifications";
+import { useForm } from 'vee-validate';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
   components: {
-    XrdFileUpload
-  },
-  setup(props) {
-    const { defineComponentBinds, errors, values, meta } = useForm({
-      validationSchema: { url: 'required|url' },
-      initialValues: { url: props.tsaService.url }
-    });
-    const tasUrl = defineComponentBinds('url');
-    return { defineComponentBinds, errors, values, tasUrl, meta };
+    XrdFileUpload,
   },
   props: {
     tsaService: {
@@ -123,6 +115,14 @@ export default defineComponent({
     },
   },
   emits: ['save', 'cancel'],
+  setup(props) {
+    const { defineComponentBinds, errors, values, meta } = useForm({
+      validationSchema: { url: 'required|url' },
+      initialValues: { url: props.tsaService.url },
+    });
+    const tasUrl = defineComponentBinds('url');
+    return { defineComponentBinds, errors, values, tasUrl, meta };
+  },
   data() {
     return {
       certFile: null as File | null,

@@ -37,7 +37,8 @@
         $t('trustServices.trustService.details.subjectDistinguishedName')
       "
       :info-text="
-        certificationServiceStore.currentCertificationService?.subject_distinguished_name || ''
+        certificationServiceStore.currentCertificationService
+          ?.subject_distinguished_name || ''
       "
       data-test="subject-distinguished-name-card"
     />
@@ -48,7 +49,8 @@
         $t('trustServices.trustService.details.issuerDistinguishedName')
       "
       :info-text="
-        certificationServiceStore.currentCertificationService?.issuer_distinguished_name || ''
+        certificationServiceStore.currentCertificationService
+          ?.issuer_distinguished_name || ''
       "
       data-test="issuer-distinguished-name-card"
     />
@@ -58,13 +60,21 @@
         :title-text="$t('trustServices.validFrom')"
         data-test="valid-from-card"
       >
-        <date-time :value="certificationServiceStore.currentCertificationService?.not_before" />
+        <date-time
+          :value="
+            certificationServiceStore.currentCertificationService?.not_before
+          "
+        />
       </info-card>
       <info-card
         :title-text="$t('trustServices.validTo')"
         data-test="valid-to-card"
       >
-        <date-time :value="certificationServiceStore.currentCertificationService?.not_after" />
+        <date-time
+          :value="
+            certificationServiceStore.currentCertificationService?.not_after
+          "
+        />
       </info-card>
     </div>
 
@@ -75,18 +85,25 @@
       @click="showDeleteDialog = true"
     >
       <div>
-        <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-          >mdi-close-circle
-        </v-icon>
+        <v-icon
+          class="xrd-large-button-icon"
+          :color="colors.Purple100"
+          icon="mdi-close-circle"
+        />
       </div>
       <div class="action-text">
-        {{ $t('trustServices.trustService.delete.action') }} "{{
-          certificationServiceStore.currentCertificationService?.name
-        }}"
+        {{
+          `${$t('trustServices.trustService.delete.action')} "${
+            certificationServiceStore.currentCertificationService?.name
+          }"`
+        }}
       </div>
     </div>
     <xrd-confirm-dialog
-      v-if="certificationServiceStore.currentCertificationService && showDeleteDialog"
+      v-if="
+        certificationServiceStore.currentCertificationService &&
+        showDeleteDialog
+      "
       data-test="delete-trust-service-confirm-dialog"
       :loading="deleting"
       :data="{
@@ -108,7 +125,7 @@ import { useCertificationService } from '@/store/modules/trust-services';
 import { Colors, Permissions, RouteName } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import DateTime from "@/components/ui/DateTime.vue";
+import DateTime from '@/components/ui/DateTime.vue';
 
 /**
  * Component for a Certification Service details view
@@ -145,7 +162,10 @@ export default defineComponent({
         .then(() => {
           this.showDeleteDialog = false;
           this.deleting = false;
-          this.showSuccess(this.$t('trustServices.trustService.delete.success'), true);
+          this.showSuccess(
+            this.$t('trustServices.trustService.delete.success'),
+            true,
+          );
           this.$router.replace({ name: RouteName.TrustServices });
         })
         .catch((error) => {

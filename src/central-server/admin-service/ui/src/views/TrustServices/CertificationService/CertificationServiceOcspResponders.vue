@@ -38,10 +38,10 @@ import { useCertificationService } from '@/store/modules/trust-services';
 import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
 
 export default defineComponent({
+  components: { OcspRespondersList },
   setup() {
     const certificationServiceStore = useCertificationService();
     return { certificationServiceStore };
   },
-  components: { OcspRespondersList },
 });
 </script>

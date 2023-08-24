@@ -25,70 +25,72 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view data-test="system-settings-view" title-key="tab.settings.systemSettings">
-      <!-- System Parameters -->
-      <div
-        id="system-parameters-anchor"
-        class="mb-6"
-        data-test="system-settings-system-parameters-card"
-      >
-        <v-card class="pb-4" flat>
-          <div class="card-top">
-            <div class="card-main-title">
-              {{ $t('systemSettings.systemParameters') }}
-            </div>
+  <titled-view
+    data-test="system-settings-view"
+    title-key="tab.settings.systemSettings"
+  >
+    <!-- System Parameters -->
+    <div
+      id="system-parameters-anchor"
+      class="mb-6"
+      data-test="system-settings-system-parameters-card"
+    >
+      <v-card class="pb-4" flat>
+        <div class="card-top">
+          <div class="card-main-title">
+            {{ $t('systemSettings.systemParameters') }}
           </div>
+        </div>
 
-          <table class="xrd-table mt-0 pb-3">
-            <tbody>
-              <tr>
-                <td class="title-cell">
+        <table class="xrd-table mt-0 pb-3">
+          <tbody>
+            <tr>
+              <td class="title-cell">
+                <div>
                   <div>
-                    <div>
-                      {{ $t('systemSettings.instanceIdentifier') }}
-                    </div>
+                    {{ $t('systemSettings.instanceIdentifier') }}
                   </div>
-                </td>
-                <td data-test="system-settings-instance-identifier-field">
-                  {{ instanceIdentifier }}
-                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
+                </div>
+              </td>
+              <td data-test="system-settings-instance-identifier-field">
+                {{ instanceIdentifier }}
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div>
                   <div>
-                    <div>
-                      {{ $t('systemSettings.centralServerAddress') }}
-                    </div>
+                    {{ $t('systemSettings.centralServerAddress') }}
                   </div>
-                </td>
-                <td data-test="system-settings-central-server-address-field">
-                  {{ serverAddress }}
-                </td>
-                <td class="action-cell">
-                  <xrd-button
-                    text
-                    data-test="system-settings-central-server-address-edit-button"
-                    @click="showEditServerAddressDialog = true"
-                    >{{ $t('action.edit') }}
-                  </xrd-button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </v-card>
-      </div>
-     <ManagementServices ref="managementServices" />
-     <MemberClasses />
+                </div>
+              </td>
+              <td data-test="system-settings-central-server-address-field">
+                {{ serverAddress }}
+              </td>
+              <td class="action-cell">
+                <xrd-button
+                  text
+                  data-test="system-settings-central-server-address-edit-button"
+                  @click="showEditServerAddressDialog = true"
+                  >{{ $t('action.edit') }}
+                </xrd-button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </v-card>
+    </div>
+    <ManagementServices ref="managementServices" />
+    <MemberClasses />
   </titled-view>
   <edit-server-address-dialog
     v-if="showEditServerAddressDialog"
     :service-address="serverAddress || ''"
-    @cancel="showEditServerAddressDialog=false"
+    @cancel="showEditServerAddressDialog = false"
     @edit="refreshData"
   />
   <!-- Management Services -->
-
 </template>
 
 <script lang="ts">
@@ -103,14 +105,14 @@ import { mapActions, mapState } from 'pinia';
  * View for 'system settings' tab
  */
 import { defineComponent } from 'vue';
-import TitledView from "@/components/ui/TitledView.vue";
+import TitledView from '@/components/ui/TitledView.vue';
 
 export default defineComponent({
   components: {
     TitledView,
     MemberClasses,
     ManagementServices,
-    EditServerAddressDialog
+    EditServerAddressDialog,
   },
 
   data() {
@@ -152,7 +154,6 @@ export default defineComponent({
 </script>
 <style lang="scss" scoped>
 @import '@/assets/tables';
-
 
 .card-top {
   padding-top: 15px;

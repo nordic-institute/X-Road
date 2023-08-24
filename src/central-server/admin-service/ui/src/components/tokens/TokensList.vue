@@ -52,7 +52,7 @@
 /**
  * Table component for an array of keys
  */
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ConfigurationType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useToken } from '@/store/modules/tokens';
@@ -66,6 +66,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['update-keys'],
   data() {
     return {
       tokensLoading: false,

@@ -28,8 +28,7 @@
   <v-card class="details-card" flat>
     <v-card-title class="card-title">{{ titleText }}</v-card-title>
     <v-divider></v-divider>
-    <v-card-text class="card-content"
-    >
+    <v-card-text class="card-content">
       <div>
         <slot>{{ infoText }}</slot>
       </div>
@@ -42,9 +41,8 @@
           class="btn-adjust"
           data-test="info-card-edit-button"
           @click="$emit('actionClicked')"
-        >{{ actionText }}
-        </xrd-button
-        ></slot
+          >{{ actionText }}
+        </xrd-button></slot
       ></v-card-text
     >
     <v-divider class="pb-4"></v-divider>
@@ -55,7 +53,6 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-
   props: {
     // Text for the title
     titleText: {
@@ -65,6 +62,7 @@ export default defineComponent({
     // Information text
     infoText: {
       type: String,
+      default: '',
     },
     // Action in the right end
     actionText: {

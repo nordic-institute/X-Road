@@ -31,10 +31,10 @@ Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
-import { createApp } from 'vue'
+import { createApp } from 'vue';
 import axios from 'axios';
 import './plugins/vee-validate';
-import { createFilters } from "@/filters";
+import { createFilters } from '@/filters';
 import App from './App.vue';
 import router from './router/router';
 import '@fontsource/open-sans/800.css';
@@ -42,9 +42,9 @@ import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
-import { createValidators } from "@/plugins/vee-validate";
+import { createValidators } from '@/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify';
-import i18n from "@/plugins/i18n";
+import i18n from '@/plugins/i18n';
 import '@shared-ui/assets/icons.css';
 import XrdIconFolderOutline from '@shared-ui/components/icons/XrdIconFolderOutline.vue';
 import XrdIconBase from '@shared-ui/components/icons/XrdIconBase.vue';
@@ -62,7 +62,6 @@ import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
 import XrdConfirmDialog from '@shared-ui/components/XrdConfirmDialog.vue';
 import XrdEmptyPlaceholder from '@shared-ui/components/XrdEmptyPlaceholder.vue';
 import XrdSubViewTitle from '@shared-ui/components/XrdSubViewTitle.vue';
-
 
 const pinia = createPinia();
 pinia.use(
@@ -101,5 +100,3 @@ app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
 app.component('XrdSubViewTitle', XrdSubViewTitle);
 
 app.mount('#app');
-
-
