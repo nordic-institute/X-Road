@@ -25,8 +25,8 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
 
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
@@ -40,11 +40,9 @@ public class SetOcspResponsesReqHandler
         extends AbstractRpcHandler<SetOcspResponsesReq, Empty> {
     @Override
     protected Empty handle(SetOcspResponsesReq request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+        TemporaryHelper.getOcspResponseManager()
+                .handleSetOcspResponses(request);
 
-        temporaryAkkaMessenger.tellOcspManager(message);
         return Empty.getDefaultInstance();
     }
 }

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer;
 
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 
 import java.util.HashMap;
@@ -40,11 +41,22 @@ public class TemporaryHelper {
     private static Map<String, AbstractTokenWorker> TOKEN_WORKERS = new HashMap<>();
 
     @Deprecated
+    public static OcspResponseManager ocspResponseManager;
+
+    @Deprecated
     public static AbstractTokenWorker getTokenWorker(String tokenId) {
         if (!TOKEN_WORKERS.containsKey(tokenId)) {
-            throw new RuntimeException("Token workder not available");
+            throw new RuntimeException("Token worker not available");
         }
         return TOKEN_WORKERS.get(tokenId);
+    }
+
+    @Deprecated
+    public static OcspResponseManager getOcspResponseManager() {
+        if (ocspResponseManager != null) {
+            return ocspResponseManager;
+        }
+        throw new RuntimeException("OcspResponseManager not available");
     }
 
     @Deprecated

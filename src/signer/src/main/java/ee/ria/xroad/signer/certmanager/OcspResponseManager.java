@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,21 +25,21 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import akka.actor.ActorSystem;
-
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
 import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
 import ee.ria.xroad.signer.util.SignerUtil;
 
+import akka.actor.ActorSystem;
 import akka.actor.Props;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
@@ -134,6 +134,7 @@ public class OcspResponseManager extends AbstractSignerActor {
         } catch (Exception e) {
             log.error("Failed to load OCSP responses from disk", e);
         }
+        TemporaryHelper.ocspResponseManager = this;
     }
 
     /**
@@ -150,8 +151,8 @@ public class OcspResponseManager extends AbstractSignerActor {
         try {
             if (message instanceof GetOcspResponses) {
                 handleGetOcspResponses((GetOcspResponses) message);
-            } else if (message instanceof SetOcspResponses) {
-                handleSetOcspResponses((SetOcspResponses) message);
+//            } else if (message instanceof SetOcspResponses) {
+//                handleSetOcspResponses((SetOcspResponses) message);
             } else if (message instanceof IsCachedOcspResponse) {
                 handleIsCachedOcspResponse((IsCachedOcspResponse) message);
             } else {
@@ -169,12 +170,12 @@ public class OcspResponseManager extends AbstractSignerActor {
         getContext().actorOf(props).tell(message.getCertHash(), getSender());
     }
 
-    void handleSetOcspResponses(SetOcspResponses message) throws Exception {
+    public void handleSetOcspResponses(SetOcspResponsesReq message) throws Exception {
         log.trace("handleSetOcspResponses()");
 
-        for (int i = 0; i < message.getCertHashes().length; i++) {
-            setResponse(message.getCertHashes()[i], new OCSPResp(
-                    decodeBase64(message.getBase64EncodedResponses()[i])));
+        for (int i = 0; i < message.getCertHashesCount(); i++) {
+            setResponse(message.getCertHashes(i), new OCSPResp(
+                    decodeBase64(message.getBase64EncodedResponses(i))));
         }
     }
 
@@ -189,7 +190,7 @@ public class OcspResponseManager extends AbstractSignerActor {
         return responseCache.get(certHash);
     }
 
-    void setResponse(String certHash, OCSPResp response) throws Exception {
+    void setResponse(String certHash, OCSPResp response) {
         log.debug("Setting a new response to cache for cert: {}", certHash);
         try {
             responseCache.put(certHash, response);

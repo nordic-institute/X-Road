@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -38,9 +38,9 @@ import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.signer.OcspClientJob;
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager.IsCachedOcspResponse;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
 import ee.ria.xroad.signer.util.SignerUtil;
@@ -50,6 +50,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -377,8 +378,15 @@ public class OcspClientWorker extends AbstractSignerActor {
             responses.add(encodeBase64(e.getValue().getEncoded()));
         }
 
-        getOcspResponseManager(getContext()).tell(new SetOcspResponses(hashes.toArray(
-                new String[statuses.size()]), responses.toArray(new String[statuses.size()])), getSelf());
+//        getOcspResponseManager(getContext()).tell(new SetOcspResponses(hashes.toArray(
+//                new String[statuses.size()]), responses.toArray(new String[statuses.size()])), getSelf());
+
+        SetOcspResponsesReq setOcspResponsesReq = SetOcspResponsesReq.newBuilder()
+                .addAllCertHashes(hashes)
+                .addAllBase64EncodedResponses(responses)
+                .build();
+
+        TemporaryHelper.getOcspResponseManager().handleSetOcspResponses(setOcspResponsesReq);
     }
 
     /**
