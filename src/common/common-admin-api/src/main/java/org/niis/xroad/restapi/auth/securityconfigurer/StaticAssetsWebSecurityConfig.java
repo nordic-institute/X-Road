@@ -55,7 +55,7 @@ public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter 
                     .and()
                 .headers()
                     .contentSecurityPolicy(
-                                "default-src 'self' 'unsafe-inline' ;"
+                                "default-src 'self' 'unsafe-inline' data: ;"
                                         + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
                                         + "style-src 'self' 'unsafe-inline' ;"
                                         + "font-src data: 'self'"
