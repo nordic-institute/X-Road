@@ -25,35 +25,38 @@
    THE SOFTWARE.
  -->
 <template>
-    <xrd-simple-dialog
-      title="globalGroup.dialog.deleteMember.title"
-      save-button-text="action.delete"
-      cancel-button-text="action.cancel"
-      :loading="deleting"
-      :disable-save="!meta.valid"
-      @cancel="$emit('cancel')"
-      @save="deleteGroupMember"
-    >
-      <template #text>
-        <i18n-t scope="global" keypath="globalGroup.dialog.deleteMember.confirmation">
-            <template #identifier>
-              <b class="no-break">{{ identifier }}</b>
-            </template>
-        </i18n-t>
-      </template>
-      <template #content>
-          <v-text-field
-            v-bind="memberCode"
-            data-test="verify-member-code"
-            variant="outlined"
-            autofocus
-            :placeholder="$t('globalGroup.dialog.deleteMember.placeholder')"
-            :label="$t('fields.memberCode')"
-            :error-messages="errors.memberCode"
-          >
-          </v-text-field>
-      </template>
-    </xrd-simple-dialog>
+  <xrd-simple-dialog
+    title="globalGroup.dialog.deleteMember.title"
+    save-button-text="action.delete"
+    cancel-button-text="action.cancel"
+    :loading="deleting"
+    :disable-save="!meta.valid"
+    @cancel="$emit('cancel')"
+    @save="deleteGroupMember"
+  >
+    <template #text>
+      <i18n-t
+        scope="global"
+        keypath="globalGroup.dialog.deleteMember.confirmation"
+      >
+        <template #identifier>
+          <b class="no-break">{{ identifier }}</b>
+        </template>
+      </i18n-t>
+    </template>
+    <template #content>
+      <v-text-field
+        v-bind="memberCode"
+        data-test="verify-member-code"
+        variant="outlined"
+        autofocus
+        :placeholder="$t('globalGroup.dialog.deleteMember.placeholder')"
+        :label="$t('fields.memberCode')"
+        :error-messages="errors.memberCode"
+      >
+      </v-text-field>
+    </template>
+  </xrd-simple-dialog>
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
@@ -62,19 +65,10 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { GroupMemberListView } from '@/openapi-types';
 import { toIdentifier } from '@/util/helpers';
-import { useForm } from "vee-validate";
-import { Event } from "@/ui-types";
+import { useForm } from 'vee-validate';
+import { Event } from '@/ui-types';
 
 export default defineComponent({
-  setup(props) {
-    const {
-      meta,
-      errors,
-      defineComponentBinds
-    } = useForm({ validationSchema: { memberCode: `required|is:${props.groupMember.client_id.member_code}` } });
-    const memberCode = defineComponentBinds('memberCode');
-    return { meta, errors, memberCode };
-  },
   props: {
     groupCode: {
       type: String,
@@ -86,6 +80,15 @@ export default defineComponent({
     },
   },
   emits: [Event.Cancel, Event.Delete],
+  setup(props) {
+    const { meta, errors, defineComponentBinds } = useForm({
+      validationSchema: {
+        memberCode: `required|is:${props.groupMember.client_id.member_code}`,
+      },
+    });
+    const memberCode = defineComponentBinds('memberCode');
+    return { meta, errors, memberCode };
+  },
   data() {
     return {
       deleting: false,

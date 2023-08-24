@@ -72,18 +72,22 @@
         :info-text="securityServer.server_address"
         :action-text="$t('action.edit')"
         :show-action="canEditAddress"
-        @actionClicked="showEditAddressDialog = true"
+        @action-clicked="showEditAddressDialog = true"
       />
 
       <info-card
         :title-text="$t('securityServers.registered')"
-        data-test="security-server-registered"><date-time :value="securityServer.created_at" with-seconds/></info-card>
+        data-test="security-server-registered"
+        ><date-time :value="securityServer.created_at" with-seconds
+      /></info-card>
 
-      <div class="delete-action" @click="showDeleteServerDialog=true">
+      <div class="delete-action" @click="showDeleteServerDialog = true">
         <div>
-          <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-          >mdi-close-circle
-          </v-icon>
+          <v-icon
+            class="xrd-large-button-icon"
+            :color="colors.Purple100"
+            icon="mdi-close-circle"
+          />
         </div>
         <div
           v-if="canDeleteServer"
@@ -122,12 +126,10 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { SecurityServer } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
-import EditSecurityServerAddressDialog
-  from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
-import DeleteSecurityServerDialog
-  from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
+import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
+import DeleteSecurityServerDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
 import { useNotifications } from '@/store/modules/notifications';
-import DateTime from "@/components/ui/DateTime.vue";
+import DateTime from '@/components/ui/DateTime.vue';
 
 /**
  * Component for a Security server details view
@@ -150,7 +152,7 @@ export default defineComponent({
     return {
       colors: Colors,
       showEditAddressDialog: false,
-      showDeleteServerDialog: false
+      showDeleteServerDialog: false,
     };
   },
   computed: {

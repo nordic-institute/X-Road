@@ -79,7 +79,9 @@
             <div data-test="class">{{ item.raw.client_id.member_class }}</div>
           </template>
           <template #[`item.client_id.subsystem_code`]="{ item }">
-            <div data-test="subsystem">{{ item.raw.client_id.subsystem_code }}</div>
+            <div data-test="subsystem">
+              {{ item.raw.client_id.subsystem_code }}
+            </div>
           </template>
           <template #[`item.client_id.instance_id`]="{ item }">
             <div data-test="instance">{{ item.raw.client_id.instance_id }}</div>
@@ -90,7 +92,6 @@
         </v-data-table-server>
       </div>
     </template>
-
   </xrd-simple-dialog>
 </template>
 
@@ -103,9 +104,9 @@ import { useNotifications } from '@/store/modules/notifications';
 import { DataTableHeader, Event, PagingOptions } from '@/ui-types';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { debounce } from '@/util/helpers';
-import { VDataTableServer } from "vuetify/labs/VDataTable";
-import { defaultItemsPerPageOptions } from "@/util/defaults";
-import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
+import { defaultItemsPerPageOptions } from '@/util/defaults';
+import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -158,7 +159,9 @@ export default defineComponent({
           sortable: false,
         },
         {
-          title: this.$t('systemSettings.selectSubsystem.memberClass') as string,
+          title: this.$t(
+            'systemSettings.selectSubsystem.memberClass',
+          ) as string,
           align: 'start',
           key: 'client_id.member_class',
           sortable: false,
@@ -195,17 +198,13 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.pagingOptions.page = 1
+      that.pagingOptions.page = 1;
       that.fetchClients();
     }, 600),
     async fetchClients() {
       this.loading = true;
       return this.clientStore
-        .getByExcludingGroup(
-          this.groupCode,
-          this.search,
-          this.pagingOptions
-        )
+        .getByExcludingGroup(this.groupCode, this.search, this.pagingOptions)
         .then((resp) => {
           this.clients = resp;
         })
@@ -263,5 +262,4 @@ export default defineComponent({
     font-size: 14px;
   }
 }
-
 </style>

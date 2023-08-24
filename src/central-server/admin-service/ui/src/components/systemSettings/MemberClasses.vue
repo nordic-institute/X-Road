@@ -103,10 +103,10 @@ import { useMemberClass } from '@/store/modules/member-class';
 import EditMemberClassDialog from '@/components/systemSettings/EditMemberClassDialog.vue';
 import DeleteMemberClassDialog from '@/components/systemSettings/DeleteMemberClassDialog.vue';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from "vuetify/labs/VDataTable";
-import DataTableToolbar from "@/components/ui/DataTableToolbar.vue";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
-import { toPagingOptions } from "@/util/helpers";
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { toPagingOptions } from '@/util/helpers';
 
 export default defineComponent({
   components: {
@@ -114,14 +114,14 @@ export default defineComponent({
     DataTableToolbar,
     EditMemberClassDialog,
     DeleteMemberClassDialog,
-    VDataTable
+    VDataTable,
   },
   data: () => ({
     sortBy: [{ key: 'code', order: 'asc' }],
     selectedMemberClass: undefined as MemberClass | undefined,
     showAddEditMemberClassDialog: false,
     showDeleteMemberClassDialog: false,
-    itemsPerPageOptions: toPagingOptions(5, 10)
+    itemsPerPageOptions: toPagingOptions(5, 10),
   }),
   computed: {
     ...mapStores(useMemberClass, useNotifications),
@@ -131,7 +131,7 @@ export default defineComponent({
     itemsPerPage(): number {
       return this.memberClassStore.memberClasses.length > 5 ? 5 : -1;
     },
-    totalItems():number{
+    totalItems(): number {
       return this.memberClassStore.memberClasses.length;
     },
     headers(): DataTableHeader[] {
@@ -158,7 +158,9 @@ export default defineComponent({
     this.memberClassStore.fetchAll();
   },
   methods: {
-    openEditMemberClassDialog(memberClass: MemberClass | undefined = undefined) {
+    openEditMemberClassDialog(
+      memberClass: MemberClass | undefined = undefined,
+    ) {
       this.showAddEditMemberClassDialog = true;
       this.selectedMemberClass = memberClass;
     },
@@ -190,7 +192,6 @@ export default defineComponent({
 .align-fix {
   align-items: center;
 }
-
 
 .card-corner-button {
   display: flex;

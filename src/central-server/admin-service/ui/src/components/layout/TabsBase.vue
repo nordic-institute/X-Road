@@ -36,9 +36,9 @@
       show-arrows
     >
       <v-tab v-for="tab in allowedTabs" :key="tab.key" :to="tab.to">{{
-          $t(tab.name)
-        }}</v-tab>
-      </v-tabs>
+        $t(tab.name)
+      }}</v-tab>
+    </v-tabs>
     <app-drop-menu />
   </v-layout>
 </template>
@@ -72,14 +72,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "@/assets/colors";
+@import '@/assets/colors';
 .v-tabs-slider.xrd-main-tabs-slider {
   width: 70px;
   margin-left: auto;
   margin-right: auto;
 }
-
-
 </style>
 
 <style lang="scss" scoped>

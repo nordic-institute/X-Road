@@ -29,9 +29,8 @@
 </template>
 
 <script lang="ts">
-
-import { defineComponent } from "vue";
-import { formatDateTime } from "@/util/helpers";
+import { defineComponent } from 'vue';
+import { formatDateTime } from '@/util/helpers';
 
 const regular = 'YYYY-MM-DD HH:mm:ss';
 const withSeconds = regular + ':ss';
@@ -39,15 +38,19 @@ export default defineComponent({
   props: {
     value: {
       type: String,
+      default: '',
     },
     withSeconds: {
       type: Boolean,
       default: false,
-    }
+    },
   },
   computed: {
     formatted() {
-      return formatDateTime(this.value, this.withSeconds ? withSeconds : regular);
+      return formatDateTime(
+        this.value,
+        this.withSeconds ? withSeconds : regular,
+      );
     },
   },
 });

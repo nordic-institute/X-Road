@@ -39,7 +39,7 @@
         class="button-spacing"
         @click="upload"
       >
-        <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+        <v-icon class="xrd-large-button-icon" icon="icon-upload" />
         {{ $t('action.upload') }}
       </xrd-button>
     </xrd-file-upload>
@@ -67,6 +67,7 @@ import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
   components: { UploadTrustedAnchorDialog, XrdFileUpload },
+  emits: ['uploaded'],
   data() {
     return {
       uploading: false,

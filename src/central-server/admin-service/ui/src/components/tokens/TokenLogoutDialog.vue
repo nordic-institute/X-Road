@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useToken } from '@/store/modules/tokens';
@@ -51,6 +51,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['cancel', 'token-logout'],
   data() {
     return {
       showConfirmLogout: false,

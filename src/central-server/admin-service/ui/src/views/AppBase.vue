@@ -28,7 +28,7 @@
 <template>
   <div>
     <router-view name="top" />
-    <v-row  align="center" justify="center" style="margin-top: 0" >
+    <v-row align="center" justify="center" style="margin-top: 0">
       <transition name="fade" mode="out-in">
         <div class="base-full-width">
           <router-view name="subTabs" />
@@ -49,9 +49,11 @@
     <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
-          <span class="headline">{{ $t('logout.sessionExpired') }}</span>
+          <span class="text-h5">{{ $t('logout.sessionExpired') }}</span>
         </v-card-title>
-        <v-card-text class="logout-text pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
+        <v-card-text class="logout-text pt-4">{{
+          $t('logout.idleWarning')
+        }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
           <xrd-button @click="logout()">{{ $t('action.ok') }}</xrd-button>

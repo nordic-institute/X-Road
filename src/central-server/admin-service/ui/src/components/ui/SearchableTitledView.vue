@@ -27,10 +27,14 @@
 <template>
   <titled-view>
     <template #title>
-      <slot name="title">{{titleValue}}</slot>
+      <slot name="title">{{ titleValue }}</slot>
     </template>
     <template #append-title>
-      <xrd-search class="search-box" data-test="search-query-field" v-model="query" />
+      <xrd-search
+        v-model="query"
+        class="search-box"
+        data-test="search-query-field"
+      />
       <slot name="append-search" />
     </template>
     <template #header-buttons>
@@ -42,20 +46,22 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import TitledView from "@/components/ui/TitledView.vue";
+import TitledView from '@/components/ui/TitledView.vue';
 
 export default defineComponent({
   components: { TitledView },
   props: {
     title: {
-      type: String
+      type: String,
+      default: '',
     },
     titleKey: {
-      type: String
+      type: String,
+      default: '',
     },
     modelValue: {
       type: String,
-      default: ''
+      default: '',
     },
   },
   emits: ['update:model-value'],
@@ -65,13 +71,13 @@ export default defineComponent({
         return this.modelValue;
       },
       set(newValue: string) {
-        this.$emit('update:model-value', newValue)
-      }
+        this.$emit('update:model-value', newValue);
+      },
     },
     titleValue() {
       return this.titleKey ? this.$t(this.titleKey) : this.title;
-    }
-  }
+    },
+  },
 });
 </script>
 

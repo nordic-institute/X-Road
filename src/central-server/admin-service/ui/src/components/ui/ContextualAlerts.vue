@@ -86,7 +86,7 @@
                   v-for="validationError in notification.validationErrors"
                   :key="validationError.field"
                 >
-                  {{ $t(`fields.${validationError.field}`) }}:
+                  {{ $t(`fields.${validationError.field}`) + ':' }}
                   <template v-if="validationError.errorCodes.length === 1">
                     {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
                   </template>
@@ -105,7 +105,7 @@
 
               <!-- Error ID -->
               <div v-if="notification.errorId">
-                {{ $t('alert.id') }}:
+                {{ $t('alert.id') + ':' }}
                 {{ notification.errorId }}
               </div>
 
@@ -146,8 +146,8 @@
             <v-btn
               color="primary"
               data-test="close-alert"
-              @click="closeError(notification.timeAdded)"
               variant="plain"
+              @click="closeError(notification.timeAdded)"
             >
               <xrd-icon-base><xrd-icon-close /></xrd-icon-base>
             </v-btn>
@@ -159,7 +159,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';

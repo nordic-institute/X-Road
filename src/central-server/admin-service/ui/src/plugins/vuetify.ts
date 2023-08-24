@@ -28,30 +28,30 @@
 import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
 import { createVuetify } from 'vuetify';
-import { aliases, mdi } from 'vuetify/iconsets/mdi'
-import { Colors } from "@/global";
+import { aliases, mdi } from 'vuetify/iconsets/mdi';
+import { Colors } from '@/global';
 
 export default createVuetify({
   defaults: {
     VProgressLinear: {
-      color:"primary"
+      color: 'primary',
     },
     VCheckbox: {
-      color:"primary"
+      color: 'primary',
     },
     VTextField: {
-      color:"primary"
+      color: 'primary',
     },
     VTabs: {
-      color: "primary"
-    }
+      color: 'primary',
+    },
   },
   icons: {
     defaultSet: 'mdi',
     aliases,
     sets: {
-      mdi
-    }
+      mdi,
+    },
   },
   theme: {
     themes: {
@@ -60,7 +60,7 @@ export default createVuetify({
         colors: {
           primary: Colors.Purple100,
           secondary: Colors.Purple70,
-          'on-error': Colors.Black100
+          'on-error': Colors.Black100,
         },
       },
     },

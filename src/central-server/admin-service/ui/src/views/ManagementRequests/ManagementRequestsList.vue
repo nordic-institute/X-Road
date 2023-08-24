@@ -26,7 +26,10 @@
  -->
 <template>
   <div>
-    <searchable-titled-view title-key="tab.main.managementRequests" v-model="filterQuery">
+    <searchable-titled-view
+      v-model="filterQuery"
+      title-key="tab.main.managementRequests"
+    >
       <template #header-buttons>
         <div class="only-pending">
           <v-checkbox
@@ -35,8 +38,9 @@
             :label="$t('managementRequests.showOnlyPending')"
             class="custom-checkbox"
             data-test="show-only-pending-requests"
-            @change="fetchItems"
-          hide-details/>
+            hide-details
+            @update:model-value="fetchItems"
+          />
         </div>
       </template>
       <v-data-table-server
@@ -92,7 +96,7 @@
 </template>
 
 <script lang="ts">
-import { VDataTableServer } from "vuetify/labs/VDataTable";
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
@@ -102,11 +106,11 @@ import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vu
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
 import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
-import { DataQuery, DataTableHeader } from "@/ui-types";
-import { defaultItemsPerPageOptions } from "@/util/defaults";
-import DateTime from "@/components/ui/DateTime.vue";
-import { defineComponent } from "vue";
-import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
+import { DataQuery, DataTableHeader } from '@/ui-types';
+import { defaultItemsPerPageOptions } from '@/util/defaults';
+import DateTime from '@/components/ui/DateTime.vue';
+import { defineComponent } from 'vue';
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,13 +128,13 @@ export default defineComponent({
     MrStatusCell,
     MrActionsCell,
     ManagementRequestIdCell,
-    VDataTableServer
+    VDataTableServer,
   },
   data() {
     return {
       loading: false, //is data being loaded
       dataQuery: {} as DataQuery,
-      itemsPerPageOptions: defaultItemsPerPageOptions(50)
+      itemsPerPageOptions: defaultItemsPerPageOptions(50),
     };
   },
   computed: {
@@ -176,7 +180,9 @@ export default defineComponent({
           key: 'type',
         },
         {
-          title: this.$t('managementRequests.securityServerOwnerName') as string,
+          title: this.$t(
+            'managementRequests.securityServerOwnerName',
+          ) as string,
           align: 'start',
           key: 'security_server_owner',
         },
@@ -196,7 +202,7 @@ export default defineComponent({
           key: 'button',
         },
       ];
-    }
+    },
   },
   watch: {
     filterQuery: {
@@ -247,6 +253,4 @@ export default defineComponent({
     font-size: 14px;
   }
 }
-
-
 </style>

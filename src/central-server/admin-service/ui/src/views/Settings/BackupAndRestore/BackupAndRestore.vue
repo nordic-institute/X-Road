@@ -66,13 +66,13 @@ import { useUser } from '@/store/modules/user';
 import { BackupHandler } from '@shared-ui/types';
 import XrdBackupsToolbar from '@shared-ui/components/backups-and-restore/XrdBackupsToolbar.vue';
 import XrdBackupsDataTable from '@shared-ui/components/backups-and-restore/XrdBackupsDataTable.vue';
-import SearchableTitledView from "@/components/ui/SearchableTitledView.vue";
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
 export default defineComponent({
   components: {
     SearchableTitledView,
     XrdBackupsToolbar,
-    XrdBackupsDataTable
+    XrdBackupsDataTable,
   },
   data() {
     return {
@@ -105,8 +105,7 @@ export default defineComponent({
         upload: this.uploadBackup,
         create: this.createBackup,
         restore: this.restoreFromBackup,
-        showWarning(textKey: string, data?: Record<string, unknown>) {
-        }
+        showWarning(textKey: string, data?: Record<string, unknown>) {},
       };
     },
     fetchBackups() {
@@ -129,9 +128,11 @@ export default defineComponent({
       return this.backupStore.downloadBackup(filename);
     },
     uploadBackup(backupFile: File, ignoreWarnings = false) {
-      return this.backupStore.uploadBackup(backupFile, ignoreWarnings).then(resp => resp.data);
+      return this.backupStore
+        .uploadBackup(backupFile, ignoreWarnings)
+        .then((resp) => resp.data);
     },
-    displaySuccess(textKey: string, data: Record<string, any> = {}) {
+    displaySuccess(textKey: string, data: Record<string, string> = {}) {
       this.showSuccess(this.$t(textKey, data));
     },
   },

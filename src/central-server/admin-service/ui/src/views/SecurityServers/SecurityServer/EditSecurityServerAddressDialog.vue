@@ -28,30 +28,30 @@
   Member details view
 -->
 <template>
-    <xrd-simple-dialog
-      title="securityServers.dialogs.editAddress.title"
-      data-test="security-server-address-edit-dialog"
-      save-button-text="action.save"
-      :scrollable="false"
-      :show-close="true"
-      :loading="loading"
-      :disable-save="!meta.valid || !meta.dirty"
-      @save="saveAddress"
-      @cancel="close"
-    >
-      <template #content>
-            <v-text-field
-              v-bind="securityServerAddress"
-              data-test="security-server-address-edit-field"
-              :label="$t('securityServers.dialogs.editAddress.addressField')"
-              autofocus
-              variant="outlined"
-              class="dlg-row-input"
-              name="securityServerAddress"
-              :error-messages="errors.securityServerAddress"
-            />
-      </template>
-    </xrd-simple-dialog>
+  <xrd-simple-dialog
+    title="securityServers.dialogs.editAddress.title"
+    data-test="security-server-address-edit-dialog"
+    save-button-text="action.save"
+    :scrollable="false"
+    :show-close="true"
+    :loading="loading"
+    :disable-save="!meta.valid || !meta.dirty"
+    @save="saveAddress"
+    @cancel="close"
+  >
+    <template #content>
+      <v-text-field
+        v-bind="securityServerAddress"
+        data-test="security-server-address-edit-field"
+        :label="$t('securityServers.dialogs.editAddress.addressField')"
+        autofocus
+        variant="outlined"
+        class="dlg-row-input"
+        name="securityServerAddress"
+        :error-messages="errors.securityServerAddress"
+      />
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
@@ -59,25 +59,19 @@ import { defineComponent } from 'vue';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import { ErrorInfo } from '@/openapi-types';
-import { getErrorInfo, getTranslatedFieldErrors, isFieldError, } from '@/util/helpers';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
 import { AxiosError } from 'axios';
-import { useForm } from "vee-validate";
-import { mapActions, mapStores } from "pinia";
+import { useForm } from 'vee-validate';
+import { mapActions, mapStores } from 'pinia';
 
 /**
  * Component for a Security server details view
  */
 export default defineComponent({
-  setup(props) {
-    const { values, errors, meta, resetForm, setFieldError, defineComponentBinds } = useForm({
-      validationSchema: {
-        securityServerAddress: 'required'
-      },
-      initialValues: { securityServerAddress: props.address }
-    });
-    const securityServerAddress = defineComponentBinds('securityServerAddress');
-    return { values, meta, errors, resetForm, setFieldError, securityServerAddress };
-  },
   props: {
     securityServerId: {
       type: String,
@@ -89,6 +83,30 @@ export default defineComponent({
     },
   },
   emits: ['cancel', 'addressUpdated'],
+  setup(props) {
+    const {
+      values,
+      errors,
+      meta,
+      resetForm,
+      setFieldError,
+      defineComponentBinds,
+    } = useForm({
+      validationSchema: {
+        securityServerAddress: 'required',
+      },
+      initialValues: { securityServerAddress: props.address },
+    });
+    const securityServerAddress = defineComponentBinds('securityServerAddress');
+    return {
+      values,
+      meta,
+      errors,
+      resetForm,
+      setFieldError,
+      securityServerAddress,
+    };
+  },
   data() {
     return {
       loading: false,
@@ -102,7 +120,7 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.resetForm();
-      this.$emit('cancel')
+      this.$emit('cancel');
     },
     saveAddress: async function () {
       try {
@@ -121,7 +139,8 @@ export default defineComponent({
           // backend validation error
           let fieldErrors = errorInfo.error?.validation_errors;
           if (fieldErrors) {
-            this.setFieldError('securityServerAddress',
+            this.setFieldError(
+              'securityServerAddress',
               getTranslatedFieldErrors(
                 'securityServerAddressDto.serverAddress',
                 fieldErrors,

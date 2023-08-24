@@ -37,7 +37,7 @@ import { defineComponent } from 'vue';
 import GlobalGroupDetails from '@/components/globalGroups/GlobalGroupDetails.vue';
 import GlobalGroupMembers from '@/components/globalGroups/GlobalGroupMembers.vue';
 import DetailsView from '@/components/ui/DetailsView.vue';
-import { RouteName } from "@/global";
+import { RouteName } from '@/global';
 
 /**
  * Global group view
@@ -57,10 +57,10 @@ export default defineComponent({
   data() {
     return {
       backTo: {
-        name: RouteName.GlobalResources
-      }
-    }
-  }
+        name: RouteName.GlobalResources,
+      },
+    };
+  },
 });
 </script>
 

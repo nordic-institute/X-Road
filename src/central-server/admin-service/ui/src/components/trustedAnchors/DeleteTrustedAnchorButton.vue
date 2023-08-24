@@ -29,7 +29,7 @@
     v-if="canDelete"
     data-test="delete-anchor-button"
     outlined
-    @click="showDialog=true"
+    @click="showDialog = true"
   >
     {{ $t('action.delete') }}
   </xrd-button>
@@ -38,7 +38,7 @@
     :hash="hash"
     :identifier="identifier"
     @deleted="$emit('deleted')"
-    @cancel="showDialog=false"
+    @cancel="showDialog = false"
   />
 </template>
 <script lang="ts">
@@ -60,10 +60,10 @@ export default defineComponent({
       required: true,
     },
   },
-  emits:['deleted'],
-  data(){
+  emits: ['deleted'],
+  data() {
     return {
-      showDialog: false
+      showDialog: false,
     };
   },
   computed: {
@@ -72,12 +72,12 @@ export default defineComponent({
       return this.hasPermission(Permissions.DELETE_TRUSTED_ANCHOR);
     },
   },
-  methods:{
-    onDelete(){
+  methods: {
+    onDelete() {
       this.$emit('deleted');
-      this.showDialog=false;
-    }
-  }
+      this.showDialog = false;
+    },
+  },
 });
 </script>
 <style lang="scss" scoped></style>

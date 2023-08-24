@@ -27,8 +27,8 @@
 <template>
   <div class="status-wrapper">
     <v-tooltip location="top">
-      <template v-slot:activator="{ props }">
-        <div >
+      <template #activator="{ props }">
+        <div>
           <xrd-icon-base class="mr-3" v-bind="props">
             <!-- Decide what icon to show -->
             <xrd-icon-change-owner v-if="type === 'OWNER_CHANGE_REQUEST'" />
@@ -50,11 +50,11 @@
 </template>
 
 <script lang="ts">
-import XrdIconChangeOwner from '@shared-ui/components/icons/XrdIconChangeOwner.vue'
-import XrdIconAddUser from '@shared-ui/components/icons/XrdIconAddUser.vue'
-import XrdIconRemoveUser from '@shared-ui/components/icons/XrdIconRemoveUser.vue'
-import XrdIconRemoveCertificate from '@shared-ui/components/icons/XrdIconRemoveCertificate.vue'
-import XrdIconAddCertificate from '@shared-ui/components/icons/XrdIconAddCertificate.vue'
+import XrdIconChangeOwner from '@shared-ui/components/icons/XrdIconChangeOwner.vue';
+import XrdIconAddUser from '@shared-ui/components/icons/XrdIconAddUser.vue';
+import XrdIconRemoveUser from '@shared-ui/components/icons/XrdIconRemoveUser.vue';
+import XrdIconRemoveCertificate from '@shared-ui/components/icons/XrdIconRemoveCertificate.vue';
+import XrdIconAddCertificate from '@shared-ui/components/icons/XrdIconAddCertificate.vue';
 import { defineComponent, PropType } from 'vue';
 import { ManagementRequestType } from '@/openapi-types';
 import { managementTypeToText } from '@/util/helpers';
@@ -65,7 +65,7 @@ export default defineComponent({
     XrdIconRemoveCertificate,
     XrdIconRemoveUser,
     XrdIconAddUser,
-    XrdIconChangeOwner
+    XrdIconChangeOwner,
   },
   props: {
     type: {

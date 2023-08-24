@@ -25,44 +25,36 @@
    THE SOFTWARE.
  -->
 <template>
-    <xrd-simple-dialog
-      :loading="loading"
-      cancel-button-text="action.cancel"
-      save-button-text="action.save"
-      title="globalGroup.editDescription"
-      :disable-save="!meta.valid || !meta.dirty"
-      @save="saveDescription"
-      @cancel="cancelEdit"
-    >
-      <template #content>
-          <v-text-field
-            v-bind="newDescription"
-            variant="outlined"
-            :label="$t('globalGroup.description')"
-            :error-messages="errors.description"
-            persistent-hint
-          />
-      </template>
-    </xrd-simple-dialog>
+  <xrd-simple-dialog
+    :loading="loading"
+    cancel-button-text="action.cancel"
+    save-button-text="action.save"
+    title="globalGroup.editDescription"
+    :disable-save="!meta.valid || !meta.dirty"
+    @save="saveDescription"
+    @cancel="cancelEdit"
+  >
+    <template #content>
+      <v-text-field
+        v-bind="newDescription"
+        variant="outlined"
+        :label="$t('globalGroup.description')"
+        :error-messages="errors.description"
+        persistent-hint
+      />
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useForm } from "vee-validate";
-import { Event } from "@/ui-types";
-import { mapActions, mapStores } from "pinia";
-import { useGlobalGroups } from "@/store/modules/global-groups";
-import { useNotifications } from "@/store/modules/notifications";
+import { useForm } from 'vee-validate';
+import { Event } from '@/ui-types';
+import { mapActions, mapStores } from 'pinia';
+import { useGlobalGroups } from '@/store/modules/global-groups';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
-  setup(props) {
-    const { values, errors, meta, defineComponentBinds } = useForm({
-      validationSchema: { description: 'required' },
-      initialValues: { description: props.groupDescription }
-    })
-    const newDescription = defineComponentBinds('description');
-    return { values, errors, meta, newDescription };
-  },
   props: {
     groupCode: {
       type: String,
@@ -74,10 +66,17 @@ export default defineComponent({
     },
   },
   emits: [Event.Cancel, Event.Edit],
+  setup(props) {
+    const { values, errors, meta, defineComponentBinds } = useForm({
+      validationSchema: { description: 'required' },
+      initialValues: { description: props.groupDescription },
+    });
+    const newDescription = defineComponentBinds('description');
+    return { values, errors, meta, newDescription };
+  },
   data() {
     return {
       loading: false,
-      newDescription: this.groupDescription,
     };
   },
   computed: {
@@ -91,7 +90,9 @@ export default defineComponent({
     saveDescription(): void {
       this.loading = true;
       this.globalGroupStore
-        .editGroupDescription(this.groupCode, { description: this.values.description })
+        .editGroupDescription(this.groupCode, {
+          description: this.values.description,
+        })
         .then((resp) => {
           this.showSuccess(this.$t('globalGroup.descriptionSaved'));
           this.$emit(Event.Edit, resp.data);

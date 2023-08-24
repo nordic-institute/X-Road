@@ -35,7 +35,7 @@
         </transition>
       </router-view>
     </v-main>
-    <snackbar />
+    <snack-bar />
     <app-footer v-if="loginView" />
   </v-app>
 </template>
@@ -43,7 +43,7 @@
 <script lang="ts">
 // The root component of the Vue app
 import { defineComponent } from 'vue';
-import Snackbar from '@/components/ui/Snackbar.vue';
+import SnackBar from '@/components/ui/SnackBar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
@@ -54,7 +54,7 @@ export default defineComponent({
   components: {
     AppFooter,
     AppToolbar,
-    Snackbar,
+    SnackBar,
   },
   computed: {
     loginView(): boolean {

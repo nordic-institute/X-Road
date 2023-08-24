@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn variant="plain" @click="$emit('click', $event)" color="primary" size="normal">
+  <v-btn variant="plain" color="primary" size="normal" @click="$emit('click', $event)">
     <v-icon icon="mdi-close" />
   </v-btn>
 </template>

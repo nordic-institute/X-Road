@@ -26,13 +26,13 @@
  -->
 <template>
   <xrd-confirm-dialog
-      :loading="loading"
-      accept-button-text="action.yes"
-      title="globalGroup.deleteGroup"
-      text="globalGroup.areYouSure"
-      :data="{ group: groupCode }"
-      @save="proceedWithDelete"
-      @cancel="cancelDelete"
+    :loading="loading"
+    accept-button-text="action.yes"
+    title="globalGroup.deleteGroup"
+    text="globalGroup.areYouSure"
+    :data="{ group: groupCode }"
+    @save="proceedWithDelete"
+    @cancel="cancelDelete"
   />
 </template>
 
@@ -40,12 +40,12 @@
 /** Base component for simple dialogs */
 
 import { defineComponent } from 'vue';
-import XrdConfirmDialog from "@shared-ui/components/XrdConfirmDialog.vue";
-import { Event } from "@/ui-types";
-import { RouteName } from "@/global";
-import { mapActions, mapStores } from "pinia";
-import { useGlobalGroups } from "@/store/modules/global-groups";
-import { useNotifications } from "@/store/modules/notifications";
+import XrdConfirmDialog from '@shared-ui/components/XrdConfirmDialog.vue';
+import { Event } from '@/ui-types';
+import { RouteName } from '@/global';
+import { mapActions, mapStores } from 'pinia';
+import { useGlobalGroups } from '@/store/modules/global-groups';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
   components: { XrdConfirmDialog },
@@ -61,7 +61,7 @@ export default defineComponent({
       loading: false,
     };
   },
-  computed:{
+  computed: {
     ...mapStores(useGlobalGroups, useNotifications),
   },
   methods: {
@@ -74,7 +74,10 @@ export default defineComponent({
       this.globalGroupStore
         .deleteByCode(this.groupCode)
         .then(() => {
-          this.showSuccess(this.$t('globalGroup.groupDeletedSuccessfully'), true);
+          this.showSuccess(
+            this.$t('globalGroup.groupDeletedSuccessfully'),
+            true,
+          );
           this.$router.replace({ name: RouteName.GlobalResources });
         })
         .catch((error) => {

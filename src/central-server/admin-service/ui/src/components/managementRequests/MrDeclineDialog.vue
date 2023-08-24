@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useNotifications } from '@/store/modules/notifications';
@@ -57,6 +57,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ['decline'],
   data() {
     return {
       loading: false,

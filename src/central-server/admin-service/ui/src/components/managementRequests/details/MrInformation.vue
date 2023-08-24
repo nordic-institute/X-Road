@@ -31,7 +31,11 @@
       :value="managementRequest.id"
     />
     <data-line label-text-key="managementRequestDetails.received">
-      <date-time v-if="managementRequest.created_at" :value="managementRequest.created_at" with-seconds/>
+      <date-time
+        v-if="managementRequest.created_at"
+        :value="managementRequest.created_at"
+        with-seconds
+      />
     </data-line>
     <data-line
       label-text-key="managementRequestDetails.source"
@@ -53,7 +57,7 @@ import { ManagementRequestDetailedView } from '@/openapi-types';
 import ManagementRequestStatusCell from '../MrStatusCell.vue';
 import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';
-import DateTime from "@/components/ui/DateTime.vue";
+import DateTime from '@/components/ui/DateTime.vue';
 
 export default defineComponent({
   components: { DateTime, DataBlock, DataLine, ManagementRequestStatusCell },

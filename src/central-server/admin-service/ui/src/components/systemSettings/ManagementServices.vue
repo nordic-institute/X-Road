@@ -106,9 +106,10 @@
                 @click.prevent="
                   copyUrl(managementServicesConfiguration.wsdl_address)
                 "
-                ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
-                >{{ $t('action.copy') }}</xrd-button
               >
+                <v-icon class="xrd-large-button-icon" icon="icon-copy" />
+                {{ $t('action.copy') }}
+              </xrd-button>
             </td>
           </tr>
 
@@ -129,9 +130,10 @@
                 @click.prevent="
                   copyUrl(managementServicesConfiguration.services_address)
                 "
-                ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
-                >{{ $t('action.copy') }}</xrd-button
               >
+                <v-icon class="xrd-large-button-icon" icon="icon-copy" />
+                {{ $t('action.copy') }}
+              </xrd-button>
             </td>
           </tr>
 
@@ -151,22 +153,26 @@
     </v-card>
     <select-subsystem-dialog
       v-if="showSelectSubsystemDialog"
-      :current-subsystem-id="managementServicesConfiguration.service_provider_id || '' "
-      @select="showSelectSubsystemDialog=false"
-      @cancel="showSelectSubsystemDialog=false"
+      :current-subsystem-id="
+        managementServicesConfiguration.service_provider_id || ''
+      "
+      @select="showSelectSubsystemDialog = false"
+      @cancel="showSelectSubsystemDialog = false"
     >
     </select-subsystem-dialog>
     <select-security-server-dialog
       v-if="showSelectSecurityServerDialog"
-      :current-security-server="managementServicesConfiguration.security_server_id"
-      @select="showSelectSecurityServerDialog=false"
-      @cancel="showSelectSecurityServerDialog=false"
+      :current-security-server="
+        managementServicesConfiguration.security_server_id
+      "
+      @select="showSelectSecurityServerDialog = false"
+      @cancel="showSelectSecurityServerDialog = false"
     />
   </div>
 </template>
 
 <script lang="ts">
-import { ManagementServicesConfiguration, } from '@/openapi-types';
+import { ManagementServicesConfiguration } from '@/openapi-types';
 import { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useManagementServices } from '@/store/modules/management-services';
@@ -181,7 +187,7 @@ export default defineComponent({
   components: {
     SelectSubsystemDialog,
     SelectSecurityServerDialog,
-    XrdEmptyPlaceholderRow
+    XrdEmptyPlaceholderRow,
   },
   data() {
     return {

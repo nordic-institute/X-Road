@@ -60,7 +60,9 @@
           :loading="loading"
           :headers="headers"
           :items="selectableSecurityServers"
-          :items-length="securityServerStore.securityServerPagingOptions.total_items"
+          :items-length="
+            securityServerStore.securityServerPagingOptions.total_items
+          "
           :items-per-page-options="itemsPerPageOptions"
           :items-per-page="pagingOptions.itemsPerPage"
           :page="pagingOptions.page"
@@ -75,17 +77,20 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { ManagementServicesConfiguration, SecurityServer } from '@/openapi-types';
+import {
+  ManagementServicesConfiguration,
+  SecurityServer,
+} from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { DataQuery, DataTableHeader, Event } from '@/ui-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { TranslateResult } from 'vue-i18n';
-import { VDataTableServer } from "vuetify/labs/VDataTable";
-import { defaultItemsPerPageOptions } from "@/util/defaults";
-import XrdSimpleDialog from "@shared-ui/components/XrdSimpleDialog.vue";
-import { useManagementServices } from "@/store/modules/management-services";
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
+import { defaultItemsPerPageOptions } from '@/util/defaults';
+import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
+import { useManagementServices } from '@/store/modules/management-services';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,12 +99,13 @@ let that: any;
 export default defineComponent({
   components: {
     XrdSimpleDialog,
-    VDataTableServer
+    VDataTableServer,
   },
   props: {
     currentSecurityServer: {
-      type: String
-    }
+      type: String,
+      default: '',
+    },
   },
   emits: [Event.Cancel, Event.Select],
   data() {
@@ -108,7 +114,9 @@ export default defineComponent({
       loading: false,
       itemsPerPageOptions: options,
       pagingOptions: { page: 1, itemsPerPage: options[0].value } as DataQuery,
-      selectedSecurityServers: (this.currentSecurityServer ? [this.currentSecurityServer?.replace('SERVER:','')] : []) as string[],
+      selectedSecurityServers: (this.currentSecurityServer
+        ? [this.currentSecurityServer?.replace('SERVER:', '')]
+        : []) as string[],
     };
   },
   computed: {
@@ -125,7 +133,10 @@ export default defineComponent({
         : this.$t('noData.noSecurityServers');
     },
     changed(): boolean {
-      return this.currentSecurityServer?.replace('SERVER:','') !== this.selectedSecurityServers[0]
+      return (
+        this.currentSecurityServer?.replace('SERVER:', '') !==
+        this.selectedSecurityServers[0]
+      );
     },
     selected(): boolean {
       return this.selectedSecurityServers?.length === 1;
@@ -188,16 +199,17 @@ export default defineComponent({
     },
     registerServiceProvider(): void {
       this.loading = true;
-      this.managementServicesStore.registerServiceProvider({
-        security_server_id: this.selectedSecurityServers[0] || '',
-      })
+      this.managementServicesStore
+        .registerServiceProvider({
+          security_server_id: this.selectedSecurityServers[0] || '',
+        })
         .then(() => {
           this.showSuccess(
             this.$t('systemSettings.serviceProvider.registeredSuccess', {
               subsystemId:
-              this.managementServicesConfiguration.service_provider_id,
+                this.managementServicesConfiguration.service_provider_id,
               securityServerId:
-              this.managementServicesConfiguration.security_server_id,
+                this.managementServicesConfiguration.security_server_id,
             }),
           );
           this.$emit(Event.Select, this.selectedSecurityServers);

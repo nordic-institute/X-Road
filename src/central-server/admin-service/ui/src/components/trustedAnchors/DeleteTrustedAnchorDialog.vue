@@ -51,7 +51,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits:['cancel', 'deleted'],
+  emits: ['cancel', 'deleted'],
   data() {
     return {
       deleting: false,

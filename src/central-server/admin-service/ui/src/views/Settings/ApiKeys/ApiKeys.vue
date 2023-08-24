@@ -58,8 +58,8 @@
 
       <template #[`item.roles`]="{ item }">
         <span :data-test="`api-key-row-${item.id}-roles`">{{
-            translateRoles(item.raw.roles).join(', ')
-          }}</span>
+          translateRoles(item.raw.roles).join(', ')
+        }}</span>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -101,18 +101,14 @@
       @cancel="showEditDialog = false"
     >
       <template #title>
-        <span
-          :data-test="`api-key-row-${selectedKey.id}-edit-dialog-title`"
-        >
-        {{
+        <span :data-test="`api-key-row-${selectedKey.id}-edit-dialog-title`">
+          {{
             $t('apiKey.table.action.edit.dialog.title', { id: selectedKey.id })
           }}
-      </span>
+        </span>
       </template>
       <template #content>
-        <div
-          :data-test="`api-key-row-${selectedKey.id}-edit-dialog-content`"
-        >
+        <div :data-test="`api-key-row-${selectedKey.id}-edit-dialog-content`">
           <v-row class="mt-12">
             <v-col>
               {{ $t('apiKey.table.action.edit.dialog.message') }}
@@ -132,7 +128,6 @@
           </v-row>
         </div>
       </template>
-
     </xrd-simple-dialog>
 
     <!-- Confirm revoke dialog -->
@@ -161,17 +156,17 @@ import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { VDataTable } from "vuetify/labs/VDataTable";
-import XrdIconKey from "@shared-ui/components/icons/XrdIconKey.vue";
-import TitledView from "@/components/ui/TitledView.vue";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import XrdIconKey from '@shared-ui/components/icons/XrdIconKey.vue';
+import TitledView from '@/components/ui/TitledView.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
 export default defineComponent({
   components: {
     CustomDataTableFooter,
     TitledView,
     VDataTable,
-    XrdIconKey
+    XrdIconKey,
   },
   data() {
     return {
@@ -314,5 +309,4 @@ export default defineComponent({
   font-weight: 600;
   font-size: 14px;
 }
-
 </style>

@@ -81,7 +81,7 @@
       </titled-view>
     </div>
 
-    <timestamping-services-list class="tsa-list" v-if="showTsaList" />
+    <timestamping-services-list v-if="showTsaList" class="tsa-list" />
 
     <!-- Dialogs -->
     <add-certification-service-dialog
@@ -95,7 +95,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import AddCertificationServiceDialog from '@/components/certificationServices/AddCertificationServiceDialog.vue';
-import { VDataTable } from "vuetify/labs/VDataTable";
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCertificationService } from '@/store/modules/trust-services';
@@ -107,10 +107,10 @@ import {
   CertificationServiceFileAndSettings,
 } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
-import DateTime from "@/components/ui/DateTime.vue";
-import { DataTableHeader } from "@/ui-types";
-import TitledView from "@/components/ui/TitledView.vue";
-import CustomDataTableFooter from "@/components/ui/CustomDataTableFooter.vue";
+import DateTime from '@/components/ui/DateTime.vue';
+import { DataTableHeader } from '@/ui-types';
+import TitledView from '@/components/ui/TitledView.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
 export default defineComponent({
   name: 'TrustServiceList',
@@ -120,7 +120,7 @@ export default defineComponent({
     DateTime,
     AddCertificationServiceDialog,
     TimestampingServicesList,
-    VDataTable
+    VDataTable,
   },
   data() {
     return {
@@ -128,7 +128,6 @@ export default defineComponent({
       loading: false,
       showAddCSDialog: false,
       permissions: Permissions,
-
     };
   },
   computed: {
@@ -149,7 +148,9 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          title: this.$t('trustServices.approvedCertificationService') as string,
+          title: this.$t(
+            'trustServices.approvedCertificationService',
+          ) as string,
           align: 'start',
           key: 'name',
         },
@@ -164,7 +165,7 @@ export default defineComponent({
           key: 'not_after',
         },
       ];
-    }
+    },
   },
   created() {
     this.fetchCertificationServices();

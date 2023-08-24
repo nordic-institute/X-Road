@@ -26,7 +26,10 @@
  -->
 <template>
   <main id="timestamping-service-certificate-details" class="mt-8">
-    <certificate-details v-if="certificateDetails" :certificate-details="certificateDetails" />
+    <certificate-details
+      v-if="certificateDetails"
+      :certificate-details="certificateDetails"
+    />
   </main>
 </template>
 
@@ -57,7 +60,7 @@ export default defineComponent({
         return find.certificate;
       }
       return null;
-    }
+    },
   },
   created() {
     window.scrollTo(0, 0);

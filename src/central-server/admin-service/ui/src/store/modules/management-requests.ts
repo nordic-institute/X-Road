@@ -38,7 +38,7 @@ import {
   PagingMetadata,
   PagingSortingParameters,
 } from '@/openapi-types';
-import { DataQuery } from "@/ui-types";
+import { DataQuery } from '@/ui-types';
 
 export interface State {
   currentManagementRequest: ManagementRequestDetailedView | null;

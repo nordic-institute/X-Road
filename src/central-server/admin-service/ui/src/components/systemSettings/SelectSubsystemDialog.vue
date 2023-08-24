@@ -82,9 +82,9 @@ import { useClient } from '@/store/modules/clients';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { DataQuery, DataTableHeader, Event } from '@/ui-types';
-import { defaultItemsPerPageOptions } from "@/util/defaults";
-import { VDataTableServer } from "vuetify/labs/VDataTable";
-import { useManagementServices } from "@/store/modules/management-services";
+import { defaultItemsPerPageOptions } from '@/util/defaults';
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
+import { useManagementServices } from '@/store/modules/management-services';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -104,10 +104,15 @@ export default defineComponent({
     return {
       itemsPerPageOptions: itemsPerPageOptions,
       loading: false,
-      pagingOptions: { page: 1, itemsPerPage: itemsPerPageOptions[0].value } as DataQuery,
+      pagingOptions: {
+        page: 1,
+        itemsPerPage: itemsPerPageOptions[0].value,
+      } as DataQuery,
       clients: {} as PagedClients,
       search: '',
-      selectedSubsystems: (this.currentSubsystemId ? [this.currentSubsystemId.replace('SUBSYSTEM:', '')] : []) as string[],
+      selectedSubsystems: (this.currentSubsystemId
+        ? [this.currentSubsystemId.replace('SUBSYSTEM:', '')]
+        : []) as string[],
     };
   },
   computed: {
@@ -119,7 +124,10 @@ export default defineComponent({
       return this.clients.clients || [];
     },
     changed(): boolean {
-      return this.currentSubsystemId?.replace('SUBSYSTEM:', '') !== this.selectedSubsystems[0];
+      return (
+        this.currentSubsystemId?.replace('SUBSYSTEM:', '') !==
+        this.selectedSubsystems[0]
+      );
     },
     selected(): boolean {
       return this.selectedSubsystems?.length === 1;
@@ -137,7 +145,9 @@ export default defineComponent({
           key: 'client_id.member_code',
         },
         {
-          title: this.$t('systemSettings.selectSubsystem.memberClass') as string,
+          title: this.$t(
+            'systemSettings.selectSubsystem.memberClass',
+          ) as string,
           align: 'start',
           key: 'client_id.member_class',
         },

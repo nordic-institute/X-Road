@@ -92,6 +92,7 @@ import { FileUploadResult } from '@shared-ui/types';
 
 export default defineComponent({
   components: { XrdFileUpload },
+  emits: ['cancel', 'save'],
   data() {
     return {
       showCASettingsDialog: false,

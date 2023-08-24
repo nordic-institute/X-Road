@@ -92,10 +92,9 @@
 
 import { defineComponent } from "vue";
 import XrdButton from "./XrdButton.vue";
-import XrdCloseButton from "./XrdCloseButton.vue";
 
 export default defineComponent({
-  components: { XrdCloseButton, XrdButton },
+  components: { XrdButton },
   props: {
     // Title of the dialog
     title: {

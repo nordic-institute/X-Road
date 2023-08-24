@@ -27,8 +27,10 @@
 // Ok to ignore any here because that is the axios contract as well
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 
-import { toPagingOptions } from "@/util/helpers";
+import { toPagingOptions } from '@/util/helpers';
 
-export function defaultItemsPerPageOptions(...additional: number[]): { title: string, value: number }[] {
+export function defaultItemsPerPageOptions(
+  ...additional: number[]
+): { title: string; value: number }[] {
   return toPagingOptions(2, 10, 25, ...additional);
 }

@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid  class="login-view-wrap fill-height">
+  <v-container fluid class="login-view-wrap fill-height">
     <alerts-container class="alerts" />
     <v-row no-gutters class="fill-height">
       <v-col cols="3">
@@ -41,58 +41,62 @@
         </div>
       </v-col>
       <v-col cols="9" align-self="center">
-          <v-container class="set-width">
-            <v-card variant="flat">
-              <v-card-item class="title-wrap">
-                <v-card-title class="login-form-title">{{ $t('login.logIn') }}</v-card-title>
-                <v-card-subtitle class="sub-title">X-Road Central Server</v-card-subtitle>
-              </v-card-item>
+        <v-container class="set-width">
+          <v-card variant="flat">
+            <v-card-item class="title-wrap">
+              <v-card-title class="login-form-title">
+                {{ $t('login.logIn') }}
+              </v-card-title>
+              <v-card-subtitle class="sub-title">
+                {{ $t('global.appTitle') }}
+              </v-card-subtitle>
+            </v-card-item>
 
-              <v-card-text>
-                <v-form>
-                  <v-text-field
-                    id="username"
-                    v-bind="username"
-                    name="username"
-                    data-test="login-username-input"
-                    variant="outlined"
-                    :label="$t('fields.username')"
-                    :error-messages="errors.username"
-                    type="text"
-                    autofocus
-                    @keyup.enter="submit"
-                  ></v-text-field>
+            <v-card-text>
+              <v-form>
+                <v-text-field
+                  id="username"
+                  v-bind="username"
+                  name="username"
+                  data-test="login-username-input"
+                  variant="outlined"
+                  :label="$t('fields.username')"
+                  :error-messages="errors.username"
+                  type="text"
+                  autofocus
+                  @keyup.enter="submit"
+                ></v-text-field>
 
-                  <v-text-field
-                    id="password"
-                    v-bind="password"
-                    name="password"
-                    data-test="login-password-input"
-                    variant="outlined"
-                    :label="$t('fields.password')"
-                    :error-messages="errors.password"
-                    type="password"
-                    @keyup.enter="submit"
-                  ></v-text-field>
-                </v-form>
-              </v-card-text>
-              <v-card-actions class="px-4">
-                <xrd-button
-                  id="submit-button"
-                  color="primary"
-                  gradient
-                  block
-                  data-test="login-button"
-                  :min_width="120"
-                  :disabled="isDisabled"
-                  :loading="loading"
-                  @click="submit"
-                >
-                  {{ $t('login.logIn') }}
-                </xrd-button>
-              </v-card-actions>
-            </v-card>
-          </v-container>
+                <v-text-field
+                  id="password"
+                  v-bind="password"
+                  name="password"
+                  data-test="login-password-input"
+                  variant="outlined"
+                  :label="$t('fields.password')"
+                  :error-messages="errors.password"
+                  type="password"
+                  @keyup.enter="submit"
+                ></v-text-field>
+              </v-form>
+            </v-card-text>
+            <v-card-actions class="px-4">
+              <xrd-button
+                id="submit-button"
+                color="primary"
+                gradient
+                block
+                data-test="login-button"
+                :min_width="120"
+                :disabled="isDisabled"
+                :loading="loading"
+                @click="submit"
+              >
+                {{ $t('login.logIn') }}
+              </xrd-button>
+            </v-card-actions>
+          </v-card>
+        </v-container>
       </v-col>
     </v-row>
   </v-container>
@@ -111,26 +115,39 @@ import { swallowRedirectedNavigationError } from '@/util/helpers';
 import axios from 'axios';
 
 export default defineComponent({
-  name: 'Login',
+  components: {
+    AlertsContainer,
+  },
   setup() {
-    const { meta, defineComponentBinds, resetForm, setFieldError, errors, values } = useForm({
+    const {
+      meta,
+      defineComponentBinds,
+      resetForm,
+      setFieldError,
+      errors,
+      values,
+    } = useForm({
       validationSchema: {
         username: 'required',
         password: 'required',
-      }
+      },
     });
     const username = defineComponentBinds('username');
     const password = defineComponentBinds('password');
-    return { meta, username, password, resetForm, setFieldError, errors, values}
-  },
-  components: {
-    AlertsContainer,
+    return {
+      meta,
+      username,
+      password,
+      resetForm,
+      setFieldError,
+      errors,
+      values,
+    };
   },
   data() {
     return {
       xroad7Large,
       loading: false as boolean,
-
     };
   },
   computed: {
@@ -157,7 +174,7 @@ export default defineComponent({
     ]),
     ...mapActions(useSystem, ['fetchSystemStatus', 'fetchServerVersion']),
     async submit() {
-      if(this.isDisabled){
+      if (this.isDisabled) {
         return;
       }
       // Clear old error notifications (if they exist) before submit

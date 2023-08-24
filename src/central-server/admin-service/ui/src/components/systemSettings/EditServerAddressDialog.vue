@@ -51,41 +51,40 @@
   </xrd-simple-dialog>
 </template>
 <script lang="ts">
-import { defineComponent } from "vue";
-import { useForm } from "vee-validate";
-import { ErrorInfo } from "@/openapi-types";
-import { getErrorInfo, getTranslatedFieldErrors, isFieldError } from "@/util/helpers";
-import { AxiosError } from "axios";
-import { mapActions, mapState } from "pinia";
-import { useSystem } from "@/store/modules/system";
-import { useNotifications } from "@/store/modules/notifications";
-import { Event } from "@/ui-types";
+import { defineComponent } from 'vue';
+import { useForm } from 'vee-validate';
+import { ErrorInfo } from '@/openapi-types';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
+import { AxiosError } from 'axios';
+import { mapActions, mapState } from 'pinia';
+import { useSystem } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { Event } from '@/ui-types';
 
 export default defineComponent({
-  setup(props) {
-    const {
-      meta,
-      values,
-      errors,
-      setFieldError,
-      defineComponentBinds
-    } = useForm({
-      validationSchema: { serviceAddress: 'required' },
-      initialValues: { serviceAddress: props.serviceAddress }
-    });
-    const renewedServerAddress = defineComponentBinds('serviceAddress');
-    return { meta, values, errors, setFieldError, renewedServerAddress };
-  },
   props: {
     serviceAddress: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   emits: [Event.Cancel, Event.Edit],
+  setup(props) {
+    const { meta, values, errors, setFieldError, defineComponentBinds } =
+      useForm({
+        validationSchema: { serviceAddress: 'required' },
+        initialValues: { serviceAddress: props.serviceAddress },
+      });
+    const renewedServerAddress = defineComponentBinds('serviceAddress');
+    return { meta, values, errors, setFieldError, renewedServerAddress };
+  },
   data() {
     return {
-      saving: false
+      saving: false,
     };
   },
   computed: {
@@ -115,7 +114,8 @@ export default defineComponent({
           // backend validation error
           let fieldErrors = errorInfo.error?.validation_errors;
           if (fieldErrors && this.$refs?.serverAddressVP) {
-            this.setFieldError('serviceAddress',
+            this.setFieldError(
+              'serviceAddress',
               getTranslatedFieldErrors(
                 'serverAddressUpdateBody.centralServerAddress',
                 fieldErrors,
@@ -132,6 +132,6 @@ export default defineComponent({
     onCancelAddressEdit(): void {
       this.$emit(Event.Cancel);
     },
-  }
+  },
 });
 </script>

@@ -59,15 +59,15 @@
 import { Permissions } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import  { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { ConfigurationType } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
-import { DataTableHeader } from "@/ui-types";
+import { DataTableHeader } from '@/ui-types';
 import ConfigurationAnchorItem, {
   Anchor,
 } from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
-import XrdIconDownload from '@shared-ui/components/icons/XrdIconDownload.vue'
+import XrdIconDownload from '@shared-ui/components/icons/XrdIconDownload.vue';
 
 export default defineComponent({
   components: { ConfigurationAnchorItem, XrdIconDownload },
