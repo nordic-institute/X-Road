@@ -6,5 +6,5 @@
  * member's name
  */
 export type MemberName = {
-    member_name?: string;
-}
+  member_name?: string;
+};

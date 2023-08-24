@@ -6,7 +6,7 @@
  * diagnostics status class
  */
 export enum DiagnosticStatusClass {
-    OK = 'OK',
-    WAITING = 'WAITING',
-    FAIL = 'FAIL',
+  OK = 'OK',
+  WAITING = 'WAITING',
+  FAIL = 'FAIL',
 }

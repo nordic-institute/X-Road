@@ -3,8 +3,8 @@
 /* eslint-disable */
 
 export type LocalGroupDescription = {
-    /**
-     * description for the LocalGroup
-     */
-    description: string;
-}
+  /**
+   * description for the LocalGroup
+   */
+  description: string;
+};

@@ -8,5 +8,5 @@ import type { ConnectionType } from './ConnectionType';
  * connection type
  */
 export type ConnectionTypeWrapper = {
-    connection_type?: ConnectionType;
-}
+  connection_type?: ConnectionType;
+};
