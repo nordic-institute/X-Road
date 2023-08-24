@@ -221,7 +221,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
     public byte[] handleSign(SignRequest request) {
         try {
-            byte data[] = SignerUtil.createDataToSign(request.getDigest().toByteArray(), request.getSignatureAlgorithmId());
+            byte[] data = SignerUtil.createDataToSign(request.getDigest().toByteArray(), request.getSignatureAlgorithmId());
 
             return sign(request.getKeyId(), request.getSignatureAlgorithmId(), data);
         } catch (Exception e) {

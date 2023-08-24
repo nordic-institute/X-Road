@@ -25,23 +25,19 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import com.google.protobuf.ByteString;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
-import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
-import ee.ria.xroad.signer.protocol.message.ImportCert;
-import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
-import ee.ria.xroad.signer.protocol.message.Sign;
-import ee.ria.xroad.signer.protocol.message.SignResponse;
-import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -53,12 +49,18 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
+import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
+import org.niis.xroad.signer.proto.SignRequest;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.util.Date;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -74,21 +76,25 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
  */
 @Slf4j
 @SuppressWarnings("deprecation")
-public class GenerateSelfSignedCertRequestHandler extends AbstractRequestHandler<GenerateSelfSignedCert> {
+@Component
+@RequiredArgsConstructor
+public class GenerateSelfSignedCertRequestHandler extends AbstractRpcHandler<GenerateSelfSignedCertReq, GenerateSelfSignedCertResp> {
+    private final SignRequestHandler signRequestHandler;
+    private final ImportCertReqHandler importCertReqHandler;
 
     // TODO make configurable
     private static final String SIGNATURE_DIGEST_ALGORITHM = SHA512_ID;
 
     @Override
-    protected Object handle(GenerateSelfSignedCert message) throws Exception {
-        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(message.getKeyId());
+    protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) throws Exception {
+        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
 
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
         if (tokenAndKey.getKey().getPublicKey() == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", message.getKeyId());
+            throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", request.getKeyId());
         }
 
         PublicKey pk = readX509PublicKey(decodeBase64(tokenAndKey.getKey().getPublicKey()));
@@ -96,43 +102,32 @@ public class GenerateSelfSignedCertRequestHandler extends AbstractRequestHandler
         String signAlgoId = CryptoUtils.getSignatureAlgorithmId(SIGNATURE_DIGEST_ALGORITHM,
                 tokenAndKey.getSignMechanism());
 
-        X509Certificate cert = new DummyCertBuilder().build(tokenAndKey, message, pk, signAlgoId);
+        X509Certificate cert = new DummyCertBuilder().build(tokenAndKey, request, pk, signAlgoId);
 
-        byte[] certData = cert.getEncoded();
+        importCertReqHandler.importCertificate(cert,
+                CertificateInfo.STATUS_REGISTERED,
+                ClientIdMapper.fromDto(request.getMemberId()));
 
-        importCert(new ImportCert(certData, CertificateInfo.STATUS_REGISTERED, message.getMemberId()));
-
-        return new GenerateSelfSignedCertResponse(certData);
-    }
-
-    private void importCert(ImportCert importCert) throws Exception {
-        Object response = SignerUtil.ask(ServiceLocator.getRequestProcessor(getContext()), importCert);
-
-        if (!(response instanceof ImportCertResponse)) {
-            if (response instanceof Exception) {
-                throw (Exception) response;
-            }
-
-            log.error("Received unexpected response: " + response.getClass());
-
-            throw new CodedException(X_INTERNAL_ERROR, "Failed to import certificate to key");
-        }
+        return GenerateSelfSignedCertResp.newBuilder()
+                .setCertificateBytes(ByteString.copyFrom(cert.getEncoded()))
+                .build();
     }
 
     class DummyCertBuilder {
 
-        X509Certificate build(TokenAndKey tokenAndKey, GenerateSelfSignedCert message, PublicKey publicKey,
-                String signAlgoId) throws Exception {
+        X509Certificate build(TokenAndKey tokenAndKey, GenerateSelfSignedCertReq message, PublicKey publicKey,
+                              String signAlgoId) throws Exception {
             X500Name subject = new X500Name("CN=" + message.getCommonName());
 
             JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE,
-                    message.getNotBefore(), message.getNotAfter(), subject, publicKey);
+                    fromUnixTimestamp(message.getDateNotBefore()),
+                    fromUnixTimestamp(message.getDateNotAfter()), subject, publicKey);
 
             if (message.getKeyUsage() == KeyUsageInfo.SIGNING) {
                 KeyUsage keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.keyCertSign);
                 builder.addExtension(X509Extension.keyUsage, true, keyUsage);
                 builder.addExtension(X509Extension.basicConstraints,
-                                      true, new BasicConstraints(true));
+                        true, new BasicConstraints(true));
             } else {
                 KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature);
                 builder.addExtension(X509Extension.keyUsage, true, keyUsage);
@@ -143,6 +138,10 @@ public class GenerateSelfSignedCertRequestHandler extends AbstractRequestHandler
             X509CertificateHolder holder = builder.build(signer);
 
             return new JcaX509CertificateConverter().getCertificate(holder);
+        }
+
+        private Date fromUnixTimestamp(long unixDate) {
+            return Date.from(Instant.ofEpochMilli(unixDate));
         }
 
         @Data
@@ -173,17 +172,13 @@ public class GenerateSelfSignedCertRequestHandler extends AbstractRequestHandler
                     String digAlgoId = getDigestAlgorithmId(signAlgoId);
                     digest = calculateDigest(digAlgoId, dataToSign);
 
-                    Sign message = new Sign(tokenAndKey.getKeyId(), signAlgoId, digest);
+                    var message = SignRequest.newBuilder()
+                            .setKeyId(tokenAndKey.getKeyId())
+                            .setSignatureAlgorithmId(signAlgoId)
+                            .setDigest(ByteString.copyFrom(digest))
+                            .build();
+                    return signRequestHandler.signData(message);
 
-                    Object response = SignerUtil.ask(ServiceLocator.getTokenSigner(getContext(),
-                            tokenAndKey.getTokenId()), message);
-
-                    if (response instanceof SignResponse) {
-                        return ((SignResponse) response).getSignature();
-                    } else {
-                        throw new RuntimeException("Failed to sign with key " + tokenAndKey.getKeyId()
-                                + "; response was " + response);
-                    }
                 } catch (Exception e) {
                     throw translateException(e);
                 }

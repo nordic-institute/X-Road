@@ -42,11 +42,15 @@ public class SignRequestHandler extends AbstractRpcHandler<SignRequest, SignResp
 
     @Override
     protected SignResponse handle(SignRequest request) throws Exception {
-        final byte[] signature = getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
-                .handleSign(request);
+        final byte[] signature = signData(request);
 
         return SignResponse.newBuilder()
                 .setSignature(ByteString.copyFrom(signature))
                 .build();
+    }
+
+    public byte[] signData(SignRequest request) {
+        return getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
+                .handleSign(request);
     }
 }

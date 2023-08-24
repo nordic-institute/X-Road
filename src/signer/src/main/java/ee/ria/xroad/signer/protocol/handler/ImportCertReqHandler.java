@@ -32,17 +32,17 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.ImportCert;
-import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
+import ee.ria.xroad.signer.protocol.dto.*;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.ImportCertReq;
+import org.niis.xroad.signer.proto.ImportCertResp;
+import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -61,27 +61,32 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
  * Handles certificate import requests.
  */
 @Slf4j
-public class ImportCertRequestHandler
-        extends AbstractDeleteFromKeyInfo<ImportCert> {
+@Component
+@RequiredArgsConstructor
+public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, ImportCertResp> {
+    private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
 
     @Override
-    protected Object handle(ImportCert message) throws Exception {
+    protected ImportCertResp handle(ImportCertReq request) throws Exception {
         X509Certificate cert = null;
         try {
-            cert = readCertificate(message.getCertData());
+            cert = readCertificate(request.getCertData().toByteArray());
         } catch (Exception e) {
             throw CodedException.tr(X_INCORRECT_CERTIFICATE,
                     "failed_to_parse_cert",
                     "Failed to parse certificate: %s", e.getMessage());
         }
 
-        String keyId = importCertificate(cert, message.getInitialStatus(),
-                message.getMemberId());
-        return new ImportCertResponse(keyId);
+        String keyId = importCertificate(cert, request.getInitialStatus(),
+                ClientIdMapper.fromDto(request.getMemberId()));
+
+        return ImportCertResp.newBuilder()
+                .setKeyId(keyId)
+                .build();
     }
 
-    private String importCertificate(X509Certificate cert,
-            String initialStatus, ClientId.Conf memberId) throws Exception {
+    public String importCertificate(X509Certificate cert,
+                                     String initialStatus, ClientId.Conf memberId) throws Exception {
         String publicKey = encodeBase64(cert.getPublicKey().getEncoded());
 
         // Find the key based on the public key of the cert
@@ -103,11 +108,11 @@ public class ImportCertRequestHandler
                 "Could not find key that has public key that matches the "
                         + "public key of certificate");
     }
-
     // XXX: #2955 Currently, if the key does not have public key, we also check
     // if the key contains the (unsaved) certificate
+
     private boolean matchesPublicKeyOrExistingCert(String publicKey,
-            X509Certificate cert, KeyInfo keyInfo) throws Exception {
+                                                   X509Certificate cert, KeyInfo keyInfo) throws Exception {
         if (keyInfo.getPublicKey() != null
                 && keyInfo.getPublicKey().equals(publicKey)) {
             return true;
@@ -124,7 +129,7 @@ public class ImportCertRequestHandler
     }
 
     private void importCertificateToKey(KeyInfo keyInfo, X509Certificate cert,
-            String initialStatus, ClientId.Conf memberId) throws Exception {
+                                        String initialStatus, ClientId.Conf memberId) throws Exception {
         String certHash = calculateCertHexHash(cert.getEncoded());
 
         CertificateInfo existingCert =
@@ -134,8 +139,8 @@ public class ImportCertRequestHandler
                     "cert_exists_under_key",
                     "Certificate already exists under key '%s'",
                     keyInfo.getFriendlyName() == null
-                        ? keyInfo.getId()
-                        : keyInfo.getFriendlyName());
+                            ? keyInfo.getId()
+                            : keyInfo.getFriendlyName());
         }
 
         boolean signing = CertUtils.isSigningCert(cert);
@@ -171,7 +176,7 @@ public class ImportCertRequestHandler
 
     private void updateOcspResponse(X509Certificate cert) {
         try {
-            OcspResponseManager.getOcspResponse(getContext(), cert);
+            OcspResponseManager.getOcspResponse(temporaryAkkaMessenger.getActorSystem(), cert);
         } catch (Exception e) {
             log.error("Failed to update OCSP response for certificate "
                     + cert.getSerialNumber(), e);
@@ -179,7 +184,7 @@ public class ImportCertRequestHandler
     }
 
     private void validateCertKeyUsage(boolean signing, boolean authentication,
-            KeyUsageInfo keyUsage) {
+                                      KeyUsageInfo keyUsage) {
         // Check that the cert is a signing or auth cert
         if (!signing && !authentication) {
             throw CodedException.tr(X_WRONG_CERT_USAGE,
@@ -223,18 +228,16 @@ public class ImportCertRequestHandler
         }
     }
 
-    protected void deleteCertRequest(String keyId, ClientId memberId)
-            throws Exception {
-        CertRequestInfo certReq =
-                TokenManager.getCertRequestInfo(keyId, memberId);
+    private void deleteCertRequest(String keyId, ClientId memberId) throws Exception {
+        CertRequestInfo certReq = TokenManager.getCertRequestInfo(keyId, memberId);
         if (certReq != null) {
-            deleteCertRequest(certReq.getId());
+            deleteCertRequestReqHandler.deleteCertRequest(certReq.getId());
         }
     }
 
     private static KeyUsageInfo getKeyUsage(KeyInfo keyInfo, boolean sign) {
         KeyUsageInfo keyUsage = keyInfo.getUsage();
-        if (keyUsage == null) {
+        if (keyUsage == null) {//TODO:grpc to we need to support nulls?
             return sign ? KeyUsageInfo.SIGNING : KeyUsageInfo.AUTHENTICATION;
         }
 

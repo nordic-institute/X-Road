@@ -6,6 +6,7 @@ import akka.util.Timeout;
 
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,7 @@ public class TemporaryAkkaMessenger {
     @Deprecated
     private static final Timeout AKKA_TIMEOUT = new Timeout(10, TimeUnit.SECONDS);
 
+    @Getter
     private final ActorSystem actorSystem;
 
     public <T> T tellTokenWithResponse(Object message, String tokenId) {

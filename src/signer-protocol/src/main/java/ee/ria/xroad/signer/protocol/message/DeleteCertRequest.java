@@ -33,6 +33,7 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
+@Deprecated
 public class DeleteCertRequest implements Serializable {
 
     private final String certRequestId;

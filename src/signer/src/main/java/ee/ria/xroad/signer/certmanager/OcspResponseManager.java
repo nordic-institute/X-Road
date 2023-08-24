@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
+import akka.actor.ActorSystem;
+
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
@@ -89,9 +91,9 @@ public class OcspResponseManager extends AbstractSignerActor {
      * @return OCSP response as byte array
      * @throws Exception if an error occurs
      */
-    public static byte[] getOcspResponse(ActorContext ctx,
+    public static byte[] getOcspResponse(ActorSystem actorSystem,
             X509Certificate cert) throws Exception {
-        return getOcspResponse(ctx, calculateCertHexHash(cert));
+        return getOcspResponse(actorSystem, calculateCertHexHash(cert));
     }
 
     /**
@@ -101,14 +103,14 @@ public class OcspResponseManager extends AbstractSignerActor {
      * @return OCSP response as byte array
      * @throws Exception if an error occurs
      */
-    public static byte[] getOcspResponse(ActorContext ctx,
-            String certHash) throws Exception {
+    public static byte[] getOcspResponse(ActorSystem actorSystem,
+                                         String certHash) throws Exception {
         GetOcspResponses message =
                 new GetOcspResponses(new String[] {certHash});
 
         GetOcspResponsesResponse result =
                 (GetOcspResponsesResponse) SignerUtil.ask(
-                        ServiceLocator.getOcspResponseManager(ctx), message);
+                        ServiceLocator.getOcspResponseManager(actorSystem), message);
 
         if (result.getBase64EncodedResponses().length > 0
                 && result.getBase64EncodedResponses()[0] != null) {

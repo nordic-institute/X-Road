@@ -27,7 +27,8 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.ActivateCertRequest;
+
+import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
@@ -36,10 +37,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ActivateCertRequestHandler
-        extends AbstractRpcHandler<ActivateCertRequest, Empty> {
+        extends AbstractRpcHandler<ActivateCertReq, Empty> {
 
     @Override
-    protected Empty handle(ActivateCertRequest request) throws Exception {
+    protected Empty handle(ActivateCertReq request) throws Exception {
         TokenManager.setCertActive(request.getCertIdOrHash(), request.getActive());
 
         return Empty.getDefaultInstance();

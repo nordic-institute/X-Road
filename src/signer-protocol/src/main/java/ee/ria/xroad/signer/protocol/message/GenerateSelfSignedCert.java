@@ -37,6 +37,7 @@ import java.util.Date;
  * Signer API message.
  */
 @Value
+@Deprecated
 public class GenerateSelfSignedCert implements Serializable {
 
     private final String keyId;

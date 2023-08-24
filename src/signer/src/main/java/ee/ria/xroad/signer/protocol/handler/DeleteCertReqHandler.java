@@ -26,27 +26,53 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
-import ee.ria.xroad.signer.protocol.message.DeleteKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.DeleteCertReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
 
-@Slf4j
-abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
+/**
+ * Handles certificate deletions. If certificate is not saved in configuration,
+ * we delete it on the token. Otherwise we remove the certificate from the
+ * configuration.
+ */
+@Component
+public class DeleteCertReqHandler
+        extends AbstractRpcHandler<DeleteCertReq, Empty> {
 
-    protected void deleteCertOnToken(DeleteCert deleteCert) {
+    @Override
+    protected Empty handle(DeleteCertReq request) throws Exception {
+        CertificateInfo certInfo = TokenManager.getCertificateInfo(request.getCertId());
+        if (certInfo == null) {
+            throw certWithIdNotFound(request.getCertId());
+        }
+
+        if (!certInfo.isSavedToConfiguration()) {
+            deleteCertOnToken(request);
+            return Empty.getDefaultInstance();
+        } else if (TokenManager.removeCert(request.getCertId())) {
+            return Empty.getDefaultInstance();
+        }
+
+        throw new CodedException(X_INTERNAL_ERROR, "Failed to delete certificate");
+    }
+
+    protected void deleteCertOnToken(DeleteCertReq deleteCert) {
         for (TokenInfo tokenInfo : TokenManager.listTokens()) {
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
                     if (deleteCert.getCertId().equals(certInfo.getId())) {
-                        tellToken(deleteCert, tokenInfo.getId());
+                        var message = new DeleteCert(deleteCert.getCertId());
+                        temporaryAkkaMessenger.tellToken(message, tokenInfo.getId());
                         return;
                     }
                 }
@@ -54,18 +80,4 @@ abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
         }
     }
 
-    protected void deleteKeyFile(String tokenId, DeleteKey message) {
-        tellToken(message, tokenId);
-    }
-
-    protected Object deleteCertRequest(String certId) {
-        String keyId = TokenManager.removeCertRequest(certId);
-        if (keyId != null) {
-            log.info("Deleted certificate request under key '{}'", keyId);
-            return success();
-        }
-
-        throw CodedException.tr(X_CSR_NOT_FOUND,
-                "csr_not_found", "Certificate request '%s' not found", certId);
-    }
 }

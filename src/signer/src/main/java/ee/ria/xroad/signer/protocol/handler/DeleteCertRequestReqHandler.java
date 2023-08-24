@@ -26,37 +26,37 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.message.DeleteCert;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.DeleteCertRequestReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Component;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 
 /**
- * Handles certificate deletions. If certificate is not saved in configuration,
- * we delete it on the token. Otherwise we remove the certificate from the
- * configuration.
+ * Handles certificate request deletions.
  */
-public class DeleteCertRequestHandler
-        extends AbstractDeleteFromKeyInfo<DeleteCert> {
+@Slf4j
+@Component
+public class DeleteCertRequestReqHandler
+        extends AbstractRpcHandler<DeleteCertRequestReq, Empty> {
 
     @Override
-    protected Object handle(DeleteCert message) throws Exception {
-        CertificateInfo certInfo =
-                TokenManager.getCertificateInfo(message.getCertId());
-        if (certInfo == null) {
-            throw certWithIdNotFound(message.getCertId());
-        }
+    protected Empty handle(DeleteCertRequestReq request) throws Exception {
+        deleteCertRequest(request.getCertRequestId());
 
-        if (!certInfo.isSavedToConfiguration()) {
-            deleteCertOnToken(message);
-            return success();
-        } else if (TokenManager.removeCert(message.getCertId())) {
-            return success();
-        }
+        return Empty.getDefaultInstance();
+    }
 
-        throw new CodedException(X_INTERNAL_ERROR,
-                "Failed to delete certificate");
+    public void deleteCertRequest(String certId) {
+        String removedKeyId = TokenManager.removeCertRequest(certId);
+        if (removedKeyId == null) {
+            throw CodedException.tr(X_CSR_NOT_FOUND,
+                    "csr_not_found", "Certificate request '%s' not found", certId);
+        }
+        log.info("Deleted certificate request under key '{}'", removedKeyId);
     }
 }

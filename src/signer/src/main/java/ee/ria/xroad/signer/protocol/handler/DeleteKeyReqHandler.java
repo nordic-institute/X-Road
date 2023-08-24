@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -33,38 +34,45 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.DeleteKeyReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Component;
 
 /**
  * Handles key deletions.
  */
 @Slf4j
-public class DeleteKeyRequestHandler
-        extends AbstractDeleteFromKeyInfo<DeleteKey> {
+@Component
+public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty> {
 
     @Override
-    protected Object handle(DeleteKey message) throws Exception {
+    protected Empty handle(DeleteKeyReq request) throws Exception {
         TokenAndKey tokenAndKey =
-                TokenManager.findTokenAndKey(message.getKeyId());
+                TokenManager.findTokenAndKey(request.getKeyId());
 
-        if (message.isDeleteFromDevice()) {
-            log.trace("Deleting key '{}' from device", message.getKeyId());
+        if (request.getDeleteFromDevice()) {
+            log.trace("Deleting key '{}' from device", request.getKeyId());
 
-            deleteKeyFile(tokenAndKey.getTokenId(), message);
-            return nothing();
+            deleteKeyFile(tokenAndKey.getTokenId(), request);
         } else {
-            log.trace("Deleting key '{}' from configuration",
-                    message.getKeyId());
+            log.trace("Deleting key '{}' from configuration", request.getKeyId());
 
             removeCertsFromKey(tokenAndKey.getKey());
-            return success();
         }
+        return Empty.getDefaultInstance();
+    }
+
+
+    private void deleteKeyFile(String tokenId, DeleteKeyReq request) {
+        var message = new DeleteKey(request.getKeyId(), request.getDeleteFromDevice());
+        temporaryAkkaMessenger.tellToken(message, tokenId);
     }
 
     private static void removeCertsFromKey(KeyInfo keyInfo) {
         keyInfo.getCerts().stream().filter(CertificateInfo::isSavedToConfiguration)
-            .map(CertificateInfo::getId).forEach(TokenManager::removeCert);
+                .map(CertificateInfo::getId).forEach(TokenManager::removeCert);
 
         keyInfo.getCertRequests().stream()
-            .map(CertRequestInfo::getId).forEach(TokenManager::removeCertRequest);
+                .map(CertRequestInfo::getId).forEach(TokenManager::removeCertRequest);
     }
 }

@@ -40,20 +40,13 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.DeleteCert;
-import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
-import ee.ria.xroad.signer.protocol.message.DeleteKey;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
-import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
-import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
 import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfo;
 import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
 import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.ImportCert;
-import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
 import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 
@@ -63,9 +56,13 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.StatusRuntimeException;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.proto.ActivateCertRequest;
+import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.proto.DeleteCertReq;
+import org.niis.xroad.signer.proto.DeleteCertRequestReq;
+import org.niis.xroad.signer.proto.DeleteKeyReq;
+import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GetCertificateInfoForHashRequest;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashRequest;
 import org.niis.xroad.signer.proto.GetMemberCertsRequest;
@@ -77,6 +74,7 @@ import org.niis.xroad.signer.proto.GetTokenByCertHashRequest;
 import org.niis.xroad.signer.proto.GetTokenByCertRequestIdRequest;
 import org.niis.xroad.signer.proto.GetTokenByIdRequest;
 import org.niis.xroad.signer.proto.GetTokenByKeyIdRequest;
+import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
 import org.niis.xroad.signer.proto.ListTokensResponse;
 import org.niis.xroad.signer.proto.SetCertStatusRequest;
@@ -314,10 +312,17 @@ public final class SignerProxy {
                                                 String commonName, Date notBefore, Date notAfter) throws Exception {
         log.trace("Generate self-signed cert for key '{}'", keyId);
 
-        GenerateSelfSignedCertResponse response = execute(new GenerateSelfSignedCert(keyId, commonName,
-                notBefore, notAfter, keyUsage, memberId));
+        var response = executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
+                .generateSelfSignedCert(GenerateSelfSignedCertReq.newBuilder()
+                        .setKeyId(keyId)
+                        .setCommonName(commonName)
+                        .setDateNotBefore(notBefore.getTime())
+                        .setDateNotAfter(notAfter.getTime())
+                        .setKeyUsage(keyUsage)
+                        .setMemberId(ClientIdMapper.toDto(memberId))
+                        .build()));
 
-        byte[] certificateBytes = response.getCertificateBytes();
+        byte[] certificateBytes = response.getCertificateBytes().toByteArray();
 
         log.trace("Certificate with length of {} bytes generated", certificateBytes.length);
 
@@ -336,7 +341,12 @@ public final class SignerProxy {
     public static String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
         log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
-        ImportCertResponse response = execute(new ImportCert(certBytes, initialStatus, clientId));
+        var response = executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
+                .importCert(ImportCertReq.newBuilder()
+                        .setCertData(ByteString.copyFrom(certBytes))
+                        .setInitialStatus(initialStatus)
+                        .setMemberId(ClientIdMapper.toDto(clientId))
+                        .build()));
 
         log.trace("Cert imported successfully, keyId received: {}", response.getKeyId());
 
@@ -353,7 +363,7 @@ public final class SignerProxy {
         log.trace("Activating cert '{}'", certId);
 
         executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
-                .activateCert(ActivateCertRequest.newBuilder()
+                .activateCert(ActivateCertReq.newBuilder()
                         .setCertIdOrHash(certId)
                         .setActive(true)
                         .build()));
@@ -369,7 +379,7 @@ public final class SignerProxy {
         log.trace("Deactivating cert '{}'", certId);
 
         executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
-                .activateCert(ActivateCertRequest.newBuilder()
+                .activateCert(ActivateCertReq.newBuilder()
                         .setCertIdOrHash(certId)
                         .setActive(false)
                         .build()));
@@ -448,7 +458,10 @@ public final class SignerProxy {
     public static void deleteCertRequest(String certRequestId) throws Exception {
         log.trace("Deleting cert request '{}'", certRequestId);
 
-        execute(new DeleteCertRequest(certRequestId));
+        executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
+                .deleteCertRequest(DeleteCertRequestReq.newBuilder()
+                        .setCertRequestId(certRequestId)
+                        .build()));
     }
 
     /**
@@ -460,7 +473,10 @@ public final class SignerProxy {
     public static void deleteCert(String certId) throws Exception {
         log.trace("Deleting cert '{}'", certId);
 
-        execute(new DeleteCert(certId));
+        executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
+                .deleteCert(DeleteCertReq.newBuilder()
+                        .setCertId(certId)
+                        .build()));
     }
 
     /**
@@ -474,7 +490,11 @@ public final class SignerProxy {
     public static void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
         log.trace("Deleting key '{}', from token = {}", keyId, deleteFromToken);
 
-        execute(new DeleteKey(keyId, deleteFromToken));
+        executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
+                .deleteKey(DeleteKeyReq.newBuilder()
+                        .setKeyId(keyId)
+                        .setDeleteFromDevice(deleteFromToken)
+                        .build()));
     }
 
     /**

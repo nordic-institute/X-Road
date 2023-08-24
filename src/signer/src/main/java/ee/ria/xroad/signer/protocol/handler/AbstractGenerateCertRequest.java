@@ -65,6 +65,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
  * @param <T> the type of generate cert request message this handler handles
  */
 @Slf4j
+@Deprecated
 public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHandler<T> {
 
     PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName)

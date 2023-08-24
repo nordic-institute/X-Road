@@ -36,6 +36,7 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
+@Deprecated
 @ToString(exclude = "certData")
 public class ImportCert implements Serializable {
 
