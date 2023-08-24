@@ -26,24 +26,23 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledRequest;
-import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResponse;
+
+import org.niis.xroad.signer.proto.GetTokenByCertHashReq;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles queries for batch signing capabilities of a token.
+ * Handles requests for TokenInfo + key id based on certificate hashes.
  */
 @Component
-public class GetTokenBatchSigningEnabledRequestHandler
-        extends AbstractRpcHandler<GetTokenBatchSigningEnabledRequest, GetTokenBatchSigningEnabledResponse> {
+public class GetTokenInfoAndKeyIdForCertHashReqHandler
+        extends AbstractRpcHandler<GetTokenByCertHashReq, TokenInfoAndKeyIdProto> {
+
 
     @Override
-    protected GetTokenBatchSigningEnabledResponse handle(GetTokenBatchSigningEnabledRequest request) throws Exception {
-        String tokenId = TokenManager.findTokenIdForKeyId(request.getKeyId());
-
-        return GetTokenBatchSigningEnabledResponse.newBuilder()
-                .setBatchingSigningEnabled(TokenManager.isBatchSigningEnabled(tokenId))
-                .build();
+    protected TokenInfoAndKeyIdProto handle(GetTokenByCertHashReq request) throws Exception {
+        var token = TokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
+        return token.asMessage();
     }
 }

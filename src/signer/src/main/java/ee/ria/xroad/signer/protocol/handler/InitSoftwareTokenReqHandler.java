@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,25 +25,40 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
+import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
 
-import com.google.protobuf.ByteString;
-import org.niis.xroad.signer.proto.SignCertificateRequest;
-import org.niis.xroad.signer.proto.SignCertificateResponse;
+import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
+/**
+ * Handles requests for software token initialization.
+ */
 @Component
-public class SignCertificateRequestHandler extends AbstractRpcHandler<SignCertificateRequest, SignCertificateResponse> {
+public class InitSoftwareTokenReqHandler
+        extends AbstractRpcHandler<InitSoftwareTokenReq, Empty> {
 
     @Override
-    protected SignCertificateResponse handle(SignCertificateRequest request) throws Exception {
-        final byte[] signedCertificate = getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
-                .handleSignCertificate(request);
+    protected Empty handle(InitSoftwareTokenReq request) throws Exception {
+        String softwareTokenId = TokenManager.getSoftwareTokenId();
 
-        return SignCertificateResponse.newBuilder()
-                .setCertificateChain(ByteString.copyFrom(signedCertificate))
-                .build();
+        if (softwareTokenId != null) {
+            final AbstractTokenWorker tokenWorker = getTokenWorker(softwareTokenId);
+            if (tokenWorker instanceof SoftwareTokenWorker) {
+                try {
+                    ((SoftwareTokenWorker) tokenWorker).initializeToken(request.getPin().toCharArray());
+                    return Empty.getDefaultInstance();
+                } catch (Exception e) {
+                    throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker
+                }
+            }
+        }
+        throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
     }
 }

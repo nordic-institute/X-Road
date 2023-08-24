@@ -45,7 +45,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.niis.xroad.signer.proto.ActivateTokenRequest;
+import org.niis.xroad.signer.proto.ActivateTokenReq;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -121,7 +121,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
      * Creates new worker.
      *
      * @param tokenInfo the token info
-     * @param ignored token type (not used)
+     * @param ignored   token type (not used)
      */
     public SoftwareTokenWorker(TokenInfo tokenInfo, SoftwareTokenType ignored) {
         super(tokenInfo);
@@ -159,7 +159,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 //    }
 
     @Override
-    protected void activateToken(ActivateTokenRequest message) {
+    protected void activateToken(ActivateTokenReq message) {
         if (message.getActivate()) {
             if (!isTokenLoginAllowed) {
                 throw loginFailed("PIN change in progress – token login not allowed");
@@ -255,7 +255,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         X509Certificate issuerX509Certificate = readCertificate(certificateInfo.getCertificateBytes());
         PrivateKey privateKey = getPrivateKey(keyId);
         JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
-                                                                                        issuerX509Certificate);
+                issuerX509Certificate);
 
         log.debug("Signing certificate with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
         ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithmId).build(privateKey);
@@ -366,7 +366,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin,
-            Path tempKeyDir) throws Exception {
+                                           Path tempKeyDir) throws Exception {
         String keyStoreFile = getKeyStoreFileName(keyFile);
         Path tempKeyStoreFile = tempKeyDir.resolve(keyFile + P12);
 

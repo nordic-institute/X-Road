@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import com.google.protobuf.ByteString;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
@@ -36,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
+import com.google.protobuf.ByteString;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +50,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
-import org.niis.xroad.signer.proto.SignRequest;
+import org.niis.xroad.signer.proto.SignReq;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -78,8 +77,8 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 @SuppressWarnings("deprecation")
 @Component
 @RequiredArgsConstructor
-public class GenerateSelfSignedCertRequestHandler extends AbstractRpcHandler<GenerateSelfSignedCertReq, GenerateSelfSignedCertResp> {
-    private final SignRequestHandler signRequestHandler;
+public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<GenerateSelfSignedCertReq, GenerateSelfSignedCertResp> {
+    private final SignReqHandler signReqHandler;
     private final ImportCertReqHandler importCertReqHandler;
 
     // TODO make configurable
@@ -172,12 +171,12 @@ public class GenerateSelfSignedCertRequestHandler extends AbstractRpcHandler<Gen
                     String digAlgoId = getDigestAlgorithmId(signAlgoId);
                     digest = calculateDigest(digAlgoId, dataToSign);
 
-                    var message = SignRequest.newBuilder()
+                    var message = SignReq.newBuilder()
                             .setKeyId(tokenAndKey.getKeyId())
                             .setSignatureAlgorithmId(signAlgoId)
                             .setDigest(ByteString.copyFrom(digest))
                             .build();
-                    return signRequestHandler.signData(message);
+                    return signReqHandler.signData(message);
 
                 } catch (Exception e) {
                     throw translateException(e);

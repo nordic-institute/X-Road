@@ -27,31 +27,31 @@ package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
-import ee.ria.xroad.signer.protocol.handler.ActivateTokenRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.GetTokenBatchSigningEnabledRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.GetTokenInfoAndKeyIdForCertHashRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.GetTokenInfoAndKeyIdForCertRequestIdRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.GetTokenInfoForKeyIdRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.GetTokenInfoRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.InitSoftwareTokenRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.ListTokensRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.SetTokenFriendlyNameRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.UpdateSoftwareTokenPinRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.ActivateTokenReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenBatchSigningEnabledReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenInfoAndKeyIdForCertHashReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenInfoAndKeyIdForCertRequestIdReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenInfoForKeyIdReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenInfoReqHandler;
+import ee.ria.xroad.signer.protocol.handler.InitSoftwareTokenReqHandler;
+import ee.ria.xroad.signer.protocol.handler.ListTokensReqHandler;
+import ee.ria.xroad.signer.protocol.handler.SetTokenFriendlyNameReqHandler;
+import ee.ria.xroad.signer.protocol.handler.UpdateSoftwareTokenPinReqHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.signer.proto.ActivateTokenRequest;
-import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledRequest;
-import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResponse;
-import org.niis.xroad.signer.proto.GetTokenByCertHashRequest;
-import org.niis.xroad.signer.proto.GetTokenByCertRequestIdRequest;
-import org.niis.xroad.signer.proto.GetTokenByIdRequest;
-import org.niis.xroad.signer.proto.GetTokenByKeyIdRequest;
-import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
-import org.niis.xroad.signer.proto.ListTokensResponse;
-import org.niis.xroad.signer.proto.SetTokenFriendlyNameRequest;
+import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledReq;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResp;
+import org.niis.xroad.signer.proto.GetTokenByCertHashReq;
+import org.niis.xroad.signer.proto.GetTokenByCertRequestIdReq;
+import org.niis.xroad.signer.proto.GetTokenByIdReq;
+import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
+import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
+import org.niis.xroad.signer.proto.ListTokensResp;
+import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
-import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
+import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Service;
 
@@ -61,67 +61,67 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
-    private final ActivateTokenRequestHandler activateTokenRequestHandler;
-    private final UpdateSoftwareTokenPinRequestHandler updateSoftwareTokenPinRequestHandler;
-    private final InitSoftwareTokenRequestHandler initSoftwareTokenRequestHandler;
-    private final GetTokenInfoRequestHandler getTokenInfoRequestHandler;
-    private final GetTokenInfoForKeyIdRequestHandler getTokenInfoForKeyIdRequestHandler;
-    private final GetTokenBatchSigningEnabledRequestHandler getTokenBatchSigningEnabledRequestHandler;
-    private final GetTokenInfoAndKeyIdForCertHashRequestHandler getTokenInfoAndKeyIdForCertHashRequestHandler;
-    private final GetTokenInfoAndKeyIdForCertRequestIdRequestHandler getTokenInfoAndKeyIdForCertRequestIdRequestHandler;
-    private final SetTokenFriendlyNameRequestHandler setTokenFriendlyNameRequestHandler;
-    private final ListTokensRequestHandler listTokensRequestHandler;
+    private final ActivateTokenReqHandler activateTokenReqHandler;
+    private final UpdateSoftwareTokenPinReqHandler updateSoftwareTokenPinReqHandler;
+    private final InitSoftwareTokenReqHandler initSoftwareTokenReqHandler;
+    private final GetTokenInfoReqHandler getTokenInfoReqHandler;
+    private final GetTokenInfoForKeyIdReqHandler getTokenInfoForKeyIdReqHandler;
+    private final GetTokenBatchSigningEnabledReqHandler getTokenBatchSigningEnabledReqHandler;
+    private final GetTokenInfoAndKeyIdForCertHashReqHandler getTokenInfoAndKeyIdForCertHashReqHandler;
+    private final GetTokenInfoAndKeyIdForCertRequestIdReqHandler getTokenInfoAndKeyIdForCertRequestIdReqHandler;
+    private final SetTokenFriendlyNameReqHandler setTokenFriendlyNameReqHandler;
+    private final ListTokensReqHandler listTokensReqHandler;
 
     @Override
-    public void listTokens(Empty request, StreamObserver<ListTokensResponse> responseObserver) {
-        listTokensRequestHandler.processSingle(request, responseObserver);
+    public void listTokens(Empty request, StreamObserver<ListTokensResp> responseObserver) {
+        listTokensReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void activateToken(ActivateTokenRequest request, StreamObserver<Empty> responseObserver) {
-        activateTokenRequestHandler.processSingle(request, responseObserver);
+    public void activateToken(ActivateTokenReq request, StreamObserver<Empty> responseObserver) {
+        activateTokenReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getTokenById(GetTokenByIdRequest request, StreamObserver<TokenInfoProto> responseObserver) {
-        getTokenInfoRequestHandler.processSingle(request, responseObserver);
+    public void getTokenById(GetTokenByIdReq request, StreamObserver<TokenInfoProto> responseObserver) {
+        getTokenInfoReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getTokenByKey(GetTokenByKeyIdRequest request, StreamObserver<TokenInfoProto> responseObserver) {
-        getTokenInfoForKeyIdRequestHandler.processSingle(request, responseObserver);
+    public void getTokenByKey(GetTokenByKeyIdReq request, StreamObserver<TokenInfoProto> responseObserver) {
+        getTokenInfoForKeyIdReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdRequest request,
+    public void getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdReq request,
                                                 StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
-        getTokenInfoAndKeyIdForCertRequestIdRequestHandler.processSingle(request, responseObserver);
+        getTokenInfoAndKeyIdForCertRequestIdReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getTokenAndKeyIdByCertHash(GetTokenByCertHashRequest request, StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
-        getTokenInfoAndKeyIdForCertHashRequestHandler.processSingle(request, responseObserver);
+    public void getTokenAndKeyIdByCertHash(GetTokenByCertHashReq request, StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
+        getTokenInfoAndKeyIdForCertHashReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void setTokenFriendlyName(SetTokenFriendlyNameRequest request, StreamObserver<Empty> responseObserver) {
-        setTokenFriendlyNameRequestHandler.processSingle(request, responseObserver);
+    public void setTokenFriendlyName(SetTokenFriendlyNameReq request, StreamObserver<Empty> responseObserver) {
+        setTokenFriendlyNameReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledRequest request,
-                                            StreamObserver<GetTokenBatchSigningEnabledResponse> responseObserver) {
-        getTokenBatchSigningEnabledRequestHandler.processSingle(request, responseObserver);
+    public void getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledReq request,
+                                            StreamObserver<GetTokenBatchSigningEnabledResp> responseObserver) {
+        getTokenBatchSigningEnabledReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void initSoftwareToken(InitSoftwareTokenRequest request, StreamObserver<Empty> responseObserver) {
-        initSoftwareTokenRequestHandler.processSingle(request, responseObserver);
+    public void initSoftwareToken(InitSoftwareTokenReq request, StreamObserver<Empty> responseObserver) {
+        initSoftwareTokenReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void updateSoftwareTokenPin(UpdateSoftwareTokenPinRequest request, StreamObserver<Empty> responseObserver) {
-        updateSoftwareTokenPinRequestHandler.processSingle(request, responseObserver);
+    public void updateSoftwareTokenPin(UpdateSoftwareTokenPinReq request, StreamObserver<Empty> responseObserver) {
+        updateSoftwareTokenPinReqHandler.processSingle(request, responseObserver);
     }
 
 }

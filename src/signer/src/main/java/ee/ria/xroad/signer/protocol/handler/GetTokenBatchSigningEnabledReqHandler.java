@@ -25,48 +25,26 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.ClientIdMapper;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.GetMemberCertsRequest;
-import org.niis.xroad.signer.proto.GetMemberCertsResponse;
+
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledReq;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResp;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
- * Handles requests for member certificates.
+ * Handles queries for batch signing capabilities of a token.
  */
 @Component
-public class GetMemberCertsRequestHandler
-        extends AbstractRpcHandler<GetMemberCertsRequest, GetMemberCertsResponse> {
+public class GetTokenBatchSigningEnabledReqHandler
+        extends AbstractRpcHandler<GetTokenBatchSigningEnabledReq, GetTokenBatchSigningEnabledResp> {
 
     @Override
-    protected GetMemberCertsResponse handle(GetMemberCertsRequest request) throws Exception {
-        final var memberId = ClientIdMapper.fromDto(request.getMemberId());
-        List<CertificateInfoProto> memberCerts = TokenManager.listTokens().stream()
-                .flatMap(t -> t.getKeyInfo().stream())
-                .filter(k -> k.getUsage() == KeyUsageInfo.SIGNING)
-                .flatMap(k -> k.getCerts().stream())
-                .filter(c -> containsMember(c.getMemberId(), memberId))
-                .map(CertificateInfo::asMessage)
-                .collect(Collectors.toList());
+    protected GetTokenBatchSigningEnabledResp handle(GetTokenBatchSigningEnabledReq request) throws Exception {
+        String tokenId = TokenManager.findTokenIdForKeyId(request.getKeyId());
 
-        return GetMemberCertsResponse.newBuilder()
-                .addAllCerts(memberCerts)
+        return GetTokenBatchSigningEnabledResp.newBuilder()
+                .setBatchingSigningEnabled(TokenManager.isBatchSigningEnabled(tokenId))
                 .build();
-    }
-
-    private static boolean containsMember(ClientId first, ClientId second) {
-        if (first == null || second == null) {
-            return false;
-        }
-
-        return first.equals(second) || second.subsystemContainsMember(first);
     }
 }

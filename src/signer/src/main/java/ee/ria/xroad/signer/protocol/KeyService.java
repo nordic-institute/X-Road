@@ -26,25 +26,25 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.signer.protocol.handler.DeleteKeyReqHandler;
-import ee.ria.xroad.signer.protocol.handler.GetKeyIdForCertHashRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.GetSignMechanismRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.SetKeyFriendlyNameRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.SignCertificateRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.SignRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.GetKeyIdForCertHashReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetSignMechanismReqHandler;
+import ee.ria.xroad.signer.protocol.handler.SetKeyFriendlyNameReqHandler;
+import ee.ria.xroad.signer.protocol.handler.SignCertificateReqHandler;
+import ee.ria.xroad.signer.protocol.handler.SignReqHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
-import org.niis.xroad.signer.proto.GetKeyIdForCertHashRequest;
-import org.niis.xroad.signer.proto.GetKeyIdForCertHashResponse;
-import org.niis.xroad.signer.proto.GetSignMechanismRequest;
-import org.niis.xroad.signer.proto.GetSignMechanismResponse;
+import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
+import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
+import org.niis.xroad.signer.proto.GetSignMechanismReq;
+import org.niis.xroad.signer.proto.GetSignMechanismResp;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
-import org.niis.xroad.signer.proto.SetKeyFriendlyNameRequest;
-import org.niis.xroad.signer.proto.SignCertificateRequest;
-import org.niis.xroad.signer.proto.SignCertificateResponse;
-import org.niis.xroad.signer.proto.SignRequest;
-import org.niis.xroad.signer.proto.SignResponse;
+import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
+import org.niis.xroad.signer.proto.SignCertificateReq;
+import org.niis.xroad.signer.proto.SignCertificateResp;
+import org.niis.xroad.signer.proto.SignReq;
+import org.niis.xroad.signer.proto.SignResp;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Service;
 
@@ -54,36 +54,36 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
-    private final SignRequestHandler signRequestHandler;
-    private final SignCertificateRequestHandler signCertificateRequestHandler;
-    private final GetSignMechanismRequestHandler getSignMechanismRequestHandler;
-    private final GetKeyIdForCertHashRequestHandler getKeyIdForCertHashRequestHandler;
-    private final SetKeyFriendlyNameRequestHandler setKeyFriendlyNameRequestHandler;
+    private final SignReqHandler signReqHandler;
+    private final SignCertificateReqHandler signCertificateReqHandler;
+    private final GetSignMechanismReqHandler getSignMechanismReqHandler;
+    private final GetKeyIdForCertHashReqHandler getKeyIdForCertHashReqHandler;
+    private final SetKeyFriendlyNameReqHandler setKeyFriendlyNameReqHandler;
     private final DeleteKeyReqHandler deleteKeyReqHandler;
 
     @Override
-    public void getKeyIdForCertHash(GetKeyIdForCertHashRequest request, StreamObserver<GetKeyIdForCertHashResponse> responseObserver) {
-        getKeyIdForCertHashRequestHandler.processSingle(request, responseObserver);
+    public void getKeyIdForCertHash(GetKeyIdForCertHashReq request, StreamObserver<GetKeyIdForCertHashResp> responseObserver) {
+        getKeyIdForCertHashReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void setKeyFriendlyName(SetKeyFriendlyNameRequest request, StreamObserver<Empty> responseObserver) {
-        setKeyFriendlyNameRequestHandler.processSingle(request, responseObserver);
+    public void setKeyFriendlyName(SetKeyFriendlyNameReq request, StreamObserver<Empty> responseObserver) {
+        setKeyFriendlyNameReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getSignMechanism(GetSignMechanismRequest request, StreamObserver<GetSignMechanismResponse> responseObserver) {
-        getSignMechanismRequestHandler.processSingle(request, responseObserver);
+    public void getSignMechanism(GetSignMechanismReq request, StreamObserver<GetSignMechanismResp> responseObserver) {
+        getSignMechanismReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void sign(SignRequest request, StreamObserver<SignResponse> responseObserver) {
-        signRequestHandler.processSingle(request, responseObserver);
+    public void sign(SignReq request, StreamObserver<SignResp> responseObserver) {
+        signReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void signCertificate(SignCertificateRequest request, StreamObserver<SignCertificateResponse> responseObserver) {
-        signCertificateRequestHandler.processSingle(request, responseObserver);
+    public void signCertificate(SignCertificateReq request, StreamObserver<SignCertificateResp> responseObserver) {
+        signCertificateReqHandler.processSingle(request, responseObserver);
     }
 
     @Override

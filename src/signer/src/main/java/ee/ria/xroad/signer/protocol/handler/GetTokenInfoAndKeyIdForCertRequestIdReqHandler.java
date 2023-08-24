@@ -26,21 +26,22 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.GetTokenByIdRequest;
+
+import org.niis.xroad.signer.proto.GetTokenByCertRequestIdReq;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles requests for token info.
+ * Handles requests for TokenInfo + key id based on certificate request ids.
  */
 @Component
-public class GetTokenInfoRequestHandler
-        extends AbstractRpcHandler<GetTokenByIdRequest, TokenInfoProto> {
+public class GetTokenInfoAndKeyIdForCertRequestIdReqHandler
+        extends AbstractRpcHandler<GetTokenByCertRequestIdReq, TokenInfoAndKeyIdProto> {
 
     @Override
-    protected TokenInfoProto handle(GetTokenByIdRequest request) throws Exception {
-        var token = TokenManager.findTokenInfo(request.getTokenId());
+    protected TokenInfoAndKeyIdProto handle(GetTokenByCertRequestIdReq request) throws Exception {
+        var token = TokenManager.findTokenAndKeyIdForCertRequestId(request.getCertRequestId());
         return token.asMessage();
     }
 }

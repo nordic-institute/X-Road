@@ -26,24 +26,31 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.SetTokenFriendlyNameRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+
+import com.google.protobuf.ByteString;
+import org.niis.xroad.signer.proto.SignReq;
+import org.niis.xroad.signer.proto.SignResp;
 import org.springframework.stereotype.Component;
 
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
+
 /**
- * Handles requests for setting the token friendly name.
+ * Handles signing requests.
  */
 @Component
-public class SetTokenFriendlyNameRequestHandler
-        extends AbstractRpcHandler<SetTokenFriendlyNameRequest, Empty> {
+public class SignReqHandler extends AbstractRpcHandler<SignReq, SignResp> {
 
     @Override
-    protected Empty handle(SetTokenFriendlyNameRequest request) throws Exception {
-        TokenManager.setTokenFriendlyName(
-                request.getTokenId(),
-                request.getFriendlyName());
+    protected SignResp handle(SignReq request) throws Exception {
+        final byte[] signature = signData(request);
 
-        return Empty.getDefaultInstance();
+        return SignResp.newBuilder()
+                .setSignature(ByteString.copyFrom(signature))
+                .build();
+    }
+
+    public byte[] signData(SignReq request) {
+        return getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
+                .handleSign(request);
     }
 }

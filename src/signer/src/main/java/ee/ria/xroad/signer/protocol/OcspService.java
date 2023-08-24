@@ -1,15 +1,15 @@
 package ee.ria.xroad.signer.protocol;
 
-import ee.ria.xroad.signer.protocol.handler.GetOcspResponsesRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.SetOcspResponsesRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.GetOcspResponsesReqHandler;
+import ee.ria.xroad.signer.protocol.handler.SetOcspResponsesReqHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.proto.GetOcspResponsesRequest;
-import org.niis.xroad.signer.proto.GetOcspResponsesResponse;
+import org.niis.xroad.signer.proto.GetOcspResponsesReq;
+import org.niis.xroad.signer.proto.GetOcspResponsesResp;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
+import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Service;
 
@@ -17,17 +17,17 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class OcspService extends OcspServiceGrpc.OcspServiceImplBase {
-    private final SetOcspResponsesRequestHandler setOcspResponsesRequestHandler;
-    private final GetOcspResponsesRequestHandler getOcspResponsesRequestHandler;
+    private final SetOcspResponsesReqHandler setOcspResponsesReqHandler;
+    private final GetOcspResponsesReqHandler getOcspResponsesReqHandler;
 
     @Override
-    public void setOcspResponses(SetOcspResponsesRequest request, StreamObserver<Empty> responseObserver) {
-        setOcspResponsesRequestHandler.processSingle(request, responseObserver);
+    public void setOcspResponses(SetOcspResponsesReq request, StreamObserver<Empty> responseObserver) {
+        setOcspResponsesReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getOcspResponses(GetOcspResponsesRequest request, StreamObserver<GetOcspResponsesResponse> responseObserver) {
-        getOcspResponsesRequestHandler.processSingle(request, responseObserver);
+    public void getOcspResponses(GetOcspResponsesReq request, StreamObserver<GetOcspResponsesResp> responseObserver) {
+        getOcspResponsesReqHandler.processSingle(request, responseObserver);
     }
 
 }

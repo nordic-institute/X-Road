@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,32 +26,25 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.GetSignMechanismRequest;
-import org.niis.xroad.signer.proto.GetSignMechanismResponse;
+
+import com.google.protobuf.ByteString;
+import org.niis.xroad.signer.proto.SignCertificateReq;
+import org.niis.xroad.signer.proto.SignCertificateResp;
 import org.springframework.stereotype.Component;
 
-/**
- * Handles requests for signing mechanism based on key id.
- */
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
+
 @Component
-public class GetSignMechanismRequestHandler extends AbstractRpcHandler<GetSignMechanismRequest, GetSignMechanismResponse> {
+public class SignCertificateReqHandler extends AbstractRpcHandler<SignCertificateReq, SignCertificateResp> {
 
     @Override
-    protected GetSignMechanismResponse handle(GetSignMechanismRequest request) throws Exception {
-        KeyInfo keyInfo = TokenManager.getKeyInfo(request.getKeyId());
+    protected SignCertificateResp handle(SignCertificateReq request) throws Exception {
+        final byte[] signedCertificate = getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
+                .handleSignCertificate(request);
 
-        if (keyInfo == null) {
-            throw CodedException.tr(ErrorCodes.X_KEY_NOT_FOUND, "key_not_found", "Key '%s' not found",
-                    request.getKeyId());
-        }
-
-        return GetSignMechanismResponse.newBuilder()
-                .setSignMechanismName(keyInfo.getSignMechanismName())
+        return SignCertificateResp.newBuilder()
+                .setCertificateChain(ByteString.copyFrom(signedCertificate))
                 .build();
     }
 }

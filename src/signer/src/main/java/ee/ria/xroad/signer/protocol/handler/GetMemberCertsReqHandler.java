@@ -25,23 +25,49 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.SetCertStatusRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+
+import org.niis.xroad.signer.proto.GetMemberCertsReq;
+import org.niis.xroad.signer.proto.GetMemberCertsResp;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
- * Handles requests for setting the certificate status.
+ * Handles requests for member certificates.
  */
 @Component
-public class SetCertStatusRequestHandler
-        extends AbstractRpcHandler<SetCertStatusRequest, Empty> {
+public class GetMemberCertsReqHandler
+        extends AbstractRpcHandler<GetMemberCertsReq, GetMemberCertsResp> {
 
     @Override
-    protected Empty handle(SetCertStatusRequest request) throws Exception {
-        TokenManager.setCertStatus(request.getCertId(), request.getStatus());
+    protected GetMemberCertsResp handle(GetMemberCertsReq request) throws Exception {
+        final var memberId = ClientIdMapper.fromDto(request.getMemberId());
+        List<CertificateInfoProto> memberCerts = TokenManager.listTokens().stream()
+                .flatMap(t -> t.getKeyInfo().stream())
+                .filter(k -> k.getUsage() == KeyUsageInfo.SIGNING)
+                .flatMap(k -> k.getCerts().stream())
+                .filter(c -> containsMember(c.getMemberId(), memberId))
+                .map(CertificateInfo::asMessage)
+                .collect(Collectors.toList());
 
-        return Empty.getDefaultInstance();
+        return GetMemberCertsResp.newBuilder()
+                .addAllCerts(memberCerts)
+                .build();
+    }
+
+    private static boolean containsMember(ClientId first, ClientId second) {
+        if (first == null || second == null) {
+            return false;
+        }
+
+        return first.equals(second) || second.subsystemContainsMember(first);
     }
 }

@@ -9,71 +9,71 @@ import "TokenStatusInfo.proto";
 package org.niis.xroad.signer.proto;
 
 service TokenService {
-  rpc GetTokenById (GetTokenByIdRequest) returns (TokenInfoProto) {}
+  rpc GetTokenById (GetTokenByIdReq) returns (TokenInfoProto) {}
 
-  rpc GetTokenByKey (GetTokenByKeyIdRequest) returns (TokenInfoProto) {}
+  rpc GetTokenByKey (GetTokenByKeyIdReq) returns (TokenInfoProto) {}
 
-  rpc GetTokenAndKeyIdByCertRequestId (GetTokenByCertRequestIdRequest) returns (TokenInfoAndKeyIdProto) {}
+  rpc GetTokenAndKeyIdByCertRequestId (GetTokenByCertRequestIdReq) returns (TokenInfoAndKeyIdProto) {}
 
-  rpc GetTokenAndKeyIdByCertHash (GetTokenByCertHashRequest) returns (TokenInfoAndKeyIdProto) {}
+  rpc GetTokenAndKeyIdByCertHash (GetTokenByCertHashReq) returns (TokenInfoAndKeyIdProto) {}
 
-  rpc ListTokens (Empty) returns (ListTokensResponse) {}
+  rpc ListTokens (Empty) returns (ListTokensResp) {}
 
-  rpc ActivateToken (ActivateTokenRequest) returns (Empty) {}
+  rpc ActivateToken (ActivateTokenReq) returns (Empty) {}
 
-  rpc SetTokenFriendlyName (SetTokenFriendlyNameRequest) returns (Empty) {}
+  rpc SetTokenFriendlyName (SetTokenFriendlyNameReq) returns (Empty) {}
 
-  rpc GetTokenBatchSigningEnabled(GetTokenBatchSigningEnabledRequest) returns (GetTokenBatchSigningEnabledResponse){}
+  rpc GetTokenBatchSigningEnabled(GetTokenBatchSigningEnabledReq) returns (GetTokenBatchSigningEnabledResp){}
 
-  rpc InitSoftwareToken(InitSoftwareTokenRequest) returns (Empty) {}
+  rpc InitSoftwareToken(InitSoftwareTokenReq) returns (Empty) {}
 
-  rpc UpdateSoftwareTokenPin(UpdateSoftwareTokenPinRequest) returns (Empty) {}
+  rpc UpdateSoftwareTokenPin(UpdateSoftwareTokenPinReq) returns (Empty) {}
 
 }
 
-message ListTokensResponse {
+message ListTokensResp {
   repeated TokenInfoProto tokens = 1;
 }
 
-message ActivateTokenRequest{
+message ActivateTokenReq{
   string tokenId = 1;
   bool  activate = 2;
 }
 
-message GetTokenByIdRequest {
+message GetTokenByIdReq {
   string tokenId = 1;
 }
 
-message GetTokenByKeyIdRequest {
+message GetTokenByKeyIdReq {
   string keyId = 1;
 }
 
-message GetTokenByCertRequestIdRequest {
+message GetTokenByCertRequestIdReq {
   string certRequestId = 1;
 }
 
-message GetTokenByCertHashRequest {
+message GetTokenByCertHashReq {
   string certHash = 1;
 }
 
-message SetTokenFriendlyNameRequest {
+message SetTokenFriendlyNameReq {
   string tokenId = 1;
   string friendlyName = 2;
 }
 
-message GetTokenBatchSigningEnabledRequest {
+message GetTokenBatchSigningEnabledReq {
   string keyId = 1;
 }
 
-message GetTokenBatchSigningEnabledResponse {
+message GetTokenBatchSigningEnabledResp {
   bool batchingSigningEnabled = 1;
 }
 
-message InitSoftwareTokenRequest {
+message InitSoftwareTokenReq {
   string pin = 1;
 }
 
-message UpdateSoftwareTokenPinRequest {
+message UpdateSoftwareTokenPinReq {
   string tokenId = 1;
   string oldPin = 2;
   string newPin = 3;

@@ -25,37 +25,31 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
+import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 
-import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import org.niis.xroad.signer.proto.GetOcspResponsesReq;
+import org.niis.xroad.signer.proto.GetOcspResponsesResp;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static java.util.Arrays.asList;
 
 /**
- * Handles token pin update
+ * Handles OCSP requests.
  */
 @Component
-public class UpdateSoftwareTokenPinRequestHandler
-        extends AbstractRpcHandler<UpdateSoftwareTokenPinRequest, Empty> {
+public class GetOcspResponsesReqHandler
+        extends AbstractRpcHandler<GetOcspResponsesReq, GetOcspResponsesResp> {
 
     @Override
-    protected Empty handle(UpdateSoftwareTokenPinRequest request) throws Exception {
-        final AbstractTokenWorker tokenWorker = getTokenWorker(request.getTokenId());
-        if (tokenWorker instanceof SoftwareTokenWorker) {
-            try {
-                ((SoftwareTokenWorker) tokenWorker).handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
-                return Empty.getDefaultInstance();
-            } catch (Exception e) {
-                // todo move to tokenworker
-                throw new CodedException(X_INTERNAL_ERROR, e);
-            }
-        } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
-        }
+    protected GetOcspResponsesResp handle(GetOcspResponsesReq request) throws Exception {
+        var message = new GetOcspResponses(
+                request.getCertHashList().toArray(new String[0]));
+
+        ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse response = temporaryAkkaMessenger.tellOcspManagerWithResponse(message);
+        return GetOcspResponsesResp.newBuilder()
+                .addAllBase64EncodedResponses(asList(response.getBase64EncodedResponses()))
+                .build();
     }
+
 }

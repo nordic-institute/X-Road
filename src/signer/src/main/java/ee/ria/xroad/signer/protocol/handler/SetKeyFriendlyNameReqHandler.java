@@ -25,40 +25,24 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
 
-import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
+import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-
 /**
- * Handles requests for software token initialization.
+ * Handles requests for setting the key friendly name.
  */
 @Component
-public class InitSoftwareTokenRequestHandler
-        extends AbstractRpcHandler<InitSoftwareTokenRequest, Empty> {
+public class SetKeyFriendlyNameReqHandler
+        extends AbstractRpcHandler<SetKeyFriendlyNameReq, Empty> {
 
     @Override
-    protected Empty handle(InitSoftwareTokenRequest request) throws Exception {
-        String softwareTokenId = TokenManager.getSoftwareTokenId();
-
-        if (softwareTokenId != null) {
-            final AbstractTokenWorker tokenWorker = getTokenWorker(softwareTokenId);
-            if (tokenWorker instanceof SoftwareTokenWorker) {
-                try {
-                    ((SoftwareTokenWorker) tokenWorker).initializeToken(request.getPin().toCharArray());
-                    return Empty.getDefaultInstance();
-                } catch (Exception e) {
-                    throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker
-                }
-            }
-        }
-        throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+    protected Empty handle(SetKeyFriendlyNameReq request) throws Exception {
+        TokenManager.setKeyFriendlyName(request.getKeyId(),
+                request.getFriendlyName());
+        return Empty.getDefaultInstance();
     }
 }

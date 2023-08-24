@@ -25,32 +25,37 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
+import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
 
-import com.google.protobuf.ByteString;
-import org.niis.xroad.signer.proto.SignRequest;
-import org.niis.xroad.signer.proto.SignResponse;
+import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
- * Handles signing requests.
+ * Handles token pin update
  */
 @Component
-public class SignRequestHandler extends AbstractRpcHandler<SignRequest, SignResponse> {
+public class UpdateSoftwareTokenPinReqHandler
+        extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
 
     @Override
-    protected SignResponse handle(SignRequest request) throws Exception {
-        final byte[] signature = signData(request);
-
-        return SignResponse.newBuilder()
-                .setSignature(ByteString.copyFrom(signature))
-                .build();
-    }
-
-    public byte[] signData(SignRequest request) {
-        return getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
-                .handleSign(request);
+    protected Empty handle(UpdateSoftwareTokenPinReq request) throws Exception {
+        final AbstractTokenWorker tokenWorker = getTokenWorker(request.getTokenId());
+        if (tokenWorker instanceof SoftwareTokenWorker) {
+            try {
+                ((SoftwareTokenWorker) tokenWorker).handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
+                return Empty.getDefaultInstance();
+            } catch (Exception e) {
+                // todo move to tokenworker
+                throw new CodedException(X_INTERNAL_ERROR, e);
+            }
+        } else {
+            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+        }
     }
 }

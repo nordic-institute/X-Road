@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,23 +25,35 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.SetKeyFriendlyNameRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+
+import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
+import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
 import org.springframework.stereotype.Component;
 
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+
 /**
- * Handles requests for setting the key friendly name.
+ * Handles requests for key id based on certificate hashes.
  */
 @Component
-public class SetKeyFriendlyNameRequestHandler
-        extends AbstractRpcHandler<SetKeyFriendlyNameRequest, Empty> {
+public class GetKeyIdForCertHashReqHandler extends AbstractRpcHandler<GetKeyIdForCertHashReq, GetKeyIdForCertHashResp> {
 
     @Override
-    protected Empty handle(SetKeyFriendlyNameRequest request) throws Exception {
-        TokenManager.setKeyFriendlyName(request.getKeyId(),
-                request.getFriendlyName());
-        return Empty.getDefaultInstance();
+    protected GetKeyIdForCertHashResp handle(GetKeyIdForCertHashReq request) throws Exception {
+        KeyInfo keyInfo = TokenManager.getKeyInfoForCertHash(request.getCertHash());
+
+        if (keyInfo == null) {
+            throw CodedException.tr(X_CERT_NOT_FOUND, "certificate_with_hash_not_found",
+                    "Certificate with hash '%s' not found", request.getCertHash());
+        }
+
+        return GetKeyIdForCertHashResp.newBuilder()
+                .setKeyId(keyInfo.getId())
+                .setSignMechanismName(keyInfo.getSignMechanismName())
+                .build();
     }
 }

@@ -26,23 +26,22 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import org.niis.xroad.signer.proto.ActivateTokenRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles token activations and deactivations.
+ * Handles requests for TokenInfo based on key id.
  */
 @Component
-public class ActivateTokenRequestHandler
-        extends AbstractRpcHandler<ActivateTokenRequest, Empty> {
+public class GetTokenInfoForKeyIdReqHandler
+        extends AbstractRpcHandler<GetTokenByKeyIdReq, TokenInfoProto> {
 
     @Override
-    protected Empty handle(ActivateTokenRequest request) throws Exception {
-        getTokenWorker(request.getTokenId())
-                .handleActivateToken(request);
-
-        return Empty.getDefaultInstance();
+    protected TokenInfoProto handle(GetTokenByKeyIdReq request) throws Exception {
+        var token = TokenManager.findTokenInfoForKeyId(request.getKeyId());
+        return token.asMessage();
     }
 }

@@ -28,11 +28,11 @@ package ee.ria.xroad.signer.protocol;
 import ee.ria.xroad.signer.protocol.handler.ActivateCertRequestHandler;
 import ee.ria.xroad.signer.protocol.handler.DeleteCertReqHandler;
 import ee.ria.xroad.signer.protocol.handler.DeleteCertRequestReqHandler;
-import ee.ria.xroad.signer.protocol.handler.GenerateSelfSignedCertRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.GetCertificateInfoForHashRequestHandler;
-import ee.ria.xroad.signer.protocol.handler.GetMemberCertsRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.GenerateSelfSignedCertReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetCertificateInfoForHashReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetMemberCertsReqHandler;
 import ee.ria.xroad.signer.protocol.handler.ImportCertReqHandler;
-import ee.ria.xroad.signer.protocol.handler.SetCertStatusRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.SetCertStatusReqHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -43,15 +43,15 @@ import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
-import org.niis.xroad.signer.proto.GetCertificateInfoForHashRequest;
-import org.niis.xroad.signer.proto.GetCertificateInfoResponse;
-import org.niis.xroad.signer.proto.GetMemberCertsRequest;
-import org.niis.xroad.signer.proto.GetMemberCertsResponse;
+import org.niis.xroad.signer.proto.GetCertificateInfoForHashReq;
+import org.niis.xroad.signer.proto.GetCertificateInfoResp;
+import org.niis.xroad.signer.proto.GetMemberCertsReq;
+import org.niis.xroad.signer.proto.GetMemberCertsResp;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.ImportCertResp;
-import org.niis.xroad.signer.proto.RegenerateCertReqRequest;
-import org.niis.xroad.signer.proto.RegenerateCertReqResponse;
-import org.niis.xroad.signer.proto.SetCertStatusRequest;
+import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
+import org.niis.xroad.signer.proto.RegenerateCertRequestResp;
+import org.niis.xroad.signer.proto.SetCertStatusReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Service;
 
@@ -63,13 +63,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CertificateService extends CertificateServiceGrpc.CertificateServiceImplBase {
     private final ActivateCertRequestHandler activateCertRequestHandler;
-    private final GetCertificateInfoForHashRequestHandler getCertificateInfoForHashRequestHandler;
-    private final GetMemberCertsRequestHandler getMemberCertsRequestHandler;
-    private final SetCertStatusRequestHandler setCertStatusRequestHandler;
+    private final GetCertificateInfoForHashReqHandler getCertificateInfoForHashReqHandler;
+    private final GetMemberCertsReqHandler getMemberCertsReqHandler;
+    private final SetCertStatusReqHandler setCertStatusReqHandler;
     private final DeleteCertReqHandler deleteCertReqHandler;
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
     private final ImportCertReqHandler importCertReqHandler;
-    private final GenerateSelfSignedCertRequestHandler generateSelfSignedCertRequestHandler;
+    private final GenerateSelfSignedCertReqHandler generateSelfSignedCertReqHandler;
 
     @Override
     public void activateCert(ActivateCertReq request, StreamObserver<Empty> responseObserver) {
@@ -77,19 +77,19 @@ public class CertificateService extends CertificateServiceGrpc.CertificateServic
     }
 
     @Override
-    public void getCertificateInfoForHash(GetCertificateInfoForHashRequest request,
-                                          StreamObserver<GetCertificateInfoResponse> responseObserver) {
-        getCertificateInfoForHashRequestHandler.processSingle(request, responseObserver);
+    public void getCertificateInfoForHash(GetCertificateInfoForHashReq request,
+                                          StreamObserver<GetCertificateInfoResp> responseObserver) {
+        getCertificateInfoForHashReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void setCertStatus(SetCertStatusRequest request, StreamObserver<Empty> responseObserver) {
-        setCertStatusRequestHandler.processSingle(request, responseObserver);
+    public void setCertStatus(SetCertStatusReq request, StreamObserver<Empty> responseObserver) {
+        setCertStatusReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getMemberCerts(GetMemberCertsRequest request, StreamObserver<GetMemberCertsResponse> responseObserver) {
-        getMemberCertsRequestHandler.processSingle(request, responseObserver);
+    public void getMemberCerts(GetMemberCertsReq request, StreamObserver<GetMemberCertsResp> responseObserver) {
+        getMemberCertsReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
@@ -109,11 +109,11 @@ public class CertificateService extends CertificateServiceGrpc.CertificateServic
 
     @Override
     public void generateSelfSignedCert(GenerateSelfSignedCertReq request, StreamObserver<GenerateSelfSignedCertResp> responseObserver) {
-        generateSelfSignedCertRequestHandler.processSingle(request, responseObserver);
+        generateSelfSignedCertReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void regenerateCertReq(RegenerateCertReqRequest request, StreamObserver<RegenerateCertReqResponse> responseObserver) {
-        //TODO
+    public void regenerateCertRequest(RegenerateCertRequestReq request, StreamObserver<RegenerateCertRequestResp> responseObserver) {
+        super.regenerateCertRequest(request, responseObserver);
     }
 }

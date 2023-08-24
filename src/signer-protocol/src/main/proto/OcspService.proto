@@ -7,20 +7,20 @@ package org.niis.xroad.signer.proto;
 import "CommonMessages.proto";
 
 service OcspService {
-  rpc SetOcspResponses (SetOcspResponsesRequest) returns (Empty) {}
+  rpc SetOcspResponses (SetOcspResponsesReq) returns (Empty) {}
 
-  rpc GetOcspResponses (GetOcspResponsesRequest) returns (GetOcspResponsesResponse) {}
+  rpc GetOcspResponses (GetOcspResponsesReq) returns (GetOcspResponsesResp) {}
 }
 
-message SetOcspResponsesRequest {
+message SetOcspResponsesReq {
   repeated string certHashes = 1;
   repeated string base64EncodedResponses = 2;
 }
 
-message GetOcspResponsesRequest{
+message GetOcspResponsesReq{
   repeated string certHash = 1;
 }
 
-message GetOcspResponsesResponse{
+message GetOcspResponsesResp{
   repeated string base64EncodedResponses = 1;
 }

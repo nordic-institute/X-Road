@@ -57,33 +57,33 @@ import io.grpc.StatusRuntimeException;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateCertReq;
-import org.niis.xroad.signer.proto.ActivateTokenRequest;
+import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
-import org.niis.xroad.signer.proto.GetCertificateInfoForHashRequest;
-import org.niis.xroad.signer.proto.GetKeyIdForCertHashRequest;
-import org.niis.xroad.signer.proto.GetMemberCertsRequest;
-import org.niis.xroad.signer.proto.GetOcspResponsesRequest;
-import org.niis.xroad.signer.proto.GetSignMechanismRequest;
-import org.niis.xroad.signer.proto.GetSignMechanismResponse;
-import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledRequest;
-import org.niis.xroad.signer.proto.GetTokenByCertHashRequest;
-import org.niis.xroad.signer.proto.GetTokenByCertRequestIdRequest;
-import org.niis.xroad.signer.proto.GetTokenByIdRequest;
-import org.niis.xroad.signer.proto.GetTokenByKeyIdRequest;
+import org.niis.xroad.signer.proto.GetCertificateInfoForHashReq;
+import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
+import org.niis.xroad.signer.proto.GetMemberCertsReq;
+import org.niis.xroad.signer.proto.GetOcspResponsesReq;
+import org.niis.xroad.signer.proto.GetSignMechanismReq;
+import org.niis.xroad.signer.proto.GetSignMechanismResp;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledReq;
+import org.niis.xroad.signer.proto.GetTokenByCertHashReq;
+import org.niis.xroad.signer.proto.GetTokenByCertRequestIdReq;
+import org.niis.xroad.signer.proto.GetTokenByIdReq;
+import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
 import org.niis.xroad.signer.proto.ImportCertReq;
-import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
-import org.niis.xroad.signer.proto.ListTokensResponse;
-import org.niis.xroad.signer.proto.SetCertStatusRequest;
-import org.niis.xroad.signer.proto.SetKeyFriendlyNameRequest;
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
-import org.niis.xroad.signer.proto.SetTokenFriendlyNameRequest;
-import org.niis.xroad.signer.proto.SignCertificateRequest;
-import org.niis.xroad.signer.proto.SignRequest;
-import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
+import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
+import org.niis.xroad.signer.proto.ListTokensResp;
+import org.niis.xroad.signer.proto.SetCertStatusReq;
+import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
+import org.niis.xroad.signer.proto.SetOcspResponsesReq;
+import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
+import org.niis.xroad.signer.proto.SignCertificateReq;
+import org.niis.xroad.signer.proto.SignReq;
+import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 
 import java.security.PublicKey;
@@ -142,7 +142,7 @@ public final class SignerProxy {
         log.trace("Initializing software token");
 
         executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
-                .initSoftwareToken(InitSoftwareTokenRequest.newBuilder()
+                .initSoftwareToken(InitSoftwareTokenReq.newBuilder()
                         .setPin(new String(password))
                         .build()));
     }
@@ -154,7 +154,7 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static List<TokenInfo> getTokens() throws Exception {
-        ListTokensResponse response = executeAndHandleException(() ->
+        ListTokensResp response = executeAndHandleException(() ->
                 getSignerClient().getSignerApiBlockingStub().listTokens(Empty.newBuilder().build()));
 
         return response.getTokensList().stream()
@@ -183,7 +183,7 @@ public final class SignerProxy {
      */
     public static TokenInfo getToken(String tokenId) throws Exception {
         return executeAndHandleException(() -> new TokenInfo(getSignerClient().getSignerApiBlockingStub()
-                .getTokenById(GetTokenByIdRequest.newBuilder()
+                .getTokenById(GetTokenByIdReq.newBuilder()
                         .setTokenId(tokenId)
                         .build())));
     }
@@ -201,7 +201,7 @@ public final class SignerProxy {
         log.trace("Activating token '{}'", tokenId);
 
         executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
-                .activateToken(ActivateTokenRequest.newBuilder()
+                .activateToken(ActivateTokenReq.newBuilder()
                         .setTokenId(tokenId)
                         .setActivate(true)
                         .build()));
@@ -219,7 +219,7 @@ public final class SignerProxy {
         log.trace("Updating token pin '{}'", tokenId);
 
         executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
-                .updateSoftwareTokenPin(UpdateSoftwareTokenPinRequest.newBuilder()
+                .updateSoftwareTokenPin(UpdateSoftwareTokenPinReq.newBuilder()
                         .setTokenId(tokenId)
                         .setOldPin(new String(oldPin))//TODO:grpc its not great that we're doing this transformation
                         .setNewPin(new String(newPin))
@@ -238,7 +238,7 @@ public final class SignerProxy {
         log.trace("Deactivating token '{}'", tokenId);
 
         executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
-                .activateToken(ActivateTokenRequest.newBuilder()
+                .activateToken(ActivateTokenReq.newBuilder()
                         .setTokenId(tokenId)
                         .setActivate(false)
                         .build()));
@@ -255,7 +255,7 @@ public final class SignerProxy {
         log.trace("Setting friendly name '{}' for token '{}'", friendlyName, tokenId);
 
         executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
-                .setTokenFriendlyName(SetTokenFriendlyNameRequest.newBuilder()
+                .setTokenFriendlyName(SetTokenFriendlyNameReq.newBuilder()
                         .setTokenId(tokenId)
                         .setFriendlyName(friendlyName)
                         .build()));
@@ -272,7 +272,7 @@ public final class SignerProxy {
         log.trace("Setting friendly name '{}' for key '{}'", friendlyName, keyId);
 
         executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
-                .setKeyFriendlyName(SetKeyFriendlyNameRequest.newBuilder()
+                .setKeyFriendlyName(SetKeyFriendlyNameReq.newBuilder()
                         .setKeyId(keyId)
                         .setFriendlyName(friendlyName)
                         .build()));
@@ -508,7 +508,7 @@ public final class SignerProxy {
         log.trace("Setting cert ('{}') status to '{}'", certId, status);
 
         executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
-                .setCertStatus(SetCertStatusRequest.newBuilder()
+                .setCertStatus(SetCertStatusReq.newBuilder()
                         .setCertId(certId)
                         .setStatus(status)
                         .build()));
@@ -526,7 +526,7 @@ public final class SignerProxy {
         log.trace("Getting cert by hash '{}'", hash);
 
         var response = executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
-                .getCertificateInfoForHash(GetCertificateInfoForHashRequest.newBuilder()
+                .getCertificateInfoForHash(GetCertificateInfoForHashReq.newBuilder()
                         .setCertHash(finalHash)
                         .build()));
 
@@ -547,7 +547,7 @@ public final class SignerProxy {
         log.trace("Getting cert by hash '{}'", finalHash);
 
         var response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
-                .getKeyIdForCertHash(GetKeyIdForCertHashRequest.newBuilder()
+                .getKeyIdForCertHash(GetKeyIdForCertHashReq.newBuilder()
                         .setCertHash(finalHash)
                         .build()));
 
@@ -568,7 +568,7 @@ public final class SignerProxy {
         log.trace("Getting token and key id by cert hash '{}'", hashLowercase);
 
         var response = executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
-                .getTokenAndKeyIdByCertHash(GetTokenByCertHashRequest.newBuilder()
+                .getTokenAndKeyIdByCertHash(GetTokenByCertHashReq.newBuilder()
                         .setCertHash(hashLowercase)
                         .build()));
         log.trace("Token and key id with hash '{}' found", hashLowercase);
@@ -587,7 +587,7 @@ public final class SignerProxy {
     public static String[] getOcspResponses(String[] certHashes) throws Exception {
 
         var response = executeAndHandleException(() -> getSignerClient().getOcspServiceBlockingStub()
-                .getOcspResponses(GetOcspResponsesRequest.newBuilder()
+                .getOcspResponses(GetOcspResponsesReq.newBuilder()
                         .addAllCertHash(toLowerCase(certHashes))
                         .build()));
 
@@ -596,7 +596,7 @@ public final class SignerProxy {
 
     public static void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) throws Exception {
         executeAndHandleException(() -> getSignerClient().getOcspServiceBlockingStub()
-                .setOcspResponses(SetOcspResponsesRequest.newBuilder()
+                .setOcspResponses(SetOcspResponsesReq.newBuilder()
                         .addAllCertHashes(asList(certHashes))
                         .addAllBase64EncodedResponses(asList(base64EncodedResponses))
                         .build()));
@@ -630,7 +630,7 @@ public final class SignerProxy {
         log.trace("Getting token and key id by cert request id '{}'", certRequestId);
 
         var response = executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
-                .getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdRequest.newBuilder()
+                .getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdReq.newBuilder()
                         .setCertRequestId(certRequestId)
                         .build()));
 
@@ -648,12 +648,12 @@ public final class SignerProxy {
      */
     public static TokenInfo getTokenForKeyId(String keyId) throws Exception {
         return executeAndHandleException(() -> new TokenInfo(getSignerClient().getSignerApiBlockingStub()
-                .getTokenByKey(GetTokenByKeyIdRequest.newBuilder().setKeyId(keyId).build())));
+                .getTokenByKey(GetTokenByKeyIdReq.newBuilder().setKeyId(keyId).build())));
     }
 
     public static String getSignMechanism(String keyId) throws Exception {
-        GetSignMechanismResponse response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
-                .getSignMechanism(GetSignMechanismRequest.newBuilder()
+        GetSignMechanismResp response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
+                .getSignMechanism(GetSignMechanismReq.newBuilder()
                         .setKeyId(keyId)
                         .build()));
 
@@ -662,7 +662,7 @@ public final class SignerProxy {
 
     public static byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception {
         var response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
-                .sign(SignRequest.newBuilder()
+                .sign(SignReq.newBuilder()
                         .setKeyId(keyId)
                         .setSignatureAlgorithmId(signatureAlgorithmId)
                         .setDigest(ByteString.copyFrom(digest))
@@ -673,7 +673,7 @@ public final class SignerProxy {
 
     public static Boolean isTokenBatchSigningEnabled(String keyId) {
         var response = executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
-                .getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledRequest.newBuilder()
+                .getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledReq.newBuilder()
                         .setKeyId(keyId)
                         .build()));
 
@@ -687,7 +687,7 @@ public final class SignerProxy {
 
     public static List<CertificateInfo> getMemberCerts(ClientId memberId) throws Exception {
         var response = executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
-                .getMemberCerts(GetMemberCertsRequest.newBuilder()
+                .getMemberCerts(GetMemberCertsReq.newBuilder()
                         .setMemberId(ClientIdMapper.toDto(memberId))
                         .build()));
         return response.getCertsList().stream()
@@ -702,7 +702,7 @@ public final class SignerProxy {
     public static byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey)
             throws Exception {
         var response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
-                .signCertificate(SignCertificateRequest.newBuilder()
+                .signCertificate(SignCertificateReq.newBuilder()
                         .setKeyId(keyId)
                         .setSignatureAlgorithmId(signatureAlgorithmId)
                         .setSubjectName(subjectName)

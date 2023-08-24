@@ -26,30 +26,24 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import org.niis.xroad.signer.proto.GetOcspResponsesRequest;
-import org.niis.xroad.signer.proto.GetOcspResponsesResponse;
+import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
-import static java.util.Arrays.asList;
-
 /**
- * Handles OCSP requests.
+ * Handles requests for setting the token friendly name.
  */
 @Component
-public class GetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<GetOcspResponsesRequest, GetOcspResponsesResponse> {
+public class SetTokenFriendlyNameReqHandler extends AbstractRpcHandler<SetTokenFriendlyNameReq, Empty> {
 
     @Override
-    protected GetOcspResponsesResponse handle(GetOcspResponsesRequest request) throws Exception {
-        var message = new GetOcspResponses(
-                request.getCertHashList().toArray(new String[0]));
+    protected Empty handle(SetTokenFriendlyNameReq request) throws Exception {
+        TokenManager.setTokenFriendlyName(
+                request.getTokenId(),
+                request.getFriendlyName());
 
-        ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse response = temporaryAkkaMessenger.tellOcspManagerWithResponse(message);
-        return GetOcspResponsesResponse.newBuilder()
-                .addAllBase64EncodedResponses(asList(response.getBase64EncodedResponses()))
-                .build();
+        return Empty.getDefaultInstance();
     }
-
 }

@@ -29,8 +29,9 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.GetCertificateInfoForHashRequest;
-import org.niis.xroad.signer.proto.GetCertificateInfoResponse;
+
+import org.niis.xroad.signer.proto.GetCertificateInfoForHashReq;
+import org.niis.xroad.signer.proto.GetCertificateInfoResp;
 import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
@@ -39,10 +40,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
  * Handles requests for certificates based on certificate hashes.
  */
 @Component
-public class GetCertificateInfoForHashRequestHandler extends AbstractRpcHandler<GetCertificateInfoForHashRequest, GetCertificateInfoResponse> {
+public class GetCertificateInfoForHashReqHandler extends AbstractRpcHandler<GetCertificateInfoForHashReq, GetCertificateInfoResp> {
 
     @Override
-    protected GetCertificateInfoResponse handle(GetCertificateInfoForHashRequest request) throws Exception {
+    protected GetCertificateInfoResp handle(GetCertificateInfoForHashReq request) throws Exception {
         CertificateInfo certificateInfo = TokenManager.getCertificateInfoForCertHash(request.getCertHash());
 
         if (certificateInfo == null) {
@@ -50,7 +51,7 @@ public class GetCertificateInfoForHashRequestHandler extends AbstractRpcHandler<
                     "Certificate with hash '%s' not found", request.getCertHash());
         }
 
-        return GetCertificateInfoResponse.newBuilder()
+        return GetCertificateInfoResp.newBuilder()
                 .setCertificateInfo(certificateInfo.asMessage())
                 .build();
     }

@@ -11,13 +11,13 @@ package org.niis.xroad.signer.proto;
 service CertificateService {
   rpc ActivateCert (ActivateCertReq) returns (Empty) {}
 
-  rpc GetCertificateInfoForHash (GetCertificateInfoForHashRequest) returns (GetCertificateInfoResponse) {}
+  rpc GetCertificateInfoForHash (GetCertificateInfoForHashReq) returns (GetCertificateInfoResp) {}
 
-  rpc GetMemberCerts (GetMemberCertsRequest) returns (GetMemberCertsResponse) {}
+  rpc GetMemberCerts (GetMemberCertsReq) returns (GetMemberCertsResp) {}
 
-  rpc SetCertStatus (SetCertStatusRequest) returns (Empty) {}
+  rpc SetCertStatus (SetCertStatusReq) returns (Empty) {}
 
-  rpc RegenerateCertReq (RegenerateCertReqRequest) returns (RegenerateCertReqResponse) {}
+  rpc RegenerateCertRequest (RegenerateCertRequestReq) returns (RegenerateCertRequestResp) {}
 
   rpc DeleteCert (DeleteCertReq) returns (Empty) {}
 
@@ -28,11 +28,11 @@ service CertificateService {
   rpc GenerateSelfSignedCert (GenerateSelfSignedCertReq) returns (GenerateSelfSignedCertResp) {}
 }
 
-message GetCertificateInfoForHashRequest {
+message GetCertificateInfoForHashReq {
   string certHash = 1;
 }
 
-message GetCertificateInfoResponse {
+message GetCertificateInfoResp {
   CertificateInfoProto certificateInfo = 1;
 }
 
@@ -41,25 +41,25 @@ message ActivateCertReq {
   bool  active = 2;
 }
 
-message SetCertStatusRequest{
+message SetCertStatusReq{
   string certId = 1;
   string status = 2;
 }
 
-message GetMemberCertsRequest{
+message GetMemberCertsReq{
   ClientIdProto memberId = 1;
 }
 
-message GetMemberCertsResponse{
+message GetMemberCertsResp{
   repeated CertificateInfoProto certs = 1;
 }
 
-message RegenerateCertReqRequest {//TODO:grpc consider swapping req and request places..
+message RegenerateCertRequestReq {//TODO:grpc consider swapping req and request places..
   string certRequestId = 1;
   CertificateRequestFormat format = 2;
 }
 
-message RegenerateCertReqResponse {
+message RegenerateCertRequestResp {
   string certReqId = 1;
   bytes certRequest = 2;
   CertificateRequestFormat format = 3;

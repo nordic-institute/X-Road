@@ -9,54 +9,54 @@ import "TokenStatusInfo.proto";
 package org.niis.xroad.signer.proto;
 
 service KeyService {
-  rpc SetKeyFriendlyName (SetKeyFriendlyNameRequest) returns (Empty) {}
+  rpc SetKeyFriendlyName (SetKeyFriendlyNameReq) returns (Empty) {}
 
-  rpc GetKeyIdForCertHash (GetKeyIdForCertHashRequest) returns (GetKeyIdForCertHashResponse) {}
+  rpc GetKeyIdForCertHash (GetKeyIdForCertHashReq) returns (GetKeyIdForCertHashResp) {}
 
-  rpc GetSignMechanism (GetSignMechanismRequest) returns (GetSignMechanismResponse) {}
+  rpc GetSignMechanism (GetSignMechanismReq) returns (GetSignMechanismResp) {}
 
-  rpc Sign(SignRequest) returns (SignResponse) {}
+  rpc Sign(SignReq) returns (SignResp) {}
 
-  rpc SignCertificate(SignCertificateRequest) returns (SignCertificateResponse) {}
+  rpc SignCertificate(SignCertificateReq) returns (SignCertificateResp) {}
 
   rpc DeleteKey (DeleteKeyReq) returns (Empty) {}
 }
 
 
-message GetKeyIdForCertHashRequest {
+message GetKeyIdForCertHashReq {
   string certHash = 1;
 }
 
-message GetKeyIdForCertHashResponse {
+message GetKeyIdForCertHashResp {
   string keyId = 1;
   string signMechanismName = 2;
 }
 
-message SetKeyFriendlyNameRequest {
+message SetKeyFriendlyNameReq {
   string keyId = 1;
   string friendlyName = 2;
 }
 
 
-message GetSignMechanismRequest {
+message GetSignMechanismReq {
   string keyId = 1;
 }
 
-message GetSignMechanismResponse {
+message GetSignMechanismResp {
   string signMechanismName = 1;
 }
 
-message SignRequest {
+message SignReq {
   string keyId = 1;
   string signatureAlgorithmId = 2;
   bytes digest = 3;
 }
 
-message SignResponse {
+message SignResp {
   bytes signature = 1;
 }
 
-message SignCertificateRequest {
+message SignCertificateReq {
   string keyId = 1;
   string signatureAlgorithmId = 2;
   string subjectName = 3;
@@ -64,7 +64,7 @@ message SignCertificateRequest {
 
 }
 
-message SignCertificateResponse {
+message SignCertificateResp {
   bytes certificateChain = 1;
 }
 

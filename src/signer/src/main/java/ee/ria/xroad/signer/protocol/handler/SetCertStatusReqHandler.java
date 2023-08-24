@@ -26,21 +26,23 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.niis.xroad.signer.proto.GetTokenByCertRequestIdRequest;
+
+import org.niis.xroad.signer.proto.SetCertStatusReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles requests for TokenInfo + key id based on certificate request ids.
+ * Handles requests for setting the certificate status.
  */
 @Component
-public class GetTokenInfoAndKeyIdForCertRequestIdRequestHandler
-        extends AbstractRpcHandler<GetTokenByCertRequestIdRequest, TokenInfoAndKeyIdProto> {
+public class SetCertStatusReqHandler
+        extends AbstractRpcHandler<SetCertStatusReq, Empty> {
 
     @Override
-    protected TokenInfoAndKeyIdProto handle(GetTokenByCertRequestIdRequest request) throws Exception {
-        var token = TokenManager.findTokenAndKeyIdForCertRequestId(request.getCertRequestId());
-        return token.asMessage();
+    protected Empty handle(SetCertStatusReq request) throws Exception {
+        TokenManager.setCertStatus(request.getCertId(), request.getStatus());
+
+        return Empty.getDefaultInstance();
     }
 }

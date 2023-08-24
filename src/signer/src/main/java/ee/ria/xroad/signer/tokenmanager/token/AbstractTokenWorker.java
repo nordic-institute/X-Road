@@ -48,9 +48,9 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.niis.xroad.signer.proto.ActivateTokenRequest;
-import org.niis.xroad.signer.proto.SignCertificateRequest;
-import org.niis.xroad.signer.proto.SignRequest;
+import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.SignCertificateReq;
+import org.niis.xroad.signer.proto.SignReq;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
@@ -131,7 +131,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         setTokenAvailable(tokenId, false);
     }
 
-    public void handleActivateToken(ActivateTokenRequest message) throws Exception {
+    public void handleActivateToken(ActivateTokenReq message) throws Exception {
         try {
             activateToken(message);
 
@@ -201,7 +201,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
     @Deprecated
     private void handleCalculateSignature(CalculateSignature signRequest) {
         try {
-            SignRequest request = SignRequest.newBuilder()
+            SignReq request = SignReq.newBuilder()
                     .setKeyId(signRequest.getKeyId())
                     .setSignatureAlgorithmId(signRequest.getSignatureAlgorithmId())
                     .setDigest(ByteString.copyFrom(signRequest.getDigest()))
@@ -219,7 +219,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         }
     }
 
-    public byte[] handleSign(SignRequest request) {
+    public byte[] handleSign(SignReq request) {
         try {
             byte[] data = SignerUtil.createDataToSign(request.getDigest().toByteArray(), request.getSignatureAlgorithmId());
 
@@ -231,7 +231,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         }
     }
 
-    public byte[] handleSignCertificate(SignCertificateRequest request) {
+    public byte[] handleSignCertificate(SignCertificateReq request) {
         try {
             PublicKey publicKey = CryptoUtils.readX509PublicKey(request.getPublicKey().toByteArray());
             return signCertificate(request.getKeyId(), request.getSignatureAlgorithmId(),
@@ -244,7 +244,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
     // ------------------------------------------------------------------------
 
-    protected abstract void activateToken(ActivateTokenRequest message) throws Exception;
+    protected abstract void activateToken(ActivateTokenReq message) throws Exception;
 
     protected abstract GenerateKeyResult generateKey(GenerateKey message) throws Exception;
 

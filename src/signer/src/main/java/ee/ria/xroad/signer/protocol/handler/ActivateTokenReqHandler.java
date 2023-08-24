@@ -26,24 +26,23 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import org.niis.xroad.signer.proto.ListTokensResponse;
+import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles requests for token list.
+ * Handles token activations and deactivations.
  */
 @Component
-public class ListTokensRequestHandler extends AbstractRpcHandler<Empty, ListTokensResponse> {
+public class ActivateTokenReqHandler
+        extends AbstractRpcHandler<ActivateTokenReq, Empty> {
 
     @Override
-    protected ListTokensResponse handle(Empty request) throws Exception {
-        final ListTokensResponse.Builder builder = ListTokensResponse.newBuilder();
+    protected Empty handle(ActivateTokenReq request) throws Exception {
+        getTokenWorker(request.getTokenId())
+                .handleActivateToken(request);
 
-        TokenManager.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));
-
-        return builder.build();
+        return Empty.getDefaultInstance();
     }
 }
