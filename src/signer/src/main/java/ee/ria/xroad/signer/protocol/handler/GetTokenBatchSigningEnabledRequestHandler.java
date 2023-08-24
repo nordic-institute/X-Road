@@ -26,25 +26,24 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledRequest;
+import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResponse;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles requests for setting the OCSP responses for certificates.
+ * Handles queries for batch signing capabilities of a token.
  */
 @Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+public class GetTokenBatchSigningEnabledRequestHandler
+        extends AbstractRpcHandler<GetTokenBatchSigningEnabledRequest, GetTokenBatchSigningEnabledResponse> {
 
-        temporaryAkkaMessenger.tellOcspManager(message);
-        return Empty.getDefaultInstance();
+    @Override
+    protected GetTokenBatchSigningEnabledResponse handle(GetTokenBatchSigningEnabledRequest request) throws Exception {
+        String tokenId = TokenManager.findTokenIdForKeyId(request.getKeyId());
+
+        return GetTokenBatchSigningEnabledResponse.newBuilder()
+                .setBatchingSigningEnabled(TokenManager.isBatchSigningEnabled(tokenId))
+                .build();
     }
 }

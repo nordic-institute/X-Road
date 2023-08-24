@@ -26,25 +26,22 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import org.niis.xroad.signer.proto.SetCertStatusRequest;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles requests for setting the OCSP responses for certificates.
+ * Handles requests for setting the certificate status.
  */
 @Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+public class SetCertStatusRequestHandler
+        extends AbstractRpcHandler<SetCertStatusRequest, Empty> {
 
-        temporaryAkkaMessenger.tellOcspManager(message);
+    @Override
+    protected Empty handle(SetCertStatusRequest request) throws Exception {
+        TokenManager.setCertStatus(request.getCertId(), request.getStatus());
+
         return Empty.getDefaultInstance();
     }
 }

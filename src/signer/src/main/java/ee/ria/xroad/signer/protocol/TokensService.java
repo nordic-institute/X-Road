@@ -25,20 +25,21 @@
  */
 package ee.ria.xroad.signer.protocol;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
+import ee.ria.xroad.signer.protocol.handler.ActivateTokenRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenBatchSigningEnabledRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenInfoAndKeyIdForCertHashRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenInfoAndKeyIdForCertRequestIdRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenInfoForKeyIdRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.GetTokenInfoRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.InitSoftwareTokenRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.ListTokensRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.SetTokenFriendlyNameRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.UpdateSoftwareTokenPinRequestHandler;
 
-import com.google.protobuf.AbstractMessage;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateTokenRequest;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledRequest;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResponse;
@@ -54,122 +55,73 @@ import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinRequest;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Service;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-
 /**
- * Handles requests for token list.
+ * Token gRPC service.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
-    private final TemporaryAkkaMessenger temporaryAkkaMessenger;
+    private final ActivateTokenRequestHandler activateTokenRequestHandler;
+    private final UpdateSoftwareTokenPinRequestHandler updateSoftwareTokenPinRequestHandler;
+    private final InitSoftwareTokenRequestHandler initSoftwareTokenRequestHandler;
+    private final GetTokenInfoRequestHandler getTokenInfoRequestHandler;
+    private final GetTokenInfoForKeyIdRequestHandler getTokenInfoForKeyIdRequestHandler;
+    private final GetTokenBatchSigningEnabledRequestHandler getTokenBatchSigningEnabledRequestHandler;
+    private final GetTokenInfoAndKeyIdForCertHashRequestHandler getTokenInfoAndKeyIdForCertHashRequestHandler;
+    private final GetTokenInfoAndKeyIdForCertRequestIdRequestHandler getTokenInfoAndKeyIdForCertRequestIdRequestHandler;
+    private final SetTokenFriendlyNameRequestHandler setTokenFriendlyNameRequestHandler;
+    private final ListTokensRequestHandler listTokensRequestHandler;
 
     @Override
     public void listTokens(Empty request, StreamObserver<ListTokensResponse> responseObserver) {
-        final ListTokensResponse.Builder builder = ListTokensResponse.newBuilder();
-
-        TokenManager.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));
-
-        emitSingleAndClose(responseObserver, builder.build());
+        listTokensRequestHandler.processSingle(request, responseObserver);
     }
 
-    @SneakyThrows
     @Override
     public void activateToken(ActivateTokenRequest request, StreamObserver<Empty> responseObserver) {
-        ActivateToken actorMsg = new ActivateToken(request.getTokenId(), request.getActivate());
-
-        final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(request.getTokenId());
-        tokenWorker.handleActivateToken(actorMsg);
-
-        emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+        activateTokenRequestHandler.processSingle(request, responseObserver);
     }
 
     @Override
     public void getTokenById(GetTokenByIdRequest request, StreamObserver<TokenInfoProto> responseObserver) {
-        var token = TokenManager.findTokenInfo(request.getTokenId());
-        emitSingleAndClose(responseObserver, token.asMessage());
+        getTokenInfoRequestHandler.processSingle(request, responseObserver);
     }
 
     @Override
     public void getTokenByKey(GetTokenByKeyIdRequest request, StreamObserver<TokenInfoProto> responseObserver) {
-        var token = TokenManager.findTokenInfoForKeyId(request.getKeyId());
-        emitSingleAndClose(responseObserver, token.asMessage());
+        getTokenInfoForKeyIdRequestHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdRequest request, StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
-        var token = TokenManager.findTokenAndKeyIdForCertRequestId(request.getCertRequestId());
-        emitSingleAndClose(responseObserver, token.asMessage());
+    public void getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdRequest request,
+                                                StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
+        getTokenInfoAndKeyIdForCertRequestIdRequestHandler.processSingle(request, responseObserver);
     }
 
     @Override
     public void getTokenAndKeyIdByCertHash(GetTokenByCertHashRequest request, StreamObserver<TokenInfoAndKeyIdProto> responseObserver) {
-        var token = TokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
-        emitSingleAndClose(responseObserver, token.asMessage());
+        getTokenInfoAndKeyIdForCertHashRequestHandler.processSingle(request, responseObserver);
     }
 
     @Override
     public void setTokenFriendlyName(SetTokenFriendlyNameRequest request, StreamObserver<Empty> responseObserver) {
-        TokenManager.setTokenFriendlyName(
-                request.getTokenId(),
-                request.getFriendlyName());
-
-        emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+        setTokenFriendlyNameRequestHandler.processSingle(request, responseObserver);
     }
 
     @Override
-    public void getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledRequest request, StreamObserver<GetTokenBatchSigningEnabledResponse> responseObserver) {
-        String tokenId = TokenManager.findTokenIdForKeyId(request.getKeyId());
-
-        emitSingleAndClose(responseObserver, GetTokenBatchSigningEnabledResponse.newBuilder()
-                .setBatchingSigningEnabled(TokenManager.isBatchSigningEnabled(tokenId))
-                .build());
+    public void getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledRequest request,
+                                            StreamObserver<GetTokenBatchSigningEnabledResponse> responseObserver) {
+        getTokenBatchSigningEnabledRequestHandler.processSingle(request, responseObserver);
     }
 
     @Override
     public void initSoftwareToken(InitSoftwareTokenRequest request, StreamObserver<Empty> responseObserver) {
-        String softwareTokenId = TokenManager.getSoftwareTokenId();
-
-        if (softwareTokenId != null) {
-
-            final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(softwareTokenId);
-            if (tokenWorker instanceof SoftwareTokenWorker) {
-                try {
-                    ((SoftwareTokenWorker) tokenWorker).initializeToken(request.getPin().toCharArray());
-                } catch (Exception e) {
-                    throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker
-                }
-                emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
-            } else {
-                throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
-            }
-        } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
-        }
+        initSoftwareTokenRequestHandler.processSingle(request, responseObserver);
     }
 
     @Override
     public void updateSoftwareTokenPin(UpdateSoftwareTokenPinRequest request, StreamObserver<Empty> responseObserver) {
-        final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(request.getTokenId());
-        if (tokenWorker instanceof SoftwareTokenWorker) {
-            try {
-                ((SoftwareTokenWorker) tokenWorker).handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
-            } catch (Exception e) {
-                // todo move to tokenworker
-                throw new CodedException(X_INTERNAL_ERROR, e);
-            }
-        } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
-        }
-
-        emitSingleAndClose(responseObserver, Empty.getDefaultInstance());
+        updateSoftwareTokenPinRequestHandler.processSingle(request, responseObserver);
     }
-
-    private <T extends AbstractMessage> void emitSingleAndClose(StreamObserver<T> responseObserver, T value) {
-        responseObserver.onNext(value);
-        responseObserver.onCompleted();
-    }
-
 
 }

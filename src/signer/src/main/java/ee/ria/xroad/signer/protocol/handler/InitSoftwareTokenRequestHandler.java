@@ -25,26 +25,40 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
+import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
+import org.niis.xroad.signer.proto.InitSoftwareTokenRequest;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+
 /**
- * Handles requests for setting the OCSP responses for certificates.
+ * Handles requests for software token initialization.
  */
 @Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+public class InitSoftwareTokenRequestHandler
+        extends AbstractRpcHandler<InitSoftwareTokenRequest, Empty> {
 
-        temporaryAkkaMessenger.tellOcspManager(message);
-        return Empty.getDefaultInstance();
+    @Override
+    protected Empty handle(InitSoftwareTokenRequest request) throws Exception {
+        String softwareTokenId = TokenManager.getSoftwareTokenId();
+
+        if (softwareTokenId != null) {
+            final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(softwareTokenId);
+            if (tokenWorker instanceof SoftwareTokenWorker) {
+                try {
+                    ((SoftwareTokenWorker) tokenWorker).initializeToken(request.getPin().toCharArray());
+                } catch (Exception e) {
+                    throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker
+                }
+                return Empty.getDefaultInstance();
+            }
+        }
+        throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
     }
 }

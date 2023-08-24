@@ -26,25 +26,22 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import org.niis.xroad.signer.proto.GetTokenByCertHashRequest;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles requests for setting the OCSP responses for certificates.
+ * Handles requests for TokenInfo + key id based on certificate hashes.
  */
 @Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+public class GetTokenInfoAndKeyIdForCertHashRequestHandler
+        extends AbstractRpcHandler<GetTokenByCertHashRequest, TokenInfoAndKeyIdProto> {
 
-        temporaryAkkaMessenger.tellOcspManager(message);
-        return Empty.getDefaultInstance();
+
+    @Override
+    protected TokenInfoAndKeyIdProto handle(GetTokenByCertHashRequest request) throws Exception {
+        var token = TokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
+        return token.asMessage();
     }
 }

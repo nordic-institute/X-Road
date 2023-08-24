@@ -25,26 +25,32 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import com.google.protobuf.ByteString;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import ee.ria.xroad.signer.protocol.message.Sign;
+import org.niis.xroad.signer.proto.SignRequest;
+import org.niis.xroad.signer.proto.SignResponse;
 import org.springframework.stereotype.Component;
 
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
+
 /**
- * Handles requests for setting the OCSP responses for certificates.
+ * Handles signing requests.
  */
 @Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+public class SignRequestHandler extends AbstractRpcHandler<SignRequest, SignResponse> {
 
-        temporaryAkkaMessenger.tellOcspManager(message);
-        return Empty.getDefaultInstance();
+    @Override
+    protected SignResponse handle(SignRequest request) throws Exception {
+        var message = new Sign(request.getKeyId(),
+                request.getSignatureAlgorithmId(),
+                request.getDigest().toByteArray());
+
+        ee.ria.xroad.signer.protocol.message.SignResponse response = temporaryAkkaMessenger
+                .tellTokenWithResponse(message, findTokenIdForKeyId(message.getKeyId()));
+
+        return SignResponse.newBuilder()
+                .setSignature(ByteString.copyFrom(response.getSignature()))
+                .build();
     }
 }

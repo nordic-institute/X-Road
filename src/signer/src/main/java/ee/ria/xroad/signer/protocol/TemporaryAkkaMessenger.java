@@ -17,7 +17,7 @@ import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getOcspResponseMan
 import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getToken;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
 
-@Deprecated
+@Deprecated(forRemoval = true)
 @Component
 @RequiredArgsConstructor
 public class TemporaryAkkaMessenger {

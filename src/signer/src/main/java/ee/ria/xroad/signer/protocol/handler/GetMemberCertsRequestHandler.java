@@ -25,31 +25,48 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
-
-import org.niis.xroad.signer.proto.GetOcspResponsesRequest;
-import org.niis.xroad.signer.proto.GetOcspResponsesResponse;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import org.niis.xroad.signer.proto.GetMemberCertsRequest;
+import org.niis.xroad.signer.proto.GetMemberCertsResponse;
 import org.springframework.stereotype.Component;
 
-import static java.util.Arrays.asList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Handles OCSP requests.
+ * Handles requests for member certificates.
  */
 @Component
-public class GetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<GetOcspResponsesRequest, GetOcspResponsesResponse> {
+public class GetMemberCertsRequestHandler
+        extends AbstractRpcHandler<GetMemberCertsRequest, GetMemberCertsResponse> {
 
     @Override
-    protected GetOcspResponsesResponse handle(GetOcspResponsesRequest request) throws Exception {
-        var message = new GetOcspResponses(
-                request.getCertHashList().toArray(new String[0]));
+    protected GetMemberCertsResponse handle(GetMemberCertsRequest request) throws Exception {
+        final var memberId = ClientIdMapper.fromDto(request.getMemberId());
+        List<CertificateInfoProto> memberCerts = TokenManager.listTokens().stream()
+                .flatMap(t -> t.getKeyInfo().stream())
+                .filter(k -> k.getUsage() == KeyUsageInfo.SIGNING)
+                .flatMap(k -> k.getCerts().stream())
+                .filter(c -> containsMember(c.getMemberId(), memberId))
+                .map(CertificateInfo::asMessage)
+                .collect(Collectors.toList());
 
-        ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse response = temporaryAkkaMessenger.tellOcspManagerWithResponse(message);
-        return GetOcspResponsesResponse.newBuilder()
-                .addAllBase64EncodedResponses(asList(response.getBase64EncodedResponses()))
+        return GetMemberCertsResponse.newBuilder()
+                .addAllCerts(memberCerts)
                 .build();
     }
 
+    private static boolean containsMember(ClientId first, ClientId second) {
+        if (first == null || second == null) {
+            return false;
+        }
+
+        return first.equals(second) || second.subsystemContainsMember(first);
+    }
 }

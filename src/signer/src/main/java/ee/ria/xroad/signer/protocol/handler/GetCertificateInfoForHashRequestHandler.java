@@ -25,26 +25,33 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import org.niis.xroad.signer.proto.GetCertificateInfoForHashRequest;
+import org.niis.xroad.signer.proto.GetCertificateInfoResponse;
 import org.springframework.stereotype.Component;
 
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+
 /**
- * Handles requests for setting the OCSP responses for certificates.
+ * Handles requests for certificates based on certificate hashes.
  */
 @Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+public class GetCertificateInfoForHashRequestHandler extends AbstractRpcHandler<GetCertificateInfoForHashRequest, GetCertificateInfoResponse> {
 
-        temporaryAkkaMessenger.tellOcspManager(message);
-        return Empty.getDefaultInstance();
+    @Override
+    protected GetCertificateInfoResponse handle(GetCertificateInfoForHashRequest request) throws Exception {
+        CertificateInfo certificateInfo = TokenManager.getCertificateInfoForCertHash(request.getCertHash());
+
+        if (certificateInfo == null) {
+            throw CodedException.tr(X_CERT_NOT_FOUND, "certificate_with_hash_not_found",
+                    "Certificate with hash '%s' not found", request.getCertHash());
+        }
+
+        return GetCertificateInfoResponse.newBuilder()
+                .setCertificateInfo(certificateInfo.asMessage())
+                .build();
     }
 }

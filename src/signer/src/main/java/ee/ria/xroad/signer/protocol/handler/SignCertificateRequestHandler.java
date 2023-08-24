@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,26 +26,34 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import com.google.protobuf.ByteString;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import ee.ria.xroad.signer.protocol.message.SignCertificate;
+import org.niis.xroad.signer.proto.SignCertificateRequest;
+import org.niis.xroad.signer.proto.SignCertificateResponse;
 import org.springframework.stereotype.Component;
 
-/**
- * Handles requests for setting the OCSP responses for certificates.
- */
-@Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+import java.security.PublicKey;
 
-        temporaryAkkaMessenger.tellOcspManager(message);
-        return Empty.getDefaultInstance();
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
+
+@Component
+public class SignCertificateRequestHandler extends AbstractRpcHandler<SignCertificateRequest, SignCertificateResponse> {
+
+    @Override
+    protected SignCertificateResponse handle(SignCertificateRequest request) throws Exception {
+        PublicKey publicKey = CryptoUtils.readX509PublicKey(request.getPublicKey().toByteArray());
+        var message = new SignCertificate(request.getKeyId(),
+                request.getSignatureAlgorithmId(),
+                request.getSubjectName(),
+                publicKey);
+
+        ee.ria.xroad.signer.protocol.message.SignCertificateResponse response = temporaryAkkaMessenger
+                .tellTokenWithResponse(message, findTokenIdForKeyId(message.getKeyId()));
+
+        return SignCertificateResponse.newBuilder()
+                .setCertificateChain(ByteString.copyFrom(response.getCertificateChain()))
+                .build();
     }
 }

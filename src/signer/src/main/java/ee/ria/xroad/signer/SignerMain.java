@@ -32,21 +32,12 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
-import ee.ria.xroad.signer.protocol.CertificateService;
-import ee.ria.xroad.signer.protocol.KeyService;
-import ee.ria.xroad.signer.protocol.SignerExceptionHandlerInterceptor;
-import ee.ria.xroad.signer.protocol.TemporaryAkkaMessenger;
-import ee.ria.xroad.signer.protocol.TokensService;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.grpc.RpcServer;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
@@ -61,7 +52,6 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
-import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 
 /**
  * Signer main program.
@@ -135,8 +125,6 @@ public final class SignerMain {
                 log.info("Registering {} gRPC service.",bindableService.getClass().getSimpleName());
                 builder.addService(bindableService);
             });
-
-            builder.intercept(new SignerExceptionHandlerInterceptor());
         });
     }
 

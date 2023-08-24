@@ -25,26 +25,28 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
+import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
+import org.niis.xroad.signer.proto.ActivateTokenRequest;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles requests for setting the OCSP responses for certificates.
+ * Handles token activations and deactivations.
  */
 @Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+public class ActivateTokenRequestHandler
+        extends AbstractRpcHandler<ActivateTokenRequest, Empty> {
 
-        temporaryAkkaMessenger.tellOcspManager(message);
+    @Override
+    protected Empty handle(ActivateTokenRequest request) throws Exception {
+        ActivateToken actorMsg = new ActivateToken(request.getTokenId(), request.getActivate());
+
+        final AbstractTokenWorker tokenWorker = TemporaryHelper.getTokenWorker(request.getTokenId());
+        tokenWorker.handleActivateToken(actorMsg);
+
         return Empty.getDefaultInstance();
     }
 }

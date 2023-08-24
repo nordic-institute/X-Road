@@ -26,25 +26,21 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import org.niis.xroad.signer.proto.SetOcspResponsesRequest;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import org.niis.xroad.signer.proto.GetTokenByIdRequest;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles requests for setting the OCSP responses for certificates.
+ * Handles requests for token info.
  */
 @Component
-public class SetOcspResponsesRequestHandler
-        extends AbstractRpcHandler<SetOcspResponsesRequest, Empty> {
-    @Override
-    protected Empty handle(SetOcspResponsesRequest request) throws Exception {
-        var message = new SetOcspResponses(
-                request.getCertHashesList().toArray(new String[0]),
-                request.getBase64EncodedResponsesList().toArray(new String[0]));
+public class GetTokenInfoRequestHandler
+        extends AbstractRpcHandler<GetTokenByIdRequest, TokenInfoProto> {
 
-        temporaryAkkaMessenger.tellOcspManager(message);
-        return Empty.getDefaultInstance();
+    @Override
+    protected TokenInfoProto handle(GetTokenByIdRequest request) throws Exception {
+        var token = TokenManager.findTokenInfo(request.getTokenId());
+        return token.asMessage();
     }
 }
