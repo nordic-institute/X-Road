@@ -1,13 +1,14 @@
 # X-Road: Security hardening guidelines <!-- omit in toc -->
 
-Version: 0.1  
+Version: 0.2  
 Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                                             | Author            |
-|------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-| 02.06.2023 | 0.1     | Initial version                                                                                                                                                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas |
+| Date       | Version | Description                                      | Author            |
+|------------|---------|--------------------------------------------------|-------------------|
+| 02.06.2023 | 0.1     | Initial version                                  | Ričardas Bučiūnas |
+| 24.08.2023 | 0.2     | Minimum supported client Security Server version | Eneli Reimets     |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -26,6 +27,8 @@ Doc. ID: UG-SEC
     * [2.3 Ensuring User Account Security](#23-ensuring-user-account-security)
 * [3.Admin UI (Central Server and Security Server)](#3-admin-ui-central-server-and-security-server)
     * [3.1 Host header injection mitigation](#31-host-header-injection-mitigation)
+* [4 Access control](#4-access-control)
+    * [4.1 Minimum Supported Client Security Server Version](#41-minimum-supported-client-security-server-version)
   
 <!-- tocstop -->
 
@@ -161,3 +164,16 @@ The host header specifies which website or web application should process an inc
 
 By default, this header allows any value which would be a security risk if Admin UI could be accessed by bad actors. To mitigate this issue it suggested to configure `allowed-hostnames` as described in [UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md). 
 For Security server refer to [proxy-ui-api](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api), for Central server refer to [admin-service](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service)
+
+## 4 Access control
+
+### 4.1 Minimum Supported Client Security Server Version
+
+For increases the security of the X-Road ecosystem, it is security best practice to limit minimum version of client Security Server to communicate Security Server.
+
+Security Server administrator can limit in server side the minimum version by configure system parameter `server-min-supported-client-version` as described in [UG-SYSPAR](#Ref_UG-SYSPAR) section 3.2 Proxy parameters.
+
+For example, to set parameter `server-min-supported-client-version = 7.3.1`, it means that client Security Server version should be at least `7.1.3`:
+
+	[proxy]
+	server-min-supported-client-version = 7.3.1
