@@ -47,31 +47,54 @@ import static org.mockito.Mockito.when;
 
 public class ServerProxyHandlerTest {
     private static final String CLIENT_VERSION_6_26_3 = "6.26.3";
+    private static final String CLIENT_VERSION_7_1_3 = "7.1.3";
     private static final String VERSION_7_1_3 = "7.1.3";
     private static final String MIN_SUPPORTED_CLIENT_VERSION = "xroad.proxy.server-min-supported-client-version";
 
     @Test
     public void shouldNotPassClientProxyVersionCheck() throws Exception {
-        final HttpServletRequest request = mock(HttpServletRequest.class);
-        final HttpServletResponse response = mock(HttpServletResponse.class);
+        final HttpServletRequest request = getMockedRequest();
         final Request baseRequest = mock(Request.class);
         when(request.getHeader(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_6_26_3);
         System.setProperty(MIN_SUPPORTED_CLIENT_VERSION, VERSION_7_1_3);
-        mockData(request, response);
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(HttpClient.class), mock(HttpClient.class));
 
         try (MockedStatic<GlobalConf> mock = Mockito.mockStatic(GlobalConf.class)) {
             mock.when(GlobalConf::verifyValidity).then(invocationOnMock -> null);
 
-            serverProxyHandler.handle("target", baseRequest, request, response);
+            serverProxyHandler.handle("target", baseRequest, request, getMockedResponse());
         }
 
         verify(baseRequest, times(0)).getHttpChannel();
     }
 
-    private void mockData(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        when(response.getOutputStream()).thenReturn(mock(ServletOutputStream.class));
+    @Test
+    public void shouldPassClientProxyVersionCheck() throws Exception {
+        final HttpServletRequest request = getMockedRequest();
+        final Request baseRequest = mock(Request.class);
+        when(request.getHeader(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_7_1_3);
+        System.setProperty(MIN_SUPPORTED_CLIENT_VERSION, VERSION_7_1_3);
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(HttpClient.class), mock(HttpClient.class));
+
+        try (MockedStatic<GlobalConf> mock = Mockito.mockStatic(GlobalConf.class)) {
+            mock.when(GlobalConf::verifyValidity).then(invocationOnMock -> null);
+
+            serverProxyHandler.handle("target", baseRequest, request, getMockedResponse());
+        }
+
+        verify(baseRequest, times(1)).getHttpChannel();
+    }
+
+    private HttpServletRequest getMockedRequest() {
+        final HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getRemoteAddr()).thenReturn("remoteAddr");
         when(request.getMethod()).thenReturn("POST");
+        return request;
+    }
+
+    private HttpServletResponse getMockedResponse() throws IOException {
+        final HttpServletResponse response = mock(HttpServletResponse.class);
+        when(response.getOutputStream()).thenReturn(mock(ServletOutputStream.class));
+        return response;
     }
 }
