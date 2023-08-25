@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,7 +31,6 @@ import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
-import ee.ria.xroad.signer.protocol.SignerRequestProcessor;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.module.DefaultModuleManagerImpl;
@@ -54,7 +53,6 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_RELOAD;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 
 /**
  * Signer application.
@@ -99,8 +97,6 @@ public class Signer implements StartStop {
         createComponent(OCSP_CLIENT_JOB, OcspClientJob.class);
         createComponent(OCSP_CLIENT_RELOAD, OcspClientReload.class);
         createComponent(ModuleManagerJob.class);
-
-        createComponent(REQUEST_PROCESSOR, SignerRequestProcessor.class);
     }
 
     /**

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,9 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import akka.actor.ActorIdentity;
 import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
-import akka.actor.Identify;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
 import akka.pattern.Patterns;
@@ -49,7 +47,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 import static ee.ria.xroad.signer.protocol.SignerClient.SignerWatcher.requestProcessor;
 
@@ -207,7 +204,7 @@ public final class SignerClient {
         //can be null if the actor is not know yet (we are starting, or signer has just restarted)
         private ActorRef requestProcessorRef;
 
-        private ActorSelection requestProcessorAddress;
+
         private final String signerIpAddress;
 
         interface Watch {
@@ -219,7 +216,6 @@ public final class SignerClient {
 
         @Override
         public void preStart() {
-            requestProcessorAddress = context().actorSelection(getSignerPath() + "/user/" + REQUEST_PROCESSOR);
             self().tell(Watch.class, self());
         }
 
@@ -289,7 +285,6 @@ public final class SignerClient {
 
         private void identifyProcessor() {
             correlationId++;
-            requestProcessorAddress.tell(new Identify(correlationId), self());
         }
 
         private String getSignerPath() {

@@ -31,8 +31,6 @@ import akka.actor.ActorSystem;
 
 import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
-import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_SIGNER;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 
 /**
@@ -41,15 +39,6 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 public final class ServiceLocator {
 
     private ServiceLocator() {
-    }
-
-    /**
-     * @param context the actor context
-     * @return the request processor actor
-     */
-    public static ActorSelection getRequestProcessor(
-            ActorContext context) {
-        return context.actorSelection("/user/" + REQUEST_PROCESSOR);
     }
 
     /**
@@ -85,18 +74,6 @@ public final class ServiceLocator {
         String path = String.format("/user/%s/%s/%s", MODULE_MANAGER,
                 getModuleId(tokenId), tokenId);
         return actorSystem.actorSelection(path);
-    }
-
-    /**
-     * @param context the actor context
-     * @param tokenId the token id
-     * @return the token signer actor
-     */
-    public static ActorSelection getTokenSigner(ActorContext context,
-                                                String tokenId) {
-        String path = String.format("/user/%s/%s/%s/%s", MODULE_MANAGER,
-                getModuleId(tokenId), tokenId, TOKEN_SIGNER);
-        return context.actorSelection(path);
     }
 
     private static String getModuleId(String tokenId) {
