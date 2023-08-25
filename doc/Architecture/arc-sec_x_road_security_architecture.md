@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 0.8  
+Version: 0.9  
 01.06.2023
 
 Doc. ID: ARC-SEC
@@ -11,16 +11,17 @@ Doc. ID: ARC-SEC
 
 ## Version history
 
- Date       | Version | Description                                    | Author
- ---------- |---------|------------------------------------------------| --------------------
- 20.06.2019 | 0.1     | Initial version                                | Niall O’Donoghue
- 27.06.2019 | 0.2     | Converted to Github flavoured Markdown         | Petteri Kivimäki
- 29.06.2019 | 0.3     | Editorial changes, updated chapters 5-7, 14-18 | Petteri Kivimäki
- 28.02.2021 | 0.4     | Update X-Road security architecture diagram    | Petteri Kivimäki
- 25.08.2021 | 0.5     | Update X-Road references from version 6 to 7   | Caro Hautamäki
- 07.09.2021 | 0.6     | Update with the new message log features       | Ilkka Seppälä
- 23.09.2022 | 0.7     | Added new Registration Web Service             | Eneli Reimets
- 01.06.2023 | 0.8     | Update references                              | Petteri Kivimäki
+ Date       | Version | Description                                      | Author
+ ---------- |---------|--------------------------------------------------| --------------------
+ 20.06.2019 | 0.1     | Initial version                                  | Niall O’Donoghue
+ 27.06.2019 | 0.2     | Converted to Github flavoured Markdown           | Petteri Kivimäki
+ 29.06.2019 | 0.3     | Editorial changes, updated chapters 5-7, 14-18   | Petteri Kivimäki
+ 28.02.2021 | 0.4     | Update X-Road security architecture diagram      | Petteri Kivimäki
+ 25.08.2021 | 0.5     | Update X-Road references from version 6 to 7     | Caro Hautamäki
+ 07.09.2021 | 0.6     | Update with the new message log features         | Ilkka Seppälä
+ 23.09.2022 | 0.7     | Added new Registration Web Service               | Eneli Reimets
+ 01.06.2023 | 0.8     | Update references                                | Petteri Kivimäki
+ 24.08.2023 | 0.9     | Minimum supported client Security Server version | Eneli Reimets
 
 ## Table of Contents
 
@@ -41,6 +42,7 @@ Doc. ID: ARC-SEC
   - [7 Access Control](#7-access-control)
     - [7.1 Messaging Access Control](#71-messaging-access-control)
     - [7.2 Web UI Access Control](#72-web-ui-access-control)
+    - [7.3 Minimum Supported Client Security Server Version](#73-minimum-supported-client-security-server-version)
   - [8 Input Validation](#8-input-validation)
     - [8.1 Web UI Input Validation](#81-web-ui-input-validation)
     - [8.2 Messaging Validation](#82-messaging-validation)
@@ -104,6 +106,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 12. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
 13. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
 14. <a id="Ref_GDPR" class="anchor"></a>\[GDPR\] EU Regulation No 679/2016 – Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC
+15. <a id="Ref_UG-SEC" class="anchor"></a>\[UG-SEC\] X-Road: Security hardening guidelines. Document ID: [UG-SEC](../Manuals/ug-sec_x_road_security_hardening.md)
 
 ## 2 Environment Assumptions
 
@@ -170,6 +173,10 @@ When the end user is successfully authenticated, least privilege-based access co
 Details on Security Server user roles and associated access controls are described in section 15 Security Server Roles.
 
 In X-Road, access control starts by denying all access by default. Access will not be allowed to all roles if a new resource is added and authorisation is somehow configured incorrectly.
+
+### 7.3 Minimum Supported Client Security Server Version
+
+To increase the security of the X-Road ecosystem, it is recommended to limit the minimum version of the client Security Server that is allowed to access a service. Service providers can configure a minimum client Security Server version that's required to consume their services. For details, refer to [UG-SEC](#Ref_UG-SEC) section 4.1.
 
 ## 8 Input Validation
 
