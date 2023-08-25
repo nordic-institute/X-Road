@@ -25,16 +25,14 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Tiny container class to help handle the key list
- */
-@RequiredArgsConstructor
+
+@Value
 public final class KeyInfo implements Serializable {
 
     private final KeyInfoProto message;

@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
+import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -55,6 +56,7 @@ import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGISTERED
  * Handles requests for member signing info.
  */
 @Slf4j
+@Component
 public class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
 
     @Data

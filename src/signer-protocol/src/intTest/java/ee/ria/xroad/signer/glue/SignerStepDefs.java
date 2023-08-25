@@ -47,17 +47,20 @@ import io.cucumber.java.AfterAll;
 import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Step;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -84,6 +87,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Slf4j
 public class SignerStepDefs {
@@ -97,6 +101,7 @@ public class SignerStepDefs {
     private String csrId;
     private String certHash;
     private CertificateInfo certInfo;
+    private byte[] cert;
 
     @BeforeAll
     public static void setup() throws Exception {
@@ -144,7 +149,9 @@ public class SignerStepDefs {
 
     @Given("tokens list contains token {string}")
     public void tokensListContainsToken(String tokenId) throws Exception {
-        final TokenInfo tokenInfo = SignerProxy.getTokens().stream()
+        var tokens = SignerProxy.getTokens();
+        testReportService.attachText("Tokens", Arrays.toString(tokens.toArray()));
+        final TokenInfo tokenInfo = tokens.stream()
                 .filter(token -> token.getId().equals(tokenId))
                 .findFirst()
                 .orElseThrow();
@@ -217,19 +224,44 @@ public class SignerStepDefs {
     }
 
     private KeyInfo findKeyInToken(String tokenId, String keyName) throws Exception {
-        return SignerProxy.getToken(tokenId).getKeyInfo().stream()
+        var foundKeyInfo = SignerProxy.getToken(tokenId).getKeyInfo().stream()
                 .filter(keyInfo -> keyInfo.getFriendlyName().equals(keyName))
                 .findFirst()
                 .orElseThrow();
+        testReportService.attachText("Key [" + keyName + "]", foundKeyInfo.toString());
+        return foundKeyInfo;
+    }
+
+    @Step("Certificate is imported for client {string}")
+    public void certificateIsImported(String client) throws Exception {
+        keyId = SignerProxy.importCert(cert, CertificateInfo.STATUS_REGISTERED, getClientId(client));
+    }
+
+    @Step("Wrong Certificate is not imported for client {string}")
+    public void certImportFails(String client) throws Exception {
+        byte[] certBytes = fileToBytes("src/intTest/resources/cert-01.pem");
+        try {
+            SignerProxy.importCert(certBytes, CertificateInfo.STATUS_REGISTERED, getClientId(client));
+        } catch (CodedException codedException) {
+            assertException("Signer.KeyNotFound", "key_not_found_for_certificate",
+                    "Signer.KeyNotFound: Could not find key that has public key that matches the public key of certificate", codedException);
+        }
+    }
+
+
+    private byte[] fileToBytes(String fileName) throws Exception {
+        try (FileInputStream in = new FileInputStream(fileName)) {
+            return IOUtils.toByteArray(in);
+        }
     }
 
     @Given("self signed cert generated for token {string} key {string}, client {string}")
     public void selfSignedCertGeneratedForTokenKeyForClient(String tokenId, String keyName, String client) throws Exception {
         final KeyInfo keyInToken = findKeyInToken(tokenId, keyName);
 
-        final byte[] certBytes = SignerProxy.generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
+        cert = SignerProxy.generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
                 "CN=" + client, Date.from(now().minus(5, DAYS)), Date.from(now().plus(5, DAYS)));
-        this.certHash = CryptoUtils.calculateCertHexHash(certBytes);
+        this.certHash = CryptoUtils.calculateCertHexHash(cert);
     }
 
     private ClientId.Conf getClientId(String client) {
@@ -451,6 +483,17 @@ public class SignerStepDefs {
             assertException("Signer.CertNotFound", "cert_with_id_not_found",
                     "Signer.CertNotFound: Certificate with id '" + certId + "' not found", codedException);
         }
+    }
+
+    @Step("Member signing info for client {string} is retrieved")
+    public void getMemberSigningInfo(String client) throws Exception {
+        var memberInfo = SignerProxy.getMemberSigningInfo(getClientId(client));
+        testReportService.attachText("MemberSigningInfo", memberInfo.toString());
+    }
+
+    @And("HSM is not operational")
+    public void hsmIsNotOperational() throws Exception {
+        assertFalse(SignerProxy.isHSMOperational());
     }
 
     private void assertException(String faultCode, String translationCode, String message, CodedException codedException) {

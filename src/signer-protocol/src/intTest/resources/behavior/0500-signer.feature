@@ -55,6 +55,23 @@ Feature: 0500 - Signer
     When cert request is generated for token "0" key "Second key" for client "cs:test:member-2"
     And cert request is regenerated
 
+  Scenario: Certificate can be (re)imported
+    Given tokens list contains token "0"
+    When Wrong Certificate is not imported for client "cs:test:member-1"
+    And self signed cert generated for token "0" key "First key", client "cs:test:member-1"
+    And certificate info can be retrieved by cert hash
+    When certificate can be deleted
+    Then token "0" key "First key" has 0 certificates
+    When Certificate is imported for client "cs:test:member-1"
+    Then token "0" key "First key" has 1 certificates
+
+  Scenario: Member test
+    Given tokens list contains token "0"
+    * Member signing info for client "cs:test:member-1" is retrieved
+
+  Scenario: HSM status is not operational
+    * HSM is not operational
+
   Scenario: Self signed certificate
     Given token "0" key "First key" has 0 certificates
     When self signed cert generated for token "0" key "First key", client "cs:test:member-1"
@@ -86,10 +103,7 @@ Feature: 0500 - Signer
     * Getting key by not existing cert hash fails
     * Not existing certificate can not be activated
 
-
-
 #  not covered SignerProxy methods:
-#  String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) #partly in GenerateSelfSignedCert
 #  AuthKeyInfo getAuthKey(SecurityServerId serverId)                            #requires valid ocsp response
 #  void setOcspResponses(String[] certHashes, String[] base64EncodedResponses)  #requires valid ocsp responses
 #  String[] getOcspResponses(String[] certHashes)                               #requires valid ocsp responses

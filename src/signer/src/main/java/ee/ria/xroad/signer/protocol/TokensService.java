@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.handler.ActivateTokenReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetHSMOperationalInfoReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetMemberSigningInfoReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetTokenBatchSigningEnabledReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetTokenInfoAndKeyIdForCertHashReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetTokenInfoAndKeyIdForCertRequestIdReqHandler;
@@ -43,6 +44,8 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GetHSMOperationalInfoResp;
+import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
+import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledReq;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResp;
 import org.niis.xroad.signer.proto.GetTokenByCertHashReq;
@@ -72,6 +75,7 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     private final GetTokenInfoAndKeyIdForCertHashReqHandler getTokenInfoAndKeyIdForCertHashReqHandler;
     private final GetTokenInfoAndKeyIdForCertRequestIdReqHandler getTokenInfoAndKeyIdForCertRequestIdReqHandler;
     private final GetHSMOperationalInfoReqHandler getHSMOperationalInfoReqHandler;
+    private final GetMemberSigningInfoReqHandler getMemberSigningInfoReqHandler;
     private final SetTokenFriendlyNameReqHandler setTokenFriendlyNameReqHandler;
     private final ListTokensReqHandler listTokensReqHandler;
 
@@ -132,4 +136,8 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
         updateSoftwareTokenPinReqHandler.processSingle(request, responseObserver);
     }
 
+    @Override
+    public void getMemberSigningInfo(GetMemberSigningInfoReq request, StreamObserver<GetMemberSigningInfoResp> responseObserver) {
+        getMemberSigningInfoReqHandler.processSingle(request, responseObserver);
+    }
 }
