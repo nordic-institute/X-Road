@@ -25,9 +25,9 @@ Doc. ID: UG-SEC
     * [2.2 Configuring password policies](#22-configuring-password-policies)
         * [2.2.1 Considerations and risks](#221-considerations-and-risks)
     * [2.3 Ensuring User Account Security](#23-ensuring-user-account-security)
-* [3.Admin UI (Central Server and Security Server)](#3-admin-ui-central-server-and-security-server)
+* [3. Admin UI (Central Server and Security Server)](#3-admin-ui-central-server-and-security-server)
     * [3.1 Host header injection mitigation](#31-host-header-injection-mitigation)
-* [4 Access control](#4-access-control)
+* [4. Access control](#4-access-control)
     * [4.1 Minimum Supported Client Security Server Version](#41-minimum-supported-client-security-server-version)
   
 <!-- tocstop -->
@@ -156,7 +156,7 @@ On RHEL, the corresponding command is:
 
 The system administrator should also implement a monitoring and alerting system regarding anomalous logins.
 
-## 3 Admin UI (Central Server and Security Server)
+## 3. Admin UI (Central Server and Security Server)
 
 ### 3.1 Host header injection mitigation
 
@@ -165,7 +165,7 @@ The host header specifies which website or web application should process an inc
 By default, this header allows any value which would be a security risk if Admin UI could be accessed by bad actors. To mitigate this issue it suggested to configure `allowed-hostnames` as described in [UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md). 
 For Security server refer to [proxy-ui-api](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api), for Central server refer to [admin-service](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service)
 
-## 4 Access control
+## 4. Access control
 
 ### 4.1 Minimum Supported Client Security Server Version
 
