@@ -176,7 +176,7 @@ In X-Road, access control starts by denying all access by default. Access will n
 
 ### 7.3 Minimum Supported Client Security Server Version
 
-For increases the security of the X-Road ecosystem, it is security best practice to limit the minimum version of the client's Security Server to communicate with the service provider's Security Server. For detail, refer to [UG-SEC](#Ref_UG-SEC) section 4.1.  
+To increase the security of the X-Road ecosystem, it is recommended to limit the minimum version of the client Security Server that is allowed to access a service. Service providers can configure a minimum client Security Server version that's required to consume their services. For details, refer to [UG-SEC](#Ref_UG-SEC) section 4.1.
 
 ## 8 Input Validation
 

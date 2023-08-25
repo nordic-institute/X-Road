@@ -296,7 +296,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | enforce-client-is-cert-validity-period-check     | false                                      |   |   | Whether to reject a request when client information system certificate is expired or not yet valid. |
 | backup-encryption-enabled                        | false                                      |   |   | Whether to encrypt security server backup files using server's OpenPGP key. |
 | backup-encryption-keyids                         |                                            |   |   | Comma-separated list of additional recipient OpenPGP key identifiers. |
-| server-min-supported-client-version              |                                            |   |   | Minimum supported client version to allow communicate to the service provider Security Server. |
+| server-min-supported-client-version              |                                            |   |   | Minimum version of the client Security Server that is allowed to access a service. This property must be configured on the service provider Security Server. |
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:

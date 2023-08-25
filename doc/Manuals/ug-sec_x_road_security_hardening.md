@@ -169,11 +169,11 @@ For Security server refer to [proxy-ui-api](ug-syspar_x-road_v6_system_parameter
 
 ### 4.1 Minimum Supported Client Security Server Version
 
-For increases the security of the X-Road ecosystem, it is security best practice to limit the minimum version of the client's Security Server to communicate with the service provider's Security Server.
+To increase the security of the X-Road ecosystem, it is recommended to limit the minimum version of the client Security Server that is allowed to access a service.
 
-Security Server administrator can limit on the service provider side the minimum version by configure the system parameter `server-min-supported-client-version` as described in [UG-SYSPAR](#Ref_UG-SYSPAR) section 3.2 Proxy parameters.
+On the service provider side, the Security Server administrator can limit the minimum client version by configuring the system parameter `server-min-supported-client-version` as described in [UG-SYSPAR](#Ref_UG-SYSPAR) section 3.2 Proxy parameters.
 
-For example, by configure parameter `server-min-supported-client-version = 7.3.1`, it means that client's Security Server version should be at least `7.1.3`:
+For example, setting the value `server-min-supported-client-version = 7.3.1` means that client Security Server version should be at least `7.3.1`:
 
 	[proxy]
 	server-min-supported-client-version = 7.3.1
