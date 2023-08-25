@@ -26,15 +26,18 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
+import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.niis.xroad.signer.proto.GenerateCertRequestReq;
+import org.niis.xroad.signer.proto.GenerateCertRequestResp;
+import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
@@ -43,29 +46,35 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
  * Handles certificate request generations.
  */
 @Slf4j
-public class GenerateCertRequestRequestHandler extends AbstractGenerateCertRequest<GenerateCertRequest> {
+@Component
+public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateCertRequestReq, GenerateCertRequestResp> {
 
     @Override
-    protected Object handle(GenerateCertRequest message) throws Exception {
-        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(message.getKeyId());
+    protected GenerateCertRequestResp handle(GenerateCertRequestReq request) throws Exception {
+        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
 
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
-        if (message.getKeyUsage() == KeyUsageInfo.AUTHENTICATION
+        if (request.getKeyUsage() == KeyUsageInfo.AUTHENTICATION
                 && !SoftwareTokenType.ID.equals(tokenAndKey.getTokenId())) {
             throw CodedException.tr(X_WRONG_CERT_USAGE,
                     "auth_cert_under_softtoken",
                     "Authentication certificate requests can only be created under software tokens");
         }
 
-        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, message.getSubjectName());
+        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, request.getSubjectName());
 
-        String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(), message.getMemberId(),
-                message.getSubjectName(), message.getKeyUsage());
+        String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(),
+                ClientIdMapper.fromDto(request.getMemberId()),
+                request.getSubjectName(), request.getKeyUsage());
 
-        return new GenerateCertRequestResponse(certReqId, convert(generatedRequest, message.getFormat()),
-                message.getFormat());
+        return GenerateCertRequestResp.newBuilder()
+                .setCertReqId(certReqId)
+                .setCertRequest(ByteString.copyFrom(convert(generatedRequest, request.getFormat())))
+                .setFormat(request.getFormat())
+                .build();
     }
+
 }

@@ -1,15 +1,15 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.ClientIdProto;
-import ee.ria.xroad.signer.protocol.dto.XRoadObjectType;
+import org.niis.xroad.signer.protocol.dto.ClientIdProto;
+import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
 public class ClientIdMapper {
 
     public static ClientId.Conf fromDto(ClientIdProto input) {
 
         //TODO:grpc refine this check
-        if (input.hasField(ClientIdProto.getDescriptor().findFieldByName("subsystem_code"))) {
+        if (input.hasField(ClientIdProto.getDescriptor().findFieldByName("subsystemCode"))) {
             return ClientId.Conf.create(input.getXroadInstance(),
                     input.getMemberClass(),
                     input.getMemberCode(),

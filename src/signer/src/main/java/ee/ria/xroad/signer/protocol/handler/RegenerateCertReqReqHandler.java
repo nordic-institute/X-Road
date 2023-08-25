@@ -25,8 +25,10 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import com.google.protobuf.ByteString;
+
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -39,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.RegenerateCertRequestResp;
+import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -48,7 +51,8 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
  * Handles certificate request re-generations.
  */
 @Slf4j
-public class RegenerateCertRequestReqHandler extends AbstractRpcHandler<RegenerateCertRequestReq, RegenerateCertRequestResp> {
+@Component
+public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<RegenerateCertRequestReq, RegenerateCertRequestResp> {
 
     @Override
     protected RegenerateCertRequestResp handle(RegenerateCertRequestReq message) throws Exception {
@@ -74,15 +78,15 @@ public class RegenerateCertRequestReqHandler extends AbstractRpcHandler<Regenera
 
         String subjectName = certRequestInfo.getSubjectName();
 
-//        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName);
-        PKCS10CertificationRequest generatedRequest =null;//TODO:Grpc
-//        return new RegenerateCertRequestResponse(message.getCertRequestId(),
-//                convert(generatedRequest, message.getFormat()),
-//                message.getFormat(),
-//                certRequestInfo.getMemberId(),
-//                tokenAndKey.getKey().getUsage()
-//        );
-        return null;
+        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName);
+
+        return RegenerateCertRequestResp.newBuilder()
+                .setCertReqId(message.getCertRequestId())
+                .setCertRequest(ByteString.copyFrom(convert(generatedRequest, message.getFormat())))
+                .setFormat(message.getFormat())
+                .setMemberId(ClientIdMapper.toDto(certRequestInfo.getMemberId()))
+                .setKeyUsage(tokenAndKey.getKey().getUsage())
+                .build();
     }
 
     private TokenAndKey findTokenAndKeyForCsrId(String certRequestId) {

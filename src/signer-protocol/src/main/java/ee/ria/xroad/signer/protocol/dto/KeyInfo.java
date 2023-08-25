@@ -26,7 +26,6 @@
 package ee.ria.xroad.signer.protocol.dto;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
 import java.io.Serializable;
 import java.util.List;
@@ -96,5 +95,9 @@ public final class KeyInfo implements Serializable {
         return getCerts().stream()
                 .anyMatch(CertificateInfo::isSavedToConfiguration);
 
+    }
+
+    public KeyInfoProto asMessage() {
+        return message;
     }
 }

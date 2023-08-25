@@ -1,4 +1,6 @@
 syntax = "proto3";
+
+import "CommonMessages.proto";
 import "TokenStatusInfo.proto";
 
 option java_multiple_files = true;
@@ -52,24 +54,6 @@ message CertRequestInfoProto {
   ClientIdProto memberId = 2;
   string subject_name = 3;
   // Add other fields as needed
-}
-
-message ClientIdProto {
-  string member_class = 1;
-  string member_code = 2;
-  string subsystem_code = 3;
-
-  string xroad_instance = 4;
-  XRoadObjectType object_type = 5;
-}
-
-enum XRoadObjectType {
-  SERVER = 0;
-  SERVICE = 1;
-  MEMBER = 2;
-  SUBSYSTEM = 3;
-  GLOBALGROUP = 4;
-  LOCALGROUP = 5 [deprecated = true]; // Deprecated
 }
 
 /* Key usage can either be signing or authentication. */

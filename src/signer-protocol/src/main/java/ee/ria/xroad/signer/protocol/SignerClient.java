@@ -108,6 +108,7 @@ public final class SignerClient {
      * @return the response
      * @throws Exception if the response is an exception
      */
+    @Deprecated
     public static <T> T execute(Object message) throws Exception {
         try {
             return result(Await.result(Patterns.ask(requestProcessor(), message, TIMEOUT), TIMEOUT.duration()));

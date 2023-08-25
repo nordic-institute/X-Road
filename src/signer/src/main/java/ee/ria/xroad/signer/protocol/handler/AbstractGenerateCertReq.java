@@ -28,14 +28,16 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
+import akka.actor.Actor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
+import com.google.protobuf.AbstractMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -62,11 +64,12 @@ import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
 
 /**
  * Abstract base class for GenerateCertRequestRequestHandler and RegenerateCertRequestRequestHandler.
+ *
  * @param <T> the type of generate cert request message this handler handles
  */
 @Slf4j
-@Deprecated
-public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHandler<T> {
+public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
+        RespT extends AbstractMessage> extends AbstractRpcHandler<ReqT, RespT> {
 
     PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName)
             throws Exception {
@@ -109,6 +112,7 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
         return out.toByteArray();
     }
 
+    //TODO:grpc this should be refactored..
     private static class TokenContentSigner implements ContentSigner {
 
         private static final int SIGNATURE_TIMEOUT_SECONDS = 10;
@@ -116,7 +120,7 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
         private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         private final TokenAndKey tokenAndKey;
-        private final AbstractGenerateCertRequest abstractGenerateCertRequest;
+        private final AbstractGenerateCertReq abstractGenerateCertReq;
 
         private final String digestAlgoId;
         private final String signAlgoId;
@@ -125,10 +129,10 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
 
         private volatile CalculatedSignature signature;
 
-        TokenContentSigner(TokenAndKey tokenAndKey, AbstractGenerateCertRequest abstractGenerateCertRequest)
+        TokenContentSigner(TokenAndKey tokenAndKey, AbstractGenerateCertReq abstractGenerateCertReq)
                 throws NoSuchAlgorithmException {
             this.tokenAndKey = tokenAndKey;
-            this.abstractGenerateCertRequest = abstractGenerateCertRequest;
+            this.abstractGenerateCertReq = abstractGenerateCertReq;
 
             digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
             signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, tokenAndKey.getSignMechanism());
@@ -156,15 +160,17 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
                 throw new CodedException(X_INTERNAL_ERROR, e);
             }
 
-            ActorRef signatureReceiver = abstractGenerateCertRequest.getContext().actorOf(
+            var actorSystem = abstractGenerateCertReq.temporaryAkkaMessenger.getActorSystem();
+            ActorRef signatureReceiver = actorSystem.actorOf(
                     Props.create(SignatureReceiverActor.class, this));
 
             try {
-                abstractGenerateCertRequest.tellToken(new CalculateSignature(abstractGenerateCertRequest.getSelf(),
-                                tokenAndKey.getKeyId(), signAlgoId, digest),
-                        tokenAndKey.getTokenId(), signatureReceiver);
 
-                waitForSignature();
+                signature = abstractGenerateCertReq.temporaryAkkaMessenger.tellTokenWithResponse(new CalculateSignature(Actor.noSender(),
+                                tokenAndKey.getKeyId(), signAlgoId, digest),
+                        tokenAndKey.getTokenId());
+
+//                waitForSignature();
 
                 if (signature.getException() != null) {
                     throw translateException(signature.getException());
@@ -172,7 +178,7 @@ public abstract class AbstractGenerateCertRequest<T> extends AbstractRequestHand
 
                 return signature.getSignature();
             } finally {
-                abstractGenerateCertRequest.getContext().stop(signatureReceiver);
+                actorSystem.stop(signatureReceiver);
             }
         }
 

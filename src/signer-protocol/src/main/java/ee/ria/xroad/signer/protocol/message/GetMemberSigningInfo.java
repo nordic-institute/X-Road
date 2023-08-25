@@ -35,6 +35,7 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
+@Deprecated
 public class GetMemberSigningInfo implements Serializable {
 
     private final ClientId memberId;

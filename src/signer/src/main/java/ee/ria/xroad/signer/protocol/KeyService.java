@@ -25,7 +25,10 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.handler.DeleteKeyReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GenerateKeyReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GetAuthKeyReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetKeyIdForCertHashReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetSignMechanismReqHandler;
 import ee.ria.xroad.signer.protocol.handler.SetKeyFriendlyNameReqHandler;
@@ -34,7 +37,10 @@ import ee.ria.xroad.signer.protocol.handler.SignReqHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.signer.proto.AuthKeyInfoProto;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
+import org.niis.xroad.signer.proto.GenerateKeyReq;
+import org.niis.xroad.signer.proto.GetAuthKeyReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
@@ -58,8 +64,10 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     private final SignCertificateReqHandler signCertificateReqHandler;
     private final GetSignMechanismReqHandler getSignMechanismReqHandler;
     private final GetKeyIdForCertHashReqHandler getKeyIdForCertHashReqHandler;
+    private final GenerateKeyReqHandler generateKeyReqHandler;
     private final SetKeyFriendlyNameReqHandler setKeyFriendlyNameReqHandler;
     private final DeleteKeyReqHandler deleteKeyReqHandler;
+    private final GetAuthKeyReqHandler getAuthKeyReqHandler;
 
     @Override
     public void getKeyIdForCertHash(GetKeyIdForCertHashReq request, StreamObserver<GetKeyIdForCertHashResp> responseObserver) {
@@ -89,5 +97,15 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     @Override
     public void deleteKey(DeleteKeyReq request, StreamObserver<Empty> responseObserver) {
         deleteKeyReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void generateKey(GenerateKeyReq request, StreamObserver<KeyInfoProto> responseObserver) {
+        generateKeyReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void getAuthKey(GetAuthKeyReq request, StreamObserver<AuthKeyInfoProto> responseObserver) {
+        getAuthKeyReqHandler.processSingle(request, responseObserver);
     }
 }

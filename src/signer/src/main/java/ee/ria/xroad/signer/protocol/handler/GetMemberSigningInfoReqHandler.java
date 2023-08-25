@@ -31,16 +31,17 @@ import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
+import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -54,7 +55,7 @@ import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGISTERED
  * Handles requests for member signing info.
  */
 @Slf4j
-public class GetMemberSigningInfoRequestHandler extends AbstractRequestHandler<GetMemberSigningInfo> {
+public class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
 
     @Data
     private static class SelectedCertificate {
@@ -63,24 +64,28 @@ public class GetMemberSigningInfoRequestHandler extends AbstractRequestHandler<G
     }
 
     @Override
-    protected Object handle(GetMemberSigningInfo message) throws Exception {
-        List<KeyInfo> memberKeys = TokenManager.getKeyInfo(message.getMemberId());
+    protected GetMemberSigningInfoResp handle(GetMemberSigningInfoReq request) throws Exception {
+        var memberId = ClientIdMapper.fromDto(request.getMemberId());
+        List<KeyInfo> memberKeys = TokenManager.getKeyInfo(memberId);
 
         if (memberKeys.isEmpty()) {
             throw CodedException.tr(X_UNKNOWN_MEMBER, "member_certs_not_found",
                     "Could not find any certificates for member '%s'. "
-                        + "Are you sure tokens containing the certificates are logged in?", message.getMemberId());
+                            + "Are you sure tokens containing the certificates are logged in?", memberId);
         }
 
-        SelectedCertificate memberCert = selectMemberCert(memberKeys, message.getMemberId());
+        SelectedCertificate memberCert = selectMemberCert(memberKeys, memberId);
 
         if (memberCert == null) {
             throw CodedException.tr(X_INTERNAL_ERROR, "member_has_no_suitable_certs",
-                    "Member '%s' has no suitable certificates", message.getMemberId());
+                    "Member '%s' has no suitable certificates", memberId);
         }
 
-        return new MemberSigningInfo(memberCert.getKey().getId(), memberCert.getCert(),
-                memberCert.getKey().getSignMechanismName());
+        return GetMemberSigningInfoResp.newBuilder()
+                .setKeyId(memberCert.getKey().getId())
+                .setCert(memberCert.getCert().asMessage())
+                .setSignMechanismName(memberCert.getKey().getSignMechanismName())
+                .build();
     }
 
     private SelectedCertificate selectMemberCert(List<KeyInfo> memberKey, ClientId memberId) {
@@ -123,7 +128,7 @@ public class GetMemberSigningInfoRequestHandler extends AbstractRequestHandler<G
     }
 
     private void verifyOcspResponse(String instanceIdentifier, byte[] ocspBytes, X509Certificate subject,
-            OcspVerifierOptions verifierOptions) throws Exception {
+                                    OcspVerifierOptions verifierOptions) throws Exception {
         if (ocspBytes == null) {
             throw new Exception("OCSP response for certificate " + subject.getSubjectX500Principal().getName()
                     + " not found");

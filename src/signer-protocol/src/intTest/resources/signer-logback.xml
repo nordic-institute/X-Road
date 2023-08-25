@@ -13,7 +13,7 @@
     <!--TokenManager is very verbose /-->
     <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="TRACE" />
 
-    <root level="TRACE">
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

@@ -17,6 +17,8 @@ service CertificateService {
 
   rpc SetCertStatus (SetCertStatusReq) returns (Empty) {}
 
+  rpc GenerateCertRequest (GenerateCertRequestReq) returns (GenerateCertRequestResp) {}
+
   rpc RegenerateCertRequest (RegenerateCertRequestReq) returns (RegenerateCertRequestResp) {}
 
   rpc DeleteCert (DeleteCertReq) returns (Empty) {}
@@ -54,7 +56,7 @@ message GetMemberCertsResp{
   repeated CertificateInfoProto certs = 1;
 }
 
-message RegenerateCertRequestReq {//TODO:grpc consider swapping req and request places..
+message RegenerateCertRequestReq {
   string certRequestId = 1;
   CertificateRequestFormat format = 2;
 }
@@ -102,4 +104,18 @@ message GenerateSelfSignedCertReq {
 
 message GenerateSelfSignedCertResp {
   bytes certificateBytes = 1;
+}
+
+message GenerateCertRequestReq {
+  string keyId = 1;
+  ClientIdProto memberId = 2;
+  KeyUsageInfo keyUsage = 3;
+  string subjectName = 4;
+  CertificateRequestFormat format = 5;
+}
+
+message GenerateCertRequestResp {
+  string certReqId = 1;
+  bytes certRequest = 2;
+  CertificateRequestFormat format = 3;
 }

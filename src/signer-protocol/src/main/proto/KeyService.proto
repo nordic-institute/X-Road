@@ -9,6 +9,8 @@ import "TokenStatusInfo.proto";
 package org.niis.xroad.signer.proto;
 
 service KeyService {
+  rpc GenerateKey (GenerateKeyReq) returns (KeyInfoProto) {}
+
   rpc SetKeyFriendlyName (SetKeyFriendlyNameReq) returns (Empty) {}
 
   rpc GetKeyIdForCertHash (GetKeyIdForCertHashReq) returns (GetKeyIdForCertHashResp) {}
@@ -20,8 +22,9 @@ service KeyService {
   rpc SignCertificate(SignCertificateReq) returns (SignCertificateResp) {}
 
   rpc DeleteKey (DeleteKeyReq) returns (Empty) {}
-}
 
+  rpc GetAuthKey (GetAuthKeyReq) returns (AuthKeyInfoProto) {}
+}
 
 message GetKeyIdForCertHashReq {
   string certHash = 1;
@@ -61,7 +64,6 @@ message SignCertificateReq {
   string signatureAlgorithmId = 2;
   string subjectName = 3;
   bytes publicKey = 4;
-
 }
 
 message SignCertificateResp {
@@ -71,4 +73,20 @@ message SignCertificateResp {
 message DeleteKeyReq {
   string keyId = 1;
   bool deleteFromDevice = 2;
+}
+
+message GenerateKeyReq {
+  string tokenId = 1;
+  string keyLabel = 2;
+}
+
+message GetAuthKeyReq {
+  SecurityServerIdProto securityServer = 1;
+}
+
+message AuthKeyInfoProto {
+  string  alias = 1;
+  string keyStoreFileName = 2;
+  string password = 3;
+  CertificateInfoProto cert = 4;
 }

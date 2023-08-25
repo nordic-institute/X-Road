@@ -34,6 +34,7 @@ import java.io.Serializable;
  * Signer API message.
  */
 @Value
+@Deprecated
 public class GenerateCertRequestResponse implements Serializable {
 
     private final String certReqId;

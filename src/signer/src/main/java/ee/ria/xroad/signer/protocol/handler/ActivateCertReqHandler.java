@@ -25,19 +25,24 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.message.GenerateKey;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+
+import org.niis.xroad.signer.proto.ActivateCertReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Component;
 
 /**
- * Handles key generations.
+ * Handles certificate activations and deactivations.
  */
-public class GenerateKeyRequestHandler
-        extends AbstractRequestHandler<GenerateKey> {
+@Component
+public class ActivateCertReqHandler
+        extends AbstractRpcHandler<ActivateCertReq, Empty> {
 
     @Override
-    protected Object handle(GenerateKey message) throws Exception {
-        tellToken(message, message.getTokenId());
-        return nothing();
-    }
+    protected Empty handle(ActivateCertReq request) throws Exception {
+        TokenManager.setCertActive(request.getCertIdOrHash(), request.getActive());
 
+        return Empty.getDefaultInstance();
+    }
 }

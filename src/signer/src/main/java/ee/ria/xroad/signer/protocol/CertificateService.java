@@ -25,13 +25,15 @@
  */
 package ee.ria.xroad.signer.protocol;
 
-import ee.ria.xroad.signer.protocol.handler.ActivateCertRequestHandler;
+import ee.ria.xroad.signer.protocol.handler.ActivateCertReqHandler;
 import ee.ria.xroad.signer.protocol.handler.DeleteCertReqHandler;
 import ee.ria.xroad.signer.protocol.handler.DeleteCertRequestReqHandler;
+import ee.ria.xroad.signer.protocol.handler.GenerateCertReqReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GenerateSelfSignedCertReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetCertificateInfoForHashReqHandler;
 import ee.ria.xroad.signer.protocol.handler.GetMemberCertsReqHandler;
 import ee.ria.xroad.signer.protocol.handler.ImportCertReqHandler;
+import ee.ria.xroad.signer.protocol.handler.RegenerateCertReqReqHandler;
 import ee.ria.xroad.signer.protocol.handler.SetCertStatusReqHandler;
 
 import io.grpc.stub.StreamObserver;
@@ -41,6 +43,8 @@ import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
+import org.niis.xroad.signer.proto.GenerateCertRequestReq;
+import org.niis.xroad.signer.proto.GenerateCertRequestResp;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
 import org.niis.xroad.signer.proto.GetCertificateInfoForHashReq;
@@ -62,7 +66,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class CertificateService extends CertificateServiceGrpc.CertificateServiceImplBase {
-    private final ActivateCertRequestHandler activateCertRequestHandler;
+    private final ActivateCertReqHandler activateCertReqHandler;
     private final GetCertificateInfoForHashReqHandler getCertificateInfoForHashReqHandler;
     private final GetMemberCertsReqHandler getMemberCertsReqHandler;
     private final SetCertStatusReqHandler setCertStatusReqHandler;
@@ -70,10 +74,12 @@ public class CertificateService extends CertificateServiceGrpc.CertificateServic
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
     private final ImportCertReqHandler importCertReqHandler;
     private final GenerateSelfSignedCertReqHandler generateSelfSignedCertReqHandler;
+    private final RegenerateCertReqReqHandler regenerateCertReqReqHandler;
+    private final GenerateCertReqReqHandler generateCertReqReqHandler;
 
     @Override
     public void activateCert(ActivateCertReq request, StreamObserver<Empty> responseObserver) {
-        activateCertRequestHandler.processSingle(request, responseObserver);
+        activateCertReqHandler.processSingle(request, responseObserver);
     }
 
     @Override
@@ -113,7 +119,12 @@ public class CertificateService extends CertificateServiceGrpc.CertificateServic
     }
 
     @Override
+    public void generateCertRequest(GenerateCertRequestReq request, StreamObserver<GenerateCertRequestResp> responseObserver) {
+        generateCertReqReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
     public void regenerateCertRequest(RegenerateCertRequestReq request, StreamObserver<RegenerateCertRequestResp> responseObserver) {
-        super.regenerateCertRequest(request, responseObserver);
+        regenerateCertReqReqHandler.processSingle(request, responseObserver);
     }
 }

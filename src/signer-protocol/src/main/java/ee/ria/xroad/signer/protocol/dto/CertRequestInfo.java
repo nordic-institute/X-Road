@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer.protocol.dto;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.ClientIdMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,18 +45,7 @@ public class CertRequestInfo implements Serializable {
     }
 
     public ClientId getMemberId() {
-        ClientIdProto memberId = message.getMemberId();
-        //TODO:grpc refine this check
-        if (message.getMemberId().hasField(ClientIdProto.getDescriptor().findFieldByName("subsystem_code"))) {
-            return ClientId.Conf.create(memberId.getXroadInstance(),
-                    memberId.getMemberClass(),
-                    memberId.getMemberCode(),
-                    memberId.getSubsystemCode());
-        } else {
-            return ClientId.Conf.create(memberId.getXroadInstance(),
-                    memberId.getMemberClass(),
-                    memberId.getMemberCode());
-        }
+        return ClientIdMapper.fromDto(message.getMemberId());
     }
 
     public String getSubjectName() {

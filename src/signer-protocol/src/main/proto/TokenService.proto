@@ -23,12 +23,15 @@ service TokenService {
 
   rpc SetTokenFriendlyName (SetTokenFriendlyNameReq) returns (Empty) {}
 
-  rpc GetTokenBatchSigningEnabled(GetTokenBatchSigningEnabledReq) returns (GetTokenBatchSigningEnabledResp){}
+  rpc GetTokenBatchSigningEnabled (GetTokenBatchSigningEnabledReq) returns (GetTokenBatchSigningEnabledResp){}
 
-  rpc InitSoftwareToken(InitSoftwareTokenReq) returns (Empty) {}
+  rpc InitSoftwareToken (InitSoftwareTokenReq) returns (Empty) {}
 
-  rpc UpdateSoftwareTokenPin(UpdateSoftwareTokenPinReq) returns (Empty) {}
+  rpc UpdateSoftwareTokenPin (UpdateSoftwareTokenPinReq) returns (Empty) {}
 
+  rpc GetHSMOperationalInfo  (Empty) returns (GetHSMOperationalInfoResp) {}
+
+  rpc GetMemberSigningInfo (GetMemberSigningInfoReq) returns (GetMemberSigningInfoResp) {}
 }
 
 message ListTokensResp {
@@ -77,4 +80,18 @@ message UpdateSoftwareTokenPinReq {
   string tokenId = 1;
   string oldPin = 2;
   string newPin = 3;
+}
+
+message GetHSMOperationalInfoResp {
+  bool operational = 1;
+}
+
+message GetMemberSigningInfoReq {
+  ClientIdProto memberId = 1;
+}
+
+message GetMemberSigningInfoResp {
+  string keyId = 1;
+  CertificateInfoProto cert = 2;
+  string signMechanismName = 3;
 }

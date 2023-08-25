@@ -31,24 +31,14 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.SecurityServerIdMapper;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
-import ee.ria.xroad.signer.protocol.message.GenerateKey;
-import ee.ria.xroad.signer.protocol.message.GetAuthKey;
-import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfo;
-import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
-import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.RegenerateCertRequest;
-import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
@@ -62,10 +52,14 @@ import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
+import org.niis.xroad.signer.proto.GenerateCertRequestReq;
+import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
+import org.niis.xroad.signer.proto.GetAuthKeyReq;
 import org.niis.xroad.signer.proto.GetCertificateInfoForHashReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
 import org.niis.xroad.signer.proto.GetMemberCertsReq;
+import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
 import org.niis.xroad.signer.proto.GetSignMechanismResp;
@@ -77,6 +71,7 @@ import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
 import org.niis.xroad.signer.proto.ListTokensResp;
+import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.SetCertStatusReq;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
@@ -289,7 +284,13 @@ public final class SignerProxy {
     public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
         log.trace("Generating key for token '{}'", tokenId);
 
-        KeyInfo keyInfo = execute(new GenerateKey(tokenId, keyLabel));
+        var response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
+                .generateKey(GenerateKeyReq.newBuilder()
+                        .setTokenId(tokenId)
+                        .setKeyLabel(keyLabel)
+                        .build()));
+
+        KeyInfo keyInfo = new KeyInfo(response);
 
         log.trace("Received key with keyId '{}' and public key '{}'", keyInfo.getId(), keyInfo.getPublicKey());
 
@@ -400,16 +401,22 @@ public final class SignerProxy {
                                                                KeyUsageInfo keyUsage, String subjectName,
                                                                CertificateRequestFormat format) throws Exception {
 
-        GenerateCertRequestResponse response = execute(new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
-                format));
+        var response = executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
+                .generateCertRequest(GenerateCertRequestReq.newBuilder()
+                        .setKeyId(keyId)
+                        .setMemberId(ClientIdMapper.toDto(memberId))
+                        .setKeyUsage(keyUsage)
+                        .setSubjectName(subjectName)
+                        .setFormat(format)
+                        .build()));
 
-        byte[] certRequestBytes = response.getCertRequest();
+        byte[] certRequestBytes = response.getCertRequest().toByteArray();
 
         log.trace("Cert request with length of {} bytes generated", certRequestBytes.length);
 
         return new GeneratedCertRequestInfo(
                 response.getCertReqId(),
-                response.getCertRequest(),
+                certRequestBytes,
                 response.getFormat(),
                 memberId,
                 keyUsage);
@@ -425,15 +432,20 @@ public final class SignerProxy {
      */
     public static GeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
                                                                  CertificateRequestFormat format) throws Exception {
-        RegenerateCertRequestResponse response = execute(new RegenerateCertRequest(certRequestId, format));
 
-        log.trace("Cert request with length of {} bytes generated", response.getCertRequest().length);
+        var response = executeAndHandleException(() -> getSignerClient().getCertificateServiceBlockingStub()
+                .regenerateCertRequest(RegenerateCertRequestReq.newBuilder()
+                        .setCertRequestId(certRequestId)
+                        .setFormat(format)
+                        .build()));
+
+        log.trace("Cert request with length of {} bytes generated", response.getCertRequest().size());
 
         return new GeneratedCertRequestInfo(
                 response.getCertReqId(),
-                response.getCertRequest(),
+                response.getCertRequest().toByteArray(),
                 response.getFormat(),
-                response.getMemberId(),
+                ClientIdMapper.fromDto(response.getMemberId()),
                 response.getKeyUsage());
     }
 
@@ -616,7 +628,15 @@ public final class SignerProxy {
      * @throws Exception
      */
     public static AuthKeyInfo getAuthKey(SecurityServerId serverId) throws Exception {
-        return execute(new GetAuthKey(serverId));
+        var response = executeAndHandleException(() -> getSignerClient().getKeyServiceBlockingStub()
+                .getAuthKey(GetAuthKeyReq.newBuilder()
+                        .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
+                        .build()));
+
+        return new AuthKeyInfo(response.getAlias(),
+                response.getKeyStoreFileName(),
+                response.getPassword().toCharArray(),
+                new CertificateInfo(response.getCert()));
     }
 
     /**
@@ -681,8 +701,12 @@ public final class SignerProxy {
     }
 
     public static MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws Exception {
-        final MemberSigningInfo response = execute(new GetMemberSigningInfo(clientId));
-        return new MemberSigningInfoDto(response.getKeyId(), response.getCert(), response.getSignMechanismName());
+        var response = executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
+                .getMemberSigningInfo(GetMemberSigningInfoReq.newBuilder()
+                        .setMemberId(ClientIdMapper.toDto(clientId))
+                        .build()));
+
+        return new MemberSigningInfoDto(response.getKeyId(), new CertificateInfo(response.getCert()), response.getSignMechanismName());
     }
 
     public static List<CertificateInfo> getMemberCerts(ClientId memberId) throws Exception {
@@ -696,7 +720,10 @@ public final class SignerProxy {
     }
 
     public static boolean isHSMOperational() throws Exception {
-        return ((GetHSMOperationalInfoResponse) execute(new GetHSMOperationalInfo())).isOperational();
+        var response = executeAndHandleException(() -> getSignerClient().getSignerApiBlockingStub()
+                .getHSMOperationalInfo(Empty.getDefaultInstance()));
+
+        return response.getOperational();
     }
 
     public static byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey)
@@ -710,10 +737,6 @@ public final class SignerProxy {
                         .build()));
 
         return response.getCertificateChain().toByteArray();
-    }
-
-    private static <T> T execute(Object message) throws Exception {
-        return SignerClient.execute(message);
     }
 
     @Value

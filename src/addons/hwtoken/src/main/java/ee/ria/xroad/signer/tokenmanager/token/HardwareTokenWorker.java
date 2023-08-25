@@ -54,7 +54,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
-import org.niis.xroad.signer.proto.ActivateTokenRequest;
+import org.niis.xroad.signer.proto.ActivateTokenReq;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -251,7 +251,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     // ----------------------- Message handlers -------------------------------
 
     @Override
-    protected void activateToken(ActivateTokenRequest message) throws Exception {
+    protected void activateToken(ActivateTokenReq message) throws Exception {
         if (message.getActivate()) { // login
             log.info("Logging in token '{}'", getWorkerId());
 

@@ -33,12 +33,11 @@ import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.PasswordStore;
-import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.SecurityServerIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
@@ -46,6 +45,9 @@ import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.signer.proto.AuthKeyInfoProto;
+import org.niis.xroad.signer.proto.GetAuthKeyReq;
+import org.springframework.stereotype.Component;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -54,18 +56,21 @@ import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
+import static java.util.Optional.ofNullable;
 
 /**
  * Handles authentication key retrieval requests.
  */
 @Slf4j
-public class GetAuthKeyRequestHandler
-        extends AbstractRequestHandler<GetAuthKey> {
+@Component
+public class GetAuthKeyReqHandler
+        extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyInfoProto> {
 
     @Override
-    protected Object handle(GetAuthKey message) throws Exception {
+    protected AuthKeyInfoProto handle(GetAuthKeyReq request) throws Exception {
+        var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
         log.trace("Selecting authentication key for security server {}",
-                message.getSecurityServer());
+                securityServer);
 
         validateToken();
 
@@ -88,9 +93,8 @@ public class GetAuthKeyRequestHandler
                 }
 
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                    if (authCertValid(certInfo, message.getSecurityServer())) {
-                        log.trace("Found suitable authentication key {}",
-                                keyInfo.getId());
+                    if (authCertValid(certInfo, securityServer)) {
+                        log.trace("Found suitable authentication key {}", keyInfo.getId());
                         return authKeyResponse(keyInfo, certInfo);
                     }
                 }
@@ -100,7 +104,7 @@ public class GetAuthKeyRequestHandler
         throw CodedException.tr(X_KEY_NOT_FOUND,
                 "auth_key_not_found_for_server",
                 "Could not find active authentication key for "
-                        + "security server '%s'", message.getSecurityServer());
+                        + "security server '%s'", securityServer);
     }
 
     private void validateToken() throws CodedException {
@@ -113,17 +117,23 @@ public class GetAuthKeyRequestHandler
         }
     }
 
-    private AuthKeyInfo authKeyResponse(KeyInfo keyInfo,
-            CertificateInfo certInfo) throws Exception {
+    private AuthKeyInfoProto authKeyResponse(KeyInfo keyInfo,
+                                             CertificateInfo certInfo) throws Exception {
         String alias = keyInfo.getId();
         String keyStoreFileName = SoftwareTokenUtil.getKeyStoreFileName(alias);
         char[] password = PasswordStore.getPassword(SoftwareTokenType.ID);
 
-        return new AuthKeyInfo(alias, keyStoreFileName, password, certInfo);
+        var builder = AuthKeyInfoProto.newBuilder()
+                .setAlias(alias)
+                .setKeyStoreFileName(keyStoreFileName)
+                .setCert(certInfo.asMessage());
+
+        ofNullable(password).ifPresent(passwd -> builder.setPassword(new String(passwd)));
+        return builder.build();
     }
 
     private boolean authCertValid(CertificateInfo certInfo,
-            SecurityServerId securityServer) throws Exception {
+                                  SecurityServerId securityServer) throws Exception {
         X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
 
         if (!certInfo.isActive()) {
@@ -161,15 +171,15 @@ public class GetAuthKeyRequestHandler
 
         log.trace("Ignoring authentication certificate {} because it does "
                 + "not belong to security server {} "
-                + "(server id from global conf: {})", new Object[] {
-                        CertUtils.identify(cert),
-                        securityServer, serverIdFromConf});
+                + "(server id from global conf: {})", new Object[]{
+                CertUtils.identify(cert),
+                securityServer, serverIdFromConf});
 
         return false;
     }
 
     private void verifyOcspResponse(String instanceIdentifier,
-            X509Certificate subject, byte[] ocspBytes, OcspVerifierOptions verifierOptions) throws Exception {
+                                    X509Certificate subject, byte[] ocspBytes, OcspVerifierOptions verifierOptions) throws Exception {
         if (ocspBytes == null) {
             throw new CertificateException("OCSP response not found");
         }
@@ -186,5 +196,6 @@ public class GetAuthKeyRequestHandler
         return status != null
                 && status.startsWith(CertificateInfo.STATUS_REGISTERED);
     }
+
 
 }

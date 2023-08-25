@@ -7,3 +7,30 @@ option java_package = "org.niis.xroad.signer.protocol.dto";
 /* Generic empty request/response. */
 message Empty {
 }
+
+message ClientIdProto {
+  string memberClass = 1;
+  string memberCode = 2;
+  string subsystemCode = 3;
+
+  string xroadInstance = 4;
+  XRoadObjectType objectType = 5;
+}
+
+message SecurityServerIdProto {
+  string memberClass = 1;
+  string memberCode = 2;
+  string serverCode = 3;
+
+  string xroadInstance = 4;
+  XRoadObjectType objectType = 5;
+}
+
+enum XRoadObjectType {
+  SERVER = 0;
+  SERVICE = 1;
+  MEMBER = 2;
+  SUBSYSTEM = 3;
+  GLOBALGROUP = 4;
+  LOCALGROUP = 5 [deprecated = true]; // Deprecated
+}

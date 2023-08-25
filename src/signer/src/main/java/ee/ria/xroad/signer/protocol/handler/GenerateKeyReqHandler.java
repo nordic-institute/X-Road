@@ -26,23 +26,25 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
+import ee.ria.xroad.signer.protocol.message.GenerateKey;
 
-import org.niis.xroad.signer.proto.ActivateCertReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
+import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.springframework.stereotype.Component;
 
 /**
- * Handles certificate activations and deactivations.
+ * Handles key generations.
  */
 @Component
-public class ActivateCertRequestHandler
-        extends AbstractRpcHandler<ActivateCertReq, Empty> {
+public class GenerateKeyReqHandler extends AbstractRpcHandler<GenerateKeyReq, KeyInfoProto> {
 
     @Override
-    protected Empty handle(ActivateCertReq request) throws Exception {
-        TokenManager.setCertActive(request.getCertIdOrHash(), request.getActive());
+    protected KeyInfoProto handle(GenerateKeyReq request) throws Exception {
+        var message = new GenerateKey(request.getTokenId(), request.getKeyLabel());
 
-        return Empty.getDefaultInstance();
+        KeyInfo keyInfo = temporaryAkkaMessenger.tellTokenWithResponse(message, request.getTokenId());
+
+        return keyInfo.asMessage();
     }
 }
