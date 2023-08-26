@@ -39,11 +39,12 @@ import java.util.regex.Pattern;
 import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
 
 /**
- * Helper class for decoding ClientId from Finnish X-Road instance signing certificates.
+ * Helper class for decoding ClientId from CamDX X-Road instance signing certificates.
  */
 public final class CamDXSubjectClientIdDecoder {
 
     public static final int NUM_COMPONENTS = 3;
+    private static final Pattern SPLIT_PATTERN = Pattern.compile("/");
 
     private CamDXSubjectClientIdDecoder() {
         //utility class
@@ -53,7 +54,7 @@ public final class CamDXSubjectClientIdDecoder {
      * @param cert certificate from which to construct the client ID
      * @return a fully constructed Client identifier from DN of the certificate.
      */
-    public static ClientId getSubjectClientId(X509Certificate cert) {
+    public static ClientId.Conf getSubjectClientId(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
         X500Name x500name = new X500Name(principal.getName());
 
@@ -61,7 +62,7 @@ public final class CamDXSubjectClientIdDecoder {
             if (getRDNValue(x500name, BCStyle.OU) == null) {
                 return CertUtils.getSubjectClientId(cert);
             }
-            return parseClientIdFromLegacyName(x500name);
+            return CertUtils.getSubjectClientId(cert);
         }
         return parseClientId(x500name);
     }
@@ -75,10 +76,7 @@ public final class CamDXSubjectClientIdDecoder {
      *  <li>serialNumber = instanceIdentifier;serverCode;memberClass
      * </ul>
      */
-
-    private static final Pattern SPLIT_PATTERN = Pattern.compile("/");
-
-    private static ClientId parseClientId(X500Name x500name) {
+    private static ClientId.Conf parseClientId(X500Name x500name) {
         String c = getRDNValue(x500name, BCStyle.C);
         if (!"KH".equals(c)) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
@@ -115,7 +113,6 @@ public final class CamDXSubjectClientIdDecoder {
                 memberCode);
 
     }
-
 
     /*
      * The legacy encoding for clientID:
