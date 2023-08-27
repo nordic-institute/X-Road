@@ -25,55 +25,50 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.MimeUtils;
 
-import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
 import org.junit.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ServerProxyHandlerTest {
+public class ClientProxyVersionCheckTest {
+    private static final String CLIENT_VERSION_6_26_3 = "6.26.3";
+    private static final String CLIENT_VERSION_7_1_3 = "7.1.3";
+    private static final String VERSION_7_1_3 = "7.1.3";
+    private static final String MIN_SUPPORTED_CLIENT_VERSION = "xroad.proxy.server-min-supported-client-version";
+    private ClientProxyVersionCheck clientProxyVersionCheck;
 
     @Test
-    public void shouldExecuteClientProxyVersionCheck() throws Exception {
-        final HttpServletRequest request = getMockedRequest();
-        final Request baseRequest = mock(Request.class);
-        ClientProxyVersionCheck clientProxyVersionCheck = mock(ClientProxyVersionCheck.class);
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(HttpClient.class), mock(HttpClient.class),
-                clientProxyVersionCheck);
-
-        try (MockedStatic<GlobalConf> mock = Mockito.mockStatic(GlobalConf.class)) {
-            mock.when(GlobalConf::verifyValidity).then(invocationOnMock -> null);
-
-            serverProxyHandler.handle("target", baseRequest, request, getMockedResponse());
-        }
-
-        verify(clientProxyVersionCheck, times(1)).check(any());
-    }
-
-    private HttpServletRequest getMockedRequest() {
+    public void whenMinSupportedClientVersionPropertyIsEmptyThenShouldPassClientProxyVersionCheck() {
         final HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRemoteAddr()).thenReturn("remoteAddr");
-        when(request.getMethod()).thenReturn("POST");
-        return request;
+        when(request.getHeader(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_7_1_3);
+        clientProxyVersionCheck = new ClientProxyVersionCheck();
+
+        clientProxyVersionCheck.check(request);
     }
 
-    private HttpServletResponse getMockedResponse() throws IOException {
-        final HttpServletResponse response = mock(HttpServletResponse.class);
-        when(response.getOutputStream()).thenReturn(mock(ServletOutputStream.class));
-        return response;
+    @Test
+    public void shouldPassClientProxyVersionCheck() {
+        System.setProperty(MIN_SUPPORTED_CLIENT_VERSION, VERSION_7_1_3);
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getHeader(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_7_1_3);
+        clientProxyVersionCheck = new ClientProxyVersionCheck();
+
+        clientProxyVersionCheck.check(request);
+    }
+
+    @Test
+    public void shouldRaiseError() {
+        System.setProperty(MIN_SUPPORTED_CLIENT_VERSION, VERSION_7_1_3);
+        final HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getHeader(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_6_26_3);
+        clientProxyVersionCheck = new ClientProxyVersionCheck();
+
+        assertThrows(CodedException.class, () -> clientProxyVersionCheck.check(request));
     }
 }

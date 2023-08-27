@@ -32,17 +32,13 @@ import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.PerformanceLogger;
-import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
-import org.semver4j.Semver;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -51,10 +47,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
-import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_CLIENT_PROXY_VERSION_NOT_SUPPORTED;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.PRODUCER;
@@ -65,22 +59,15 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @Slf4j
 class ServerProxyHandler extends HandlerBase {
 
-    private static final String UNKNOWN_VERSION = "unknown";
-    private static final Semver MIN_SUPPORTED_CLIENT_VERSION;
-
     private final HttpClient client;
     private final HttpClient opMonitorClient;
     private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
+    private final ClientProxyVersionCheck clientProxyVersionCheck;
 
-    static {
-        MIN_SUPPORTED_CLIENT_VERSION = Optional.ofNullable(SystemProperties.getServerProxyMinSupportedClientVersion())
-                .map(Semver::new)
-                .orElse(null);
-    }
-
-    ServerProxyHandler(HttpClient client, HttpClient opMonitorClient) {
+    ServerProxyHandler(HttpClient client, HttpClient opMonitorClient, ClientProxyVersionCheck clientProxyVersionCheck) {
         this.client = client;
         this.opMonitorClient = opMonitorClient;
+        this.clientProxyVersionCheck = clientProxyVersionCheck;
     }
 
     @Override
@@ -103,7 +90,7 @@ class ServerProxyHandler extends HandlerBase {
 
             GlobalConf.verifyValidity();
 
-            checkClientProxyVersion(request);
+            clientProxyVersionCheck.check(request);
             baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
             final MessageProcessorBase processor = createRequestProcessor(request, response, opMonitoringData);
             processor.process();
@@ -150,26 +137,6 @@ class ServerProxyHandler extends HandlerBase {
             throws IOException {
         MonitorAgent.failure(null, e.getFaultCode(), e.getFaultString());
         sendErrorResponse(request, response, e);
-    }
-
-    private static void checkClientProxyVersion(HttpServletRequest request) {
-        String clientVersion = getVersion(request.getHeader(MimeUtils.HEADER_PROXY_VERSION));
-        String thisVersion = getVersion(ProxyMain.readProxyVersion());
-
-        log.info("Received request from {} (security server version: {})", request.getRemoteAddr(), clientVersion);
-
-        if (MIN_SUPPORTED_CLIENT_VERSION != null && MIN_SUPPORTED_CLIENT_VERSION.isGreaterThan(new Semver(clientVersion))) {
-            throw new CodedException(X_CLIENT_PROXY_VERSION_NOT_SUPPORTED,
-                    "The minimum supported version for client security server is: %s ", MIN_SUPPORTED_CLIENT_VERSION.toString());
-        }
-
-        if (!clientVersion.equals(thisVersion)) {
-            log.warn("Peer security server version ({}) does not match host security server version ({})", clientVersion, thisVersion);
-        }
-    }
-
-    private static String getVersion(String value) {
-        return !StringUtils.isBlank(value) ? value : UNKNOWN_VERSION;
     }
 
     private static X509Certificate[] getClientSslCertChain(HttpServletRequest request) {
