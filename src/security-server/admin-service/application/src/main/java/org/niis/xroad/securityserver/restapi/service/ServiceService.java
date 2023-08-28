@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -131,11 +131,14 @@ public class ServiceService {
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      * @throws ClientNotFoundException if client with given id was not found
      * @throws UnhandledWarningsException if SSL auth is enabled and verification of the SSL connection between the
+     * @throws org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService.UrlAlreadyExistsException if url already
+     *         exists for other rest service
      * Security Server and information system fails, and ignoreWarnings was false
      */
     public ServiceType updateService(ClientId clientId, String fullServiceCode,
             String url, boolean urlAll, Integer timeout, boolean timeoutAll,
             boolean sslAuth, boolean sslAuthAll, boolean ignoreWarnings) throws InvalidUrlException,
+            ServiceDescriptionService.UrlAlreadyExistsException,
             ServiceNotFoundException, ClientNotFoundException, UnhandledWarningsException, InvalidHttpsUrlException {
 
         auditDataHelper.put(clientId);
@@ -168,6 +171,7 @@ public class ServiceService {
         ServiceDescriptionType serviceDescriptionType = serviceType.getServiceDescription();
         if (DescriptionType.REST.equals(serviceDescriptionType.getType())) {
             serviceDescriptionType.setUrl(url);
+            checkDuplicateUrl(serviceDescriptionType);
         }
 
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
@@ -179,6 +183,15 @@ public class ServiceService {
         });
 
         return serviceType;
+    }
+
+    private void checkDuplicateUrl(ServiceDescriptionType serviceDescription) throws ServiceDescriptionService.UrlAlreadyExistsException {
+        boolean hasDuplicates = serviceDescription.getClient().getServiceDescription().stream()
+                .anyMatch(other -> !serviceDescription.equals(other)
+                        && serviceDescription.getUrl().equals(other.getUrl()));
+        if (hasDuplicates) {
+            throw new ServiceDescriptionService.UrlAlreadyExistsException(serviceDescription.getUrl());
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -117,6 +117,8 @@ public class ServicesApiController implements ServicesApi {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (ServiceDescriptionService.UrlAlreadyExistsException e) {
+            throw new ConflictException(e);
         }
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }

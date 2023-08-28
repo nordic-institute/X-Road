@@ -38,6 +38,12 @@ Feature: 0550 - SS: Client REST with base path services
     When Rest service dialog is opened and base path is set to "http://example.com" and service code "s3c10"
     Then Dialog data is saved and error message "URL already exists" is shown
 
+  Scenario: Updating service url to duplicate url is not allowed
+    Given Client "TestService" is opened
+    And Services sub-tab is selected
+    When Service "REST (http://example2.com)" is updated with url "http://example.com" and service code "s3c1x"
+    Then Rest service details are saved and error message "URL already exists" is shown
+
   Scenario: Client service is edited
     Given Client "TestService" is opened
     And Services sub-tab is selected
@@ -47,6 +53,8 @@ Feature: 0550 - SS: Client REST with base path services
     Then Service is saved and success message "Service saved" is shown
     When Service with code "s3c1" is opened
     Then Service URL is "http://example.com/v2", timeout is 30 and tls certificate verification is unchecked
+    When Service URL is set to "http://example2.com", timeout to 30 and tls certificate verification is unchecked
+    Then Rest service parameters are saved and error message "URL already exists" is shown
 
   Scenario: Client service has access rights added to it
     Given Client "TestService" is opened
@@ -125,7 +133,8 @@ Feature: 0550 - SS: Client REST with base path services
     Given Client "TestService" is opened
     And Services sub-tab is selected
     When Service "REST (http://example.com/v2)" is updated with url "http://example.com/v3" and service code "s5c200"
-    Then Service "REST (http://example.com/v2)" is missing in the list
+    Then Rest service details are saved and success message "Description saved" is shown
+    And Service "REST (http://example.com/v2)" is missing in the list
     And Service "REST (http://example.com/v3)" is present in the list
 
   Scenario: Newly added service is deleted
