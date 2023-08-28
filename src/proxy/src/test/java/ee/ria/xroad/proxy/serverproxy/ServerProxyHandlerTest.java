@@ -31,7 +31,6 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.junit.Test;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -41,8 +40,7 @@ import java.io.IOException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 public class ServerProxyHandlerTest {
@@ -51,17 +49,18 @@ public class ServerProxyHandlerTest {
     public void shouldExecuteClientProxyVersionCheck() throws Exception {
         final HttpServletRequest request = getMockedRequest();
         final Request baseRequest = mock(Request.class);
-        ClientProxyVersionCheck clientProxyVersionCheck = mock(ClientProxyVersionCheck.class);
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(HttpClient.class), mock(HttpClient.class),
-                clientProxyVersionCheck);
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(HttpClient.class), mock(HttpClient.class));
 
-        try (MockedStatic<GlobalConf> mock = Mockito.mockStatic(GlobalConf.class)) {
-            mock.when(GlobalConf::verifyValidity).then(invocationOnMock -> null);
+        try (MockedStatic<GlobalConf> globalConfMock = mockStatic(GlobalConf.class);
+                MockedStatic<ClientProxyVersionVerifier> checkMock = mockStatic(ClientProxyVersionVerifier.class)) {
+            globalConfMock.when(GlobalConf::verifyValidity).then(invocationOnMock -> null);
+            checkMock.when(() -> ClientProxyVersionVerifier.check(any()))
+                    .thenAnswer(invocation -> null);
 
             serverProxyHandler.handle("target", baseRequest, request, getMockedResponse());
-        }
 
-        verify(clientProxyVersionCheck, times(1)).check(any());
+            checkMock.verify(() -> ClientProxyVersionVerifier.check(any()));
+        }
     }
 
     private HttpServletRequest getMockedRequest() {

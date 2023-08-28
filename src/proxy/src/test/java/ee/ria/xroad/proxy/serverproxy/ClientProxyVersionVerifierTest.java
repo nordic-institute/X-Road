@@ -32,24 +32,23 @@ import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ClientProxyVersionCheckTest {
+public class ClientProxyVersionVerifierTest {
     private static final String CLIENT_VERSION_6_26_3 = "6.26.3";
     private static final String CLIENT_VERSION_7_1_3 = "7.1.3";
     private static final String VERSION_7_1_3 = "7.1.3";
     private static final String MIN_SUPPORTED_CLIENT_VERSION = "xroad.proxy.server-min-supported-client-version";
-    private ClientProxyVersionCheck clientProxyVersionCheck;
 
     @Test
     public void whenMinSupportedClientVersionPropertyIsEmptyThenShouldPassClientProxyVersionCheck() {
         final HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_7_1_3);
-        clientProxyVersionCheck = new ClientProxyVersionCheck();
 
-        clientProxyVersionCheck.check(request);
+        ClientProxyVersionVerifier.check(request);
     }
 
     @Test
@@ -57,9 +56,8 @@ public class ClientProxyVersionCheckTest {
         System.setProperty(MIN_SUPPORTED_CLIENT_VERSION, VERSION_7_1_3);
         final HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_7_1_3);
-        clientProxyVersionCheck = new ClientProxyVersionCheck();
 
-        clientProxyVersionCheck.check(request);
+        ClientProxyVersionVerifier.check(request);
     }
 
     @Test
@@ -67,8 +65,9 @@ public class ClientProxyVersionCheckTest {
         System.setProperty(MIN_SUPPORTED_CLIENT_VERSION, VERSION_7_1_3);
         final HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_6_26_3);
-        clientProxyVersionCheck = new ClientProxyVersionCheck();
 
-        assertThrows(CodedException.class, () -> clientProxyVersionCheck.check(request));
+        CodedException exception = assertThrows(CodedException.class, () -> ClientProxyVersionVerifier.check(request));
+        assertEquals("ClientProxyVersionNotSupported: The minimum supported version for client security server is: 7.1.3 ",
+                exception.getMessage());
     }
 }

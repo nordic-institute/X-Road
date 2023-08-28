@@ -169,7 +169,7 @@ public class ServerProxy implements StartStop {
         RequestLogHandler logHandler = new RequestLogHandler();
         logHandler.setRequestLog(reqLog);
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(client, opMonitorClient, new ClientProxyVersionCheck());
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(client, opMonitorClient);
 
         HandlerCollection handler = new HandlerCollection();
         handler.addHandler(logHandler);

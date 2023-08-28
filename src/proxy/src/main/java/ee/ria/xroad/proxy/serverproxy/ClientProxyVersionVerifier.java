@@ -42,7 +42,7 @@ import java.util.Optional;
 import static ee.ria.xroad.common.ErrorCodes.X_CLIENT_PROXY_VERSION_NOT_SUPPORTED;
 
 @Slf4j
-public class ClientProxyVersionCheck {
+public final class ClientProxyVersionVerifier {
     private static final String UNKNOWN_VERSION = "unknown";
     private static final Semver MIN_SUPPORTED_CLIENT_VERSION;
 
@@ -52,9 +52,11 @@ public class ClientProxyVersionCheck {
                 .orElse(null);
     }
 
-    void check(HttpServletRequest request) {
+    private ClientProxyVersionVerifier() {
+    }
+
+    public static void check(HttpServletRequest request) {
         String clientVersion = getVersion(request.getHeader(MimeUtils.HEADER_PROXY_VERSION));
-        String thisVersion = getVersion(ProxyMain.readProxyVersion());
 
         log.info("Received request from {} (security server version: {})", request.getRemoteAddr(), clientVersion);
 
@@ -63,6 +65,7 @@ public class ClientProxyVersionCheck {
                     "The minimum supported version for client security server is: %s ", MIN_SUPPORTED_CLIENT_VERSION.toString());
         }
 
+        String thisVersion = getVersion(ProxyMain.readProxyVersion());
         if (!clientVersion.equals(thisVersion)) {
             log.warn("Peer security server version ({}) does not match host security server version ({})", clientVersion, thisVersion);
         }
