@@ -28,7 +28,6 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
-import ee.ria.xroad.signer.protocol.message.GenerateKey;
 
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.springframework.stereotype.Component;
@@ -41,10 +40,7 @@ public class GenerateKeyReqHandler extends AbstractRpcHandler<GenerateKeyReq, Ke
 
     @Override
     protected KeyInfoProto handle(GenerateKeyReq request) throws Exception {
-        var message = new GenerateKey(request.getTokenId(), request.getKeyLabel());
-
-        KeyInfo keyInfo = temporaryAkkaMessenger.tellTokenWithResponse(message, request.getTokenId());
-
+        final KeyInfo keyInfo = getTokenWorker(request.getTokenId()).handleGenerateKey(request);
         return keyInfo.asMessage();
     }
 }

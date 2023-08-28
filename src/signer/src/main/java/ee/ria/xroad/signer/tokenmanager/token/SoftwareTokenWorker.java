@@ -34,7 +34,6 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 
@@ -46,6 +45,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.GenerateKeyReq;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -173,7 +173,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected GenerateKeyResult generateKey(GenerateKey message)
+    protected GenerateKeyResult generateKey(GenerateKeyReq message)
             throws Exception {
         log.trace("generateKeys()");
 

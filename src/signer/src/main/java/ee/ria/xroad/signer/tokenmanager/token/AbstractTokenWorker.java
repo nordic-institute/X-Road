@@ -29,8 +29,8 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.TemporaryHelper;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.CalculateSignature;
@@ -47,6 +47,7 @@ import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 
@@ -106,9 +107,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
     @Override
     protected void onMessage(Object message) throws Exception {
         log.trace("onMessage()");
-        if (message instanceof GenerateKey) {
-            handleGenerateKey((GenerateKey) message);
-        } else if (message instanceof CalculateSignature) {
+        if (message instanceof CalculateSignature) {
             handleCalculateSignature((CalculateSignature) message);
         } else {
             unhandled(message);
@@ -134,7 +133,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         }
     }
 
-    private void handleGenerateKey(GenerateKey message) {
+    public KeyInfo handleGenerateKey(GenerateKeyReq message) {
         GenerateKeyResult result;
 
         try {
@@ -156,7 +155,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
             TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
         }
 
-        sendResponse(TokenManager.findKeyInfo(keyId));
+        return TokenManager.findKeyInfo(keyId);
     }
 
     public void handleDeleteKey(String keyId) {
@@ -228,7 +227,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
     protected abstract void activateToken(ActivateTokenReq message) throws Exception;
 
-    protected abstract GenerateKeyResult generateKey(GenerateKey message) throws Exception;
+    protected abstract GenerateKeyResult generateKey(GenerateKeyReq message) throws Exception;
 
     protected abstract void deleteKey(String keyId) throws Exception;
 

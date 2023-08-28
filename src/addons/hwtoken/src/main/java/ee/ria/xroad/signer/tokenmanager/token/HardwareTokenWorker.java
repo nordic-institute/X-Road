@@ -32,7 +32,6 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.ModuleConf;
 import ee.ria.xroad.signer.util.SignerUtil;
@@ -55,6 +54,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.GenerateKeyReq;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -280,7 +280,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected GenerateKeyResult generateKey(GenerateKey message) throws Exception {
+    protected GenerateKeyResult generateKey(GenerateKeyReq message) throws Exception {
         log.trace("generateKeys()");
 
         assertTokenWritable();
