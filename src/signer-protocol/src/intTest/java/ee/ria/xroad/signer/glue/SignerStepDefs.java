@@ -520,13 +520,12 @@ public class SignerStepDefs {
         Thread t = new Thread(() -> {
             try {
                 ProcessBuilder pb = new ProcessBuilder("java",
-                        "-Dxroad.signer.port=" + port,
                         "-Dlogback.configurationFile=build/resources/intTest/signer-logback.xml",
+                        "-Dxroad.common.configuration-path=build/resources/intTest/globalconf",
+                        "-Dxroad.signer.port=" + port,
                         "-Dxroad.signer.ocsp-cache-path=build/tmp",
-                        "-Dxroad.signer.key-configuration-file="
-                                + "build/resources/intTest/keyconf.xml",
-                        "-Dxroad.signer.device-configuration-file="
-                                + "build/resources/intTest/devices.ini",
+                        "-Dxroad.signer.key-configuration-file=build/resources/intTest/keyconf.xml",
+                        "-Dxroad.signer.device-configuration-file=build/resources/intTest/devices.ini",
                         "-Dxroad.grpc.internal.keystore=build/resources/intTest/transport-keystore/grpc-internal-keystore.jks",
                         "-Dxroad.grpc.internal.keystore-password=111111",
                         "-Dxroad.grpc.internal.truststore=build/resources/intTest/transport-keystore/grpc-internal-keystore.jks",
@@ -576,6 +575,15 @@ public class SignerStepDefs {
 
         SignerProxy.setOcspResponses(new String[]{calculateCertHexHash(subject)},
                 new String[]{Base64.toBase64String(ocspResponse.getEncoded())});
+    }
+
+    @Then("ocsp responses can be retrieved")
+    public void ocspResponsesCanBeRetrieved() throws Exception {
+        X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
+        final String certHash = calculateCertHexHash(subject);
+
+        final String[] ocspResponses = SignerProxy.getOcspResponses(new String[]{certHash});
+        assertThat(ocspResponses).isNotEmpty();
     }
 
     @RequiredArgsConstructor

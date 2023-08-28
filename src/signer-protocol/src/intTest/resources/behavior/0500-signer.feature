@@ -105,6 +105,8 @@ Feature: 0500 - Signer
 
   Scenario: Ocsp responses
     When ocsp responses are set
+    Then ocsp responses can be retrieved
+
 
 
 #  not covered SignerProxy methods:
