@@ -26,9 +26,9 @@ repositories {
 
 sonarqube {
     properties {
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.projectKey", "nordic-institute_X-Road"
-        property "sonar.organization", "nordic-institute"
+        property "sonar.host.url", "${sonarqubeHost}"
+        property "sonar.projectKey", "${sonarqubeProjectKey}"
+        property "sonar.organization", "${sonarqubeOrganization}"
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
