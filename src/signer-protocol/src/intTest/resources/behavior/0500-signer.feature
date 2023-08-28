@@ -103,6 +103,10 @@ Feature: 0500 - Signer
     * Getting key by not existing cert hash fails
     * Not existing certificate can not be activated
 
+  Scenario: Ocsp responses
+    When ocsp responses are set
+
+
 #  not covered SignerProxy methods:
 #  AuthKeyInfo getAuthKey(SecurityServerId serverId)                            #requires valid ocsp response
 #  void setOcspResponses(String[] certHashes, String[] base64EncodedResponses)  #requires valid ocsp responses

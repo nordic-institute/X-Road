@@ -28,6 +28,8 @@
 package ee.ria.xroad.signer.glue;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.OcspTestUtils;
+import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
@@ -54,6 +56,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
@@ -67,6 +71,7 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.security.KeyFactory;
 import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Date;
@@ -78,6 +83,7 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.SystemProperties.SIGNER_PORT;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
@@ -516,6 +522,7 @@ public class SignerStepDefs {
                 ProcessBuilder pb = new ProcessBuilder("java",
                         "-Dxroad.signer.port=" + port,
                         "-Dlogback.configurationFile=build/resources/intTest/signer-logback.xml",
+                        "-Dxroad.signer.ocsp-cache-path=build/tmp",
                         "-Dxroad.signer.key-configuration-file="
                                 + "build/resources/intTest/keyconf.xml",
                         "-Dxroad.signer.device-configuration-file="
@@ -559,6 +566,16 @@ public class SignerStepDefs {
         transportKeystore.put("xroad.grpc.internal.truststore-password", "111111");
 
         return transportKeystore;
+    }
+
+    @When("ocsp responses are set")
+    public void ocspResponsesAreSet() throws Exception {
+        X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
+        final OCSPResp ocspResponse = OcspTestUtils.createOCSPResponse(subject, TestCertUtil.getCaCert(), TestCertUtil.getOcspSigner().certChain[0],
+                TestCertUtil.getOcspSigner().key, CertificateStatus.GOOD);
+
+        SignerProxy.setOcspResponses(new String[]{calculateCertHexHash(subject)},
+                new String[]{Base64.toBase64String(ocspResponse.getEncoded())});
     }
 
     @RequiredArgsConstructor
