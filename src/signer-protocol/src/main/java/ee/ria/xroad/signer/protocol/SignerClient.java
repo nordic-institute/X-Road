@@ -33,10 +33,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -47,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 import static ee.ria.xroad.signer.protocol.SignerClient.SignerWatcher.requestProcessor;
 
 /**
@@ -57,8 +53,6 @@ import static ee.ria.xroad.signer.protocol.SignerClient.SignerWatcher.requestPro
 @Slf4j
 public final class SignerClient {
 
-    private static final Timeout TIMEOUT =
-            Timeout.apply(SystemProperties.getSignerClientTimeout(), TimeUnit.MILLISECONDS);
     public static final String LOCALHOST_IP = "127.0.0.1";
 
     private SignerClient() {
@@ -94,24 +88,6 @@ public final class SignerClient {
      */
     public static void execute(Object message, ActorRef receiver) {
         requestProcessor().tell(message, receiver);
-    }
-
-    /**
-     * Sends a message and waits for a response, returning it. If the response
-     * is an exception, throws it.
-     *
-     * @param <T>     the type of result
-     * @param message the message
-     * @return the response
-     * @throws Exception if the response is an exception
-     */
-    @Deprecated
-    public static <T> T execute(Object message) throws Exception {
-        try {
-            return result(Await.result(Patterns.ask(requestProcessor(), message, TIMEOUT), TIMEOUT.duration()));
-        } catch (TimeoutException e) {
-            throw new CodedException(X_INTERNAL_ERROR, e, "Request to Signer timed out");
-        }
     }
 
     /**
@@ -287,8 +263,5 @@ public final class SignerClient {
             correlationId++;
         }
 
-        private String getSignerPath() {
-            return "akka://" + SIGNER + "@" + signerIpAddress + ":" + SystemProperties.getSignerPort();
-        }
     }
 }
