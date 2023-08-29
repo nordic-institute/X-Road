@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,6 @@
 package ee.ria.xroad.signer.util;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.message.SuccessResponse;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedAbstractActor;
@@ -47,10 +46,6 @@ public abstract class AbstractSignerActor extends UntypedAbstractActor {
                 getSender().tell(message, getSelf());
             }
         }
-    }
-
-    protected void sendSuccessResponse() {
-        sendResponse(new SuccessResponse());
     }
 
     protected CodedException translateError(Exception e) {
