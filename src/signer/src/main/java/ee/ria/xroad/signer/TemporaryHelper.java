@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
+import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 
 import java.util.HashMap;
@@ -39,6 +40,10 @@ public class TemporaryHelper {
 
     @Deprecated
     private static Map<String, AbstractTokenWorker> TOKEN_WORKERS = new HashMap<>();
+
+
+    @Deprecated
+    private static AbstractModuleManager moduleManager;
 
     @Deprecated
     public static OcspResponseManager ocspResponseManager;
@@ -62,5 +67,18 @@ public class TemporaryHelper {
     @Deprecated
     public static void addTokenWorker(String tokenId, AbstractTokenWorker tokenWorker) {
         TOKEN_WORKERS.put(tokenId, tokenWorker);
+    }
+
+    @Deprecated
+    public static void setModuleManager(AbstractModuleManager manager) {
+        moduleManager = manager;
+    }
+
+    @Deprecated
+    public static AbstractModuleManager getModuleManager() {
+        if (moduleManager != null) {
+            return moduleManager;
+        }
+        throw new RuntimeException("Module manager not available.");
     }
 }

@@ -26,7 +26,6 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.PeriodicJob;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
@@ -41,11 +40,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
 
 import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
@@ -64,17 +60,12 @@ public class Signer implements StartStop {
     private static final String MODULE_MANAGER_IMPL_CLASS =
             SystemProperties.PREFIX + "signer.moduleManagerImpl";
 
-    private static final int MODULE_MANAGER_UPDATE_INTERVAL_SECONDS = SystemProperties.getModuleManagerUpdateInterval();
-
-    private static final FiniteDuration MODULE_MANAGER_UPDATE_INTERVAL =
-            Duration.create(MODULE_MANAGER_UPDATE_INTERVAL_SECONDS, TimeUnit.SECONDS);
-
     private final ActorSystem actorSystem;
 
     private FileWatcherRunner keyConfFileWatcherRunner;
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         log.trace("start()");
 
         TokenManager.init();
@@ -96,7 +87,6 @@ public class Signer implements StartStop {
         createComponent(OCSP_CLIENT, OcspClientWorker.class);
         createComponent(OCSP_CLIENT_JOB, OcspClientJob.class);
         createComponent(OCSP_CLIENT_RELOAD, OcspClientReload.class);
-        createComponent(ModuleManagerJob.class);
     }
 
     /**
@@ -126,10 +116,6 @@ public class Signer implements StartStop {
         //NOP
     }
 
-    private ActorRef createComponent(Class<?> clazz, Object... arg) {
-        return createComponent(clazz.getName(), clazz, arg);
-    }
-
     private ActorRef createComponent(String name, Class<?> clazz, Object... arg) {
         return actorSystem.actorOf(Props.create(clazz, arg), name);
     }
@@ -142,15 +128,6 @@ public class Signer implements StartStop {
             return Class.forName(moduleManagerImplClassName).asSubclass(AbstractModuleManager.class);
         } catch (ClassNotFoundException | ClassCastException e) {
             throw new RuntimeException("Could not load module manager impl: " + moduleManagerImplClassName, e);
-        }
-    }
-
-    /**
-     * Periodically updates the ModuleManager
-     */
-    private static class ModuleManagerJob extends PeriodicJob {
-        ModuleManagerJob() {
-            super(MODULE_MANAGER, new Update(), MODULE_MANAGER_UPDATE_INTERVAL);
         }
     }
 

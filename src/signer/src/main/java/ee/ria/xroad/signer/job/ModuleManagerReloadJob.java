@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,53 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
 
-import akka.actor.ActorRef;
-import akka.actor.Cancellable;
-import akka.actor.UntypedAbstractActor;
-import lombok.RequiredArgsConstructor;
-import scala.concurrent.duration.FiniteDuration;
+package ee.ria.xroad.signer.job;
 
-/**
- * Actor that periodically sends a message to another actor.
- */
-@RequiredArgsConstructor
-public abstract class PeriodicJob extends UntypedAbstractActor {
 
-    private final String actor;
-    private final Object message;
-    private final FiniteDuration interval;
+import ee.ria.xroad.signer.TemporaryHelper;
 
-    private Cancellable tick;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-    @Override
-    public void onReceive(Object incomingMessage) throws Exception {
-        if (incomingMessage.equals(this.message)) {
-            getContext().actorSelection("/user/" + actor).tell(incomingMessage,
-                    getSelf());
-        } else {
-            unhandled(incomingMessage);
-        }
+@Slf4j
+@Component
+public class ModuleManagerReloadJob {
+
+    @Scheduled(fixedDelayString = "#{T(ee.ria.xroad.common.SystemProperties).getModuleManagerUpdateInterval() * 1000}")
+    public void update() {
+        log.trace("Triggering ModuleManager update");
+        // todo ModuleManager should be injected
+        TemporaryHelper.getModuleManager().onUpdate();
     }
 
-    @Override
-    public void preStart() throws Exception {
-        tick = start();
-    }
-
-    @Override
-    public void postStop() {
-        tick.cancel();
-    }
-
-    protected FiniteDuration getInitialDelay() {
-        return interval;
-    }
-
-    private Cancellable start() {
-        return getContext().system().scheduler().schedule(getInitialDelay(),
-                interval, getSelf(), message, getContext().dispatcher(),
-                ActorRef.noSender());
-    }
 }
