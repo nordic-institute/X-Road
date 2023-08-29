@@ -22,5 +22,5 @@ message GetOcspResponsesReq{
 }
 
 message GetOcspResponsesResp{
-  repeated string base64EncodedResponses = 1;
+  map<string, string> base64EncodedResponses = 1;
 }

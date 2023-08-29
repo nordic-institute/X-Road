@@ -28,11 +28,13 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
 import org.springframework.stereotype.Component;
 
-import static java.util.Arrays.asList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Handles OCSP requests.
@@ -47,8 +49,17 @@ public class GetOcspResponsesReqHandler
                 request.getCertHashList().toArray(new String[0]));
 
         ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse response = temporaryAkkaMessenger.tellOcspManagerWithResponse(message);
+
+        // todo return map from ocsp responses manager
+        Map<String, String> ocspResponses = new HashMap<>();
+        for (int i = 0; i < message.getCertHash().length; i++) {
+            if (ArrayUtils.get(response.getBase64EncodedResponses(), i) != null) {
+                ocspResponses.put(request.getCertHash(i), response.getBase64EncodedResponses()[i]);
+            }
+        }
+
         return GetOcspResponsesResp.newBuilder()
-                .addAllBase64EncodedResponses(asList(response.getBase64EncodedResponses()))
+                .putAllBase64EncodedResponses(ocspResponses)
                 .build();
     }
 

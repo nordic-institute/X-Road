@@ -85,6 +85,7 @@ import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -603,7 +604,15 @@ public final class SignerProxy {
                         .addAllCertHash(toLowerCase(certHashes))
                         .build()));
 
-        return response.getBase64EncodedResponsesList().toArray(new String[0]);
+        final Map<String, String> responsesMap = response.getBase64EncodedResponsesMap();
+        String[] result = new String[certHashes.length];
+        for (int i = 0; i < certHashes.length; i++) {
+            if (responsesMap.containsKey(certHashes[i])) {
+                result[i] = responsesMap.get(certHashes[i]);
+            }
+        }
+
+        return result;
     }
 
     public static void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) throws Exception {

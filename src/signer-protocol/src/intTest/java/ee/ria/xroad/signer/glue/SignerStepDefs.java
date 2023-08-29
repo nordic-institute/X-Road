@@ -338,7 +338,7 @@ public class SignerStepDefs {
     }
 
     @And("token and keyId can be retrieved by cert hash")
-    public void tokenAndKeyIdCanBeRetrievedByCertHash() throws Exception {
+    public void tokenAndKeyIdCanBeRetrievedByCertHash() {
         final TokenInfoAndKeyId tokenAndKeyIdForCertHash = SignerProxy.getTokenAndKeyIdForCertHash(this.certHash);
         assertThat(tokenAndKeyIdForCertHash).isNotNull();
     }
@@ -580,10 +580,18 @@ public class SignerStepDefs {
     @Then("ocsp responses can be retrieved")
     public void ocspResponsesCanBeRetrieved() throws Exception {
         X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
-        final String certHash = calculateCertHexHash(subject);
+        final String hash = calculateCertHexHash(subject);
 
-        final String[] ocspResponses = SignerProxy.getOcspResponses(new String[]{certHash});
+        final String[] ocspResponses = SignerProxy.getOcspResponses(new String[]{hash});
         assertThat(ocspResponses).isNotEmpty();
+    }
+
+    @And("null ocsp response is returned for unknown certificate")
+    public void emptyOcspResponseIsReturnedForUnknownCertificate() throws Exception {
+        final String[] ocspResponses = SignerProxy
+                .getOcspResponses(new String[]{calculateCertHexHash("not a cert".getBytes())});
+        assertThat(ocspResponses).hasSize(1);
+        assertThat(ocspResponses[0]).isNull();
     }
 
     @RequiredArgsConstructor
@@ -602,4 +610,5 @@ public class SignerStepDefs {
             }
         }
     }
+
 }

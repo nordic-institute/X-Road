@@ -106,6 +106,7 @@ Feature: 0500 - Signer
   Scenario: Ocsp responses
     When ocsp responses are set
     Then ocsp responses can be retrieved
+    And null ocsp response is returned for unknown certificate
 
 
 
