@@ -82,7 +82,7 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Service add subjects dialog is opened
     When Click Search button on subject dialog
     Then The query return 9 entries in the subjects table
-    When Adding value for member name, member code, subsystem and then click the remove value button for each inserted field on the filter input
+    When Adding value for member name, member code, subsystem and then click the remove value button on the input field
     And Click Search button on subject dialog
     Then The query return 9 entries in the subjects table
 

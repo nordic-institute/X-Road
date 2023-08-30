@@ -177,7 +177,7 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.addSubject.btnSearch().click();
     }
 
-    @Step("Adding value for member name, member code, subsystem and then click the remove value button for each inserted field on the filter input")
+    @Step("Adding value for member name, member code, subsystem and then click the remove value button on the input field")
     public void clearSubjectsFilter() {
         clientInfoPageObj.services.addSubject.inputName().shouldBe(empty).setValue("name");
         clientInfoPageObj.services.addSubject.buttonClearInputName().click();
