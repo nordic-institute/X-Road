@@ -57,13 +57,6 @@ public final class CamDXSubjectClientIdDecoder {
     public static ClientId.Conf getSubjectClientId(X509Certificate cert) {
         X500Principal principal = cert.getSubjectX500Principal();
         X500Name x500name = new X500Name(principal.getName());
-
-        if (getRDNValue(x500name, BCStyle.SERIALNUMBER) == null) {
-            if (getRDNValue(x500name, BCStyle.OU) == null) {
-                return CertUtils.getSubjectClientId(cert);
-            }
-            return CertUtils.getSubjectClientId(cert);
-        }
         return parseClientId(x500name);
     }
 
