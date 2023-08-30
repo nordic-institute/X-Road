@@ -39,7 +39,6 @@ public class ClientInfoPageObj {
     public final LocalGroups localGroups = new LocalGroups();
     public final InternalServers internalServers = new InternalServers();
     public final Services services = new Services();
-    public final ServiceClients serviceClients = new ServiceClients();
 
     public static class Details {
         public SelenideElement rowMemberName() {
@@ -88,11 +87,6 @@ public class ClientInfoPageObj {
     }
 
     public static class ClientInfoNavigation {
-        public SelenideElement detailsTab() {
-            return $x("//div[contains(@class, 'v-tabs-bar__content')]"
-                    + "//a[contains(@class, 'v-tab') and contains(text(), 'Details')]");
-        }
-
         public SelenideElement serviceClientsTab() {
             return $x("//div[contains(@class, 'v-tabs-bar__content')]"
                     + "//a[contains(@class, 'v-tab') and contains(text(), 'Service clients')]");
@@ -370,12 +364,30 @@ public class ClientInfoPageObj {
     }
 
     public static class ServicesAddSubject {
+        private static final String PATH_BUTTON_CLEAR_INPUT = "../..//button[@aria-label='clear icon']";
+
         public SelenideElement inputName() {
             return $x("//input[@data-test='name']");
         }
 
+        public SelenideElement buttonClearInputName() {
+            return inputName().$x(PATH_BUTTON_CLEAR_INPUT);
+        }
+
+        public SelenideElement inputMemberCode() {
+            return $x("//input[@data-test='memberCode']");
+        }
+
+        public SelenideElement buttonClearInputMemberCode() {
+            return inputMemberCode().$x(PATH_BUTTON_CLEAR_INPUT);
+        }
+
         public SelenideElement inputSubsystemCode() {
             return $x("//input[@data-test='subsystemCode']");
+        }
+
+        public SelenideElement buttonClearInputSubsystemCode() {
+            return inputSubsystemCode().$x(PATH_BUTTON_CLEAR_INPUT);
         }
 
         public SelenideElement btnSearch() {

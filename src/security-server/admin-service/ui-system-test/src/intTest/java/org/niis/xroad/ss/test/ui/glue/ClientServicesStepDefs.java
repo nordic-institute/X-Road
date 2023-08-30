@@ -177,6 +177,23 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.addSubject.btnSearch().click();
     }
 
+    @Step("Adding value for member name, member code, subsystem and then click the remove value button for each inserted field on the filter input")
+    public void clearSubjectsFilter() {
+        clientInfoPageObj.services.addSubject.inputName().shouldBe(empty).setValue("name");
+        clientInfoPageObj.services.addSubject.buttonClearInputName().click();
+
+        clientInfoPageObj.services.addSubject.inputMemberCode().shouldBe(empty).setValue("memberCode");
+        clientInfoPageObj.services.addSubject.buttonClearInputMemberCode().click();
+
+        clientInfoPageObj.services.addSubject.inputSubsystemCode().shouldBe(empty).setValue("subsystemCode");
+        clientInfoPageObj.services.addSubject.buttonClearInputSubsystemCode().click();
+    }
+
+    @Step("Click Search button on subject dialog")
+    public void clickSearch() {
+        clientInfoPageObj.services.addSubject.btnSearch().click();
+    }
+
     @Step("Subject with id {string} and {string} is selected from the table. There are total {} entries")
     public void addAccessRights(String id, String id2, int size) {
         clientInfoPageObj.services.addSubject.memberTableRows().shouldHave(size(size));
@@ -187,6 +204,11 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.addSubject.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Access rights added successfully"));
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("The query return {} entries in the subjects table")
+    public void validateSubjectsTableSize(int size) {
+        clientInfoPageObj.services.addSubject.memberTableRows().shouldHave(size(size));
     }
 
     @Step("Service Access Rights table member with id {string} is {selenideValidation}")

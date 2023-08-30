@@ -74,6 +74,18 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
     And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
 
+  Scenario: Client service access rights subjects search filter clearing restore initial state
+    When Client "TestService" is opened
+    And Services sub-tab is selected
+    And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
+    And Service with code "testOp1" is opened
+    And Service add subjects dialog is opened
+    When Click Search button on subject dialog
+    Then The query return 9 entries in the subjects table
+    When Adding value for member name, member code, subsystem and then click the remove value button for each inserted field on the filter input
+    And Click Search button on subject dialog
+    Then The query return 9 entries in the subjects table
+
   Scenario: Client service has one access rights removed
     When Client "TestService" is opened
     And Services sub-tab is selected
