@@ -98,7 +98,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    @PreAuthorize("hasAnyAuthority('DIAGNOSTICS', 'VIEW_TSPS')")
     public ResponseEntity<AddOnStatus> getAddOnDiagnostics() {
         AddOnStatusDiagnostics addOnStatus = diagnosticService.queryAddOnStatus();
         return new ResponseEntity<>(addOnStatusConverter.convert(addOnStatus), HttpStatus.OK);
