@@ -1,4 +1,5 @@
-FROM ubuntu:22.04
+# Explicitly defining linux/amd64 ubuntu:22.04 image
+FROM ubuntu@sha256:56887c5194fddd8db7e36ced1c16b3569d89f74c801dc8a5adbf48236fb34564
 RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
@@ -14,19 +15,15 @@ RUN apt-get -qq update \
   && apt-get -qq autoremove \
   && apt-get -qq clean
 
-ARG uid=1000
-ARG gid=1000
-
-RUN groupadd -o -g $gid xroad && useradd -m -u $uid -g $gid xroad
 
 # Create token
 RUN mkdir -p /var/lib/softhsm/tokens/ && \
     softhsm2-util --init-token --slot 0 --label 'X-Road HW' --so-pin 1234 --pin 1234
 
-COPY --chown=xroad:xroad files/app.jar /usr/share/xroad/app.jar
-COPY --chown=xroad:xroad etc /etc
-COPY --chown=xroad:xroad var /var
+COPY --chown=root:root files/app.jar /root/app.jar
+COPY --chown=root:root files/hwtoken.jar /root/lib/hwtoken.jar
 
-USER xroad
+COPY --chown=root:root etc /etc
+COPY --chown=root:root var /var
 
 EXPOSE 5558 5559 5560

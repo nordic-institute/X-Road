@@ -18,6 +18,7 @@ dependencies {
   api project(':common:common-rpc')
 
   intTestRuntimeOnly project(':signer')
+  intTestRuntimeOnly project(':addons:hwtoken')
   intTestRuntimeOnly project(':common:common-util')
 
   intTestImplementation project(":common:common-test")

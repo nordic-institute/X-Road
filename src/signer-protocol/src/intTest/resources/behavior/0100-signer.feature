@@ -1,4 +1,4 @@
-Feature: 0500 - Signer
+Feature: 0100 - Signer: SoftToken
 
   Scenario: Initialization
     Given tokens list contains token "0"
@@ -68,9 +68,6 @@ Feature: 0500 - Signer
   Scenario: Member test
     Given tokens list contains token "0"
     * Member signing info for client "cs:test:member-1" is retrieved
-
-  Scenario: HSM status is not operational
-    * HSM is not operational
 
   Scenario: Self signed certificate
     Given token "0" key "First key" has 0 certificates

@@ -50,6 +50,11 @@ import java.util.Map;
 @SuppressWarnings("checkstyle:MagicNumber")
 public class ContainerSetup {
 
+    static {
+        //This is to set docker api version in testcontainers. By default it uses 1.32, which does not support platform setting.
+        System.setProperty("api.version", "1.41");
+    }
+
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties) {
@@ -58,7 +63,7 @@ public class ContainerSetup {
             @Override
             public ImageFromDockerfile imageDefinition() {
                 var appJarPath = Paths.get("../signer/build/libs/signer-1.0.jar");
-
+                var hwTokenJarPath = Paths.get("../addons/hwtoken/build/libs/hwtoken-1.0.jar");
                 log.info("Will use {} jar for container creation", appJarPath);
 
                 File filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
@@ -67,7 +72,8 @@ public class ContainerSetup {
                         !testableContainerProperties.getReuseBetweenRuns(),
                         testableContainerProperties.getReuseBetweenRuns())
                         .withFileFromFile(".", filesToAdd)
-                        .withFileFromPath("files/app.jar", appJarPath);
+                        .withFileFromPath("files/app.jar", appJarPath)
+                        .withFileFromPath("files/hwtoken.jar", hwTokenJarPath);
             }
 
             @NotNull
@@ -92,21 +98,24 @@ public class ContainerSetup {
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
                 genericContainer
                         .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
-                genericContainer.withCommand("java",
-                        "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
-                        "-Dxroad.internal.passwordstore-provider=file",
-                        "-Dxroad.grpc.internal.keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",
-                        "-Dxroad.grpc.internal.keystore-password=111111",
-                        "-Dxroad.grpc.internal.truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",
-                        "-Dxroad.grpc.internal.truststore-password=111111",
-                        "-jar",
-                        "/usr/share/xroad/app.jar");
+                genericContainer
+//                        .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
+                        .withCommand("java",
+                                "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
+                                "-Dxroad.internal.passwordstore-provider=file",
+                                "-Dxroad.grpc.internal.keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",
+                                "-Dxroad.grpc.internal.keystore-password=111111",
+                                "-Dxroad.grpc.internal.truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",
+                                "-Dxroad.grpc.internal.truststore-password=111111",
+                                "-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl",
+                                "-cp",
+                                "/root/lib/hwtoken.jar:/root/app.jar",
+                                "ee.ria.xroad.signer.SignerMain");
 
                 prepareSignerDirs();
             }
 
             @Override
-            @SneakyThrows
             public void afterStart(@NotNull GenericContainer<?> genericContainer) {
                 //do nothing
             }

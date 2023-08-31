@@ -41,11 +41,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import com.nortal.test.core.report.TestReportService;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Step;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -78,6 +74,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public class SignerStepDefs {
@@ -90,25 +87,25 @@ public class SignerStepDefs {
     private CertificateInfo certInfo;
     private byte[] cert;
 
-    @When("signer is initialized with pin {string}")
+    @Step("signer is initialized with pin {string}")
     public void signerIsInitializedWithPin(String pin) throws Exception {
         SignerProxy.initSoftwareToken(pin.toCharArray());
     }
 
-    @Then("token {string} is not active")
+    @Step("token {string} is not active")
     public void tokenIsNotActive(String tokenId) throws Exception {
         final TokenInfo tokenInfo = SignerProxy.getToken(tokenId);
 
         Assertions.assertFalse(tokenInfo.isActive());
     }
 
-    @Given("token {string} status is {string}")
+    @Step("token {string} status is {string}")
     public void assertTokenStatus(String tokenId, String status) throws Exception {
         final TokenInfo token = SignerProxy.getToken(tokenId);
         assertThat(token.getStatus()).isEqualTo(TokenStatusInfo.valueOf(status));
     }
 
-    @Given("tokens list contains token {string}")
+    @Step("tokens list contains token {string}")
     public void tokensListContainsToken(String tokenId) throws Exception {
         var tokens = SignerProxy.getTokens();
         testReportService.attachText("Tokens", Arrays.toString(tokens.toArray()));
@@ -119,18 +116,18 @@ public class SignerStepDefs {
         assertThat(tokenInfo).isNotNull();
     }
 
-    @When("token {string} is logged in with pin {string}")
+    @Step("token {string} is logged in with pin {string}")
     public void tokenIsActivatedWithPin(String tokenId, String pin) throws Exception {
         SignerProxy.activateToken(tokenId, pin.toCharArray());
     }
 
-    @When("token {string} is logged out")
+    @Step("token {string} is logged out")
     public void tokenIsLoggedOut(String tokenId) throws Exception {
         SignerProxy.deactivateToken(tokenId);
     }
 
     @SneakyThrows
-    @Then("token {string} is active")
+    @Step("token {string} is active")
     public void tokenIsActive(String tokenId) throws Exception {
         var tokenInfo = SignerProxy.getToken(tokenId);
 
@@ -138,33 +135,33 @@ public class SignerStepDefs {
         assertThat(tokenInfo.isActive()).isTrue();
     }
 
-    @When("token {string} pin is updated from {string} to {string}")
+    @Step("token {string} pin is updated from {string} to {string}")
     public void tokenPinIsUpdatedFromTo(String tokenId, String oldPin, String newPin) throws Exception {
         SignerProxy.updateTokenPin(tokenId, oldPin.toCharArray(), newPin.toCharArray());
     }
 
-    @When("name {string} is set for token {string}")
+    @Step("name {string} is set for token {string}")
     public void nameIsSetForToken(String name, String tokenId) throws Exception {
         SignerProxy.setTokenFriendlyName(tokenId, name);
     }
 
-    @Then("token {string} name is {string}")
+    @Step("token {string} name is {string}")
     public void tokenNameIs(String tokenId, String name) throws Exception {
         assertThat(SignerProxy.getToken(tokenId).getFriendlyName()).isEqualTo(name);
     }
 
-    @When("new key {string} generated for token {string}")
+    @Step("new key {string} generated for token {string}")
     public void newKeyGeneratedForToken(String keyLabel, String tokenId) throws Exception {
         final KeyInfo keyInfo = SignerProxy.generateKey(tokenId, keyLabel);
         this.keyId = keyInfo.getId();
     }
 
-    @And("name {string} is set for generated key")
+    @Step("name {string} is set for generated key")
     public void nameIsSetForGeneratedKey(String keyFriendlyName) throws Exception {
         SignerProxy.setKeyFriendlyName(this.keyId, keyFriendlyName);
     }
 
-    @Then("token {string} has exact keys {string}")
+    @Step("token {string} has exact keys {string}")
     public void tokenHasKeys(String tokenId, String keyNames) throws Exception {
         final List<String> keys = Arrays.asList(keyNames.split(","));
         final TokenInfo token = SignerProxy.getToken(tokenId);
@@ -178,7 +175,7 @@ public class SignerStepDefs {
         assertThat(tokenKeyNames).containsExactlyInAnyOrderElementsOf(keys);
     }
 
-    @When("key {string} is deleted from token {string}")
+    @Step("key {string} is deleted from token {string}")
     public void keyIsDeletedFromToken(String keyName, String tokenId) throws Exception {
         final KeyInfo key = findKeyInToken(tokenId, keyName);
         SignerProxy.deleteKey(key.getId(), true);
@@ -209,14 +206,13 @@ public class SignerStepDefs {
         }
     }
 
-
     private byte[] fileToBytes(String fileName) throws Exception {
         try (FileInputStream in = new FileInputStream(fileName)) {
             return IOUtils.toByteArray(in);
         }
     }
 
-    @Given("self signed cert generated for token {string} key {string}, client {string}")
+    @Step("self signed cert generated for token {string} key {string}, client {string}")
     public void selfSignedCertGeneratedForTokenKeyForClient(String tokenId, String keyName, String client) throws Exception {
         final KeyInfo keyInToken = findKeyInToken(tokenId, keyName);
 
@@ -230,7 +226,7 @@ public class SignerStepDefs {
         return ClientId.Conf.create(parts[0], parts[1], parts[2]);
     }
 
-    @When("cert request is generated for token {string} key {string} for client {string}")
+    @Step("cert request is generated for token {string} key {string} for client {string}")
     public void certRequestIsGeneratedForTokenKey(String tokenId, String keyName, String client) throws Exception {
         final KeyInfo key = findKeyInToken(tokenId, keyName);
         final ClientId.Conf clientId = getClientId(client);
@@ -241,19 +237,19 @@ public class SignerStepDefs {
         this.csrId = csrInfo.getCertReqId();
     }
 
-    @And("cert request is regenerated")
+    @Step("cert request is regenerated")
     public void certRequestIsRegenerated() throws Exception {
         SignerProxy.regenerateCertRequest(this.csrId, CertificateRequestFormat.DER);
     }
 
-    @Given("token {string} key {string} has {int} certificates")
+    @Step("token {string} key {string} has {int} certificates")
     public void tokenKeyHasCertificates(String tokenId, String keyName, int certCount) throws Exception {
         final KeyInfo key = findKeyInToken(tokenId, keyName);
 
         assertThat(key.getCerts()).hasSize(certCount);
     }
 
-    @And("sign mechanism for token {string} key {string} is not null")
+    @Step("sign mechanism for token {string} key {string} is not null")
     public void signMechanismForTokenKeyIsNotNull(String tokenId, String keyName) throws Exception {
         final KeyInfo keyInToken = findKeyInToken(tokenId, keyName);
         final String signMechanism = SignerProxy.getSignMechanism(keyInToken.getId());
@@ -261,83 +257,83 @@ public class SignerStepDefs {
         assertThat(signMechanism).isNotBlank();
     }
 
-    @Then("member {string} has {int} certificate")
+    @Step("member {string} has {int} certificate")
     public void memberHasCertificate(String memberId, int certCount) throws Exception {
         final List<CertificateInfo> memberCerts = SignerProxy.getMemberCerts(getClientId(memberId));
         assertThat(memberCerts).hasSize(certCount);
     }
 
-    @When("check token {string} key {string} batch signing enabled")
+    @Step("check token {string} key {string} batch signing enabled")
     public void checkTokenBatchSigningEnabled(String tokenId, String keyname) throws Exception {
         final KeyInfo key = findKeyInToken(tokenId, keyname);
 
         assertThat(SignerProxy.isTokenBatchSigningEnabled(key.getId())).isNotNull();
     }
 
-    @Then("cert request can be deleted")
+    @Step("cert request can be deleted")
     public void certRequestCanBeDeleted() throws Exception {
         SignerProxy.deleteCertRequest(this.csrId);
     }
 
-    @And("certificate info can be retrieved by cert hash")
+    @Step("certificate info can be retrieved by cert hash")
     public void certificateInfoCanBeRetrievedByHash() throws Exception {
         final CertificateInfo certInfoResponse = SignerProxy.getCertForHash(this.certHash);
         assertThat(certInfoResponse).isNotNull();
         this.certInfo = certInfoResponse;
     }
 
-    @And("keyId can be retrieved by cert hash")
+    @Step("keyId can be retrieved by cert hash")
     public void keyidCanBeRetrievedByCertHash() throws Exception {
         final SignerProxy.KeyIdInfo keyIdForCertHash = SignerProxy.getKeyIdForCertHash(this.certHash);
         assertThat(keyIdForCertHash).isNotNull();
     }
 
-    @And("token and keyId can be retrieved by cert hash")
+    @Step("token and keyId can be retrieved by cert hash")
     public void tokenAndKeyIdCanBeRetrievedByCertHash() {
         final TokenInfoAndKeyId tokenAndKeyIdForCertHash = SignerProxy.getTokenAndKeyIdForCertHash(this.certHash);
         assertThat(tokenAndKeyIdForCertHash).isNotNull();
     }
 
-    @And("token and key can be retrieved by cert request")
+    @Step("token and key can be retrieved by cert request")
     public void tokenAndKeyCanBeRetrievedByCertRequest() throws Exception {
         final TokenInfoAndKeyId tokenAndKeyIdForCertRequestId = SignerProxy.getTokenAndKeyIdForCertRequestId(this.csrId);
         assertThat(tokenAndKeyIdForCertRequestId).isNotNull();
     }
 
-    @Then("token info can be retrieved by key id")
+    @Step("token info can be retrieved by key id")
     public void tokenInfoCanBeRetrievedByKeyId() throws Exception {
         final TokenInfo tokenForKeyId = SignerProxy.getTokenForKeyId(this.keyId);
         assertThat(tokenForKeyId).isNotNull();
     }
 
-    @Given("digest can be signed using key {string} from token {string}")
+    @Step("digest can be signed using key {string} from token {string}")
     public void digestCanBeSignedUsingKeyFromToken(String keyName, String tokenId) throws Exception {
         final KeyInfo key = findKeyInToken(tokenId, keyName);
 
         SignerProxy.sign(key.getId(), SHA256WITHRSA_ID, calculateDigest(SHA256_ID, "digest".getBytes(UTF_8)));
     }
 
-    @Then("certificate can be deactivated")
+    @Step("certificate can be deactivated")
     public void certificateCanBeDeactivated() throws Exception {
         SignerProxy.deactivateCert(this.certInfo.getId());
     }
 
-    @And("certificate can be activated")
+    @Step("certificate can be activated")
     public void certificateCanBeActivated() throws Exception {
         SignerProxy.activateCert(this.certInfo.getId());
     }
 
-    @And("certificate can be deleted")
+    @Step("certificate can be deleted")
     public void certificateCanBeDeleted() throws Exception {
         SignerProxy.deleteCert(this.certInfo.getId());
     }
 
-    @And("certificate status can be changed to {string}")
+    @Step("certificate status can be changed to {string}")
     public void certificateStatusCanBeChangedTo(String status) throws Exception {
         SignerProxy.setCertStatus(this.certInfo.getId(), status);
     }
 
-    @And("certificate can be signed using key {string} from token {string}")
+    @Step("certificate can be signed using key {string} from token {string}")
     public void certificateCanBeSignedUsingKeyFromToken(String keyName, String tokenId) throws Exception {
         final KeyInfo key = findKeyInToken(tokenId, keyName);
         byte[] keyBytes = Base64.decode(key.getPublicKey().getBytes());
@@ -349,7 +345,7 @@ public class SignerStepDefs {
         assertThat(bytes).isNotEmpty();
     }
 
-    @Then("Set token name fails with TokenNotFound exception when token does not exist")
+    @Step("Set token name fails with TokenNotFound exception when token does not exist")
     public void setTokenNameFail() throws Exception {
         String tokenId = randomUUID().toString();
         try {
@@ -361,7 +357,7 @@ public class SignerStepDefs {
         }
     }
 
-    @Then("Deleting not existing certificate from token fails")
+    @Step("Deleting not existing certificate from token fails")
     public void failOnDeleteCert() throws Exception {
         String cerId = randomUUID().toString();
         try {
@@ -373,7 +369,7 @@ public class SignerStepDefs {
         }
     }
 
-    @Then("Retrieving token info by not existing key fails")
+    @Step("Retrieving token info by not existing key fails")
     public void retrievingTokenInfoCanByNotExistingKeyFails() throws Exception {
         String keyId = randomUUID().toString();
         try {
@@ -385,7 +381,7 @@ public class SignerStepDefs {
         }
     }
 
-    @Then("Deleting not existing certRequest fails")
+    @Step("Deleting not existing certRequest fails")
     public void deletingCertRequestFails() throws Exception {
         String csrId = randomUUID().toString();
         try {
@@ -397,7 +393,7 @@ public class SignerStepDefs {
         }
     }
 
-    @Then("Signing with unknown key fails")
+    @Step("Signing with unknown key fails")
     public void signKeyFail() throws Exception {
         String keyId = randomUUID().toString();
         try {
@@ -409,7 +405,7 @@ public class SignerStepDefs {
         }
     }
 
-    @Then("Signing with unknown algorithm fails using key {string} from token {string}")
+    @Step("Signing with unknown algorithm fails using key {string} from token {string}")
     public void signAlgorithmFail(String keyName, String tokenId) throws Exception {
         try {
             final KeyInfo key = findKeyInToken(tokenId, keyName);
@@ -422,7 +418,7 @@ public class SignerStepDefs {
         }
     }
 
-    @Then("Getting key by not existing cert hash fails")
+    @Step("Getting key by not existing cert hash fails")
     public void getKeyIdByHashFail() throws Exception {
         String hash = randomUUID().toString();
         try {
@@ -434,7 +430,7 @@ public class SignerStepDefs {
         }
     }
 
-    @Then("Not existing certificate can not be activated")
+    @Step("Not existing certificate can not be activated")
     public void notExistingCertActivateFail() throws Exception {
         String certId = randomUUID().toString();
         try {
@@ -452,9 +448,9 @@ public class SignerStepDefs {
         testReportService.attachText("MemberSigningInfo", memberInfo.toString());
     }
 
-    @And("HSM is not operational")
+    @Step("HSM is operational")
     public void hsmIsNotOperational() throws Exception {
-        assertFalse(SignerProxy.isHSMOperational());
+        assertTrue(SignerProxy.isHSMOperational());
     }
 
     private void assertException(String faultCode, String translationCode, String message, CodedException codedException) {
@@ -464,7 +460,7 @@ public class SignerStepDefs {
     }
 
 
-    @When("ocsp responses are set")
+    @Step("ocsp responses are set")
     public void ocspResponsesAreSet() throws Exception {
         X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
         final OCSPResp ocspResponse = OcspTestUtils.createOCSPResponse(subject, TestCertUtil.getCaCert(), TestCertUtil.getOcspSigner().certChain[0],
@@ -474,7 +470,7 @@ public class SignerStepDefs {
                 new String[]{Base64.toBase64String(ocspResponse.getEncoded())});
     }
 
-    @Then("ocsp responses can be retrieved")
+    @Step("ocsp responses can be retrieved")
     public void ocspResponsesCanBeRetrieved() throws Exception {
         X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
         final String hash = calculateCertHexHash(subject);
@@ -483,7 +479,7 @@ public class SignerStepDefs {
         assertThat(ocspResponses).isNotEmpty();
     }
 
-    @And("null ocsp response is returned for unknown certificate")
+    @Step("null ocsp response is returned for unknown certificate")
     public void emptyOcspResponseIsReturnedForUnknownCertificate() throws Exception {
         final String[] ocspResponses = SignerProxy
                 .getOcspResponses(new String[]{calculateCertHexHash("not a cert".getBytes())});

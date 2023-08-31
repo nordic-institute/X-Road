@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
-
 import akka.actor.Props;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.GetHSMOperationalInfoResp;
 
 /**
  * Module manager that supports hardware tokens.
@@ -73,7 +72,9 @@ public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
                 .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
                         && !isModuleInitialized(moduleType));
 
-        GetHSMOperationalInfoResponse hsmOperationalInfo = new GetHSMOperationalInfoResponse(hsmOperationalStatus);
+        GetHSMOperationalInfoResp hsmOperationalInfo = GetHSMOperationalInfoResp.newBuilder()
+                .setOperational(hsmOperationalStatus)
+                .build();
         getSender().tell(hsmOperationalInfo, getSelf());
     }
 }
