@@ -32,7 +32,7 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
-import ee.ria.xroad.signer.util.SignerUtil;
+import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
 import akka.actor.ActorSystem;
 import akka.actor.CoordinatedShutdown;
@@ -51,7 +51,6 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
 
 /**
  * Signer main program.
@@ -97,7 +96,7 @@ public final class SignerMain {
     }
 
     private static void startup() throws Exception {
-        long start=System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         Version.outputVersionInfo(APP_NAME);
         int signerPort = SystemProperties.getSignerPort();
         log.info("Starting Signer on port {}...", signerPort);
@@ -107,7 +106,15 @@ public final class SignerMain {
 
         actorSystem = springCtx.getBean(ActorSystem.class);
         signer = new Signer(actorSystem);
-        adminPort = createAdminPort(SystemProperties.getSignerAdminPort());
+
+        OcspClientExecuteScheduler ocspClientExecuteScheduler = null;
+        if (springCtx.containsBean("ocspClientExecuteScheduler")) {
+            ocspClientExecuteScheduler = springCtx.getBean(OcspClientExecuteScheduler.class);
+        }
+
+        adminPort = createAdminPort(SystemProperties.getSignerAdminPort(),
+                springCtx.getBean(OcspClientWorker.class),
+                ocspClientExecuteScheduler);
         CoordinatedShutdown.get(actorSystem).addJvmShutdownHook(SignerMain::shutdown);
         signer.start();
         adminPort.start();
@@ -122,7 +129,7 @@ public final class SignerMain {
 
         RpcServer.init(port, builder -> {
             springCtx.getBeansOfType(io.grpc.BindableService.class).forEach((s, bindableService) -> {
-                log.info("Registering {} gRPC service.",bindableService.getClass().getSimpleName());
+                log.info("Registering {} gRPC service.", bindableService.getClass().getSimpleName());
                 builder.addService(bindableService);
             });
         });
@@ -151,14 +158,19 @@ public final class SignerMain {
 
     }
 
-    private static AdminPort createAdminPort(int signerPort) {
+    private static AdminPort createAdminPort(int signerPort, OcspClientWorker ocspClientWorker,
+                                             OcspClientExecuteScheduler ocspClientExecuteScheduler) {
         AdminPort port = new AdminPort(signerPort);
 
         port.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
-                    signer.execute();
+                    if (ocspClientExecuteScheduler != null) {
+                        ocspClientExecuteScheduler.execute();
+                    } else {
+                        ocspClientWorker.execute(null);
+                    }
                 } catch (Exception ex) {
                     log.error("error occurred in execute handler", ex);
                 }
@@ -171,9 +183,7 @@ public final class SignerMain {
                 log.info("handler /status");
                 CertificationServiceDiagnostics diagnostics = null;
                 try {
-                    Object value = SignerUtil.ask(
-                            actorSystem.actorSelection("/user/" + OCSP_CLIENT), OcspClientWorker.DIAGNOSTICS);
-                    diagnostics = (CertificationServiceDiagnostics) value;
+                    diagnostics = ocspClientWorker.getDiagnostics();
                     if (diagnostics != null) {
                         diagnosticsDefault = diagnostics;
                     }

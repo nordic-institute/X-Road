@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,40 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer;
 
+package ee.ria.xroad.signer.job;
+
+import ee.ria.xroad.signer.SignerConfig;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.FiniteDuration;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
-
-/**
- * Periodically executes the Global Configuration reload by
- * sending {@link ee.ria.xroad.signer.certmanager.OcspClientWorker} the message {@value OcspClientWorker#RELOAD}
- */
 @Slf4j
-public class OcspClientReload extends OcspRetrievalJob {
+@RequiredArgsConstructor
+@Component
+@Conditional(SignerConfig.IsOcspClientJobsActive.class)
+public class OcspClientReloadJob {
 
-    private static final int INTERVAL_SECONDS = 60;
+    private final OcspClientWorker ocspClientWorker;
+    private final OcspClientExecuteScheduler ocspClientExecuteScheduler;
 
-    private static final FiniteDuration INITIAL_DELAY =
-            FiniteDuration.create(100, TimeUnit.MILLISECONDS);
-
-    OcspClientReload() {
-        super(OCSP_CLIENT, OcspClientWorker.RELOAD);
+    @Scheduled(initialDelay = 100, fixedDelay = 60_000)
+    public void reload() {
+        log.trace("OcspClientReloadJob triggered");
+        ocspClientWorker.reload(ocspClientExecuteScheduler);
     }
 
-    @Override
-    protected FiniteDuration getInitialDelay() {
-        return INITIAL_DELAY;
-    }
-
-    @Override
-    protected FiniteDuration getNextDelay() {
-        return FiniteDuration.create(INTERVAL_SECONDS, TimeUnit.SECONDS);
-    }
 }
