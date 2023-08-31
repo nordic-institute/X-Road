@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.tokenmanager.module;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
@@ -58,6 +59,12 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
     @Override
+    @Deprecated(forRemoval = true)
+    public void preStart() throws Exception {
+        TemporaryHelper.setModuleManager(this);
+    }
+
+    @Override
     public SupervisorStrategy supervisorStrategy() {
         return new OneForOneStrategy(-1, Duration.Inf(),
                 throwable -> {
@@ -74,7 +81,8 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     }
 
     @Override
-    protected void onUpdate() throws Exception {
+    public void onUpdate() {
+        log.trace("onUpdate()");
         loadModules();
 
         if (SLAVE.equals(serverNodeType)) {
@@ -95,7 +103,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
 
     protected abstract void initializeModule(ModuleType module);
 
-    private void loadModules() throws Exception {
+    private void loadModules() {
         log.trace("loadModules()");
 
         if (!ModuleConf.hasChanged()) {
@@ -186,11 +194,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         return getContext().findChild(module.getType()).isPresent();
     }
 
-    private static boolean containsModule(String moduleId,
-            Collection<ModuleType> modules) {
-        return modules.stream()
-                .filter(m -> m.getType().equals(moduleId))
-                .findFirst()
-                .isPresent();
+    private static boolean containsModule(String moduleId, Collection<ModuleType> modules) {
+        return modules.stream().anyMatch(m -> m.getType().equals(moduleId));
     }
 }
