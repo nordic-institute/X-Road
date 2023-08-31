@@ -87,12 +87,12 @@ by post:
 
 X-Road enhancement requests and error reports can be submitted directly to this GitHub repository:
 
-* For enhancement requests, please create a discussion containing your proposal in the specific softwares repository in
+* For enhancement requests, please create a discussion containing your proposal in the specific software repository in
   the `Ideas` category:
   * [X-Road](https://github.com/nordic-institute/X-Road/discussions/new?category=ideas)
   * [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/discussions/new?category=ideas)
   * [MISP2](https://github.com/nordic-institute/misp2/discussions/new?category=ideas)
-* To report an error, please create an issue in the specific softwares repository:
+* To report an error, please create an issue in the specific software repository:
   * [X-Road](https://github.com/nordic-institute/X-Road/issues/new/choose)
   * [X-Road Metrics](https://github.com/nordic-institute/X-Road-Metrics/issues/new/choose)
   * [MISP2](https://github.com/nordic-institute/misp2/issues/new/choose)
@@ -163,7 +163,8 @@ Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) usin
 get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).
 
 Another alternative to report security issues and vulnerabilities is the X-Road bug bounty program that is run on the
-Intigrity platform. [Visit the program details](https://app.intigriti.com/programs/niis/x-road/detail) to get started.
+Intigrity platform. [Visit the program details](https://nordic-institute.atlassian.net/wiki/spaces/XRDBUGBOUNTY) to get
+started.
 
 ### Your First Code Contribution
 
