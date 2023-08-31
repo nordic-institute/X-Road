@@ -29,6 +29,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableFeignClients(basePackages = {"org.niis.xroad.ss.test.ui.api"})
+@EnableFeignClients(basePackages = {
+        "org.niis.xroad.common.test",
+        "org.niis.xroad.ss.test.ui.api"
+})
 public class CsAdminServiceTestConfiguration {
 }

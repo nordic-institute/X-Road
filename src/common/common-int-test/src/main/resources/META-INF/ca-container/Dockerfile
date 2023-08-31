@@ -25,6 +25,8 @@ RUN chown -R ca:ca /home/ca/CA \
   && chmod 0754 /home/ca/CA/sign_req.sh
 
 COPY files/ca-entrypoint.sh /root/entrypoint.sh
+RUN chmod +x /root/entrypoint.sh
+
 COPY --chown=root:root files/ca-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 

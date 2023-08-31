@@ -1,13 +1,8 @@
 dependencies {
   intTestImplementation project(":security-server:openapi-model")
 
-  intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
+  intTestImplementation project(":common:common-int-test")
   intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")
-  intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
-  intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
-  intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
-  intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
-  intTestImplementation("org.awaitility:awaitility:${awaitilityVersion}")
 }
 
 task systemTest(type: Test) {
