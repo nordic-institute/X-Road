@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "ee_ria_xroad_common_util_PasswordStore.h"
+#include "ee_ria_xroad_common_util_MemoryPasswordStoreProvider.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -31,7 +31,7 @@
 #include "passwordstore.h"
 
 JNIEXPORT jbyteArray JNICALL
-Java_ee_ria_xroad_common_util_PasswordStore_read(JNIEnv *env, jclass jc,
+Java_ee_ria_xroad_common_util_MemoryPasswordStoreProvider_read(JNIEnv *env, jclass jc,
         jstring j_pathname_for_ftok, jstring j_id)
 {
     (void)jc;
@@ -103,7 +103,7 @@ error:
 
 
 JNIEXPORT void JNICALL
-Java_ee_ria_xroad_common_util_PasswordStore_write(JNIEnv *env, jclass jc,
+Java_ee_ria_xroad_common_util_MemoryPasswordStoreProvider_write(JNIEnv *env, jclass jc,
         jstring j_pathname_for_ftok, jstring j_id,
         jbyteArray j_password, jint permissions)
 {
@@ -164,7 +164,7 @@ error:
 }
 
 JNIEXPORT void JNICALL
-Java_ee_ria_xroad_common_util_PasswordStore_clear(JNIEnv *env, jclass jc,
+Java_ee_ria_xroad_common_util_MemoryPasswordStoreProvider_clear(JNIEnv *env, jclass jc,
         jstring j_pathname_for_ftok, jint permissions)
 {
     (void)jc;
