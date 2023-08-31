@@ -30,6 +30,7 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 /**
  * Handles token pin update
  */
+@Slf4j
 @Component
 public class UpdateSoftwareTokenPinReqHandler
         extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
@@ -52,6 +54,7 @@ public class UpdateSoftwareTokenPinReqHandler
                 return Empty.getDefaultInstance();
             } catch (Exception e) {
                 // todo move to tokenworker
+                log.error("Failed  to update software token", e);
                 throw new CodedException(X_INTERNAL_ERROR, e);
             }
         } else {

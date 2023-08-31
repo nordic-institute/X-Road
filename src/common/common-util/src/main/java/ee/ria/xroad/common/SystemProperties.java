@@ -617,6 +617,18 @@ public final class SystemProperties {
     // gRPC internal cross-component transport configuration  -------------------------- //
 
     /**
+     * Property name for gRPC signer host.
+     */
+    public static final String GRPC_SIGNER_HOST =
+            PREFIX + "grpc.signer.host";
+
+    /**
+     * Property name for gRPC signer port.
+     */
+    public static final String GRPC_SIGNER_PORT =
+            PREFIX + "grpc.signer.port";
+
+    /**
      * Property name for gRPC internal keystore location.
      */
     public static final String GRPC_INTERNAL_KEYSTORE =
@@ -1677,6 +1689,20 @@ public final class SystemProperties {
      */
     public static boolean isHSMHealthCheckEnabled() {
         return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static String getGrpcSignerHost() {
+        return System.getProperty(GRPC_SIGNER_HOST, "127.0.0.1");
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static int getGrpcSignerPort() {
+        return Integer.parseInt(System.getProperty(GRPC_SIGNER_PORT, String.valueOf(5560)));
     }
 
     /**

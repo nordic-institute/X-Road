@@ -11,11 +11,26 @@ logging:
 
 test-automation:
   report-name: xroad-signer-test-suite
-  spring-component-scan: "ee.ria.xroad.signer.glue"
+  spring-component-scan: "org.niis.xroad.common.test,org.niis.xroad.signer.test"
   cucumber:
     execution:
       parallel:
         enabled: false
-    glue-append: "ee.ria.xroad.signer.glue"
+    glue-append: "org.niis.xroad.signer.test.glue"
     filter:
       tags: "not @Skip"
+  containers:
+    testable-container:
+      reuse-between-runs: ${reuse-between-runs}
+      directory-mounts:
+        - "/tmp/xroad/passwordstore/:build/container-passwordstore/"
+        - "/etc/xroad/signer/:build/resources/intTest/container-files/etc/xroad/signer/"
+    context-containers:
+      ca-server:
+        enabled: true
+        reuse-between-runs: ${reuse-between-runs}
+
+# toggle for reusable containers. This allows quicker test development as containers are not destroyed between runs.
+# WARNING: this leaves containers running indefinitely. They have to be stopped manually.
+# Note: this required testcontainers.reuse.enable=true property to be defined in your ~/.testcontainers.properties file
+reuse-between-runs: false

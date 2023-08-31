@@ -56,6 +56,11 @@ public class RpcServer {
     }
 
     private void start(Consumer<ServerBuilder<?>> configFunc) throws IOException {
+        //TODO:grpc sample for setting 127.0.0.1
+//        NettyServerBuilder.forAddress(new InetSocketAddress("localhost", config.port()))
+//                .addService(new GRPCServiceImpl(serviceParams))
+//                .build()
+
         ServerBuilder<?> builder = Grpc.newServerBuilderForPort(port, creds);
         configFunc.accept(builder);
 
@@ -79,7 +84,7 @@ public class RpcServer {
 
     public static void init(int port, Consumer<ServerBuilder<?>> configFunc) throws IOException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         var serverCredentials = createServerCredentials();
-        log.info("Initializing grpc with {} credentials..",serverCredentials.getClass().getSimpleName());
+        log.info("Initializing grpc with {} credentials..", serverCredentials.getClass().getSimpleName());
         final RpcServer server = new RpcServer(port, serverCredentials);
         server.start(configFunc);
         log.info("Grpc is running..");

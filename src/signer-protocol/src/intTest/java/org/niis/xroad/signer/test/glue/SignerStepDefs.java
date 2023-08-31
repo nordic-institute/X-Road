@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.signer.glue;
+package org.niis.xroad.signer.test.glue;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.OcspTestUtils;
@@ -33,7 +33,6 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -41,18 +40,12 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
-import akka.actor.ActorSystem;
 import com.nortal.test.core.report.TestReportService;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import io.cucumber.java.AfterAll;
-import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Step;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -63,24 +56,16 @@ import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.SystemProperties.SIGNER_PORT;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -89,7 +74,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -97,9 +81,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Slf4j
 public class SignerStepDefs {
-
-    private static Process signerProcess;
-
     @Autowired
     private TestReportService testReportService;
 
@@ -108,32 +89,6 @@ public class SignerStepDefs {
     private String certHash;
     private CertificateInfo certInfo;
     private byte[] cert;
-
-    @BeforeAll
-    public static void setup() throws Exception {
-        int port = findAvailablePort();
-
-        System.setProperty(SIGNER_PORT, String.valueOf(port));
-
-        startSigner(port);
-
-        ActorSystem actorSystem = ActorSystem.create("SignerProxyIntTest", getConf());
-        SignerClient.init(actorSystem);
-    }
-
-    @AfterAll
-    public static void tearDown() {
-        signerProcess.destroy();
-    }
-
-    private static int findAvailablePort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            socket.setReuseAddress(true);
-            return socket.getLocalPort();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to find available port", e);
-        }
-    }
 
     @When("signer is initialized with pin {string}")
     public void signerIsInitializedWithPin(String pin) throws Exception {
@@ -508,64 +463,6 @@ public class SignerStepDefs {
         assertEquals(message, codedException.getMessage());
     }
 
-    private static Config getConf() {
-        return ConfigFactory.load().getConfig("signer-integration-test")
-                .withFallback(ConfigFactory.load());
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private static void startSigner(int port) throws InterruptedException {
-        String signerPath = "../signer/build/libs/signer-1.0.jar";
-
-        Thread t = new Thread(() -> {
-            try {
-                ProcessBuilder pb = new ProcessBuilder("java",
-                        "-Dlogback.configurationFile=build/resources/intTest/signer-logback.xml",
-                        "-Dxroad.common.configuration-path=build/resources/intTest/globalconf",
-                        "-Dxroad.signer.port=" + port,
-                        "-Dxroad.signer.ocsp-cache-path=build/tmp",
-                        "-Dxroad.signer.key-configuration-file=build/resources/intTest/keyconf.xml",
-                        "-Dxroad.signer.device-configuration-file=build/resources/intTest/devices.ini",
-                        "-Dxroad.grpc.internal.keystore=build/resources/intTest/transport-keystore/grpc-internal-keystore.jks",
-                        "-Dxroad.grpc.internal.keystore-password=111111",
-                        "-Dxroad.grpc.internal.truststore=build/resources/intTest/transport-keystore/grpc-internal-keystore.jks",
-                        "-Dxroad.grpc.internal.truststore-password=111111",
-                        "-Djava.library.path=../passwordstore/",
-                        "-jar", signerPath);
-
-                var transportKeystore = getTransportProperties();
-                transportKeystore.forEach((key, value) -> pb.environment().put(key, value));
-                transportKeystore.forEach(System::setProperty);
-
-                signerProcess = pb.start();
-
-                new StreamGobbler(signerProcess.getErrorStream()).start();
-                new StreamGobbler(signerProcess.getInputStream()).start();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        t.start();
-        MILLISECONDS.sleep(3000);
-    }
-
-    private static Map<String, String> getTransportProperties() {
-        var transportKeystore = new HashMap<String, String>();
-
-        transportKeystore.put("XROAD_COMMON_AKKA_REMOTE_TRANSPORT", "tls-tcp");
-        transportKeystore.put("XROAD_COMMON_AKKA_KEYSTORE", "build/resources/intTest/transport-keystore/akka-keystore.p12");
-        transportKeystore.put("XROAD_COMMON_AKKA_KEYSTORE_PASSWORD", "xJllPJVmRoEAf2ApuJxeMpBxSOxCHBbJ");
-        transportKeystore.put("XROAD_COMMON_AKKA_TRUSTSTORE", "build/resources/intTest/transport-keystore/akka-keystore.p12");
-        transportKeystore.put("XROAD_COMMON_AKKA_TRUSTSTORE_PASSWORD", "xJllPJVmRoEAf2ApuJxeMpBxSOxCHBbJ");
-
-        transportKeystore.put("xroad.grpc.internal.keystore", "build/resources/intTest/transport-keystore/grpc-internal-keystore.jks");
-        transportKeystore.put("xroad.grpc.internal.keystore-password", "111111");
-        transportKeystore.put("xroad.grpc.internal.truststore", "build/resources/intTest/transport-keystore/grpc-internal-keystore.jks");
-        transportKeystore.put("xroad.grpc.internal.truststore-password", "111111");
-
-        return transportKeystore;
-    }
 
     @When("ocsp responses are set")
     public void ocspResponsesAreSet() throws Exception {
@@ -592,23 +489,6 @@ public class SignerStepDefs {
                 .getOcspResponses(new String[]{calculateCertHexHash("not a cert".getBytes())});
         assertThat(ocspResponses).hasSize(1);
         assertThat(ocspResponses[0]).isNull();
-    }
-
-    @RequiredArgsConstructor
-    static class StreamGobbler extends Thread {
-        private final InputStream is;
-
-        public void run() {
-            try {
-                BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    log.info("[Signer] {}", line);
-                }
-            } catch (IOException ioe) {
-                log.error("Failed to read process logs", ioe);
-            }
-        }
     }
 
 }

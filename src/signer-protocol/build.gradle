@@ -21,9 +21,7 @@ dependencies {
   intTestRuntimeOnly project(':common:common-util')
 
   intTestImplementation project(":common:common-test")
-  intTestImplementation("com.nortal.test:test-automation-core:$testAutomationFrameworkVersion")
-  intTestImplementation("com.nortal.test:test-automation-allure:$testAutomationFrameworkVersion")
-  intTestImplementation "org.assertj:assertj-core:$assertjVersion"
+  intTestImplementation project(":common:common-int-test")
 }
 
 protobuf {
@@ -50,8 +48,6 @@ tasks.register('intTest', Test) {
 
   testClassesDirs = sourceSets.intTest.output.classesDirs
   classpath = sourceSets.intTest.runtimeClasspath
-
-  systemProperty("java.library.path", "../passwordstore")
 
   testLogging {
     showStackTraces(true)

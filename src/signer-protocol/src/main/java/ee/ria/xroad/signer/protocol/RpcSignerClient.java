@@ -65,10 +65,10 @@ public class RpcSignerClient {
      * Greet server. If provided, the first element of {@code args} is the name to use in the
      * greeting.
      */
-    public static RpcSignerClient init(int port) throws Exception {
+    public static RpcSignerClient init(String host, int port) throws Exception {
         var credentials = createClientCredentials();
         log.info("Starting grpc client with {} credentials..", credentials.getClass().getSimpleName());
-        ManagedChannel channel = Grpc.newChannelBuilderForAddress("127.0.0.1", port, credentials)
+        ManagedChannel channel = Grpc.newChannelBuilderForAddress(host, port, credentials)
                 .build();
 
         return new RpcSignerClient(channel);

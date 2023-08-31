@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -162,7 +163,7 @@ public final class SignerProxy {
         //TODO this is unsafe, but works for poc.
         if (signerClient == null) {
             try {
-                signerClient = RpcSignerClient.init(5560);
+                signerClient = RpcSignerClient.init(SystemProperties.getGrpcSignerHost(), SystemProperties.getGrpcSignerPort());
             } catch (Exception e) {
                 log.error("Failed to init client", e);
             }

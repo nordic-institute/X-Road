@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.signer;
+package org.niis.xroad.signer.test;
 
 import org.junit.platform.suite.api.IncludeEngines;
 import org.junit.platform.suite.api.SelectClasspathResource;
