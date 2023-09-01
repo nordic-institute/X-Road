@@ -25,8 +25,9 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
+import lombok.Value;
 
 import java.io.Serializable;
 import java.util.List;
@@ -37,60 +38,73 @@ import java.util.stream.Collectors;
 /**
  * Token info DTO.
  */
-@ToString
-@RequiredArgsConstructor
-public final class TokenInfo implements Serializable {
+@Value
+@ToString(onlyExplicitlyIncluded = true)
+public class TokenInfo implements Serializable {
 
     public static final String SOFTWARE_MODULE_TYPE = "softToken";
 
-    private final TokenInfoProto message;
+    @JsonIgnore
+    TokenInfoProto message;
 
+    @ToString.Include
     public String getType() {
         return message.getType();
     }
 
+    @ToString.Include
     public String getFriendlyName() {
         return message.getFriendlyName();
     }
 
+    @ToString.Include
     public String getId() {
         return message.getId();
     }
 
+    @ToString.Include
     public boolean isReadOnly() {
         return message.getReadOnly();
     }
 
+    @ToString.Include
     public boolean isAvailable() {
         return message.getAvailable();
     }
 
+    @ToString.Include
     public boolean isActive() {
         return message.getActive();
     }
 
+    @ToString.Include
     public String getSerialNumber() {
         return message.getSerialNumber();
     }
 
+    @ToString.Include
     public String getLabel() {
         return message.getLabel();
     }
 
+    @ToString.Include
     public int getSlotIndex() {
         return message.getSlotIndex();
     }
 
+    @ToString.Include
     public TokenStatusInfo getStatus() {
         return message.getStatus();
     }
 
+    @ToString.Include
     public List<KeyInfo> getKeyInfo() {
         return message.getKeyInfoList().stream()
                 .map(KeyInfo::new)
                 .collect(Collectors.toList());
     }
 
+    @ToString.Include
     public Map<String, String> getTokenInfo() {
         return message.getTokenInfoMap();
     }

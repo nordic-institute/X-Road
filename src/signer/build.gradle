@@ -42,6 +42,7 @@ jar {
         attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
     }
     archiveClassifier = 'plain'
+
 }
 
 bootJar {
@@ -55,7 +56,7 @@ shadowJar {
     from rootProject.file("LICENSE.txt")
 }
 
-assemble.dependsOn shadowJar
+jar.finalizedBy shadowJar
 
 task createDirs() {
     doLast {

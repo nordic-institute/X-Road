@@ -25,19 +25,21 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.ClientIdMapper;
 
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.Value;
 
 import java.io.Serializable;
 
 /**
  * Certificate info DTO.
  */
-@RequiredArgsConstructor
-@ToString(exclude = {"certificateBytes", "ocspBytes"})//TODO:grpc
+@Value
+@ToString(onlyExplicitlyIncluded = true)
 public class CertificateInfo implements Serializable {
 
     public static final String STATUS_SAVED = "saved";
@@ -51,32 +53,40 @@ public class CertificateInfo implements Serializable {
     public static final String OCSP_RESPONSE_UNKNOWN = "unknown";
     public static final String OCSP_RESPONSE_SUSPENDED = "suspended";
 
-    private final CertificateInfoProto message;
+    @JsonIgnore
+    CertificateInfoProto message;
 
+    @ToString.Include
     public ClientId.Conf getMemberId() {
         return ClientIdMapper.fromDto(message.getMemberId());
     }
 
+    @ToString.Include
     public boolean isActive() {
         return message.getActive();
     }
 
+    @ToString.Include
     public boolean isSavedToConfiguration() {
         return message.getSavedToConfiguration();
     }
 
+    @ToString.Include
     public String getStatus() {
         return message.getStatus();
     }
 
+    @ToString.Include
     public String getId() {
         return message.getId();
     }
 
+    @JsonIgnore
     public byte[] getCertificateBytes() {
         return message.getCertificateBytes().toByteArray();
     }
 
+    @JsonIgnore
     public byte[] getOcspBytes() {
         return message.getOcspBytes().toByteArray();
     }

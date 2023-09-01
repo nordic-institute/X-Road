@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -33,34 +35,43 @@ import java.util.stream.Collectors;
 
 
 @Value
-public final class KeyInfo implements Serializable {
+@ToString(onlyExplicitlyIncluded = true)
+public class KeyInfo implements Serializable {
 
-    private final KeyInfoProto message;
+    @JsonIgnore
+    KeyInfoProto message;
 
+    @ToString.Include
     public boolean isAvailable() {
         return message.getAvailable();
     }
 
+    @ToString.Include
     public KeyUsageInfo getUsage() {
         return message.getUsage();
     }
 
+    @ToString.Include
     public String getFriendlyName() {
         return message.getFriendlyName();
     }
 
+    @ToString.Include
     public String getId() {
         return message.getId();
     }
 
+    @ToString.Include
     public String getLabel() {
         return message.getLabel();
     }
 
+    @ToString.Include
     public String getPublicKey() {
         return message.getPublicKey();
     }
 
+    @ToString.Include
     public List<CertificateInfo> getCerts() {
         return message.getCertsList().stream()
                 .map(CertificateInfo::new)
@@ -73,6 +84,7 @@ public final class KeyInfo implements Serializable {
                 .collect(Collectors.toList());
     }
 
+    @ToString.Include
     public String getSignMechanismName() {
         return message.getSignMechanismName();
     }

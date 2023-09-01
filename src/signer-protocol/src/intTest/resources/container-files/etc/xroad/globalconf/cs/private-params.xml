@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
-    <instanceIdentifier>cs</instanceIdentifier>
+    <instanceIdentifier>CS</instanceIdentifier>
     <managementService>
         <authCertRegServiceAddress>https://cs:4001/managementservice/</authCertRegServiceAddress>
-        <authCertRegServiceCert>MIIDJTCCAg2gAwIBAgIUNgaUk43F5+vevqBASzzr0SYP0ZEwDQYJKoZIhvcNAQELBQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTIzMDYwODA2MzA0N1oXDTQzMDYwMzA2MzA0N1owFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA9vvBY+4gB+W+LWa4spLrpkDqrwx7BBo/0ESZrWL39jqsKEJtc5vkD2CjiMJUgKUiP6tRT+92gbzjOH8R5H8STJOGrwYP+VzjZ+cxYnU+20SdlsCJktcVRFNb+J6Njcq8unr5uao6aD1bJ0uElXi5e/WMuQ9VlMXwkuEeQa1QzrMHvLUNmtGjL8X8i9miDvFMuTSmul5W16i+3haciYdJpf7hxRjf/bqxkEEKkyRoMwQNt+c8Zt2FHo12kzlP2RnvJUB8md/nWJBv4i5GF3Vv3fAZTU2GZKZwXXmSqGXPqNgkZStDv1CUNBkiYv2uD45kLpuVJIVi4B+02AZ0j6HRywIDAQABo28wbTASBgNVHRMBAf8ECDAGAQH/AgEAMAsGA1UdDwQEAwIC5DArBgNVHREEJDAihwSsEQAEgglsb2NhbGhvc3SCD2J1aWxka2l0c2FuZGJveDAdBgNVHQ4EFgQUpFMff9ahuMTcKc5FKIi6TroAzRcwDQYJKoZIhvcNAQELBQADggEBABdut81ygN3TrSmC4HKxGcTvjJYUM+8LtadC9/3RGIXwZUEg2C5xa0e0MZwF3/RrfalSA6McNYBOR4F7AGnkSnRTPe0296M/Sg/w5k9ku/x4I3aDF9WJD1QfMFrpUfTv0+jt7UashHr063fmcvptkioTjgOia0cX//bPAelAuhKJccsI6ajPeeywmQrhwjN6ce6nr9GNkk0jNZYRhNW7iHtu1S8tjPUMxsMwD3yYyzPU3w/09tV69dcWX9rHcQiSCO2/eoUMySXSAT8/T/01pJLHIMh+yskxL59iXRvQVtwfNlPmquTx47vrCox54ay+ydzLCZySUWLPxzrfI+Qc/6c=</authCertRegServiceCert>
+        <authCertRegServiceCert>MIIDJTCCAg2gAwIBAgIUWITgfJuBX9pZlmadswBIhphOga0wDQYJKoZIhvcNAQELBQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTIzMDUxMjEzMDg0OVoXDTQzMDUwNzEzMDg0OVowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw/tBnTkRPxhlzUyvIFhjxN+qfs/SYq8Aa2ot+SHH9fiqAaA2hhnTC5hE5EnJ11N7PNpBCrqYcBJtDALZR/ADBMcQ7AtidFUCLOZ8PR4JARWvmsD+s3KF/py2yxz5dSd46qHFYfTELLN9oDtmN6ELZLkFVcM1XaXw0TsxKUTI8QMNcj0Ajx7KdI96N7CJhC3pKYdFZQMYxFhD+COXVWuL/F0v6eX26UfygWde0LksHDiEfFQZM/y8EW5qU9NhT7+vUXg7a8J/f8rBi7OrviyNxJ3HMhEwfTqQ0xeMGFFHa9dR3+g50OUdq3tACw2kwKjdfhE44p9YBDFdicOEuhjjnQIDAQABo28wbTASBgNVHRMBAf8ECDAGAQH/AgEAMAsGA1UdDwQEAwIC5DArBgNVHREEJDAihwSsEQAEgglsb2NhbGhvc3SCD2J1aWxka2l0c2FuZGJveDAdBgNVHQ4EFgQUDYs5YPb/R43FVL9tRqCCpkDbmwIwDQYJKoZIhvcNAQELBQADggEBACkHsE9UtVs++GnDvo49ihjj4WzX9Zbjk6n46+wp5K0hj86wHed5lfS6MNbSbA5LyzQronDGBo2xPtfpEqrY6h9+kudxCPTf0/aOJfjRVWorQMaWGqVQHf7bgXaRGR9qcAqA/Btcwlj7uShhQlYiRLRifsdUktKSYJEC2+qFHi9E4Y4QlOpRKelU/rEZSKpWK23MgPYVrVZPB3kk+FEz0F7LSDwTxM5yixAT4WkpKrpFS2eWomN8/8eycRdmLuPx/dTVBfMQb1aQnWC5KvybR01O5mJp5sGS7w5C8aW30qA0QQlK0puS7Ct5rNzzZpLMtd8GReZC8uKP2m3JXOfgSwI=</authCertRegServiceCert>
         <managementRequestServiceProviderId ns2:objectType="SUBSYSTEM">
             <ns2:xRoadInstance>CS</ns2:xRoadInstance>
             <ns2:memberClass>ORG</ns2:memberClass>
@@ -11,5 +11,5 @@
             <ns2:subsystemCode>Management</ns2:subsystemCode>
         </managementRequestServiceProviderId>
     </managementService>
-    <timeStampingIntervalSeconds>60</timeStampingIntervalSeconds>
+    <timeStampingIntervalSeconds>10</timeStampingIntervalSeconds>
 </ns3:conf>

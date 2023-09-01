@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.ui.glue;
+package org.niis.xroad.common.test.glue;
 
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
@@ -43,17 +43,31 @@ import java.nio.file.Files;
 import java.util.Optional;
 
 @Slf4j
-public class TestCaStepDefs extends BaseUiStepDefs {
+public class TestCaStepDefs extends BaseStepDefs {
     @Autowired
     private TestCaFeignApi testCaFeignApi;
 
-    @SneakyThrows
+    @Step("AUTH CSR is processed by test CA")
+    public void authCsrIsBeingProcessed() {
+        csrIsBeingProcessed(TestCaFeignApi.CsrType.AUTH);
+    }
+
+    @Step("SIGN CSR is processed by test CA")
+    public void signCsrIsBeingProcessed() {
+        csrIsBeingProcessed(TestCaFeignApi.CsrType.SIGN);
+    }
+
     @Step("CSR is processed by test CA")
     public void csrIsBeingProcessed() {
+        csrIsBeingProcessed(TestCaFeignApi.CsrType.AUTO);
+    }
+
+    @SneakyThrows
+    private void csrIsBeingProcessed(TestCaFeignApi.CsrType csrType) {
         Optional<File> csrFileOpt = getStepData(StepDataKey.DOWNLOADED_FILE);
         File csrFile = csrFileOpt.orElseThrow();
         log.info("Processing downloaded file {}", csrFile);
-        ResponseEntity<byte[]> certResponse = testCaFeignApi.signCert(convert(csrFile), TestCaFeignApi.CsrType.AUTO);
+        ResponseEntity<byte[]> certResponse = testCaFeignApi.signCert(convert(csrFile), csrType);
 
         File cert = File.createTempFile("tmp", "cert" + System.currentTimeMillis());
         FileUtils.writeByteArrayToFile(cert, certResponse.getBody());

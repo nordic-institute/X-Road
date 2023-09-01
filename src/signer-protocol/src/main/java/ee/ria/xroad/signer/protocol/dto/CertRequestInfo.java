@@ -25,29 +25,37 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.ClientIdMapper;
 
-import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import lombok.Value;
 
 import java.io.Serializable;
 
 /**
  * Certificate request info DTO.
  */
-@RequiredArgsConstructor
+@Value
+@ToString(onlyExplicitlyIncluded = true)
 public class CertRequestInfo implements Serializable {
 
-    private final CertRequestInfoProto message;
+    @JsonIgnore
+    CertRequestInfoProto message;
 
+    @ToString.Include
     public String getId() {
         return message.getId();
     }
 
+    @ToString.Include
     public ClientId getMemberId() {
         return ClientIdMapper.fromDto(message.getMemberId());
     }
 
+    @ToString.Include
     public String getSubjectName() {
         return message.getSubjectName();
     }

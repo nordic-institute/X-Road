@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.test.api;
+package org.niis.xroad.common.test.configuration;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
+import org.niis.xroad.common.test.api.TestCaFeignApi;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Configuration;
 
-@FeignClient(name = "testCaFeignApi", url = "http://localhost", path = "/testca")
-public interface TestCaFeignApi {
-
-    @PostMapping(value = "/sign", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<byte[]> signCert(
-            @RequestPart("certreq") MultipartFile certReq,
-            @RequestParam("type") CsrType type
-    );
-
-    enum CsrType {
-        SIGN, AUTH, AUTO;
-
-        @Override
-        public String toString() {
-            return name().toLowerCase();
-        }
-    }
+@Configuration
+@ConditionalOnProperty(value = "test-automation.containers.context-containers.ca-server.enabled", havingValue = "true")
+@EnableFeignClients(clients = TestCaFeignApi.class)
+public class TestCaConfiguration {
 }

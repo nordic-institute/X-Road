@@ -18,7 +18,7 @@ RUN apt-get -qq update \
 
 # Create token
 RUN mkdir -p /var/lib/softhsm/tokens/ && \
-    softhsm2-util --init-token --slot 0 --label 'X-Road HW' --so-pin 1234 --pin 1234
+    softhsm2-util --init-token --slot 0 --label 'x-road-softhsm2' --so-pin 1234 --pin 1234
 
 COPY --chown=root:root files/app.jar /root/app.jar
 COPY --chown=root:root files/hwtoken.jar /root/lib/hwtoken.jar

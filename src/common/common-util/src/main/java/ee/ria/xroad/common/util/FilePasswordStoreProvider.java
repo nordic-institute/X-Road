@@ -50,10 +50,14 @@ public class FilePasswordStoreProvider implements PasswordStore.PasswordStorePro
 
         log.warn("Reading password from {}. File exists? {}", file, file.exists());
         if (file.exists()) {
-            return FileUtils.readFileToByteArray(file);
-        } else {
-            return null;
+            try {
+                return FileUtils.readFileToByteArray(file);
+            } catch (Exception e) {
+                log.warn("Failed to read passwordstore from file", e);
+            }
         }
+
+        return null;
     }
 
     @Override
@@ -61,10 +65,14 @@ public class FilePasswordStoreProvider implements PasswordStore.PasswordStorePro
         var file = getFileById(id);
 
         log.warn("Writing password to {}", file);
-        if (Arrays.isNullOrEmpty(password)) {
-            FileUtils.delete(file);
-        } else {
-            FileUtils.writeByteArrayToFile(file, password, false);
+        try {
+            if (Arrays.isNullOrEmpty(password)) {
+                FileUtils.delete(file);
+            } else {
+                FileUtils.writeByteArrayToFile(file, password, false);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to write to passwordstore", e);
         }
     }
 

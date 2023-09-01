@@ -13,7 +13,7 @@ test-automation:
     execution:
       parallel:
         enabled: false # Tests are executed in sequential order
-    glue-append: "org.niis.xroad.ss.test.ui.glue"
+    glue-append: "org.niis.xroad.ss.test.ui.glue,org.niis.xroad.common.test.glue"
     filter:
       tags: "not @Skip"
   containers:

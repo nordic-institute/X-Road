@@ -16,7 +16,7 @@ test-automation:
     execution:
       parallel:
         enabled: false
-    glue-append: "org.niis.xroad.signer.test.glue"
+    glue-append: "org.niis.xroad.common.test.glue,org.niis.xroad.signer.test.glue"
     filter:
       tags: "not @Skip"
   containers:
