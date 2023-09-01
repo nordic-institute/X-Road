@@ -36,12 +36,10 @@ import ee.ria.xroad.signer.util.SignerUtil;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
-import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Map.Entry;
@@ -68,16 +66,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
  */
 @Slf4j
 public class OcspResponseManager extends AbstractSignerActor {
-
-    /**
-     * Value object for checking if certificate has OCSP response at
-     * specified date.
-     */
-    @Value
-    public static class IsCachedOcspResponse implements Serializable {
-        private final String certHash;
-        private final Date atDate;
-    }
 
     /** Maps a certificate hash to an OCSP response. */
     private final FileBasedOcspCache responseCache = new FileBasedOcspCache();
@@ -151,10 +139,6 @@ public class OcspResponseManager extends AbstractSignerActor {
         try {
             if (message instanceof GetOcspResponses) {
                 handleGetOcspResponses((GetOcspResponses) message);
-//            } else if (message instanceof SetOcspResponses) {
-//                handleSetOcspResponses((SetOcspResponses) message);
-            } else if (message instanceof IsCachedOcspResponse) {
-                handleIsCachedOcspResponse((IsCachedOcspResponse) message);
             } else {
                 unhandled(message);
             }
@@ -163,7 +147,7 @@ public class OcspResponseManager extends AbstractSignerActor {
         }
     }
 
-    void handleGetOcspResponses(GetOcspResponses message) throws Exception {
+    void handleGetOcspResponses(GetOcspResponses message) {
         log.trace("handleGetOcspResponses()");
 
         Props props = Props.create(GetOcspResponseHandler.class, this);
@@ -179,14 +163,13 @@ public class OcspResponseManager extends AbstractSignerActor {
         }
     }
 
-    void handleIsCachedOcspResponse(IsCachedOcspResponse message)
-            throws Exception {
-        OCSPResp response = responseCache.get(message.getCertHash(), message.getAtDate());
-        TokenManager.setOcspResponse(message.getCertHash(), response);
-        sendResponse(Boolean.FALSE);
+    public boolean handleIsCachedOcspResponse(String certHash, Date date) {
+        OCSPResp response = responseCache.get(certHash, date);
+        TokenManager.setOcspResponse(certHash, response);
+        return Boolean.FALSE;
     }
 
-    OCSPResp getResponse(String certHash) throws Exception {
+    OCSPResp getResponse(String certHash) {
         return responseCache.get(certHash);
     }
 
@@ -205,7 +188,7 @@ public class OcspResponseManager extends AbstractSignerActor {
         private final OcspResponseManager manager;
 
         @Override
-        public void onReceive(Object message) throws Exception {
+        public void onReceive(Object message) {
             try {
                 if (message instanceof String[]) { // cert hashes
                     handleGetOcspResponses((String[]) message);

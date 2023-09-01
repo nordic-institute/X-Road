@@ -28,7 +28,6 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
-import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
@@ -45,9 +44,6 @@ import java.nio.file.Paths;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_RELOAD;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
 
 /**
@@ -84,17 +80,6 @@ public class Signer implements StartStop {
         }
 
         createComponent(OCSP_RESPONSE_MANAGER, OcspResponseManager.class);
-        createComponent(OCSP_CLIENT, OcspClientWorker.class);
-        createComponent(OCSP_CLIENT_JOB, OcspClientJob.class);
-        createComponent(OCSP_CLIENT_RELOAD, OcspClientReload.class);
-    }
-
-    /**
-     * Executes polling immediately
-     */
-    public void execute() {
-        actorSystem.actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.CANCEL, ActorRef.noSender());
-        actorSystem.actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientWorker.EXECUTE, ActorRef.noSender());
     }
 
     @Override

@@ -26,15 +26,24 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
 import akka.actor.ActorSystem;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 
@@ -54,6 +63,36 @@ public class SignerConfig {
                 .withFallback(ConfigFactory.load());
         return conf.withValue("akka.remote.artery.canonical.port",
                 ConfigValueFactory.fromAnyRef(signerPort));
+    }
+
+    @Bean
+    OcspClientWorker ocspClientWorker() {
+        return new OcspClientWorker();
+    }
+
+    @Bean
+    TaskScheduler taskScheduler() {
+        return new ThreadPoolTaskScheduler();
+    }
+
+    @Bean(name = "ocspClientExecuteScheduler")
+    @Conditional(IsOcspClientJobsActive.class)
+    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker, TaskScheduler taskScheduler) {
+        OcspClientExecuteScheduler scheduler = new OcspClientExecuteScheduler(ocspClientWorker, taskScheduler);
+        scheduler.init();
+        return scheduler;
+    }
+
+    @Slf4j
+    public static class IsOcspClientJobsActive implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            boolean isActive = SystemProperties.isOcspResponseRetrievalActive();
+            if (!isActive) {
+                log.info("OCSP-retrieval configured to be inactive, job auto-scheduling disabled");
+            }
+            return isActive;
+        }
     }
 
 }
