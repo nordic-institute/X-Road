@@ -73,25 +73,25 @@ Feature: 0100 - Signer: SoftToken
     And Signing with unknown algorithm fails using key "KeyX" from token "soft-token-000"
 
   Scenario: Generate/Regenerate cert request
-    When the SIGNING cert request is generated for token "soft-token-000" key "Second key" for client "cs:test:member-2"
+    When the SIGNING cert request is generated for token "soft-token-000" key "Second key" for client "CS:test:member-2"
     And token and key can be retrieved by cert request
     Then cert request can be deleted
-    When the SIGNING cert request is generated for token "soft-token-000" key "Second key" for client "cs:test:member-2"
+    When the SIGNING cert request is generated for token "soft-token-000" key "Second key" for client "CS:test:member-2"
     And cert request is regenerated
 
   Scenario: Self Signed certificate can be (re)imported
     Given tokens list contains token "soft-token-000"
-    When Wrong Certificate is not imported for client "cs:test:member-2"
-    And self signed cert generated for token "soft-token-000" key "Second key", client "cs:test:member-2"
+    When Wrong Certificate is not imported for client "CS:test:member-2"
+    And self signed cert generated for token "soft-token-000" key "Second key", client "CS:test:member-2"
     And certificate info can be retrieved by cert hash
     When certificate can be deleted
     Then token "soft-token-000" key "Second key" has 0 certificates
-    When Certificate is imported for client "cs:test:member-2"
+    When Certificate is imported for client "CS:test:member-2"
     Then token "soft-token-000" key "Second key" has 1 certificates
 
   Scenario: Self signed certificate
     Given token "soft-token-000" key "First key" has 0 certificates
-    When self signed cert generated for token "soft-token-000" key "First key", client "cs:test:member-1"
+    When self signed cert generated for token "soft-token-000" key "First key", client "CS:test:member-1"
     Then token "soft-token-000" key "First key" has 1 certificates
     And keyId can be retrieved by cert hash
     And token and keyId can be retrieved by cert hash
@@ -103,13 +103,13 @@ Feature: 0100 - Signer: SoftToken
 
   Scenario: Member test failure
     Given tokens list contains token "soft-token-000"
-    * Member signing info for client "cs:test:member-1" is retrieved
+    * Member signing info for client "CS:test:member-1" is retrieved
 
   Scenario: Member info
-    Then member "cs:test:member-1" has 1 certificate
+    Then member "CS:test:member-1" has 1 certificate
 
   Scenario: Cert status
-    Given self signed cert generated for token "soft-token-000" key "KeyX", client "cs:test:member-2"
+    Given self signed cert generated for token "soft-token-000" key "KeyX", client "CS:test:member-2"
     And certificate info can be retrieved by cert hash
     Then certificate can be deactivated
     And certificate can be activated

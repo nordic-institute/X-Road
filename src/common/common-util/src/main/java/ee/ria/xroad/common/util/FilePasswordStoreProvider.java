@@ -42,7 +42,7 @@ import static java.lang.String.format;
 public class FilePasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
     private static final String CFG_FILE_PASSWORD_STORE_PATH = SystemProperties.PREFIX + "internal.passwordstore-file-path";
 
-    private static final String PATTERN_FILE_PASSWORDSTORE = "%s/.passwordstore-%s";
+    private static final String PATTERN_FILE_PASSWORDSTORE = "%s/.pswd-%s";
 
     @Override
     public synchronized byte[] read(String pathnameForFtok, String id) throws Exception {

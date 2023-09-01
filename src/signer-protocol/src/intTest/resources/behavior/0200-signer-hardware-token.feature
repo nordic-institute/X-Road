@@ -45,10 +45,10 @@ Feature: 0200 - Signer: HardwareToken
     Then token "xrd-softhsm-0" has exact keys "First key,Second key,KeyX"
 
   Scenario: Cert request is (re)generated
-    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "Second key" for client "cs:test:member-2"
+    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "Second key" for client "CS:test:member-2"
     And token and key can be retrieved by cert request
     Then cert request can be deleted
-    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "Second key" for client "cs:test:member-2"
+    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "Second key" for client "CS:test:member-2"
     And cert request is regenerated
 
   Scenario: A key with Sign certificate is created
@@ -69,7 +69,7 @@ Feature: 0200 - Signer: HardwareToken
 
   Scenario: Self signed certificate is generated
     Given token "xrd-softhsm-0" key "First key" has 0 certificates
-    When self signed cert generated for token "xrd-softhsm-0" key "First key", client "cs:test:member-1"
+    When self signed cert generated for token "xrd-softhsm-0" key "First key", client "CS:test:member-1"
     Then token "xrd-softhsm-0" key "First key" has 1 certificates
     And keyId can be retrieved by cert hash
     And token and keyId can be retrieved by cert hash
@@ -77,12 +77,12 @@ Feature: 0200 - Signer: HardwareToken
 
   Scenario: Self Signed Certificate can be (re)imported
     Given tokens list contains token "xrd-softhsm-0"
-    When Wrong Certificate is not imported for client "cs:test:member-2"
-    And self signed cert generated for token "xrd-softhsm-0" key "Second key", client "cs:test:member-2"
+    When Wrong Certificate is not imported for client "CS:test:member-2"
+    And self signed cert generated for token "xrd-softhsm-0" key "Second key", client "CS:test:member-2"
     And certificate info can be retrieved by cert hash
     When certificate can be deleted
     Then token "xrd-softhsm-0" key "Second key" has 0 certificates
-    When Certificate is imported for client "cs:test:member-2"
+    When Certificate is imported for client "CS:test:member-2"
     Then token "xrd-softhsm-0" key "Second key" has 1 certificates
 
   Scenario: Sign fails with an unknown algorithm error
@@ -98,10 +98,10 @@ Feature: 0200 - Signer: HardwareToken
     * Member signing info for client "CS:ORG:2908758-4:Management" is retrieved
 
   Scenario: Member info
-    Then member "cs:test:member-1" has 2 certificate
+    Then member "CS:test:member-1" has 2 certificate
 
   Scenario: Cert status
-    Given self signed cert generated for token "xrd-softhsm-0" key "KeyX", client "cs:test:member-2"
+    Given self signed cert generated for token "xrd-softhsm-0" key "KeyX", client "CS:test:member-2"
     And certificate info can be retrieved by cert hash
     Then certificate can be deactivated
     And certificate can be activated

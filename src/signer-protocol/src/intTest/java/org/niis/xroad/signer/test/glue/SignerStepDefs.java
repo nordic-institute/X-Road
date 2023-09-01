@@ -423,7 +423,7 @@ public class SignerStepDefs extends BaseStepDefs {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         PublicKey publicKey = kf.generatePublic(x509publicKey);
 
-        final byte[] bytes = SignerProxy.signCertificate(key.getId(), SHA256WITHRSA_ID, "CN=cs", publicKey);
+        final byte[] bytes = SignerProxy.signCertificate(key.getId(), SHA256WITHRSA_ID, "CN=CS", publicKey);
         assertThat(bytes).isNotEmpty();
     }
 
