@@ -137,6 +137,8 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
             if (!addedCerts.isEmpty()) {
                 log.info("Requesting OCSP update for new certificates obtained in key configuration merge.");
 
+                // todo inject ocsp response manager
+                //  ocspResponseManager.handleGetOcspResponses(mapCertListToGetOcspResponses(addedCerts));
                 ServiceLocator.getOcspResponseManager(getContext()).tell(mapCertListToGetOcspResponses(addedCerts),
                         ActorRef.noSender());
             }

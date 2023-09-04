@@ -158,12 +158,16 @@ public class Cert {
     public CertificateInfoProto toProtoDTO() {
         try {
             var builder = CertificateInfoProto.newBuilder()
-                    .setMemberId(ClientIdMapper.toDto(memberId))
                     .setActive(active)
                     .setSavedToConfiguration(savedToConfiguration)
-                    .setStatus(status)
                     .setId(id);
 
+            if (memberId != null) {
+                builder.setMemberId(ClientIdMapper.toDto(memberId));
+            }
+            if (status != null) {
+                builder.setStatus(status);
+            }
             if (certificate != null) {
                 builder.setCertificateBytes(ByteString.copyFrom(certificate.getEncoded()));
             }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,11 +26,9 @@
 package ee.ria.xroad.signer.util;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
@@ -127,21 +125,6 @@ public final class SignerUtil {
     }
 
     /**
-     * @param tokenInfo the token
-     * @param keyId     the key id
-     * @return true if the token contains a key with the specified id
-     */
-    public static boolean hasKey(TokenInfo tokenInfo, String keyId) {
-        for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
-            if (keyInfo.getId().equals(keyId)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Creates a key id (lexical representation of xsd:hexBinary)
      * from the specified key object.
      *
@@ -216,35 +199,6 @@ public final class SignerUtil {
         byte[] id = new byte[RANDOM_ID_LENGTH];
         new Random().nextBytes(id);
         return id;
-    }
-
-    /**
-     * Convenience method for sending a message to an actor and returning
-     * the result.
-     *
-     * @param actor   the actor
-     * @param message the message
-     * @return the result
-     * @throws Exception if an error occurs or if the result times out
-     */
-    public static Object ask(ActorRef actor, Object message) throws Exception {
-        return ask(actor, message, DEFAULT_ASK_TIMEOUT);
-    }
-
-    /**
-     * Convenience method for sending a message to an actor and returning
-     * the result.
-     *
-     * @param actor   the actor
-     * @param message the message
-     * @param timeout the timeout for the result
-     * @return the result
-     * @throws Exception if an error occurs or if the result times out
-     */
-    public static Object ask(ActorRef actor, Object message, Timeout timeout)
-            throws Exception {
-        return Await.result(Patterns.ask(actor, message,
-                timeout.duration().length()), timeout.duration());
     }
 
     /**

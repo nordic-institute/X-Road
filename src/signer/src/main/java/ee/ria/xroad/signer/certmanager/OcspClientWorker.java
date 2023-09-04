@@ -37,7 +37,6 @@ import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
@@ -83,6 +82,8 @@ public class OcspClientWorker {
     private static final String OCSP_FRESHNESS_SECONDS = "ocspFreshnessSeconds";
     private static final String VERIFY_OCSP_NEXTUPDATE = "verifyOcspNextUpdate";
     private static final String OCSP_FETCH_INTERVAL = "ocspFetchInterval";
+
+    private final OcspResponseManager ocspResponseManager;
 
     private final GlobalConfChangeChecker changeChecker = new GlobalConfChangeChecker();
 
@@ -334,7 +335,7 @@ public class OcspClientWorker {
                 .addAllBase64EncodedResponses(responses)
                 .build();
 
-        TemporaryHelper.getOcspResponseManager().handleSetOcspResponses(setOcspResponsesReq);
+        ocspResponseManager.handleSetOcspResponses(setOcspResponsesReq);
     }
 
     /**
@@ -379,7 +380,7 @@ public class OcspClientWorker {
     boolean isCachedOcspResponse(String certHash) {
         // Check if the OCSP response is in the cache
         Date atDate = new Date();
-        boolean isCachedOcspResponse = TemporaryHelper.getOcspResponseManager().handleIsCachedOcspResponse(certHash, atDate);
+        boolean isCachedOcspResponse = ocspResponseManager.handleIsCachedOcspResponse(certHash, atDate);
 
         log.trace("isCachedOcspResponse(certHash: {}, atDate: {}) = {}", certHash, atDate, isCachedOcspResponse);
 

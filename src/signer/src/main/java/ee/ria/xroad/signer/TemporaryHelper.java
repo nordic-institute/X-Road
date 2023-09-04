@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 
@@ -46,22 +45,11 @@ public class TemporaryHelper {
     private static AbstractModuleManager moduleManager;
 
     @Deprecated
-    public static OcspResponseManager ocspResponseManager;
-
-    @Deprecated
     public static AbstractTokenWorker getTokenWorker(String tokenId) {
         if (!TOKEN_WORKERS.containsKey(tokenId)) {
             throw new RuntimeException("Token worker not available");
         }
         return TOKEN_WORKERS.get(tokenId);
-    }
-
-    @Deprecated
-    public static OcspResponseManager getOcspResponseManager() {
-        if (ocspResponseManager != null) {
-            return ocspResponseManager;
-        }
-        throw new RuntimeException("OcspResponseManager not available");
     }
 
     @Deprecated

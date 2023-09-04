@@ -45,15 +45,10 @@ public final class ServiceLocator {
      * @param context the actor context
      * @return the OCSP response manager actor
      */
+    @Deprecated(forRemoval = true)
     public static ActorSelection getOcspResponseManager(
             ActorContext context) {
         return context.actorSelection("/user/" + OCSP_RESPONSE_MANAGER);
-    }
-
-    @Deprecated
-    public static ActorSelection getOcspResponseManager(
-            ActorSystem actorSystem) {
-        return actorSystem.actorSelection("/user/" + OCSP_RESPONSE_MANAGER);
     }
 
     /**

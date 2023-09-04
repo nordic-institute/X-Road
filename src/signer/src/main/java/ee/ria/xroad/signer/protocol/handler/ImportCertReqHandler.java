@@ -65,6 +65,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @RequiredArgsConstructor
 public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, ImportCertResp> {
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
+    private final OcspResponseManager ocspResponseManager;
 
     @Override
     protected ImportCertResp handle(ImportCertReq request) throws Exception {
@@ -176,7 +177,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
     private void updateOcspResponse(X509Certificate cert) {
         try {
-            OcspResponseManager.getOcspResponse(temporaryAkkaMessenger.getActorSystem(), cert);
+            ocspResponseManager.getOcspResponse(cert);
         } catch (Exception e) {
             log.error("Failed to update OCSP response for certificate "
                     + cert.getSerialNumber(), e);

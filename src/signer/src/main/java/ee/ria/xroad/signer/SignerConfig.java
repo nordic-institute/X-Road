@@ -27,6 +27,7 @@ package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
 import akka.actor.ActorSystem;
@@ -66,8 +67,15 @@ public class SignerConfig {
     }
 
     @Bean
-    OcspClientWorker ocspClientWorker() {
-        return new OcspClientWorker();
+    OcspResponseManager ocspResponseManager() {
+        OcspResponseManager ocspResponseManager = new OcspResponseManager();
+        ocspResponseManager.init();
+        return ocspResponseManager;
+    }
+
+    @Bean
+    OcspClientWorker ocspClientWorker(OcspResponseManager ocspResponseManager) {
+        return new OcspClientWorker(ocspResponseManager);
     }
 
     @Bean

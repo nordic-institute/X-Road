@@ -38,13 +38,7 @@ public final class ComponentNames {
 
     public static final String OCSP_RESPONSE_MANAGER = "OcspResponseManager";
 
-    public static final String OCSP_CLIENT = "OcspClient";
-
     public static final String MODULE_MANAGER = "ModuleManager";
-
-    public static final String OCSP_CLIENT_JOB = "OcspClientJob";
-
-    public static final String OCSP_CLIENT_RELOAD = "OcspClientReload";
 
     private ComponentNames() {
     }

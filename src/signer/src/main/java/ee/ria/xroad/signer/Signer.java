@@ -28,7 +28,6 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
-import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.module.DefaultModuleManagerImpl;
@@ -44,7 +43,6 @@ import java.nio.file.Paths;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
 
 /**
  * Signer application.
@@ -79,7 +77,6 @@ public class Signer implements StartStop {
                     .buildAndStartWatcher();
         }
 
-        createComponent(OCSP_RESPONSE_MANAGER, OcspResponseManager.class);
     }
 
     @Override

@@ -25,9 +25,10 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.signer.TemporaryHelper;
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
@@ -36,12 +37,15 @@ import org.springframework.stereotype.Component;
  * Handles requests for setting the OCSP responses for certificates.
  */
 @Component
+@RequiredArgsConstructor
 public class SetOcspResponsesReqHandler
         extends AbstractRpcHandler<SetOcspResponsesReq, Empty> {
+
+    private final OcspResponseManager ocspResponseManager;
+
     @Override
     protected Empty handle(SetOcspResponsesReq request) throws Exception {
-        TemporaryHelper.getOcspResponseManager()
-                .handleSetOcspResponses(request);
+        ocspResponseManager.handleSetOcspResponses(request);
 
         return Empty.getDefaultInstance();
     }

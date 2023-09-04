@@ -25,9 +25,11 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
@@ -40,15 +42,18 @@ import java.util.Map;
  * Handles OCSP requests.
  */
 @Component
+@RequiredArgsConstructor
 public class GetOcspResponsesReqHandler
         extends AbstractRpcHandler<GetOcspResponsesReq, GetOcspResponsesResp> {
+
+    private final OcspResponseManager ocspResponseManager;
 
     @Override
     protected GetOcspResponsesResp handle(GetOcspResponsesReq request) throws Exception {
         var message = new GetOcspResponses(
                 request.getCertHashList().toArray(new String[0]));
 
-        ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse response = temporaryAkkaMessenger.tellOcspManagerWithResponse(message);
+        ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse response = ocspResponseManager.handleGetOcspResponses(message);
 
         // todo return map from ocsp responses manager
         Map<String, String> ocspResponses = new HashMap<>();
