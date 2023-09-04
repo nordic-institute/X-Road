@@ -33,6 +33,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +103,8 @@ public class ValidationErrorHelper {
                     fieldValidationErrors.add(fieldError.getCode());
                 }
             }
+            Collections.sort(fieldValidationErrors);
+
             errorMap.put(objectFieldName, fieldValidationErrors);
         });
         return errorMap;

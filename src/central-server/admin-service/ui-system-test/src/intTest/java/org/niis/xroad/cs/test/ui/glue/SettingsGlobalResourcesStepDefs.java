@@ -29,12 +29,14 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers.SelenideValidation;
 import org.niis.xroad.cs.test.ui.page.SettingsGlobalResourcesPageObj;
+import org.niis.xroad.cs.test.ui.utils.VuetifyHelper;
 
 import java.util.List;
 import java.util.Map;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
     private final SettingsGlobalResourcesPageObj globalResourcesPage = new SettingsGlobalResourcesPageObj();
@@ -62,8 +64,8 @@ public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
 
     @Step("Add Global Group dialog is submitted with code {string} and description {string}")
     public void clickCreateGlobalGroup(String code, String desc) {
-        globalResourcesPage.globalGroupForm.inputGroupCode().setValue(code);
-        globalResourcesPage.globalGroupForm.inputGroupDescription().setValue(desc);
+        vTextField(globalResourcesPage.globalGroupForm.inputGroupCode()).setValue(code);
+        vTextField(globalResourcesPage.globalGroupForm.inputGroupDescription()).setValue(desc);
         globalResourcesPage.globalGroupForm.btnConfirm().click();
     }
 

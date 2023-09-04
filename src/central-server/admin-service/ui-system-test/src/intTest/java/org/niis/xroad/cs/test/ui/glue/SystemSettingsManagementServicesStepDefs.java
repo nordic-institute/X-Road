@@ -30,10 +30,12 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.page.SettingsManagementServicesPageObj;
+import org.niis.xroad.cs.test.ui.utils.VuetifyHelper;
 
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
 
@@ -128,12 +130,14 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
 
     @Step("{} is written in search field")
     public void isWrittenInSearchField(String searchTerm) {
-        settingsManagementServicesPageObj.editManagementSubsystemDialog.search().setValue(searchTerm);
+        vTextField(settingsManagementServicesPageObj.editManagementSubsystemDialog.search())
+                .setValue(searchTerm);
     }
 
     @Step("{} is written in security server search field")
     public void isWrittenInSecurityServerSearchField(String searchTerm) {
-        settingsManagementServicesPageObj.editManagementSecurityServerDialog.search().setValue(searchTerm);
+        vTextField(settingsManagementServicesPageObj.editManagementSecurityServerDialog.search())
+                .setValue(searchTerm);
     }
 
     @Step("{} dialog should be open")

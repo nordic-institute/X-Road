@@ -89,4 +89,9 @@ public class NavigationStepDefs extends BaseUiStepDefs {
     public void userClicksBack() {
         commonPageObj.backLink().click();
     }
+
+    @Step("user scrolls to \"{}\"")
+    public void userScrollsTo(String viewTitle) {
+        commonPageObj.viewTitle(viewTitle).click();
+    }
 }

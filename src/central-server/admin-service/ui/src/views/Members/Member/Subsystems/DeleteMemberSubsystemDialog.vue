@@ -59,6 +59,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { ClientId } from '@/openapi-types';
 import { toIdentifier, toShortMemberId } from '@/util/helpers';
+import { Event } from "@/ui-types";
 
 export default defineComponent({
   props: {
@@ -71,7 +72,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['cancel', 'deleted-subsystem'],
+  emits: [Event.Cancel, Event.Delete],
   data() {
     return {
       loading: false,
@@ -87,7 +88,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
-      this.$emit('cancel');
+      this.$emit(Event.Cancel);
     },
     deleteSubsystem(): void {
       this.loading = true;
@@ -101,11 +102,11 @@ export default defineComponent({
               subsystemCode: this.subsystemCode,
             }),
           );
-          this.$emit('deleted-subsystem');
+          this.$emit(Event.Delete);
         })
         .catch((error) => {
           this.showError(error);
-          this.$emit('cancel');
+          this.$emit(Event.Cancel);
         })
         .finally(() => {
           this.loading = false;

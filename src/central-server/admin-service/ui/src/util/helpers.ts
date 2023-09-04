@@ -270,7 +270,8 @@ export function formatDateTime(
 export function toPagingOptions(
   ...options: number[]
 ): { title: string; value: number }[] {
+  const all = i18n.global.t('global.all');
   return options.map((value) => {
-    return { title: value + '', value };
+    return { title: value === -1 ? all : value.toString(), value };
   });
 }

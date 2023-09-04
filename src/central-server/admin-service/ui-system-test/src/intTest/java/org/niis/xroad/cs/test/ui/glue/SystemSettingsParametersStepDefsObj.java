@@ -28,13 +28,17 @@ package org.niis.xroad.cs.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.SystemSettingsParametersPageObj;
+import org.niis.xroad.cs.test.ui.utils.VuetifyHelper;
+
+import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SystemSettingsParametersStepDefsObj extends BaseUiStepDefs {
     private final SystemSettingsParametersPageObj systemSettingsParametersPageObj = new SystemSettingsParametersPageObj();
 
     @Step("Central Server address {} entered in popup")
     public void setCentralServerAddress(String address) {
-        clearInput(systemSettingsParametersPageObj.editDialog.inputCentralServerAddress())
+        vTextField(systemSettingsParametersPageObj.editDialog.inputCentralServerAddress())
+                .clear()
                 .setValue(address);
     }
 

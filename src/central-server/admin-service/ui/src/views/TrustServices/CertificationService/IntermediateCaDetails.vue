@@ -55,8 +55,8 @@
 
     <div class="certification-service-info-card-group">
       <info-card
-        :title-text="$t('trustServices.validFrom')"
         data-test="valid-from-card"
+        :title-text="$t('trustServices.validFrom')"
       >
         <date-time
           :value="
@@ -65,7 +65,9 @@
           "
         />
       </info-card>
-      <info-card :title-text="$t('trustServices.validTo')">
+      <info-card
+        data-test="valid-to-card"
+        :title-text="$t('trustServices.validTo')">
         <date-time
           :value="
             intermediateCasServiceStore.currentSelectedIntermediateCa

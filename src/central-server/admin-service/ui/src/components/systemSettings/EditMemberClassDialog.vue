@@ -40,7 +40,7 @@
       <v-text-field
         v-bind="classCode"
         data-test="system-settings-member-class-code-edit-field"
-        :disabled="modeEdit"
+        :disabled="!modeAdd"
         :label="$t('systemSettings.code')"
         :autofocus="modeAdd"
         variant="outlined"
@@ -52,7 +52,7 @@
         v-bind="classDescription"
         data-test="system-settings-member-class-description-edit-field"
         :label="$t('systemSettings.description')"
-        :autofocus="modeEdit"
+        :autofocus="!modeAdd"
         variant="outlined"
         class="dlg-row-input"
         name="memberClass"
@@ -107,9 +107,6 @@ export default defineComponent({
   },
   computed: {
     ...mapStores(useMemberClass, useNotifications),
-    modeEdit(): boolean {
-      return !!this.memberClass;
-    },
     modeAdd(): boolean {
       return !this.memberClass;
     },

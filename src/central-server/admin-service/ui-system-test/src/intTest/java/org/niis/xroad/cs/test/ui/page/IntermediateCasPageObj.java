@@ -52,7 +52,7 @@ public class IntermediateCasPageObj {
     }
 
     public SelenideElement tableHeaderCol(int headerColumnIndex) {
-        var xpath = "./thead[2]/tr/th[%d]";
+        var xpath = "./thead/tr/th[%d]";
         return table().find(xpath(String.format(xpath, headerColumnIndex)));
     }
 
@@ -67,6 +67,6 @@ public class IntermediateCasPageObj {
     }
 
     public SelenideElement tabOcspResponders() {
-        return $x("//div[@id='intermediate-ca-view']//div[@role='tablist']//a[contains(text(), 'OCSP Responders')]");
+        return $x("//div[@id='intermediate-ca-view']//div[@role='tablist']//a[@data-test='intermediate-ca-ocsp-responders-tab-button']");
     }
 }

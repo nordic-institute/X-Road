@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.ClassLoader.getSystemResource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.given;
+import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
 public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
 
@@ -80,7 +81,8 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 .shouldBe(Condition.enabled)
                 .click();
 
-        globalConfigurationPageObj.tokenLoginDialog.inputPin().setValue(tokenPin);
+        vTextField(globalConfigurationPageObj.tokenLoginDialog.inputPin())
+                .setValue(tokenPin);
         globalConfigurationPageObj.tokenLoginDialog.btnLogin()
                 .shouldBe(Condition.enabled)
                 .click();
@@ -193,7 +195,8 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 .shouldBe(Condition.enabled)
                 .click();
 
-        globalConfigurationPageObj.addSigningKeyDialog.inputLabel().setValue(keyLabel);
+        vTextField(globalConfigurationPageObj.addSigningKeyDialog.inputLabel())
+                .setValue(keyLabel);
         globalConfigurationPageObj.addSigningKeyDialog.btnSave()
                 .shouldBe(Condition.enabled)
                 .click();

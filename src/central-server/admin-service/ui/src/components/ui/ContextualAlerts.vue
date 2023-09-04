@@ -38,10 +38,10 @@
         v-model="notification.show"
         data-test="contextual-alert"
         border="start"
-        border-color="error"
         variant="outlined"
         class="alert mb-2"
         icon="icon-Error-notification"
+        type="error"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="icon-wrapper">
@@ -141,18 +141,17 @@
               {{ $t(notification.action.text) }}
             </xrd-button>
           </div>
-
-          <div class="close-button">
-            <v-btn
-              color="primary"
-              data-test="close-alert"
-              variant="plain"
-              @click="closeError(notification.timeAdded)"
-            >
-              <xrd-icon-base><xrd-icon-close /></xrd-icon-base>
-            </v-btn>
-          </div>
         </div>
+        <template #close>
+          <v-btn
+            color="primary"
+            data-test="close-alert"
+            variant="plain"
+            @click="closeError(notification.timeAdded)"
+          >
+            <xrd-icon-base><xrd-icon-close /></xrd-icon-base>
+          </v-btn>
+        </template>
       </v-alert>
     </v-container>
   </div>
@@ -226,11 +225,6 @@ export default defineComponent({
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-
-  .icon {
-    margin-right: 12px;
-    color: $XRoad-Error;
-  }
 }
 
 .row-wrapper {
@@ -240,6 +234,7 @@ export default defineComponent({
   overflow-wrap: break-word;
   justify-content: center;
   margin-right: 30px;
+  color: $XRoad-Black100;
 }
 
 .id-button {

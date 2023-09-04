@@ -8,6 +8,7 @@ Feature: 0300 - CS: System Settings -> System parameters  -> Member Classes
     And User xrd logs in to CentralServer with password secret
     And CentralServer Settings tab is selected
     And System settings sub-tab is selected
+    And user scrolls to "Member Classes"
     And Member class list is set to All rows per page
 
   Scenario: Multiple member classes are created and present in the list
