@@ -122,9 +122,16 @@ public class ContainerSetup {
 
             @SneakyThrows
             private void prepareSignerDirs() {
-                var softtokenDir = Path.get("build/resources/intTest/container-files/etc/xroad/signer/softtoken/");
-                if (softtokenDir.toFile().exists()) {
-                    FileUtils.cleanDirectory(softtokenDir.toFile());
+                deleteIfPresent("build/resources/intTest/container-files/etc/xroad/signer/softtoken/");
+                deleteIfPresent("build/container-passwordstore/");
+            }
+
+            @SneakyThrows
+            private void deleteIfPresent(String path) {
+                var dir = Path.get(path);
+                if (dir.toFile().exists()) {
+                    log.info("Temporary test-signer sync dir {} found. Deleting..", dir);
+                    FileUtils.cleanDirectory(dir.toFile());
                 }
             }
         };
