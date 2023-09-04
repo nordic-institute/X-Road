@@ -287,6 +287,7 @@ public final class SignerUtil {
     /**
      * @return a supervisor strategy that escalates PKCS11Exceptions to the parent actor
      */
+    @Deprecated
     public static OneForOneStrategy createPKCS11ExceptionEscalatingStrategy() {
         return new OneForOneStrategy(-1, Duration.Inf(),
                 throwable -> {
@@ -300,3 +301,4 @@ public final class SignerUtil {
     }
 
 }
+

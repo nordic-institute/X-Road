@@ -1,5 +1,4 @@
 @SoftToken
-  @This
 Feature: 0100 - Signer: SoftToken
 
   Background:

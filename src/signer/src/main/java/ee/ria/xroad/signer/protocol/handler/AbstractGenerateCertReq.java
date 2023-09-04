@@ -28,16 +28,12 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.util.CalculateSignature;
-import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
-import akka.actor.Actor;
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.UntypedAbstractActor;
 import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -47,14 +43,13 @@ import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.proto.SignReq;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -83,7 +78,7 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
                 new X500Name(subjectName), publicKey);
 
-        ContentSigner signer = new TokenContentSigner(tokenAndKey, this);
+        ContentSigner signer = new TokenContentSigner(tokenAndKey);
 
         PKCS10CertificationRequest request = certRequestBuilder.build(signer);
         return request;
@@ -114,25 +109,15 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
 
     //TODO:grpc this should be refactored..
     private static class TokenContentSigner implements ContentSigner {
-
-        private static final int SIGNATURE_TIMEOUT_SECONDS = 10;
-
         private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         private final TokenAndKey tokenAndKey;
-        private final AbstractGenerateCertReq abstractGenerateCertReq;
 
         private final String digestAlgoId;
         private final String signAlgoId;
 
-        private final CountDownLatch latch = new CountDownLatch(1);
-
-        private volatile CalculatedSignature signature;
-
-        TokenContentSigner(TokenAndKey tokenAndKey, AbstractGenerateCertReq abstractGenerateCertReq)
-                throws NoSuchAlgorithmException {
+        TokenContentSigner(final TokenAndKey tokenAndKey) throws NoSuchAlgorithmException {
             this.tokenAndKey = tokenAndKey;
-            this.abstractGenerateCertReq = abstractGenerateCertReq;
 
             digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
             signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, tokenAndKey.getSignMechanism());
@@ -152,67 +137,19 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         public byte[] getSignature() {
             log.debug("Calculating signature for certificate request...");
 
-            byte[] digest;
-
             try {
-                digest = calculateDigest(digestAlgoId, out.toByteArray());
+                SignReq request = SignReq.newBuilder()
+                        .setKeyId(tokenAndKey.getKeyId())
+                        .setSignatureAlgorithmId(signAlgoId)
+                        .setDigest(ByteString.copyFrom(calculateDigest(digestAlgoId, out.toByteArray())))
+                        .build();
+
+                return TemporaryHelper.getTokenWorker(tokenAndKey.getTokenId()).handleSign(request);
             } catch (Exception e) {
-                throw new CodedException(X_INTERNAL_ERROR, e);
-            }
-
-            var actorSystem = abstractGenerateCertReq.temporaryAkkaMessenger.getActorSystem();
-            ActorRef signatureReceiver = actorSystem.actorOf(
-                    Props.create(SignatureReceiverActor.class, this));
-
-            try {
-
-                signature = abstractGenerateCertReq.temporaryAkkaMessenger.tellTokenWithResponse(new CalculateSignature(Actor.noSender(),
-                                tokenAndKey.getKeyId(), signAlgoId, digest),
-                        tokenAndKey.getTokenId());
-
-//                waitForSignature();
-
-                if (signature.getException() != null) {
-                    throw translateException(signature.getException());
-                }
-
-                return signature.getSignature();
-            } finally {
-                actorSystem.stop(signatureReceiver);
-            }
-        }
-
-        private void waitForSignature() {
-            try {
-                if (!latch.await(SIGNATURE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                    throw new CodedException(X_INTERNAL_ERROR, "Signature calculation timed out");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        void setSignature(CalculatedSignature sig) {
-            this.signature = sig;
-            latch.countDown();
-        }
-    }
-
-    private static class SignatureReceiverActor extends UntypedAbstractActor {
-
-        private final TokenContentSigner signer;
-
-        SignatureReceiverActor(TokenContentSigner signer) {
-            this.signer = signer;
-        }
-
-        @Override
-        public void onReceive(Object message) throws Exception {
-            if (message instanceof CalculatedSignature) {
-                signer.setSignature((CalculatedSignature) message);
-            } else {
-                unhandled(message);
+                throw translateException(e); //TODO verify that it is necessary to do this here
             }
         }
     }
+
+
 }

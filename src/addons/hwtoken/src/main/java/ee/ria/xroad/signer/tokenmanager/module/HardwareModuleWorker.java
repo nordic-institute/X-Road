@@ -25,8 +25,8 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import ee.ria.xroad.signer.tokenmanager.token.HardwareToken;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
+import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.util.SignerUtil;
 
@@ -171,6 +171,8 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
     @Override
     protected Props props(ee.ria.xroad.signer.protocol.dto.TokenInfo tokenInfo, TokenType tokenType) {
-        return Props.create(HardwareToken.class, tokenInfo, tokenType);
+       //TODO grpc
+        return Props.create(HardwareTokenWorker.class,
+                tokenInfo, tokenType).withDispatcher("token-worker-dispatcher");
     }
 }

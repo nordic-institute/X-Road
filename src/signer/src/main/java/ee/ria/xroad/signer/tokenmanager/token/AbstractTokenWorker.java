@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.TemporaryHelper;
@@ -33,11 +32,8 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
-import ee.ria.xroad.signer.util.CalculateSignature;
-import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.SignerUtil;
 
-import com.google.protobuf.ByteString;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -106,12 +102,8 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
     @Override
     protected void onMessage(Object message) throws Exception {
-        log.trace("onMessage()");
-        if (message instanceof CalculateSignature) {
-            handleCalculateSignature((CalculateSignature) message);
-        } else {
-            unhandled(message);
-        }
+        log.trace("onMessage() = {}", message);
+        unhandled(message);
     }
 
     @Override
@@ -176,27 +168,6 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         } catch (Exception e) {
             log.error("Failed to delete cert '{}'", certificateId, e);
             throw translateError(customizeException(e));
-        }
-    }
-
-    @Deprecated
-    private void handleCalculateSignature(CalculateSignature signRequest) {
-        try {
-            SignReq request = SignReq.newBuilder()
-                    .setKeyId(signRequest.getKeyId())
-                    .setSignatureAlgorithmId(signRequest.getSignatureAlgorithmId())
-                    .setDigest(ByteString.copyFrom(signRequest.getDigest()))
-                    .build();
-
-            byte[] signature = handleSign(request);
-            sendResponse(new CalculatedSignature(signRequest, signature, null));
-        } catch (CodedException codedException) {
-            sendResponse(new CalculatedSignature(signRequest, null, codedException));
-        } catch (Exception e) { // catch-log-rethrow
-            log.error("Error while signing with key '{}'", signRequest.getKeyId(), e);
-
-            CodedException tr = translateError(customizeException(e)).withPrefix(X_CANNOT_SIGN);
-            sendResponse(new CalculatedSignature(signRequest, null, tr));
         }
     }
 
