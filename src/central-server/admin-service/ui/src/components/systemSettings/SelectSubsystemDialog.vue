@@ -54,6 +54,7 @@
         <!-- Table -->
         <v-data-table-server
           v-model="selectedSubsystems"
+          data-test="subsystems-table"
           class="elevation-0 data-table xrd-table"
           item-value="client_id.encoded_id"
           show-select

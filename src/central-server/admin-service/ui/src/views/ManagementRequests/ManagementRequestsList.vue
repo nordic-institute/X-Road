@@ -44,6 +44,8 @@
         </div>
       </template>
       <v-data-table-server
+        data-test="management-requests-table"
+        v-model:sort-by="sortBy"
         :loading="loading"
         :headers="headers"
         :must-sort="true"
@@ -54,7 +56,6 @@
         class="elevation-0 data-table"
         item-key="id"
         :loader-height="2"
-        data-test="management-requests-table"
         @update:options="changeOptions"
       >
         <template #[`item.id`]="{ item }">
@@ -132,6 +133,7 @@ export default defineComponent({
   },
   data() {
     return {
+      sortBy: [{ key: 'id', order: 'desc' }],
       loading: false, //is data being loaded
       dataQuery: {} as DataQuery,
       itemsPerPageOptions: defaultItemsPerPageOptions(50),

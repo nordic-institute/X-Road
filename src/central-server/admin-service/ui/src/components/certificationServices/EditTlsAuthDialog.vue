@@ -38,6 +38,7 @@
       <div class="dlg-input-width">
         <v-checkbox
           v-model="tlsAuth"
+          data-test="tls-auth-checkbox"
           :label="$t('trustServices.addCASettingsCheckbox')"
         />
       </div>

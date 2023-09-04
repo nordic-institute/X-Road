@@ -30,14 +30,13 @@
     :data-test="`token-${token.name}-expandable`"
     :is-open="isExpanded(token.id)"
     :color="tokenStatusColor"
-    @open="descOpen(token.id)"
-    @close="descClose(token.id)"
+    @open="toggleToken"
   >
-    <template #link>
+    <template #link="{ toggle }">
       <div
         class="clickable-link identifier-wrap"
         data-test="token-name"
-        @click="tokenNameClick()"
+        @click="toggle"
       >
         <span
           class="token-status-indicator token-name"
@@ -106,12 +105,7 @@ import { Colors, Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useToken } from '@/store/modules/tokens';
 import { useUser } from '@/store/modules/user';
-import {
-  ConfigurationSigningKey,
-  ConfigurationType,
-  PossibleTokenAction,
-  Token,
-} from '@/openapi-types';
+import { ConfigurationSigningKey, ConfigurationType, PossibleTokenAction, Token, } from '@/openapi-types';
 import KeysTable from '@/components/tokens/KeysTable.vue';
 import TokenLoggingButton from '@/components/tokens/TokenLoggingButton.vue';
 import SigningKeyAddDialog from '@/components/signingKeys/SigningKeyAddDialog.vue';
@@ -186,16 +180,12 @@ export default defineComponent({
       this.showAddKeyDialog = false;
       this.$emit('update-keys', 'add');
     },
-    tokenNameClick(): void {
-      this.isExpanded(this.token.id)
-        ? this.descClose(this.token.id)
-        : this.descOpen(this.token.id);
-    },
-    descClose(tokenId: string) {
-      this.setTokenHidden(tokenId);
-    },
-    descOpen(tokenId: string) {
-      this.setTokenExpanded(tokenId);
+    toggleToken(opened: boolean): void {
+      if (opened) {
+        this.setTokenExpanded(this.token.id);
+      } else {
+        this.setTokenHidden(this.token.id);
+      }
     },
   },
 });

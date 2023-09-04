@@ -27,6 +27,7 @@
 <template>
   <main>
     <xrd-simple-dialog
+      v-if="showUploadCertificateDialog"
       cancel-button-text="action.cancel"
       save-button-text="action.upload"
       title="trustServices.addCertificationService"
@@ -37,7 +38,6 @@
       <template #content>
         <div class="dlg-input-width">
           <xrd-file-upload
-            v-if="showUploadCertificateDialog"
             v-slot="{ upload }"
             accepts=".der, .crt, .pem, .cer"
             @file-changed="onFileUploaded"
@@ -49,7 +49,7 @@
               :label="$t('trustServices.uploadCertificate')"
               append-inner-icon="icon-Upload"
               @click="upload"
-            ></v-text-field>
+            />
           </xrd-file-upload>
         </div>
       </template>
@@ -78,7 +78,7 @@
             :hint="$t('trustServices.certProfileInputExplanation')"
             persistent-hint
             data-test="cert-profile-input"
-          ></v-text-field>
+          />
         </div>
       </template>
     </xrd-simple-dialog>
@@ -89,10 +89,11 @@
 import { defineComponent } from 'vue';
 import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
 import { FileUploadResult } from '@shared-ui/types';
+import { Event } from '@/ui-types';
 
 export default defineComponent({
   components: { XrdFileUpload },
-  emits: ['cancel', 'save'],
+  emits: [Event.Cancel, Event.Add],
   data() {
     return {
       showCASettingsDialog: false,
@@ -121,7 +122,7 @@ export default defineComponent({
           tls_auth: this.tlsAuthOnly.toString(),
           certificate_profile_info: this.certProfile,
         };
-        this.$emit('save', certService, {
+        this.$emit(Event.Add, certService, {
           done: () => {
             this.loading = false;
             this.clearForm();
@@ -130,7 +131,7 @@ export default defineComponent({
       }
     },
     cancel(): void {
-      this.$emit('cancel');
+      this.$emit(Event.Cancel);
       this.clearForm();
     },
     clearForm(): void {

@@ -24,48 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.Condition;
+package org.niis.xroad.cs.test.ui.utils;
+
 import com.codeborne.selenide.Selenide;
-import io.cucumber.java.en.Step;
-import org.niis.xroad.cs.test.ui.page.LoginPageObj;
+import com.codeborne.selenide.SelenideElement;
 
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+import static org.openqa.selenium.Keys.COMMAND;
+import static org.openqa.selenium.Keys.CONTROL;
+import static org.openqa.selenium.Keys.DELETE;
 
-public class LoginStepDefs extends BaseUiStepDefs {
-    private final LoginPageObj loginPageObj = new LoginPageObj();
+public final class SeleniumUtils {
 
-    @Step("CentralServer login page is open")
-    public void openPage() {
-        Selenide.open(targetHostUrlProvider.getUrl());
+    public static SelenideElement clearInput(SelenideElement element) {
+        element.sendKeys(isMacOsBrowser() ? COMMAND : CONTROL, "a");
+        element.sendKeys(DELETE);
+
+        return element;
     }
 
-    @Step("Login form is visible")
-    public void loginFormVisible() {
-        loginPageObj.inputUsername().shouldBe(Condition.visible);
-        loginPageObj.inputPassword().shouldBe(Condition.visible);
+    private static boolean isMacOsBrowser() {
+        return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
     }
 
-    @Step("User {} logs in to {} with password {}")
-    public void doLogin(final String username, final String target, final String password) {
-
-        loginPageObj.inputUsername()
-                .shouldBe(Condition.visible);
-        vTextField(loginPageObj.inputUsername()).setValue(username);
-        loginPageObj.inputPassword()
-                .shouldBe(Condition.visible);
-        vTextField(loginPageObj.inputPassword()).setValue(password);
-
-        loginPageObj.btnLogin()
-                .shouldBe(Condition.visible)
-                .shouldBe(Condition.enabled)
-                .click();
-    }
-
-    @Step("Error message for incorrect credentials is shown")
-    public void errorMessageIsShown() {
-        loginPageObj.inputeErorMessageWithText("Wrong username or password")
-                .shouldBe(Condition.visible);
+    private SeleniumUtils() {
     }
 }

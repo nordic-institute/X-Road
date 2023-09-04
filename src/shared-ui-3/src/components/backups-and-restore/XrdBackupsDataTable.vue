@@ -54,7 +54,7 @@
             :backup-handler="backupHandler"
             :filename="item.raw.filename"
             :can-backup="canBackup"
-            @refresh-backups="$emit('delete')"
+            @delete="$emit('delete')"
           />
         </div>
       </template>

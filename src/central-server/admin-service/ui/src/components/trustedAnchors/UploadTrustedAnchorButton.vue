@@ -39,7 +39,9 @@
         class="button-spacing"
         @click="upload"
       >
-        <v-icon class="xrd-large-button-icon" icon="icon-upload" />
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-upload />
+        </xrd-icon-base>
         {{ $t('action.upload') }}
       </xrd-button>
     </xrd-file-upload>
@@ -64,9 +66,10 @@ import UploadTrustedAnchorDialog from './UploadTrustedAnchorDialog.vue';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { TrustedAnchor } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
+import XrdIconUpload from '@shared-ui/components/icons/XrdIconUpload.vue';
 
 export default defineComponent({
-  components: { UploadTrustedAnchorDialog, XrdFileUpload },
+  components: { XrdIconUpload, UploadTrustedAnchorDialog, XrdFileUpload },
   emits: ['uploaded'],
   data() {
     return {

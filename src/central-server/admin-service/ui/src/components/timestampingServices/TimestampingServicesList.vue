@@ -41,15 +41,15 @@
       </template>
       <v-data-table
         v-if="showTsaList"
+        data-test="timestamping-services-table"
+        class="elevation-0 data-table"
+        item-value="id"
         :loading="loading"
         :headers="headers"
         :items="timestampingServices"
         :must-sort="true"
         :items-per-page="-1"
-        class="elevation-0 data-table"
-        item-key="id"
         :loader-height="2"
-        data-test="timestamping-services-table"
       >
         <template #[`item.timestamping_interval`]="{ item }">
           {{
