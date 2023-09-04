@@ -42,6 +42,10 @@ public class CommonPageObj {
     public final Alerts alerts = new Alerts();
     public final Button button = new Button();
 
+    public SelenideElement viewTitle(final String viewTitle) {
+        return $x(String.format("//div[@data-test='view-title' and text()='%s']", viewTitle));
+    }
+
     public class Menu {
 
         public SelenideElement memberTab() {
@@ -69,7 +73,7 @@ public class CommonPageObj {
         }
 
         private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'v-tabs-bar__content')]//*[contains(@class,'v-tab') and contains(text(), '%s')]";
+            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab')]//span[text()='%s']";
             return String.format(xpath, tabName);
         }
     }
@@ -106,11 +110,11 @@ public class CommonPageObj {
         }
 
         public SelenideElement btnConfirm() {
-            return $x("//button[@data-test='dialog-confirm-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
 
         public SelenideElement btnDelete() {
-            return $x("//button[@data-test='dialog-delete-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
     }
 

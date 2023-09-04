@@ -36,6 +36,6 @@ public class CertificateViewPageObj {
     }
 
     public SelenideElement btnClose() {
-        return $x("//i[@data-test='close-x']");
+        return $x("//button[@data-test='close-x']");
     }
 }

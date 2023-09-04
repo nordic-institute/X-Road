@@ -40,12 +40,12 @@ Feature: 0100 - CS: Initialization
     And Confirmation PIN <pin-repeat> is entered
     And Submit button is enabled
     When Submit button is clicked
-    Then Submission failed with highlighted errors <result>
+    Then Submission failed with highlighted errors <error-message> for <target>
     Examples:
-      | desc                                   | instance-identifier | cs-address             | pin          | pin-repeat   | result           |
-      | fails with invalid instance identifier | INVALID&&::INSTANCE | valid.example.org      | Valid_Pin_11 | Valid_Pin_11 | IDENTIFIER-ERROR |
-      | fails with invalid CS address          | CS-E2E              | invalid...address...fo | Valid_Pin_11 | Valid_Pin_11 | ADDRESS-ERROR    |
-      | fails with weak PIN                    | CS-E2E              | valid.example.org      | 1            | 1            | PIN-ERROR        |
+      | desc                                   | instance-identifier | cs-address             | pin          | pin-repeat   | target           | error-message                                          |
+      | fails with invalid instance identifier | INVALID&&::INSTANCE | valid.example.org      | Valid_Pin_11 | Valid_Pin_11 | IDENTIFIER-ERROR | Use valid identifier characters only                   |
+      | fails with invalid CS address          | CS-E2E              | invalid...address...fo | Valid_Pin_11 | Valid_Pin_11 | ADDRESS-ERROR    | Valid IP address or fully qualified domain name needed |
+      | fails with weak PIN                    | CS-E2E              | valid.example.org      | 1            | 1            | PIN-ERROR        | The provided pin code was too weak                     |
 
   Scenario: Central server is successfully initialized
     Given Initial Configuration form is visible

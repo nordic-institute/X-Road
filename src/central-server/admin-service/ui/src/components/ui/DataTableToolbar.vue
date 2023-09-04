@@ -28,7 +28,7 @@
   <div class="xrd-table-toolbar d-flex flex-row mb-6">
     <div class="ma-2 pa-2 me-auto align-self-center">
       <slot name="title">
-        <div class="xdr-table-title">
+        <div class="xdr-table-title" data-test="view-title">
           {{ titleKey ? $t(titleKey) : titleValue }}
         </div>
       </slot>

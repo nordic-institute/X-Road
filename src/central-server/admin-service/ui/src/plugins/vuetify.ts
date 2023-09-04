@@ -60,7 +60,7 @@ export default createVuetify({
         colors: {
           primary: Colors.Purple100,
           secondary: Colors.Purple70,
-          'on-error': Colors.Black100,
+          error: Colors.Error,
         },
       },
     },

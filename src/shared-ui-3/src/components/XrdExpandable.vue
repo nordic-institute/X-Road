@@ -42,7 +42,7 @@
         </v-btn>
       </div>
       <div :class="{ 'text--disabled': disabled }">
-        <slot name="link" />
+        <slot name="link" :toggle="toggle" />
       </div>
 
       <v-spacer />
@@ -68,7 +68,7 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   props: {
-    modelValue: {
+    isOpen: {
       type: Boolean,
       default: false,
     },
@@ -80,26 +80,24 @@ export default defineComponent({
       default: false,
     },
   },
-  emits: ['close', 'open', 'update:model-value'],
+  emits: ['open'],
   data() {
     return {
-      opened: this.modelValue
-    };
+      opened: this.isOpen
+    }
   },
-  computed: {},
+  watch: {
+    isOpen(newVal) {
+      this.opened = newVal;
+    }
+  },
   methods: {
     toggle() {
       if (this.disabled) {
         return;
       }
-      if (this.opened) {
-        this.$emit('close');
-        this.opened = false;
-      } else {
-        this.$emit('open');
-        this.opened = true;
-      }
-      this.$emit('update:model-value', this.opened);
+      this.opened = !this.opened;
+      this.$emit('open', this.opened);
     }
   }
 });

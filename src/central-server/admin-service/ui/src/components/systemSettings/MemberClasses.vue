@@ -32,7 +32,7 @@
       :headers="headers"
       :items="memberClasses"
       :must-sort="true"
-      :items-per-page="itemsPerPage"
+      :items-per-page="itemsPerPageOptions[0].value"
       :items-per-page-options="itemsPerPageOptions"
       class="elevation-0 data-table xrd-table"
       item-key="code"
@@ -73,9 +73,6 @@
             {{ $t('action.delete') }}
           </xrd-button>
         </div>
-      </template>
-      <template v-if="totalItems <= 5" #bottom>
-        <custom-data-table-footer />
       </template>
     </v-data-table>
 
@@ -121,15 +118,12 @@ export default defineComponent({
     selectedMemberClass: undefined as MemberClass | undefined,
     showAddEditMemberClassDialog: false,
     showDeleteMemberClassDialog: false,
-    itemsPerPageOptions: toPagingOptions(5, 10),
   }),
   computed: {
     ...mapStores(useMemberClass, useNotifications),
+    itemsPerPageOptions: () => toPagingOptions(5, 10, -1),
     memberClasses() {
       return this.memberClassStore.memberClasses;
-    },
-    itemsPerPage(): number {
-      return this.memberClassStore.memberClasses.length > 5 ? 5 : -1;
     },
     totalItems(): number {
       return this.memberClassStore.memberClasses.length;
@@ -161,8 +155,8 @@ export default defineComponent({
     openEditMemberClassDialog(
       memberClass: MemberClass | undefined = undefined,
     ) {
-      this.showAddEditMemberClassDialog = true;
       this.selectedMemberClass = memberClass;
+      this.showAddEditMemberClassDialog = true;
     },
     closeEditMemberClassDialog() {
       this.showAddEditMemberClassDialog = false;

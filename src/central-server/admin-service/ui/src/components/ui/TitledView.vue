@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <section>
+  <div>
     <header class="header-row d-flex mb-6 align-center">
       <div class="xrd-header-title ma-2 pa-2 me-auto">
         <div class="xrd-view-title">
@@ -46,7 +46,7 @@
     />
 
     <slot />
-  </section>
+  </div>
 </template>
 
 <script lang="ts">

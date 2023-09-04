@@ -158,32 +158,29 @@
         </template>
       </v-table>
     </v-card>
-    <AddMemberSubsystemDialog
+    <add-member-subsystem-dialog
       v-if="showAddSubsystemDialog"
       :member="memberStore.currentMember"
       data-test="add-member-to-group"
       @cancel="cancel"
-      @added-subsystem="addedSubsystem"
-    ></AddMemberSubsystemDialog>
+      @added-subsystem="addedSubsystem" />
 
-    <DeleteMemberSubsystemDialog
-      v-if="showDeleteDialog"
+    <delete-member-subsystem-dialog
+      v-if="clickedSubsystemCode && showDeleteDialog"
       :member="memberStore.currentMember"
       :subsystem-code="clickedSubsystemCode"
       data-test="delete-subsystem"
       @cancel="cancel"
-      @deleted-sbsystem="deletedSubsystem"
-    ></DeleteMemberSubsystemDialog>
+      @delete="deletedSubsystem" />
 
-    <UnregisterMemberSubsystemDialog
-      v-if="showUnregisterDialog"
+    <unregister-member-subsystem-dialog
+      v-if="clickedSubsystemCode && showUnregisterDialog"
       :member="memberStore.currentMember"
       :subsystem-code="clickedSubsystemCode"
       :server-code="clickedServerCode"
       data-test="unregister-subsystem"
       @cancel="cancel"
-      @unregistered-subsystem="unregisteredSubsystem"
-    ></UnregisterMemberSubsystemDialog>
+      @unregistered-subsystem="unregisteredSubsystem" />
   </main>
 </template>
 

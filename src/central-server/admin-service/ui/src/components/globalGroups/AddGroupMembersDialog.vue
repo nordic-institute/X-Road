@@ -68,26 +68,25 @@
               @update:model-value="debouncedFetchItems"
             />
           </template>
-
-          <template #[`item.member_name`]="{ item }">
-            <div>{{ item.raw.member_name }}</div>
-          </template>
           <template #[`item.client_id.member_code`]="{ item }">
-            <div data-test="code">{{ item.raw.client_id.member_code }}</div>
+            <span data-test="code">
+              {{ item.raw.client_id.member_code }}
+            </span>
           </template>
           <template #[`item.client_id.member_class`]="{ item }">
-            <div data-test="class">{{ item.raw.client_id.member_class }}</div>
+            <span data-test="class">
+              {{ item.raw.client_id.member_class }}
+            </span>
           </template>
           <template #[`item.client_id.subsystem_code`]="{ item }">
-            <div data-test="subsystem">
+            <span data-test="subsystem">
               {{ item.raw.client_id.subsystem_code }}
-            </div>
+            </span>
           </template>
           <template #[`item.client_id.instance_id`]="{ item }">
-            <div data-test="instance">{{ item.raw.client_id.instance_id }}</div>
-          </template>
-          <template #[`item.client_id.type`]="{ item }">
-            <div>{{ item.raw.client_id.type }}</div>
+            <span data-test="instance">
+              {{ item.raw.client_id.instance_id }}
+            </span>
           </template>
         </v-data-table-server>
       </div>

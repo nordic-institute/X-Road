@@ -86,7 +86,7 @@
     <!-- Dialogs -->
     <add-certification-service-dialog
       v-if="showAddCSDialog"
-      @save="addCertificationService"
+      @add="addCertificationService"
       @cancel="hideAddCSDialog"
     />
   </div>

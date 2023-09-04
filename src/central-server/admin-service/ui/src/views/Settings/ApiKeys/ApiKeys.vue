@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view title-key="tab.settings.apiKeys">
+  <titled-view title-key="tab.settings.apiKeys" data-test="api-keys-view">
     <template #header-buttons>
       <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
         <xrd-icon-base class="xrd-large-button-icon">
@@ -57,7 +57,7 @@
       </template>
 
       <template #[`item.roles`]="{ item }">
-        <span :data-test="`api-key-row-${item.id}-roles`">{{
+        <span :data-test="`api-key-row-${item.raw.id}-roles`">{{
           translateRoles(item.raw.roles).join(', ')
         }}</span>
       </template>

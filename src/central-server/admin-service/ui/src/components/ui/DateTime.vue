@@ -32,7 +32,7 @@
 import { defineComponent } from 'vue';
 import { formatDateTime } from '@/util/helpers';
 
-const regular = 'YYYY-MM-DD HH:mm:ss';
+const regular = 'YYYY-MM-DD HH:mm';
 const withSeconds = regular + ':ss';
 export default defineComponent({
   props: {

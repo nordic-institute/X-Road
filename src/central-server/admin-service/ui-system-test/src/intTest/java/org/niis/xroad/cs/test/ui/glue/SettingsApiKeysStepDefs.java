@@ -30,9 +30,12 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers.SelenideValidation;
 import org.niis.xroad.cs.test.ui.page.SettingsApiKeysPageObj;
+import org.niis.xroad.cs.test.ui.utils.VuetifyHelper;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vCheckbox;
 
 public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
     private final SettingsApiKeysPageObj apiKeysPage = new SettingsApiKeysPageObj();
@@ -61,7 +64,7 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
             default:
                 throw new IllegalArgumentException("Role [" + role + "] is not supported");
         }
-        apiKeysPage.wizard.checkboxRole(roleEnum).click();
+        vCheckbox(apiKeysPage.wizard.checkboxRole(roleEnum)).click();
     }
 
     @Step("Create API key wizard next button is clicked")
