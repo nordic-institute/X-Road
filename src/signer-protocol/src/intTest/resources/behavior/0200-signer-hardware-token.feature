@@ -16,7 +16,7 @@ Feature: 0200 - Signer: HardwareToken
     Given tokens list contains token "xrd-softhsm-0"
     And token "xrd-softhsm-0" status is "OK"
 
-  Scenario: Activate token
+  Scenario: Token is activated
     Given token "xrd-softhsm-0" is not active
     When token "xrd-softhsm-0" is logged in with pin "1234"
     Then token "xrd-softhsm-0" is active
@@ -25,7 +25,7 @@ Feature: 0200 - Signer: HardwareToken
     When token "xrd-softhsm-0" is logged out
     Then token "xrd-softhsm-0" is not active
 
-  Scenario: Update token pin is not supported for hardware token
+  Scenario: Token pin update is not supported for hardware token
     Given token "xrd-softhsm-0" is not active
     And token "xrd-softhsm-0" is logged in with pin "1234"
     When token "xrd-softhsm-0" pin is update from "1234" to "4321" fails with an error
@@ -101,10 +101,10 @@ Feature: 0200 - Signer: HardwareToken
     Given tokens list contains token "xrd-softhsm-0"
     * Member signing info for client "CS:ORG:2908758-4:Management" is retrieved
 
-  Scenario: Member info
+  Scenario: Member certs are retrieved
     Then member "CS:test:member-1" has 2 certificate
 
-  Scenario: Cert status
+  Scenario: Cert status can be updated
     Given self signed cert generated for token "xrd-softhsm-0" key "KeyX", client "CS:test:member-2"
     And certificate info can be retrieved by cert hash
     Then certificate can be deactivated

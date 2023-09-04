@@ -31,6 +31,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -71,6 +72,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -285,6 +287,11 @@ public class SignerStepDefs extends BaseStepDefs {
         return ClientId.Conf.create(parts[0], parts[1], parts[2]);
     }
 
+    private SecurityServerId.Conf getSecurityServerId(String securityServerId) {
+        final String[] parts = securityServerId.split(":");
+        return SecurityServerId.Conf.create(parts[0], parts[1], parts[2], parts[3]);
+    }
+
     @Step("the {} cert request is generated for token {string} key {string} for client {string} throws exception")
     public void certRequestIsGeneratedForTokenKeyException(String keyUsage, String friendlyName, String keyName, String client) throws Exception {
         try {
@@ -436,6 +443,26 @@ public class SignerStepDefs extends BaseStepDefs {
         assertThat(bytes).isNotEmpty();
     }
 
+    @Step("auth key for Security Server {string} is retrieved")
+    public void getAuthKey(String securityServerId) throws Exception {
+        var authKeyInfo = SignerProxy.getAuthKey(getSecurityServerId(securityServerId));
+        testReportService.attachJson("authKeyInfo", authKeyInfo);
+        assertThat(authKeyInfo).isNotNull();
+    }
+
+    @Step("auth key retrieval for Security Server {string} fails when no active token is found")
+    public void getAuthKeyFail(String securityServerId) throws Exception {
+        try {
+            SignerProxy.getAuthKey(getSecurityServerId(securityServerId));
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            var errorServerId = securityServerId.replace(":", "/");
+            assertException("Signer.KeyNotFound", "auth_key_not_found_for_server",
+                    format("Signer.KeyNotFound: Could not find active authentication key for security server 'SERVER:%s'", errorServerId),
+                    codedException);
+        }
+    }
+
     @Step("Set token name fails with TokenNotFound exception when token does not exist")
     public void setTokenNameFail() throws Exception {
         String tokenId = randomUUID().toString();
@@ -530,6 +557,17 @@ public class SignerStepDefs extends BaseStepDefs {
         } catch (CodedException codedException) {
             assertException("Signer.CertNotFound", "cert_with_id_not_found",
                     "Signer.CertNotFound: Certificate with id '" + certId + "' not found", codedException);
+        }
+    }
+
+    @Step("Member signing info for client {string} fails if not suitable certificates are found")
+    public void getMemberSigningInfoFail(String client) throws Exception {
+        try {
+            SignerProxy.getMemberSigningInfo(getClientId(client));
+            fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertException("Signer.InternalError", "member_has_no_suitable_certs",
+                    "Signer.InternalError: Member 'MEMBER:CS/test/member-1' has no suitable certificates", codedException);
         }
     }
 
