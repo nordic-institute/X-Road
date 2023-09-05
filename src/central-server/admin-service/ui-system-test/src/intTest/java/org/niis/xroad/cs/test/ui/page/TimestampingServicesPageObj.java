@@ -45,7 +45,9 @@ public class TimestampingServicesPageObj {
     }
 
     public SelenideElement tableWithHeaders(String url, String interval, String cost) {
-        var xpath = "./thead//tr[th//span[contains(text(), '%s')] and th//span[contains(text(), '%s')] and th//span[contains(text(), '%s')]]";
+        var xpath = "./thead//tr[th//span[contains(text(), '%s')] "
+                + "and th//span[contains(text(), '%s')] "
+                + "and th//span[contains(text(), '%s')]]";
         return table().find(xpath(String.format(xpath, url, interval, cost)));
     }
 

@@ -28,7 +28,6 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import io.cucumber.java.en.Step;
-import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.constants.Constants;
 import org.niis.xroad.cs.test.ui.page.IntermediateCasPageObj;
 import org.niis.xroad.cs.test.ui.page.TrustServicesPageObj;
