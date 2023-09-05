@@ -163,7 +163,8 @@
       :member="memberStore.currentMember"
       data-test="add-member-to-group"
       @cancel="cancel"
-      @added-subsystem="addedSubsystem" />
+      @added-subsystem="addedSubsystem"
+    />
 
     <delete-member-subsystem-dialog
       v-if="clickedSubsystemCode && showDeleteDialog"
@@ -171,7 +172,8 @@
       :subsystem-code="clickedSubsystemCode"
       data-test="delete-subsystem"
       @cancel="cancel"
-      @delete="deletedSubsystem" />
+      @delete="deletedSubsystem"
+    />
 
     <unregister-member-subsystem-dialog
       v-if="clickedSubsystemCode && showUnregisterDialog"
@@ -180,7 +182,8 @@
       :server-code="clickedServerCode"
       data-test="unregister-subsystem"
       @cancel="cancel"
-      @unregistered-subsystem="unregisteredSubsystem" />
+      @unregistered-subsystem="unregisteredSubsystem"
+    />
   </main>
 </template>
 
