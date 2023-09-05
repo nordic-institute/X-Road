@@ -102,12 +102,10 @@ import DeleteMemberClassDialog from '@/components/systemSettings/DeleteMemberCla
 import { DataTableHeader } from '@/ui-types';
 import { VDataTable } from 'vuetify/labs/VDataTable';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { toPagingOptions } from '@/util/helpers';
 
 export default defineComponent({
   components: {
-    CustomDataTableFooter,
     DataTableToolbar,
     EditMemberClassDialog,
     DeleteMemberClassDialog,

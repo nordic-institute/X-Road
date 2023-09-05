@@ -105,7 +105,12 @@ import { Colors, Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useToken } from '@/store/modules/tokens';
 import { useUser } from '@/store/modules/user';
-import { ConfigurationSigningKey, ConfigurationType, PossibleTokenAction, Token, } from '@/openapi-types';
+import {
+  ConfigurationSigningKey,
+  ConfigurationType,
+  PossibleTokenAction,
+  Token,
+} from '@/openapi-types';
 import KeysTable from '@/components/tokens/KeysTable.vue';
 import TokenLoggingButton from '@/components/tokens/TokenLoggingButton.vue';
 import SigningKeyAddDialog from '@/components/signingKeys/SigningKeyAddDialog.vue';
