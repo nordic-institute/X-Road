@@ -44,8 +44,8 @@
         </div>
       </template>
       <v-data-table-server
-        data-test="management-requests-table"
         v-model:sort-by="sortBy"
+        data-test="management-requests-table"
         :loading="loading"
         :headers="headers"
         :must-sort="true"

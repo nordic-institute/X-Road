@@ -59,7 +59,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { ClientId } from '@/openapi-types';
 import { toIdentifier, toShortMemberId } from '@/util/helpers';
-import { Event } from "@/ui-types";
+import { Event } from '@/ui-types';
 
 export default defineComponent({
   props: {

@@ -67,7 +67,8 @@
       </info-card>
       <info-card
         data-test="valid-to-card"
-        :title-text="$t('trustServices.validTo')">
+        :title-text="$t('trustServices.validTo')"
+      >
         <date-time
           :value="
             intermediateCasServiceStore.currentSelectedIntermediateCa
