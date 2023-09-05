@@ -48,7 +48,8 @@ public class KeyInfo implements Serializable {
 
     @ToString.Include
     public KeyUsageInfo getUsage() {
-        return message.getUsage();
+        var usage = message.getUsage();
+        return usage != KeyUsageInfo.KEY_USAGE_UNKNOWN ? usage : null;
     }
 
     @ToString.Include
@@ -75,13 +76,13 @@ public class KeyInfo implements Serializable {
     public List<CertificateInfo> getCerts() {
         return message.getCertsList().stream()
                 .map(CertificateInfo::new)
-                .collect(Collectors.toList());
+                .collect(Collectors.toUnmodifiableList());
     }
 
     public List<CertRequestInfo> getCertRequests() {
         return message.getCertRequestsList().stream()
                 .map(CertRequestInfo::new)
-                .collect(Collectors.toList());
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @ToString.Include

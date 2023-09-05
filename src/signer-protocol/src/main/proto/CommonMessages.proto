@@ -27,10 +27,11 @@ message SecurityServerIdProto {
 }
 
 enum XRoadObjectType {
-  SERVER = 0;
-  SERVICE = 1;
-  MEMBER = 2;
-  SUBSYSTEM = 3;
-  GLOBALGROUP = 4;
-  LOCALGROUP = 5 [deprecated = true]; // Deprecated
+  XROAD_OBJECT_TYPE_UNKNOWN = 0;
+  SERVER = 1;
+  SERVICE = 2;
+  MEMBER = 3;
+  SUBSYSTEM = 4;
+  GLOBALGROUP = 5;
+  LOCALGROUP = 6 [deprecated = true]; // Deprecated
 }

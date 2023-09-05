@@ -58,6 +58,7 @@ message CertRequestInfoProto {
 
 /* Key usage can either be signing or authentication. */
 enum KeyUsageInfo {
-  SIGNING = 0;
-  AUTHENTICATION = 1;
+  KEY_USAGE_UNKNOWN = 0;
+  SIGNING = 1;
+  AUTHENTICATION = 2;
 }

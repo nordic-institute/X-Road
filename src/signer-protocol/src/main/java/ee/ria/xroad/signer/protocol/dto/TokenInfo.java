@@ -94,14 +94,15 @@ public class TokenInfo implements Serializable {
 
     @ToString.Include
     public TokenStatusInfo getStatus() {
-        return message.getStatus();
+        var status = message.getStatus();
+        return status != TokenStatusInfo.TOKEN_STATUS_UNKNOWN ? status : null;
     }
 
     @ToString.Include
     public List<KeyInfo> getKeyInfo() {
         return message.getKeyInfoList().stream()
                 .map(KeyInfo::new)
-                .collect(Collectors.toList());
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @ToString.Include
