@@ -79,15 +79,18 @@ public class TrustServicesPageObj {
         public final IntermediateCasPageObj intermediaCas = new IntermediateCasPageObj();
 
         public SelenideElement tabSettings() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[@data-test='certification-service-settings-tab-button']");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+                    + "//a[@data-test='certification-service-settings-tab-button']");
         }
 
         public SelenideElement tabIntermediateCas() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[@data-test='certification-service-intermediate-cas-tab-button']");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+                    + "//a[@data-test='certification-service-intermediate-cas-tab-button']");
         }
 
         public SelenideElement tabOcspResponders() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[@data-test='certification-service-ocsp-responders-tab-button']");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+                    + "//a[@data-test='certification-service-ocsp-responders-tab-button']");
         }
 
         public SelenideElement btnViewCertificate() {

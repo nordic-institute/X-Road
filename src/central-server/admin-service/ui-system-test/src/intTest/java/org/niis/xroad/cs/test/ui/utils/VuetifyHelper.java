@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.test.ui.utils;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Condition.cssClass;
@@ -64,11 +63,11 @@ public final class VuetifyHelper {
             this.input = this.controlElement.$x(INPUT_XPATH);
         }
 
-        public Checkbox shouldBeChecked(){
+        public Checkbox shouldBeChecked() {
             controlElement.$x(".//i").shouldHave(cssClass("mdi-checkbox-marked"));
             return this;
         }
-        public Checkbox shouldBeUnchecked(){
+        public Checkbox shouldBeUnchecked() {
             controlElement.$x(".//i").shouldHave(cssClass("mdi-checkbox-blank-outline"));
             return this;
         }

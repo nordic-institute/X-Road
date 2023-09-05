@@ -28,7 +28,6 @@ package org.niis.xroad.cs.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.SystemSettingsParametersPageObj;
-import org.niis.xroad.cs.test.ui.utils.VuetifyHelper;
 
 import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
