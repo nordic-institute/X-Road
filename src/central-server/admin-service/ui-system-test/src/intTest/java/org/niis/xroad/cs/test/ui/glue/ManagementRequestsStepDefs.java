@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,6 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.cs.test.ui.constants.Constants.getSecurityServerId;
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEMENT_REQUEST_ID;

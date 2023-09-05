@@ -29,7 +29,6 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import io.cucumber.java.en.Then;
 import org.niis.xroad.cs.test.ui.page.MemberPageObj;
-import org.niis.xroad.cs.test.ui.utils.VuetifyHelper;
 
 import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 

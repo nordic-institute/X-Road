@@ -30,7 +30,6 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.page.SettingsManagementServicesPageObj;
-import org.niis.xroad.cs.test.ui.utils.VuetifyHelper;
 
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;

@@ -30,7 +30,6 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers.SelenideValidation;
 import org.niis.xroad.cs.test.ui.page.SettingsApiKeysPageObj;
-import org.niis.xroad.cs.test.ui.utils.VuetifyHelper;
 
 import java.util.List;
 import java.util.Map;
