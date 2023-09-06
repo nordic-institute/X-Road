@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,10 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.Getter;
 import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormat;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -51,6 +51,7 @@ public enum CsrFormatMapping {
 
     /**
      * Return matching CertificateRequestFormat, if any
+     *
      * @param csrFormat
      * @return
      */
@@ -60,6 +61,7 @@ public enum CsrFormatMapping {
 
     /**
      * Return matching CsrFormat, if any
+     *
      * @param requestFormat
      * @return
      */
@@ -69,6 +71,7 @@ public enum CsrFormatMapping {
 
     /**
      * return CsrFormatMapping matching the given CsrFormat, if any
+     *
      * @param csrFormat
      * @return
      */
@@ -80,6 +83,7 @@ public enum CsrFormatMapping {
 
     /**
      * return CsrFormatMapping matching the given CertificateRequestFormat, if any
+     *
      * @param requestFormat
      * @return
      */

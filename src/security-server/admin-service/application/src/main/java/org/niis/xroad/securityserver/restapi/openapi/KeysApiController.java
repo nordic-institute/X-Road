@@ -29,7 +29,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +61,7 @@ import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.securityserver.restapi.service.WrongKeyUsageException;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

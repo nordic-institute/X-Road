@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,17 +26,24 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Test utils for working with tokens
@@ -66,25 +73,29 @@ public final class TokenTestUtils {
     public static class TokenInfoBuilder {
         private String id = "id";
         private String friendlyName = "friendly-name";
-        private List<KeyInfo> keyInfos = new ArrayList<>();
+        private List<KeyInfoProto> keyInfos = new ArrayList<>();
+        private Map<String, String> tokenInfos;
+        private TokenStatusInfo status = TokenStatusInfo.OK;
         private boolean readOnly = false;
         private boolean available = true;
         private boolean active = true;
         private String type = TokenInfo.SOFTWARE_MODULE_TYPE;
 
         public TokenInfo build() {
-            return new TokenInfo(type,
-                    friendlyName,
-                    id,
-                    readOnly,
-                    available,
-                    active,
-                    "serial-number",
-                    "label",
-                    123,
-                    TokenStatusInfo.OK,
-                    keyInfos,
-                    new HashMap<>());
+            final TokenInfoProto.Builder builder = TokenInfoProto.newBuilder()
+                    .setType(type)
+                    .setFriendlyName(friendlyName)
+                    .setId(id)
+                    .setReadOnly(readOnly)
+                    .setAvailable(available)
+                    .setActive(active)
+                    .setSerialNumber("serial-number")
+                    .setLabel("label")
+                    .setSlotIndex(123)
+                    .addAllKeyInfo(keyInfos);
+            ofNullable(status).ifPresent(builder::setStatus);
+            ofNullable(tokenInfos).ifPresent(builder::putAllTokenInfo);
+            return new TokenInfo(builder.build());
         }
 
         public TokenInfoBuilder active(boolean activeParam) {
@@ -116,13 +127,27 @@ public final class TokenTestUtils {
             this.friendlyName = friendlyNameParam;
             return this;
         }
+
         /**
          * Adds this item to keys, ensuring there are no duplicates
          */
         public TokenInfoBuilder key(KeyInfo keyInfo) {
-            Set<KeyInfo> keys = new HashSet<>(this.keyInfos);
-            keys.add(keyInfo);
+            Set<KeyInfoProto> keys = new HashSet<>(this.keyInfos);
+            keys.add(keyInfo.getMessage());
             this.keyInfos = new ArrayList<>(keys);
+            return this;
+        }
+
+        public TokenInfoBuilder status(TokenStatusInfo statusParam) {
+            this.status = statusParam;
+            return this;
+        }
+
+        public TokenInfoBuilder tokenInfo(String key, String value) {
+            if (this.tokenInfos == null) {
+                this.tokenInfos = new HashMap<>();
+            }
+            this.tokenInfos.put(key, value);
             return this;
         }
     }
@@ -144,20 +169,24 @@ public final class TokenTestUtils {
         private String id = "id";
         private String friendlyName = "friendly-name";
         private KeyUsageInfo keyUsageInfo = KeyUsageInfo.SIGNING;
-        private List<CertRequestInfo> certRequests = new ArrayList<>();
-        private List<CertificateInfo> certificates = new ArrayList<>();
+        private List<CertRequestInfoProto> certRequests = new ArrayList<>();
+        private List<CertificateInfoProto> certificates = new ArrayList<>();
         private boolean available = true;
 
         public KeyInfo build() {
-            return new KeyInfo(available,
-                    keyUsageInfo,
-                    friendlyName,
-                    id,
-                    "label",
-                    "public-key",
-                    certificates,
-                    certRequests,
-                    "sign-mechanism-name");
+            final KeyInfoProto.Builder builder = KeyInfoProto.newBuilder()
+                    .setAvailable(available)
+                    .setFriendlyName(friendlyName)
+                    .setId(id)
+                    .setLabel("label")
+                    .setPublicKey("public-key")
+                    .addAllCerts(certificates)
+                    .addAllCertRequests(certRequests)
+                    .setSignMechanismName("sign-mechanism-name");
+
+            ofNullable(keyUsageInfo).ifPresent(builder::setUsage);
+
+            return new KeyInfo(builder.build());
         }
 
         public KeyInfoBuilder keyInfo(KeyInfo info) {
@@ -194,8 +223,8 @@ public final class TokenTestUtils {
          * Adds this item to csrs, ensuring there are no duplicates
          */
         public KeyInfoBuilder csr(CertRequestInfo certRequestInfo) {
-            Set<CertRequestInfo> csrs = new HashSet<>(this.certRequests);
-            csrs.add(certRequestInfo);
+            Set<CertRequestInfoProto> csrs = new HashSet<>(this.certRequests);
+            csrs.add(certRequestInfo.getMessage());
             this.certRequests = new ArrayList<>(csrs);
             return this;
         }
@@ -204,8 +233,8 @@ public final class TokenTestUtils {
          * Adds this item to certs, ensuring there are no duplicates
          */
         public KeyInfoBuilder cert(CertificateInfo certificateInfo) {
-            Set<CertificateInfo> certs = new HashSet<>(this.certificates);
-            certs.add(certificateInfo);
+            Set<CertificateInfoProto> certs = new HashSet<>(this.certificates);
+            certs.add(certificateInfo.getMessage());
             this.certificates = new ArrayList<>(certs);
             return this;
         }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -72,6 +70,11 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     private static final String BAD_POLICY_PIN = "-";
 
     public static final String GOOD_TOKEN_ID = "token-which-exists";
+
+    private TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+            .friendlyName(GOOD_TOKEN_NAME)
+            .key(new TokenTestUtils.KeyInfoBuilder().id(GOOD_KEY_ID).build())
+            .build();
 
     @Before
     public void setup() throws Exception {
@@ -119,10 +122,6 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             return null;
         }).when(signerProxyFacade).deactivateToken(any());
 
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().friendlyName(GOOD_TOKEN_NAME).build();
-        KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id(GOOD_KEY_ID).build();
-        tokenInfo.getKeyInfo().add(keyInfo);
-
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
@@ -136,7 +135,12 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String newTokenName = (String) args[1];
-            ReflectionTestUtils.setField(tokenInfo, "friendlyName", newTokenName);
+
+            tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                    .friendlyName(newTokenName)
+                    .key(new TokenTestUtils.KeyInfoBuilder().id(GOOD_KEY_ID).build())
+                    .build();
+
             return null;
         }).when(signerProxyFacade).setTokenFriendlyName(any(), any());
         mockPossibleActionsRuleEngineAllowAll();
@@ -210,16 +214,16 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         } catch (TokenNotFoundException expected) {
         }
 
-        TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
-        assertEquals(GOOD_TOKEN_NAME, tokenInfo.getFriendlyName());
+        TokenInfo token = tokenService.getToken(GOOD_TOKEN_ID);
+        assertEquals(GOOD_TOKEN_NAME, token.getFriendlyName());
     }
 
     @Test
     public void updateTokenFriendlyName() throws Exception {
-        TokenInfo tokenInfo = tokenService.getToken(GOOD_TOKEN_ID);
-        assertEquals(GOOD_TOKEN_NAME, tokenInfo.getFriendlyName());
-        tokenInfo = tokenService.updateTokenFriendlyName(GOOD_TOKEN_ID, "friendly-neighborhood");
-        assertEquals("friendly-neighborhood", tokenInfo.getFriendlyName());
+        TokenInfo token = tokenService.getToken(GOOD_TOKEN_ID);
+        assertEquals(GOOD_TOKEN_NAME, token.getFriendlyName());
+        token = tokenService.updateTokenFriendlyName(GOOD_TOKEN_ID, "friendly-neighborhood");
+        assertEquals("friendly-neighborhood", token.getFriendlyName());
     }
 
     @Test(expected = TokenNotFoundException.class)
@@ -274,7 +278,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     private void mockPossibleActionsRuleEngineAllowAll() {
         possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
             @Override
-            public void requirePossibleTokenAction(PossibleActionEnum action, TokenInfo tokenInfo) throws
+            public void requirePossibleTokenAction(PossibleActionEnum action, TokenInfo token) throws
                     ActionNotPossibleException {
                 // noop
             }
