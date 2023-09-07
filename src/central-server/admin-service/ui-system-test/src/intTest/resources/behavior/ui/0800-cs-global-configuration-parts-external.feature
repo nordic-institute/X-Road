@@ -1,7 +1,6 @@
 @CentralServer
 @ConfigurationParts
 @LoadingTesting
-  @Skip
 Feature: 0800 - CS: Global configuration: External configuration: Configuration parts
 
   Background:

@@ -1,7 +1,6 @@
 @CentralServer
 @SecurityServers
 @SecurityServerDetails
-@Skip
 Feature: 1000 - CS: Security server: Details
 
   Background:

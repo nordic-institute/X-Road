@@ -1,7 +1,6 @@
 @CentralServer
 @ConfigurationAnchor
 @LoadingTesting
-  @XXX
 Feature: 0710 - CS: Global configuration: External configuration: Anchor
 
   Background:
