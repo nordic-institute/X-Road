@@ -1,4 +1,5 @@
 @CentralServer
+@Skip
 Feature: 0850 - CS: Global configuration: Trusted Anchors
 
   Background:

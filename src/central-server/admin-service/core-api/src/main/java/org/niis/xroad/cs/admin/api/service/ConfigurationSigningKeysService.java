@@ -44,7 +44,7 @@ public interface ConfigurationSigningKeysService {
 
     List<ConfigurationSigningKeyWithDetails> findDetailedByToken(ee.ria.xroad.signer.protocol.dto.TokenInfo token);
 
-    void deleteKey(String id);
+    ConfigurationSigningKey deleteKey(String id);
 
     Optional<ConfigurationSigningKey> findActiveForSource(String sourceType);
 

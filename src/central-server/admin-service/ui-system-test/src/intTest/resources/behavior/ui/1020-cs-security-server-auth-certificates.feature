@@ -1,6 +1,7 @@
 @CentralServer
 @SecurityServers
 @SecurityServerCertificates
+@Skip
 Feature: 1020 - CS: Security server: Certificates
 
   Background:

@@ -84,10 +84,7 @@ public class AuthenticationCertificateDeletionRequestHandler implements
         autCertRegistrationRequests.findByAuthCertAndStatus(certificate, Set.of(WAITING)).stream()
                 .filter(req -> serverId.equals(req.getSecurityServerId()))
                 .findFirst()
-                .ifPresentOrElse(
-                        this::revokeAuthCertRegistration,
-                        this::mrInvalidAuthCertificate
-                );
+                .ifPresentOrElse(this::revokeAuthCertRegistration, this::mrInvalidAuthCertificate);
     }
 
     private void revokeAuthCertRegistration(AuthenticationCertificateRegistrationRequestEntity req) {

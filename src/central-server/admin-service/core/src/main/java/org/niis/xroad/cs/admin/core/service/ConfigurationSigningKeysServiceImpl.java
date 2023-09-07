@@ -40,7 +40,6 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
-import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
@@ -98,7 +97,6 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     private static final Date SIGNING_KEY_CERT_NOT_AFTER = Date.from(Instant.parse("2038-01-01T00:00:00Z"));
 
     private final SystemParameterService systemParameterService;
-    private final ConfigurationAnchorService configurationAnchorService;
     private final ConfigurationSigningKeyRepository configurationSigningKeyRepository;
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
@@ -147,7 +145,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     }
 
     @Override
-    public void deleteKey(String identifier) {
+    public ConfigurationSigningKey deleteKey(String identifier) {
         ConfigurationSigningKey signingKey = configurationSigningKeyRepository.findByKeyIdentifier(identifier)
                 .map(configurationSigningKeyMapper::toTarget)
                 .orElseThrow(ConfigurationSigningKeysServiceImpl::notFoundException);
@@ -169,13 +167,12 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
 
             configurationSigningKeyRepository.deleteByKeyIdentifier(identifier);
             signerProxyFacade.deleteKey(signingKey.getKeyIdentifier(), true);
+            return signingKey;
         } catch (ValidationFailureException e) {
             throw e;
         } catch (Exception e) {
             throw new SigningKeyException(ERROR_DELETING_SIGNING_KEY, e);
         }
-
-        configurationAnchorService.recreateAnchor(configurationSourceType, false);
     }
 
     @Override
@@ -278,7 +275,6 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                     .setKeyGeneratedAt(generatedAt)
                     .setTokenIdentifier(tokenId);
 
-            configurationAnchorService.recreateAnchor(configurationSourceType, false);
             return mapWithDetails(tokenInfo, response, keyInfo);
         } catch (Exception e) {
             deleteKey(keyInfo.getId());

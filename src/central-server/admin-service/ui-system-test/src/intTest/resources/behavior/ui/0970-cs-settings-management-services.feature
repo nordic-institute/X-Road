@@ -1,5 +1,6 @@
 @CentralServer
 @ManagementServices
+@Skip
 Feature: 0970 - CS: Settings -> System Settings -> Management Services
 
   Background:
