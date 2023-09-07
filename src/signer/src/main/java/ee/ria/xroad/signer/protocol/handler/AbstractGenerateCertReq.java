@@ -28,8 +28,8 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
 import com.google.protobuf.AbstractMessage;
@@ -56,11 +56,13 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 
 /**
  * Abstract base class for GenerateCertRequestRequestHandler and RegenerateCertRequestRequestHandler.
  *
- * @param <T> the type of generate cert request message this handler handles
+ * @param <ReqT>  the type of generate cert request message this handler handles
+ * @param <RespT> response type
  */
 @Slf4j
 public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
@@ -78,10 +80,9 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
                 new X500Name(subjectName), publicKey);
 
-        ContentSigner signer = new TokenContentSigner(tokenAndKey);
+        ContentSigner signer = new TokenContentSigner(tokenWorkerProvider, tokenAndKey);
 
-        PKCS10CertificationRequest request = certRequestBuilder.build(signer);
-        return request;
+        return certRequestBuilder.build(signer);
     }
 
     private static PublicKey readPublicKey(String publicKeyBase64) throws Exception {
@@ -111,14 +112,15 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
     private static class TokenContentSigner implements ContentSigner {
         private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
+        private final TokenWorkerProvider tokenWorkerProvider;
         private final TokenAndKey tokenAndKey;
 
         private final String digestAlgoId;
         private final String signAlgoId;
 
-        TokenContentSigner(final TokenAndKey tokenAndKey) throws NoSuchAlgorithmException {
+        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) throws NoSuchAlgorithmException {
             this.tokenAndKey = tokenAndKey;
-
+            this.tokenWorkerProvider = tokenWorkerProvider;
             digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
             signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, tokenAndKey.getSignMechanism());
         }
@@ -144,9 +146,12 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
                         .setDigest(ByteString.copyFrom(calculateDigest(digestAlgoId, out.toByteArray())))
                         .build();
 
-                return TemporaryHelper.getTokenWorker(tokenAndKey.getTokenId()).handleSign(request);
+
+                return tokenWorkerProvider.getTokenWorker(tokenAndKey.getTokenId())
+                        .orElseThrow(() -> tokenNotFound(tokenAndKey.getTokenId()))
+                        .handleSign(request);
             } catch (Exception e) {
-                throw translateException(e); //TODO verify that it is necessary to do this here
+                throw translateException(e);
             }
         }
     }

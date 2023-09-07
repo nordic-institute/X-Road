@@ -27,21 +27,23 @@
 package ee.ria.xroad.signer.job;
 
 
-import ee.ria.xroad.signer.TemporaryHelper;
+import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ModuleManagerReloadJob {
+    private final AbstractModuleManager moduleManager;
 
     @Scheduled(fixedDelayString = "#{T(ee.ria.xroad.common.SystemProperties).getModuleManagerUpdateInterval() * 1000}")
     public void update() {
         log.trace("Triggering ModuleManager update");
-        // todo ModuleManager should be injected
-        TemporaryHelper.getModuleManager().onUpdate();
+        moduleManager.refresh();
     }
 
 }

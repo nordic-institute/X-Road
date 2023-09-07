@@ -27,9 +27,9 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
-import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
+import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
+import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 
 import com.google.protobuf.AbstractMessage;
 import io.grpc.Status;
@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.google.protobuf.Any.pack;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -49,7 +50,7 @@ import static java.util.Optional.ofNullable;
 @SuppressWarnings("squid:S119")
 public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
     @Autowired
-    protected TemporaryAkkaMessenger temporaryAkkaMessenger;
+    protected TokenWorkerProvider tokenWorkerProvider;
 
     protected abstract RespT handle(ReqT request) throws Exception;
 
@@ -64,8 +65,9 @@ public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT ext
         }
     }
 
-    protected AbstractTokenWorker getTokenWorker(String tokenId) {
-        return TemporaryHelper.getTokenWorker(tokenId);
+    protected TokenWorker getTokenWorker(String tokenId) {
+        return tokenWorkerProvider.getTokenWorker(tokenId)
+                .orElseThrow(() -> tokenNotFound(tokenId));
     }
 
     private void handleException(Exception exception, StreamObserver<RespT> responseObserver) {

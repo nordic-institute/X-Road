@@ -29,11 +29,9 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
+import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
+import ee.ria.xroad.signer.tokenmanager.module.DefaultModuleManagerImpl;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -46,25 +44,26 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
-
+@Slf4j
 @ComponentScan({"ee.ria.xroad.signer.protocol", "ee.ria.xroad.signer.job"})
 @Configuration
 @EnableScheduling
 public class SignerConfig {
+    private static final String MODULE_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "signer.moduleManagerImpl";
 
-    @Bean
-    @Deprecated
-    public ActorSystem actorSystem() {
-        return ActorSystem.create(SIGNER, getConf(SystemProperties.getSignerPort()));
+    @Bean("moduleManager")
+    public AbstractModuleManager moduleManager() {
+        final String moduleManagerImplClassName = System.getProperty(MODULE_MANAGER_IMPL_CLASS, DefaultModuleManagerImpl.class.getName());
+        log.debug("Using module manager implementation: {}", moduleManagerImplClassName);
+
+        try {
+            var clazz = Class.forName(moduleManagerImplClassName);
+            return (AbstractModuleManager) clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load module manager impl: " + moduleManagerImplClassName, e);
+        }
     }
 
-    private static Config getConf(int signerPort) {
-        Config conf = ConfigFactory.load().getConfig("signer-main")
-                .withFallback(ConfigFactory.load());
-        return conf.withValue("akka.remote.artery.canonical.port",
-                ConfigValueFactory.fromAnyRef(signerPort));
-    }
 
     @Bean
     OcspResponseManager ocspResponseManager() {

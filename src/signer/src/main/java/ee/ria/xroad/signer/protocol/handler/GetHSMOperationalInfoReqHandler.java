@@ -26,9 +26,9 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.ComponentNames;
-import ee.ria.xroad.signer.util.SignerUtil;
+import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.proto.GetHSMOperationalInfoResp;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
@@ -37,12 +37,14 @@ import org.springframework.stereotype.Component;
  * Handles requests for checking HSMs operational status.
  */
 @Component
+@RequiredArgsConstructor
 public class GetHSMOperationalInfoReqHandler extends AbstractRpcHandler<Empty, GetHSMOperationalInfoResp> {
+    private final AbstractModuleManager moduleManager;
 
     @Override
     protected GetHSMOperationalInfoResp handle(Empty request) throws Exception {
-        var actorSelection = temporaryAkkaMessenger.getActorSystem().actorSelection("/user/" + ComponentNames.MODULE_MANAGER);
-
-        return (GetHSMOperationalInfoResp) SignerUtil.ask(actorSelection, "HsmOperationalInfo");
+        return GetHSMOperationalInfoResp.newBuilder()
+                .setOperational(moduleManager.isHSMModuleOperational().orElse(false))
+                .build();
     }
 }

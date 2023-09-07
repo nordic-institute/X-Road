@@ -27,8 +27,7 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
+import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
@@ -42,21 +41,14 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
  */
 @Slf4j
 @Component
-public class UpdateSoftwareTokenPinReqHandler
-        extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
+public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
 
     @Override
     protected Empty handle(UpdateSoftwareTokenPinReq request) throws Exception {
-        final AbstractTokenWorker tokenWorker = getTokenWorker(request.getTokenId());
-        if (tokenWorker instanceof SoftwareTokenWorker) {
-            try {
-                ((SoftwareTokenWorker) tokenWorker).handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
-                return Empty.getDefaultInstance();
-            } catch (Exception e) {
-                // todo move to tokenworker
-                log.error("Failed  to update software token", e);
-                throw new CodedException(X_INTERNAL_ERROR, e);
-            }
+        final TokenWorker tokenWorker = getTokenWorker(request.getTokenId());
+        if (tokenWorker.isSoftwareToken()) {
+            tokenWorker.handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
+            return Empty.getDefaultInstance();
         } else {
             throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
         }

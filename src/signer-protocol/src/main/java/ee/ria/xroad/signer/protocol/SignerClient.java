@@ -51,6 +51,7 @@ import static ee.ria.xroad.signer.protocol.SignerClient.SignerWatcher.requestPro
  * (running as separate JVM processes).
  */
 @Slf4j
+@Deprecated
 public final class SignerClient {
 
     public static final String LOCALHOST_IP = "127.0.0.1";

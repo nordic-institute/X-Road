@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -47,6 +47,11 @@ public interface TokenType {
      * @return true if batch signing is enabled for the token
      */
     boolean isBatchSigningEnabled();
+
+    /**
+     * @return true if pin must be verified per signing.
+     */
+    boolean isPinVerificationPerSigning();
 
     /**
      * @return the slot index of the token

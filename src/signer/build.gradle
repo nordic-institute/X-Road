@@ -29,7 +29,6 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
 
-    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 

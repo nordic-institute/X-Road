@@ -27,11 +27,9 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
-import ee.ria.xroad.signer.TemporaryHelper;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.Value;
@@ -53,6 +51,7 @@ import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
@@ -61,21 +60,108 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
  * Token worker base class.
  */
 @Slf4j
-public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
-
-    protected final String tokenId;
-
+public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLifecycle {
     private final String workerId;
 
-    @Override
-    @Deprecated
-    public void preStart() throws Exception {
-        TemporaryHelper.addTokenWorker(tokenId, this);
-    }
+    protected final String tokenId;
 
     AbstractTokenWorker(TokenInfo tokenInfo) {
         this.tokenId = tokenInfo.getId();
         this.workerId = SignerUtil.getWorkerId(tokenInfo);
+    }
+
+    @Override
+    public void handleActivateToken(ActivateTokenReq message) {
+        try {
+            activateToken(message);
+
+            refresh();
+        } catch (Exception e) {
+            log.error("Failed to activate token '{}': {}", getWorkerId(), e.getMessage());
+
+            TokenManager.setTokenActive(tokenId, false);
+
+            throw translateException(e);
+        }
+    }
+
+    @Override
+    public KeyInfo handleGenerateKey(GenerateKeyReq message) {
+        GenerateKeyResult result;
+
+        try {
+            result = generateKey(message);
+        } catch (Exception e) {
+            log.error("Failed to generate key", e);
+
+            throw translateException(e).withPrefix(X_FAILED_TO_GENERATE_R_KEY);
+        }
+
+        String keyId = result.getKeyId();
+
+        log.debug("Generated new key with id '{}'", keyId);
+
+        if (!hasKey(keyId)) {
+            TokenManager.addKey(tokenId, keyId, result.getPublicKeyBase64());
+            TokenManager.setKeyAvailable(keyId, true);
+            TokenManager.setKeyLabel(keyId, message.getKeyLabel());
+            TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
+        }
+
+        return TokenManager.findKeyInfo(keyId);
+    }
+
+    @Override
+    public void handleDeleteKey(String keyId) {
+        try {
+            deleteKey(keyId);
+        } catch (Exception e) {
+            log.error("Failed to delete key '{}'", keyId, e);
+
+            throw translateException(e);
+        }
+
+        TokenManager.removeKey(keyId);
+    }
+
+    @Override
+    public void handleDeleteCert(String certificateId) {
+        try {
+            deleteCert(certificateId);
+        } catch (Exception e) {
+            log.error("Failed to delete cert '{}'", certificateId, e);
+            throw translateException(e);
+        }
+    }
+
+    @Override
+    public byte[] handleSign(SignReq request) {
+        try {
+            byte[] data = SignerUtil.createDataToSign(request.getDigest().toByteArray(), request.getSignatureAlgorithmId());
+
+            return sign(request.getKeyId(), request.getSignatureAlgorithmId(), data);
+        } catch (Exception e) {
+            log.error("Error while signing with key '{}'", request.getKeyId(), e);
+
+            throw translateException(e).withPrefix(X_CANNOT_SIGN);
+        }
+    }
+
+    @Override
+    public byte[] handleSignCertificate(SignCertificateReq request) {
+        try {
+            PublicKey publicKey = CryptoUtils.readX509PublicKey(request.getPublicKey().toByteArray());
+            return signCertificate(request.getKeyId(), request.getSignatureAlgorithmId(),
+                    request.getSubjectName(), publicKey);
+        } catch (Exception e) {
+            log.error("Error while signing certificate with key '{}'", request.getKeyId(), e);
+            throw translateException(e).withPrefix(X_CANNOT_SIGN);
+        }
+    }
+
+    @Override
+    public void stop() {
+        setTokenAvailable(tokenId, false);
     }
 
     protected boolean hasKey(String keyId) {
@@ -96,103 +182,10 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         return workerId;
     }
 
-    protected Exception customizeException(Exception e) {
-        return e;
-    }
-
-    @Override
-    protected void onMessage(Object message) throws Exception {
-        log.trace("onMessage() = {}", message);
-        unhandled(message);
-    }
-
-    @Override
-    public void postStop() throws Exception {
-        setTokenAvailable(tokenId, false);
-    }
-
-    public void handleActivateToken(ActivateTokenReq message) throws Exception {
-        try {
-            activateToken(message);
-
-            onUpdate();
-        } catch (Exception e) {
-            log.error("Failed to activate token '{}': {}", getWorkerId(), e.getMessage());
-
-            TokenManager.setTokenActive(tokenId, false);
-
-            throw customizeException(e);
-        }
-    }
-
-    public KeyInfo handleGenerateKey(GenerateKeyReq message) {
-        GenerateKeyResult result;
-
-        try {
-            result = generateKey(message);
-        } catch (Exception e) {
-            log.error("Failed to generate key", e);
-
-            throw translateError(customizeException(e)).withPrefix(X_FAILED_TO_GENERATE_R_KEY);
-        }
-
-        String keyId = result.getKeyId();
-
-        log.debug("Generated new key with id '{}'", keyId);
-
-        if (!hasKey(keyId)) {
-            TokenManager.addKey(tokenId, keyId, result.getPublicKeyBase64());
-            TokenManager.setKeyAvailable(keyId, true);
-            TokenManager.setKeyLabel(keyId, message.getKeyLabel());
-            TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
-        }
-
-        return TokenManager.findKeyInfo(keyId);
-    }
-
-    public void handleDeleteKey(String keyId) {
-        try {
-            deleteKey(keyId);
-        } catch (Exception e) {
-            log.error("Failed to delete key '{}'", keyId, e);
-
-            throw translateError(customizeException(e));
-        }
-
-        TokenManager.removeKey(keyId);
-    }
-
-    public void handleDeleteCert(String certificateId) {
-        try {
-            deleteCert(certificateId);
-        } catch (Exception e) {
-            log.error("Failed to delete cert '{}'", certificateId, e);
-            throw translateError(customizeException(e));
-        }
-    }
-
-    public byte[] handleSign(SignReq request) {
-        try {
-            byte[] data = SignerUtil.createDataToSign(request.getDigest().toByteArray(), request.getSignatureAlgorithmId());
-
-            return sign(request.getKeyId(), request.getSignatureAlgorithmId(), data);
-        } catch (Exception e) {
-            log.error("Error while signing with key '{}'", request.getKeyId(), e);
-
-            throw translateError(customizeException(e)).withPrefix(X_CANNOT_SIGN);
-        }
-    }
-
-    public byte[] handleSignCertificate(SignCertificateReq request) {
-        try {
-            PublicKey publicKey = CryptoUtils.readX509PublicKey(request.getPublicKey().toByteArray());
-            return signCertificate(request.getKeyId(), request.getSignatureAlgorithmId(),
-                    request.getSubjectName(), publicKey);
-        } catch (Exception e) {
-            log.error("Error while signing certificate with key '{}'", request.getKeyId(), e);
-            throw translateError(customizeException(e)).withPrefix(X_CANNOT_SIGN);
-        }
-    }
+    /**
+     * Execute additional code post every token worker action.
+     */
+    public abstract void onActionHandled();
 
     // ------------------------------------------------------------------------
 
@@ -237,7 +230,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
     @Value
     protected static class GenerateKeyResult {
-        private final String keyId;
-        private final String publicKeyBase64;
+        String keyId;
+        String publicKeyBase64;
     }
 }

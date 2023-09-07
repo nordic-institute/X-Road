@@ -27,11 +27,10 @@ package ee.ria.xroad.signer.tokenmanager.module;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
-
-import akka.actor.Props;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,14 +45,8 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     private static final List<TokenType> TOKENS =
             Collections.singletonList(new SoftwareTokenType());
 
-    @Override
-    protected void initializeModule() throws Exception {
-        // nothing to do
-    }
-
-    @Override
-    protected void deinitializeModule() throws Exception {
-        // nothing to do
+    public SoftwareModuleWorker(ModuleType moduleType) {
+        super(moduleType);
     }
 
     @Override
@@ -62,12 +55,10 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
-    protected Props props(TokenInfo tokenInfo, TokenType tokenType) {
+    protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
         initTokenInfo(tokenInfo);
-        //TODO:grpc
-        return Props.create(SoftwareTokenWorker.class,
-                tokenInfo, tokenType).withDispatcher("token-worker-dispatcher");
 
+        return new SoftwareTokenWorker(tokenInfo);
     }
 
     private void initTokenInfo(TokenInfo tokenInfo) {

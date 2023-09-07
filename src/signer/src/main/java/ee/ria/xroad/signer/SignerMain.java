@@ -34,8 +34,6 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
-import akka.actor.ActorSystem;
-import akka.actor.CoordinatedShutdown;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.grpc.RpcServer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -72,8 +70,6 @@ public final class SignerMain {
 
     private static GenericApplicationContext springCtx;
 
-    private static ActorSystem actorSystem;
-    private static Signer signer;
     private static AdminPort adminPort;
     private static CertificationServiceDiagnostics diagnosticsDefault;
 
@@ -104,19 +100,19 @@ public final class SignerMain {
         springCtx = new AnnotationConfigApplicationContext(SignerConfig.class);
         springCtx.registerShutdownHook();
 
-        actorSystem = springCtx.getBean(ActorSystem.class);
-        signer = new Signer(actorSystem);
+
 
         OcspClientExecuteScheduler ocspClientExecuteScheduler = null;
         if (springCtx.containsBean("ocspClientExecuteScheduler")) {
             ocspClientExecuteScheduler = springCtx.getBean(OcspClientExecuteScheduler.class);
         }
 
+        //TODO
         adminPort = createAdminPort(SystemProperties.getSignerAdminPort(),
                 springCtx.getBean(OcspClientWorker.class),
                 ocspClientExecuteScheduler);
-        CoordinatedShutdown.get(actorSystem).addJvmShutdownHook(SignerMain::shutdown);
-        signer.start();
+
+
         adminPort.start();
 
         initGrpc();
@@ -135,17 +131,9 @@ public final class SignerMain {
         });
     }
 
+    //TODO: shutdown was tied to akka.
     private static void shutdown() {
         log.info("Signer shutting down...");
-
-        try {
-            if (signer != null) {
-                signer.stop();
-                signer.join();
-            }
-        } catch (Exception e) {
-            log.error("Error stopping signer", e);
-        }
 
         try {
             if (adminPort != null) {

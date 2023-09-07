@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,50 +25,42 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
-import ee.ria.xroad.signer.util.SignerUtil;
 
-import akka.actor.Props;
-import akka.actor.SupervisorStrategy;
 import iaik.pkcs.pkcs11.DefaultInitializeArgs;
 import iaik.pkcs.pkcs11.InitializeArgs;
 import iaik.pkcs.pkcs11.Module;
 import iaik.pkcs.pkcs11.Slot;
+import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.wrapper.Functions;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
 
 /**
  * Module worker for hardware tokens.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class HardwareModuleWorker extends AbstractModuleWorker {
-
     private final HardwareModuleType module;
 
     private Module pkcs11Module;
 
-    @Override
-    public SupervisorStrategy supervisorStrategy() {
-        // escalate to module manager
-        return SignerUtil.createPKCS11ExceptionEscalatingStrategy();
+    public HardwareModuleWorker(HardwareModuleType moduleType) {
+        super(moduleType);
+        this.module = moduleType;
     }
 
     @Override
-    protected void initializeModule() throws Exception {
+    public void start() {
         if (pkcs11Module != null) {
             return;
         }
@@ -97,14 +89,18 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
-    protected void deinitializeModule() throws Exception {
+    public void stop() {
         if (pkcs11Module == null) {
             return;
         }
 
         log.info("Deinitializing module '{}' (library: {})", module.getType(), module.getPkcs11LibraryPath());
 
-        pkcs11Module.finalize(null);
+        try {
+            pkcs11Module.finalize(null);
+        } catch (TokenException e) {
+            throw translateException(e);
+        }
     }
 
     @Override
@@ -170,9 +166,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
-    protected Props props(ee.ria.xroad.signer.protocol.dto.TokenInfo tokenInfo, TokenType tokenType) {
-       //TODO grpc
-        return Props.create(HardwareTokenWorker.class,
-                tokenInfo, tokenType).withDispatcher("token-worker-dispatcher");
+    protected AbstractTokenWorker createWorker(ee.ria.xroad.signer.protocol.dto.TokenInfo tokenInfo, TokenType tokenType) {
+        return new HardwareTokenWorker(tokenInfo, tokenType);
     }
 }

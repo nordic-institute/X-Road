@@ -47,20 +47,12 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.security.KeyPair;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
+import java.security.*;
 import java.security.cert.CertPath;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -72,6 +64,7 @@ import java.util.Map;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
@@ -83,19 +76,7 @@ import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.P12;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createTempKeyDir;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.generateKeyPair;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getBackupKeyDir;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getBackupKeyDirForDateNow;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyStoreFileName;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.*;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.loginFailed;
 import static ee.ria.xroad.signer.util.ExceptionHelper.pinIncorrect;
@@ -121,14 +102,13 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
      * Creates new worker.
      *
      * @param tokenInfo the token info
-     * @param ignored   token type (not used)
      */
-    public SoftwareTokenWorker(TokenInfo tokenInfo, SoftwareTokenType ignored) {
+    public SoftwareTokenWorker(TokenInfo tokenInfo) {
         super(tokenInfo);
     }
 
     @Override
-    protected void onUpdate() {
+    public void refresh() {
         log.trace("onUpdate()");
 
         updateStatus();
@@ -144,19 +124,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-//    @Override
-//    protected void onMessage(Object message) throws Exception {
-//        if (message instanceof InitSoftwareToken) {
-//            initializeToken(((InitSoftwareToken) message).getPin());
-//            sendSuccessResponse();
-//        if (message instanceof UpdateSoftwareTokenPin) {
-//            UpdateSoftwareTokenPin updateTokenPinMessage = (UpdateSoftwareTokenPin) message;
-//            handleUpdateTokenPin(updateTokenPinMessage.getOldPin(), updateTokenPinMessage.getNewPin());
-//            sendSuccessResponse();
-//        } else {
-//            super.onMessage(message);
-//        }
-//    }
+    @Override
+    public void onActionHandled() {
+        //No-OP
+    }
 
     @Override
     protected void activateToken(ActivateTokenReq message) {
@@ -347,7 +318,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    public void initializeToken(char[] pin) throws Exception {
+    @Override
+    public void initializeToken(char[] pin) {
         verifyPinProvided(pin);
 
         log.info("Initializing software token with new pin...");
@@ -356,13 +328,17 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE, "Token PIN does not meet complexity requirements");
         }
 
-        java.security.KeyPair kp = generateKeyPair(SystemProperties.getSignerKeyLength());
+        try {
+            java.security.KeyPair kp = generateKeyPair(SystemProperties.getSignerKeyLength());
 
-        String keyStoreFile = getKeyStoreFileName(PIN_FILE);
-        savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);
+            String keyStoreFile = getKeyStoreFileName(PIN_FILE);
+            savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);
 
-        setTokenAvailable(tokenId, true);
-        setTokenStatus(tokenId, TokenStatusInfo.OK);
+            setTokenAvailable(tokenId, true);
+            setTokenStatus(tokenId, TokenStatusInfo.OK);
+        } catch (Exception e) {
+            throw translateException(e);
+        }
     }
 
     private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin,
@@ -427,7 +403,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         Files.move(getKeyDir().toPath(), getBackupKeyDir(), ATOMIC_MOVE);
     }
 
-    public void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
+    @Override
+    public void handleUpdateTokenPin(char[] oldPin, char[] newPin) {
         log.info("Updating the software token pin to a new one...");
 
         isTokenLoginAllowed = false; // Prevent token login for the time of pin update
@@ -452,7 +429,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             log.info("Updating the software token pin was successful!");
         } catch (Exception e) {
             log.info("Updating the software token pin failed!");
-            throw e;
+            throw translateException(e);
         } finally {
             isTokenLoginAllowed = true; // Allow token login again
         }
@@ -548,5 +525,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         if (!isTokenActive(tokenId)) {
             throw tokenNotActive(tokenId);
         }
+    }
+
+    @Override
+    public boolean isSoftwareToken() {
+        return true;
     }
 }

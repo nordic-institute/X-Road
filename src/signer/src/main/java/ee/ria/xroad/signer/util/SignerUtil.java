@@ -29,20 +29,12 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import akka.actor.ActorSelection;
-import akka.actor.OneForOneStrategy;
-import akka.actor.SupervisorStrategy;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -54,7 +46,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.util.CryptoUtils.SHA1WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSAANDMGF1_ID;
@@ -71,8 +62,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 public final class SignerUtil {
 
     private static final int RANDOM_ID_LENGTH = 20;
-
-    private static final Timeout DEFAULT_ASK_TIMEOUT = new Timeout(5000, TimeUnit.MILLISECONDS);
 
     private SignerUtil() {
     }
@@ -202,36 +191,6 @@ public final class SignerUtil {
     }
 
     /**
-     * Convenience method for sending a message to an actor selection
-     * and returning the result.
-     *
-     * @param actorSelection the actor selection
-     * @param message        the message
-     * @return the result
-     * @throws Exception if an error occurs or if the result times out
-     */
-    public static Object ask(ActorSelection actorSelection, Object message)
-            throws Exception {
-        return ask(actorSelection, message, DEFAULT_ASK_TIMEOUT);
-    }
-
-    /**
-     * Convenience method for sending a message to an actor selection
-     * and returning the result.
-     *
-     * @param actorSelection the actor selection
-     * @param message        the message
-     * @param timeout        the timeout for the result
-     * @return the result
-     * @throws Exception if an error occurs or if the result times out
-     */
-    public static Object ask(ActorSelection actorSelection, Object message,
-            Timeout timeout) throws Exception {
-        return Await.result(Patterns.ask(actorSelection, message, timeout),
-                timeout.duration());
-    }
-
-    /**
      * @param tokenInfo the token
      * @return returns the token worker id consisting of the token type, label
      * and serial number (if available)
@@ -282,22 +241,6 @@ public final class SignerUtil {
                 .replace("{slotIndex}", slotIndex)
                 .replace("{serialNumber}", tokenInfo.getSerialNumber().trim())
                 .replace("{label}", tokenInfo.getLabel().trim());
-    }
-
-    /**
-     * @return a supervisor strategy that escalates PKCS11Exceptions to the parent actor
-     */
-    @Deprecated
-    public static OneForOneStrategy createPKCS11ExceptionEscalatingStrategy() {
-        return new OneForOneStrategy(-1, Duration.Inf(),
-                throwable -> {
-                    if (throwable instanceof Error || throwable instanceof PKCS11Exception) {
-                        return SupervisorStrategy.escalate();
-                    } else {
-                        return SupervisorStrategy.resume();
-                    }
-                }
-        );
     }
 
 }
