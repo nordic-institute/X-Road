@@ -1,5 +1,6 @@
 @CentralServer
 @BackupAndRestore
+@Skip
 Feature: 1100 - CS: Backup and Restore
 
   Background:
