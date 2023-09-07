@@ -35,7 +35,6 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.security.cert.X509Certificate;
-import java.util.Date;
 import java.util.Map.Entry;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -167,10 +166,9 @@ public class OcspResponseManager {
         }
     }
 
-    public boolean handleIsCachedOcspResponse(String certHash, Date date) {
-        OCSPResp response = responseCache.get(certHash, date);
+    public void removeOcspResponseFromTokenManagerIfExpiredOrNotInCache(String certHash) {
+        OCSPResp response = responseCache.get(certHash);
         TokenManager.setOcspResponse(certHash, response);
-        return Boolean.FALSE;
     }
 
     private OCSPResp getResponse(String certHash) {
