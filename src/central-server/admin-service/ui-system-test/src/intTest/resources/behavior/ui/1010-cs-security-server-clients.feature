@@ -1,7 +1,6 @@
 @CentralServer
 @SecurityServers
 @SecurityServerClients
-@Skip
 Feature: 1010 - CS: Security server: Authentication certificates
 
   Background:

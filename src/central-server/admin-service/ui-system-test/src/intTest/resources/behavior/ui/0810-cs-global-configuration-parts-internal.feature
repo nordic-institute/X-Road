@@ -1,6 +1,5 @@
 @CentralServer
 @ConfigurationParts
-@Skip
 Feature: 0810 - CS: Global configuration: Internal configuration: Configuration parts
 
   Background:

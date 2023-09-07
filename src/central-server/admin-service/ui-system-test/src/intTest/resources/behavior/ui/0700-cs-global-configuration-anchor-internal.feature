@@ -1,7 +1,6 @@
 @CentralServer
 @ConfigurationAnchor
 @LoadingTesting
-  @XXX
 Feature: 0700 - CS: Global configuration: Internal configuration: Anchor
 
   Background:

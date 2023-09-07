@@ -272,7 +272,8 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Downloaded anchor has {int} certificates for {sourceType} source")
-    public void anchorFileHas(int count, String sourceType) throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
+    public void anchorFileHas(int count, String sourceType)
+            throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
 
         final File file = scenarioContext.getStepData(DOWNLOADED_FILE);
         final var anchorDoc = DBF.newDocumentBuilder().parse(file);
