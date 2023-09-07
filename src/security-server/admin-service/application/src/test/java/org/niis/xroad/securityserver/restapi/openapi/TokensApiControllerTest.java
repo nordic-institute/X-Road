@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -90,7 +90,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
                 .active(false)
                 .key(inactiveKeyInfo)
                 .build();
-        allTokens = Arrays.asList(new TokenInfo[] {activeTokenInfo, inactiveTokenInfo});
+        allTokens = Arrays.asList(activeTokenInfo, inactiveTokenInfo);
 
         doReturn(allTokens).when(tokenService).getAllTokens();
 
@@ -123,7 +123,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
             String tokenId = (String) args[0];
             String keyLabel = (String) args[1];
             if (GOOD_TOKEN_ID.equals(tokenId)) {
-                ReflectionTestUtils.setField(keyInfo, "label", keyLabel);
+                ReflectionTestUtils.setField(keyInfo.getMessage(), "label_", keyLabel);
                 return keyInfo;
             } else if (NOT_ACTIVE_TOKEN_ID.equals(tokenId)) {
                 throw new CodedException.Fault(SIGNER_X + "." + X_TOKEN_NOT_ACTIVE, null);

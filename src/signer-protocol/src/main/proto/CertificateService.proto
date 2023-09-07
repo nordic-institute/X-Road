@@ -71,8 +71,9 @@ message RegenerateCertRequestResp {
 
 /** Specifies the cert request format to return. */
 enum CertificateRequestFormat {
-  PEM = 0;
-  DER = 1;
+  CERTIFICATE_REQUEST_FORMAT_UNKNOWN = 0;
+  PEM = 1;
+  DER = 2;
 }
 
 message DeleteCertReq {

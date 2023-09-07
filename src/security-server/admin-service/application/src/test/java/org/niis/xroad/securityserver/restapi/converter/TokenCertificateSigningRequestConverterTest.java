@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -60,16 +59,14 @@ public class TokenCertificateSigningRequestConverterTest extends AbstractConvert
 
     @Test
     public void convert() {
-        CertRequestInfo certRequestInfo = new CertRequestInfo("id",
-                ClientId.Conf.create("a", "b", "c"),
-                "subject-name");
+        CertRequestInfo certRequestInfo = new CertificateTestUtils.CertRequestInfoBuilder().build();
         TokenCertificateSigningRequest csr = csrConverter.convert(certRequestInfo);
         assertEquals("id", csr.getId());
         assertEquals("a:b:c", csr.getOwnerId());
     }
 
     @Test
-    public void convertWithPossibleActions() throws Exception {
+    public void convertWithPossibleActions() {
         CertRequestInfo certRequestInfo = new CertificateTestUtils.CertRequestInfoBuilder().build();
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder()
                 .csr(certRequestInfo)

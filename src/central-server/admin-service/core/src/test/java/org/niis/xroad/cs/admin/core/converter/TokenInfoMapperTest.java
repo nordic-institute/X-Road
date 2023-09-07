@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,8 +28,10 @@
 package org.niis.xroad.cs.admin.core.converter;
 
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +61,7 @@ class TokenInfoMapperTest {
     @Mock
     protected TokenActionsResolver tokenActionsResolver;
     @InjectMocks
-    private final TokenInfoMapper tokenInfoMapper = new TokenInfoMapperImpl();
+    private TokenInfoMapper tokenInfoMapper;
 
     @Test
     void toTarget() {
@@ -82,17 +84,36 @@ class TokenInfoMapperTest {
         assertThat(result.isReadOnly()).isFalse();
         assertThat(result.isAvailable()).isTrue();
         assertThat(result.isActive()).isFalse();
+        assertThat(result.getPossibleActions()).isEqualTo(possibleActions);
+        assertThat(result.getConfigurationSigningKeys()).isEqualTo(configurationSigningKeys);
     }
 
     private TokenInfo createTokenInfo() {
-        return new TokenInfo(
-                "type", "TOKEN_FRIENDLY_NAME", "TOKEN_ID", false, true,
-                false, "TOKEN_SERIAL_NUMBER", "label", 13, OK, List.of(createKeyInfo()), Map.of("key", "value")
-        );
+        return new TokenInfo(TokenInfoProto.newBuilder()
+                .setType("type")
+                .setFriendlyName("TOKEN_FRIENDLY_NAME")
+                .setId("TOKEN_ID")
+                .setReadOnly(false)
+                .setAvailable(true)
+                .setActive(false)
+                .setSerialNumber("TOKEN_SERIAL_NUMBER")
+                .setLabel("label")
+                .setSlotIndex(13)
+                .setStatus(OK)
+                .addAllKeyInfo(List.of(createKeyInfo().getMessage()))
+                .putAllTokenInfo(Map.of("key", "value"))
+                .build());
     }
 
     private KeyInfo createKeyInfo() {
-        return new ee.ria.xroad.signer.protocol.dto.KeyInfo(true, KeyUsageInfo.SIGNING, "keyFriendlyName",
-                "keyId", "keyLabel", "keyPublicKey", List.of(), List.of(), "keySignMechanismName");
+        return new KeyInfo(KeyInfoProto.newBuilder()
+                .setAvailable(true)
+                .setUsage(KeyUsageInfo.SIGNING)
+                .setFriendlyName("keyFriendlyName")
+                .setId("keyId")
+                .setLabel("keyLabel")
+                .setPublicKey("keyPublicKey")
+                .setSignMechanismName("keySignMechanismName")
+                .build());
     }
 }

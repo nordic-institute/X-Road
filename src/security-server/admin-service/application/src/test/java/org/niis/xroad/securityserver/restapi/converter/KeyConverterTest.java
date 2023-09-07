@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,9 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
@@ -37,9 +35,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -47,21 +42,15 @@ public class KeyConverterTest extends AbstractConverterTestContext {
 
     @Test
     public void convert() throws Exception {
-        List<CertificateInfo> certs = new ArrayList<>();
-        certs.add(new CertificateTestUtils.CertificateInfoBuilder().build());
-        List<CertRequestInfo> csrs = new ArrayList<>();
-        csrs.add(new CertRequestInfo("id", ClientId.Conf.create("a", "b", "c"),
-                "sujbect-name"));
+        KeyInfo info = new TokenTestUtils.KeyInfoBuilder()
+                .available(true)
+                .keyUsageInfo(KeyUsageInfo.SIGNING)
+                .friendlyName("friendly-name")
+                .id("id")
+                .cert(new CertificateTestUtils.CertificateInfoBuilder().build())
+                .csr(createTestCsr())
+                .build();
 
-        KeyInfo info = new KeyInfo(true,
-                KeyUsageInfo.SIGNING,
-                "friendly-name",
-                "id",
-                "label",
-                "public-key",
-                certs,
-                csrs,
-                "sign-mechanism-name");
         Key key = keyConverter.convert(info);
 
         assertEquals(true, key.getAvailable());
@@ -79,40 +68,35 @@ public class KeyConverterTest extends AbstractConverterTestContext {
     @Test
     public void isSavedToConfiguration() throws Exception {
         // test different combinations of keys and certs and the logic for isSavedToConfiguration
-        KeyInfo info = new TokenTestUtils.KeyInfoBuilder().build();
 
-        info.getCerts().clear();
-        info.getCertRequests().clear();
-        info.getCertRequests().add(createTestCsr());
+        KeyInfo info = new TokenTestUtils.KeyInfoBuilder()
+                .csr(createTestCsr())
+                .build();
         assertEquals(true, keyConverter.convert(info).getSavedToConfiguration());
 
-        info.getCerts().clear();
-        info.getCertRequests().clear();
+        info = new TokenTestUtils.KeyInfoBuilder().build();
         assertEquals(false, keyConverter.convert(info).getSavedToConfiguration());
 
-        info.getCerts().clear();
-        info.getCertRequests().clear();
-        info.getCerts().add(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(false).build());
-        info.getCerts().add(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(false).build());
+        info = new TokenTestUtils.KeyInfoBuilder()
+                .cert(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(false).build())
+                .cert(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(false).build())
+                .build();
         assertEquals(false, keyConverter.convert(info).getSavedToConfiguration());
 
-        info.getCerts().clear();
-        info.getCertRequests().clear();
-        info.getCerts().add(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(false).build());
-        info.getCerts().add(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(true).build());
+        info = new TokenTestUtils.KeyInfoBuilder()
+                .cert(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(false).build())
+                .cert(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(true).build())
+                .build();
         assertEquals(true, keyConverter.convert(info).getSavedToConfiguration());
 
-        info.getCerts().clear();
-        info.getCertRequests().clear();
-        info.getCerts().add(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(true).build());
-        info.getCerts().add(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(false).build());
+        info = new TokenTestUtils.KeyInfoBuilder()
+                .cert(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(true).build())
+                .cert(new CertificateTestUtils.CertificateInfoBuilder().savedToConfiguration(false).build())
+                .build();
         assertEquals(true, keyConverter.convert(info).getSavedToConfiguration());
     }
 
     public static CertRequestInfo createTestCsr() {
-        return new CertRequestInfo("id",
-                ClientId.Conf.create("a", "b", "c"),
-                "sujbect-name");
-
+        return new CertificateTestUtils.CertRequestInfoBuilder().build();
     }
 }

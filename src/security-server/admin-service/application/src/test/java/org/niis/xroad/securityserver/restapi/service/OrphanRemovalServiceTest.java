@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -284,7 +284,7 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
         assertFalse(orphanRemovalService.isOrphanKey(
                 new TokenTestUtils.KeyInfoBuilder()
                         .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
-                        .cert(new CertificateTestUtils.CertificateInfoBuilder().clientId(null).build())
+                        .cert(new CertificateTestUtils.CertificateInfoBuilder().build())
                         .build(),
                 orphanSubsystemDeleted));
     }

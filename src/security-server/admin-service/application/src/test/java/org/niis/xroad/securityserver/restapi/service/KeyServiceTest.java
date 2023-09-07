@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -46,7 +46,6 @@ import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -102,16 +101,9 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     private static final String REGISTERED_AUTH_CERT_ID = "registered-auth-cert";
     private static final String NONREGISTERED_AUTH_CERT_ID = "unregistered-auth-cert";
 
-    private static final TokenInfo TOKEN_INFO = new TokenTestUtils.TokenInfoBuilder()
-            .friendlyName("good-token").build();
+    private TokenInfo tokenInfo;
 
-    private static final KeyInfo AUTH_KEY = new TokenTestUtils.KeyInfoBuilder()
-            .id(AUTH_KEY_ID)
-            .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
-            .build();
-
-    static {
-        // auth key
+    private TokenInfo createTokenInfo(String authKeyFriendlyName) {
         CertificateInfo registeredCert = new CertificateTestUtils.CertificateInfoBuilder()
                 .savedToConfiguration(true)
                 .certificateStatus(CertificateInfo.STATUS_REGISTERED)
@@ -122,13 +114,17 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
                 .id(NONREGISTERED_AUTH_CERT_ID)
                 .build();
-        AUTH_KEY.getCerts().add(registeredCert);
-        AUTH_KEY.getCerts().add(nonregisteredCert);
         CertRequestInfo certRequestInfo = new CertificateTestUtils.CertRequestInfoBuilder()
                 .build();
-        AUTH_KEY.getCertRequests().add(certRequestInfo);
+        KeyInfo authKeyInfo = new TokenTestUtils.KeyInfoBuilder()
+                .id(AUTH_KEY_ID)
+                .friendlyName(authKeyFriendlyName)
+                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+                .cert(registeredCert)
+                .cert(nonregisteredCert)
+                .csr(certRequestInfo)
+                .build();
 
-        // sign and typeless keys
         KeyInfo signKey = new TokenTestUtils.KeyInfoBuilder()
                 .id(SIGN_KEY_ID)
                 .keyUsageInfo(KeyUsageInfo.SIGNING)
@@ -137,13 +133,17 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 .id(TYPELESS_KEY_ID)
                 .keyUsageInfo(null)
                 .build();
-        TOKEN_INFO.getKeyInfo().add(AUTH_KEY);
-        TOKEN_INFO.getKeyInfo().add(signKey);
-        TOKEN_INFO.getKeyInfo().add(typelessKey);
+        return new TokenTestUtils.TokenInfoBuilder()
+                .friendlyName("good-token")
+                .key(authKeyInfo)
+                .key(signKey)
+                .key(typelessKey)
+                .build();
     }
 
     @Before
     public void setup() throws Exception {
+        tokenInfo = createTokenInfo("friendly-name");
         doAnswer(invocation -> {
             Object[] arguments = invocation.getArguments();
             String newKeyName = (String) arguments[1];
@@ -151,7 +151,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
             }
             if (arguments[0].equals(AUTH_KEY_ID)) {
-                ReflectionTestUtils.setField(AUTH_KEY, "friendlyName", newKeyName);
+                tokenInfo = createTokenInfo(newKeyName);
             } else {
                 throw new RuntimeException(arguments[0] + " not supported");
             }
@@ -293,7 +293,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getPossibleActionsForKey() throws Exception {
         EnumSet<PossibleActionEnum> possibleActions = keyService.getPossibleActionsForKey(SIGN_KEY_ID);
-        Set<PossibleActionEnum> allActions = new HashSet(Arrays.asList(PossibleActionEnum.values()));
+        Set<PossibleActionEnum> allActions = new HashSet<>(Arrays.asList(PossibleActionEnum.values()));
         assertEquals(allActions, new HashSet<>(possibleActions));
     }
 
@@ -306,7 +306,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 if (AUTH_KEY_ID.equals(keyId)
                         || SIGN_KEY_ID.equals(keyId)
                         || TYPELESS_KEY_ID.equals(keyId)) {
-                    return TOKEN_INFO;
+                    return tokenInfo;
                 } else {
                     throw new KeyNotFoundException(keyId + " not supported");
                 }
@@ -314,7 +314,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
 
             @Override
             public List<TokenInfo> getAllTokens() {
-                return Collections.singletonList(TOKEN_INFO);
+                return Collections.singletonList(tokenInfo);
             }
         };
         keyService = new KeyService(signerProxyFacade, tokenService, possibleActionsRuleEngineParam,
@@ -324,7 +324,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     private void mockPossibleActionsRuleEngineAllowAll() {
         possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
             @Override
-            public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
+            public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo token,
                     KeyInfo keyInfo) {
                 // by default all actions are possible
                 return EnumSet.allOf(PossibleActionEnum.class);
@@ -336,14 +336,14 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     private void mockPossibleActionsRuleEngineDenyAll() {
         possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
             @Override
-            public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo,
+            public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo token,
                     KeyInfo keyInfo) {
                 // prepare so that no actions are possible
                 return EnumSet.noneOf(PossibleActionEnum.class);
             }
 
             @Override
-            public void requirePossibleKeyAction(PossibleActionEnum action, TokenInfo tokenInfo,
+            public void requirePossibleKeyAction(PossibleActionEnum action, TokenInfo token,
                     KeyInfo keyInfo) throws ActionNotPossibleException {
                 throw new ActionNotPossibleException("");
             }

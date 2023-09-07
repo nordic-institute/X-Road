@@ -56,7 +56,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -338,53 +337,32 @@ public class OcspClientWorker {
         ocspResponseManager.handleSetOcspResponses(setOcspResponsesReq);
     }
 
-    /**
-     * @return true if the response for given certificate does not exist, is expired (in which case it is also
-     * removed from cache) or is not valid
-     */
-    boolean shouldFetchResponse(X509Certificate subject) throws Exception {
-        if (!CertUtils.isValid(subject)) {
-            log.warn("Certificate '{}' is not valid", subject.getSubjectX500Principal());
-
-            return false;
-        }
-
-        String subjectHash = calculateCertHexHash(subject);
-
+    private boolean isCertValid(X509Certificate subject) {
         try {
-            boolean shouldFetchResponse = !isCachedOcspResponse(subjectHash);
+            if (!CertUtils.isValid(subject)) {
+                log.warn("Certificate '{}' is not valid", subject.getSubjectX500Principal());
+                return false;
+            }
 
-            log.debug("shouldFetchResponse for cert: {} value: {}", subjectHash, shouldFetchResponse);
+            String subjectHash = calculateCertHexHash(subject);
+            try {
+                // todo this should be separated from isValid check.
+                //  This seems to be the only place where expired Ocsp response is cleared from TokenManager.
+                ocspResponseManager.removeOcspResponseFromTokenManagerIfExpiredOrNotInCache(subjectHash);
+                log.debug("shouldFetchResponse for cert: {} value: {}", subjectHash, true);
+            } catch (Exception e) {
+                log.debug("shouldFetchResponse encountered an error, returning true ", e);
 
-            return shouldFetchResponse;
-        } catch (Exception e) {
-            log.debug("shouldFetchResponse encountered an error, returning true ", e);
-
-            // Ignore this error, since any kind of failure to get the response
-            // or validate it means we should fetch the response from the
-            // responder.
+                // Ignore this error, since any kind of failure to get the response
+                // or validate it means we should fetch the response from the
+                // responder.
+            }
 
             return true;
-        }
-    }
-
-    boolean isCertValid(X509Certificate subject) {
-        try {
-            return shouldFetchResponse(subject);
         } catch (Exception e) {
             log.error("Unable to check if should fetch status for " + subject.getSerialNumber(), e);
             return false;
         }
-    }
-
-    boolean isCachedOcspResponse(String certHash) {
-        // Check if the OCSP response is in the cache
-        Date atDate = new Date();
-        boolean isCachedOcspResponse = ocspResponseManager.handleIsCachedOcspResponse(certHash, atDate);
-
-        log.trace("isCachedOcspResponse(certHash: {}, atDate: {}) = {}", certHash, atDate, isCachedOcspResponse);
-
-        return isCachedOcspResponse;
     }
 
     private List<X509Certificate> getCertChain(X509Certificate cert) {
