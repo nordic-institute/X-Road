@@ -200,7 +200,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         try {
             login();
         } catch (Exception e) {
-            log.error("Failed to log in to token '" + getWorkerId() + "' at initialization", e);
+            log.error("Failed to log in to token '{}' at initialization", getWorkerId(), e);
         }
     }
 

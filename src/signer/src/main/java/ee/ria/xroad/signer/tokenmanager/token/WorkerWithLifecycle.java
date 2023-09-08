@@ -44,7 +44,7 @@ public interface WorkerWithLifecycle {
     /**
      * Reloads the worker. Reloaded instance should be similar to newly initialized worker.
      */
-    default void reload() {
+    default void reload() throws Exception {
         //NO-OP
     }
 

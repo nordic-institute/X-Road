@@ -75,7 +75,6 @@ public class BlockingTokenWorker implements TokenWorker {
     @Override
     public synchronized byte[] handleSignCertificate(SignCertificateReq request) {
         return synchronizedAction(() -> tokenWorker.handleSignCertificate(request));
-
     }
 
     @Override

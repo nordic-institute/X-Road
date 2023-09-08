@@ -113,7 +113,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
 
     @Override
     public void refresh() {
-        log.trace("onUpdate()");
+        log.trace("refresh()");
         loadModules();
 
         if (SLAVE.equals(serverNodeType)) {

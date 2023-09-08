@@ -33,6 +33,7 @@ import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.WorkerWithLifecycle;
 
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,18 +66,26 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
 
     @Override
     public void reload() {
-        loadTokens(true);
-
+        log.warn("Reloading {}.. ", getClass().getSimpleName());
+        try {
+            loadTokens(true);
+        } catch (Exception e) {
+            log.error("Error during module {} reload. It will be repeated on next scheduled module refresh..", getClass().getSimpleName(), e);
+            throw translateException(e);
+        }
     }
 
     @Override
     public void refresh() {
         try {
             loadTokens(false);
+        } catch (PKCS11Exception pkcs11Exception) {
+            log.warn("PKCS11Exception was thrown. Reloading underlying module and token workers.");
+            reload();
+            throw translateException(pkcs11Exception);
         } catch (Exception e) {
             log.error("Error during update of module " + getClass().getSimpleName(), e);
-
-            throw e;
+            throw translateException(e);
         }
     }
 
@@ -84,34 +93,29 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
 
     protected abstract AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType);
 
-    private void loadTokens(boolean reload) {
-        try {
-            final Map<String, BlockingTokenWorker> newTokens = new HashMap<>();
+    private void loadTokens(boolean reload) throws Exception {
+        final Map<String, BlockingTokenWorker> newTokens = new HashMap<>();
 
-            final List<TokenType> tokens = listTokens();
-            log.trace("Got {} tokens from module '{}'", tokens.size(), getClass().getSimpleName());
+        final List<TokenType> tokens = listTokens();
+        log.trace("Got {} tokens from module '{}'", tokens.size(), getClass().getSimpleName());
 
-            for (TokenType tokenType : tokens) {
-                BlockingTokenWorker tokenWorker = tokenWorkers.get(tokenType.getId());
-                if (tokenWorker == null) {
-                    log.debug("Adding new token '{}#{}'", tokenType.getModuleType(), tokenType.getId());
-                    tokenWorker = new BlockingTokenWorker(this, createWorker(getTokenInfo(tokenType), tokenType));
-                    tokenWorker.getInternalTokenWorker().start();
-                } else if (reload) {
-                    tokenWorker.getInternalTokenWorker().reload();
-                }
-
-                tokenWorker.getInternalTokenWorker().refresh();
-                newTokens.put(tokenType.getId(), tokenWorker);
+        for (TokenType tokenType : tokens) {
+            BlockingTokenWorker tokenWorker = tokenWorkers.get(tokenType.getId());
+            if (tokenWorker == null) {
+                log.debug("Adding new token '{}#{}'", tokenType.getModuleType(), tokenType.getId());
+                tokenWorker = new BlockingTokenWorker(this, createWorker(getTokenInfo(tokenType), tokenType));
+                tokenWorker.getInternalTokenWorker().start();
+            } else if (reload) {
+                tokenWorker.getInternalTokenWorker().reload();
             }
 
-            final var oldTokenWorkers = tokenWorkers;
-            tokenWorkers = Collections.unmodifiableMap(newTokens);
-            stopLostTokenWorkers(oldTokenWorkers, tokens);
-        } catch (Exception e) {
-            log.error("Error during update of module {}", getClass().getSimpleName(), e);
-            throw translateException(e);
+            tokenWorker.getInternalTokenWorker().refresh();
+            newTokens.put(tokenType.getId(), tokenWorker);
         }
+
+        final var oldTokenWorkers = tokenWorkers;
+        tokenWorkers = Collections.unmodifiableMap(newTokens);
+        stopLostTokenWorkers(oldTokenWorkers, tokens);
     }
 
     private void stopLostTokenWorkers(Map<String, BlockingTokenWorker> oldTokens, List<TokenType> newTokens) {

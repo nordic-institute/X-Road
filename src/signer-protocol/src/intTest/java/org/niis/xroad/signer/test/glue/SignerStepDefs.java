@@ -65,6 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
@@ -83,7 +84,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-public class SignerStepDefs extends BaseStepDefs {
+public class SignerStepDefs extends BaseSignerStepDefs {
     private String keyId;
     private String csrId;
     private String certHash;
@@ -91,7 +92,6 @@ public class SignerStepDefs extends BaseStepDefs {
     private byte[] cert;
 
     private final Map<String, String> tokenLabelToIdMapping = new HashMap<>();
-    private final Map<String, String> tokenFriendlyNameToIdMapping = new HashMap<>();
 
     @Step("tokens are listed")
     public void listTokens() throws Exception {
@@ -99,14 +99,14 @@ public class SignerStepDefs extends BaseStepDefs {
         testReportService.attachJson("Tokens", tokens.toArray());
 
         tokenLabelToIdMapping.clear();
-        tokenFriendlyNameToIdMapping.clear();
+        getTokenFriendlyNameToIdMapping().clear();
 
         tokens.forEach(token -> {
             if (StringUtils.isNotBlank(token.getLabel())) {
                 tokenLabelToIdMapping.put(token.getLabel(), token.getId());
             }
             if (StringUtils.isNotBlank(token.getFriendlyName())) {
-                tokenFriendlyNameToIdMapping.put(token.getFriendlyName(), token.getId());
+                getTokenFriendlyNameToIdMapping().put(token.getFriendlyName(), token.getId());
             }
         });
     }
@@ -154,13 +154,13 @@ public class SignerStepDefs extends BaseStepDefs {
 
     @Step("token {string} is logged in with pin {string}")
     public void tokenIsActivatedWithPin(String friendlyName, String pin) throws Exception {
-        var tokenId = tokenFriendlyNameToIdMapping.get(friendlyName);
+        var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
         SignerProxy.activateToken(tokenId, pin.toCharArray());
     }
 
     @Step("token {string} is logged out")
     public void tokenIsLoggedOut(String friendlyName) throws Exception {
-        var tokenId = tokenFriendlyNameToIdMapping.get(friendlyName);
+        var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
         SignerProxy.deactivateToken(tokenId);
     }
 
@@ -172,13 +172,13 @@ public class SignerStepDefs extends BaseStepDefs {
 
     @Step("token {string} pin is updated from {string} to {string}")
     public void tokenPinIsUpdatedFromTo(String friendlyName, String oldPin, String newPin) throws Exception {
-        var tokenId = tokenFriendlyNameToIdMapping.get(friendlyName);
+        var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
         SignerProxy.updateTokenPin(tokenId, oldPin.toCharArray(), newPin.toCharArray());
     }
 
     @Step("token {string} pin is update from {string} to {string} fails with an error")
     public void tokenPinIsUpdatedFromToError(String friendlyName, String oldPin, String newPin) throws Exception {
-        var tokenId = tokenFriendlyNameToIdMapping.get(friendlyName);
+        var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
         try {
             SignerProxy.updateTokenPin(tokenId, oldPin.toCharArray(), newPin.toCharArray());
         } catch (CodedException codedException) {
@@ -211,7 +211,7 @@ public class SignerStepDefs extends BaseStepDefs {
 
     @Step("new key {string} generated for token {string}")
     public void newKeyGeneratedForToken(String keyLabel, String friendlyName) throws Exception {
-        var tokenId = tokenFriendlyNameToIdMapping.get(friendlyName);
+        var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
         final KeyInfo keyInfo = SignerProxy.generateKey(tokenId, keyLabel);
         testReportService.attachJson("keyInfo", keyInfo);
         this.keyId = keyInfo.getId();
@@ -242,14 +242,7 @@ public class SignerStepDefs extends BaseStepDefs {
         SignerProxy.deleteKey(key.getId(), true);
     }
 
-    private KeyInfo findKeyInToken(String friendlyName, String keyName) throws Exception {
-        var foundKeyInfo = getTokenInfoByFriendlyName(friendlyName).getKeyInfo().stream()
-                .filter(keyInfo -> keyInfo.getFriendlyName().equals(keyName))
-                .findFirst()
-                .orElseThrow();
-        testReportService.attachJson("Key [" + keyName + "]", foundKeyInfo);
-        return foundKeyInfo;
-    }
+
 
     @Step("Certificate is imported for client {string}")
     public void certificateIsImported(String client) throws Exception {
@@ -399,7 +392,8 @@ public class SignerStepDefs extends BaseStepDefs {
     public void digestCanBeSignedUsingKeyFromToken(String keyName, String friendlyName) throws Exception {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
-        SignerProxy.sign(key.getId(), SHA256WITHRSA_ID, calculateDigest(SHA256_ID, "digest".getBytes(UTF_8)));
+        var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
+        SignerProxy.sign(key.getId(), SHA256WITHRSA_ID, calculateDigest(SHA256_ID, digest.getBytes(UTF_8)));
     }
 
     @Step("certificate can be deactivated")
@@ -439,7 +433,9 @@ public class SignerStepDefs extends BaseStepDefs {
     public void sign(String keyName, String friendlyName) throws Exception {
 
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
-        byte[] bytes = SignerProxy.sign(key.getId(), SHA512WITHRSA_ID, calculateDigest(SHA256_ID, "digest".getBytes(UTF_8)));
+
+        var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
+        byte[] bytes = SignerProxy.sign(key.getId(), SHA512WITHRSA_ID, calculateDigest(SHA256_ID, digest.getBytes(UTF_8)));
         assertThat(bytes).isNotEmpty();
     }
 
@@ -616,9 +612,5 @@ public class SignerStepDefs extends BaseStepDefs {
         assertThat(ocspResponses[0]).isNull();
     }
 
-    private TokenInfo getTokenInfoByFriendlyName(String friendlyName) throws Exception {
-        var tokenInfo = SignerProxy.getToken(tokenFriendlyNameToIdMapping.get(friendlyName));
-        testReportService.attachJson("TokenInfo", tokenInfo);
-        return tokenInfo;
-    }
+
 }

@@ -40,7 +40,11 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
@@ -94,13 +98,24 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
             return;
         }
 
-        log.info("Deinitializing module '{}' (library: {})", module.getType(), module.getPkcs11LibraryPath());
+        log.info("Stopping module '{}' (library: {})", module.getType(), module.getPkcs11LibraryPath());
 
         try {
             pkcs11Module.finalize(null);
         } catch (TokenException e) {
             throw translateException(e);
+        } finally {
+            pkcs11Module = null;
         }
+    }
+
+    @Override
+    public void reload() {
+        log.info("Reloading {}", module);
+        stop();
+        start();
+
+        super.reload();
     }
 
     @Override
