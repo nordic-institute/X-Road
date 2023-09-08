@@ -40,7 +40,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { BackupHandler } from '@/types';
+import { BackupHandler } from '../../types';
 import XrdButton from "../XrdButton.vue";
 
 export default defineComponent({

@@ -67,7 +67,7 @@ import { DataTableHeader } from '@/ui-types';
 import ConfigurationAnchorItem, {
   Anchor,
 } from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
-import XrdIconDownload from '@shared-ui/components/icons/XrdIconDownload.vue';
+import {XrdIconDownload} from '@niis/shared-ui';
 
 export default defineComponent({
   components: { ConfigurationAnchorItem, XrdIconDownload },

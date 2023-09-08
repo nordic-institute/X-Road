@@ -45,7 +45,7 @@ import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { useNotifications } from '@/store/modules/notifications';
-import XrdIconDownload from '@shared-ui/components/icons/XrdIconDownload.vue';
+import { XrdIconDownload } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {

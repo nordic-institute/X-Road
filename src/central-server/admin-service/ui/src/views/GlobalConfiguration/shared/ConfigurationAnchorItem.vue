@@ -67,6 +67,7 @@ import { VDataTable } from 'vuetify/labs/VDataTable';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import { XrdIconCertificate } from '@niis/shared-ui';
 
 export interface Anchor {
   title: string;
@@ -75,7 +76,7 @@ export interface Anchor {
 }
 
 export default defineComponent({
-  components: { CustomDataTableFooter, DataTableToolbar, DateTime, VDataTable },
+  components: { CustomDataTableFooter, DataTableToolbar, DateTime, VDataTable, XrdIconCertificate },
   props: {
     loading: {
       type: Boolean,

@@ -9,8 +9,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts  --fix --ignore-path .gitignore",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
-    "npx-check-audit": "npx audit-ci@6.3.0 --config audit-ci-shared.json >build/reports/audit-ci.txt",
-    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules && rm -rf xrd-shared-ui-3.0.0.tgz",
+    "npx-check-audit": "yarn dlx audit-ci@6.6.0 --config audit-ci-shared.json >build/reports/audit-ci.txt",
+    "cleanup": "rm -rf dist && rm -rf yarn.lockn && rm -rf node_modules && rm -rf niis-shared-ui-3.0.0.tgz",
     "format": "prettier .  --write"
   },
   "main": "./dist/xrd-shared-ui.umd.js",
@@ -28,17 +28,17 @@
     }
   },
   "files": [
-    "dist",
-    "src"
+    "dist/",
+    "src/"
   ],
   "dependencies": {
-    "@fontsource/open-sans": "^5.0.11",
+    "@fontsource/open-sans": "^5.0.12",
     "@mdi/font": "^7.2.96",
     "deepmerge": "^4.3.1"
   },
   "peerDependencies": {
     "vue": "^3.3.4",
-    "vue-i18n": "^9.2.2",
+    "vue-i18n": "^9.4.0",
     "vuetify": "^3.3.15"
   },
   "devDependencies": {
@@ -57,16 +57,21 @@
     "eslint-plugin-vuetify": "^2.0.5",
     "license-check-and-add": "~4.0.5",
     "npm-run-all": "^4.1.5",
+    "path": "^0.12.7",
     "prettier": "^3.0.3",
     "sass": "^1.66.1",
     "typescript": "~5.1.6",
     "vite": "^4.4.9",
     "vite-plugin-dts": "^3.5.3",
     "vite-plugin-vuetify": "^1.0.2",
+    "vue": "^3.3.4",
     "vue-eslint-parser": "^9.3.1",
-    "vue-tsc": "^1.8.8"
+    "vue-i18n": "^9.3.0",
+    "vue-tsc": "^1.8.8",
+    "vuetify": "^3.3.15"
   },
   "overrides": {
     "semver": "^7.5.3"
-  }
+  },
+  "packageManager": "yarn@4.0.0-rc.50"
 }

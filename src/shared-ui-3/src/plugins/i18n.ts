@@ -27,15 +27,24 @@
 import { createI18n } from 'vue-i18n';
 import merge from 'deepmerge';
 
-import locals from '../locales/en.json';
+import en from '../locales/en.json';
 
-export default function createSharedI18n(i18nMessages = {}) {
-  return createI18n({
+type Translation = { [name: string]: string | string[] | Translation };
+type En = { en: Translation };
+type Translations = En;
+
+export function createSharedI18n(...messageSources: Translations[]) {
+
+  let messages: Translations = { en };
+
+  messages = messageSources.reduce((result, current) => merge(result, current), messages);
+
+  return createI18n<[Translation], 'en'>({
     legacy: false,
     locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
     fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
     silentFallbackWarn: true,
     allowComposition: true,
-    messages: merge({ en: locals }, i18nMessages),
+    messages: messages,
   });
 }

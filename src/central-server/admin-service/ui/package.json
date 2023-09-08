@@ -11,11 +11,11 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
-    "npx-check-audit": "npx audit-ci@6.3.0 --config ../../../shared-ui-3/audit-ci-shared.json >build/reports/audit-ci.txt",
+    "npx-check-audit": "yarn dlx audit-ci@6.6.0 --config ../../../shared-ui-3/audit-ci-shared.json >build/reports/audit-ci.txt",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
     "bundle-openapi": "swagger-cli bundle -t yaml -o ./build/openapi/openapi-definition-bundled.yaml ../../openapi-model/src/main/resources/openapi-definition.yaml",
-    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules",
+    "cleanup": "rm -rf dist && rm -rf yarn.lock && rm -rf node_modules",
     "generate-types": "npm run bundle-openapi && openapi --input ./build/openapi/openapi-definition-bundled.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "resolve-audit": "resolve-audit"
   },
@@ -23,16 +23,15 @@
     "@fontsource/open-sans": "^5.0.11",
     "@mdi/font": "^7.2.96",
     "@niis/shared-ui": "file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz",
-    "@vee-validate/i18n": "~4.11.3",
-    "@vee-validate/rules": "~4.11.3",
+    "@vee-validate/i18n": "~4.11.6",
+    "@vee-validate/rules": "~4.11.6",
     "axios": "~1.4.0",
     "dayjs": "^1.11.9",
-    "deepmerge": "^4.3.1",
     "pinia": "^2.1.6",
     "pinia-plugin-persistedstate": "^3.2.0",
-    "vee-validate": "~4.11.3",
+    "vee-validate": "~4.11.6",
     "vue": "^3.3.4",
-    "vue-i18n": "~9.2.2",
+    "vue-i18n": "~9.4.0",
     "vue-router": "^4.2.4",
     "vuetify": "^3.3.15"
   },
@@ -63,5 +62,6 @@
     "vite": "^4.4.9",
     "vite-plugin-vuetify": "^1.0.2",
     "vue-tsc": "^1.8.8"
-  }
+  },
+  "packageManager": "yarn@4.0.0-rc.50"
 }

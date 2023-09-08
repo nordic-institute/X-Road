@@ -69,7 +69,7 @@
 </template>
 
 <script lang="ts">
-import { BackupHandler, FileUploadResult } from '@/types';
+import { BackupHandler, FileUploadResult } from '../../types';
 import { defineComponent, PropType } from 'vue';
 import XrdButton from "../XrdButton.vue";
 import XrdConfirmDialog from "../XrdConfirmDialog.vue";

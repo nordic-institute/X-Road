@@ -25,13 +25,40 @@
  * THE SOFTWARE.
  */
 
-//resources&assets
-import '@fontsource/open-sans';
-import '@mdi/font/css/materialdesignicons.css';
-import './assets/icons.css';
+import XrdAlert from './XrdAlert.vue';
+import XrdButton from './XrdButton.vue';
+import XrdCloseButton from './XrdCloseButton.vue';
+import XrdConfirmDialog from './XrdConfirmDialog.vue';
+import XrdEmptyPlaceholder from './XrdEmptyPlaceholder.vue';
+import XrdEmptyPlaceholderRow from './XrdEmptyPlaceholderRow.vue';
+import XrdExpandable from './XrdExpandable.vue';
+import XrdFileUpload from './XrdFileUpload.vue';
+import XrdFormLabel from './XrdFormLabel.vue';
+import XrdHelpDialog from './XrdHelpDialog.vue';
+import XrdHelpIcon from './XrdHelpIcon.vue';
+import XrdSearch from './XrdSearch.vue';
+import XrdSimpleDialog from './XrdSimpleDialog.vue';
+import XrdStatusIcon from './XrdStatusIcon.vue';
+import XrdSubViewContainer from './XrdSubViewContainer.vue';
+import XrdSubViewTitle from './XrdSubViewTitle.vue';
+import XrdTable from './XrdTable.vue';
 
-export * from '@/components';
-export * from '@/components/icons';
-export * from '@/components/backups-and-restore';
-export * from '@/types';
-export * from '@/plugins/i18n';
+export {
+  XrdAlert,
+  XrdButton,
+  XrdCloseButton,
+  XrdConfirmDialog,
+  XrdEmptyPlaceholder,
+  XrdEmptyPlaceholderRow,
+  XrdExpandable,
+  XrdFileUpload,
+  XrdFormLabel,
+  XrdHelpDialog,
+  XrdHelpIcon,
+  XrdSearch,
+  XrdSimpleDialog,
+  XrdStatusIcon,
+  XrdSubViewContainer,
+  XrdSubViewTitle,
+  XrdTable
+};

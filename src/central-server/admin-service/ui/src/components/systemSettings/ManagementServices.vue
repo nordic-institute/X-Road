@@ -181,13 +181,13 @@ import { Permissions } from '@/global';
 import { useUser } from '@/store/modules/user';
 import SelectSubsystemDialog from '@/components/systemSettings/SelectSubsystemDialog.vue';
 import SelectSecurityServerDialog from '@/components/systemSettings/SelectSecurityServerDialog.vue';
-import XrdEmptyPlaceholderRow from '@shared-ui/components/XrdEmptyPlaceholderRow.vue';
+import { XrdEmptyPlaceholderRow } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     SelectSubsystemDialog,
     SelectSecurityServerDialog,
-    XrdEmptyPlaceholderRow,
+    XrdEmptyPlaceholderRow
   },
   data() {
     return {

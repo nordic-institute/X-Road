@@ -24,21 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createI18n } from 'vue-i18n';
-import merge from 'deepmerge';
+import { createSharedI18n } from '@niis/shared-ui';
 import vee_en from '@vee-validate/i18n/dist/locale/en.json';
-import sharedLocals from '@shared-ui/locales/en.json';
-import locals from '@/locales/en.json';
+import en from '@/locales/en.json';
 
-let en = { validation: vee_en };
-en = merge(en, sharedLocals);
-en = merge(en, locals);
-
-export default createI18n({
-  legacy: false,
-  locale: import.meta.env.VITE_I18N_LOCALE || 'en',
-  fallbackLocale: import.meta.env.VITE_I18N_FALLBACK_LOCALE || 'en',
-  silentFallbackWarn: true,
-  allowComposition: true,
-  messages: { en },
-});
+export default createSharedI18n({ en: { validation: vee_en } }, { en });
