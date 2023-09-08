@@ -48,7 +48,6 @@ export default defineConfig(({ command, mode }) => {
       alias: {
         '@': resolve(__dirname, 'src'),
         'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
-        '@shared-ui': resolve(__dirname, './../../../shared-ui-3/src'),
       },
     },
     build: {
@@ -61,16 +60,12 @@ export default defineConfig(({ command, mode }) => {
       proxy: {
         '/api': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4000',
+          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4000',
         },
         '/login': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4000',
+          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4000',
         },
-      },
-      fs: {
-        // Allow serving files from one level up to the project root
-        allow: ['.', '../../../shared-ui-3/src'],
       },
     },
   };

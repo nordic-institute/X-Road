@@ -29,9 +29,12 @@ import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import vuetify from 'vite-plugin-vuetify';
 import dts from 'vite-plugin-dts';
-import { resolve } from 'node:path';
+import * as path from "path";
+import { resolve } from "node:path";
 
 // https://vitejs.dev/config/
+
+
 export default defineConfig({
   plugins: [
     vue(),
@@ -39,14 +42,19 @@ export default defineConfig({
     vueJsx(),
     vuetify({ autoImport: true }),
   ],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    }
+  },
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'XrdSharedUI',
       fileName: 'xrd-shared-ui',
     },
     rollupOptions: {
-      external: ['vue', 'vuetify', 'vue-i18n', '/node_modules/'],
+      external: ['vue', 'vuetify', 'vue-i18n'],
       output: {
         globals: {
           vue: 'Vue',

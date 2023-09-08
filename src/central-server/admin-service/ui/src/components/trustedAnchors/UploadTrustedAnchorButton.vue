@@ -60,13 +60,11 @@ import { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import { FileUploadResult } from '@shared-ui/types';
-import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
+import { FileUploadResult, XrdFileUpload, XrdIconUpload} from '@niis/shared-ui';
 import UploadTrustedAnchorDialog from './UploadTrustedAnchorDialog.vue';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { TrustedAnchor } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
-import XrdIconUpload from '@shared-ui/components/icons/XrdIconUpload.vue';
 
 export default defineComponent({
   components: { XrdIconUpload, UploadTrustedAnchorDialog, XrdFileUpload },

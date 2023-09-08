@@ -95,8 +95,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
-import { FileUploadResult } from '@shared-ui/types';
+import { FileUploadResult, XrdFileUpload} from '@niis/shared-ui';
 import { TimestampingService } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';

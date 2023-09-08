@@ -198,8 +198,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import AddMemberSubsystemDialog from '@/views/Members/Member/Subsystems/AddMemberSubsystemDialog.vue';
 import DeleteMemberSubsystemDialog from '@/views/Members/Member/Subsystems/DeleteMemberSubsystemDialog.vue';
 import UnregisterMemberSubsystemDialog from '@/views/Members/Member/Subsystems/UnregisterMemberSubsystemDialog.vue';
-import XrdIconError from '@shared-ui/components/icons/XrdIconError.vue';
-import XrdIconInProgress from '@shared-ui/components/icons/XrdIconInProgress.vue';
+import { XrdIconError, XrdIconInProgress } from '@niis/shared-ui';
 import {
   ManagementRequestStatus,
   Subsystem,

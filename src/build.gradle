@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '4.2.1.3168'
-    id 'org.owasp.dependencycheck' version '8.0.2'
+    id 'org.owasp.dependencycheck' version '8.4.0'
     id 'jacoco'
     id 'java'
     id 'idea'
@@ -74,6 +74,7 @@ dependencyCheck {
         nodeEnabled = false
         nodeAudit {
             enabled = false
+            yarnEnabled = false
         }
         ossIndex {
             enabled = false

@@ -70,11 +70,10 @@ import { TrustedAnchor } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
-import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 
 export default defineComponent({
-  components: { DateTime, XrdSimpleDialog },
+  components: { DateTime },
   props: {
     preview: {
       type: Object as PropType<TrustedAnchor>,

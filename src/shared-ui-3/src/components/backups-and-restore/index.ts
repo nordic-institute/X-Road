@@ -24,31 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-// Vuetify
-import 'vuetify/styles';
-import '@mdi/font/css/materialdesignicons.css';
-import { createVuetify } from 'vuetify';
-import { aliases, mdi } from 'vuetify/iconsets/mdi'
 
-export default createVuetify({
-  icons: {
-    defaultSet: 'mdi',
-    aliases,
-    sets: {
-      mdi
-    }
-  },
-  theme: {
-    //TODO check customProperties in https://vuetifyjs.com/en/getting-started/upgrade-guide/
-    themes: {
-      light: {
-        colors: {
-          primary: '#663cdc',
-          secondary: '#00C9E7',
-          grey: '#908e8e',
-          accent: '#8c9eff',
-        },
-      },
-    },
-  },
-});
+import XdrDownloadBackupButton from './XdrDownloadBackupButton.vue';
+import XrdBackupsDataTable from './XrdBackupsDataTable.vue';
+import XrdBackupsToolbar from './XrdBackupsToolbar.vue';
+import XrdDeleteBackupButton from './XrdDeleteBackupButton.vue';
+import XrdRestoreBackupButton from './XrdRestoreBackupButton.vue';
+
+
+export {
+  XdrDownloadBackupButton,
+  XrdBackupsDataTable,
+  XrdBackupsToolbar,
+  XrdDeleteBackupButton,
+  XrdRestoreBackupButton,
+};

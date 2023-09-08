@@ -50,11 +50,7 @@
 </template>
 
 <script lang="ts">
-import XrdIconChangeOwner from '@shared-ui/components/icons/XrdIconChangeOwner.vue';
-import XrdIconAddUser from '@shared-ui/components/icons/XrdIconAddUser.vue';
-import XrdIconRemoveUser from '@shared-ui/components/icons/XrdIconRemoveUser.vue';
-import XrdIconRemoveCertificate from '@shared-ui/components/icons/XrdIconRemoveCertificate.vue';
-import XrdIconAddCertificate from '@shared-ui/components/icons/XrdIconAddCertificate.vue';
+import { XrdIconChangeOwner, XrdIconAddUser, XrdIconRemoveUser, XrdIconRemoveCertificate, XrdIconAddCertificate } from '@niis/shared-ui';
 import { defineComponent, PropType } from 'vue';
 import { ManagementRequestType } from '@/openapi-types';
 import { managementTypeToText } from '@/util/helpers';

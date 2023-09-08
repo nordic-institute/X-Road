@@ -74,7 +74,7 @@ import { debounce } from '@/util/helpers';
 import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { DataQuery, DataTableHeader } from '@/ui-types';
-import XrdIconSecurityServer from '@shared-ui/components/icons/XrdIconSecurityServer.vue';
+import { XrdIconSecurityServer } from '@niis/shared-ui';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
 // To provide the Vue instance to debounce

@@ -40,7 +40,7 @@
 /** Base component for simple dialogs */
 
 import { defineComponent } from 'vue';
-import XrdConfirmDialog from '@shared-ui/components/XrdConfirmDialog.vue';
+import { XrdConfirmDialog } from '@niis/shared-ui';
 import { Event } from '@/ui-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';

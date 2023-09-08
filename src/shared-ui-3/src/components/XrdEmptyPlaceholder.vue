@@ -53,7 +53,7 @@
 /** Component to show empty states for general components. Usually a div.  */
 
 import { defineComponent } from 'vue';
-import { VSkeletonLoader } from "vuetify/labs/components";
+import { VSkeletonLoader } from 'vuetify/labs/components'
 
 export default defineComponent({
   components: { VSkeletonLoader },
