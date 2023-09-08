@@ -68,7 +68,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { BackupHandler, BackupItem } from '@/types';
+import { BackupHandler, BackupItem } from '../../types';
 import XrdDeleteBackupButton from "./XrdDeleteBackupButton.vue";
 import XrdRestoreBackupButton from "./XrdRestoreBackupButton.vue";
 import XdrDownloadBackupButton from "./XdrDownloadBackupButton.vue";

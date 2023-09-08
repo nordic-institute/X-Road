@@ -63,9 +63,7 @@ import { useBackups } from '@/store/modules/backups';
 import { useNotifications } from '@/store/modules/notifications';
 import { Backup } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
-import { BackupHandler } from '@shared-ui/types';
-import XrdBackupsToolbar from '@shared-ui/components/backups-and-restore/XrdBackupsToolbar.vue';
-import XrdBackupsDataTable from '@shared-ui/components/backups-and-restore/XrdBackupsDataTable.vue';
+import { BackupHandler, XrdBackupsToolbar, XrdBackupsDataTable } from '@niis/shared-ui';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
 export default defineComponent({

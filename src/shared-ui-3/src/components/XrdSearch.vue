@@ -40,7 +40,7 @@
     @focus="hide = false"
     @blur="hide = true"
     @update:model-value="$emit('update:model-value', $event)"
-  ></v-text-field>
+  />
 </template>
 
 <script lang="ts">

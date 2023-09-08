@@ -114,7 +114,7 @@ import {
 import KeysTable from '@/components/tokens/KeysTable.vue';
 import TokenLoggingButton from '@/components/tokens/TokenLoggingButton.vue';
 import SigningKeyAddDialog from '@/components/signingKeys/SigningKeyAddDialog.vue';
-import XrdExpandable from '@shared-ui/components/XrdExpandable.vue';
+import {XrdExpandable} from '@niis/shared-ui';
 
 export default defineComponent({
   components: {

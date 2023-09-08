@@ -122,7 +122,6 @@
 import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
-import XrdSimpleDialog from '@shared-ui/components/XrdSimpleDialog.vue';
 
 const initialState = () => {
   return {
@@ -137,7 +136,7 @@ const initialState = () => {
 
 export default defineComponent({
   name: 'GroupMembersFilterDialog',
-  components: { XrdSimpleDialog },
+  components: { },
   props: {
     groupCode: {
       type: String,

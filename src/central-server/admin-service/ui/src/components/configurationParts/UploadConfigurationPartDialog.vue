@@ -67,8 +67,7 @@ import {
   ConfigurationPartContentIdentifier,
   ConfigurationType,
 } from '@/openapi-types';
-import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
-import { FileUploadResult } from '@shared-ui/types';
+import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
 
 export default defineComponent({
   components: { XrdFileUpload },

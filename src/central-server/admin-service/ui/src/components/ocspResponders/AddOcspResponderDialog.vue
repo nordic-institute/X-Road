@@ -72,8 +72,7 @@ import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
-import XrdFileUpload from '@shared-ui/components/XrdFileUpload.vue';
-import { FileUploadResult } from '@shared-ui/types';
+import { FileUploadResult, XrdFileUpload} from '@niis/shared-ui';
 import { useForm } from 'vee-validate';
 
 export default defineComponent({

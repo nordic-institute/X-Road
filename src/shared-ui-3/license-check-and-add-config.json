@@ -1,5 +1,7 @@
 {
   "ignore": [
+    ".yarn/",
+    "yarn.lock",
     "build/",
     "build.gradle",
     ".gradle",

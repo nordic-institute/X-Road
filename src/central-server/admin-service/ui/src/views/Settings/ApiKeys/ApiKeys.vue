@@ -157,7 +157,7 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { VDataTable } from 'vuetify/labs/VDataTable';
-import XrdIconKey from '@shared-ui/components/icons/XrdIconKey.vue';
+import { XrdIconKey } from '@niis/shared-ui';
 import TitledView from '@/components/ui/TitledView.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 

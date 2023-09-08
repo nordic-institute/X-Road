@@ -93,7 +93,7 @@ import { Permissions } from '@/global';
 import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDialog.vue';
 import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
 import DateTime from '@/components/ui/DateTime.vue';
-import XrdIconKey from '@shared-ui/components/icons/XrdIconKey.vue';
+import { XrdIconKey } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
