@@ -1,1 +1,3 @@
 usr/share/xroad/jlib/centralserver-registration-service-1.0.jar usr/share/xroad/jlib/centralserver-registration-service.jar
+etc/xroad/nginx/registration-service.conf etc/nginx/sites-enabled/xroad-registration-service
+
