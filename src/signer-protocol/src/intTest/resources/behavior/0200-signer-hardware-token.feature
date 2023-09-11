@@ -1,5 +1,4 @@
 @HardwareToken
-@This
 Feature: 0200 - Signer: HardwareToken
   Uses SoftHSM to emulate hardware token.
 
@@ -94,7 +93,6 @@ Feature: 0200 - Signer: HardwareToken
     Given digest can be signed using key "KeyX" from token "xrd-softhsm-0"
     And Signing with unknown algorithm fails using key "KeyX" from token "xrd-softhsm-0"
 
-    @This
   Scenario: Sign data is successful
     Given digest can be signed using key "SignKey from CA" from token "xrd-softhsm-0"
     And Digest is signed using key "KeyX" from token "xrd-softhsm-0"

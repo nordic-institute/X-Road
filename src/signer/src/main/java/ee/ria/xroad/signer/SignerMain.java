@@ -120,15 +120,14 @@ public final class SignerMain {
     }
 
     private static void initGrpc() throws Exception {
-        int port = 5560;
+        int port = SystemProperties.getGrpcSignerPort();
         log.info("Initializing GRPC server on port {}.. ", port);
 
-        RpcServer.init(port, builder -> {
-            springCtx.getBeansOfType(io.grpc.BindableService.class).forEach((s, bindableService) -> {
-                log.info("Registering {} gRPC service.", bindableService.getClass().getSimpleName());
-                builder.addService(bindableService);
-            });
-        });
+        RpcServer.init(port, builder ->
+                springCtx.getBeansOfType(io.grpc.BindableService.class).forEach((s, bindableService) -> {
+                    log.info("Registering {} gRPC service.", bindableService.getClass().getSimpleName());
+                    builder.addService(bindableService);
+                }));
     }
 
     //TODO: shutdown was tied to akka.

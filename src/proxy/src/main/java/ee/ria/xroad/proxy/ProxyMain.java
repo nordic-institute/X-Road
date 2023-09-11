@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -58,7 +58,7 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
@@ -196,13 +196,15 @@ public final class ProxyMain {
         log.trace("shutdown()");
         stopServices();
         Await.ready(actorSystem.terminate(), Duration.Inf());
+
+        RpcSignerClient.shutdown();
     }
 
     private static void createServices() throws Exception {
         JobManager jobManager = new JobManager();
 
         MonitorAgent.init(actorSystem);
-        SignerClient.init(actorSystem);
+        RpcSignerClient.init();
         BatchSigner.init(actorSystem);
         boolean messageLogEnabled = MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);

@@ -25,52 +25,119 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Channel;
 import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
-import lombok.Getter;
+import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createClientCredentials;
 
 @Slf4j
 public class RpcSignerClient {
-    @Getter
-    private final TokenServiceGrpc.TokenServiceStub signerApiStub;
-    @Getter
-    private final TokenServiceGrpc.TokenServiceBlockingStub signerApiBlockingStub;
-    @Getter
-    private final CertificateServiceGrpc.CertificateServiceBlockingStub certificateServiceBlockingStub;
-    @Getter
-    private final KeyServiceGrpc.KeyServiceBlockingStub keyServiceBlockingStub;
-    @Getter
-    private final OcspServiceGrpc.OcspServiceBlockingStub ocspServiceBlockingStub;
+    private static RpcSignerClient instance;
+
+    private final ManagedChannel channel;
+    private final ExecutionContext executionContext;
 
     /**
-     * Construct client for accessing RouteGuide server using the existing channel.
+     * Construct client for accessing Signer services using the provided channel.
      */
-    public RpcSignerClient(Channel channel) {
-        signerApiStub = TokenServiceGrpc.newStub(channel);
-        signerApiBlockingStub = TokenServiceGrpc.newBlockingStub(channel);
-        certificateServiceBlockingStub = CertificateServiceGrpc.newBlockingStub(channel);
-        keyServiceBlockingStub = KeyServiceGrpc.newBlockingStub(channel);
-        ocspServiceBlockingStub = OcspServiceGrpc.newBlockingStub(channel);
+    private RpcSignerClient(final ManagedChannel channel) {
+        this.channel = channel;
+        this.executionContext = new ExecutionContext(channel);
     }
 
     /**
-     * Greet server. If provided, the first element of {@code args} is the name to use in the
-     * greeting.
+     * Initialize with default settings
+     *
+     * @throws Exception
      */
-    public static RpcSignerClient init(String host, int port) throws Exception {
+    public static void init() throws Exception {
+        init(SystemProperties.getGrpcSignerHost(), SystemProperties.getGrpcSignerPort());
+    }
+
+    public static void init(String host, int port) throws Exception {
         var credentials = createClientCredentials();
         log.info("Starting grpc client with {} credentials..", credentials.getClass().getSimpleName());
         ManagedChannel channel = Grpc.newChannelBuilderForAddress(host, port, credentials)
                 .build();
 
-        return new RpcSignerClient(channel);
+        instance = new RpcSignerClient(channel);
+    }
+
+    public static void shutdown() {
+        if (instance != null) {
+            instance.channel.shutdown();
+        }
+    }
+
+    public static class ExecutionContext {
+        public final TokenServiceGrpc.TokenServiceStub tokenService;
+
+        public final TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
+        public final CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
+        public final KeyServiceGrpc.KeyServiceBlockingStub blockingKeyService;
+        public final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
+
+        public ExecutionContext(final Channel channel) {
+            tokenService = TokenServiceGrpc.newStub(channel);
+
+            blockingTokenService = TokenServiceGrpc.newBlockingStub(channel);
+            blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel);
+            blockingKeyService = KeyServiceGrpc.newBlockingStub(channel);
+            blockingOcspService = OcspServiceGrpc.newBlockingStub(channel);
+        }
+    }
+
+    public static <V> V execute(RpcExecution<V> grpcCall) throws Exception {
+        try {
+            return grpcCall.exec(getInstance().executionContext);
+        } catch (StatusRuntimeException error) {
+            com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
+            if (status != null) {
+                for (Any any : status.getDetailsList()) {
+                    if (any.is(CodedExceptionProto.class)) {
+                        try {
+                            final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
+                            throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
+                                    .withPrefix(SIGNER_X);
+                        } catch (InvalidProtocolBufferException e) {
+                            throw new RuntimeException("Failed to parse grpc message", e);
+                        }
+                    }
+                }
+            }
+            throw error;
+        }
+    }
+
+    @FunctionalInterface
+    public interface RpcExecution<V> {
+        /**
+         * Computes a result, or throws an exception if unable to do so.
+         *
+         * @return computed result
+         * @throws Exception if unable to compute a result
+         */
+        V exec(ExecutionContext ctx) throws Exception;
+    }
+
+    public static RpcSignerClient getInstance() {
+        if (instance == null) {
+            throw new RuntimeException("RpcSignerClient is not initialized! Execute RpcSignerClient#init before using this client.");
+        }
+        return instance;
     }
 }

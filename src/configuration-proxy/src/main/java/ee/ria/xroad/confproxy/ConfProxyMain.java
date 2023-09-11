@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,10 +28,8 @@ package ee.ria.xroad.confproxy;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
@@ -49,19 +47,19 @@ public final class ConfProxyMain {
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
-            .with(CONF_FILE_CONFPROXY, "configuration-proxy")
-            .load();
+                .with(CONF_FILE_CONFPROXY, "configuration-proxy")
+                .load();
     }
-
-    private static ActorSystem actorSystem;
 
     /**
      * Unavailable utility class constructor.
      */
-    private ConfProxyMain() { }
+    private ConfProxyMain() {
+    }
 
     /**
      * Configuration proxy program entry point.
+     *
      * @param args program args
      * @throws Exception in case configuration proxy fails to start
      */
@@ -79,6 +77,7 @@ public final class ConfProxyMain {
 
     /**
      * Initialize configuration proxy components.
+     *
      * @throws Exception if initialization fails
      */
     private static void setup() throws Exception {
@@ -86,15 +85,12 @@ public final class ConfProxyMain {
 
         Version.outputVersionInfo(APP_NAME);
 
-        actorSystem = ActorSystem.create("ConfigurationProxy",
-                ConfigFactory.load().getConfig("configuration-proxy")
-                    .withFallback(ConfigFactory.load()));
-
-        SignerClient.init(actorSystem);
+        RpcSignerClient.init();
     }
 
     /**
      * Executes all configuration proxy instances in sequence.
+     *
      * @param args program arguments
      * @throws Exception if not able to get list of available instances
      */
@@ -109,7 +105,7 @@ public final class ConfProxyMain {
             log.debug("Instances from available instances: {}", instances);
         }
 
-        for (String instance: instances) {
+        for (String instance : instances) {
             try {
                 ConfProxy proxy = new ConfProxy(instance);
                 log.info("ConfProxy executing for instance {}", instance);
@@ -126,6 +122,6 @@ public final class ConfProxyMain {
      */
     private static void shutdown() {
         log.trace("shutdown()");
-        actorSystem.terminate();
+        RpcSignerClient.shutdown();
     }
 }

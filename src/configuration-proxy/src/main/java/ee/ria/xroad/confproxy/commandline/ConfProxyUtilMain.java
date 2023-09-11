@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,10 +26,10 @@
 package ee.ria.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -42,24 +42,20 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
  * Main program for launching configuration proxy utility tools.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ConfProxyUtilMain {
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
-            .with(CONF_FILE_CONFPROXY, "configuration-proxy")
-            .load();
+                .with(CONF_FILE_CONFPROXY, "configuration-proxy")
+                .load();
     }
 
-    private static ActorSystem actorSystem;
     private static CommandLineParser cmdLineParser;
 
     /**
-     * Unavailable utility class constructor.
-     */
-    private ConfProxyUtilMain() { }
-
-    /**
      * Configuration proxy utility tool program entry point.
+     *
      * @param args program args
      */
     public static void main(final String[] args) {
@@ -70,24 +66,22 @@ public final class ConfProxyUtilMain {
             System.err.println(e.getMessage());
             log.error("Error while running confproxy util:", e);
         } finally {
-            actorSystem.terminate();
+            RpcSignerClient.shutdown();
         }
     }
 
     /**
      * Initialize configuration proxy utility program components.
      */
-    static void setup() {
-        actorSystem = ActorSystem.create("ConfigurationProxyUtil",
-                ConfigFactory.load().getConfig("configuration-proxy"));
-
-        SignerClient.init(actorSystem);
+    static void setup() throws Exception {
+        RpcSignerClient.init();
 
         cmdLineParser = new DefaultParser();
     }
 
     /**
      * Executes the utility program with the provided argument list.
+     *
      * @param args program arguments
      * @throws Exception if any errors occur during execution
      */
@@ -102,14 +96,14 @@ public final class ConfProxyUtilMain {
 
     /**
      * Creates an utility program instance of the provided class name.
+     *
      * @param className name of the utility program class
      * @return an instance of the requested utility program
      * @throws Exception if class could not be found or an instance could
-     * not be created
+     *                   not be created
      */
     @SuppressWarnings("unchecked")
-    static ConfProxyUtil createUtilInstance(final String className)
-            throws Exception {
+    static ConfProxyUtil createUtilInstance(final String className) throws Exception {
         Class<ConfProxyUtil> utilClass =
                 (Class<ConfProxyUtil>) Class.forName(className);
         return utilClass.newInstance();

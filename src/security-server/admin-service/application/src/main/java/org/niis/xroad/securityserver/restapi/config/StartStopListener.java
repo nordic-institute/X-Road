@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.commonui.UIServices;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +55,8 @@ public class StartStopListener implements ApplicationListener<ApplicationEvent> 
             uiApiActorSystem.stop();
             uiApiActorSystem = null;
         }
+
+        RpcSignerClient.shutdown();
     }
 
     @Autowired
@@ -63,14 +65,15 @@ public class StartStopListener implements ApplicationListener<ApplicationEvent> 
 
     /**
      * Maybe be called multiple times since ContextRefreshedEvent can happen multiple times
+     *
      * @throws Exception
      */
-    private synchronized void start() {
+    private synchronized void start() throws Exception {
         log.info("start");
         if (uiApiActorSystem == null) {
             uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
-            SignerClient.init(uiApiActorSystem.getActorSystem(), signerIp);
         }
+        RpcSignerClient.init();
     }
 
 

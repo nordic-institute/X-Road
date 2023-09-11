@@ -50,7 +50,6 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
-import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.io.File;
@@ -84,12 +83,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
+@SuppressWarnings("checkstyle:MagicNumber")
 public class SignerStepDefs extends BaseSignerStepDefs {
-    private String keyId;
-    private String csrId;
+    private String scenarioKeyId;
+    private String scenarioCsrId;
     private String certHash;
     private CertificateInfo certInfo;
-    private byte[] cert;
+    private byte[] scenarioCert;
 
     private final Map<String, String> tokenLabelToIdMapping = new HashMap<>();
 
@@ -214,12 +214,12 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
         final KeyInfo keyInfo = SignerProxy.generateKey(tokenId, keyLabel);
         testReportService.attachJson("keyInfo", keyInfo);
-        this.keyId = keyInfo.getId();
+        this.scenarioKeyId = keyInfo.getId();
     }
 
     @Step("name {string} is set for generated key")
     public void nameIsSetForGeneratedKey(String keyFriendlyName) throws Exception {
-        SignerProxy.setKeyFriendlyName(this.keyId, keyFriendlyName);
+        SignerProxy.setKeyFriendlyName(this.scenarioKeyId, keyFriendlyName);
     }
 
     @Step("token {string} has exact keys {string}")
@@ -243,10 +243,9 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
 
-
     @Step("Certificate is imported for client {string}")
     public void certificateIsImported(String client) throws Exception {
-        keyId = SignerProxy.importCert(cert, CertificateInfo.STATUS_REGISTERED, getClientId(client));
+        scenarioKeyId = SignerProxy.importCert(scenarioCert, CertificateInfo.STATUS_REGISTERED, getClientId(client));
     }
 
     @Step("Wrong Certificate is not imported for client {string}")
@@ -256,7 +255,8 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             SignerProxy.importCert(certBytes, CertificateInfo.STATUS_REGISTERED, getClientId(client));
         } catch (CodedException codedException) {
             assertException("Signer.KeyNotFound", "key_not_found_for_certificate",
-                    "Signer.KeyNotFound: Could not find key that has public key that matches the public key of certificate", codedException);
+                    "Signer.KeyNotFound: Could not find key that has public key that matches the public key of certificate",
+                    codedException);
         }
     }
 
@@ -270,9 +270,9 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void selfSignedCertGeneratedForTokenKeyForClient(String friendlyName, String keyName, String client) throws Exception {
         final KeyInfo keyInToken = findKeyInToken(friendlyName, keyName);
 
-        cert = SignerProxy.generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
+        scenarioCert = SignerProxy.generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
                 "CN=" + client, Date.from(now().minus(5, DAYS)), Date.from(now().plus(5, DAYS)));
-        this.certHash = CryptoUtils.calculateCertHexHash(cert);
+        this.certHash = CryptoUtils.calculateCertHexHash(scenarioCert);
     }
 
     private ClientId.Conf getClientId(String client) {
@@ -286,7 +286,8 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("the {} cert request is generated for token {string} key {string} for client {string} throws exception")
-    public void certRequestIsGeneratedForTokenKeyException(String keyUsage, String friendlyName, String keyName, String client) throws Exception {
+    public void certRequestIsGeneratedForTokenKeyException(String keyUsage, String friendlyName, String keyName, String client)
+            throws Exception {
         try {
             certRequestIsGeneratedForTokenKey(keyUsage, friendlyName, keyName, client);
         } catch (CodedException codedException) {
@@ -299,10 +300,11 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void certRequestIsGeneratedForTokenKey(String keyUsage, String friendlyName, String keyName, String client) throws Exception {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
         final ClientId.Conf clientId = getClientId(client);
-        SignerProxy.GeneratedCertRequestInfo csrInfo = SignerProxy.generateCertRequest(key.getId(), clientId, KeyUsageInfo.valueOf(keyUsage),
+        SignerProxy.GeneratedCertRequestInfo csrInfo = SignerProxy.generateCertRequest(key.getId(), clientId,
+                KeyUsageInfo.valueOf(keyUsage),
                 "CN=key-" + keyName, CertificateRequestFormat.DER);
 
-        this.csrId = csrInfo.getCertReqId();
+        this.scenarioCsrId = csrInfo.getCertReqId();
 
         File csrFile = File.createTempFile("tmp", keyUsage.toLowerCase() + "_csr" + System.currentTimeMillis());
         FileUtils.writeByteArrayToFile(csrFile, csrInfo.getCertRequest());
@@ -315,12 +317,12 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final ClientId.Conf clientId = getClientId(client);
         final byte[] certBytes = FileUtils.readFileToByteArray(cert.orElseThrow());
 
-        keyId = SignerProxy.importCert(certBytes, initialStatus, clientId);
+        scenarioKeyId = SignerProxy.importCert(certBytes, initialStatus, clientId);
     }
 
     @Step("cert request is regenerated")
     public void certRequestIsRegenerated() throws Exception {
-        SignerProxy.regenerateCertRequest(this.csrId, CertificateRequestFormat.DER);
+        SignerProxy.regenerateCertRequest(this.scenarioCsrId, CertificateRequestFormat.DER);
     }
 
     @Step("token {string} key {string} has {int} certificates")
@@ -353,7 +355,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("cert request can be deleted")
     public void certRequestCanBeDeleted() throws Exception {
-        SignerProxy.deleteCertRequest(this.csrId);
+        SignerProxy.deleteCertRequest(this.scenarioCsrId);
     }
 
     @Step("certificate info can be retrieved by cert hash")
@@ -370,20 +372,20 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("token and keyId can be retrieved by cert hash")
-    public void tokenAndKeyIdCanBeRetrievedByCertHash() {
+    public void tokenAndKeyIdCanBeRetrievedByCertHash() throws Exception {
         final TokenInfoAndKeyId tokenAndKeyIdForCertHash = SignerProxy.getTokenAndKeyIdForCertHash(this.certHash);
         assertThat(tokenAndKeyIdForCertHash).isNotNull();
     }
 
     @Step("token and key can be retrieved by cert request")
     public void tokenAndKeyCanBeRetrievedByCertRequest() throws Exception {
-        final TokenInfoAndKeyId tokenAndKeyIdForCertRequestId = SignerProxy.getTokenAndKeyIdForCertRequestId(this.csrId);
+        final TokenInfoAndKeyId tokenAndKeyIdForCertRequestId = SignerProxy.getTokenAndKeyIdForCertRequestId(this.scenarioCsrId);
         assertThat(tokenAndKeyIdForCertRequestId).isNotNull();
     }
 
     @Step("token info can be retrieved by key id")
     public void tokenInfoCanBeRetrievedByKeyId() throws Exception {
-        final TokenInfo tokenForKeyId = SignerProxy.getTokenForKeyId(this.keyId);
+        final TokenInfo tokenForKeyId = SignerProxy.getTokenForKeyId(this.scenarioKeyId);
         testReportService.attachJson("tokenInfo", tokenForKeyId);
         assertThat(tokenForKeyId).isNotNull();
     }
@@ -588,7 +590,8 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("ocsp responses are set")
     public void ocspResponsesAreSet() throws Exception {
         X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
-        final OCSPResp ocspResponse = OcspTestUtils.createOCSPResponse(subject, TestCertUtil.getCaCert(), TestCertUtil.getOcspSigner().certChain[0],
+        final OCSPResp ocspResponse = OcspTestUtils.createOCSPResponse(subject, TestCertUtil.getCaCert(),
+                TestCertUtil.getOcspSigner().certChain[0],
                 TestCertUtil.getOcspSigner().key, CertificateStatus.GOOD);
 
         SignerProxy.setOcspResponses(new String[]{calculateCertHexHash(subject)},

@@ -34,21 +34,19 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
 import asg.cliche.Command;
 import asg.cliche.InputConverter;
 import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
-import com.typesafe.config.ConfigFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -800,11 +798,8 @@ public class SignerCLI {
             return;
         }
 
-        ActorSystem actorSystem = ActorSystem.create("SignerConsole", ConfigFactory.load().getConfig("signer-console")
-                .withFallback(ConfigFactory.load()));
-
         try {
-            SignerClient.init(actorSystem);
+            RpcSignerClient.init();
 
             String[] arguments = cmd.getArgs();
 
@@ -814,7 +809,7 @@ public class SignerCLI {
                 startCommandLoop();
             }
         } finally {
-            actorSystem.terminate();
+            RpcSignerClient.shutdown();
         }
     }
 

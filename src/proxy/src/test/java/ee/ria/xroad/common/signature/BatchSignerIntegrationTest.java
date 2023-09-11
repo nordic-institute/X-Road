@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -33,10 +33,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
-import ee.ria.xroad.signer.protocol.SignerClient;
 
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
+
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -107,7 +109,7 @@ public final class BatchSignerIntegrationTest {
         }
 
         ActorSystem actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy"));
-        SignerClient.init(actorSystem);
+        RpcSignerClient.init();
 
         Thread.sleep(SIGNER_INIT_DELAY); // wait for signer client to connect
 

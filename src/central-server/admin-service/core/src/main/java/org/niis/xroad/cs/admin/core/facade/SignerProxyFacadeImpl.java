@@ -25,9 +25,10 @@
  */
 package org.niis.xroad.cs.admin.core.facade;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -66,10 +67,10 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
     }
 
     @PostConstruct
-    void init() {
+    void init() throws Exception {
         Config config = ConfigFactory.load().getConfig("admin-service").withFallback(ConfigFactory.load());
         actorSystem = ActorSystem.create("SignerService", config);
-        SignerClient.init(actorSystem, signerIp);
+        RpcSignerClient.init(signerIp, SystemProperties.getGrpcSignerPort());
         log.info("SignerService actorSystem initialized with admin-service config");
     }
 

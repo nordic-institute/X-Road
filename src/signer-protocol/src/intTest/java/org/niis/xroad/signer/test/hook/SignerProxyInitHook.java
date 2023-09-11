@@ -1,10 +1,12 @@
 package org.niis.xroad.signer.test.hook;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,7 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
     private final TestableApplicationInfoProvider testableApplicationInfoProvider;
 
     @Override
+    @SneakyThrows
     public void beforeSuite() {
         var host = testableApplicationInfoProvider.getHost();
         var port = testableApplicationInfoProvider.getMappedPort(SystemProperties.getGrpcSignerPort());
@@ -41,6 +44,8 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
 
         System.setProperty("xroad.internal.passwordstore-provider", "file");
         System.setProperty("xroad.internal.passwordstore-file-path", "build/container-passwordstore/");
+
+        RpcSignerClient.init();
     }
 
 }
