@@ -4,6 +4,35 @@ if [ "$1" = "upgrade" ]; then
     echo "ERROR: Upgrade supported from #LAST_SUPPORTED_VERSION# or newer" >&2
     exit 1
   fi
+
+  # Start database integrity checks
+  source /usr/share/xroad/scripts/_read_cs_db_properties.sh
+  prepare_db_props
+
+  # Start table system_parameters unique check (this check can be remove after LAST_SUPPORTED_VERSION > 7.4.0)
+  sys_param_select="SELECT COUNT(*), key, ha_node_name FROM system_parameters GROUP BY key, ha_node_name HAVING COUNT(*) > 1 ORDER BY key, ha_node_name;"
+  sys_param_check_result=$(
+    PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
+      "$sys_param_select"
+  )
+
+  if [ -n "$sys_param_check_result" ]; then
+    echo "ERROR: There are data duplicates in the table SYSTEM_PARAMETER columns pair (KEY, HA_NODE_NAME):
+-----------------------------------------------------
+COUNT(*) | KEY | HA_NODE_NAME
+-----------------------------------------------------
+$sys_param_check_result
+-----------------------------------------------------
+
+To see duplicates data run the fallowing query:
+$sys_param_select
+
+Please correct incorrect data before continue."
+    exit 1
+  fi
+  # End table system_parameters unique check
+# End database integrity checks
+
 fi
 
 # Free potentially occupied ports when upgrading from legacy installation
