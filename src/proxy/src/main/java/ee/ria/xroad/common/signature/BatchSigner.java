@@ -144,7 +144,7 @@ public class BatchSigner {
                 throw new RuntimeException(e);
             }
             workerThread = new Thread(this::process);
-            workerThread.setDaemon(true); // todo check, if really needed?
+            workerThread.setDaemon(true);
             workerThread.start();
         }
 
@@ -190,7 +190,7 @@ public class BatchSigner {
 
                     requests.add(first);
                     if (batchSigningEnabled) {
-                        // poll all. todo should add max batchSize param?
+                        // poll all remaining
                         requestsQueue.drainTo(requests);
                     }
 
@@ -211,6 +211,7 @@ public class BatchSigner {
                     log.trace("queue polling interrupted");
                 }
             }
+            log.trace("Worker thread stopped");
         }
 
         protected void stop() {
