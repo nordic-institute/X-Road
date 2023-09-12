@@ -10,21 +10,21 @@ message Empty {
 }
 
 message ClientIdProto {
-  string memberClass = 1;
-  string memberCode = 2;
-  optional string subsystemCode = 3;
+  string member_class = 1;
+  string member_code = 2;
+  optional string subsystem_code = 3;
 
-  string xroadInstance = 4;
-  XRoadObjectType objectType = 5;
+  string xroad_instance = 4;
+  XRoadObjectType object_type = 5;
 }
 
 message SecurityServerIdProto {
-  string memberClass = 1;
-  string memberCode = 2;
-  string serverCode = 3;
+  string member_class = 1;
+  string member_code = 2;
+  string server_code = 3;
 
-  string xroadInstance = 4;
-  XRoadObjectType objectType = 5;
+  string xroad_instance = 4;
+  XRoadObjectType object_type = 5;
 }
 
 enum XRoadObjectType {

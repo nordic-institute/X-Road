@@ -45,7 +45,7 @@ import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createClientCredentials;
 
 @Slf4j
-public class RpcSignerClient {
+public final class RpcSignerClient {
     private static RpcSignerClient instance;
 
     private final ManagedChannel channel;

@@ -30,7 +30,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.niis.xroad.signer.protocol.dto.SecurityServerIdProto;
 import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
-public class SecurityServerIdMapper {
+public final class SecurityServerIdMapper {
+
+    private SecurityServerIdMapper() {
+    }
 
     public static SecurityServerId.Conf fromDto(SecurityServerIdProto input) {
         return SecurityServerId.Conf.create(input.getXroadInstance(), input.getMemberClass(), input.getMemberCode(),

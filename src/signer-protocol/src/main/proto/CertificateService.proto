@@ -31,25 +31,25 @@ service CertificateService {
 }
 
 message GetCertificateInfoForHashReq {
-  string certHash = 1;
+  string cert_hash = 1;
 }
 
 message GetCertificateInfoResp {
-  CertificateInfoProto certificateInfo = 1;
+  CertificateInfoProto certificate_info = 1;
 }
 
 message ActivateCertReq {
-  string certIdOrHash = 1;
-  bool  active = 2;
+  string cert_id_or_hash = 1;
+  bool active = 2;
 }
 
 message SetCertStatusReq{
-  string certId = 1;
+  string cert_id = 1;
   string status = 2;
 }
 
 message GetMemberCertsReq{
-  ClientIdProto memberId = 1;
+  ClientIdProto member_id = 1;
 }
 
 message GetMemberCertsResp{
@@ -57,16 +57,16 @@ message GetMemberCertsResp{
 }
 
 message RegenerateCertRequestReq {
-  string certRequestId = 1;
+  string cert_request_id = 1;
   CertificateRequestFormat format = 2;
 }
 
 message RegenerateCertRequestResp {
-  string certReqId = 1;
-  bytes certRequest = 2;
+  string cert_req_id = 1;
+  bytes cert_request = 2;
   CertificateRequestFormat format = 3;
-  ClientIdProto memberId = 4;
-  KeyUsageInfo keyUsage = 5;
+  ClientIdProto member_id = 4;
+  KeyUsageInfo key_usage = 5;
 }
 
 /** Specifies the cert request format to return. */
@@ -77,46 +77,46 @@ enum CertificateRequestFormat {
 }
 
 message DeleteCertReq {
-  string certId = 1;
+  string cert_id = 1;
 }
 
 message DeleteCertRequestReq {
-  string certRequestId = 1;
+  string cert_request_id = 1;
 }
 
 message ImportCertReq {
-  bytes certData = 1;
-  string initialStatus = 2;
-  ClientIdProto memberId = 3;
+  bytes cert_data = 1;
+  string initial_status = 2;
+  ClientIdProto member_id = 3;
 }
 
 message ImportCertResp {
-  string keyId = 1;
+  string key_id = 1;
 }
 
 message GenerateSelfSignedCertReq {
-  string keyId = 1;
-  string commonName = 2;
-  int64 dateNotBefore = 3;
-  int64 dateNotAfter = 4;
-  KeyUsageInfo keyUsage = 5;
-  ClientIdProto memberId = 6;
+  string key_id = 1;
+  string common_name = 2;
+  int64 date_not_before = 3;
+  int64 date_not_after = 4;
+  KeyUsageInfo key_usage = 5;
+  ClientIdProto member_id = 6;
 }
 
 message GenerateSelfSignedCertResp {
-  bytes certificateBytes = 1;
+  bytes certificate_bytes = 1;
 }
 
 message GenerateCertRequestReq {
-  string keyId = 1;
-  ClientIdProto memberId = 2;
-  KeyUsageInfo keyUsage = 3;
-  string subjectName = 4;
+  string key_id = 1;
+  ClientIdProto member_id = 2;
+  KeyUsageInfo key_usage = 3;
+  string subject_name = 4;
   CertificateRequestFormat format = 5;
 }
 
 message GenerateCertRequestResp {
-  string certReqId = 1;
-  bytes certRequest = 2;
+  string cert_req_id = 1;
+  bytes cert_request = 2;
   CertificateRequestFormat format = 3;
 }

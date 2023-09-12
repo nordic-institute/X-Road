@@ -106,12 +106,12 @@ public final class Token {
     private boolean batchSigningEnabled = true;
 
     /**
-     * Holds the currect status of the token.
+     * Holds the current status of the token.
      */
     private TokenStatusInfo status = TokenStatusInfo.OK;
 
     /**
-     * Contains the the keys of this token.
+     * Contains the keys of this token.
      */
     private final List<Key> keys = new ArrayList<>();
 
@@ -161,9 +161,9 @@ public final class Token {
                 .addAllKeyInfo(Collections.unmodifiableList(getKeysAsDTOs()))
                 .putAllTokenInfo(unmodifiableMap(tokenInfo));
 
-        ofNullable(friendlyName).ifPresent(m -> messageBuilder.setFriendlyName(friendlyName));
-        ofNullable(serialNumber).ifPresent(m -> messageBuilder.setSerialNumber(serialNumber));
-        ofNullable(label).ifPresent(m -> messageBuilder.setLabel(label));
+        ofNullable(friendlyName).ifPresent(messageBuilder::setFriendlyName);
+        ofNullable(serialNumber).ifPresent(messageBuilder::setSerialNumber);
+        ofNullable(label).ifPresent(messageBuilder::setLabel);
 
         return new TokenInfo(messageBuilder.build());
     }

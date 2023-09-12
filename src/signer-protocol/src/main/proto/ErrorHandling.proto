@@ -30,9 +30,9 @@ option java_package = "ee.ria.xroad.signer.protocol.dto";
 
 // todo rename the exception and the fields. should not be using soap fault naming inside signer.
 message CodedExceptionProto {
-  string faultCode = 1;
-  string faultActor = 2;
-  string faultDetail = 3;
-  string faultString = 4;
-  string translationCode = 5;
+  string fault_code = 1;
+  string fault_actor = 2;
+  string fault_detail = 3;
+  string fault_string = 4;
+  string translation_code = 5;
 }

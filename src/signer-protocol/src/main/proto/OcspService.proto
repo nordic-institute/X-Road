@@ -13,14 +13,14 @@ service OcspService {
 }
 
 message SetOcspResponsesReq {
-  repeated string certHashes = 1;
-  repeated string base64EncodedResponses = 2;
+  repeated string cert_hashes = 1;
+  repeated string base64_encoded_responses = 2;
 }
 
 message GetOcspResponsesReq{
-  repeated string certHash = 1;
+  repeated string cert_hash = 1;
 }
 
 message GetOcspResponsesResp{
-  map<string, string> base64EncodedResponses = 1;
+  map<string, string> base64_encoded_responses = 1;
 }

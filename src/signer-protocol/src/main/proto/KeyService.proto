@@ -27,31 +27,31 @@ service KeyService {
 }
 
 message GetKeyIdForCertHashReq {
-  string certHash = 1;
+  string cert_hash = 1;
 }
 
 message GetKeyIdForCertHashResp {
-  string keyId = 1;
-  string signMechanismName = 2;
+  string key_id = 1;
+  string sign_mechanism_name = 2;
 }
 
 message SetKeyFriendlyNameReq {
-  string keyId = 1;
-  string friendlyName = 2;
+  string key_id = 1;
+  string friendly_name = 2;
 }
 
 
 message GetSignMechanismReq {
-  string keyId = 1;
+  string key_id = 1;
 }
 
 message GetSignMechanismResp {
-  string signMechanismName = 1;
+  string sign_mechanism_name = 1;
 }
 
 message SignReq {
-  string keyId = 1;
-  string signatureAlgorithmId = 2;
+  string key_id = 1;
+  string signature_algorithm_id = 2;
   bytes digest = 3;
 }
 
@@ -60,33 +60,33 @@ message SignResp {
 }
 
 message SignCertificateReq {
-  string keyId = 1;
-  string signatureAlgorithmId = 2;
-  string subjectName = 3;
-  bytes publicKey = 4;
+  string key_id = 1;
+  string signature_algorithm_id = 2;
+  string subject_name = 3;
+  bytes public_key = 4;
 }
 
 message SignCertificateResp {
-  bytes certificateChain = 1;
+  bytes certificate_chain = 1;
 }
 
 message DeleteKeyReq {
-  string keyId = 1;
-  bool deleteFromDevice = 2;
+  string key_id = 1;
+  bool delete_from_device = 2;
 }
 
 message GenerateKeyReq {
-  string tokenId = 1;
-  string keyLabel = 2;
+  string token_id = 1;
+  string key_label = 2;
 }
 
 message GetAuthKeyReq {
-  SecurityServerIdProto securityServer = 1;
+  SecurityServerIdProto security_server = 1;
 }
 
 message AuthKeyInfoProto {
-  string  alias = 1;
-  string keyStoreFileName = 2;
+  string alias = 1;
+  string key_store_file_name = 2;
   string password = 3;
   CertificateInfoProto cert = 4;
 }

@@ -25,11 +25,10 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.ClientIdMapper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
 import lombok.Value;
 

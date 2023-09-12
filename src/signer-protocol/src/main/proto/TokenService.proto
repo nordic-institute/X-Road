@@ -39,37 +39,37 @@ message ListTokensResp {
 }
 
 message ActivateTokenReq{
-  string tokenId = 1;
-  bool  activate = 2;
+  string token_id = 1;
+  bool activate = 2;
 }
 
 message GetTokenByIdReq {
-  string tokenId = 1;
+  string token_id = 1;
 }
 
 message GetTokenByKeyIdReq {
-  string keyId = 1;
+  string key_id = 1;
 }
 
 message GetTokenByCertRequestIdReq {
-  string certRequestId = 1;
+  string cert_request_id = 1;
 }
 
 message GetTokenByCertHashReq {
-  string certHash = 1;
+  string cert_hash = 1;
 }
 
 message SetTokenFriendlyNameReq {
-  string tokenId = 1;
-  string friendlyName = 2;
+  string token_id = 1;
+  string friendly_name = 2;
 }
 
 message GetTokenBatchSigningEnabledReq {
-  string keyId = 1;
+  string key_id = 1;
 }
 
 message GetTokenBatchSigningEnabledResp {
-  bool batchingSigningEnabled = 1;
+  bool batching_signing_enabled = 1;
 }
 
 message InitSoftwareTokenReq {
@@ -77,9 +77,9 @@ message InitSoftwareTokenReq {
 }
 
 message UpdateSoftwareTokenPinReq {
-  string tokenId = 1;
-  string oldPin = 2;
-  string newPin = 3;
+  string token_id = 1;
+  string old_pin = 2;
+  string new_pin = 3;
 }
 
 message GetHSMOperationalInfoResp {
@@ -87,11 +87,11 @@ message GetHSMOperationalInfoResp {
 }
 
 message GetMemberSigningInfoReq {
-  ClientIdProto memberId = 1;
+  ClientIdProto member_id = 1;
 }
 
 message GetMemberSigningInfoResp {
-  string keyId = 1;
+  string key_id = 1;
   CertificateInfoProto cert = 2;
-  string signMechanismName = 3;
+  string sign_mechanism_name = 3;
 }
