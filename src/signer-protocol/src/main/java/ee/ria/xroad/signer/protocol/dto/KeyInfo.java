@@ -49,7 +49,7 @@ public class KeyInfo implements Serializable {
     @ToString.Include
     public KeyUsageInfo getUsage() {
         var usage = message.getUsage();
-        return usage != KeyUsageInfo.KEY_USAGE_UNKNOWN ? usage : null;
+        return usage != KeyUsageInfo.KEY_USAGE_UNSPECIFIED ? usage : null;
     }
 
     @ToString.Include

@@ -104,7 +104,7 @@ public class TokenInfo implements Serializable {
     @ToString.Include
     public TokenStatusInfo getStatus() {
         var status = message.getStatus();
-        return status != TokenStatusInfo.TOKEN_STATUS_UNKNOWN ? status : null;
+        return status != TokenStatusInfo.TOKEN_STATUS_UNSPECIFIED ? status : null;
     }
 
     @ToString.Include
