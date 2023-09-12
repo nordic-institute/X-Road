@@ -17,7 +17,7 @@ if [ "$1" = "upgrade" ]; then
   )
 
   if [ -n "$sys_param_check_result" ]; then
-    echo "ERROR: There are data duplicates in the table SYSTEM_PARAMETER columns pair (KEY, HA_NODE_NAME):
+    echo "ERROR: With this version we improve the quality of data model, but there are data duplicates in the table SYSTEM_PARAMETERS columns pair (KEY, HA_NODE_NAME):
 -----------------------------------------------------
 COUNT(*) | KEY | HA_NODE_NAME
 -----------------------------------------------------
