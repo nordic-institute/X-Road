@@ -131,16 +131,18 @@ public class BatchSigner {
      */
     private static class WorkerImpl {
 
-        private long signStartTime;
-        private boolean workerBusy;
-
-        private boolean batchSigningEnabled;
+        private final boolean batchSigningEnabled;
         private final BlockingQueue<SigningRequestWrapper> requestsQueue = new LinkedBlockingQueue<>();
         private boolean stopping;
         private final Thread workerThread;
 
         protected WorkerImpl(String keyId) {
-            queryBatchSigningEnabled(keyId);
+            try {
+                batchSigningEnabled = SignerProxy.isTokenBatchSigningEnabled(keyId);
+            } catch (Exception e) {
+                log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
+                throw new RuntimeException(e);
+            }
             workerThread = new Thread(this::process);
             workerThread.setDaemon(true); // todo check, if really needed?
             workerThread.start();
@@ -149,28 +151,6 @@ public class BatchSigner {
         public void handleSignRequest(SigningRequestWrapper signRequest) {
             log.trace("handleSignRequest()");
             requestsQueue.add(signRequest);
-        }
-
-        private void queryBatchSigningEnabled(String keyId) {
-            try {
-                batchSigningEnabled = SignerProxy.isTokenBatchSigningEnabled(keyId);
-            } catch (Exception e) {
-                log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
-            }
-        }
-
-        private boolean isWorkerBusy() {
-            if (isSignatureCreationTimedOut()) {
-                workerBusy = false;
-
-                throw new CodedException(X_INTERNAL_ERROR, "Signature creation timed out");
-            }
-
-            return workerBusy;
-        }
-
-        private boolean isSignatureCreationTimedOut() {
-            return workerBusy && System.currentTimeMillis() - signStartTime >= TIMEOUT_MILLIS;
         }
 
         private void sendSignatureResponse(BatchSignatureCtx ctx, byte[] signatureValue) throws Exception {
@@ -240,7 +220,6 @@ public class BatchSigner {
         }
 
     }
-
 
     /**
      * Convenience class that wraps the request along with the keyId
