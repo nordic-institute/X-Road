@@ -1,0 +1,117 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+syntax = "proto3";
+
+package org.niis.xroad.signer.proto;
+
+import "common_messages.proto";
+import "tokens.proto";
+import "token_status_info.proto";
+
+option java_multiple_files = true;
+
+service KeyService {
+  rpc GenerateKey(GenerateKeyReq) returns (KeyInfoProto) {}
+
+  rpc SetKeyFriendlyName(SetKeyFriendlyNameReq) returns (Empty) {}
+
+  rpc GetKeyIdForCertHash(GetKeyIdForCertHashReq) returns (GetKeyIdForCertHashResp) {}
+
+  rpc GetSignMechanism(GetSignMechanismReq) returns (GetSignMechanismResp) {}
+
+  rpc Sign(SignReq) returns (SignResp) {}
+
+  rpc SignCertificate(SignCertificateReq) returns (SignCertificateResp) {}
+
+  rpc DeleteKey(DeleteKeyReq) returns (Empty) {}
+
+  rpc GetAuthKey(GetAuthKeyReq) returns (AuthKeyInfoProto) {}
+}
+
+message GetKeyIdForCertHashReq {
+  string cert_hash = 1;
+}
+
+message GetKeyIdForCertHashResp {
+  string key_id = 1;
+  string sign_mechanism_name = 2;
+}
+
+message SetKeyFriendlyNameReq {
+  string key_id = 1;
+  string friendly_name = 2;
+}
+
+
+message GetSignMechanismReq {
+  string key_id = 1;
+}
+
+message GetSignMechanismResp {
+  string sign_mechanism_name = 1;
+}
+
+message SignReq {
+  string key_id = 1;
+  string signature_algorithm_id = 2;
+  bytes digest = 3;
+}
+
+message SignResp {
+  bytes signature = 1;
+}
+
+message SignCertificateReq {
+  string key_id = 1;
+  string signature_algorithm_id = 2;
+  string subject_name = 3;
+  bytes public_key = 4;
+}
+
+message SignCertificateResp {
+  bytes certificate_chain = 1;
+}
+
+message DeleteKeyReq {
+  string key_id = 1;
+  bool delete_from_device = 2;
+}
+
+message GenerateKeyReq {
+  string token_id = 1;
+  string key_label = 2;
+}
+
+message GetAuthKeyReq {
+  SecurityServerIdProto security_server = 1;
+}
+
+message AuthKeyInfoProto {
+  string alias = 1;
+  string key_store_file_name = 2;
+  string password = 3;
+  CertificateInfoProto cert = 4;
+}
