@@ -19,7 +19,7 @@ where s.count > 1;"
   )
 
   if [ -n "$sys_param_check_result" ]; then
-    echo "ERROR: Data quality issues in the database. There are data duplicates in the table SYSTEM_PARAMETERS columns pair (KEY, HA_NODE_NAME):
+    echo "ERROR: Data quality issues in the $db_database database. There are duplicate data in the table SYSTEM_PARAMETERS columns pair (KEY, HA_NODE_NAME):
 ----------------------------------------------------------------------------------------------------------------------------------------------
 $sys_param_check_result
 ----------------------------------------------------------------------------------------------------------------------------------------------
