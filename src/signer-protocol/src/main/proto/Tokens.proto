@@ -8,13 +8,13 @@ option java_package = "ee.ria.xroad.signer.protocol.dto";
 
 message TokenInfoProto {
   string type = 1;
-  string friendlyName = 2;
+ optional string friendlyName = 2;
   string id = 3;
   bool readOnly = 4;
   bool available = 5;
   bool active = 6;
-  string serialNumber = 7;
-  string label = 8;
+  optional string serialNumber = 7;
+  optional string label = 8;
   int32 slotIndex = 9;
   TokenStatusInfo status = 10;
   repeated KeyInfoProto keyInfo = 11;
@@ -29,9 +29,9 @@ message TokenInfoAndKeyIdProto {
 message KeyInfoProto {
   bool available = 1;
   KeyUsageInfo usage = 2;
-  string friendly_name = 3;
+  optional string friendly_name = 3;
   string id = 4;
-  string label = 5;
+  optional string label = 5;
   string public_key = 6;
   repeated CertificateInfoProto certs = 7;
   repeated CertRequestInfoProto cert_requests = 8;
@@ -39,7 +39,7 @@ message KeyInfoProto {
 }
 
 message CertificateInfoProto {
-  ClientIdProto memberId = 1;
+  optional ClientIdProto memberId = 1;
   bool active = 2;
   bool savedToConfiguration = 3;
   string status = 4;

@@ -26,23 +26,25 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.identifier.ClientId;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.niis.xroad.signer.protocol.dto.ClientIdProto;
 import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClientIdMapper {
 
-    public static ClientId.Conf fromDto(ClientIdProto input) {
-
-        //TODO:grpc refine this check
-        if (input.hasField(ClientIdProto.getDescriptor().findFieldByName("subsystemCode"))) {
-            return ClientId.Conf.create(input.getXroadInstance(),
-                    input.getMemberClass(),
-                    input.getMemberCode(),
-                    input.getSubsystemCode());
+    public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
+        if (clientIdProto.hasSubsystemCode()) {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode(),
+                    clientIdProto.getSubsystemCode());
         } else {
-            return ClientId.Conf.create(input.getXroadInstance(),
-                    input.getMemberClass(),
-                    input.getMemberCode());
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode());
         }
     }
 

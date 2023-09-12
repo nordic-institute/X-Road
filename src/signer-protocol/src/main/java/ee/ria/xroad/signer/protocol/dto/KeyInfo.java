@@ -54,7 +54,10 @@ public class KeyInfo implements Serializable {
 
     @ToString.Include
     public String getFriendlyName() {
-        return message.getFriendlyName();
+        if (message.hasFriendlyName()) {
+            return message.getFriendlyName();
+        }
+        return null;
     }
 
     @ToString.Include
@@ -64,7 +67,10 @@ public class KeyInfo implements Serializable {
 
     @ToString.Include
     public String getLabel() {
-        return message.getLabel();
+        if (message.hasFriendlyName()) {
+            return message.getLabel();
+        }
+        return null;
     }
 
     @ToString.Include

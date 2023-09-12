@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 import "TokenStatusInfo.proto";
 
 option java_multiple_files = true;
@@ -11,7 +12,7 @@ message Empty {
 message ClientIdProto {
   string memberClass = 1;
   string memberCode = 2;
-  string subsystemCode = 3;
+  optional string subsystemCode = 3;
 
   string xroadInstance = 4;
   XRoadObjectType objectType = 5;

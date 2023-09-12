@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.unmodifiableMap;
+import static java.util.Optional.ofNullable;
 
 /**
  * Model object representing a token.
@@ -151,7 +152,6 @@ public final class Token {
     public TokenInfo toDTO() {
         var messageBuilder = TokenInfoProto.newBuilder()
                 .setType(type)
-                .setFriendlyName(friendlyName)
                 .setId(id)
                 .setReadOnly(readOnly)
                 .setAvailable(available)
@@ -161,12 +161,9 @@ public final class Token {
                 .addAllKeyInfo(Collections.unmodifiableList(getKeysAsDTOs()))
                 .putAllTokenInfo(unmodifiableMap(tokenInfo));
 
-        if (serialNumber != null) {
-            messageBuilder.setSerialNumber(serialNumber);
-        }
-        if (label != null) {
-            messageBuilder.setLabel(label);
-        }
+        ofNullable(friendlyName).ifPresent(m -> messageBuilder.setFriendlyName(friendlyName));
+        ofNullable(serialNumber).ifPresent(m -> messageBuilder.setSerialNumber(serialNumber));
+        ofNullable(label).ifPresent(m -> messageBuilder.setLabel(label));
 
         return new TokenInfo(messageBuilder.build());
     }

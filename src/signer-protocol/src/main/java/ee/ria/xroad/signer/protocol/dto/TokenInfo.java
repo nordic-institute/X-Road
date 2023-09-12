@@ -54,7 +54,10 @@ public class TokenInfo implements Serializable {
 
     @ToString.Include
     public String getFriendlyName() {
-        return message.getFriendlyName();
+        if (message.hasFriendlyName()) {
+            return message.getFriendlyName();
+        }
+        return null;
     }
 
     @ToString.Include
@@ -79,12 +82,18 @@ public class TokenInfo implements Serializable {
 
     @ToString.Include
     public String getSerialNumber() {
-        return message.getSerialNumber();
+        if (message.hasSerialNumber()) {
+            return message.getSerialNumber();
+        }
+        return null;
     }
 
     @ToString.Include
     public String getLabel() {
-        return message.getLabel();
+        if (message.hasLabel()) {
+            return message.getLabel();
+        }
+        return null;
     }
 
     @ToString.Include
