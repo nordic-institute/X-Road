@@ -205,7 +205,7 @@ public final class ProxyMain {
 
         MonitorAgent.init(actorSystem);
         RpcSignerClient.init();
-        BatchSigner.init(actorSystem);
+        BatchSigner.init();
         boolean messageLogEnabled = MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);
 
