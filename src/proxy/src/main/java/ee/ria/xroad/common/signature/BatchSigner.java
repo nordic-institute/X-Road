@@ -43,6 +43,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -57,10 +58,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
  * Moreover, multiple signing requests for the same signing certificate
  * (and thus the same key id) are signed in batch and the resulting hash
  * chain is produced for each request.
- * <p>
- * The batch signer is an Akka actor, it creates child actors per
- * signing certificate, which means there is essentially one batch signer
- * per signing certificate.
  */
 @Slf4j
 public class BatchSigner {
@@ -73,6 +70,12 @@ public class BatchSigner {
 
     public static void init() {
         instance = new BatchSigner();
+    }
+
+    public static void shutdown() {
+        if (instance != null) {
+            instance.workers.values().forEach(WorkerImpl::stop);
+        }
     }
 
     /**
@@ -95,7 +98,12 @@ public class BatchSigner {
                 completableFuture,
                 keyId, signatureAlgorithmId, request);
         instance.handle(signRequestWrapper);
-        return completableFuture.get(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+
+        try {
+            return completableFuture.get(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException timeoutException) {
+            throw new CodedException(X_INTERNAL_ERROR, "Signature creation timed out");
+        }
     }
 
     private void handle(SigningRequestWrapper signRequest) {
@@ -111,7 +119,7 @@ public class BatchSigner {
 
             return workers.computeIfAbsent(name, key -> {
                 log.trace("Creating new worker for cert '{}'", name);
-                return new WorkerImpl();
+                return new WorkerImpl(signRequest.getKeyId());
             });
         } catch (Exception e) {
             throw new RuntimeException("Unable to get worker", e);
@@ -126,27 +134,20 @@ public class BatchSigner {
         private long signStartTime;
         private boolean workerBusy;
 
-        private volatile Boolean batchSigningEnabled;
-
+        private boolean batchSigningEnabled;
         private final BlockingQueue<SigningRequestWrapper> requestsQueue = new LinkedBlockingQueue<>();
         private boolean stopping;
         private final Thread workerThread;
 
-        protected WorkerImpl() {
+        protected WorkerImpl(String keyId) {
+            queryBatchSigningEnabled(keyId);
             workerThread = new Thread(this::process);
             workerThread.setDaemon(true); // todo check, if really needed?
             workerThread.start();
         }
 
-        public synchronized void handleSignRequest(SigningRequestWrapper signRequest) {
+        public void handleSignRequest(SigningRequestWrapper signRequest) {
             log.trace("handleSignRequest()");
-
-            // If we do not know whether batch signing is enabled for the token,
-            // we ask from Signer. This call will block until response is
-            // received or error occurs.
-            if (batchSigningEnabled == null) {
-                queryBatchSigningEnabled(signRequest.getKeyId());
-            }
             requestsQueue.add(signRequest);
         }
 
@@ -186,19 +187,9 @@ public class BatchSigner {
             }
         }
 
-        private void sendResponse(BatchSignatureCtx ctx, Object message) {
+        private void sendException(BatchSignatureCtx ctx, Exception message) {
             for (CompletableFuture<SignatureData> client : ctx.getClients()) {
-                sendResponse(client, message);
-            }
-        }
-
-        private void sendResponse(CompletableFuture<SignatureData> client, Object message) {
-//            if (message instanceof CodedException) {
-//                client.completeExceptionally((CodedException) message);
-            if (message instanceof Exception) {
-                client.completeExceptionally((Exception) message);
-            } else {
-                client.complete((SignatureData) message);
+                client.completeExceptionally(message);
             }
         }
 
@@ -232,10 +223,9 @@ public class BatchSigner {
                     try {
                         byte[] digest = calculateDigest(getDigestAlgorithmId(ctx.getSignatureAlgorithmId()), ctx.getDataToBeSigned());
                         final byte[] response = SignerProxy.sign(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), digest);
-
                         sendSignatureResponse(ctx, response);
                     } catch (Exception exception) {
-                        sendResponse(ctx, exception);
+                        sendException(ctx, exception);
                     }
                 } catch (InterruptedException interruptedException) {
                     log.trace("queue polling interrupted");
@@ -258,19 +248,11 @@ public class BatchSigner {
      */
     @Data
     private static class SigningRequestWrapper {
-        private final long createdOn;
+        private final long createdOn = System.currentTimeMillis();
         private final CompletableFuture<SignatureData> clientFuture;
         private final String keyId;
         private final String signatureAlgorithmId;
         private final SigningRequest request;
-
-        public SigningRequestWrapper(CompletableFuture<SignatureData> clientFuture, String keyId, String signatureAlgorithmId, SigningRequest request) {
-            this.createdOn = System.currentTimeMillis();
-            this.clientFuture = clientFuture;
-            this.keyId = keyId;
-            this.signatureAlgorithmId = signatureAlgorithmId;
-            this.request = request;
-        }
 
         X509Certificate getSigningCert() {
             return request.getSigningCert();

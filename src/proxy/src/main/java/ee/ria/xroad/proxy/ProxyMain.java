@@ -197,6 +197,7 @@ public final class ProxyMain {
         stopServices();
         Await.ready(actorSystem.terminate(), Duration.Inf());
 
+        BatchSigner.shutdown();
         RpcSignerClient.shutdown();
     }
 
