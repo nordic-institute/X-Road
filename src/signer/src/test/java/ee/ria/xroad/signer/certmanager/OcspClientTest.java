@@ -332,7 +332,7 @@ public class OcspClientTest {
     }
 
     private static class TestOcspClient extends OcspClientWorker {
-        public TestOcspClient(OcspResponseManager ocspResponseManager) {
+        TestOcspClient(OcspResponseManager ocspResponseManager) {
             super(ocspResponseManager);
         }
 

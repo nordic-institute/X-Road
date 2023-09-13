@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import com.google.protobuf.ByteString;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
@@ -37,6 +35,7 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
+import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;

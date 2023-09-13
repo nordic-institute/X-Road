@@ -65,6 +65,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
  * @param <RespT> response type
  */
 @Slf4j
+@SuppressWarnings("squid:S119")
 public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         RespT extends AbstractMessage> extends AbstractRpcHandler<ReqT, RespT> {
 
@@ -108,7 +109,6 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         return out.toByteArray();
     }
 
-    //TODO:grpc this should be refactored..
     private static class TokenContentSigner implements ContentSigner {
         private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 

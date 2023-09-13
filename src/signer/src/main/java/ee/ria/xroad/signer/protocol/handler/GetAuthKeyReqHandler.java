@@ -171,9 +171,8 @@ public class GetAuthKeyReqHandler
 
         log.trace("Ignoring authentication certificate {} because it does "
                 + "not belong to security server {} "
-                + "(server id from global conf: {})", new Object[]{
-                CertUtils.identify(cert),
-                securityServer, serverIdFromConf});
+                + "(server id from global conf: {})", CertUtils.identify(cert),
+                securityServer, serverIdFromConf);
 
         return false;
     }

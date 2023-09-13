@@ -729,20 +729,11 @@ public final class TokenManager {
         key.addCert(cert);
     }
 
-    public static synchronized void addCert(String keyId,
-                                            CertificateInfo certInfo) {
-        //TODO check if needed
-
-    }
     /**
      * Adds a certificate to a key. Throws exception, if key cannot be found.
-     *
-     * @param keyId    the key id
-     * @param certInfo the certificate info
      */
-    public static synchronized void addCert(String keyId,
-                                            ClientId.Conf memberId, boolean active,boolean savedToConfiguration,
-                                            String initialStatus,String id,byte[] certificate) {
+    public static synchronized void addCert(String keyId, ClientId.Conf memberId, boolean active, boolean savedToConfiguration,
+                                            String initialStatus, String id, byte[] certificate) {
         log.trace("addCert({})", keyId);
 
         Key key = findKey(keyId);

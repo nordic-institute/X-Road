@@ -70,7 +70,8 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         try {
             loadTokens(true);
         } catch (Exception e) {
-            log.error("Error during module {} reload. It will be repeated on next scheduled module refresh..", getClass().getSimpleName(), e);
+            log.error("Error during module {} reload. It will be repeated on next scheduled module refresh..",
+                    getClass().getSimpleName(), e);
             throw translateException(e);
         }
     }

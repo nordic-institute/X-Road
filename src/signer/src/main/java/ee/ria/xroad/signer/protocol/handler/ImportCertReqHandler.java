@@ -34,7 +34,11 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.ClientIdMapper;
-import ee.ria.xroad.signer.protocol.dto.*;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 
@@ -238,7 +242,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
     private static KeyUsageInfo getKeyUsage(KeyInfo keyInfo, boolean sign) {
         KeyUsageInfo keyUsage = keyInfo.getUsage();
-        if (keyUsage == null) {//TODO:grpc to we need to support nulls?
+        if (keyUsage == null) {
             return sign ? KeyUsageInfo.SIGNING : KeyUsageInfo.AUTHENTICATION;
         }
 
