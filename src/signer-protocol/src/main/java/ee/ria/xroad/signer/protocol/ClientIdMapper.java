@@ -48,7 +48,7 @@ public class ClientIdMapper {
         }
     }
 
-    //TODO:grpc move to a separate place.
+    //TODO grpc move to a separate place.
     public static ClientIdProto toDto(ClientId input) {
         var builder = ClientIdProto.newBuilder()
                 .setMemberClass(input.getMemberClass())

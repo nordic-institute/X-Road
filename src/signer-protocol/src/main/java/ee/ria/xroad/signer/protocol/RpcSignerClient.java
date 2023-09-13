@@ -26,7 +26,6 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
 
 import com.google.protobuf.Any;
@@ -34,6 +33,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Channel;
 import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
@@ -42,6 +42,10 @@ import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.SystemProperties.getGrpcSignerHost;
+import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
+import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createClientCredentials;
 
 @Slf4j
@@ -54,9 +58,9 @@ public final class RpcSignerClient {
     /**
      * Construct client for accessing Signer services using the provided channel.
      */
-    private RpcSignerClient(final ManagedChannel channel) {
+    private RpcSignerClient(final ManagedChannel channel, int clientTimeoutMillis) {
         this.channel = channel;
-        this.executionContext = new ExecutionContext(channel);
+        this.executionContext = new ExecutionContext(channel, clientTimeoutMillis);
     }
 
     /**
@@ -65,16 +69,16 @@ public final class RpcSignerClient {
      * @throws Exception
      */
     public static void init() throws Exception {
-        init(SystemProperties.getGrpcSignerHost(), SystemProperties.getGrpcSignerPort());
+        init(getGrpcSignerHost(), getGrpcSignerPort(), getSignerClientTimeout());
     }
 
-    public static void init(String host, int port) throws Exception {
+    public static void init(String host, int port, int clientTimeoutMillis) throws Exception {
         var credentials = createClientCredentials();
         log.info("Starting grpc client with {} credentials..", credentials.getClass().getSimpleName());
         ManagedChannel channel = Grpc.newChannelBuilderForAddress(host, port, credentials)
                 .build();
 
-        instance = new RpcSignerClient(channel);
+        instance = new RpcSignerClient(channel, clientTimeoutMillis);
     }
 
     public static void shutdown() {
@@ -84,20 +88,20 @@ public final class RpcSignerClient {
     }
 
     public static class ExecutionContext {
-        public final TokenServiceGrpc.TokenServiceStub tokenService;
-
         public final TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
         public final CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
         public final KeyServiceGrpc.KeyServiceBlockingStub blockingKeyService;
         public final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
 
-        public ExecutionContext(final Channel channel) {
-            tokenService = TokenServiceGrpc.newStub(channel);
-
-            blockingTokenService = TokenServiceGrpc.newBlockingStub(channel);
-            blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel);
-            blockingKeyService = KeyServiceGrpc.newBlockingStub(channel);
-            blockingOcspService = OcspServiceGrpc.newBlockingStub(channel);
+        public ExecutionContext(final Channel channel, int clientTimeoutMillis) {
+            blockingTokenService = TokenServiceGrpc.newBlockingStub(channel)
+                    .withDeadlineAfter(clientTimeoutMillis, MILLISECONDS);
+            blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel)
+                    .withDeadlineAfter(clientTimeoutMillis, MILLISECONDS);
+            blockingKeyService = KeyServiceGrpc.newBlockingStub(channel)
+                    .withDeadlineAfter(clientTimeoutMillis, MILLISECONDS);
+            blockingOcspService = OcspServiceGrpc.newBlockingStub(channel)
+                    .withDeadlineAfter(clientTimeoutMillis, MILLISECONDS);
         }
     }
 
@@ -105,6 +109,10 @@ public final class RpcSignerClient {
         try {
             return grpcCall.exec(getInstance().executionContext);
         } catch (StatusRuntimeException error) {
+            if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
+                throw CodedException.tr(SIGNER_X, "signer_client_timeout", "Signer client timed out")
+                        .withPrefix(SIGNER_X);
+            }
             com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
             if (status != null) {
                 for (Any any : status.getDetailsList()) {

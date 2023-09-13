@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -67,6 +68,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.SystemProperties.getGrpcSignerHost;
+import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
@@ -78,6 +81,7 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -613,6 +617,25 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 .getOcspResponses(new String[]{calculateCertHexHash("not a cert".getBytes())});
         assertThat(ocspResponses).hasSize(1);
         assertThat(ocspResponses[0]).isNull();
+    }
+
+    @Step("signer client initialized with default settings")
+    public void signerClientInitializedWithDefaultSettings() throws Exception {
+        RpcSignerClient.shutdown();
+        RpcSignerClient.init();
+    }
+
+    @Step("signer client initialized with timeout {int} milliseconds")
+    public void signerClientReinitializedWithTimeoutMilliseconds(int timeoutMillis) throws Exception {
+        RpcSignerClient.shutdown();
+        RpcSignerClient.init(getGrpcSignerHost(), getGrpcSignerPort(), timeoutMillis);
+    }
+
+    @Step("getTokens fails with timeout exception")
+    public void signerGetTokensFailsWithTimeoutException() {
+        assertThatThrownBy(SignerProxy::getTokens)
+                .isInstanceOf(CodedException.class)
+                .hasMessage("Signer: Signer client timed out");
     }
 
 

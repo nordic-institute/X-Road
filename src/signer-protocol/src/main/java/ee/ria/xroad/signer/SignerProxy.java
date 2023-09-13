@@ -172,7 +172,7 @@ public final class SignerProxy {
         RpcSignerClient.execute(ctx -> ctx.blockingTokenService
                 .updateSoftwareTokenPin(UpdateSoftwareTokenPinReq.newBuilder()
                         .setTokenId(tokenId)
-                        .setOldPin(new String(oldPin))//TODO:grpc its not great that we're doing this transformation
+                        .setOldPin(new String(oldPin))//TODO grpc its not great that we're doing this transformation
                         .setNewPin(new String(newPin))
                         .build()));
     }
