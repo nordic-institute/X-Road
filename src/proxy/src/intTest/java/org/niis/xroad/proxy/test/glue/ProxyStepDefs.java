@@ -52,7 +52,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -193,7 +197,8 @@ public class ProxyStepDefs extends BaseStepDefs {
         }
     }
 
-    private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads) throws InterruptedException {
+    private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)
+            throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(threads);
 
         try {

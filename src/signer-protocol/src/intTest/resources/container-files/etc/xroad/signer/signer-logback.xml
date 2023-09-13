@@ -10,7 +10,6 @@
     <logger name="org.springframework" level="INFO" />
 
     <logger name="ee.ria.xroad" level="TRACE" />
-    <logger name="akka" level="WARN" />
 
     <!--TokenManager is very verbose /-->
     <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="TRACE" />
