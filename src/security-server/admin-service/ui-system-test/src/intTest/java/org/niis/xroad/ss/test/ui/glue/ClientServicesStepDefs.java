@@ -41,6 +41,7 @@ import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static java.time.Duration.ofSeconds;
 
 public class ClientServicesStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj clientInfoPageObj = new ClientInfoPageObj();
@@ -176,6 +177,23 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.addSubject.btnSearch().click();
     }
 
+    @Step("Adding value for member name, member code, subsystem and then click the remove value button on the input field")
+    public void clearSubjectsFilter() {
+        clientInfoPageObj.services.addSubject.inputName().shouldBe(empty).setValue("name");
+        clientInfoPageObj.services.addSubject.buttonClearInputName().click();
+
+        clientInfoPageObj.services.addSubject.inputMemberCode().shouldBe(empty).setValue("memberCode");
+        clientInfoPageObj.services.addSubject.buttonClearInputMemberCode().click();
+
+        clientInfoPageObj.services.addSubject.inputSubsystemCode().shouldBe(empty).setValue("subsystemCode");
+        clientInfoPageObj.services.addSubject.buttonClearInputSubsystemCode().click();
+    }
+
+    @Step("Click Search button on subject dialog")
+    public void clickSearch() {
+        clientInfoPageObj.services.addSubject.btnSearch().click();
+    }
+
     @Step("Subject with id {string} and {string} is selected from the table. There are total {} entries")
     public void addAccessRights(String id, String id2, int size) {
         clientInfoPageObj.services.addSubject.memberTableRows().shouldHave(size(size));
@@ -186,6 +204,11 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.addSubject.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Access rights added successfully"));
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("The query return {} entries in the subjects table")
+    public void validateSubjectsTableSize(int size) {
+        clientInfoPageObj.services.addSubject.memberTableRows().shouldHave(size(size));
     }
 
     @Step("Service Access Rights table member with id {string} is {selenideValidation}")
@@ -321,9 +344,26 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         clientInfoPageObj.services.servicesEdit.inputEditUrl().setValue(url);
         clientInfoPageObj.services.servicesEdit.inputEditServiceCode().setValue(serviceCode);
+    }
 
+    @Step("Rest service details are saved and error message {string} is shown")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void saveRestServiceError(String message) {
         clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
-        commonPageObj.snackBar.success().shouldHave(text("Description saved"));
+        commonPageObj.alerts.alert(message).shouldBe(Condition.visible, ofSeconds(15));
+    }
+
+    @Step("Rest service parameters are saved and error message {string} is shown")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void saveRestServiceParamsSaveError(String message) {
+        clientInfoPageObj.services.servicesParameters.btnSaveEdit().click();
+        commonPageObj.alerts.alert(message).shouldBe(Condition.visible, ofSeconds(15));
+    }
+
+    @Step("Rest service details are saved and success message {string} is shown")
+    public void saveRestServiceSuccess(String message) {
+        clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
+        commonPageObj.snackBar.success().shouldHave(text(message));
     }
 
     @Step("Service {string} is deleted")

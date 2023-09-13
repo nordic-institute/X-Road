@@ -17,6 +17,8 @@ dependencies {
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
+    implementation 'org.semver4j:semver4j:5.0.0'
+
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
 

@@ -2050,7 +2050,7 @@ To restore configuration from the command line, the following data must be avail
 
 To find the X-Road ID of the security server, the following command can be used:
 
-    tar -tf /var/lib/xroad/backup/<security server conf backup file> | head -1
+    cat /etc/xroad/gpghome/openpgp-revocs.d/<file-name>.rev | grep uid
 
 It is expected that the restore command is run by the xroad user.
 

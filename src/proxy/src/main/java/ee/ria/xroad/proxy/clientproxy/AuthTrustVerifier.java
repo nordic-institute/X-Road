@@ -101,12 +101,8 @@ public final class AuthTrustVerifier {
         CertChain chain;
         List<OCSPResp> ocspResponses;
         try {
-            List<X509Certificate> additionalCerts =
-                    Arrays.asList(
-                            (X509Certificate[])ArrayUtils.subarray(certs, 1,
-                                    certs.length));
-            chain = CertChain.create(serviceProvider.getXRoadInstance(),
-                    certs[0], additionalCerts);
+            List<X509Certificate> additionalCerts = Arrays.asList(ArrayUtils.subarray(certs, 1, certs.length));
+            chain = CertChain.create(serviceProvider.getXRoadInstance(), certs[0], additionalCerts);
             ocspResponses = getOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot(), address.getHost());
         } catch (CodedException e) {
@@ -200,9 +196,7 @@ public final class AuthTrustVerifier {
             // Note: assuming X509-based auth
             return (X509Certificate[])session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException e) {
-            log.error("Error while getting peer certificates", e);
-            throw new CodedException(X_SSL_AUTH_FAILED, e,
-                    "Service provider did not send correct authentication certificate");
+            throw new CodedException(X_SSL_AUTH_FAILED, e, "Service provider did not provide TLS certificate");
         }
     }
 

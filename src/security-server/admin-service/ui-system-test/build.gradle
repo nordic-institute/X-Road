@@ -16,13 +16,16 @@ task systemTest(type: Test) {
 
   def systemTestArgs = ["-XX:MaxMetaspaceSize=200m"]
   if (project.hasProperty('systemTestSsTags')) {
-    systemTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('systemTestTags')
+    systemTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('systemTestSsTags')
   }
   if (project.hasProperty('systemTestSsServeReport')) {
-    systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('systemTestServeReport')
+    systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('systemTestSsServeReport')
   }
   if (project.hasProperty('systemTestSsPackageHost')) {
     systemTestArgs += "-Dtest-automation.custom.package-host=" + project.getProperty('systemTestSsPackageHost')
+  }
+  if (project.hasProperty('systemTestSsDockerRoot')) {
+    systemTestArgs += "-Dtest-automation.custom.docker-root=" + project.getProperty('systemTestSsDockerRoot')
   }
   jvmArgs systemTestArgs
 

@@ -123,6 +123,7 @@ Feature: 0540 - SS: Client OpenApi REST services
     Given Client "TestService" is opened
     And Services sub-tab is selected
     When Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi1.yaml)" is updated with url "http://mock-server:1080/test-services/testopenapi11.yaml" and service code "s4c100"
+    Then Rest service details are saved and success message "Description saved" is shown
     Then Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi1.yaml)" is missing in the list
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi11.yaml)" is present in the list
 

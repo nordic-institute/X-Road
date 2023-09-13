@@ -213,6 +213,10 @@ public final class SystemProperties {
     private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
             PREFIX + "proxy.server-connector-so-linger";
 
+    /** Property name of the server's minimum supported client version */
+    private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
+            PREFIX + "proxy.server-min-supported-client-version";
+
     private static final String SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS =
             PREFIX + "proxy.server-support-clients-pooled-connections";
 
@@ -1413,7 +1417,7 @@ public final class SystemProperties {
      * @return true if PIN policy should be enforced.
      */
     public static boolean shouldEnforceTokenPinPolicy() {
-        return Boolean.valueOf(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
+        return Boolean.parseBoolean(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
                 DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY));
     }
 
@@ -1448,7 +1452,6 @@ public final class SystemProperties {
     public static int getServerProxyConnectorMaxIdleTime() {
         return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_MAX_IDLE_TIME,
                 DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME));
-
     }
 
     /**
@@ -1461,6 +1464,10 @@ public final class SystemProperties {
                 DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
         if (linger >= 0) return linger * 1000;
         return -1;
+    }
+
+    public static String getServerProxyMinSupportedClientVersion() {
+        return System.getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION);
     }
 
     /**

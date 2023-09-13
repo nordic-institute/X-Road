@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.75
+Version: 2.76
 Doc. ID: UG-SYSPAR
 
 
@@ -86,6 +86,7 @@ Doc. ID: UG-SYSPAR
 | 15.06.2023 | 2.73    | Added *strict-identifier-checks* parameter                                                                                                                                                                                                                                                                                                                                                                     | Madis Loitmaa              |
 | 13.06.2023 | 2.74    | Add configurable max request size constrains for central server admin service.                                                                                                                                                                                                                                                                                                                                 | Andres Rosenthal           |
 | 13.06.2023 | 2.75    | Added new *complementary-user-role-mappings* parameters                                                                                                                                                                                                                                                                                                                                                        | Andres Rosenthal           |
+| 24.08.2023 | 2.76    | Added new *server-min-supported-client-version* parameter                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets              |
 
 ## Table of Contents
 
@@ -295,6 +296,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | enforce-client-is-cert-validity-period-check     | false                                      |   |   | Whether to reject a request when client information system certificate is expired or not yet valid. |
 | backup-encryption-enabled                        | false                                      |   |   | Whether to encrypt security server backup files using server's OpenPGP key. |
 | backup-encryption-keyids                         |                                            |   |   | Comma-separated list of additional recipient OpenPGP key identifiers. |
+| server-min-supported-client-version              |                                            |   |   | Minimum version of the client Security Server that is allowed to access a service. This property must be configured on the service provider Security Server. |
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:

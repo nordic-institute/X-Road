@@ -32,14 +32,11 @@ import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.PerformanceLogger;
-import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 
@@ -61,8 +58,6 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 class ServerProxyHandler extends HandlerBase {
-
-    private static final String UNKNOWN_VERSION = "unknown";
 
     private final HttpClient client;
     private final HttpClient opMonitorClient;
@@ -93,7 +88,7 @@ class ServerProxyHandler extends HandlerBase {
 
             GlobalConf.verifyValidity();
 
-            logProxyVersion(request);
+            ClientProxyVersionVerifier.check(request);
             baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
             final MessageProcessorBase processor = createRequestProcessor(request, response, opMonitoringData);
             processor.process();
@@ -124,7 +119,7 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     private MessageProcessorBase createRequestProcessor(HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
+            OpMonitoringData opMonitoringData) {
 
         if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeader(HEADER_MESSAGE_TYPE))) {
             return new ServerRestMessageProcessor(request, response, client, getClientSslCertChain(request),
@@ -142,23 +137,7 @@ class ServerProxyHandler extends HandlerBase {
         sendErrorResponse(request, response, e);
     }
 
-    private static void logProxyVersion(HttpServletRequest request) {
-        String thatVersion = getVersion(request.getHeader(MimeUtils.HEADER_PROXY_VERSION));
-        String thisVersion = getVersion(ProxyMain.readProxyVersion());
-
-        log.info("Received request from {} (security server version: {})", request.getRemoteAddr(), thatVersion);
-
-        if (!thatVersion.equals(thisVersion)) {
-            log.warn("Peer security server version ({}) does not match host security server version ({})", thatVersion,
-                    thisVersion);
-        }
-    }
-
-    private static String getVersion(String value) {
-        return !StringUtils.isBlank(value) ? value : UNKNOWN_VERSION;
-    }
-
-    private static X509Certificate[] getClientSslCertChain(HttpServletRequest request) throws Exception {
+    private static X509Certificate[] getClientSslCertChain(HttpServletRequest request) {
         Object attribute = request.getAttribute("javax.servlet.request.X509Certificate");
 
         if (attribute != null) {
