@@ -10,17 +10,18 @@ if [ "$1" = "upgrade" ]; then
   prepare_db_props
 
   # Start table system_parameters unique check (this check can be remove after LAST_SUPPORTED_VERSION > 7.4.0)
-  sys_param_select="select * from (select *, count(*) over (partition by key, ha_node_name order by key, ha_node_name) as count
+  sys_param_select="select * from (select id, key, value, created_at, updated_at, ha_node_name, count(*) over (partition by key, ha_node_name order by key, ha_node_name) as count
       from system_parameters) as s
 where s.count > 1;"
   sys_param_check_result=$(
-    PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qA -c \
+    PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
       "$sys_param_select"
   )
 
   if [ -n "$sys_param_check_result" ]; then
     echo "ERROR: Data quality issues in the $db_database database. There are duplicate data in the table SYSTEM_PARAMETERS columns pair (KEY, HA_NODE_NAME):
 ----------------------------------------------------------------------------------------------------------------------------------------------
+id|key|value|created_at|updated_at|ha_node_name|count
 $sys_param_check_result
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
