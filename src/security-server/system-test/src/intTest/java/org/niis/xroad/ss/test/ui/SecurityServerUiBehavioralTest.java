@@ -28,6 +28,6 @@ package org.niis.xroad.ss.test.ui;
 import com.nortal.test.TestRunner;
 import org.junit.platform.suite.api.SelectClasspathResource;
 
-@SelectClasspathResource("/behavior/ui")
+@SelectClasspathResource("/behavior")
 public class SecurityServerUiBehavioralTest extends TestRunner {
 }
