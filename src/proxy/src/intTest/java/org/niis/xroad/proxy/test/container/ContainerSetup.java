@@ -104,6 +104,7 @@ public class ContainerSetup {
                                 "-Dxroad.grpc.internal.keystore-password=111111",
                                 "-Dxroad.grpc.internal.truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",
                                 "-Dxroad.grpc.internal.truststore-password=111111",
+                                "-Dxroad.grpc.signer.host=0.0.0.0",
                                 "-cp",
                                 "/root/app.jar",
                                 "ee.ria.xroad.signer.SignerMain");
