@@ -99,10 +99,10 @@ public class ContainerSetup {
                 genericContainer
                         .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
                 genericContainer
-//                        .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
                         .withCommand("java",
                                 "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
                                 "-Dxroad.internal.passwordstore-provider=file",
+                                "-Dxroad.grpc.signer.host=0.0.0.0",
                                 "-Dxroad.grpc.internal.keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",
                                 "-Dxroad.grpc.internal.keystore-password=111111",
                                 "-Dxroad.grpc.internal.truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",

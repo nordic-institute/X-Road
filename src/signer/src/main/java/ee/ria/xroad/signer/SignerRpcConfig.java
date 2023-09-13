@@ -41,12 +41,11 @@ public class SignerRpcConfig {
 
     @Bean(initMethod = "start", destroyMethod = "shutdown")
     RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
-        int port = SystemProperties.getGrpcSignerPort();
-        log.info("Initializing RPC server on port {}.. ", port);
-
-        return RpcServer.newServer(port, builder ->
-                bindableServices.forEach(bindableService -> {
-                    log.info("Registering {} gRPC service.", bindableService.getClass().getSimpleName());
+        return RpcServer.newServer(
+                SystemProperties.getGrpcSignerHost(),
+                SystemProperties.getGrpcSignerPort(),
+                builder -> bindableServices.forEach(bindableService -> {
+                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
     }
