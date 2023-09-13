@@ -10,7 +10,7 @@ if [ "$1" = "upgrade" ]; then
   prepare_db_props
 
   # Start table system_parameters unique check (this check can be remove after LAST_SUPPORTED_VERSION > 7.4.0)
-  sys_param_select="select * from (select *, count(*) over (partition by key, ha_node_name order by key, ha_node_name, created_at) as count
+  sys_param_select="select * from (select *, count(*) over (partition by key, ha_node_name order by key, ha_node_name) as count
       from system_parameters) as s
 where s.count > 1;"
   sys_param_check_result=$(
