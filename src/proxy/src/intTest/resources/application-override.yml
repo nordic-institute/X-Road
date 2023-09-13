@@ -8,6 +8,7 @@ logging:
     org.springframework: INFO
     org.niis: TRACE
     com.nortal.test: INFO # TRACE is helpful for development
+    ee.ria.xroad.common.signature.BatchSigner: TRACE
 
 test-automation:
   report-name: xroad-proxy-test-suite
@@ -24,7 +25,6 @@ test-automation:
       reuse-between-runs: ${reuse-between-runs}
       directory-mounts:
         - "/tmp/xroad/passwordstore/:build/container-passwordstore/"
-        - "/etc/xroad/signer/:build/resources/intTest/container-files/etc/xroad/signer/"
     context-containers:
       ca-server:
         enabled: true

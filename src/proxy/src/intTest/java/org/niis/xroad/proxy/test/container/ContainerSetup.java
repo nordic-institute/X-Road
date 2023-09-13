@@ -67,7 +67,7 @@ public class ContainerSetup {
 
                 File filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
 
-                return new ReusableImageFromDockerfile("signer-int-test",
+                return new ReusableImageFromDockerfile("proxy-int-test",
                         !testableContainerProperties.getReuseBetweenRuns(),
                         testableContainerProperties.getReuseBetweenRuns())
                         .withFileFromFile(".", filesToAdd)
