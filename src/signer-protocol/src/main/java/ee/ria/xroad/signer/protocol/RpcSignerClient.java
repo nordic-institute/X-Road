@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Channel;
+import io.grpc.Deadline;
 import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
@@ -94,14 +95,15 @@ public final class RpcSignerClient {
         public final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
 
         public ExecutionContext(final Channel channel, int clientTimeoutMillis) {
+            final Deadline deadline = Deadline.after(clientTimeoutMillis, MILLISECONDS);
             blockingTokenService = TokenServiceGrpc.newBlockingStub(channel)
-                    .withDeadlineAfter(clientTimeoutMillis, MILLISECONDS);
+                    .withDeadline(deadline);
             blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel)
-                    .withDeadlineAfter(clientTimeoutMillis, MILLISECONDS);
+                    .withDeadline(deadline);
             blockingKeyService = KeyServiceGrpc.newBlockingStub(channel)
-                    .withDeadlineAfter(clientTimeoutMillis, MILLISECONDS);
+                    .withDeadline(deadline);
             blockingOcspService = OcspServiceGrpc.newBlockingStub(channel)
-                    .withDeadlineAfter(clientTimeoutMillis, MILLISECONDS);
+                    .withDeadline(deadline);
         }
     }
 
