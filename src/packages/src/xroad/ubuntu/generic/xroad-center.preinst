@@ -28,7 +28,7 @@ $sys_param_check_result
 To see duplicates data run the fallowing query in the $db_database database:
 $sys_param_select
 
-Please correct incorrect data before continue."
+Please fix incorrect data before continuing."
     exit 1
   fi
   # End table system_parameters unique check

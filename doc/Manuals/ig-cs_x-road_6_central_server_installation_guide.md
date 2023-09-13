@@ -509,7 +509,7 @@ then the PostgreSQL package is installed with the wrong locale. One way to fix i
 
 To complete the interrupted installation, run the command:
 
-`sudo apt -f install`
+`sudo apt --fix-broken install`
 
 ### 5.3 Could Not Create Default Cluster
 
@@ -524,7 +524,7 @@ Use the following command to create the PostgreSQL data cluster:
 
 The interrupted installation can be finished using
 
-`sudo apt -f install`
+`sudo apt --fix-broken install`
 
 ### 5.4 Is Postgres Running on Port 5432?
 
@@ -540,7 +540,7 @@ Then check if any of the following errors occurred during the installation of Po
 
 The interrupted installation can be finished using
 
-`sudo apt -f install`
+`sudo apt --fix-broken install`
 
 ### 5.5 Upgrade supported from version X.Y.Z or newer
 
@@ -605,7 +605,7 @@ The following error message may come up during the Central Server upgrade.
 
 `Data quality issues in the XXXXX database. ...`
 
-Before upgrading the packages from the current version to the target version first need to fix incorrect data in the postgreSQL database.
+Before upgrading the packages from the current version to the target version, incorrect data in the postgreSQL database needs to be fixed.
 
 For example, if the error message says:
 
@@ -622,7 +622,7 @@ id|key|value|created_at|updated_at|ha_node_name|count
 (2 rows)
 ----------------------------------------------------------------------------------------------------------------------------------------------
 ...
-Please correct incorrect data before continue.
+Please fix incorrect data before continuing.
 ```
 
 To fix incorrect data, login to the postreSQL database server as the superuser (postgres by default):
@@ -648,7 +648,7 @@ delete from system_parameters where id = 12;
 The interrupted installation can be finished using:
 
 ```bash
-sudo apt -f install
+sudo apt --fix-broken install
 ```
 
 ## Annex A Central Server Default Database Properties
