@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.34  
+Version: 2.35
 Doc. ID: IG-CS
 
 ---
@@ -50,8 +50,9 @@ Doc. ID: IG-CS
 | 19.04.2023 | 2.30    | Removed unused properties from db.properties                                                                                                                                                  | Mikk-Erik Bachmann |
 | 05.05.2023 | 2.31    | Minor updates                                                                                                                                                                                 | Justas Samuolis    |
 | 23.05.2023 | 2.32    | Backup Encryption Configuration                                                                                                                                                               | Eneli Reimets      |
-| 31.05.2023 | 2.33    | Add Central Server network diagram                                                                                                                                                            | Petteri Kivimäki |
-| 28.06.2023 | 2.34    | Update database properties to the new Spring datasource version                                                                                                                               | Raido Kaju       |
+| 31.05.2023 | 2.33    | Add Central Server network diagram                                                                                                                                                            | Petteri Kivimäki   |
+| 28.06.2023 | 2.34    | Update database properties to the new Spring datasource version                                                                                                                               | Raido Kaju         |
+| 13.09.2023 | 2.35    | Database integrity check errors before center upgrade                                                                                                                                         | Eneli reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -90,6 +91,7 @@ Doc. ID: IG-CS
   - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
   - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
   - [5.5 Upgrade supported from version X.Y.Z or newer](#55-upgrade-supported-from-version-xyz-or-newer)
+  - [5.6 Data quality issues in the database](#56-data-quality-issues-in-the-database)
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C Deployment Options](#annex-c-deployment-options)
@@ -595,6 +597,58 @@ Finally, we can upgrade to our target version 7.3.x as follows.
 
 ```bash
 apt upgrade xroad-centralserver
+```
+
+### 5.6 Data quality issues in the database
+
+The following error message may come up during the Central Server upgrade.
+
+`Data quality issues in the XXXXX database. ...`
+
+Before upgrading the packages from the current version to the target version first need to fix incorrect data in the postgreSQL database.
+
+For example, if the error message says:
+
+```bash
+root@test-cs:~# apt upgrade xroad-centralserver
+...
+Preparing to unpack .../xroad-center_7.4.0-1.ubuntu22.04_all.deb ...
+
+ERROR: Data quality issues in the centerui_production database. There are duplicate data in the table SYSTEM_PARAMETERS columns pair (KEY, HA_NODE_NAME):.........................................................] 
+----------------------------------------------------------------------------------------------------------------------------------------------
+id|key|value|created_at|updated_at|ha_node_name|count
+12|instanceIdentifier|cs|2021-03-10 07:37:26.59307|2021-03-10 07:37:26.59307|node_0|2
+1|instanceIdentifier|CS|2021-03-10 07:37:26.59307|2021-03-10 07:37:26.59307|node_0|2
+(2 rows)
+----------------------------------------------------------------------------------------------------------------------------------------------
+...
+Please correct incorrect data before continue.
+```
+
+To fix incorrect data, login to the postreSQL database server as the superuser (postgres by default):
+
+```bash
+psql -h <database host> -U <superuser> -d <database>
+```  
+
+and run script that shows all duplicate data in the SYSTEM_PARAMETERS table.
+
+```sql
+select * from (select *, count(*) over (partition by key, ha_node_name order by key, ha_node_name) as count
+      from system_parameters) as s
+where s.count > 1;
+```
+
+If script return data, then delete thus system parameters rows what system parameter value is not used or just delete one duplicate row if the values is same.
+
+```sql
+delete from system_parameters where id = 12;
+```
+
+The interrupted installation can be finished using:
+
+```bash
+sudo apt -f install
 ```
 
 ## Annex A Central Server Default Database Properties
