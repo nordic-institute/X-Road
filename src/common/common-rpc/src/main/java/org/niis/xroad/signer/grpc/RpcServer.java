@@ -26,13 +26,14 @@
  */
 package org.niis.xroad.signer.grpc;
 
-import io.grpc.Grpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerCredentials;
+import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -47,12 +48,8 @@ import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createServe
 public class RpcServer {
     private final Server server;
 
-    private final int port;
-
-    public RpcServer(int port, ServerCredentials creds, Consumer<ServerBuilder<?>> configFunc) {
-        this.port = port;
-
-        ServerBuilder<?> builder = Grpc.newServerBuilderForPort(port, creds);
+    public RpcServer(final String host, final int port, final ServerCredentials creds, final Consumer<ServerBuilder<?>> configFunc) {
+        ServerBuilder<?> builder = NettyServerBuilder.forAddress(new InetSocketAddress(host, port), creds);
         configFunc.accept(builder);
 
         server = builder.build();
@@ -60,22 +57,24 @@ public class RpcServer {
 
     public void start() throws IOException {
         server.start();
-        log.info("Server started, listening on {}", port);
+
+        log.info("RPC server has started, listening on {}", server.getListenSockets());
     }
 
     public void shutdown() {
         if (server != null) {
-            log.info("Shutting down gRPC server..");
+            log.info("Shutting down RPC server..");
             server.shutdown();
-            log.info("Shutting down gRPC server.. Success!");
+            log.info("Shutting down RPC server.. Success!");
         }
     }
 
-    public static RpcServer newServer(int port, Consumer<ServerBuilder<?>> configFunc) throws IOException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+    public static RpcServer newServer(String host, int port, Consumer<ServerBuilder<?>> configFunc)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         var serverCredentials = createServerCredentials();
-        log.info("Initializing grpc with {} credentials..", serverCredentials.getClass().getSimpleName());
+        log.info("Initializing RPC server with {} credentials..", serverCredentials.getClass().getSimpleName());
 
-        return new RpcServer(port, serverCredentials, configFunc);
+        return new RpcServer(host, port, serverCredentials, configFunc);
     }
 
 

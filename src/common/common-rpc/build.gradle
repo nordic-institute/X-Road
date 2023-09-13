@@ -8,7 +8,7 @@ dependencies {
 
   api "io.grpc:grpc-protobuf:${grpcVersion}"
   api "io.grpc:grpc-stub:${grpcVersion}"
+  api "io.grpc:grpc-netty-shaded:${grpcVersion}"
   api "jakarta.annotation:jakarta.annotation-api:1.3.5"
 
-  runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
 }
