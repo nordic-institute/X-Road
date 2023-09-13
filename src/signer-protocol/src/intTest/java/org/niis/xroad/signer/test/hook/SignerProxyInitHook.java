@@ -63,10 +63,10 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
         System.setProperty(GRPC_SIGNER_HOST, host);
 
         System.setProperty(GRPC_INTERNAL_KEYSTORE,
-                "src/intTest/resources/container-files/etc/xroad/transport-keystore/grpc-internal-keystore.jks");
+                "src/intTest/resources/container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12");
         System.setProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, "111111");
         System.setProperty(GRPC_INTERNAL_TRUSTSTORE,
-                "src/intTest/resources/container-files/etc/xroad/transport-keystore/grpc-internal-keystore.jks");
+                "src/intTest/resources/container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12");
         System.setProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, "111111");
 
         System.setProperty("xroad.internal.passwordstore-provider", "file");

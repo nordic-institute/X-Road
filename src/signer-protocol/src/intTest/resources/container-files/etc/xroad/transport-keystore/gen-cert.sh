@@ -10,11 +10,13 @@ then
 fi
 
 echo "Generating keystore for grpc-internal.........."
-${KEYTOOL} -genkey -alias grpc-internal -keyalg RSA -keysize 2048 \
+${KEYTOOL} -genkeypair -alias grpc-internal \
         -storetype PKCS12 \
-        -keystore grpc-internal-keystore.jks \
+        -keyalg EC -groupname secp256r1 \
+        -sigalg SHA256withECDSA \
+        -keystore grpc-internal-keystore.p12 \
         -dname "CN=127.0.0.1" \
         -ext "SAN:c=DNS:localhost,IP:127.0.0.1" \
-        -validity 9999 \
+        -validity 3650 \
         -storepass 111111 \
         -keypass 111111
