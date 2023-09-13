@@ -39,20 +39,25 @@ import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Slf4j
+@EnableScheduling
+@Import({SignerAdminPortConfig.class, SignerRpcConfig.class})
 @ComponentScan({"ee.ria.xroad.signer.protocol", "ee.ria.xroad.signer.job"})
 @Configuration
-@EnableScheduling
 public class SignerConfig {
     private static final String MODULE_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "signer.moduleManagerImpl";
+    static final int OCSP_SCHEDULER_BEAN_ORDER = Ordered.LOWEST_PRECEDENCE - 100;
 
     @Bean("moduleManager")
-    public AbstractModuleManager moduleManager() {
+    AbstractModuleManager moduleManager() {
         final String moduleManagerImplClassName = System.getProperty(MODULE_MANAGER_IMPL_CLASS, DefaultModuleManagerImpl.class.getName());
         log.debug("Using module manager implementation: {}", moduleManagerImplClassName);
 
@@ -63,7 +68,6 @@ public class SignerConfig {
             throw new RuntimeException("Could not load module manager impl: " + moduleManagerImplClassName, e);
         }
     }
-
 
     @Bean
     OcspResponseManager ocspResponseManager() {
@@ -82,6 +86,7 @@ public class SignerConfig {
         return new ThreadPoolTaskScheduler();
     }
 
+    @Order(OCSP_SCHEDULER_BEAN_ORDER)
     @Bean(name = "ocspClientExecuteScheduler")
     @Conditional(IsOcspClientJobsActive.class)
     OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker, TaskScheduler taskScheduler) {

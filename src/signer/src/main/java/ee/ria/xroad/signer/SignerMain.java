@@ -25,24 +25,15 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.util.AdminPort;
-import ee.ria.xroad.common.util.JsonUtils;
-import ee.ria.xroad.signer.certmanager.OcspClientWorker;
-import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.grpc.RpcServer;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
@@ -54,6 +45,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
  * Signer main program.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SignerMain {
 
     private static final String APP_NAME = "xroad-signer";
@@ -65,24 +57,16 @@ public final class SignerMain {
                 .withAtLeastOneOf(CONF_FILE_CENTER, CONF_FILE_PROXY, CONF_FILE_CONFPROXY)
                 .with(CONF_FILE_SIGNER)
                 .load();
-        diagnosticsDefault = new CertificationServiceDiagnostics();
     }
 
     private static GenericApplicationContext springCtx;
-
-    private static AdminPort adminPort;
-    private static CertificationServiceDiagnostics diagnosticsDefault;
-
-    private SignerMain() {
-    }
 
     /**
      * Entry point to Signer.
      *
      * @param args the arguments
-     * @throws Exception if an error occurs
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         try {
             startup();
         } catch (Exception fatal) {
@@ -91,7 +75,7 @@ public final class SignerMain {
         }
     }
 
-    private static void startup() throws Exception {
+    private static void startup() {
         long start = System.currentTimeMillis();
         Version.outputVersionInfo(APP_NAME);
         int signerPort = SystemProperties.getSignerPort();
@@ -100,97 +84,7 @@ public final class SignerMain {
         springCtx = new AnnotationConfigApplicationContext(SignerConfig.class);
         springCtx.registerShutdownHook();
 
-
-
-        OcspClientExecuteScheduler ocspClientExecuteScheduler = null;
-        if (springCtx.containsBean("ocspClientExecuteScheduler")) {
-            ocspClientExecuteScheduler = springCtx.getBean(OcspClientExecuteScheduler.class);
-        }
-
-        //TODO
-        adminPort = createAdminPort(SystemProperties.getSignerAdminPort(),
-                springCtx.getBean(OcspClientWorker.class),
-                ocspClientExecuteScheduler);
-
-
-        adminPort.start();
-
-        initGrpc();
         log.info("Signer has been initialized in {} ms.", System.currentTimeMillis() - start);
-    }
-
-    private static void initGrpc() throws Exception {
-        int port = SystemProperties.getGrpcSignerPort();
-        log.info("Initializing GRPC server on port {}.. ", port);
-
-        RpcServer.init(port, builder ->
-                springCtx.getBeansOfType(io.grpc.BindableService.class).forEach((s, bindableService) -> {
-                    log.info("Registering {} gRPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
-    }
-
-    //TODO: shutdown was tied to akka.
-    private static void shutdown() {
-        log.info("Signer shutting down...");
-
-        try {
-            if (adminPort != null) {
-                adminPort.stop();
-                adminPort.join();
-            }
-        } catch (Exception e) {
-            log.error("Error stopping admin port", e);
-        }
-
-    }
-
-    private static AdminPort createAdminPort(int signerPort, OcspClientWorker ocspClientWorker,
-                                             OcspClientExecuteScheduler ocspClientExecuteScheduler) {
-        AdminPort port = new AdminPort(signerPort);
-
-        port.addHandler("/execute", new AdminPort.SynchronousCallback() {
-            @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
-                    if (ocspClientExecuteScheduler != null) {
-                        ocspClientExecuteScheduler.execute();
-                    } else {
-                        ocspClientWorker.execute(null);
-                    }
-                } catch (Exception ex) {
-                    log.error("error occurred in execute handler", ex);
-                }
-            }
-        });
-
-        port.addHandler("/status", new AdminPort.SynchronousCallback() {
-            @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                log.info("handler /status");
-                CertificationServiceDiagnostics diagnostics = null;
-                try {
-                    diagnostics = ocspClientWorker.getDiagnostics();
-                    if (diagnostics != null) {
-                        diagnosticsDefault = diagnostics;
-                    }
-                } catch (Exception e) {
-                    log.error("Error getting diagnostics status {}", e);
-                }
-                if (diagnostics == null) {
-                    diagnostics = diagnosticsDefault;
-                }
-                try {
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getObjectWriter()
-                            .writeValue(response.getWriter(), diagnostics);
-                } catch (IOException e) {
-                    log.error("Error writing response {}", e);
-                }
-            }
-        });
-
-        return port;
     }
 
 }

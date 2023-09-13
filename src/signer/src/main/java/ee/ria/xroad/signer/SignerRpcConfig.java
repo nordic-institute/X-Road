@@ -23,32 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package ee.ria.xroad.signer;
 
-import lombok.Getter;
+import ee.ria.xroad.common.SystemProperties;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import io.grpc.BindableService;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.grpc.RpcServer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * Diagnostics information for certification services
- */
-public class CertificationServiceDiagnostics implements Serializable {
+import java.util.List;
 
-    @Getter
-    private Map<String, CertificationServiceStatus> certificationServiceStatusMap;
+@Slf4j
+@Configuration
+public class SignerRpcConfig {
 
-    public CertificationServiceDiagnostics() {
-        certificationServiceStatusMap = new HashMap<>();
-    }
+    @Bean(initMethod = "start", destroyMethod = "shutdown")
+    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+        int port = SystemProperties.getGrpcSignerPort();
+        log.info("Initializing RPC server on port {}.. ", port);
 
-    /**
-     * Updates existing map with a provided one
-     *
-     * @param certificationServiceStatusMap new map
-     */
-    public void update(Map<String, CertificationServiceStatus> certificationServiceStatusMap) {
-        this.certificationServiceStatusMap = certificationServiceStatusMap;
+        return RpcServer.newServer(port, builder ->
+                bindableServices.forEach(bindableService -> {
+                    log.info("Registering {} gRPC service.", bindableService.getClass().getSimpleName());
+                    builder.addService(bindableService);
+                }));
     }
 }
