@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -39,9 +40,6 @@ import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
-
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
-
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
@@ -120,7 +118,7 @@ public final class MonitorMain {
 
     private static void initAkka() throws Exception {
         actorSystem = ActorSystem.create(APP_NAME, loadAkkaConfiguration());
-        RpcSignerClient.init(); //TODO:grpc probably needs params.
+        RpcSignerClient.init(); //TODO grpc probably needs params.
 
         ActorRef unhandled = actorSystem.actorOf(Props.create(UnhandledListenerActor.class), "UnhandledListenerActor");
         actorSystem.eventStream().subscribe(unhandled, UnhandledMessage.class);

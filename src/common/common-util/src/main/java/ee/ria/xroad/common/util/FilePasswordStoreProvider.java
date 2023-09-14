@@ -36,7 +36,8 @@ import java.io.File;
 import static java.lang.String.format;
 
 /**
- * A simplified password store implementation which uses files as storage medium. This implementation is designed purely for testing purposes.
+ * A simplified password store implementation which uses files as storage medium.
+ * This implementation is designed purely for testing purposes.
  */
 @Slf4j
 public class FilePasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
