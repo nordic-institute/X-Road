@@ -69,7 +69,7 @@ public class TokenInfoMapper implements GenericUniDirectionalMapper<ee.ria.xroad
 
     private TokenStatus mapStatus(TokenStatusInfo status) {
         switch (status) {
-            case TOKEN_STATUS_UNKNOWN:
+            case TOKEN_STATUS_UNSPECIFIED:
                 return null;
             case OK:
                 return TokenStatus.OK;

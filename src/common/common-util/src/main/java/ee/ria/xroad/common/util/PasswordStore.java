@@ -49,14 +49,14 @@ public final class PasswordStore {
     private static final String CFG_PASSWORD_STORE_FILE = "file";
     private static final int PERMISSIONS = 0600;
 
-    private static final PasswordStoreProvider passwordStoreProvider;
+    private static final PasswordStoreProvider PASSWORD_STORE_PROVIDER;
 
     static {
         if (isFilePasswordStoreEnabled()) {
             log.warn("WARNING: FilePasswordStoreProvider is enabled. This provider is not production ready.");
-            passwordStoreProvider = new FilePasswordStoreProvider();
+            PASSWORD_STORE_PROVIDER = new FilePasswordStoreProvider();
         } else {
-            passwordStoreProvider = new MemoryPasswordStoreProvider();
+            PASSWORD_STORE_PROVIDER = new MemoryPasswordStoreProvider();
         }
     }
 
@@ -72,7 +72,7 @@ public final class PasswordStore {
      * @throws Exception in case of any errors
      */
     public static char[] getPassword(String id) throws Exception {
-        byte[] raw = passwordStoreProvider.read(getPathnameForFtok(), id);
+        byte[] raw = PASSWORD_STORE_PROVIDER.read(getPathnameForFtok(), id);
         return raw == null ? null : byteToChar(raw);
     }
 
@@ -87,7 +87,7 @@ public final class PasswordStore {
     public static void storePassword(String id, char[] password)
             throws Exception {
         byte[] raw = charToByte(password);
-        passwordStoreProvider.write(getPathnameForFtok(), id, raw, PERMISSIONS);
+        PASSWORD_STORE_PROVIDER.write(getPathnameForFtok(), id, raw, PERMISSIONS);
     }
 
     /**
@@ -96,7 +96,7 @@ public final class PasswordStore {
      * @throws Exception in case of any errors
      */
     public static void clearStore() throws Exception {
-        passwordStoreProvider.clear(getPathnameForFtok(), PERMISSIONS);
+        PASSWORD_STORE_PROVIDER.clear(getPathnameForFtok(), PERMISSIONS);
     }
 
     private static byte[] charToByte(char[] buffer) throws IOException {

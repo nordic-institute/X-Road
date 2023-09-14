@@ -70,7 +70,7 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
     void init() throws Exception {
         Config config = ConfigFactory.load().getConfig("admin-service").withFallback(ConfigFactory.load());
         actorSystem = ActorSystem.create("SignerService", config);
-        RpcSignerClient.init(signerIp, SystemProperties.getGrpcSignerPort());
+        RpcSignerClient.init(signerIp, SystemProperties.getGrpcSignerPort(), SystemProperties.getSignerClientTimeout());
         log.info("SignerService actorSystem initialized with admin-service config");
     }
 

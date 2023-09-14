@@ -46,9 +46,9 @@ public class CertificationServiceDiagnostics implements Serializable {
     /**
      * Updates existing map with a provided one
      *
-     * @param certificationServiceStatusMap new map
+     * @param certificationServiceStatusMapParam new map
      */
-    public void update(Map<String, CertificationServiceStatus> certificationServiceStatusMap) {
-        this.certificationServiceStatusMap = certificationServiceStatusMap;
+    public void update(Map<String, CertificationServiceStatus> certificationServiceStatusMapParam) {
+        this.certificationServiceStatusMap = certificationServiceStatusMapParam;
     }
 }
