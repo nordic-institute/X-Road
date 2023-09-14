@@ -14,6 +14,11 @@ sourceSets {
     main {
         java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
     }
+  intTest {
+    resources {
+      srcDir '../common/common-int-test/src/main/resources/'
+    }
+  }
 }
 
 dependencies {
@@ -31,6 +36,12 @@ dependencies {
 
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
+
+
+    intTestRuntimeOnly project(':addons:hwtoken')
+    intTestRuntimeOnly project(':common:common-util')
+    intTestImplementation project(":common:common-test")
+    intTestImplementation project(":common:common-int-test")
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
@@ -120,3 +131,24 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
+
+tasks.register('intTest', Test) {
+  useJUnitPlatform()
+
+  setDescription("Runs integration tests.")
+  group = 'verification'
+
+  testClassesDirs = sourceSets.intTest.output.classesDirs
+  classpath = sourceSets.intTest.runtimeClasspath
+
+  testLogging {
+    showStackTraces(true)
+    showExceptions(true)
+    showCauses(true)
+    showStandardStreams(true)
+  }
+}
+
+tasks.named('check') {
+  dependsOn tasks.named('intTest')
+}

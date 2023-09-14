@@ -4,6 +4,14 @@ plugins {
     id 'com.github.johnrengelman.shadow'
 }
 
+sourceSets {
+  intTest {
+    resources {
+      srcDir '../common/common-int-test/src/main/resources/'
+    }
+  }
+}
+
 dependencies {
     implementation project(':common:common-util')
     implementation project(':common:common-verifier')

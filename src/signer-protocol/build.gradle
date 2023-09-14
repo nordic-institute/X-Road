@@ -16,13 +16,6 @@ sourceSets {
 dependencies {
   implementation project(':common:common-util')
   api project(':common:common-rpc')
-
-  intTestRuntimeOnly project(':signer')
-  intTestRuntimeOnly project(':addons:hwtoken')
-  intTestRuntimeOnly project(':common:common-util')
-
-  intTestImplementation project(":common:common-test")
-  intTestImplementation project(":common:common-int-test")
 }
 
 protobuf {
@@ -39,25 +32,4 @@ compileJava.dependsOn generateProto
 
 test {
   useJUnitPlatform()
-}
-
-tasks.register('intTest', Test) {
-  useJUnitPlatform()
-
-  setDescription("Runs integration tests.")
-  group = 'verification'
-
-  testClassesDirs = sourceSets.intTest.output.classesDirs
-  classpath = sourceSets.intTest.runtimeClasspath
-
-  testLogging {
-    showStackTraces(true)
-    showExceptions(true)
-    showCauses(true)
-    showStandardStreams(true)
-  }
-}
-
-tasks.named('check') {
-  dependsOn tasks.named('intTest')
 }

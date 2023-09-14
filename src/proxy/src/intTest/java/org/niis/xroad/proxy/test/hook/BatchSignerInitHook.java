@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,50 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.test.glue;
 
-import com.nortal.test.core.report.TestReportService;
-import com.nortal.test.core.services.CucumberScenarioProvider;
-import com.nortal.test.core.services.ScenarioContext;
-import org.springframework.beans.factory.annotation.Autowired;
+package org.niis.xroad.proxy.test.hook;
 
-import java.util.Optional;
+import ee.ria.xroad.common.TestSecurityUtil;
+import ee.ria.xroad.common.signature.BatchSigner;
 
-public class BaseStepDefs {
-    @Autowired
-    protected CucumberScenarioProvider scenarioProvider;
-    @Autowired
-    protected ScenarioContext scenarioContext;
-    @Autowired
-    protected TestReportService testReportService;
+import com.nortal.test.core.services.hooks.BeforeSuiteHook;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-    /**
-     * Put a value in scenario context. Value can be accessed through getStepData.
-     *
-     * @param key   value key. Non-null.
-     * @param value value
-     */
-    protected void putStepData(StepDataKey key, Object value) {
-        scenarioContext.putStepData(key.name(), value);
+import static java.lang.String.format;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class BatchSignerInitHook implements BeforeSuiteHook {
+    private static final String CONTAINER_FILES_PATH = "build/resources/intTest/signer-container-files/%s";
+
+    @Override
+    @SneakyThrows
+    public void beforeSuite() {
+        System.setProperty("xroad.common.configuration-path", format(CONTAINER_FILES_PATH, "etc/xroad/globalconf"));
+        System.setProperty("xroad.signer.key-configuration-file", format(CONTAINER_FILES_PATH, "etc/xroad/signer/keyconf.xml"));
+
+        TestSecurityUtil.initSecurity();
+        BatchSigner.init();
     }
 
-    /**
-     * Get value from scenario context.
-     *
-     * @param key value key
-     * @return value from the context
-     */
-    protected <T> Optional<T> getStepData(StepDataKey key) {
-        return Optional.ofNullable(scenarioContext.getStepData(key.name()));
-    }
-
-    /**
-     * An enumerated key for data transfer between steps.
-     */
-    public enum StepDataKey {
-        TOKEN_TYPE,
-        MANAGEMENT_REQUEST_ID,
-        DOWNLOADED_FILE,
-        CERT_FILE
+    @Override
+    public int beforeSuiteOrder() {
+        return DEFAULT_ORDER + 100;
     }
 }

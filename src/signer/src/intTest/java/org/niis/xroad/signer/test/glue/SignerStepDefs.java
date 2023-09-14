@@ -80,11 +80,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
@@ -456,7 +454,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void getAuthKeyFail(String securityServerId) throws Exception {
         try {
             SignerProxy.getAuthKey(getSecurityServerId(securityServerId));
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             var errorServerId = securityServerId.replace(":", "/");
             assertException("Signer.KeyNotFound", "auth_key_not_found_for_server",
@@ -470,7 +468,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         String tokenId = randomUUID().toString();
         try {
             SignerProxy.setTokenFriendlyName(tokenId, randomUUID().toString());
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.TokenNotFound", "token_not_found",
                     "Signer.TokenNotFound: Token '" + tokenId + "' not found", codedException);
@@ -482,7 +480,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         String cerId = randomUUID().toString();
         try {
             SignerProxy.deleteCert(cerId);
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.CertNotFound", "cert_with_id_not_found",
                     "Signer.CertNotFound: Certificate with id '" + cerId + "' not found", codedException);
@@ -494,7 +492,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         String keyId = randomUUID().toString();
         try {
             SignerProxy.getTokenForKeyId(keyId);
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.KeyNotFound", "key_not_found",
                     "Signer.KeyNotFound: Key '" + keyId + "' not found", codedException);
@@ -506,7 +504,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         String csrId = randomUUID().toString();
         try {
             SignerProxy.deleteCertRequest(csrId);
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.CsrNotFound", "csr_not_found",
                     "Signer.CsrNotFound: Certificate request '" + csrId + "' not found", codedException);
@@ -518,7 +516,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         String keyId = randomUUID().toString();
         try {
             SignerProxy.sign(keyId, randomUUID().toString(), new byte[0]);
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.KeyNotFound", "key_not_found",
                     "Signer.KeyNotFound: Key '" + keyId + "' not found", codedException);
@@ -531,7 +529,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             final KeyInfo key = findKeyInToken(friendlyName, keyName);
             SignerProxy.sign(key.getId(), "NOT-ALGORITHM-ID", calculateDigest(SHA256_ID, "digest".getBytes(UTF_8)));
 
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.CannotSign.InternalError", "",
                     "Signer.CannotSign.InternalError: Unknown sign algorithm id: NOT-ALGORITHM-ID", codedException);
@@ -543,7 +541,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         String hash = randomUUID().toString();
         try {
             SignerProxy.getKeyIdForCertHash(hash);
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.CertNotFound", "certificate_with_hash_not_found",
                     "Signer.CertNotFound: Certificate with hash '" + hash + "' not found", codedException);
@@ -555,7 +553,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         String certId = randomUUID().toString();
         try {
             SignerProxy.activateCert(certId);
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.CertNotFound", "cert_with_id_not_found",
                     "Signer.CertNotFound: Certificate with id '" + certId + "' not found", codedException);
@@ -566,7 +564,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void getMemberSigningInfoFail(String client) throws Exception {
         try {
             SignerProxy.getMemberSigningInfo(getClientId(client));
-            fail("Exception expected");
+            Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.InternalError", "member_has_no_suitable_certs",
                     "Signer.InternalError: Member 'MEMBER:CS/test/member-1' has no suitable certificates", codedException);
@@ -581,13 +579,13 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("HSM is operational")
     public void hsmIsNotOperational() throws Exception {
-        assertTrue(SignerProxy.isHSMOperational());
+        Assertions.assertTrue(SignerProxy.isHSMOperational());
     }
 
     private void assertException(String faultCode, String translationCode, String message, CodedException codedException) {
-        assertEquals(faultCode, codedException.getFaultCode());
-        assertEquals(translationCode, codedException.getTranslationCode());
-        assertEquals(message, codedException.getMessage());
+        Assertions.assertEquals(faultCode, codedException.getFaultCode());
+        Assertions.assertEquals(translationCode, codedException.getTranslationCode());
+        Assertions.assertEquals(message, codedException.getMessage());
     }
 
 

@@ -27,111 +27,25 @@ package org.niis.xroad.proxy.test.container;
 
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
-import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
-import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import okio.Path;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.common.test.signer.container.BaseTestSignerSetup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Configuration
 @SuppressWarnings("checkstyle:MagicNumber")
-public class ContainerSetup {
-
-    static {
-        //This is to set docker api version in testcontainers. By default it uses 1.32, which does not support platform setting.
-        System.setProperty("api.version", "1.41");
-    }
+public class ContainerSetup extends BaseTestSignerSetup {
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties) {
-        return new TestContainerConfigurator() {
-            @NotNull
-            @Override
-            public ImageFromDockerfile imageDefinition() {
-                var appJarPath = Paths.get("../signer/build/libs/signer-1.0.jar");
-                log.info("Will use {} jar for container creation", appJarPath);
-
-                File filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
-
-                return new ReusableImageFromDockerfile("proxy-int-test",
-                        !testableContainerProperties.getReuseBetweenRuns(),
-                        testableContainerProperties.getReuseBetweenRuns())
-                        .withFileFromFile(".", filesToAdd)
-                        .withFileFromPath("files/app.jar", appJarPath);
-            }
-
-            @NotNull
-            @Override
-            public Map<String, String> environmentalVariables() {
-                return new HashMap<>();
-            }
-
-            @NotNull
-            @Override
-            public List<Integer> exposedPorts() {
-                return List.of(5558, 5560);
-            }
-        };
+        return super.testContainerConfigurator(testableContainerProperties);
     }
 
     @Bean
     public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
-        return new TestContainerConfigurator.TestContainerInitListener() {
-
-            @Override
-            public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                genericContainer
-                        .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
-                genericContainer
-                        .withCommand("java",
-                                "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
-                                "-Dxroad.internal.passwordstore-provider=file",
-                                "-Dxroad.grpc.internal.keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",
-                                "-Dxroad.grpc.internal.keystore-password=111111",
-                                "-Dxroad.grpc.internal.truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.jks",
-                                "-Dxroad.grpc.internal.truststore-password=111111",
-                                "-Dxroad.grpc.signer.host=0.0.0.0",
-                                "-cp",
-                                "/root/app.jar",
-                                "ee.ria.xroad.signer.SignerMain");
-
-                prepareSignerDirs();
-            }
-
-            @Override
-            public void afterStart(@NotNull GenericContainer<?> genericContainer) {
-                //do nothing
-            }
-
-            @SneakyThrows
-            private void prepareSignerDirs() {
-                deleteIfPresent("build/resources/intTest/container-files/etc/xroad/signer/softtoken/");
-                deleteIfPresent("build/container-passwordstore/");
-            }
-
-            @SneakyThrows
-            private void deleteIfPresent(String path) {
-                var dir = Path.get(path);
-                if (dir.toFile().exists()) {
-                    log.info("Temporary test-signer sync dir {} found. Deleting..", dir);
-                    FileUtils.cleanDirectory(dir.toFile());
-                }
-            }
-        };
+        return super.testContainerInitListener(true);
     }
 
 

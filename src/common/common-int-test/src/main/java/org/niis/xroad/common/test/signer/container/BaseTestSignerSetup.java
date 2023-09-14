@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.test.container;
+package org.niis.xroad.common.test.signer.container;
 
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
@@ -31,11 +31,8 @@ import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import okio.Path;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -46,16 +43,14 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Configuration
 @SuppressWarnings("checkstyle:MagicNumber")
-public class ContainerSetup {
+public abstract class BaseTestSignerSetup {
 
     static {
         //This is to set docker api version in testcontainers. By default it uses 1.32, which does not support platform setting.
         System.setProperty("api.version", "1.41");
     }
 
-    @Bean
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties) {
         return new TestContainerConfigurator() {
@@ -66,7 +61,7 @@ public class ContainerSetup {
                 var hwTokenJarPath = Paths.get("../addons/hwtoken/build/libs/hwtoken-1.0.jar");
                 log.info("Will use {} jar for container creation", appJarPath);
 
-                File filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
+                File filesToAdd = Paths.get("build/resources/intTest/signer-container-files/").toFile();
 
                 return new ReusableImageFromDockerfile("signer-int-test",
                         !testableContainerProperties.getReuseBetweenRuns(),
@@ -90,12 +85,15 @@ public class ContainerSetup {
         };
     }
 
-    @Bean
-    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
+    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener(boolean enableHwModule) {
         return new TestContainerConfigurator.TestContainerInitListener() {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
+                var modulemanager = enableHwModule
+                        ? "-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl"
+                        : "";
+
                 genericContainer
                         .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
                 genericContainer
@@ -107,7 +105,7 @@ public class ContainerSetup {
                                 "-Dxroad.grpc.internal.keystore-password=111111",
                                 "-Dxroad.grpc.internal.truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
                                 "-Dxroad.grpc.internal.truststore-password=111111",
-                                "-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl",
+                                modulemanager,
                                 "-cp",
                                 "/root/lib/hwtoken.jar:/root/app.jar",
                                 "ee.ria.xroad.signer.SignerMain");
@@ -128,7 +126,7 @@ public class ContainerSetup {
 
             @SneakyThrows
             private void deleteIfPresent(String path) {
-                var dir = Path.get(path);
+                var dir = Paths.get(path);
                 if (dir.toFile().exists()) {
                     log.info("Temporary test-signer sync dir {} found. Deleting..", dir);
                     FileUtils.cleanDirectory(dir.toFile());
@@ -136,6 +134,4 @@ public class ContainerSetup {
             }
         };
     }
-
-
 }

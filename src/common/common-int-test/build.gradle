@@ -3,6 +3,9 @@ plugins {
 }
 
 dependencies {
+  api project(':common:common-util')
+  api project(':signer-protocol')
+
   api("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
   api("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
   api("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
