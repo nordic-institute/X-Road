@@ -2,5 +2,15 @@
 @Addon
 Feature: 0100 - SS: Proxymonitor
 
+  Background:
+    Given SecurityServer login page is open
+    And Page is prepared to be tested
+    And User xrd logs in to SecurityServer with password secret
+    And Clients tab is selected
+    When Client "TestGov" is opened
+    And Internal servers sub-tab is selected
+    Then Internal server connection type is set to "HTTP"
+
   Scenario: Proxymonitor responds with correct response
-    Given Security Server Metrics request was sent
+    When Security Server Metrics request was sent
+    Then Valid Security Server Metrics response is returned

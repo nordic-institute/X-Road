@@ -26,50 +26,76 @@
  */
 package org.niis.xroad.ss.test.addons.glue;
 
-import io.cucumber.java.en.Step;
-import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
-import org.niis.xroad.ss.test.ui.glue.BaseUiStepDefs;
-import org.springframework.beans.factory.annotation.Autowired;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.ProtocolVersion;
+import ee.ria.xroad.common.message.SoapBuilder;
+import ee.ria.xroad.common.message.SoapHeader;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.request.ObjectFactory;
+import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsType;
 
-public class ProxyMonitorStepDefs extends BaseUiStepDefs {
+import io.cucumber.java.en.Step;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
+import lombok.SneakyThrows;
+import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import javax.xml.namespace.QName;
+
+import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
+
+public class ProxyMonitorStepDefs extends BaseStepDefs {
 
     @Autowired
-    private FeignXRoadSoapRequestsApi securityServerMetricsRequestsApi;
+    private FeignXRoadSoapRequestsApi xRoadSoapRequestsApi;
+
+    private static final Marshaller MARSHALLER = createMarshaller();
 
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Metrics request was sent")
     public void executeGetSecurityServerMetricsRequest() {
-        String requestBody = "<SOAP-ENV:Envelope\n" +
-                "\txmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
-                "\txmlns:id=\"http://x-road.eu/xsd/identifiers\"\n" +
-                "\txmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\"\n" +
-                "\txmlns:m=\"http://x-road.eu/xsd/monitoring\">\n" +
-                "    <SOAP-ENV:Header>\n" +
-                "        <xrd:client id:objectType=\"MEMBER\">\n" +
-                "            <id:xRoadInstance>CS</id:xRoadInstance>\n" +
-                "            <id:memberClass>GOV</id:memberClass>\n" +
-                "            <id:memberCode>0245437-2</id:memberCode>\n" +
-                "        </xrd:client>\n" +
-                "        <xrd:service id:objectType=\"SERVICE\">\n" +
-                "            <id:xRoadInstance>CS</id:xRoadInstance>\n" +
-                "            <id:memberClass>GOV</id:memberClass>\n" +
-                "            <id:memberCode>0245437-2</id:memberCode>\n" +
-                "            <id:serviceCode>getSecurityServerMetrics</id:serviceCode>\n" +
-                "        </xrd:service>\n" +
-                "        <xrd:securityServer id:objectType=\"SERVER\">\n" +
-                "            <id:xRoadInstance>CS</id:xRoadInstance>\n" +
-                "            <id:memberClass>GOV</id:memberClass>\n" +
-                "            <id:memberCode>0245437-2</id:memberCode>\n" +
-                "            <id:serverCode>SS1</id:serverCode>\n" +
-                "        </xrd:securityServer>\n" +
-                "        <xrd:id>ID1234</xrd:id>\n" +
-                "        <xrd:protocolVersion>4.0</xrd:protocolVersion>\n" +
-                "    </SOAP-ENV:Header>\n" +
-                "    <SOAP-ENV:Body>\n" +
-                "        <m:getSecurityServerMetrics/>\n" +
-                "    </SOAP-ENV:Body>\n" +
-                "</SOAP-ENV:Envelope>";
-        securityServerMetricsRequestsApi.getSecurityServerMetrics(requestBody.getBytes());
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest("ID1234").getBytes());
+        putStepData(XROAD_SOAP_RESPONSE, response);
+    }
+
+    @Step("Valid Security Server Metrics response is returned")
+    public void validMetricsResponseIsReturned() {
+        ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .assertion(xpath(response.getBody(), "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name",
+                        "SERVER:CS/GOV/0245437-2/SS1"))
+                .execute();
+    }
+
+    @SneakyThrows
+    private SoapMessageImpl buildMetricsRequest(String queryId) {
+        SoapHeader header = new SoapHeader();
+        ClientId member = ClientId.Conf.create("CS", "GOV", "0245437-2");
+        header.setClient(member);
+        header.setService(ServiceId.Conf.create(member, "getSecurityServerMetrics"));
+        header.setSecurityServer(SecurityServerId.Conf.create(member, "SS1"));
+        header.setQueryId(queryId);
+        header.setProtocolVersion(new ProtocolVersion());
+
+        SoapBuilder builder = new SoapBuilder();
+        builder.setHeader(header);
+        builder.setCreateBodyCallback(soapBodyNode -> MARSHALLER.marshal(
+                new JAXBElement<>(new QName("http://x-road.eu/xsd/monitoring", "getSecurityServerMetrics"),
+                        GetSecurityServerMetricsType.class, null, null), soapBodyNode)
+        );
+        return builder.build();
+    }
+
+    @SneakyThrows
+    private static Marshaller createMarshaller() {
+        return JAXBContext.newInstance(ObjectFactory.class, GetSecurityServerMetricsType.class).createMarshaller();
     }
 
 }
