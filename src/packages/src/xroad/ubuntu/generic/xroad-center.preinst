@@ -25,7 +25,7 @@ id|key|value|created_at|updated_at|ha_node_name|count
 $sys_param_check_result
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
-To see duplicated rows, run the fallowing query in the $db_database database:
+To see duplicated rows, run the following query in the $db_database database:
 $sys_param_select
 
 Please fix incorrect data before continuing."
