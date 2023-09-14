@@ -28,9 +28,9 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
-import ee.ria.xroad.signer.protocol.ClientIdMapper;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
-import ee.ria.xroad.signer.protocol.SecurityServerIdMapper;
+import ee.ria.xroad.signer.protocol.mapper.SecurityServerIdMapper;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -172,7 +172,7 @@ public final class SignerProxy {
         RpcSignerClient.execute(ctx -> ctx.blockingTokenService
                 .updateSoftwareTokenPin(UpdateSoftwareTokenPinReq.newBuilder()
                         .setTokenId(tokenId)
-                        .setOldPin(new String(oldPin))//TODO grpc its not great that we're doing this transformation
+                        .setOldPin(new String(oldPin))
                         .setNewPin(new String(newPin))
                         .build()));
     }

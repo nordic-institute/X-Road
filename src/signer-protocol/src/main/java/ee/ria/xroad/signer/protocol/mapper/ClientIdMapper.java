@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol;
+package ee.ria.xroad.signer.protocol.mapper;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -33,7 +33,7 @@ import org.niis.xroad.signer.protocol.dto.ClientIdProto;
 import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ClientIdMapper {
+public final class ClientIdMapper {
 
     public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
         if (clientIdProto.hasSubsystemCode()) {
@@ -48,7 +48,6 @@ public class ClientIdMapper {
         }
     }
 
-    //TODO grpc move to a separate place.
     public static ClientIdProto toDto(ClientId input) {
         var builder = ClientIdProto.newBuilder()
                 .setMemberClass(input.getMemberClass())

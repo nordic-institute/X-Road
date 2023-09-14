@@ -34,7 +34,7 @@ import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.SecurityServerIdMapper;
+import ee.ria.xroad.signer.protocol.mapper.SecurityServerIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -69,8 +69,7 @@ public class GetAuthKeyReqHandler
     @Override
     protected AuthKeyInfoProto handle(GetAuthKeyReq request) throws Exception {
         var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
-        log.trace("Selecting authentication key for security server {}",
-                securityServer);
+        log.trace("Selecting authentication key for security server {}", securityServer);
 
         validateToken();
 

@@ -23,24 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol;
+package ee.ria.xroad.signer.protocol.mapper;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.niis.xroad.signer.protocol.dto.SecurityServerIdProto;
 import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SecurityServerIdMapper {
 
-    private SecurityServerIdMapper() {
-    }
-
-    public static SecurityServerId.Conf fromDto(SecurityServerIdProto input) {
-        return SecurityServerId.Conf.create(input.getXroadInstance(), input.getMemberClass(), input.getMemberCode(),
+    public static SecurityServerId.Conf fromDto(final SecurityServerIdProto input) {
+        return SecurityServerId.Conf.create(
+                input.getXroadInstance(),
+                input.getMemberClass(),
+                input.getMemberCode(),
                 input.getServerCode());
     }
 
-    public static SecurityServerIdProto toDto(SecurityServerId input) {
+    public static SecurityServerIdProto toDto(final SecurityServerId input) {
         return SecurityServerIdProto.newBuilder()
                 .setMemberClass(input.getMemberClass())
                 .setMemberCode(input.getMemberCode())
