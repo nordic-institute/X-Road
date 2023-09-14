@@ -28,6 +28,8 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
+import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.rest.api.mapper.ConfigurationSigningKeyDtoMapper;
 import org.niis.xroad.cs.openapi.SigningKeysApi;
@@ -54,6 +56,7 @@ import static org.springframework.http.ResponseEntity.ok;
 public class SigningKeysApiController implements SigningKeysApi {
 
     private final ConfigurationSigningKeysService configurationSigningKeysService;
+    private final ConfigurationAnchorService configurationAnchorService;
     private final ConfigurationSigningKeyDtoMapper configurationSigningKeyDtoMapper;
 
     @PreAuthorize("hasAuthority('ACTIVATE_SIGNING_KEY')")
@@ -69,18 +72,20 @@ public class SigningKeysApiController implements SigningKeysApi {
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY)
     public ResponseEntity<ConfigurationSigningKeyDto> addKey(ConfigurationTypeDto configurationType,
                                                              ConfigurationSigningKeyAddDto configurationSigningKeyAddDto) {
-        return ok(configurationSigningKeyDtoMapper.toTarget(
-                configurationSigningKeysService.addKey(configurationType.getValue(),
-                        configurationSigningKeyAddDto.getTokenId(),
-                        configurationSigningKeyAddDto.getKeyLabel())
-        ));
+
+        final var keyDetails = configurationSigningKeysService.addKey(configurationType.getValue(),
+                configurationSigningKeyAddDto.getTokenId(),
+                configurationSigningKeyAddDto.getKeyLabel());
+        configurationAnchorService.recreateAnchor(ConfigurationSourceType.valueOf(configurationType.getValue().toUpperCase()), false);
+        return ok(configurationSigningKeyDtoMapper.toTarget(keyDetails));
     }
 
     @Override
     @AuditEventMethod(event = DELETE_SIGNING_KEY)
     @PreAuthorize("hasAuthority('DELETE_SIGNING_KEY')")
     public ResponseEntity<Void> deleteKey(String id) {
-        configurationSigningKeysService.deleteKey(id);
+        final var deletedKey = configurationSigningKeysService.deleteKey(id);
+        configurationAnchorService.recreateAnchor(deletedKey.getSourceType(), false);
         return ResponseEntity.noContent().build();
     }
 }
