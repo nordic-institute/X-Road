@@ -35,8 +35,8 @@ XROAD_COMMON_AKKA_KEYSTORE="$keystore"
 XROAD_COMMON_AKKA_KEYSTORE_PASSWORD="$keystore_pw"
 XROAD_COMMON_AKKA_TRUSTSTORE="$keystore"
 XROAD_COMMON_AKKA_TRUSTSTORE_PASSWORD="$keystore_pw"
-xroad.grpc.internal.keystore-password="$keystore_pw"
-xroad.grpc.internal.truststore-password="$keystore_pw"
+XROAD_GRPC_INTERNAL_KEYSTORE_PASSWORD="$keystore_pw"
+XROAD_GRPC_INTERNAL_TRUSTSTORE_PASSWORD="$keystore_pw"
 EOF
 
     chown xroad:xroad "$env_file"

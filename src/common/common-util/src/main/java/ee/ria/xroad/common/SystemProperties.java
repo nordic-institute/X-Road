@@ -645,6 +645,8 @@ public final class SystemProperties {
      */
     public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
             PREFIX + "grpc.internal.keystore-password";
+    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV =
+            GRPC_INTERNAL_KEYSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
 
     /**
      * Property name for gRPC internal truststore location.
@@ -657,6 +659,8 @@ public final class SystemProperties {
      */
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
             PREFIX + "grpc.internal.truststore-password";
+    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
+            GRPC_INTERNAL_TRUSTSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -1718,27 +1722,27 @@ public final class SystemProperties {
      * @return gRPC internal key store path. Uses JKS format.
      */
     public static String getGrpcInternalKeyStore() {
-        return System.getProperty(GRPC_INTERNAL_KEYSTORE, "var/run/xroad/xroad-grpc-internal-keystore.jks");
+        return System.getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
     }
 
     /**
      * @return gRPC internal key store password.
      */
     public static String getGrpcInternalKeyStorePassword() {
-        return System.getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, "");
+        return System.getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV));
     }
 
     /**
      * @return gRPC internal trust store path. Uses JKS format.
      */
     public static String getGrpcInternalTrustStore() {
-        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE, "var/run/xroad/xroad-grpc-internal-truststore.jks");
+        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
     }
 
     /**
      * @return gRPC internal trust store path password.
      */
     public static String getGrpcInternalTruststorePassword() {
-        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, "");
+        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
     }
 }
