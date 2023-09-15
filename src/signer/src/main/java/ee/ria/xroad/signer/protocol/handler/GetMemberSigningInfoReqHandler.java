@@ -32,9 +32,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import lombok.Data;

@@ -26,11 +26,11 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.util.TokenAndKey;
