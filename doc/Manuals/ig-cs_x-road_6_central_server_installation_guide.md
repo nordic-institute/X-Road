@@ -625,10 +625,10 @@ id|key|value|created_at|updated_at|ha_node_name|count
 Please fix incorrect data before continuing.
 ```
 
-To fix incorrect data, login to the postreSQL database server as the superuser (postgres by default):
+To fix incorrect data, login to the postreSQL database server. By default, the database is named `centerui_production`, database user and schema both are named `centerui`.
 
 ```bash
-psql -h <database host> -U <superuser> -d <database>
+psql -h <database host> -U <database user> -d <database>
 ```  
 
 and run script that shows all duplicate data in the SYSTEM_PARAMETERS table.
