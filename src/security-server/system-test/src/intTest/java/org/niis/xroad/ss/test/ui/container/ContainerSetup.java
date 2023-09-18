@@ -49,6 +49,7 @@ import java.util.Map;
 @SuppressWarnings("checkstyle:MagicNumber")
 public class ContainerSetup {
 
+    private static final String NETWORK_ALIAS = "ss1";
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
@@ -96,7 +97,7 @@ public class ContainerSetup {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                //do nothing
+                genericContainer.withNetworkAliases(NETWORK_ALIAS);
             }
 
             @Override
