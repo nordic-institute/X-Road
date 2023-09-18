@@ -30,12 +30,16 @@ import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.grpc.CallOptions;
 import io.grpc.Channel;
-import io.grpc.Deadline;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
 import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
+import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
@@ -59,9 +63,9 @@ public final class RpcSignerClient {
     /**
      * Construct client for accessing Signer services using the provided channel.
      */
-    private RpcSignerClient(final ManagedChannel channel, int clientTimeoutMillis) {
+    private RpcSignerClient(final ManagedChannel channel) {
         this.channel = channel;
-        this.executionContext = new ExecutionContext(channel, clientTimeoutMillis);
+        this.executionContext = new ExecutionContext(channel);
     }
 
     /**
@@ -76,10 +80,18 @@ public final class RpcSignerClient {
     public static void init(String host, int port, int clientTimeoutMillis) throws Exception {
         var credentials = createClientCredentials();
         log.info("Starting grpc client with {} credentials..", credentials.getClass().getSimpleName());
+        final ClientInterceptor timeoutInterceptor = new ClientInterceptor() {
+            @Override
+            public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
+                    MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
+                return next.newCall(method, callOptions.withDeadlineAfter(clientTimeoutMillis, MILLISECONDS));
+            }
+        };
         ManagedChannel channel = Grpc.newChannelBuilderForAddress(host, port, credentials)
+                .intercept(timeoutInterceptor)
                 .build();
 
-        instance = new RpcSignerClient(channel, clientTimeoutMillis);
+        instance = new RpcSignerClient(channel);
     }
 
     public static void shutdown() {
@@ -88,22 +100,18 @@ public final class RpcSignerClient {
         }
     }
 
+    @Getter
     public static class ExecutionContext {
-        public final TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
-        public final CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
-        public final KeyServiceGrpc.KeyServiceBlockingStub blockingKeyService;
-        public final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
+        private final TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
+        private final CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
+        private final KeyServiceGrpc.KeyServiceBlockingStub blockingKeyService;
+        private final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
 
-        public ExecutionContext(final Channel channel, int clientTimeoutMillis) {
-            final Deadline deadline = Deadline.after(clientTimeoutMillis, MILLISECONDS);
-            blockingTokenService = TokenServiceGrpc.newBlockingStub(channel)
-                    .withDeadline(deadline);
-            blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel)
-                    .withDeadline(deadline);
-            blockingKeyService = KeyServiceGrpc.newBlockingStub(channel)
-                    .withDeadline(deadline);
-            blockingOcspService = OcspServiceGrpc.newBlockingStub(channel)
-                    .withDeadline(deadline);
+        public ExecutionContext(final Channel channel) {
+            blockingTokenService = TokenServiceGrpc.newBlockingStub(channel);
+            blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel);
+            blockingKeyService = KeyServiceGrpc.newBlockingStub(channel);
+            blockingOcspService = OcspServiceGrpc.newBlockingStub(channel);
         }
     }
 
