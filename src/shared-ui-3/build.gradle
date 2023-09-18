@@ -21,10 +21,6 @@ import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 var archive = 'niis-shared-ui-3.0.0.tgz'
 
-task yarnVersion(type: RunYarn, dependsOn: installPackageManager) {
-  script = '--version'
-}
-
 task yarnBuild(type: RunYarn, dependsOn: installFrontend) {
   inputs.files(
     'src/',
@@ -65,7 +61,7 @@ task checkFrontLicense(type: RunYarn, dependsOn: installFrontend) {
 }
 
 clean {
-  delete file('node_modules')
+  delete file(archive)
   delete file('dist')
 }
 
