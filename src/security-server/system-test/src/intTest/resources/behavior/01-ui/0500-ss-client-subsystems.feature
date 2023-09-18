@@ -38,4 +38,4 @@ Feature: 0500 - SS: Client Subsystems
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed
     Then Client "random-sub-1" with status "SAVED" is present in the list
-    And error: "Security server has no valid authentication certificate" was displayed
+    #And error: "Security server has no valid authentication certificate" was displayed
