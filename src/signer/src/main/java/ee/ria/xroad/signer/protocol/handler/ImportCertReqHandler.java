@@ -83,7 +83,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
         }
 
         String keyId = importCertificate(cert, request.getInitialStatus(),
-                ClientIdMapper.fromDto(request.getMemberId()));
+                request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null);
 
         return ImportCertResp.newBuilder()
                 .setKeyId(keyId)
@@ -91,7 +91,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
     }
 
     public String importCertificate(X509Certificate cert,
-                                     String initialStatus, ClientId.Conf memberId) throws Exception {
+                                    String initialStatus, ClientId.Conf memberId) throws Exception {
         String publicKey = encodeBase64(cert.getPublicKey().getEncoded());
 
         // Find the key based on the public key of the cert

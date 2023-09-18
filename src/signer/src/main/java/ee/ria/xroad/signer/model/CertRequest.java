@@ -32,6 +32,8 @@ import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
 import lombok.Value;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * Model object representing the certificate request.
  */
@@ -50,11 +52,11 @@ public class CertRequest {
      * @return the value object
      */
     public CertRequestInfoProto toProtoDTO() {
-        return CertRequestInfoProto.newBuilder()
+        final CertRequestInfoProto.Builder builder = CertRequestInfoProto.newBuilder()
                 .setId(id)
-                .setMemberId(ClientIdMapper.toDto(memberId))
-                .setSubjectName(subjectName)
-                .build();
+                .setSubjectName(subjectName);
+        ofNullable(memberId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
+        return builder.build();
     }
 
     /**

@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+import static java.util.Optional.ofNullable;
 
 /**
  * Handles certificate request re-generations.
@@ -79,13 +80,13 @@ public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<Regener
 
         PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName);
 
-        return RegenerateCertRequestResp.newBuilder()
+        final RegenerateCertRequestResp.Builder builder = RegenerateCertRequestResp.newBuilder()
                 .setCertReqId(message.getCertRequestId())
                 .setCertRequest(ByteString.copyFrom(convert(generatedRequest, message.getFormat())))
                 .setFormat(message.getFormat())
-                .setMemberId(ClientIdMapper.toDto(certRequestInfo.getMemberId()))
-                .setKeyUsage(tokenAndKey.getKey().getUsage())
-                .build();
+                .setKeyUsage(tokenAndKey.getKey().getUsage());
+        ofNullable(certRequestInfo.getMemberId()).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
+        return builder.build();
     }
 
     private TokenAndKey findTokenAndKeyForCsrId(String certRequestId) {

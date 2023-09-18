@@ -28,15 +28,15 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
-import ee.ria.xroad.signer.protocol.mapper.SecurityServerIdMapper;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
+import ee.ria.xroad.signer.protocol.mapper.SecurityServerIdMapper;
 
 import com.google.protobuf.ByteString;
 import lombok.AccessLevel;
@@ -86,6 +86,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static java.util.Optional.ofNullable;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
@@ -298,12 +299,13 @@ public final class SignerProxy {
     public static String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
         log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
+        final ImportCertReq.Builder builder = ImportCertReq.newBuilder()
+                .setCertData(ByteString.copyFrom(certBytes))
+                .setInitialStatus(initialStatus);
+        ofNullable(clientId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
+
         var response = RpcSignerClient.execute(ctx -> ctx.blockingCertificateService
-                .importCert(ImportCertReq.newBuilder()
-                        .setCertData(ByteString.copyFrom(certBytes))
-                        .setInitialStatus(initialStatus)
-                        .setMemberId(ClientIdMapper.toDto(clientId))
-                        .build()));
+                .importCert(builder.build()));
 
         log.trace("Cert imported successfully, keyId received: {}", response.getKeyId());
 
@@ -357,14 +359,18 @@ public final class SignerProxy {
                                                                KeyUsageInfo keyUsage, String subjectName,
                                                                CertificateRequestFormat format) throws Exception {
 
+        var reqBuilder = GenerateCertRequestReq.newBuilder()
+                .setKeyId(keyId)
+                .setKeyUsage(keyUsage)
+                .setSubjectName(subjectName)
+                .setFormat(format);
+
+        ofNullable(memberId)
+                .map(ClientIdMapper::toDto)
+                .ifPresent(reqBuilder::setMemberId);
+
         var response = RpcSignerClient.execute(ctx -> ctx.blockingCertificateService
-                .generateCertRequest(GenerateCertRequestReq.newBuilder()
-                        .setKeyId(keyId)
-                        .setMemberId(ClientIdMapper.toDto(memberId))
-                        .setKeyUsage(keyUsage)
-                        .setSubjectName(subjectName)
-                        .setFormat(format)
-                        .build()));
+                .generateCertRequest(reqBuilder.build()));
 
         byte[] certRequestBytes = response.getCertRequest().toByteArray();
 
@@ -401,7 +407,7 @@ public final class SignerProxy {
                 response.getCertReqId(),
                 response.getCertRequest().toByteArray(),
                 response.getFormat(),
-                ClientIdMapper.fromDto(response.getMemberId()),
+                response.hasMemberId() ? ClientIdMapper.fromDto(response.getMemberId()) : null,
                 response.getKeyUsage());
     }
 

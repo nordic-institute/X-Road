@@ -90,7 +90,7 @@ message RegenerateCertRequestResp {
   string cert_req_id = 1;
   bytes cert_request = 2;
   CertificateRequestFormat format = 3;
-  ClientIdProto member_id = 4;
+  optional ClientIdProto member_id = 4;
   KeyUsageInfo key_usage = 5;
 }
 
@@ -112,7 +112,7 @@ message DeleteCertRequestReq {
 message ImportCertReq {
   bytes cert_data = 1;
   string initial_status = 2;
-  ClientIdProto member_id = 3;
+  optional ClientIdProto member_id = 3;
 }
 
 message ImportCertResp {
@@ -134,7 +134,7 @@ message GenerateSelfSignedCertResp {
 
 message GenerateCertRequestReq {
   string key_id = 1;
-  ClientIdProto member_id = 2;
+  optional ClientIdProto member_id = 2;
   KeyUsageInfo key_usage = 3;
   string subject_name = 4;
   CertificateRequestFormat format = 5;

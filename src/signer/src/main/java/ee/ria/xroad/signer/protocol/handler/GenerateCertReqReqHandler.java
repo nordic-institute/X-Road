@@ -67,7 +67,7 @@ public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateC
         PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, request.getSubjectName());
 
         String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(),
-                ClientIdMapper.fromDto(request.getMemberId()),
+                request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
                 request.getSubjectName(), request.getKeyUsage());
 
         return GenerateCertRequestResp.newBuilder()
