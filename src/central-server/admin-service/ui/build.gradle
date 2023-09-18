@@ -36,9 +36,19 @@ frontend {
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 task yarnUpdateDeps(type: RunYarn, dependsOn: [configurations.npm, installPackageManager]) {
+  var currentDir = java.nio.file.Path.of("${projectDir}")
   inputs.files('package.json')
   outputs.files('yarn.lock')
-  script = 'add --mode=update-lockfile ' + configurations.npm.files.collect { it.toString() }.join(' ')
+
+  var packages = configurations.npm.files
+    .collect { it.toPath() }
+    .collect { currentDir.relativize(it) }
+    .collect { '@niis/shared-ui@file:' + it }
+    .join(' ')
+
+
+  println packages
+  script = 'add --mode=update-lockfile ' + packages
 }
 
 installFrontend {
@@ -97,7 +107,6 @@ task checkFrontLicense(type: RunYarn, dependsOn: installFrontend) {
 }
 
 clean {
-  delete file('node_modules')
   delete file('dist')
 }
 

@@ -74,6 +74,7 @@ public final class VuetifyHelper {
 
         public void click() {
             controlElement.shouldBe(visible)
+                    .$x(".//label")
                     .click();
         }
     }
