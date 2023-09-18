@@ -309,7 +309,7 @@ public class TokenCertificateService {
     }
 
     /**
-     * Import a cert that is found from a token by it's bytes.
+     * Import a cert that is found from a token by its bytes.
      * Adds audit log properties for
      * - clientId (if sign cert),
      * - cert hash and cert hash algo
