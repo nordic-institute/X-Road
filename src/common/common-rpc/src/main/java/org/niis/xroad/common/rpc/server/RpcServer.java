@@ -24,13 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.grpc;
+package org.niis.xroad.common.rpc.server;
+
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.StartStop;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerCredentials;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -39,13 +44,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.function.Consumer;
 
-import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createServerCredentials;
-
 /**
  * Server that manages startup/shutdown of RPC server.
  */
 @Slf4j
-public class RpcServer {
+public class RpcServer implements StartStop {
     private final Server server;
 
     public RpcServer(final String host, final int port, final ServerCredentials creds, final Consumer<ServerBuilder<?>> configFunc) {
@@ -55,13 +58,15 @@ public class RpcServer {
         server = builder.build();
     }
 
+    @Override
     public void start() throws IOException {
         server.start();
 
         log.info("RPC server has started, listening on {}", server.getListenSockets());
     }
 
-    public void shutdown() {
+    @Override
+    public void stop() throws Exception {
         if (server != null) {
             log.info("Shutting down RPC server..");
             server.shutdown();
@@ -69,9 +74,16 @@ public class RpcServer {
         }
     }
 
+    @Override
+    public void join() throws InterruptedException {
+        //NO-OP
+    }
+
+
     public static RpcServer newServer(String host, int port, Consumer<ServerBuilder<?>> configFunc)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        var serverCredentials = createServerCredentials();
+        var serverCredentials = SystemProperties.isGrpcInternalTlsEnabled()
+                ? RpcCredentialsConfigurer.createServerCredentials() : InsecureRpcCredentialsConfigurer.createServerCredentials();
         log.info("Initializing RPC server with {} credentials..", serverCredentials.getClass().getSimpleName());
 
         return new RpcServer(host, port, serverCredentials, configFunc);

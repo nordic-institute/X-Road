@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,25 +30,21 @@ import ee.ria.xroad.monitor.JmxStringifiedData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.assertEquals;
-
-/**
- * Created by janne on 6.11.2015.
- */
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for package lister
  */
 @Slf4j
-public class PackageListerTest {
+class PackageListerTest {
 
     // FIXME: there should be a better way to do this with gradle. Seems to be the norm though elsewhere as well.
     private static final String RESOURCE_PATH = "src/test/resources/";
@@ -58,8 +54,8 @@ public class PackageListerTest {
     /**
      * Before test handler
      */
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
 
         packageOutputString = FileUtils.readFileToString(new File(RESOURCE_PATH + "ubuntu-packagelist.txt"),
                 StandardCharsets.UTF_8.toString());
@@ -68,9 +64,8 @@ public class PackageListerTest {
     }
 
     @Test
-    public void testProcessList() throws Exception {
-        Assume.assumeTrue("AbstractExecListener does not support other operating systems.",
-                SystemUtils.IS_OS_LINUX);
+    void testProcessList() {
+        Assumptions.assumeTrue(SystemUtils.IS_OS_LINUX, "AbstractExecListener does not support other operating systems.");
 
         PackageLister testPackageLister = new PackageLister() {
             @Override

@@ -277,8 +277,6 @@ public final class SystemProperties {
 
     private static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
 
-    private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
-
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
 
@@ -623,16 +621,24 @@ public final class SystemProperties {
     // gRPC internal cross-component transport configuration  -------------------------- //
 
     /**
-     * Property name for gRPC signer host.
+     * Property name for gRPC host.
      */
-    public static final String GRPC_SIGNER_HOST =
-            PREFIX + "grpc.signer.host";
+    public static final String GRPC_INTERNAL_HOST =
+            PREFIX + "grpc.internal.host";
+
+    /**
+     * Property name for gRPC host.
+     */
+    public static final String GRPC_INTERNAL_TLS_ENABLED =
+            PREFIX + "grpc.internal.tls-enabled";
 
     /**
      * Property name for gRPC signer port.
      */
     public static final String GRPC_SIGNER_PORT =
             PREFIX + "grpc.signer.port";
+
+    public static final String PROXY_GRPC_PORT = PREFIX + "grpc.proxy.port";
 
     /**
      * Property name for gRPC internal keystore location.
@@ -1259,10 +1265,10 @@ public final class SystemProperties {
     }
 
     /**
-     * @return proxy actorsystem port, {@link PortNumbers#PROXY_ACTORSYSTEM_PORT} by default.
+     * @return proxy grpc port, {@link PortNumbers#PROXY_GRPC_PORT} by default.
      */
-    public static int getProxyActorSystemPort() {
-        return Integer.getInteger(PROXY_ACTORSYSTEM_PORT, PortNumbers.PROXY_ACTORSYSTEM_PORT);
+    public static int getProxyGrpcPort() {
+        return Integer.getInteger(PROXY_GRPC_PORT, PortNumbers.PROXY_GRPC_PORT);
     }
 
     /**
@@ -1707,8 +1713,15 @@ public final class SystemProperties {
     /**
      * @return gRPC signer host.
      */
-    public static String getGrpcSignerHost() {
-        return System.getProperty(GRPC_SIGNER_HOST, "127.0.0.1");
+    public static String getGrpcInternalHost() {
+        return System.getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static boolean isGrpcInternalTlsEnabled() {
+        return Boolean.parseBoolean(System.getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
     }
 
     /**

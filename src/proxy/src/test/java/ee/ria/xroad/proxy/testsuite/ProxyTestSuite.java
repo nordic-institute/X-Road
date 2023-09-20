@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -41,6 +42,7 @@ import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.server.RpcServer;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -68,6 +70,7 @@ public final class ProxyTestSuite {
 
     private static JobManager jobManager;
     private static ActorSystem actorSystem;
+    private static RpcServer proxyRpcServer;
 
     private ProxyTestSuite() {
     }
@@ -169,10 +172,11 @@ public final class ProxyTestSuite {
         jobManager.start();
 
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy"));
-
-        for (AddOn addon :ServiceLoader.load(AddOn.class)) {
-            addon.init(actorSystem);
+        AddOn.BindableServiceRegistry serviceRegistry = new AddOn.BindableServiceRegistry();
+        for (AddOn addon : ServiceLoader.load(AddOn.class)) {
+            addon.init(serviceRegistry);
         }
+       proxyRpcServer = ProxyMain.createRpcServer(serviceRegistry.getRegisteredServices());
     }
 
     private static void runNormalTestCases(List<MessageTestCase> tc) throws Exception {
@@ -229,9 +233,13 @@ public final class ProxyTestSuite {
 
     private static void runTestSuite(List<StartStop> services, List<MessageTestCase> tc) throws Exception {
         for (StartStop s : services) {
-            s.start();
+            try {
+                s.start();
 
-            log.info(s.getClass().getSimpleName() + " started");
+                log.info(s.getClass().getSimpleName() + " started");
+            } catch (Exception e) {
+                log.error("Failed to start service", e);
+            }
         }
 
         try {
@@ -290,6 +298,7 @@ public final class ProxyTestSuite {
 
         return new ArrayList<>(// need mutable list
                 Arrays.asList(clientProxy, serverProxy, new CertHashBasedOcspResponder("127.0.0.1"),
+                        proxyRpcServer,
                         new DummyService(), new DummyServerProxy()));
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,18 +27,9 @@ package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.monitor.common.SystemMetricsRequest;
-import ee.ria.xroad.monitor.common.SystemMetricsResponse;
-import ee.ria.xroad.monitor.common.dto.HistogramDto;
-import ee.ria.xroad.monitor.common.dto.MetricDto;
-import ee.ria.xroad.monitor.common.dto.MetricSetDto;
-import ee.ria.xroad.monitor.common.dto.SimpleMetricDto;
 import ee.ria.xroad.monitor.executablelister.PackageInfo;
 import ee.ria.xroad.monitor.executablelister.ProcessInfo;
 
-import akka.actor.UntypedAbstractActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
@@ -46,17 +37,25 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Snapshot;
 import com.google.common.collect.Lists;
+import com.google.protobuf.util.Timestamps;
+import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.monitor.common.HistogramMetrics;
+import org.niis.xroad.monitor.common.Metrics;
+import org.niis.xroad.monitor.common.MetricsGroup;
+import org.niis.xroad.monitor.common.MetricsServiceGrpc;
+import org.niis.xroad.monitor.common.SingleMetrics;
+import org.niis.xroad.monitor.common.SystemMetricsReq;
+import org.niis.xroad.monitor.common.SystemMetricsResp;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Actor for providing system metrics data
  */
-public class MetricsProviderActor extends UntypedAbstractActor {
-
-    private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+@Slf4j
+public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase {
     private static final List<String> PACKAGE_OR_CERTIFICATE_METRIC_NAMES = Lists.newArrayList(
             SystemMetricNames.PROCESSES,
             SystemMetricNames.PROCESS_STRINGS,
@@ -72,7 +71,7 @@ public class MetricsProviderActor extends UntypedAbstractActor {
      * Two phase filter for checking user requested metric names and additional chained filter for
      * application defined metric names (histogram/process/certificate/package/etc).
      */
-    public class SystemMetricsFilter implements MetricFilter {
+    public static class SystemMetricsFilter implements MetricFilter {
 
         private final List<String> metricNames;
         private final MetricFilter chainedFilter;
@@ -110,37 +109,28 @@ public class MetricsProviderActor extends UntypedAbstractActor {
     }
 
     @Override
-    public void onReceive(Object o) throws Exception {
-
-        if (o instanceof SystemMetricsRequest) {
-
-            final SystemMetricsRequest req = (SystemMetricsRequest) o;
-            log.info("Received SystemMetricsRequest: " + req);
-
-            if (req.getMetricNames() != null && req.getMetricNames().size() > 0) {
-                log.info("Specified metrics requested: " + req.getMetricNames());
-                log.info("Is owner of security server: " + req.isClientOwner());
-            }
-
-            MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
-            final MetricSetDto.Builder builder = new MetricSetDto.Builder("systemMetrics");
-
-            collectMetrics(builder, metrics, req.getMetricNames(), req.isClientOwner());
-
-            if (req.isClientOwner() || !SystemProperties.getEnvMonitorLimitRemoteDataSet()) {
-                collectOwnerMetrics(builder, metrics, req.getMetricNames());
-            }
-
-            MetricSetDto metricSet = builder.build();
-            final SystemMetricsResponse response = new SystemMetricsResponse(metricSet);
-            getSender().tell(response, getSelf());
-
-        } else {
-            unhandled(o);
+    public void getMetrics(SystemMetricsReq req, StreamObserver<SystemMetricsResp> responseObserver) {
+        log.info("Received SystemMetricsRequest: " + req);
+        if (!req.getMetricNamesList().isEmpty()) {
+            log.info("Specified metrics requested: " + req.getMetricNamesList());
+            log.info("Is owner of security server: " + req.getIsClientOwner());
         }
+
+        MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
+        var responseBuilder = SystemMetricsResp.newBuilder();
+        responseBuilder.getMetricsBuilder().setName("systemMetrics");
+
+        collectMetrics(responseBuilder, metrics, req.getMetricNamesList(), req.getIsClientOwner());
+
+        if (req.getIsClientOwner() || !SystemProperties.getEnvMonitorLimitRemoteDataSet()) {
+            collectOwnerMetrics(responseBuilder, metrics, req.getMetricNamesList());
+        }
+
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
     }
 
-    private void collectMetrics(MetricSetDto.Builder builder, MetricRegistry metrics, List<String> metricNames,
+    private void collectMetrics(SystemMetricsResp.Builder builder, MetricRegistry metrics, List<String> metricNames,
                                 boolean clientOwner) {
         SystemMetricsFilter certificateMetricFilter = new SystemMetricsFilter(metricNames,
                 (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name));
@@ -149,15 +139,15 @@ public class MetricsProviderActor extends UntypedAbstractActor {
                 (name, metric) -> filterPackageOrCertifates(clientOwner, name));
 
         for (Map.Entry<String, Gauge> e : metrics.getGauges(certificateMetricFilter).entrySet()) {
-            builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
+            builder.getMetricsBuilder().addMetrics(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
         }
 
         for (Map.Entry<String, Gauge> e : metrics.getGauges(simpleMetricFilter).entrySet()) {
-            builder.withMetric(toSimpleMetricDto(e.getKey(), e.getValue()));
+            builder.getMetricsBuilder().addMetrics(toSimpleMetricDto(e.getKey(), e.getValue()));
         }
     }
 
-    private void collectOwnerMetrics(MetricSetDto.Builder builder, MetricRegistry metrics, List<String> metricNames) {
+    private void collectOwnerMetrics(SystemMetricsResp.Builder builder, MetricRegistry metrics, List<String> metricNames) {
         SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(metricNames,
                 null);
 
@@ -169,19 +159,19 @@ public class MetricsProviderActor extends UntypedAbstractActor {
                 (name, metric) -> SystemMetricNames.PACKAGES.equals(name));
 
         for (Map.Entry<String, Histogram> e : metrics.getHistograms(histogramMetricFilter).entrySet()) {
-            builder.withMetric(toHistogramDto(e.getKey(), e.getValue().getSnapshot()));
+            builder.getMetricsBuilder().addMetrics(toHistogramDto(e.getKey(), e.getValue().getSnapshot()));
         }
 
         // dont handle processes, packages and certificates gauges normally,
         // they have have special conversions to dto
         // *_STRINGS gauges are only for JMX reporting
         for (Map.Entry<String, Gauge> e : metrics.getGauges(processMetricFilter).entrySet()) {
-            builder.withMetric(toProcessMetricSetDto(e.getKey(), e.getValue()));
+            builder.getMetricsBuilder().addMetrics(toProcessMetricSetDto(e.getKey(), e.getValue()));
         }
 
 
         for (Map.Entry<String, Gauge> e : metrics.getGauges(packageMetricFilter).entrySet()) {
-            builder.withMetric(toPackageMetricSetDto(e.getKey(), e.getValue()));
+            builder.getMetricsBuilder().addMetrics(toPackageMetricSetDto(e.getKey(), e.getValue()));
         }
     }
 
@@ -193,71 +183,97 @@ public class MetricsProviderActor extends UntypedAbstractActor {
         }
     }
 
-    private MetricSetDto toProcessMetricSetDto(String name,
-                                               Gauge<JmxStringifiedData<ProcessInfo>> processSensor) {
+    private Metrics toProcessMetricSetDto(String name,
+                                          Gauge<JmxStringifiedData<ProcessInfo>> processSensor) {
         JmxStringifiedData<ProcessInfo> p = processSensor.getValue();
-        MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
+
+        var metricsGroup = MetricsGroup.newBuilder()
+                .setName(name);
         for (ProcessInfo process : p.getDtoData()) {
-            MetricSetDto.Builder processBuilder = new MetricSetDto.Builder(process.getProcessId());
-            mainBuilder.withMetric(processBuilder
-                    .withSimpleMetric("processId", process.getProcessId())
-                    .withSimpleMetric("command", process.getCommand())
-                    .withSimpleMetric("cpuLoad", process.getCpuLoad())
-                    .withSimpleMetric("memUsed", process.getMemUsed())
-                    .withSimpleMetric("startTime", process.getStartTime())
-                    .withSimpleMetric("userId", process.getUserId())
+            var processMetrics = MetricsGroup.newBuilder()
+                    .setName(process.getProcessId())
+                    .addMetrics(toSingleMetrics("processId", process.getProcessId()))
+                    .addMetrics(toSingleMetrics("command", process.getCommand()))
+                    .addMetrics(toSingleMetrics("cpuLoad", process.getCpuLoad()))
+                    .addMetrics(toSingleMetrics("memUsed", process.getMemUsed()))
+                    .addMetrics(toSingleMetrics("startTime", process.getStartTime()))
+                    .addMetrics(toSingleMetrics("userId", process.getUserId()));
+
+            metricsGroup.addMetrics(Metrics.newBuilder()
+                    .setMetricsGroup(processMetrics)
                     .build());
         }
-        return mainBuilder.build();
+        return Metrics.newBuilder()
+                .setMetricsGroup(metricsGroup)
+                .build();
     }
 
 
-    private MetricSetDto toCertificateMetricSetDTO(
+    private Metrics toCertificateMetricSetDTO(
             String name,
             Gauge<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor) {
         JmxStringifiedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
-        MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
+
+        var metricsGroup = MetricsGroup.newBuilder()
+                .setName(name);
         for (CertificateMonitoringInfo cert : c.getDtoData()) {
-            MetricSetDto.Builder certBuilder = new MetricSetDto.Builder("certificate-" + cert.getSha1hash());
-            mainBuilder.withMetric(certBuilder
-                    .withSimpleMetric("sha1Hash", cert.getSha1hash())
-                    .withSimpleMetric("notBefore", cert.getNotBefore())
-                    .withSimpleMetric("notAfter", cert.getNotAfter())
-                    .withSimpleMetric("certificateType", cert.getType().name())
-                    .withSimpleMetric("active", cert.isActive())
+            var certMetrics = MetricsGroup.newBuilder()
+                    .setName("certificate-" + cert.getSha1hash())
+                    .addMetrics(toSingleMetrics("sha1Hash", cert.getSha1hash()))
+                    .addMetrics(toSingleMetrics("notBefore", cert.getNotBefore()))
+                    .addMetrics(toSingleMetrics("notAfter", cert.getNotAfter()))
+                    .addMetrics(toSingleMetrics("certificateType", cert.getType().name()))
+                    .addMetrics(toSingleMetrics("active", String.valueOf(cert.isActive())));
+
+            metricsGroup.addMetrics(Metrics.newBuilder()
+                    .setMetricsGroup(certMetrics)
                     .build());
         }
-        return mainBuilder.build();
+
+        return Metrics.newBuilder()
+                .setMetricsGroup(metricsGroup)
+                .build();
     }
 
-    private MetricSetDto toPackageMetricSetDto(String name,
-                                               Gauge<JmxStringifiedData<PackageInfo>> packageSensor) {
+    private Metrics.Builder toPackageMetricSetDto(String name,
+                                                  Gauge<JmxStringifiedData<PackageInfo>> packageSensor) {
         JmxStringifiedData<PackageInfo> p = packageSensor.getValue();
-        MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
+
+        var packageMetrics = MetricsGroup.newBuilder()
+                .setName(name);
         for (PackageInfo pac : p.getDtoData()) {
-            mainBuilder.withSimpleMetric(pac.getName(), pac.getVersion());
+            packageMetrics.addMetrics(toSingleMetrics(pac.getName(), pac.getVersion()));
         }
-        return mainBuilder.build();
+
+        return Metrics.newBuilder().setMetricsGroup(packageMetrics);
     }
 
-    private <T extends Serializable> SimpleMetricDto<T> toSimpleMetricDto(String key, Gauge<T> value) {
-        return new SimpleMetricDto<>(key, value.getValue());
+    private Metrics.Builder toSimpleMetricDto(String key, Gauge<?> value) {
+        return toSingleMetrics(key, String.valueOf(value.getValue()));
     }
 
-    private MetricDto toHistogramDto(String name, Snapshot snapshot) {
-        return new HistogramDto(
-                name,
-                snapshot.get75thPercentile(),
-                snapshot.get95thPercentile(),
-                snapshot.get98thPercentile(),
-                snapshot.get99thPercentile(),
-                snapshot.get999thPercentile(),
-                snapshot.getMax(),
-                snapshot.getMean(),
-                snapshot.getMedian(),
-                snapshot.getMin(),
-                snapshot.getStdDev()
-        );
+    private Metrics.Builder toSingleMetrics(String key, String value) {
+        return Metrics.newBuilder().setSingleMetrics(SingleMetrics.newBuilder()
+                .setName(key)
+                .setValue(value));
+    }
+
+    private Metrics.Builder toHistogramDto(String name, Snapshot snapshot) {
+        var histogram = HistogramMetrics.newBuilder()
+                .setName(name)
+                .setUpdateDateTime(Timestamps.now())
+                .setDistribution75ThPercentile(snapshot.get75thPercentile())
+                .setDistribution95ThPercentile(snapshot.get95thPercentile())
+                .setDistribution98ThPercentile(snapshot.get98thPercentile())
+                .setDistribution99ThPercentile(snapshot.get99thPercentile())
+                .setDistribution999ThPercentile(snapshot.get999thPercentile())
+                .setMax(snapshot.getMax())
+                .setMean(snapshot.getMean())
+                .setMedian(snapshot.getMedian())
+                .setMin(snapshot.getMin())
+                .setStdDev(snapshot.getStdDev());
+
+        return Metrics.newBuilder().setSingleHistogram(histogram);
     }
 
 }

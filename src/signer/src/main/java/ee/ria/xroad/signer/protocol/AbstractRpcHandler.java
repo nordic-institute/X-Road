@@ -27,7 +27,6 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 
@@ -36,6 +35,7 @@ import io.grpc.Status;
 import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.error.CodedExceptionProto;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.google.protobuf.Any.pack;

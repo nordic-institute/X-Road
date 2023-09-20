@@ -33,7 +33,6 @@ include "asicverifier"
 include "asic-util"
 include "monitor"
 include "monitor-common"
-include "monitor-test"
 include "op-monitor-daemon"
 include "shared-ui"
 

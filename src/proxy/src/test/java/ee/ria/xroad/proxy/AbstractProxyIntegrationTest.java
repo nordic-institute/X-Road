@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -136,8 +136,9 @@ public abstract class AbstractProxyIntegrationTest {
 
         MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);
+        AddOn.BindableServiceRegistry serviceRegistry = new AddOn.BindableServiceRegistry();
         for (AddOn addon : ServiceLoader.load(AddOn.class)) {
-            addon.init(actorSystem);
+            addon.init(serviceRegistry);
         }
 
         clientProxy = new ClientProxy();

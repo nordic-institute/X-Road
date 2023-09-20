@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.grpc;
+package org.niis.xroad.common.rpc;
 
 import ee.ria.xroad.common.SystemProperties;
 
@@ -54,7 +54,7 @@ import java.security.cert.CertificateException;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ServerCredentialsConfigurer {
+public class RpcCredentialsConfigurer {
 
     public static ServerCredentials createServerCredentials() throws UnrecoverableKeyException, NoSuchAlgorithmException,
             KeyStoreException {

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,21 +30,20 @@ import ee.ria.xroad.monitor.JmxStringifiedData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Created by janne on 6.11.2015.
  */
 @Slf4j
-public class ProcessListerTest {
+class ProcessListerTest {
 
     // FIXME: there should be a better way to do this with gradle. Seems to be the norm though elsewhere as well.
     private static final String RESOURCE_PATH = "src/test/resources/";
@@ -54,8 +53,8 @@ public class ProcessListerTest {
     /**
      * Before test handler
      */
-    @Before
-    public void setup() throws Exception {
+    @BeforeEach
+    void setup() throws Exception {
 
         processOutputString = FileUtils.readFileToString(new File(RESOURCE_PATH + "processlist.txt"),
                 StandardCharsets.UTF_8.toString());
@@ -64,20 +63,18 @@ public class ProcessListerTest {
     }
 
     @Test
-    public void testProcessList() throws Exception {
-        Assume.assumeTrue("AbstractExecListener does not support other operating systems.",
-                SystemUtils.IS_OS_LINUX);
+    void testProcessList() {
+        Assumptions.assumeTrue(SystemUtils.IS_OS_LINUX, "AbstractExecListener does not support other operating systems.");
 
         ProcessLister testProcessLister = new ProcessLister() {
-
-
             @Override
-            ProcessOutputs executeProcess() throws IOException, InterruptedException {
+            ProcessOutputs executeProcess() {
                 ProcessOutputs fakeOutputs = new ProcessOutputs();
                 fakeOutputs.setOut(processOutputString);
                 return fakeOutputs;
             }
         };
+
         JmxStringifiedData<ProcessInfo> data = testProcessLister.list();
         assertEquals(11, data.getDtoData().size()); // no header row
         assertEquals(12, data.getJmxStringData().size()); // header row included

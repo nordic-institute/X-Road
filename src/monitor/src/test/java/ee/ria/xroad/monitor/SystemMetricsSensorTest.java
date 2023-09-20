@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,62 +26,117 @@
 package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.monitor.common.StatsRequest;
-import ee.ria.xroad.monitor.common.StatsResponse;
+import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
-import akka.testkit.javadsl.TestKit;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
-import com.typesafe.config.ConfigFactory;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import io.grpc.stub.StreamObserver;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.monitor.common.MonitorServiceGrpc;
+import org.niis.xroad.monitor.common.StatsReq;
+import org.niis.xroad.monitor.common.StatsResp;
+import org.springframework.scheduling.TaskScheduler;
 
+import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for SystemMetricsSensor
  */
-public class SystemMetricsSensorTest {
+@ExtendWith(MockitoExtension.class)
+class SystemMetricsSensorTest {
+    private static final int PORT;
 
-    private static ActorSystem actorSystem;
+    private static RpcServer rpcServer;
+    private static StatsResp response;
 
-    @BeforeClass
-    public static void init() {
+    @Spy
+    private MetricRegistry metricRegistry = new MetricRegistry();
+
+    static {
+        try {
+            PORT = TestPortUtils.findRandomPort();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
-        actorSystem = ActorSystem.create("AkkaTestServer", ConfigFactory.load());
+        System.setProperty(SystemProperties.PROXY_GRPC_PORT, String.valueOf(PORT));
+        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
-    @AfterClass
-    public static void tearDown() {
-        TestKit.shutdownActorSystem(actorSystem);
+    @BeforeAll
+    public static void init() throws Exception {
+        rpcServer = RpcServer.newServer(SystemProperties.getGrpcInternalHost(), PORT, serverBuilder ->
+                serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
+                    @Override
+                    public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
+                        responseObserver.onNext(response);
+                        responseObserver.onCompleted();
+                    }
+                }));
+        rpcServer.start();
+    }
+
+    @AfterAll
+    public static void tearDown() throws Exception {
+        rpcServer.stop();
     }
 
     @Test
-    public void testSystemMetricsSensor() {
-        final MetricRegistry registry = new MetricRegistry();
-        MetricRegistryHolder.getInstance().setMetrics(registry);
+    void testSystemMetricsSensor() throws Exception {
+        MetricRegistryHolder.getInstance().setMetrics(metricRegistry);
 
-        final TestKit agent = new TestKit(actorSystem);
-        final ActorRef sensor = TestActorRef.create(actorSystem, Props.create(SystemMetricsSensor.class,
-                agent.getRef().path().toString()));
-        agent.expectMsgClass(StatsRequest.class);
-        sensor.tell(new StatsResponse(0, 0, 1.0, 0, 0, 0, 0, 0), agent.getRef());
+        var taskScheduler = spy(TaskScheduler.class);
+        when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        for (Map.Entry<String, Histogram> e : registry.getHistograms().entrySet()) {
+        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler);
+
+        response = StatsResp.newBuilder()
+                .setOpenFileDescriptorCount(0)
+                .setMaxFileDescriptorCount(0)
+                .setSystemCpuLoad(1.0d)
+                .setCommittedVirtualMemorySize(0)
+                .setFreePhysicalMemorySize(0)
+                .setTotalPhysicalMemorySize(0)
+                .setFreeSwapSpaceSize(0)
+                .setTotalSwapSpaceSize(0)
+                .build();
+
+        systemMetricsSensor.measure();
+
+        await()
+                .atMost(Duration.ofSeconds(30))
+                .pollDelay(500, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> verify(metricRegistry, times(1))
+                        .gauge(eq(SystemMetricNames.TOTAL_PHYSICAL_MEMORY), any()));
+
+        for (Map.Entry<String, Histogram> e : metricRegistry.getHistograms().entrySet()) {
             if (SystemMetricNames.SYSTEM_CPU_LOAD.equalsIgnoreCase(e.getKey())) {
-                Assert.assertEquals(100, e.getValue().getSnapshot().getValues()[0]);
+                assertEquals(100, e.getValue().getSnapshot().getValues()[0]);
             } else {
-                Assert.assertEquals(0, e.getValue().getSnapshot().getValues()[0]);
+                assertEquals(0, e.getValue().getSnapshot().getValues()[0]);
             }
         }
-
     }
 
 }

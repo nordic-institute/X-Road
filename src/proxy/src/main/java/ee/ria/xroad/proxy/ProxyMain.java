@@ -66,8 +66,10 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.rpc.server.RpcServer;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -117,6 +119,8 @@ public final class ProxyMain {
 
     private static final List<StartStop> SERVICES = new ArrayList<>();
 
+    private static RpcServer rpcServer;
+
     private static ActorSystem actorSystem;
 
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
@@ -136,6 +140,7 @@ public final class ProxyMain {
 
     /**
      * Main program entry point.
+     *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
@@ -198,6 +203,7 @@ public final class ProxyMain {
         Await.ready(actorSystem.terminate(), Duration.Inf());
 
         BatchSigner.shutdown();
+        rpcServer.stop();
         RpcSignerClient.shutdown();
     }
 
@@ -210,9 +216,12 @@ public final class ProxyMain {
         boolean messageLogEnabled = MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);
 
+        AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
         for (AddOn addOn : addOns) {
-            addOn.init(actorSystem);
+            addOn.init(bindableServiceRegistry);
         }
+        rpcServer = createRpcServer(bindableServiceRegistry.getRegisteredServices());
+        rpcServer.start();
 
         SERVICES.add(jobManager);
         SERVICES.add(new ClientProxy());
@@ -241,6 +250,17 @@ public final class ProxyMain {
                 MessageLogProperties.isMessageLogEncryptionEnabled(),
                 ARCHIVE_GROUPING.name(),
                 getMessageLogArchiveEncryptionMembers(getMembers()));
+    }
+
+    //TODO grpc. this is a god class that must be split.
+    public static RpcServer createRpcServer(final List<BindableService> bindableServices) throws Exception {
+        return RpcServer.newServer(
+                SystemProperties.getGrpcInternalHost(),
+                SystemProperties.getProxyGrpcPort(),
+                builder -> bindableServices.forEach(bindableService -> {
+                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
+                    builder.addService(bindableService);
+                }));
     }
 
     private static List<ClientId> getMembers() {
@@ -388,7 +408,7 @@ public final class ProxyMain {
                 Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                 try {
                     Map<String, DiagnosticsStatus> statusesFromLogManager =
-                            (Map<String, DiagnosticsStatus>)Await.result(
+                            (Map<String, DiagnosticsStatus>) Await.result(
                                     Patterns.ask(logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
                                     timeout.duration());
 
@@ -422,13 +442,14 @@ public final class ProxyMain {
 
     /**
      * Logic that determines correct DiagnosticsStatus based on simple connection check and LogManager status
-     * @param timestamperUrl url of timestamper
+     *
+     * @param timestamperUrl                  url of timestamper
      * @param statusFromSimpleConnectionCheck status from simple connection check
-     * @param statusFromLogManager (possible) status from LogManager
+     * @param statusFromLogManager            (possible) status from LogManager
      * @return
      */
     private static DiagnosticsStatus determineDiagnosticsStatus(String timestamperUrl,
-            DiagnosticsStatus statusFromSimpleConnectionCheck, DiagnosticsStatus statusFromLogManager) {
+                                                                DiagnosticsStatus statusFromSimpleConnectionCheck, DiagnosticsStatus statusFromLogManager) {
 
         DiagnosticsStatus status = statusFromSimpleConnectionCheck;
 
@@ -497,7 +518,7 @@ public final class ProxyMain {
 
                 log.info("Checking timestamp server status for url {}", url);
 
-                HttpURLConnection con = (HttpURLConnection)url.openConnection();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setConnectTimeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS);
                 con.setReadTimeout(DIAGNOSTICS_READ_TIMEOUT_MS);
                 con.setDoOutput(true);
@@ -546,13 +567,14 @@ public final class ProxyMain {
 
     private static List<String> getBackupEncryptionKeyIds() {
         return Arrays.stream(StringUtils.split(
-                SystemProperties.getBackupEncryptionKeyIds(), ','))
+                        SystemProperties.getBackupEncryptionKeyIds(), ','))
                 .map(String::trim)
                 .collect(Collectors.toList());
     }
 
     /**
      * Return X-Road software version
+     *
      * @return version string e.g. 6.19.0
      */
     public static String readProxyVersion() {

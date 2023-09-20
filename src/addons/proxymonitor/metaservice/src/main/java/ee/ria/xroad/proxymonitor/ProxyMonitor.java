@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,28 +27,34 @@ package ee.ria.xroad.proxymonitor;
 
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
-import ee.ria.xroad.proxymonitor.util.ProxyMonitorAgent;
+import ee.ria.xroad.proxymonitor.util.ProxyMonitorService;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- *  ProxyMonitor initialization
+ * ProxyMonitor initialization
  */
 @Slf4j
 public class ProxyMonitor implements AddOn {
 
-    private static final String CONFIG_PROPERTY_PORT = "xroad.monitor.port";
-    private static final int DEFAULT_PORT = 2552;
-
     private static volatile MonitorClient monitorClient;
 
     @Override
-    public void init(final ActorSystem system) {
-        monitorClient = new MonitorClient(
-                system.actorSelection(getMonitorAddress() + "/user/MetricsProviderActor"));
-        system.actorOf(Props.create(ProxyMonitorAgent.class), "ProxyMonitorAgent");
+    public void init(final BindableServiceRegistry bindableServiceRegistry) {
+        try {
+            bindableServiceRegistry.register(new ProxyMonitorService());
+            //TODO grpc, client might require delayed init due to missing rpc service
+            monitorClient = new MonitorClient();
+        } catch (Exception e) {
+            log.error("ProxyMonitor addon has failed to start. Monitor data will not be available!", e);
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        if (monitorClient != null) {
+            monitorClient.shutdown();
+        }
     }
 
     public static MonitorClient getClient() {
@@ -59,14 +65,4 @@ public class ProxyMonitor implements AddOn {
         ProxyMonitor.monitorClient = testMonitorClient;
     }
 
-    private String getMonitorAddress() {
-        int port = DEFAULT_PORT;
-        try {
-            port = Integer.parseUnsignedInt(System.getProperty(CONFIG_PROPERTY_PORT));
-        } catch (NumberFormatException e) {
-            log.warn(String.format("Could not load configuration property %s - using the default port",
-                    CONFIG_PROPERTY_PORT));
-        }
-        return String.format("akka://xroad-monitor@127.0.0.1:%d", port);
-    }
 }

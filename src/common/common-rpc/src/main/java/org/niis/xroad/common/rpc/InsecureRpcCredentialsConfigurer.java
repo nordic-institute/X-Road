@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,29 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor.common;
+package org.niis.xroad.common.rpc;
 
-import lombok.Data;
+import io.grpc.ChannelCredentials;
+import io.grpc.InsecureChannelCredentials;
+import io.grpc.InsecureServerCredentials;
+import io.grpc.ServerCredentials;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.Serializable;
-import java.util.List;
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class InsecureRpcCredentialsConfigurer {
 
-/**
- * Message for requesting system metrics data
- */
-@Data
-public class SystemMetricsRequest implements Serializable {
-
-    // Can be set to null/empty to request all metrics
-    private List<String> metricNames;
-
-    private boolean isClientOwner;
-
-    public SystemMetricsRequest() {
+    public static ServerCredentials createServerCredentials() {
+        return InsecureServerCredentials.create();
     }
 
-    public SystemMetricsRequest(List<String> metricNames, boolean isClientOwner) {
-        this.metricNames = metricNames;
-        this.isClientOwner = isClientOwner;
+    public static ChannelCredentials createClientCredentials() {
+        return InsecureChannelCredentials.create();
+
     }
 }

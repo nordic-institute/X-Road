@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,50 +26,55 @@
 package ee.ria.xroad.proxymonitor.util;
 
 import ee.ria.xroad.common.util.SystemMetrics;
-import ee.ria.xroad.monitor.common.StatsRequest;
-import ee.ria.xroad.monitor.common.StatsResponse;
 
-import akka.actor.UntypedAbstractActor;
 import com.sun.management.UnixOperatingSystemMXBean;
+import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.monitor.common.MonitorServiceGrpc;
+import org.niis.xroad.monitor.common.StatsReq;
+import org.niis.xroad.monitor.common.StatsResp;
 
 /**
  * Proxy monitoring agent
  */
 @Slf4j
-public class ProxyMonitorAgent extends UntypedAbstractActor {
+public class ProxyMonitorService extends MonitorServiceGrpc.MonitorServiceImplBase {
 
     private boolean failureState = false;
 
     @Override
-    public void onReceive(Object o) throws Throwable {
-        if (o instanceof StatsRequest) {
-            handleStatsRequest();
+    public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
+        try {
+            responseObserver.onNext(handleStatsRequest());
+        } catch (Exception e) {
+            responseObserver.onError(e);
         }
+        responseObserver.onCompleted();
     }
 
-    private void handleStatsRequest() {
+    private StatsResp handleStatsRequest() throws InternalError {
         final UnixOperatingSystemMXBean stats = SystemMetrics.getStats();
         try {
-            final StatsResponse response = new StatsResponse(
-                    stats.getOpenFileDescriptorCount(),
-                    stats.getMaxFileDescriptorCount(),
-                    Math.max(stats.getSystemCpuLoad(), 0d),
-                    stats.getCommittedVirtualMemorySize(),
-                    stats.getFreePhysicalMemorySize(),
-                    stats.getTotalPhysicalMemorySize(),
-                    stats.getFreeSwapSpaceSize(),
-                    stats.getTotalSwapSpaceSize());
+            final StatsResp response = StatsResp.newBuilder()
+                    .setOpenFileDescriptorCount(stats.getOpenFileDescriptorCount())
+                    .setMaxFileDescriptorCount(stats.getMaxFileDescriptorCount())
+                    .setSystemCpuLoad(Math.max(stats.getSystemCpuLoad(), 0d))
+                    .setCommittedVirtualMemorySize(stats.getCommittedVirtualMemorySize())
+                    .setFreePhysicalMemorySize(stats.getFreePhysicalMemorySize())
+                    .setTotalPhysicalMemorySize(stats.getTotalPhysicalMemorySize())
+                    .setFreeSwapSpaceSize(stats.getFreeSwapSpaceSize())
+                    .setTotalSwapSpaceSize(stats.getTotalSwapSpaceSize())
+                    .build();
+
             failureState = false;
-            sender().tell(response, self());
-        } catch (InternalError ignored) {
-            // Querying stats fails with an java.lang.InternalError if all file descriptors are in use
-            // An uncaught InternalError (by default) stops the actorsystem and Akka forces the JVM to exit.
+            return response;
+        } catch (InternalError internalError) {
             if (!failureState) {
                 //Avoid logging periodically during failure.
-                log.error("Failed to retrieve OS stats", ignored);
+                log.error("Failed to retrieve OS stats", internalError);
                 failureState = true;
             }
+            throw internalError;
         }
     }
 }

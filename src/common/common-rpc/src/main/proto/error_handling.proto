@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,23 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor.common;
+syntax = "proto3";
 
-import ee.ria.xroad.monitor.common.dto.MetricSetDto;
+option java_multiple_files = true;
+option java_package = "org.niis.xroad.rpc.error";
 
-import lombok.Getter;
-
-import java.io.Serializable;
-
-/**
- * Message for returning system metrics data
- */
-@Getter
-public class SystemMetricsResponse implements Serializable {
-
-    private final MetricSetDto metrics;
-
-    public SystemMetricsResponse(MetricSetDto metrics) {
-        this.metrics = metrics;
-    }
+// todo rename the exception and the fields. should not be using soap fault naming inside signer.
+message CodedExceptionProto {
+  string fault_code = 1;
+  string fault_actor = 2;
+  string fault_detail = 3;
+  string fault_string = 4;
+  string translation_code = 5;
 }

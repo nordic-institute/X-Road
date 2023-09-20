@@ -25,47 +25,30 @@
  */
 package ee.ria.xroad.signer.protocol;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.dto.CodedExceptionProto;
-
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import io.grpc.CallOptions;
 import io.grpc.Channel;
-import io.grpc.ClientCall;
-import io.grpc.ClientInterceptor;
-import io.grpc.Grpc;
-import io.grpc.ManagedChannel;
-import io.grpc.MethodDescriptor;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.SystemProperties.getGrpcSignerHost;
+import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
 import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
 import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.niis.xroad.signer.grpc.ServerCredentialsConfigurer.createClientCredentials;
 
 @Slf4j
 public final class RpcSignerClient {
     private static RpcSignerClient instance;
 
-    private final ManagedChannel channel;
-    private final ExecutionContext executionContext;
+    private final RpcClient<SignerRpcExecutionContext> client;
 
     /**
      * Construct client for accessing Signer services using the provided channel.
      */
-    private RpcSignerClient(final ManagedChannel channel) {
-        this.channel = channel;
-        this.executionContext = new ExecutionContext(channel);
+    private RpcSignerClient(final RpcClient<SignerRpcExecutionContext> client) {
+        this.client = client;
     }
 
     /**
@@ -74,40 +57,28 @@ public final class RpcSignerClient {
      * @throws Exception
      */
     public static void init() throws Exception {
-        init(getGrpcSignerHost(), getGrpcSignerPort(), getSignerClientTimeout());
+        init(getGrpcInternalHost(), getGrpcSignerPort(), getSignerClientTimeout());
     }
 
     public static void init(String host, int port, int clientTimeoutMillis) throws Exception {
-        var credentials = createClientCredentials();
-        log.info("Starting grpc client with {} credentials..", credentials.getClass().getSimpleName());
-        final ClientInterceptor timeoutInterceptor = new ClientInterceptor() {
-            @Override
-            public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
-                    MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
-                return next.newCall(method, callOptions.withDeadlineAfter(clientTimeoutMillis, MILLISECONDS));
-            }
-        };
-        ManagedChannel channel = Grpc.newChannelBuilderForAddress(host, port, credentials)
-                .intercept(timeoutInterceptor)
-                .build();
-
-        instance = new RpcSignerClient(channel);
+        var client = RpcClient.newClient(host, port, clientTimeoutMillis, SignerRpcExecutionContext::new);
+        instance = new RpcSignerClient(client);
     }
 
     public static void shutdown() {
         if (instance != null) {
-            instance.channel.shutdown();
+            instance.client.shutdown();
         }
     }
 
     @Getter
-    public static class ExecutionContext {
+    public static class SignerRpcExecutionContext implements RpcClient.ExecutionContext {
         private final TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
         private final CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
         private final KeyServiceGrpc.KeyServiceBlockingStub blockingKeyService;
         private final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
 
-        public ExecutionContext(final Channel channel) {
+        public SignerRpcExecutionContext(Channel channel) {
             blockingTokenService = TokenServiceGrpc.newBlockingStub(channel);
             blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel);
             blockingKeyService = KeyServiceGrpc.newBlockingStub(channel);
@@ -115,42 +86,10 @@ public final class RpcSignerClient {
         }
     }
 
-    public static <V> V execute(RpcExecution<V> grpcCall) throws Exception {
-        try {
-            return grpcCall.exec(getInstance().executionContext);
-        } catch (StatusRuntimeException error) {
-            if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw CodedException.tr(SIGNER_X, "signer_client_timeout", "Signer client timed out")
-                        .withPrefix(SIGNER_X);
-            }
-            com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
-            if (status != null) {
-                for (Any any : status.getDetailsList()) {
-                    if (any.is(CodedExceptionProto.class)) {
-                        try {
-                            final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
-                            throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
-                                    .withPrefix(SIGNER_X);
-                        } catch (InvalidProtocolBufferException e) {
-                            throw new RuntimeException("Failed to parse grpc message", e);
-                        }
-                    }
-                }
-            }
-            throw error;
-        }
+    public static <V> V execute(RpcClient.RpcExecution<V, SignerRpcExecutionContext> grpcCall) throws Exception {
+        return getInstance().client.execute(grpcCall);
     }
 
-    @FunctionalInterface
-    public interface RpcExecution<V> {
-        /**
-         * Computes a result, or throws an exception if unable to do so.
-         *
-         * @return computed result
-         * @throws Exception if unable to compute a result
-         */
-        V exec(ExecutionContext ctx) throws Exception;
-    }
 
     public static RpcSignerClient getInstance() {
         if (instance == null) {

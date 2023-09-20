@@ -1,6 +1,7 @@
 plugins {
-    id 'java'
-    id 'com.github.johnrengelman.shadow'
+  id 'io.spring.dependency-management'
+  id 'org.springframework.boot'
+  id 'com.github.johnrengelman.shadow'
 }
 
 ext {
@@ -13,37 +14,34 @@ jar {
   }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
+  implementation project(':common:common-util')
+  implementation project(':monitor-common')
+  implementation project(':signer-protocol')
+  implementation project(':serverconf')
 
-    implementation project(':common:common-util')
-    implementation project(':monitor-common')
-    implementation project(':signer-protocol')
-    implementation project(':serverconf')
+  implementation('org.springframework:spring-context')
+  implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+  implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
+  implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
-    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-    implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
-    implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
-
-    testImplementation project(':common:common-test')
-    testImplementation "junit:junit:$junitVersion"
-    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+  testImplementation project(':common:common-test')
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
-jar {
-    enabled = false
-}
+bootJar.enabled = false
+bootJarMainClassName.enabled = false
 
 shadowJar {
-    append('reference.conf')
-    exclude('**/module-info.class')
-    archiveBaseName = "monitor"
-    archiveClassifier = ''
+  append('reference.conf')
+  exclude('**/module-info.class')
+  archiveBaseName = "monitor"
+  archiveClassifier = ''
 }
 
-build.dependsOn shadowJar
+jar.finalizedBy shadowJar
+
+test {
+  useJUnitPlatform()
+}

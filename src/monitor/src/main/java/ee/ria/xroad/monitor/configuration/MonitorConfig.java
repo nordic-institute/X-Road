@@ -23,30 +23,72 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer;
+package ee.ria.xroad.monitor.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.monitor.CertificateInfoSensor;
+import ee.ria.xroad.monitor.DiskSpaceSensor;
+import ee.ria.xroad.monitor.ExecListingSensor;
+import ee.ria.xroad.monitor.MetricsRpcService;
+import ee.ria.xroad.monitor.SystemMetricsSensor;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.util.List;
 
 @Slf4j
+@EnableScheduling
 @Configuration
-public class SignerRpcConfig {
+public class MonitorConfig {
+    private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getGrpcSignerPort(),
+                SystemProperties.getEnvMonitorPort(),
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
+    }
+
+    @Bean
+    TaskScheduler taskScheduler() {
+        var taskScheduler = new ThreadPoolTaskScheduler();
+        taskScheduler.setPoolSize(TASK_EXECUTOR_POOL_SIZE);
+        return taskScheduler;
+    }
+
+    @Bean
+    MetricsRpcService metricsRpcService() {
+        return new MetricsRpcService();
+    }
+
+    @Bean
+    SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler) throws Exception {
+        return new SystemMetricsSensor(taskScheduler);
+    }
+
+    @Bean
+    DiskSpaceSensor diskSpaceSensor(TaskScheduler taskScheduler) {
+        return new DiskSpaceSensor(taskScheduler);
+    }
+
+    @Bean
+    ExecListingSensor execListingSensor(TaskScheduler taskScheduler) {
+        return new ExecListingSensor(taskScheduler);
+    }
+
+    @Bean
+    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler) {
+        return new CertificateInfoSensor(taskScheduler);
     }
 }
