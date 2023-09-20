@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,11 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.ui;
+package org.niis.xroad.ss.test.addons.api;
 
-import com.nortal.test.TestRunner;
-import org.junit.platform.suite.api.SelectClasspathResource;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 
-@SelectClasspathResource("/behavior/ui")
-public class SecurityServerUiBehavioralTest extends TestRunner {
+@FeignClient(name = "xRoadSoapRequestsApi")
+public interface FeignXRoadSoapRequestsApi {
+
+    @PostMapping
+    ResponseEntity<String> getSecurityServerMetrics(byte[] body);
+
 }

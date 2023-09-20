@@ -67,7 +67,7 @@ include "security-server:admin-service:application"
 include 'security-server:admin-service:infra-jpa'
 include "security-server:admin-service:ui"
 include "security-server:admin-service:int-test"
-include "security-server:admin-service:ui-system-test"
+include "security-server:system-test"
 
 // Utils
 include "signer-console"

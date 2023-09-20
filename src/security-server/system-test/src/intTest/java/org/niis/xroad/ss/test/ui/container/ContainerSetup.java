@@ -49,6 +49,7 @@ import java.util.Map;
 @SuppressWarnings("checkstyle:MagicNumber")
 public class ContainerSetup {
 
+    private static final String NETWORK_ALIAS = "ss1";
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
@@ -85,7 +86,7 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(4000);
+                return List.of(4000, 8080);
             }
         };
     }
@@ -96,15 +97,13 @@ public class ContainerSetup {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                //do nothing
+                genericContainer.withNetworkAliases(NETWORK_ALIAS);
             }
 
             @Override
             @SneakyThrows
             public void afterStart(@NotNull GenericContainer<?> genericContainer) {
                 genericContainer.execInContainer("sudo", "-u", "xroad", "/etc/xroad/backup-keys/init_backup_encryption.sh");
-                genericContainer.execInContainer("keytool", "-keystore", "/etc/xroad/messagelog/messagelog.p12",
-                        "-storetype", "pkcs12", "-importpassword", "-alias", "key1");
             }
         };
     }
