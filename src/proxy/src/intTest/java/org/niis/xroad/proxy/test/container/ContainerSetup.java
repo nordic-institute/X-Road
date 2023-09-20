@@ -34,7 +34,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
-@SuppressWarnings("checkstyle:MagicNumber")
 public class ContainerSetup extends BaseTestSignerSetup {
 
     @Bean
