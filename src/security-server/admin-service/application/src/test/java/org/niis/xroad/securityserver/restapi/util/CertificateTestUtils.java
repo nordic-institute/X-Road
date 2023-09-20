@@ -29,11 +29,11 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
 import com.google.protobuf.ByteString;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -512,7 +512,7 @@ public final class CertificateTestUtils {
                     List<OCSPResp> ocsp = generateOcspResponses(
                             Arrays.asList(certificate),
                             ocspStatus);
-                    ocspBytes =  ocsp.iterator().next().getEncoded();
+                    ocspBytes = ocsp.iterator().next().getEncoded();
                 }
                 return createCertificateInfo(
                         clientId,
