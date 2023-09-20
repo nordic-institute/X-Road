@@ -186,6 +186,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
     @Override
     public void start() {
+        log.trace("start()");
         try {
             initialize();
             setTokenAvailable(tokenId, true);
@@ -221,17 +222,13 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    public void refresh() {
+    public void refresh() throws Exception {
         log.trace("refresh()");
 
         if (isTokenAvailable(tokenId) && activeSession != null) {
-            try {
-                findKeysNotInConf();
-                findPublicKeysForPrivateKeys();
-                findCertificatesNotInConf();
-            } catch (Exception e) {
-                throw translateException(e);
-            }
+            findKeysNotInConf();
+            findPublicKeysForPrivateKeys();
+            findCertificatesNotInConf();
         }
     }
 
@@ -654,6 +651,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     private void createSession() throws Exception {
+        log.trace("createSession()");
         closeActiveSession();
 
         if (getToken() != null) {
