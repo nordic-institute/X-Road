@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,29 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.test.container;
+package org.niis.xroad.ss.test.addons;
 
-import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
-import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.test.signer.container.BaseTestSignerSetup;
+import com.nortal.test.core.services.TestableApplicationInfoProvider;
+import feign.Contract;
+import feign.Feign;
+import feign.Logger;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
+import feign.hc5.ApacheHttp5Client;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
+import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-@Slf4j
 @Configuration
-public class ContainerSetup extends BaseTestSignerSetup {
+@Import(FeignClientsConfiguration.class)
+public class SsAddonTestConfiguration {
 
     @Bean
-    public TestContainerConfigurator testContainerConfigurator(
-            TestableContainerProperties testableContainerProperties) {
-        return super.testContainerConfigurator(testableContainerProperties);
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public FeignXRoadSoapRequestsApi feignManagementRequestsApi(
+            Decoder decoder, TestableApplicationInfoProvider appInfoProvider, Contract contract) {
+        return Feign.builder()
+                .logLevel(Logger.Level.FULL)
+                .client(new ApacheHttp5Client(HttpClients.createDefault()))
+                .encoder(new Encoder.Default())
+                .decoder(decoder)
+                .requestInterceptor(requestTemplate -> requestTemplate
+                        .target(String.format("http://%s:%s", appInfoProvider.getHost(), appInfoProvider.getMappedPort(8080)))
+                        .header("Content-Type", "text/xml")
+                        .header("x-hash-algorithm", "SHA-512")
+                )
+                .contract(contract)
+                .target(FeignXRoadSoapRequestsApi.class, "http://localhost");
     }
-
-    @Bean
-    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
-        return super.testContainerInitListener(true);
-    }
-
 
 }

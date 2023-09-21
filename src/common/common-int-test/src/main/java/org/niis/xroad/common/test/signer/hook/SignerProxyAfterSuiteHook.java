@@ -23,35 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.token;
 
-public interface WorkerWithLifecycle {
+package org.niis.xroad.common.test.signer.hook;
 
-    /**
-     * Stops the worker and underlying connections, context, etc.
-     */
-    default void stop() {
-        //NO-OP
+import com.nortal.test.core.services.hooks.AfterSuiteHook;
+import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
+@RequiredArgsConstructor
+public class SignerProxyAfterSuiteHook implements AfterSuiteHook {
+
+    private final TestableApplicationContainerProvider containerProvider;
+
+    @Override
+    public void afterSuite() {
+        log.info("Setting permissions for signer files so they could be deleted");
+        try {
+            containerProvider.getContainer().execInContainer("chmod", "-R", "777", "/etc/xroad/signer/");
+        } catch (Exception e) {
+            log.error("Failed to change file permissions", e);
+        }
     }
 
-    /**
-     * Start the worker. This should fully prepare the worker.
-     */
-    default void start() {
-        //NO-OP
-    }
-
-    /**
-     * Reloads the worker. Reloaded instance should be similar to newly initialized worker.
-     */
-    default void reload() {
-        //NO-OP
-    }
-
-    /**
-     * Refreshes underlying worker.
-     */
-    default void refresh() throws Exception {
-        //NO-OP
-    }
 }

@@ -13,7 +13,7 @@ test-automation:
     execution:
       parallel:
         enabled: false # Tests are executed in sequential order
-    glue-append: "org.niis.xroad.ss.test.ui.glue,org.niis.xroad.common.test.glue"
+    glue-append: "org.niis.xroad.ss.test.ui.glue,org.niis.xroad.common.test.glue,org.niis.xroad.ss.test.addons.glue"
     filter:
       tags: "not @Skip"
   containers:
@@ -40,7 +40,7 @@ test-automation:
     proxy-host: 127.0.0.1
     file-download: proxy
   custom:
-    docker-root: "../../../../Docker/securityserver/"
+    docker-root: "../../../Docker/securityserver/"
     package-host: "replace-me"
     package-source: develop
     package-repo: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/debian"

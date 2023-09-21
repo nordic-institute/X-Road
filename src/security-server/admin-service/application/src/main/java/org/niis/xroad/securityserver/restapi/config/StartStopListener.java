@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.commonui.UIServices;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +55,7 @@ public class StartStopListener implements ApplicationListener<ApplicationEvent> 
             uiApiActorSystem = null;
         }
 
-        RpcSignerClient.shutdown();
+//        RpcSignerClient.shutdown();
     }
 
     @Autowired
@@ -73,7 +72,7 @@ public class StartStopListener implements ApplicationListener<ApplicationEvent> 
         if (uiApiActorSystem == null) {
             uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
         }
-        RpcSignerClient.init();
+//        RpcSignerClient.init();
     }
 
 

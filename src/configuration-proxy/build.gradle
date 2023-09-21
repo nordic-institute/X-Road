@@ -9,6 +9,7 @@ dependencies {
     implementation 'commons-cli:commons-cli:1.4'
 
     testImplementation project(':common:common-test')
+    testImplementation "org.mockito:mockito-inline:$mockitoVersion"
 }
 
 ext {

@@ -52,7 +52,7 @@ public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository 
     private HttpSessionCsrfTokenRepository httpSessionCsrfTokenRepository;
 
     /**
-     * Creates an instance of CookieAndSessionCsrfTokenRepository which holds a instances of
+     * Creates an instance of CookieAndSessionCsrfTokenRepository which holds instances of
      * {@link HttpSessionCsrfTokenRepository} and {@link CookieCsrfTokenRepository} with <code>cookieHttpOnly</code>
      * set to <code>false</code>. Also sets the CSRF header name to ensure it does not change in future Spring updates
      */

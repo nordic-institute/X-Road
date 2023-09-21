@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -141,6 +142,14 @@ public class ApplicationExceptionHandler {
         auditEventLoggingFacade.auditLogFail(constraintViolationException);
         log.error(EXCEPTION_CAUGHT, constraintViolationException);
         return exceptionTranslator.toResponseEntity(constraintViolationException, HttpStatus.BAD_REQUEST);
+
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorInfo> exception(DataIntegrityViolationException dataIntegrityViolationException) {
+        auditEventLoggingFacade.auditLogFail(dataIntegrityViolationException);
+        log.error(EXCEPTION_CAUGHT, dataIntegrityViolationException);
+        return exceptionTranslator.toResponseEntity(dataIntegrityViolationException, HttpStatus.CONFLICT);
 
     }
 
