@@ -113,7 +113,8 @@ public abstract class BaseStepDefs {
      * An enumerated key for data transfer between steps.
      */
     public enum StepDataKey {
-        XROAD_SOAP_RESPONSE
+        XROAD_SOAP_RESPONSE,
+        XROAD_JMX_RESPONSE
     }
 
 }

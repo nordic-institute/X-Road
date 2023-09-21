@@ -41,13 +41,19 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
+import org.assertj.core.api.Assertions;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
+import org.niis.xroad.ss.test.addons.jmx.JmxClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import javax.xml.namespace.QName;
 
+import java.util.ServiceLoader;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_JMX_RESPONSE;
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -55,6 +61,9 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
 
     @Autowired
     private FeignXRoadSoapRequestsApi xRoadSoapRequestsApi;
+
+    @Autowired
+    private JmxClient jmxClient;
 
     private static final Marshaller MARSHALLER = createMarshaller();
 
@@ -73,6 +82,22 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
                 .assertion(xpath(response.getBody(), "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name",
                         "SERVER:CS/GOV/0245437-2/SS1"))
                 .execute();
+    }
+
+
+    @Step("Security Server Metrics requested using JMX")
+    public void executeJmxSecurityServerMetricsRequest() {
+        var value = jmxClient.getValue("metrics:name=XroadProcessDump,type=gauges", "Value");
+        putStepData(XROAD_JMX_RESPONSE, value);
+    }
+
+    @Step("Valid Security Server Metrics returned using JMX")
+    public void validJmxSecurityServerMetric() {
+        Object attrValue =  getStepData(XROAD_JMX_RESPONSE).orElseThrow();
+        assertThat(attrValue)
+                .isNotNull()
+                .asString()
+                .isNotEmpty();
     }
 
     @SneakyThrows
