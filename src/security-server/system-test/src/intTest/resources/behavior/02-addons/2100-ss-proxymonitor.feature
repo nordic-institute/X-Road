@@ -14,3 +14,5 @@ Feature: 2100 - SS: Proxymonitor
   Scenario: Proxymonitor responds with correct response
     When Security Server Metrics request was sent with queryId "ID1234"
     Then Valid Security Server Metrics response is returned
+    When Security Server Metrics requested using JMX
+    Then Valid Security Server Metrics returned using JMX

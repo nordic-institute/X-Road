@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui;
 
 import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -42,7 +43,7 @@ public class TargetHostUrlProvider {
     public String getUrl() {
         return String.format("https://%s:%s",
                 testableApplicationInfoProvider.getHost(),
-                testableApplicationInfoProvider.getPort());
+                testableApplicationInfoProvider.getMappedPort(Port.UI));
     }
 
 }
