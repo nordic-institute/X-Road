@@ -35,25 +35,24 @@ import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.ObjectFactory;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsType;
+import ee.ria.xroad.proxymonitor.message.OutputSpecType;
 
 import io.cucumber.java.en.Step;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
-import org.assertj.core.api.Assertions;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
-import org.niis.xroad.ss.test.addons.jmx.JmxClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import javax.xml.namespace.QName;
 
-import java.util.ServiceLoader;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_JMX_RESPONSE;
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -62,8 +61,7 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @Autowired
     private FeignXRoadSoapRequestsApi xRoadSoapRequestsApi;
 
-    @Autowired
-    private JmxClient jmxClient;
+
 
     private static final Marshaller MARSHALLER = createMarshaller();
 
@@ -71,6 +69,13 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @Step("Security Server Metrics request was sent with queryId {string}")
     public void executeGetSecurityServerMetricsRequest(String queryId) {
         ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest(queryId).getBytes());
+        putStepData(XROAD_SOAP_RESPONSE, response);
+    }
+
+    @SuppressWarnings("checkstyle:OperatorWrap")
+    @Step("Security Server Metric: {string} request was sent")
+    public void executeGetSecurityServerMetricsRequest(final String metricName) {
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest("ID1234", metricName).getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
@@ -84,24 +89,23 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("Valid numeric value returned for metric: {string}")
+    public void validNumericMetricReturned(final String metricName) {
+        ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .execute();
 
-    @Step("Security Server Metrics requested using JMX")
-    public void executeJmxSecurityServerMetricsRequest() {
-        var value = jmxClient.getValue("metrics:name=XroadProcessDump,type=gauges", "Value");
-        putStepData(XROAD_JMX_RESPONSE, value);
+        assertThat(evalXpath(response.getBody(), "//monitoring:getSecurityServerMetricsResponse//monitoring:numericMetric[./monitoring:name/text()='"
+                + metricName
+                + "']/monitoring:value"))
+                .isNotEmpty()
+                .containsOnlyDigits();
     }
 
-    @Step("Valid Security Server Metrics returned using JMX")
-    public void validJmxSecurityServerMetric() {
-        Object attrValue =  getStepData(XROAD_JMX_RESPONSE).orElseThrow();
-        assertThat(attrValue)
-                .isNotNull()
-                .asString()
-                .isNotEmpty();
-    }
 
     @SneakyThrows
-    private SoapMessageImpl buildMetricsRequest(String queryId) {
+    private SoapMessageImpl buildMetricsRequest(final String queryId, final String metricName) {
         SoapHeader header = new SoapHeader();
         ClientId member = ClientId.Conf.create("CS", "GOV", "0245437-2");
         header.setClient(member);
@@ -112,9 +116,19 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
 
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(header);
+        var body = new GetSecurityServerMetricsType();
+        Optional.ofNullable(metricName)
+                .filter(Predicate.not(String::isEmpty))
+                .map(name -> {
+                    var outputSpec = new OutputSpecType();
+                    outputSpec.getOutputField().add(name);
+                    return outputSpec;
+                })
+                .ifPresent(body::setOutputSpec);
+
         builder.setCreateBodyCallback(soapBodyNode -> MARSHALLER.marshal(
                 new JAXBElement<>(new QName("http://x-road.eu/xsd/monitoring", "getSecurityServerMetrics"),
-                        GetSecurityServerMetricsType.class, null, null), soapBodyNode)
+                        GetSecurityServerMetricsType.class, null, body), soapBodyNode)
         );
         return builder.build();
     }
