@@ -68,14 +68,16 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Metrics request was sent with queryId {string}")
     public void executeGetSecurityServerMetricsRequest(String queryId) {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest(queryId).getBytes());
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest(queryId)
+                .getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Metric: {string} request was sent")
     public void executeGetSecurityServerMetricsRequest(final String metricName) {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest("ID1234", metricName).getBytes());
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest("ID1234", metricName)
+                .getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
@@ -84,7 +86,8 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
         ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
-                .assertion(xpath(response.getBody(), "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name",
+                .assertion(xpath(response.getBody(),
+                        "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name",
                         "SERVER:CS/GOV/0245437-2/SS1"))
                 .execute();
     }
@@ -96,7 +99,8 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
                 .execute();
 
-        assertThat(evalXpath(response.getBody(), "//monitoring:getSecurityServerMetricsResponse//monitoring:numericMetric[./monitoring:name/text()='"
+        assertThat(evalXpath(response.getBody(),
+                "//monitoring:getSecurityServerMetricsResponse//monitoring:numericMetric[./monitoring:name/text()='"
                 + metricName
                 + "']/monitoring:value"))
                 .isNotEmpty()
