@@ -100,7 +100,7 @@ public abstract class BaseTestSignerSetup {
                         .withCommand("java",
                                 "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
                                 "-Dxroad.internal.passwordstore-provider=file",
-                                "-Dxroad.grpc.signer.host=0.0.0.0",
+                                "-Dxroad.grpc.internal.host=0.0.0.0",
                                 "-Dxroad.grpc.internal.keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
                                 "-Dxroad.grpc.internal.keystore-password=111111",
                                 "-Dxroad.grpc.internal.truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",

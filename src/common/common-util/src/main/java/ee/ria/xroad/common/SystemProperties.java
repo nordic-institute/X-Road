@@ -338,8 +338,6 @@ public final class SystemProperties {
 
     private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = "false";
 
-    private static final int DEFAULT_GRPC_SIGNER_PORT = 5560;
-
     /**
      * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
      * for the ClientProxy can be actually reused
@@ -1728,7 +1726,7 @@ public final class SystemProperties {
      * @return gRPC signer host.
      */
     public static int getGrpcSignerPort() {
-        return Integer.parseInt(System.getProperty(GRPC_SIGNER_PORT, String.valueOf(DEFAULT_GRPC_SIGNER_PORT)));
+        return Integer.parseInt(System.getProperty(GRPC_SIGNER_PORT, String.valueOf(PortNumbers.SIGNER_GRPC_PORT)));
     }
 
     /**

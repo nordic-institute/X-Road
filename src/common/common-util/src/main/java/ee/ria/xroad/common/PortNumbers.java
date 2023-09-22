@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -51,6 +51,11 @@ public final class PortNumbers {
     /** Signer Admin port. */
     public static final int SIGNER_ADMIN_PORT = 5559;
 
+    /**
+     * Signer grpc service port.
+     */
+    public static final int SIGNER_GRPC_PORT = 5560;
+
     /** Center-Service HTTP port. */
     public static final int CENTER_SERVICE_HTTP_PORT = 3333;
 
@@ -74,6 +79,7 @@ public final class PortNumbers {
      */
     @Deprecated
     public static final int PROXY_ACTORSYSTEM_PORT = 5568;
+
 
     /**
      * Proxy grpc port

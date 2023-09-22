@@ -38,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
+
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
@@ -49,7 +51,7 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
     @SneakyThrows
     public void beforeSuite() {
         var host = testableApplicationInfoProvider.getHost();
-        var port = testableApplicationInfoProvider.getMappedPort(SystemProperties.getGrpcSignerPort());
+        var port = testableApplicationInfoProvider.getMappedPort(SIGNER_GRPC_PORT);
         log.info("Will use {}:{}  for signer RPC connection..", host, port);
 
         System.setProperty(SystemProperties.GRPC_INTERNAL_HOST, host);

@@ -176,7 +176,8 @@ public final class ProxyTestSuite {
         for (AddOn addon : ServiceLoader.load(AddOn.class)) {
             addon.init(serviceRegistry);
         }
-       proxyRpcServer = ProxyMain.createRpcServer(serviceRegistry.getRegisteredServices());
+
+        proxyRpcServer = ProxyMain.createRpcServer(serviceRegistry.getRegisteredServices());
     }
 
     private static void runNormalTestCases(List<MessageTestCase> tc) throws Exception {

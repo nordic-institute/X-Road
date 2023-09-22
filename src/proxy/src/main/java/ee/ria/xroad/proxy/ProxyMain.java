@@ -449,7 +449,8 @@ public final class ProxyMain {
      * @return
      */
     private static DiagnosticsStatus determineDiagnosticsStatus(String timestamperUrl,
-                                                                DiagnosticsStatus statusFromSimpleConnectionCheck, DiagnosticsStatus statusFromLogManager) {
+                                                                DiagnosticsStatus statusFromSimpleConnectionCheck,
+                                                                DiagnosticsStatus statusFromLogManager) {
 
         DiagnosticsStatus status = statusFromSimpleConnectionCheck;
 
