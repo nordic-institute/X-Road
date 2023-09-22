@@ -20,20 +20,20 @@
     "resolve-audit": "resolve-audit"
   },
   "dependencies": {
-    "@fontsource/open-sans": "^5.0.11",
+    "@fontsource/open-sans": "^5.0.12",
     "@mdi/font": "^7.2.96",
     "@niis/shared-ui": "file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz",
     "@vee-validate/i18n": "~4.11.6",
     "@vee-validate/rules": "~4.11.6",
     "axios": "~1.4.0",
-    "dayjs": "^1.11.9",
+    "dayjs": "^1.11.10",
     "pinia": "^2.1.6",
     "pinia-plugin-persistedstate": "^3.2.0",
     "vee-validate": "~4.11.6",
     "vue": "^3.3.4",
-    "vue-i18n": "~9.4.0",
-    "vue-router": "^4.2.4",
-    "vuetify": "^3.3.15"
+    "vue-i18n": "~9.4.1",
+    "vue-router": "^4.2.5",
+    "vuetify": "^3.3.17"
   },
   "devDependencies": {
     "@apidevtools/swagger-cli": "~4.0.4",

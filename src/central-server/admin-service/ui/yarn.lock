@@ -648,7 +648,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/open-sans@npm:^5.0.11, @fontsource/open-sans@npm:^5.0.12":
+"@fontsource/open-sans@npm:^5.0.12":
   version: 5.0.12
   resolution: "@fontsource/open-sans@npm:5.0.12"
   checksum: b6e91f34b10e14499a29d4599edb1933f3aa37253020cfa0e566bb5cb7daf452ad439e1c77be9564ab5a4cda2ac6342d8b35e0aade29d51cc6d6eb157cebd6d6
@@ -680,7 +680,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@intlify/core-base@npm:9.4.0, @intlify/core-base@npm:^9.1.9":
+"@intlify/core-base@npm:9.4.1":
+  version: 9.4.1
+  resolution: "@intlify/core-base@npm:9.4.1"
+  dependencies:
+    "@intlify/message-compiler": "npm:9.4.1"
+    "@intlify/shared": "npm:9.4.1"
+  checksum: 57756057f5a36bb8c9baae861132c3051026d928ccdd93b5a732b65d2a74fcc7ac85e62e141121fad42514a0b99f48cdf4f5c48ba6755b8b0fc0edd604f66cb1
+  languageName: node
+  linkType: hard
+
+"@intlify/core-base@npm:^9.1.9":
   version: 9.4.0
   resolution: "@intlify/core-base@npm:9.4.0"
   dependencies:
@@ -725,10 +735,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@intlify/message-compiler@npm:9.4.1":
+  version: 9.4.1
+  resolution: "@intlify/message-compiler@npm:9.4.1"
+  dependencies:
+    "@intlify/shared": "npm:9.4.1"
+    source-map-js: "npm:^1.0.2"
+  checksum: 69f7ac4f29f8284f27077b57e21d0a167ca116536155a70761a98c3180c18a207628e5394ec9ea9ce8660c170f48ac40abb47dd5288f7afee679c825538f3485
+  languageName: node
+  linkType: hard
+
 "@intlify/shared@npm:9.4.0":
   version: 9.4.0
   resolution: "@intlify/shared@npm:9.4.0"
   checksum: eb87dcff40b6d5dccfaf26da20b48f4e32b1e0453248e9e51188921f7636ef83ae3aba7c6bbc815157bfe9eee936cd79d4217c75043b2bd4e04d645b006a0eba
+  languageName: node
+  linkType: hard
+
+"@intlify/shared@npm:9.4.1":
+  version: 9.4.1
+  resolution: "@intlify/shared@npm:9.4.1"
+  checksum: 0ca4c0f15484d43c6da9a3d62b6b01e5745d41afc483d848a588bdb79cdce5352501c724af73f7d5361557952e3730f2a8bd0fd479759af324a4fa557717e4b9
   languageName: node
   linkType: hard
 
@@ -804,7 +831,7 @@ __metadata:
 
 "@niis/shared-ui@file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz::locator=xroad-centralserver-admin-ui%40workspace%3A.":
   version: 3.0.0
-  resolution: "@niis/shared-ui@file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz#../../../shared-ui-3/niis-shared-ui-3.0.0.tgz::hash=414bdd&locator=xroad-centralserver-admin-ui%40workspace%3A."
+  resolution: "@niis/shared-ui@file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz#../../../shared-ui-3/niis-shared-ui-3.0.0.tgz::hash=47e4b0&locator=xroad-centralserver-admin-ui%40workspace%3A."
   dependencies:
     "@fontsource/open-sans": "npm:^5.0.12"
     "@mdi/font": "npm:^7.2.96"
@@ -812,8 +839,8 @@ __metadata:
   peerDependencies:
     vue: ^3.3.4
     vue-i18n: ^9.4.0
-    vuetify: ^3.3.15
-  checksum: ce41a22e6c10d142ef8add69ac3ab5720203929553e19d47c263cf7ac511f0ed1732ea735da3b1410dfbde21c810a44a3a61b3825ec9a8164f739709ee0f9baf
+    vuetify: ^3.3.17
+  checksum: 0ef19565237c66a6323a9e048197ec2387ff718a9448274ff37023d9ab50bc50eb06ec8045ef8a5db8d61195fb81f68d112dfd92fa115603083a558472d4952b
   languageName: node
   linkType: hard
 
@@ -1953,10 +1980,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.9":
-  version: 1.11.9
-  resolution: "dayjs@npm:1.11.9"
-  checksum: 7bee5a13653049ae166d4ee7f17fd1b3cd31ec8699b2bae1dee6262431d8d5815a4a9f12eaf48d1879a98d993c014a9a9098ed75aa6a041efe9bccc080a687cd
+"dayjs@npm:^1.11.10":
+  version: 1.11.10
+  resolution: "dayjs@npm:1.11.10"
+  checksum: 27e8f5bc01c0a76f36c656e62ab7f08c2e7b040b09e613cd4844abf03fb258e0350f0a83b02c887b84d771c1f11e092deda0beef8c6df2a1afbc3f6c1fade279
   languageName: node
   linkType: hard
 
@@ -5585,27 +5612,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-i18n@npm:~9.4.0":
-  version: 9.4.0
-  resolution: "vue-i18n@npm:9.4.0"
+"vue-i18n@npm:~9.4.1":
+  version: 9.4.1
+  resolution: "vue-i18n@npm:9.4.1"
   dependencies:
-    "@intlify/core-base": "npm:9.4.0"
-    "@intlify/shared": "npm:9.4.0"
+    "@intlify/core-base": "npm:9.4.1"
+    "@intlify/shared": "npm:9.4.1"
     "@vue/devtools-api": "npm:^6.5.0"
   peerDependencies:
     vue: ^3.0.0
-  checksum: a6264bf32bd539c7429b35670f4783d2b856cef5fa64166310823ecbba0fcbd5e00b81e4af943f4e13cceabfcd349d0558a7e691d3094c6beac33736637f6960
+  checksum: 3669e94c354bfa10be8354d63964968240357de493c66b4d14c08119d5806cb7f4616c9adb63856b927839d53be8a3ac6bd0494ceb0695c2c1da22cdb962a4f7
   languageName: node
   linkType: hard
 
-"vue-router@npm:^4.2.4":
-  version: 4.2.4
-  resolution: "vue-router@npm:4.2.4"
+"vue-router@npm:^4.2.5":
+  version: 4.2.5
+  resolution: "vue-router@npm:4.2.5"
   dependencies:
     "@vue/devtools-api": "npm:^6.5.0"
   peerDependencies:
     vue: ^3.2.0
-  checksum: 562af097e03d2e2ee96923864a45e878329b4613c40f96efdec5343487c5ebb604c46575953db21dfc7ba29e2eca26ec6c70dae99c4d7e9c1066cbbfc4c23010
+  checksum: 491ebb273cf9b668a0a0da5886a45d6ca34a5192ca58aceaecba222223748f35f7dc6519f0d2bfe065aaf0be95564cccea22096b60a805d67b0e020fc9f882c8
   languageName: node
   linkType: hard
 
@@ -5647,9 +5674,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vuetify@npm:^3.3.15":
-  version: 3.3.15
-  resolution: "vuetify@npm:3.3.15"
+"vuetify@npm:^3.3.17":
+  version: 3.3.17
+  resolution: "vuetify@npm:3.3.17"
   peerDependencies:
     typescript: ">=4.7"
     vite-plugin-vuetify: ^1.0.0-alpha.12
@@ -5665,7 +5692,7 @@ __metadata:
       optional: true
     webpack-plugin-vuetify:
       optional: true
-  checksum: dcb7a1cce0a32460ff0fb2b4ba925629ee050ef41748de5b0e86ab6e6a4a95bb2f55264b86ad33a3b383bea05aa174fcaa838af9b0496f1d2df247ca1750657e
+  checksum: eaed5c79daa87380231043ebae2db0ece2992ffb57571e32747d757c511dfd938f29b81fef440fb408f9937735c20ecf5a3479e9a72f1458017845b0573a7455
   languageName: node
   linkType: hard
 
@@ -5803,7 +5830,7 @@ __metadata:
   resolution: "xroad-centralserver-admin-ui@workspace:."
   dependencies:
     "@apidevtools/swagger-cli": "npm:~4.0.4"
-    "@fontsource/open-sans": "npm:^5.0.11"
+    "@fontsource/open-sans": "npm:^5.0.12"
     "@intlify/eslint-plugin-vue-i18n": "npm:^2.0.0"
     "@mdi/font": "npm:^7.2.96"
     "@niis/shared-ui": "file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz"
@@ -5819,7 +5846,7 @@ __metadata:
     "@vue/eslint-config-typescript": "npm:^11.0.3"
     "@vue/tsconfig": "npm:^0.4.0"
     axios: "npm:~1.4.0"
-    dayjs: "npm:^1.11.9"
+    dayjs: "npm:^1.11.10"
     eslint: "npm:^8.48.0"
     eslint-config-prettier: "npm:^9.0.0"
     eslint-plugin-prettier: "npm:^5.0.0"
@@ -5838,10 +5865,10 @@ __metadata:
     vite: "npm:^4.4.9"
     vite-plugin-vuetify: "npm:^1.0.2"
     vue: "npm:^3.3.4"
-    vue-i18n: "npm:~9.4.0"
-    vue-router: "npm:^4.2.4"
+    vue-i18n: "npm:~9.4.1"
+    vue-router: "npm:^4.2.5"
     vue-tsc: "npm:^1.8.8"
-    vuetify: "npm:^3.3.15"
+    vuetify: "npm:^3.3.17"
   languageName: unknown
   linkType: soft
 
