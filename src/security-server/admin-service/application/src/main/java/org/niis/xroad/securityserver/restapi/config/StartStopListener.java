@@ -54,8 +54,6 @@ public class StartStopListener implements ApplicationListener<ApplicationEvent> 
             uiApiActorSystem.stop();
             uiApiActorSystem = null;
         }
-
-//        RpcSignerClient.shutdown();
     }
 
     @Autowired
@@ -72,7 +70,6 @@ public class StartStopListener implements ApplicationListener<ApplicationEvent> 
         if (uiApiActorSystem == null) {
             uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
         }
-//        RpcSignerClient.init();
     }
 
 

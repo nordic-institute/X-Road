@@ -68,7 +68,9 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<String> customizeCommandParts() {
-                return List.of("-Dxroad.signer.enforce-token-pin-policy=true");
+                return List.of(
+                        "-Dxroad.signer.enforce-token-pin-policy=true",
+                        "-Dxroad.grpc.internal.tls-enabled=false");
             }
 
             @NotNull
