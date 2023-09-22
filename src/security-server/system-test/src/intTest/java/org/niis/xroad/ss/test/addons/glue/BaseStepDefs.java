@@ -93,7 +93,7 @@ public abstract class BaseStepDefs {
     }
 
     @SneakyThrows
-    private String evalXpath(String body, String xpath) {
+    protected String evalXpath(String body, String xpath) {
         InputStream is = new ByteArrayInputStream(body.getBytes());
 
         XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
