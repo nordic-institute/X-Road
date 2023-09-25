@@ -91,15 +91,10 @@ public final class VuetifyHelper {
         }
 
         private void focus() {
-            if (!this.input.is(focused)) {
-                controlElement
-                        .shouldBe(enabled)
-                        .shouldBe(visible)
-                        .click();
-            }
-            this.input
-                    .shouldBe(visible)
-                    .shouldBe(focused);
+            controlElement
+                    .shouldBe(enabled)
+                    .shouldBe(visible);
+            controlElement.$(".v-input__control").click();
         }
 
         public TextField clear() {
