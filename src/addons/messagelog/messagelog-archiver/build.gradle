@@ -22,11 +22,12 @@ jar {
 }
 
 shadowJar {
-    archiveVersion = ''
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    append('reference.conf')
-    from rootProject.file("LICENSE.txt")
+  archiveVersion = ''
+  archiveClassifier = ''
+  exclude('**/module-info.class')
+  append('reference.conf')
+  from rootProject.file("LICENSE.txt")
+  mergeServiceFiles()
 }
 
 assemble.dependsOn shadowJar

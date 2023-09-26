@@ -60,9 +60,10 @@ bootJar {
 }
 
 shadowJar {
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
+  archiveClassifier = ''
+  exclude('**/module-info.class')
+  from rootProject.file("LICENSE.txt")
+  mergeServiceFiles()
 }
 
 jar.finalizedBy shadowJar

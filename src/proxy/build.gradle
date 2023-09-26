@@ -49,10 +49,11 @@ jar {
 }
 
 shadowJar {
-    archiveClassifier = ''
-    append('reference.conf')
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
+  archiveClassifier = ''
+  append('reference.conf')
+  exclude('**/module-info.class')
+  from rootProject.file("LICENSE.txt")
+  mergeServiceFiles()
 }
 
 testJar.enabled = true

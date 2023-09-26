@@ -38,6 +38,7 @@ shadowJar {
   exclude('**/module-info.class')
   archiveBaseName = "monitor"
   archiveClassifier = ''
+  mergeServiceFiles()
 }
 
 jar.finalizedBy shadowJar
