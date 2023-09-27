@@ -36,4 +36,9 @@ public interface FeignXRoadSoapRequestsApi {
     @PostMapping
     ResponseEntity<String> getSecurityServerMetrics(byte[] body);
 
+    @PostMapping
+    ResponseEntity<String> getSecurityServerOperationalData(byte[] body);
+
+    @PostMapping
+    ResponseEntity<String> getSecurityServerHealthData(byte[] body);
 }

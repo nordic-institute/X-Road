@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.ss.test.addons;
 
+import ee.ria.xroad.common.util.MimeTypes;
+
 import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import feign.Contract;
 import feign.Feign;
@@ -55,7 +57,7 @@ public class SsAddonTestConfiguration {
                 .decoder(decoder)
                 .requestInterceptor(requestTemplate -> requestTemplate
                         .target(String.format("http://%s:%s", appInfoProvider.getHost(), appInfoProvider.getMappedPort(8080)))
-                        .header("Content-Type", "text/xml")
+                        .header("Content-Type", MimeTypes.TEXT_XML_UTF8)
                         .header("x-hash-algorithm", "SHA-512")
                 )
                 .contract(contract)

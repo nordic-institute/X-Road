@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:om="http://x-road.eu/xsd/op-monitoring.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+           <id:xRoadInstance>CS</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>0245437-2</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+           <id:xRoadInstance>CS</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>0245437-2</id:memberCode>
+           <id:serviceCode>getSecurityServerHealthData</id:serviceCode>
+        </xroad:service>
+        <xroad:securityServer id:objectType="SERVER">
+           <id:xRoadInstance>CS</id:xRoadInstance>
+           <id:memberClass>GOV</id:memberClass>
+           <id:memberCode>0245437-2</id:memberCode>
+            <id:serverCode>SS1</id:serverCode>
+        </xroad:securityServer>
+        <xroad:id>DBOxxqv2csKysKHNwRCrU4QV0EWkqSUY</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <om:getSecurityServerHealthData>
+            <om:filterCriteria>
+                <om:client id:objectType="MEMBER">
+                    <id:xRoadInstance>CS</id:xRoadInstance>
+                    <id:memberClass>GOV</id:memberClass>
+                    <id:memberCode>0245437-2</id:memberCode>
+                </om:client>
+            </om:filterCriteria>
+        </om:getSecurityServerHealthData>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

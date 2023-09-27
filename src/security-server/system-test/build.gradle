@@ -2,6 +2,7 @@ dependencies {
   intTestImplementation project(":security-server:openapi-model")
   intTestImplementation project(":common:common-util")
   intTestImplementation project(":addons:proxymonitor-common")
+  intTestImplementation project(":op-monitor-daemon")
 
   intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
   intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")
