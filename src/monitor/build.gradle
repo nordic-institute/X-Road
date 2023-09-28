@@ -31,7 +31,6 @@ dependencies {
 }
 
 shadowJar {
-  append('reference.conf')
   exclude('**/module-info.class')
   archiveBaseName = "monitor"
   archiveClassifier = ''
