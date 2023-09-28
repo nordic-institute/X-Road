@@ -42,20 +42,6 @@ public class MessageSendingJob implements Job {
     private static final String KEY_ACTOR = "actorSelection";
     private static final String KEY_MESSAGE = "message";
 
-    /**
-     * Create job data containing a selection of actors and a message.
-     * @param actor a selection of actors that should receive the message
-     * @param message message that needs to be sent to actors
-     * @return the created job data
-     */
-    public static JobDataMap createJobData(ActorSelection actor,
-            Object message) {
-        JobDataMap data = new JobDataMap();
-        data.put(KEY_ACTOR, actor);
-        data.put(KEY_MESSAGE, message);
-        return data;
-    }
-
     @Override
     public void execute(JobExecutionContext context)
             throws JobExecutionException {

@@ -60,7 +60,6 @@ task xjc() {
 }
 
 shadowJar {
-  append('reference.conf')
   archiveClassifier = ''
   exclude('**/module-info.class')
   manifest {

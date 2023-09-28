@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,10 +27,6 @@ package ee.ria.xroad.proxy.opmonitoring;
 
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Test;
 
@@ -40,7 +36,6 @@ import static org.junit.Assert.assertEquals;
  * Tests operational monitoring buffer.
  */
 public class OpMonitoringBufferTest {
-    private static final ActorSystem ACTOR_SYSTEM = ActorSystem.create();
 
     private static class TestOpMonitoringBuffer extends OpMonitoringBuffer {
         TestOpMonitoringBuffer() throws Exception {
@@ -53,12 +48,12 @@ public class OpMonitoringBufferTest {
         }
 
         @Override
-        ActorRef createSender() {
+        OpMonitoringDaemonSender createSender() {
             return null;
         }
 
         @Override
-        protected void store(OpMonitoringData data) throws Exception {
+        public synchronized void store(OpMonitoringData data) throws Exception {
             buffer.put(getNextBufferIndex(), data);
         }
     }
@@ -67,13 +62,7 @@ public class OpMonitoringBufferTest {
     public void bufferOverflow() throws Exception {
         System.setProperty("xroad.op-monitor-buffer.size", "2");
 
-        final Props props = Props.create(TestOpMonitoringBuffer.class);
-        final TestActorRef<TestOpMonitoringBuffer> testActorRef =
-                TestActorRef.create(ACTOR_SYSTEM, props, "testActorRef");
-
-        TestOpMonitoringBuffer opMonitoringBuffer =
-                testActorRef.underlyingActor();
-
+        final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer();
         OpMonitoringData opMonitoringData = new OpMonitoringData(
                 OpMonitoringData.SecurityServerType.CLIENT, 100);
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -34,22 +34,21 @@ import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataRequest;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import akka.actor.ActorRef;
-import akka.actor.Cancellable;
-import akka.actor.Props;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
-import scala.concurrent.duration.FiniteDuration;
 
 import java.net.NetworkInterface;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.net.NetworkInterface.getNetworkInterfaces;
@@ -62,8 +61,6 @@ import static java.util.Collections.list;
  */
 @Slf4j
 public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
-    public static final String OP_MONITORING_DAEMON_SENDER = "OpMonitoringDaemonSender";
-
     private static final String NO_ADDRESS_FOUND = "No suitable IP address is bound to the network interface ";
     private static final String NO_INTERFACE_FOUND = "No non-loopback network interface found";
 
@@ -82,10 +79,11 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
     private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
 
-    private Cancellable tick;
+    private final ExecutorService executorService;
+    private final ScheduledExecutorService taskScheduler;
 
     final Map<Long, OpMonitoringData> buffer =
-            new LinkedHashMap<Long, OpMonitoringData>() {
+            new LinkedHashMap<>() {
                 @Override
                 protected boolean removeEldestEntry(Map.Entry eldest) {
                     boolean overflow = size() > MAX_BUFFER_SIZE;
@@ -104,7 +102,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
     private final CloseableHttpClient httpClient;
 
-    private final ActorRef sender;
+    private final OpMonitoringDaemonSender sender;
 
     private static String ipAddress;
 
@@ -114,14 +112,20 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      * @throws Exception if an error occurs
      */
     public OpMonitoringBuffer() throws Exception {
+
         if (ignoreOpMonitoringData()) {
             log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
 
             httpClient = null;
             sender = null;
+            executorService = null;
+            taskScheduler = null;
         } else {
             httpClient = createHttpClient();
             sender = createSender();
+
+            executorService = Executors.newSingleThreadExecutor();
+            taskScheduler = Executors.newSingleThreadScheduledExecutor();
         }
     }
 
@@ -130,33 +134,51 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
                 CLIENT_CONNECTION_TIMEOUT_MILLISECONDS, CLIENT_SOCKET_TIMEOUT_MILLISECONDS);
     }
 
-    ActorRef createSender() {
-        return getContext().system().actorOf(Props.create(OpMonitoringDaemonSender.class, httpClient),
-                OP_MONITORING_DAEMON_SENDER);
+    OpMonitoringDaemonSender createSender() {
+        return new OpMonitoringDaemonSender(this, httpClient);
     }
 
     @Override
-    protected void store(OpMonitoringData data) throws Exception {
+    public void store(final OpMonitoringData data) throws Exception {
         if (ignoreOpMonitoringData()) {
             return;
         }
 
-        data.setSecurityServerInternalIp(getIpAddress());
+        executorService.execute(() -> {
+            try {
+                if (ignoreOpMonitoringData()) {
+                    return;
+                }
 
-        buffer.put(getNextBufferIndex(), data);
+                data.setSecurityServerInternalIp(getIpAddress());
 
-        send();
+                buffer.put(getNextBufferIndex(), data);
+
+                sendInternal();
+            } catch (Exception e) {
+                log.error("Failed to process OpMonitoringData..", e);
+            }
+        });
     }
 
-    @Override
-    protected void send() throws Exception {
+    private void send() {
+        executorService.execute(() -> {
+            try {
+                this.sendInternal();
+            } catch (Exception e) {
+                log.error("Failed to send message", e);
+            }
+        });
+    }
+
+    private void sendInternal() throws Exception {
         if (!canSend()) {
             return;
         }
 
         String json = prepareMonitoringMessage();
 
-        sender.tell(json, getSelf());
+        sender.sendMessage(json);
     }
 
     private boolean canSend() {
@@ -180,8 +202,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return OBJECT_WRITER.writeValueAsString(request);
     }
 
-    @Override
-    protected void sendingSuccess() throws Exception {
+    void sendingSuccess() {
         processedBufferIndices.forEach(buffer::remove);
         processedBufferIndices.clear();
 
@@ -190,10 +211,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         }
     }
 
-    @Override
-    protected void sendingFailure() throws Exception {
+    void sendingFailure() {
         processedBufferIndices.clear();
-
         // Do not worry, scheduled sending retries..
     }
 
@@ -204,14 +223,11 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     private void scheduleSendMonitoringData() {
-        FiniteDuration interval = FiniteDuration.create(SENDING_INTERVAL_SECONDS, TimeUnit.SECONDS);
-
-        tick = getContext().system().scheduler().schedule(interval, interval, getSelf(), SEND_MONITORING_DATA,
-                getContext().dispatcher(), ActorRef.noSender());
+        taskScheduler.scheduleWithFixedDelay(this::send, SENDING_INTERVAL_SECONDS, SENDING_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
-    public void preStart() throws Exception {
+    public void start() {
         if (ignoreOpMonitoringData()) {
             return;
         }
@@ -220,13 +236,19 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     @Override
-    public void postStop() throws Exception {
-        if (tick != null) {
-            tick.cancel();
-        }
-
+    public void stop() {
         if (httpClient != null) {
             IOUtils.closeQuietly(httpClient);
+        }
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+        if (taskScheduler != null) {
+            taskScheduler.shutdown();
+        }
+
+        if (sender != null) {
+            sender.stop();
         }
     }
 
@@ -267,4 +289,5 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     private static boolean isNonLoopback(NetworkInterface ni) {
         return !ni.isLoopback() && ni.isUp();
     }
+
 }

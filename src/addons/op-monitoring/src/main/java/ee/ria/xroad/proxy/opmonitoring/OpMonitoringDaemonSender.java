@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
@@ -33,10 +32,9 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import akka.actor.ActorRef;
-import akka.actor.UntypedAbstractActor;
 import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -45,6 +43,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_ERROR;
 import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_OK;
@@ -54,7 +54,7 @@ import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STA
  * OpMonitoringBuffer class for periodically forwarding operational data gathered in the buffer.
  */
 @Slf4j
-public class OpMonitoringDaemonSender extends UntypedAbstractActor {
+public class OpMonitoringDaemonSender implements StartStop {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
@@ -64,39 +64,31 @@ public class OpMonitoringDaemonSender extends UntypedAbstractActor {
     private static final int SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
             OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
-    private CloseableHttpClient httpClient;
+    private final OpMonitoringBuffer opMonitoringBuffer;
+    private final CloseableHttpClient httpClient;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    OpMonitoringDaemonSender(CloseableHttpClient httpClient) {
+
+    OpMonitoringDaemonSender(OpMonitoringBuffer opMonitoringBuffer, CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
+        this.opMonitoringBuffer = opMonitoringBuffer;
     }
 
-    @Override
-    public void onReceive(Object message) throws Exception {
-        if (message instanceof String) {
-            String json = (String) message;
+    void sendMessage(String json) {
+        log.trace("onReceive: {}", json);
 
-            log.trace("onReceive: {}", json);
-
+        executorService.execute(() -> {
             try {
                 send(json);
-                success();
+                opMonitoringBuffer.sendingSuccess();
             } catch (Exception e) {
                 log.error("Sending operational monitoring data failed", e);
 
-                failure();
+                opMonitoringBuffer.sendingFailure();
             }
-        } else {
-            unhandled(message);
-        }
+        });
     }
 
-    private void success() {
-        getSender().tell(AbstractOpMonitoringBuffer.SENDING_SUCCESS, ActorRef.noSender());
-    }
-
-    private void failure() {
-        getSender().tell(AbstractOpMonitoringBuffer.SENDING_FAILURE, ActorRef.noSender());
-    }
 
     private void send(String json) throws Exception {
         try (HttpSender sender = new HttpSender(httpClient)) {
@@ -133,5 +125,20 @@ public class OpMonitoringDaemonSender extends UntypedAbstractActor {
         return new URI(OpMonitoringSystemProperties.getOpMonitorDaemonScheme(), null,
                 OpMonitoringSystemProperties.getOpMonitorHost(), OpMonitoringSystemProperties.getOpMonitorPort(),
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
+    }
+
+    @Override
+    public void start() {
+        //No-OP
+    }
+
+    @Override
+    public void stop() {
+        executorService.shutdown();
+    }
+
+    @Override
+    public void join() {
+        //NO-OP
     }
 }

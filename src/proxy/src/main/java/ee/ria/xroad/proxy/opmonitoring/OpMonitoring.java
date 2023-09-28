@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,40 +29,37 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains method for storing operational monitoring data.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class OpMonitoring {
 
-    public static final String OP_MONITORING_BUFFER = "OpMonitoringBuffer";
-
-    public static final String OP_MONITORING_BUFFER_IMPL_CLASS =
+    private static final String OP_MONITORING_BUFFER_IMPL_CLASS =
             SystemProperties.PREFIX + "proxy.opMonitoringBufferImpl";
 
-    private static ActorRef opMonitoringBuffer;
-
-    private OpMonitoring() {
-    }
+    private static AbstractOpMonitoringBuffer opMonitoringBuffer;
 
     /**
      * Initializes the operational monitoring using the provided actor system.
-     * @param actorSystem the actor system
+     *
      * @throws Exception if initialization fails
      */
-    public static void init(ActorSystem actorSystem) throws Exception {
-        Class<? extends AbstractOpMonitoringBuffer> clazz =
-                getOpMonitoringManagerImpl();
+    public static void init() throws Exception {
+        Class<? extends AbstractOpMonitoringBuffer> clazz = getOpMonitoringManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
+        opMonitoringBuffer = clazz.getDeclaredConstructor().newInstance();
+        opMonitoringBuffer.start();
+    }
 
-        opMonitoringBuffer = actorSystem.actorOf(Props.create(clazz),
-                OP_MONITORING_BUFFER);
+    public static void shutdown() throws Exception {
+        opMonitoringBuffer.stop();
     }
 
     /**
@@ -72,15 +69,14 @@ public final class OpMonitoring {
         log.trace("store()");
 
         try {
-            tell(data);
+            opMonitoringBuffer.store(data);
         } catch (Throwable t) {
             log.error("Storing operational monitoring data failed", t);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractOpMonitoringBuffer>
-            getOpMonitoringManagerImpl() {
+    private static Class<? extends AbstractOpMonitoringBuffer> getOpMonitoringManagerImpl() {
         String opMonitoringBufferImplClassName = System.getProperty(
                 OP_MONITORING_BUFFER_IMPL_CLASS,
                 NullOpMonitoringBuffer.class.getName());
@@ -90,13 +86,9 @@ public final class OpMonitoring {
 
             return (Class<? extends AbstractOpMonitoringBuffer>) clazz;
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(
-                    "Unable to load operational monitoring buffer impl: "
+            throw new RuntimeException("Unable to load operational monitoring buffer impl: "
                     + opMonitoringBufferImplClassName, e);
         }
     }
 
-    private static void tell(Object message) throws Exception {
-        opMonitoringBuffer.tell(message, ActorRef.noSender());
-    }
 }

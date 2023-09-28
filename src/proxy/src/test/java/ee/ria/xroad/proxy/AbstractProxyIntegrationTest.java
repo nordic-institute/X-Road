@@ -135,7 +135,7 @@ public abstract class AbstractProxyIntegrationTest {
                 .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(getFreePort())));
 
         MessageLog.init(actorSystem, jobManager);
-        OpMonitoring.init(actorSystem);
+        OpMonitoring.init();
         AddOn.BindableServiceRegistry serviceRegistry = new AddOn.BindableServiceRegistry();
         for (AddOn addon : ServiceLoader.load(AddOn.class)) {
             addon.init(serviceRegistry);
@@ -163,6 +163,8 @@ public abstract class AbstractProxyIntegrationTest {
             svc.stop();
             svc.join();
         }
+
+        OpMonitoring.shutdown();
         actorSystem.terminate();
         RESERVED_PORTS.clear();
     }

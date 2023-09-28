@@ -67,6 +67,8 @@ import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import io.grpc.BindableService;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.rpc.server.RpcServer;
@@ -98,6 +100,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
  * Main program for the proxy server.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
@@ -123,7 +126,7 @@ public final class ProxyMain {
 
     private static ActorSystem actorSystem;
 
-    private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
+    private static final ServiceLoader<AddOn> ADDONS = ServiceLoader.load(AddOn.class);
 
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
@@ -135,16 +138,13 @@ public final class ProxyMain {
 
     private static MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
-    private ProxyMain() {
-    }
-
     /**
      * Main program entry point.
      *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         try {
             startup();
             loadConfigurations();
@@ -199,6 +199,7 @@ public final class ProxyMain {
 
     private static void shutdown() throws Exception {
         log.trace("shutdown()");
+        OpMonitoring.shutdown();
         stopServices();
         Await.ready(actorSystem.terminate(), Duration.Inf());
 
@@ -214,10 +215,10 @@ public final class ProxyMain {
         RpcSignerClient.init();
         BatchSigner.init();
         boolean messageLogEnabled = MessageLog.init(actorSystem, jobManager);
-        OpMonitoring.init(actorSystem);
+        OpMonitoring.init();
 
         AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
-        for (AddOn addOn : addOns) {
+        for (AddOn addOn : ADDONS) {
             addOn.init(bindableServiceRegistry);
         }
         rpcServer = createRpcServer(bindableServiceRegistry.getRegisteredServices());
