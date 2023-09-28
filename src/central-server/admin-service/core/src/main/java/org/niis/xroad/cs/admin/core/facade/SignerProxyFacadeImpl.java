@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.cs.admin.core.facade;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
@@ -33,17 +32,12 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import java.security.PublicKey;
 import java.util.Date;
@@ -59,24 +53,10 @@ import java.util.List;
 @Profile("!int-test")
 public class SignerProxyFacadeImpl implements SignerProxyFacade {
 
-    private final String signerIp;
-    private ActorSystem actorSystem;
-
-    public SignerProxyFacadeImpl(@Qualifier("signer-ip") String signerIp) {
-        this.signerIp = signerIp;
-    }
-
     @PostConstruct
     void init() throws Exception {
-        Config config = ConfigFactory.load().getConfig("admin-service").withFallback(ConfigFactory.load());
-        actorSystem = ActorSystem.create("SignerService", config);
-        RpcSignerClient.init(signerIp, SystemProperties.getGrpcSignerPort(), SystemProperties.getSignerClientTimeout());
+        RpcSignerClient.init();
         log.info("SignerService actorSystem initialized with admin-service config");
-    }
-
-    @PreDestroy
-    void cleanUp() {
-        actorSystem.terminate();
     }
 
     /**
