@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -35,22 +35,17 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
     @Override
-    protected void store(OpMonitoringData data) throws Exception {
-        // do nothing
+    public void store(OpMonitoringData data) throws Exception {
+        //No-OP
     }
 
     @Override
-    protected void send() throws Exception {
-        // do nothing
+    public void start() throws Exception {
+        //No-OP
     }
 
     @Override
-    protected void sendingSuccess() throws Exception {
-        // do nothing
-    }
-
-    @Override
-    protected void sendingFailure() throws Exception {
-        // do nothing
+    public void stop() throws Exception {
+        //No-OP
     }
 }

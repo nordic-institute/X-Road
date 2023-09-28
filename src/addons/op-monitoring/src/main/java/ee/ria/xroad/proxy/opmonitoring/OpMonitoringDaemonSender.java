@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
@@ -35,8 +34,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import akka.actor.ActorRef;
-import akka.actor.UntypedAbstractActor;
 import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -54,7 +51,7 @@ import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STA
  * OpMonitoringBuffer class for periodically forwarding operational data gathered in the buffer.
  */
 @Slf4j
-public class OpMonitoringDaemonSender extends UntypedAbstractActor {
+public class OpMonitoringDaemonSender {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
@@ -64,38 +61,23 @@ public class OpMonitoringDaemonSender extends UntypedAbstractActor {
     private static final int SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
             OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
-    private CloseableHttpClient httpClient;
+    private final CloseableHttpClient httpClient;
 
     OpMonitoringDaemonSender(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
-    @Override
-    public void onReceive(Object message) throws Exception {
-        if (message instanceof String) {
-            String json = (String) message;
+    boolean sendMessage(String json) {
+        log.trace("onReceive: {}", json);
 
-            log.trace("onReceive: {}", json);
+        try {
+            send(json);
+            return true;
+        } catch (Exception e) {
+            log.error("Sending operational monitoring data failed", e);
 
-            try {
-                send(json);
-                success();
-            } catch (Exception e) {
-                log.error("Sending operational monitoring data failed", e);
-
-                failure();
-            }
-        } else {
-            unhandled(message);
+            return false;
         }
-    }
-
-    private void success() {
-        getSender().tell(AbstractOpMonitoringBuffer.SENDING_SUCCESS, ActorRef.noSender());
-    }
-
-    private void failure() {
-        getSender().tell(AbstractOpMonitoringBuffer.SENDING_FAILURE, ActorRef.noSender());
     }
 
     private void send(String json) throws Exception {

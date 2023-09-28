@@ -1,6 +1,4 @@
 plugins {
-  id 'io.spring.dependency-management'
-  id 'org.springframework.boot'
   id 'com.github.johnrengelman.shadow'
 }
 
@@ -53,10 +51,6 @@ jar {
     }
     archiveClassifier = 'plain'
 
-}
-
-bootJar {
-  enabled = false
 }
 
 shadowJar {

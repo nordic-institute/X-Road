@@ -182,6 +182,8 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "ui"].contains(it.nam
             }
         }
 
+        implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation "junit:junit:$junitVersion"

@@ -1,6 +1,4 @@
 plugins {
-  id 'io.spring.dependency-management'
-  id 'org.springframework.boot'
   id 'com.github.johnrengelman.shadow'
 }
 
@@ -29,9 +27,6 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
-
-bootJar.enabled = false
-bootJarMainClassName.enabled = false
 
 shadowJar {
   append('reference.conf')

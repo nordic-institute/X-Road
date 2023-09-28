@@ -106,13 +106,14 @@ public final class ProxyTestSuite {
 
         try {
             MessageLog.init(actorSystem, jobManager);
-            OpMonitoring.init(actorSystem);
+            OpMonitoring.init();
 
             runNormalTestCases(normalTestCases);
             runSslTestCases(sslTestCases);
             runIsolatedSslTestCases(isolatedSslTestCases);
 
         } finally {
+            OpMonitoring.shutdown();
             jobManager.stop();
             Await.ready(actorSystem.terminate(), Duration.Inf());
 
