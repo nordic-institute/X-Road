@@ -76,7 +76,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         InputStream is = new FileInputStream(OPERATIONAL_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML_UTF8, is);
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerOperationalData(request.getBytes());
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(request.getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
@@ -85,7 +85,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         InputStream is = new FileInputStream(HEALTH_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML_UTF8, is);
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerHealthData(request.getBytes());
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(request.getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 

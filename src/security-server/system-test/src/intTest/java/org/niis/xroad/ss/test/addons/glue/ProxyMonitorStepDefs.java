@@ -60,7 +60,7 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Metrics request was sent")
     public void executeGetSecurityServerMetricsRequest() {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest("ID1234").getBytes());
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest("ID1234").getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
