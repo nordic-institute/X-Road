@@ -19,7 +19,7 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
-      reuse-between-runs: true
+      reuse-between-runs: false
       spring-boot:
         jar-debug-enabled: true
         debug-port: 9000

@@ -20,6 +20,8 @@ sourceSets {
 }
 
 dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+
     implementation project(':common:common-util')
     implementation project(':common:common-verifier')
     implementation project(':common:common-rpc')
