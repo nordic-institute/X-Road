@@ -50,6 +50,7 @@ import javax.xml.namespace.QName;
 
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ProxyMonitorStepDefs extends BaseStepDefs {
 
     @Autowired
@@ -61,6 +62,9 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @Step("Security Server Metrics request was sent")
     public void executeGetSecurityServerMetricsRequest() {
         ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest("ID1234").getBytes());
+    @Step("Security Server Metrics request was sent with queryId {string}")
+    public void executeGetSecurityServerMetricsRequest(String queryId) {
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest(queryId).getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 

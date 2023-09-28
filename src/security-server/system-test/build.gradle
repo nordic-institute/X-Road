@@ -12,7 +12,8 @@ dependencies {
   intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
   intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
   intTestImplementation("org.awaitility:awaitility:${awaitilityVersion}")
-  intTestImplementation ("io.github.openfeign:feign-hc5:$openFeignVersion")
+  intTestImplementation("io.github.openfeign:feign-hc5:$openFeignVersion")
+  intTestImplementation("org.postgresql:postgresql:$postgresqlVersion")
 }
 
 task systemTest(type: Test) {
