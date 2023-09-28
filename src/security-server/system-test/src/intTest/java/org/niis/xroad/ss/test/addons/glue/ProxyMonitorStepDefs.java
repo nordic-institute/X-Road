@@ -59,12 +59,9 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     private static final Marshaller MARSHALLER = createMarshaller();
 
     @SuppressWarnings("checkstyle:OperatorWrap")
-    @Step("Security Server Metrics request was sent")
-    public void executeGetSecurityServerMetricsRequest() {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest("ID1234").getBytes());
     @Step("Security Server Metrics request was sent with queryId {string}")
     public void executeGetSecurityServerMetricsRequest(String queryId) {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest(queryId).getBytes());
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest(queryId).getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
