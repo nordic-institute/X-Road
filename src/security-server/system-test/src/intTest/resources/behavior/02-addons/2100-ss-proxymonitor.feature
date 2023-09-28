@@ -1,6 +1,6 @@
 @SecurityServer
 @Addon
-Feature: 0100 - SS: Proxymonitor
+Feature: 2100 - SS: Proxymonitor
 
   Background:
     Given SecurityServer login page is open
@@ -12,5 +12,5 @@ Feature: 0100 - SS: Proxymonitor
     Then Internal server connection type is set to "HTTP"
 
   Scenario: Proxymonitor responds with correct response
-    When Security Server Metrics request was sent
+    When Security Server Metrics request was sent with queryId "ID1234"
     Then Valid Security Server Metrics response is returned
