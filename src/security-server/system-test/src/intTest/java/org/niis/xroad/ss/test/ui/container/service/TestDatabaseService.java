@@ -61,7 +61,7 @@ public class TestDatabaseService implements DisposableBean {
     @SuppressWarnings("checkstyle:MagicNumber")
     private String getJdbcUrl(String database) {
         return String.format("jdbc:postgresql://%s:%d/%s",
-                "ss1",
+                testContainerService.getHost(),
                 testContainerService.getMappedPort(5432),
                 database);
     }
