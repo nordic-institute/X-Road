@@ -25,39 +25,32 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view back-to="/management-requests">
+  <details-view :back-to="backTo">
     <XrdEmptyPlaceholder
       :loading="loading"
       :data="managementRequest"
       :no-items-text="$t('noData.noData')"
       skeleton-type="table-heading"
     />
-    <main v-if="managementRequest && !loading" id="management-request-view">
-      <header class="table-toolbar align-fix mt-0 pl-0">
-        <h1 class="xrd-view-title">{{ typeText }}</h1>
-        <div
-          v-if="managementRequest.status === 'WAITING'"
-          :data-test="`actions-for-MR-${managementRequest.id}`"
+    <titled-view v-if="managementRequest && !loading" :title="typeText">
+      <template v-if="managementRequest.status === 'WAITING'" #header-buttons>
+        <xrd-button
+          outlined
+          class="mr-4"
+          data-test="approve-button"
+          @click="$refs.approveDialog.openDialog()"
         >
-          <xrd-button
-            outlined
-            class="mr-4"
-            data-test="approve-button"
-            @click="$refs.approveDialog.openDialog()"
-          >
-            {{ $t('action.approve') }}
-          </xrd-button>
-          <xrd-button
-            outlined
-            class="mr-4"
-            data-test="decline-button"
-            @click="$refs.declineDialog.openDialog()"
-          >
-            {{ $t('action.decline') }}
-          </xrd-button>
-        </div>
-      </header>
-
+          {{ $t('action.approve') }}
+        </xrd-button>
+        <xrd-button
+          outlined
+          class="mr-4"
+          data-test="decline-button"
+          @click="$refs.declineDialog.openDialog()"
+        >
+          {{ $t('action.decline') }}
+        </xrd-button>
+      </template>
       <mr-information :management-request="managementRequest" />
       <div class="management-request-additional-details">
         <mr-security-server-information
@@ -84,12 +77,12 @@
         :security-server-id="managementRequest.security_server_id.encoded_id"
         @decline="fetchData"
       />
-    </main>
+    </titled-view>
   </details-view>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { managementTypeToText } from '@/util/helpers';
@@ -105,13 +98,16 @@ import MrSecurityServerInformation from '@/components/managementRequests/details
 import MrInformation from '@/components/managementRequests/details/MrInformation.vue';
 import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
+import { RouteName } from '@/global';
+import TitledView from '@/components/ui/TitledView.vue';
 
 /**
  * Wrapper component for a certification service view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'ManagementRequestDetails',
   components: {
+    TitledView,
     DetailsView,
     MrInformation,
     MrSecurityServerInformation,
@@ -129,6 +125,9 @@ export default Vue.extend({
   data() {
     return {
       loading: false,
+      backTo: {
+        name: RouteName.ManagementRequests,
+      },
     };
   },
   computed: {
@@ -183,8 +182,8 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .management-request-additional-details {
   margin-top: 24px;

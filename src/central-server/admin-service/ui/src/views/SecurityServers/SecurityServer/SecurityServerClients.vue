@@ -34,24 +34,24 @@
       :loading="loading"
       :headers="headers"
       :items="clients"
+      :items-length="clients.length"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
     >
       <template #[`item.member_name`]="{ item }">
         <div
           v-if="hasPermissionToMemberDetails"
           class="table-cell-member-name-action"
-          @click="toMemberDetails(item)"
+          @click="toMemberDetails(item.raw)"
         >
           <xrd-icon-base class="xrd-clickable mr-4">
             <xrd-icon-folder-outline
           /></xrd-icon-base>
-          {{ item.member_name }}
+          {{ item.raw.member_name }}
         </div>
 
         <div v-else class="table-cell-member-name">
@@ -62,7 +62,7 @@
         </div>
       </template>
 
-      <template #footer>
+      <template #bottom>
         <div class="cs-table-custom-footer"></div>
       </template>
     </v-data-table>
@@ -73,8 +73,7 @@
 /**
  * View for 'security server clients' tab
  */
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 import { Client } from '@/openapi-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
@@ -82,9 +81,11 @@ import { useNotifications } from '@/store/modules/notifications';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import { DataTableHeader } from '@/ui-types';
 
-export default Vue.extend({
-  name: 'SecurityServerClients',
+export default defineComponent({
+  components: { VDataTable },
   props: {
     serverId: {
       type: String,
@@ -104,28 +105,24 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('global.memberName') as string,
+          title: this.$t('global.memberName') as string,
           align: 'start',
-          value: 'member_name',
-          class: 'xrd-table-header clients-table-header-name',
+          key: 'member_name',
         },
         {
-          text: this.$t('global.class') as string,
+          title: this.$t('global.class') as string,
           align: 'start',
-          value: 'client_id.member_class',
-          class: 'xrd-table-header clients-table-header-class',
+          key: 'client_id.member_class',
         },
         {
-          text: this.$t('global.code') as string,
+          title: this.$t('global.code') as string,
           align: 'start',
-          value: 'client_id.member_code',
-          class: 'xrd-table-header clients-table-header-code',
+          key: 'client_id.member_code',
         },
         {
-          text: this.$t('global.subsystem') as string,
+          title: this.$t('global.subsystem') as string,
           align: 'start',
-          value: 'client_id.subsystem_code',
-          class: 'xrd-table-header clients-table-header-subsystem',
+          key: 'client_id.subsystem_code',
         },
       ];
     },
@@ -154,7 +151,6 @@ export default Vue.extend({
         name: RouteName.MemberDetails,
         params: {
           memberid: toMemberId(client.client_id),
-          backTo: this.$router.currentRoute.path,
         },
       });
     },
@@ -163,8 +159,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .table-cell-member-name-action {
   color: $XRoad-Purple100;

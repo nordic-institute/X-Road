@@ -30,6 +30,8 @@ import io.cucumber.java.en.Step;
 import io.cucumber.java.en.Then;
 import org.niis.xroad.cs.test.ui.page.MemberPageObj;
 
+import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+
 public class MemberStepDefs extends BaseUiStepDefs {
     private final MemberPageObj memberPageObj = new MemberPageObj();
 
@@ -42,8 +44,8 @@ public class MemberStepDefs extends BaseUiStepDefs {
     public void memberIsAdded(String memberName, String memberCode, String memberClass) {
         memberPageObj.btnAddMember().click();
 
-        memberPageObj.addDialog().inputMemberCode().setValue(memberCode);
-        memberPageObj.addDialog().inputMemberName().setValue(memberName);
+        vTextField(memberPageObj.addDialog().inputMemberCode()).setValue(memberCode);
+        vTextField(memberPageObj.addDialog().inputMemberName()).setValue(memberName);
 
         memberPageObj.addDialog().selectMemberClass().click();
         memberPageObj.addDialog().selectMemberClassOption(memberClass).click();

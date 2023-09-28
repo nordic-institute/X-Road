@@ -36,9 +36,9 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     labelTextKey: {
       type: String,
@@ -54,7 +54,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~@/assets/tables.scss';
+@import '@/assets/tables.scss';
 
 .title-cell {
   max-width: 40%;

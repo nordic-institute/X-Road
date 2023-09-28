@@ -38,6 +38,7 @@
       <div class="dlg-input-width">
         <v-checkbox
           v-model="tlsAuth"
+          data-test="tls-auth-checkbox"
           :label="$t('trustServices.addCASettingsCheckbox')"
         />
       </div>
@@ -46,13 +47,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'EditTlsAuthDialog',
   props: {
     certificationService: {
@@ -60,6 +61,7 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['cancel', 'tls-auth-changed'],
   data() {
     return {
       tlsAuth: this.certificationService.tls_auth,
@@ -86,7 +88,7 @@ export default Vue.extend({
           this.showSuccess(
             this.$t('trustServices.trustService.settings.saveSuccess'),
           );
-          this.$emit('tlsAuthChanged');
+          this.$emit('tls-auth-changed');
         })
         .catch((error) => {
           this.showError(error);

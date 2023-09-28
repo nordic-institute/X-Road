@@ -46,12 +46,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import { CertificateDetails } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificateDetails',
   components: {
     CertificateInfo,
@@ -72,7 +72,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .certificate-details-wrapper {
   display: flex;

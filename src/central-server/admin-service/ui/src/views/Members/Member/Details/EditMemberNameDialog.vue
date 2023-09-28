@@ -26,51 +26,57 @@
  -->
 
 <template>
-  <xrd-sub-view-container>
-    <xrd-simple-dialog
-      :dialog="true"
-      :loading="loading"
-      title="members.member.details.editMemberName"
-      save-button-text="action.save"
-      cancel-button-text="action.cancel"
-      :disable-save="newMemberName === '' || newMemberName === oldMemberName"
-      @cancel="cancelEdit"
-      @save="saveNewMemberName"
-    >
-      <template #content>
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="newMemberName"
-            outlined
-            data-test="edit-member-name"
-          ></v-text-field>
-        </div>
-      </template>
-    </xrd-simple-dialog>
-  </xrd-sub-view-container>
+  <xrd-simple-dialog
+    :loading="loading"
+    title="members.member.details.editMemberName"
+    save-button-text="action.save"
+    cancel-button-text="action.cancel"
+    :disable-save="!meta.valid || !meta.dirty"
+    @cancel="cancelEdit"
+    @save="saveNewMemberName"
+  >
+    <template #content>
+      <div class="dlg-input-width">
+        <v-text-field
+          v-bind="memberName"
+          variant="outlined"
+          data-test="edit-member-name"
+          :error-messages="errors.memberName"
+        ></v-text-field>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
+import { defineComponent, PropType } from 'vue';
+import { useForm } from 'vee-validate';
 
-export default Vue.extend({
-  name: 'EditMemberNameDialog',
+export default defineComponent({
   props: {
     member: {
-      type: Object as () => Client,
+      type: Object as PropType<Client>,
       required: true,
     },
+  },
+  emits: ['cancel', 'name-changed'],
+  setup(props) {
+    const { defineComponentBinds, values, errors, meta, setFieldError } =
+      useForm({
+        validationSchema: { memberName: 'required' },
+        initialValues: { memberName: props.member.member_name },
+      });
+    const memberName = defineComponentBinds('memberName');
+    return { values, errors, setFieldError, meta, memberName };
   },
   data() {
     return {
       loading: false,
-      newMemberName: this.member.member_name,
-      oldMemberName: this.member.member_name,
     };
   },
   computed: {
@@ -85,11 +91,11 @@ export default Vue.extend({
       this.loading = true;
       this.memberStore
         .editMemberName(toIdentifier(this.member.client_id), {
-          member_name: this.newMemberName,
+          member_name: this.values.memberName,
         })
         .then(() => {
           this.showSuccess(this.$t('members.member.details.memberNameSaved'));
-          this.$emit('nameChanged');
+          this.$emit('name-changed');
         })
         .catch((error) => {
           this.showError(error);

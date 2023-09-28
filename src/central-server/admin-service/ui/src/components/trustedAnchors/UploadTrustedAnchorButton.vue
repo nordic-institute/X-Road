@@ -39,7 +39,9 @@
         class="button-spacing"
         @click="upload"
       >
-        <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-upload />
+        </xrd-icon-base>
         {{ $t('action.upload') }}
       </xrd-button>
     </xrd-file-upload>
@@ -48,33 +50,25 @@
       ref="dialog"
       :file="file"
       :preview="preview"
-      @uploaded="$emit('uploaded')"
       @close="clear"
-      @uploade="clear(true)"
+      @uploaded="clear(true)"
     />
   </div>
 </template>
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import { FileUploadResult } from '@niis/shared-ui';
+import { FileUploadResult, XrdFileUpload, XrdIconUpload} from '@niis/shared-ui';
 import UploadTrustedAnchorDialog from './UploadTrustedAnchorDialog.vue';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { TrustedAnchor } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        dialog: InstanceType<typeof UploadTrustedAnchorDialog>;
-      };
-    }
-  >
-).extend({
-  components: { UploadTrustedAnchorDialog },
+export default defineComponent({
+  components: { XrdIconUpload, UploadTrustedAnchorDialog, XrdFileUpload },
+  emits: ['uploaded'],
   data() {
     return {
       uploading: false,
@@ -97,7 +91,6 @@ export default (
       this.trustedAnchorStore
         .previewTrustedAnchors(result.file)
         .then((resp) => (this.preview = resp.data))
-        .then(() => this.$refs.dialog.open())
         .catch((error) => this.showError(error))
         .finally(() => (this.uploading = false));
     },

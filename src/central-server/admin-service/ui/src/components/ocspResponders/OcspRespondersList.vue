@@ -35,34 +35,26 @@
       :must-sort="true"
       :items-per-page="-1"
       class="elevation-0 data-table"
-      item-key="id"
+      item-value="id"
       :loader-height="2"
-      hide-default-footer
       data-test="ocsp-responders-table"
     >
-      <template #header>
-        <thead class="borderless-table-header">
-          <tr>
-            <th />
-            <th class="text-right">
-              <div class="button-wrap mb-6 mt-4">
-                <xrd-button
-                  outlined
-                  data-test="add-ocsp-responder-button"
-                  @click="showAddOcspResponderDialog = true"
-                >
-                  <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-                  {{ $t('action.add') }}
-                </xrd-button>
-              </div>
-            </th>
-          </tr>
-        </thead>
+      <template #top>
+        <data-table-toolbar>
+          <xrd-button
+            variant="outlined"
+            data-test="add-ocsp-responder-button"
+            @click="showAddOcspResponderDialog = true"
+          >
+            <v-icon class="xrd-large-button-icon" icon="icon-Add" />
+            {{ $t('action.add') }}
+          </xrd-button>
+        </data-table-toolbar>
       </template>
 
       <template #[`item.url`]="{ item }">
         <div class="xrd-clickable">
-          {{ item.url }}
+          {{ item.raw.url }}
         </div>
       </template>
 
@@ -72,7 +64,7 @@
             text
             :outlined="false"
             data-test="view-ocsp-responder-certificate"
-            @click="navigateToCertificateDetails(item)"
+            @click="navigateToCertificateDetails(item.raw)"
           >
             {{ $t('trustServices.viewCertificate') }}
           </xrd-button>
@@ -80,7 +72,7 @@
             text
             :outlined="false"
             data-test="edit-ocsp-responder"
-            @click="openEditOcspResponderDialog(item)"
+            @click="openEditOcspResponderDialog(item.raw)"
           >
             {{ $t('action.edit') }}
           </xrd-button>
@@ -88,33 +80,35 @@
             text
             :outlined="false"
             data-test="delete-ocsp-responder"
-            @click="openDeleteConfirmationDialog(item)"
+            @click="openDeleteConfirmationDialog(item.raw)"
           >
             {{ $t('action.delete') }}
           </xrd-button>
         </div>
       </template>
 
-      <template #footer>
-        <div class="custom-footer"></div>
+      <template #bottom>
+        <custom-data-table-footer />
       </template>
     </v-data-table>
 
     <!-- Add Ocsp Responder dialog -->
-    <AddOcspResponderDialog
-      v-if="showAddOcspResponderDialog"
+    <add-ocsp-responder-dialog
+      v-if="
+        ocspResponderServiceStore.currentCa?.id && showAddOcspResponderDialog
+      "
       :ca-id="ocspResponderServiceStore.currentCa.id"
       @cancel="hideAddOcspResponderDialog"
       @save="hideAddOcspResponderDialog"
-    ></AddOcspResponderDialog>
+    />
 
     <!-- Edit Ocsp Responder dialog -->
-    <EditOcspResponderDialog
-      v-if="showEditOcspResponderDialog"
+    <edit-ocsp-responder-dialog
+      v-if="selectedOcspResponder && showEditOcspResponderDialog"
       :ocsp-responder="selectedOcspResponder"
       @cancel="hideEditOcspResponderDialog"
       @save="hideEditOcspResponderDialogAndRefetch"
-    ></EditOcspResponderDialog>
+    />
 
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
@@ -122,7 +116,7 @@
       :dialog="confirmDelete"
       title="trustServices.trustService.ocspResponders.delete.confirmationDialog.title"
       text="trustServices.trustService.ocspResponders.delete.confirmationDialog.message"
-      :data="{ url: selectedOcspResponder.url }"
+      :data="{ url: selectedOcspResponder?.url }"
       :loading="deletingOcspResponder"
       @cancel="confirmDelete = false"
       @accept="deleteOcspResponder"
@@ -131,9 +125,10 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
-import { mapActions, mapStores } from 'pinia';
+import { defineComponent } from 'vue';
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import { mapActions } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
 import AddOcspResponderDialog from '@/components/ocspResponders/AddOcspResponderDialog.vue';
@@ -144,10 +139,17 @@ import {
 } from '@/openapi-types';
 import EditOcspResponderDialog from '@/components/ocspResponders/EditOcspResponderDialog.vue';
 import { RouteName } from '@/global';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
-export default Vue.extend({
-  name: 'OcspRespondersList',
-  components: { EditOcspResponderDialog, AddOcspResponderDialog },
+export default defineComponent({
+  components: {
+    CustomDataTableFooter,
+    DataTableToolbar,
+    EditOcspResponderDialog,
+    AddOcspResponderDialog,
+    VDataTable,
+  },
   props: {
     ca: {
       type: [
@@ -156,6 +158,10 @@ export default Vue.extend({
       ],
       required: true,
     },
+  },
+  setup() {
+    const ocspResponderServiceStore = useOcspResponderService();
+    return { ocspResponderServiceStore };
   },
   data() {
     return {
@@ -168,25 +174,22 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useOcspResponderService),
     ocspResponders(): OcspResponder[] {
       return this.ocspResponderServiceStore.currentOcspResponders;
     },
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t(
+          title: this.$t(
             'trustServices.trustService.ocspResponders.url',
           ) as string,
           align: 'start',
-          value: 'url',
-          class: 'xrd-table-header mr-table-header-id',
+          key: 'url',
         },
         {
-          text: '',
-          value: 'button',
+          title: '',
+          key: 'button',
           sortable: false,
-          class: 'xrd-table-header mr-table-header-buttons',
         },
       ];
     },
@@ -247,10 +250,5 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
+@import '@/assets/tables';
 </style>

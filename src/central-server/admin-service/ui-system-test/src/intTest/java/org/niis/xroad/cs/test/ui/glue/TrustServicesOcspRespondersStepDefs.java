@@ -29,14 +29,15 @@ package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.page.OcspRespondersPageObj;
 import org.niis.xroad.cs.test.ui.page.TrustServicesPageObj;
 import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
+import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
 public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     private final TrustServicesPageObj trustServicesPageObj = new TrustServicesPageObj();
@@ -56,7 +57,8 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + url);
 
         ocspRespondersPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
-        ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl().setValue(url);
+        vTextField(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl())
+                .setValue(url);
         commonPageObj.dialog.btnSave().click();
 
         commonPageObj.snackBar.success().shouldBe(visible);
@@ -76,11 +78,23 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     @Step("User is able to sort OCSP responders by URL")
     public void userIsAbleToSortOcspRespondersByUrl() {
         var tableHeader = ocspRespondersPageObj.tableHeader();
-        Assertions.assertEquals("none", tableHeader.getAttribute("aria-sort"));
-        tableHeader.click();
-        Assertions.assertEquals("ascending", tableHeader.getAttribute("aria-sort"));
-        tableHeader.click();
-        Assertions.assertEquals("descending", tableHeader.getAttribute("aria-sort"));
+
+        tableHeader
+                .shouldHave(cssClass("v-data-table__th--sortable"))
+                .shouldNotHave(cssClass("v-data-table__th--sorted"))
+                .click();
+
+        tableHeader
+                .shouldHave(cssClass("v-data-table__th--sorted"))
+                .$x(".//i")
+                .shouldHave(cssClass("mdi-arrow-up"))
+                .click();
+
+        tableHeader
+                .shouldHave(cssClass("v-data-table__th--sorted"))
+                .$x(".//i")
+                .shouldHave(cssClass("mdi-arrow-down"))
+                .click();
     }
 
     @Step("User is able to view the certificate of OCSP responder with URL {}")
@@ -99,11 +113,13 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
         commonPageObj.dialog.btnSave().should(Condition.enabled);
 
-        clearInput(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl());
+        vTextField(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl())
+                .clear();
 
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
-        ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl().setValue(newUrl);
+        vTextField(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl())
+                .setValue(newUrl);
         commonPageObj.dialog.btnSave().click();
 
         commonPageObj.snackBar.success().shouldBe(visible);

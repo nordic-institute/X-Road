@@ -66,7 +66,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestListView } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -77,7 +77,7 @@ import MrDeclineDialog from '@/components/managementRequests/MrDeclineDialog.vue
 /**
  * General component for Management request actions
  */
-export default Vue.extend({
+export default defineComponent({
   components: {
     MrDeclineDialog,
     MrConfirmDialog,
@@ -88,6 +88,7 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['approve', 'decline'],
   data() {
     return {
       showApproveDialog: false,
@@ -108,7 +109,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .management-requests-table {
   min-width: 182px;

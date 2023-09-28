@@ -35,13 +35,13 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { ManagementRequestListView } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     managementRequest: {
       type: Object as PropType<ManagementRequestListView>,
@@ -71,7 +71,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .request-id {
   color: $XRoad-Purple100;

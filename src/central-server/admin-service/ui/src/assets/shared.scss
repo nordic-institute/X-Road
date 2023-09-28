@@ -29,13 +29,13 @@
 $view-area-max-width: 1600px;
 
 .tab-max-width {
-    max-width: 850px;
-    width: 100%;
+  max-width: 850px;
+  width: 100%;
 }
 
 .full-width-centered {
-    width: 100%;
-    max-width: $view-area-max-width;
-    display: flex;
-    justify-content: center;
+  width: 100%;
+  max-width: $view-area-max-width;
+  display: flex;
+  justify-content: center;
 }

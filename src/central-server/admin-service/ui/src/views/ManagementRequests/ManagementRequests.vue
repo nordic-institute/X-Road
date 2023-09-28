@@ -34,7 +34,7 @@
 /**
  * View for 'management requests' tab
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({});
+export default defineComponent({});
 </script>

@@ -34,10 +34,10 @@
 /**
  * View for 'global resources'
  */
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import GlobalGroupsList from '@/components/globalGroups/GlobalGroupsList.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'GlobalResourcesList',
   components: {
     GlobalGroupsList,
@@ -45,5 +45,5 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

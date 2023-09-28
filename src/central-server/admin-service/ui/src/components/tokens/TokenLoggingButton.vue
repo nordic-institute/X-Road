@@ -65,8 +65,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
 import TokenLogoutDialog from '@/components/tokens/TokenLogoutDialog.vue';
 import TokenLoginDialog from '@/components/tokens/TokenLoginDialog.vue';
 import { PossibleTokenAction, Token } from '@/openapi-types';
@@ -74,14 +73,15 @@ import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   components: { TokenLogoutDialog, TokenLoginDialog },
   props: {
     token: {
-      type: Object as Prop<Token>,
+      type: Object as PropType<Token>,
       required: true,
     },
   },
+  emits: ['token-login', 'token-logout'],
   data() {
     return {
       showLoginDialog: false,

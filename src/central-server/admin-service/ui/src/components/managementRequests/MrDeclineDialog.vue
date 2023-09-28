@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useNotifications } from '@/store/modules/notifications';
@@ -46,7 +46,7 @@ import { useNotifications } from '@/store/modules/notifications';
 /**
  * General component for Management request actions
  */
-export default Vue.extend({
+export default defineComponent({
   props: {
     requestId: {
       type: Number,
@@ -57,6 +57,7 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['decline'],
   data() {
     return {
       loading: false,

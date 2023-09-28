@@ -39,14 +39,18 @@
   </xrd-button>
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { useNotifications } from '@/store/modules/notifications';
+import { XrdIconDownload } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
+  components: {
+    XrdIconDownload,
+  },
   props: {
     hash: {
       type: String,

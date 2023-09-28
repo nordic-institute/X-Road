@@ -34,15 +34,12 @@ import org.niis.xroad.cs.test.ui.TargetHostUrlProvider;
 import org.niis.xroad.cs.test.ui.configuration.TestProperties;
 import org.niis.xroad.cs.test.ui.page.CommonPageObj;
 import org.niis.xroad.cs.test.ui.utils.ChromiumDevTools;
+import org.niis.xroad.cs.test.ui.utils.SeleniumUtils;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 import java.util.Optional;
-
-import static org.openqa.selenium.Keys.COMMAND;
-import static org.openqa.selenium.Keys.CONTROL;
-import static org.openqa.selenium.Keys.DELETE;
 
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public abstract class BaseUiStepDefs {
@@ -67,10 +64,7 @@ public abstract class BaseUiStepDefs {
      * @param element element to clear
      */
     protected SelenideElement clearInput(SelenideElement element) {
-        element.sendKeys(isMacOsBrowser() ? COMMAND : CONTROL, "a");
-        element.sendKeys(DELETE);
-
-        return element;
+        return SeleniumUtils.clearInput(element);
     }
 
     /**
@@ -101,10 +95,6 @@ public abstract class BaseUiStepDefs {
      */
     protected <T> Optional<T> getStepData(StepDataKey key) {
         return Optional.ofNullable(scenarioContext.getStepData(key.name()));
-    }
-
-    private boolean isMacOsBrowser() {
-        return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
     }
 
     /**

@@ -31,11 +31,4 @@
   </xrd-sub-view-container>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-
-/**
- * Security servers main view wrapping content all from 'Security servers' main tab
- */
-export default Vue.extend({});
-</script>
+<script lang="ts" setup></script>

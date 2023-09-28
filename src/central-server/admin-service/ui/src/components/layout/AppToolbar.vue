@@ -26,16 +26,15 @@
  -->
 <template>
   <v-app-bar
-    app
-    dark
     absolute
     :color="isInitialized ? colors.Purple100 : colors.Purple70"
     flat
     height="32"
-    max-height="32"
   >
     <div v-if="isAuthenticated" class="auth-container">
-      <div class="server-type">X-ROAD CENTRAL SERVER</div>
+      <div class="server-type">
+        {{ $t('global.appTitle').toUpperCase() }}
+      </div>
       <div
         v-show="!isInitialized"
         class="initialization-phase-title"
@@ -64,13 +63,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { Colors } from '@/global';
 import { mapState } from 'pinia';
 import { useSystem } from '@/store/modules/system';
 
-export default Vue.extend({
-  name: 'Toolbar',
+export default defineComponent({
   data() {
     return {
       colors: Colors,

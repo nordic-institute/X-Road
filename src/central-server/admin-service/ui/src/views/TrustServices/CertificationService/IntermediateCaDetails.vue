@@ -55,37 +55,45 @@
 
     <div class="certification-service-info-card-group">
       <info-card
-        :title-text="$t('trustServices.validFrom')"
-        :info-text="
-          intermediateCasServiceStore.currentSelectedIntermediateCa
-            .ca_certificate.not_before | formatDateTime
-        "
         data-test="valid-from-card"
-      />
+        :title-text="$t('trustServices.validFrom')"
+      >
+        <date-time
+          :value="
+            intermediateCasServiceStore.currentSelectedIntermediateCa
+              .ca_certificate.not_before
+          "
+        />
+      </info-card>
       <info-card
-        :title-text="$t('trustServices.validTo')"
-        :info-text="
-          intermediateCasServiceStore.currentSelectedIntermediateCa
-            .ca_certificate.not_after | formatDateTime
-        "
         data-test="valid-to-card"
-      />
+        :title-text="$t('trustServices.validTo')"
+      >
+        <date-time
+          :value="
+            intermediateCasServiceStore.currentSelectedIntermediateCa
+              .ca_certificate.not_after
+          "
+        />
+      </info-card>
     </div>
   </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
+import DateTime from '@/components/ui/DateTime.vue';
 
 /**
  * Component for a Certification Service details view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'IntermediateCaDetails',
   components: {
+    DateTime,
     InfoCard,
   },
   computed: {
@@ -95,8 +103,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .card-title {
   font-size: 12px;

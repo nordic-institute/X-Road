@@ -39,21 +39,23 @@
       :value="managementRequest.certificate_details.subject_distinguished_name"
     />
     <data-line label-text-key="managementRequestDetails.expires">
-      {{
-        managementRequest.certificate_details.not_after | formatDateTimeSeconds
-      }}
+      <date-time
+        :value="managementRequest.certificate_details.not_after"
+        with-seconds
+      />
     </data-line>
   </data-block>
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestDetailedView } from '@/openapi-types';
 import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';
+import DateTime from '@/components/ui/DateTime.vue';
 
-export default Vue.extend({
-  components: { DataBlock, DataLine },
+export default defineComponent({
+  components: { DateTime, DataBlock, DataLine },
   props: {
     managementRequest: {
       type: Object as PropType<ManagementRequestDetailedView>,

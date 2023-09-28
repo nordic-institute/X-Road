@@ -27,7 +27,6 @@
 <template>
   <xrd-simple-dialog
     :disable-save="!formReady"
-    :dialog="true"
     :loading="loading"
     title="trustServices.trustService.intermediateCas.add.dialog.title"
     save-button-text="action.save"
@@ -44,13 +43,13 @@
         >
           <v-text-field
             v-model="certFileTitle"
-            outlined
+            variant="outlined"
             autofocus
             :label="$t('trustServices.uploadCertificate')"
-            append-icon="icon-Upload"
+            append-inner-icon="icon-Upload"
             data-test="add-intermediate-ca-cert-input"
             @click="upload"
-          ></v-text-field>
+          />
         </xrd-file-upload>
       </div>
     </template>
@@ -58,20 +57,21 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
-import { FileUploadResult } from '@niis/shared-ui';
+import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
 
-export default Vue.extend({
-  name: 'AddIntermediateDialog',
+export default defineComponent({
+  components: { XrdFileUpload },
   props: {
     caId: {
       type: Number,
       required: true,
     },
   },
+  emits: ['cancel', 'save'],
   data() {
     return {
       loading: false,

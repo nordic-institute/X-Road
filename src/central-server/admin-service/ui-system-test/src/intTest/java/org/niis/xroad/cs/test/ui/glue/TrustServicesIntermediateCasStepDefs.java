@@ -28,7 +28,6 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import io.cucumber.java.en.Step;
-import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.constants.Constants;
 import org.niis.xroad.cs.test.ui.page.IntermediateCasPageObj;
 import org.niis.xroad.cs.test.ui.page.TrustServicesPageObj;
@@ -38,6 +37,7 @@ import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -51,7 +51,9 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
 
     @Step("Intermediate CAs tab is selected")
     public void intermediateCasTabIsSelected() {
-        trustServicesPageObj.certServiceDetails.tabIntermediateCas().click();
+        trustServicesPageObj.certServiceDetails.tabIntermediateCas()
+                .scrollIntoView(false)
+                .click();
     }
 
     @Step("Intermediate CA OCSP responders tab is selected")
@@ -91,11 +93,22 @@ public class TrustServicesIntermediateCasStepDefs extends BaseUiStepDefs {
     @Step("User is able to sort Intermediate CAs by header column {int}")
     public void userIsAbleToSortByColumn(int headerColumnIndex) {
         var column = intermediateCasPageObj.tableHeaderCol(headerColumnIndex);
-        Assertions.assertEquals("none", column.getAttribute("aria-sort"));
-        column.click();
-        Assertions.assertEquals("ascending", column.getAttribute("aria-sort"));
-        column.click();
-        Assertions.assertEquals("descending", column.getAttribute("aria-sort"));
+        column
+                .shouldHave(cssClass("v-data-table__th--sortable"))
+                .shouldNotHave(cssClass("v-data-table__th--sorted"))
+                .click();
+
+        column
+                .shouldHave(cssClass("v-data-table__th--sorted"))
+                .$x(".//i")
+                .shouldHave(cssClass("mdi-arrow-up"))
+                .click();
+
+        column
+                .shouldHave(cssClass("v-data-table__th--sorted"))
+                .$x(".//i")
+                .shouldHave(cssClass("mdi-arrow-down"))
+                .click();
     }
 
     @Step("User is able to view the certificate of Intermediate CA with name {}")

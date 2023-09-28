@@ -31,6 +31,8 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.LoginPageObj;
 
+import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+
 public class LoginStepDefs extends BaseUiStepDefs {
     private final LoginPageObj loginPageObj = new LoginPageObj();
 
@@ -49,11 +51,11 @@ public class LoginStepDefs extends BaseUiStepDefs {
     public void doLogin(final String username, final String target, final String password) {
 
         loginPageObj.inputUsername()
-                .shouldBe(Condition.visible)
-                .setValue(username);
+                .shouldBe(Condition.visible);
+        vTextField(loginPageObj.inputUsername()).setValue(username);
         loginPageObj.inputPassword()
-                .shouldBe(Condition.visible)
-                .setValue(password);
+                .shouldBe(Condition.visible);
+        vTextField(loginPageObj.inputPassword()).setValue(password);
 
         loginPageObj.btnLogin()
                 .shouldBe(Condition.visible)

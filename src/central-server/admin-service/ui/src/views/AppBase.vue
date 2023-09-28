@@ -28,30 +28,32 @@
 <template>
   <div>
     <router-view name="top" />
-    <v-layout align-center justify-center>
+    <v-row align="center" justify="center" style="margin-top: 0">
       <transition name="fade" mode="out-in">
         <div class="base-full-width">
           <router-view name="subTabs" />
           <div class="sticky">
             <router-view name="alerts" />
           </div>
-          <v-layout
-            align-center
-            justify-center
+          <v-row
+            align="center"
+            justify="center"
             class="base-full-width bottom-pad"
           >
             <router-view />
-          </v-layout>
+          </v-row>
         </div>
       </transition>
-    </v-layout>
+    </v-row>
 
     <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
-          <span class="headline">{{ $t('logout.sessionExpired') }}</span>
+          <span class="text-h5">{{ $t('logout.sessionExpired') }}</span>
         </v-card-title>
-        <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
+        <v-card-text class="logout-text pt-4">{{
+          $t('logout.idleWarning')
+        }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
           <xrd-button @click="logout()">{{ $t('action.ok') }}</xrd-button>
@@ -62,7 +64,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { RouteName, Timeouts } from '@/global';
 import { get } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
@@ -70,7 +72,7 @@ import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       sessionPollInterval: 0,
@@ -125,6 +127,10 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '@/assets/shared';
+
+.logout-text {
+  font-size: 14px !important;
+}
 
 .sticky {
   position: -webkit-sticky;

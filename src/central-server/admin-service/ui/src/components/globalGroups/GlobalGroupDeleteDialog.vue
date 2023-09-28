@@ -25,55 +25,67 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
-    <xrd-simple-dialog
-      :dialog="showDialog"
-      :loading="loading"
-      cancel-button-text="action.cancel"
-      save-button-text="action.yes"
-      title="globalGroup.deleteGroup"
-      @save="proceedWithDelete"
-      @cancel="cancelDelete"
-    >
-      <template #content>
-        <div class="dlg-input-width">
-          {{ $t('globalGroup.areYouSure', { group: groupCode }) }}
-        </div>
-      </template>
-    </xrd-simple-dialog>
-  </xrd-sub-view-container>
+  <xrd-confirm-dialog
+    :loading="loading"
+    accept-button-text="action.yes"
+    title="globalGroup.deleteGroup"
+    text="globalGroup.areYouSure"
+    :data="{ group: groupCode }"
+    @save="proceedWithDelete"
+    @cancel="cancelDelete"
+  />
 </template>
 
 <script lang="ts">
 /** Base component for simple dialogs */
 
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent } from 'vue';
+import { XrdConfirmDialog } from '@niis/shared-ui';
+import { Event } from '@/ui-types';
+import { RouteName } from '@/global';
+import { mapActions, mapStores } from 'pinia';
+import { useGlobalGroups } from '@/store/modules/global-groups';
+import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
-  name: 'GlobalGroupDeleteDialog',
+export default defineComponent({
+  components: { XrdConfirmDialog },
   props: {
     groupCode: {
       type: String,
       required: true,
     },
-    showDialog: {
-      type: Boolean as Prop<boolean>,
-      required: true,
-    },
   },
+  emits: [Event.Delete, Event.Cancel],
   data() {
     return {
       loading: false,
     };
   },
+  computed: {
+    ...mapStores(useGlobalGroups, useNotifications),
+  },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelDelete(): void {
-      this.$emit('cancel');
+      this.$emit(Event.Cancel);
     },
     proceedWithDelete(): void {
       this.loading = true;
-      this.$emit('delete');
+      this.globalGroupStore
+        .deleteByCode(this.groupCode)
+        .then(() => {
+          this.showSuccess(
+            this.$t('globalGroup.groupDeletedSuccessfully'),
+            true,
+          );
+          this.$router.replace({ name: RouteName.GlobalResources });
+        })
+        .catch((error) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   },
 });

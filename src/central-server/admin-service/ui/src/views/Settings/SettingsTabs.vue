@@ -25,28 +25,26 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <sub-tabs>
-      <v-tab
-        v-for="tab in tabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        exact-path
-        >{{ $t(tab.name) }}</v-tab
-      >
-    </sub-tabs>
-  </div>
+  <sub-tabs>
+    <v-tab
+      v-for="tab in tabs"
+      :key="tab.key"
+      :to="tab.to"
+      :data-test="tab.key"
+      exact
+      >{{ $t(tab.name) }}</v-tab
+    >
+  </sub-tabs>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapStores } from 'pinia';
 import { useSettingsTabs } from '@/store/modules/settings-tabs';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     SubTabs,
   },

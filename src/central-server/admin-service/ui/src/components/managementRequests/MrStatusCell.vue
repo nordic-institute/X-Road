@@ -32,10 +32,12 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestStatus } from '@/openapi-types';
+import { XrdStatusIcon } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdStatusIcon },
   props: {
     status: {
       type: String as PropType<ManagementRequestStatus>,
@@ -87,7 +89,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .status-wrapper {
   display: flex;
@@ -101,7 +103,7 @@ export default Vue.extend({
   font-size: 12px;
   line-height: 16px;
   color: $XRoad-WarmGrey100;
-  margin-left: 2px;
+  margin-left: 5px;
   text-transform: uppercase;
 }
 </style>

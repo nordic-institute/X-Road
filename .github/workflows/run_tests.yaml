@@ -104,6 +104,12 @@ jobs:
           name: Central Server system test
           path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
+      - name: Upload CS screenshots
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: CS System Test screenshots
+          path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
   RunSSSystemTests:
     needs: BuildAndpackageWithUnitTests
     runs-on: ubuntu-22.04
