@@ -124,8 +124,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             httpClient = createHttpClient();
             sender = createSender();
 
-            executorService = Executors.newFixedThreadPool(1);
-            taskScheduler = Executors.newScheduledThreadPool(1);
+            executorService = Executors.newSingleThreadExecutor();
+            taskScheduler = Executors.newSingleThreadScheduledExecutor();
         }
     }
 
@@ -135,48 +135,50 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     OpMonitoringDaemonSender createSender() {
-        return new OpMonitoringDaemonSender(httpClient);
+        return new OpMonitoringDaemonSender(this, httpClient);
     }
 
     @Override
-    public void store(OpMonitoringData data) throws Exception {
+    public void store(final OpMonitoringData data) throws Exception {
         if (ignoreOpMonitoringData()) {
             return;
         }
 
         executorService.execute(() -> {
             try {
-                process(data);
+                if (ignoreOpMonitoringData()) {
+                    return;
+                }
+
+                data.setSecurityServerInternalIp(getIpAddress());
+
+                buffer.put(getNextBufferIndex(), data);
+
+                sendInternal();
             } catch (Exception e) {
                 log.error("Failed to process OpMonitoringData..", e);
             }
         });
     }
 
-    protected synchronized void process(OpMonitoringData data) throws Exception {
-        if (ignoreOpMonitoringData()) {
-            return;
-        }
-
-        data.setSecurityServerInternalIp(getIpAddress());
-
-        buffer.put(getNextBufferIndex(), data);
-
-        send();
+    private void send() {
+        executorService.execute(() -> {
+            try {
+                this.sendInternal();
+            } catch (Exception e) {
+                log.error("Failed to send message", e);
+            }
+        });
     }
 
-    protected synchronized void send() throws Exception {
+    private void sendInternal() throws Exception {
         if (!canSend()) {
             return;
         }
 
         String json = prepareMonitoringMessage();
 
-        if (sender.sendMessage(json)) {
-            sendingSuccess();
-        } else {
-            sendingFailure();
-        }
+        sender.sendMessage(json);
     }
 
     private boolean canSend() {
@@ -200,7 +202,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return OBJECT_WRITER.writeValueAsString(request);
     }
 
-    private void sendingSuccess() throws Exception {
+    void sendingSuccess() {
         processedBufferIndices.forEach(buffer::remove);
         processedBufferIndices.clear();
 
@@ -209,7 +211,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         }
     }
 
-    protected void sendingFailure() {
+    void sendingFailure() {
         processedBufferIndices.clear();
         // Do not worry, scheduled sending retries..
     }
@@ -221,13 +223,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     private void scheduleSendMonitoringData() {
-        taskScheduler.scheduleWithFixedDelay(() -> {
-            try {
-                this.send();
-            } catch (Exception e) {
-                log.error("Failed to send scheduled message", e);
-            }
-        }, SENDING_INTERVAL_SECONDS, SENDING_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        taskScheduler.scheduleWithFixedDelay(this::send, SENDING_INTERVAL_SECONDS, SENDING_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     @Override
@@ -249,6 +245,10 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         }
         if (taskScheduler != null) {
             taskScheduler.shutdown();
+        }
+
+        if (sender != null) {
+            sender.stop();
         }
     }
 
