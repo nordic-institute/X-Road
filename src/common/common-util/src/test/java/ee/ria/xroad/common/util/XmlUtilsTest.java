@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
  *
