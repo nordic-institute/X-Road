@@ -68,15 +68,15 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Metrics request was sent with queryId {string}")
     public void executeGetSecurityServerMetricsRequest(String queryId) {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest(queryId)
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest(queryId, null)
                 .getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
     @SuppressWarnings("checkstyle:OperatorWrap")
-    @Step("Security Server Metric: {string} request was sent")
-    public void executeGetSecurityServerMetricsRequest(final String metricName) {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest("ID1234", metricName)
+    @Step("Security Server Metric: {string} request was sent with queryId {string}")
+    public void executeGetSecurityServerMetricsRequest(final String metricName, final String queryId) {
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest(queryId, metricName)
                 .getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }

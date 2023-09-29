@@ -87,7 +87,7 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(Port.UI, Port.SERVICE, 5432);
+                return List.of(Port.UI, Port.SERVICE, Port.DB);
             }
 
             @NotNull
