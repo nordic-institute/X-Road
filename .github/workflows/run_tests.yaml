@@ -120,16 +120,16 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-      - name: Download debian packages
-        uses: actions/download-artifact@v3
-        with:
-          name: debian-packages
-          path: ./src/security-server/system-test/src/intTest/resources/container-files/packages/develop/debian
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
+      - name: Download debian packages
+        uses: actions/download-artifact@v3
+        with:
+          name: debian-packages
+          path: ./src/security-server/system-test/src/intTest/resources/container-files/packages/develop/debian
       - name: Run Security Server system tests
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver
