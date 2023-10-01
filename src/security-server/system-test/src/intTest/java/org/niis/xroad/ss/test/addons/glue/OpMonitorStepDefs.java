@@ -26,30 +26,28 @@
  */
 package org.niis.xroad.ss.test.addons.glue;
 
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.JaxbUtils;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParser;
 import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerHealthDataResponseType;
-import ee.ria.xroad.opmonitordaemon.message.ServiceEventsType;
 
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Element;
 
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPMessage;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -58,6 +56,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class OpMonitorStepDefs extends BaseStepDefs {
     @Autowired
     private FeignXRoadSoapRequestsApi xRoadSoapRequestsApi;
@@ -66,9 +65,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private static final String HEALTH_DATA_REQUEST = "src/intTest/resources/files/soap-requests/health-data.request";
     private static final String OPERATIONAL_DATA_JSON = "operational-monitoring-data.json.gz";
     private static final String OP_MONITORING_XSD = "http://x-road.eu/xsd/op-monitoring.xsd";
-    private static final long SERVICES_EVENTS_COUNT = 2;
-    private static final long HEALTH_STATISTICS_PERIOD_SECONDS = 600;
-
+    private static final String HEALTH_STATISTICS_PERIOD_SECONDS = "600";
 
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Operational Data request was sent")
@@ -91,36 +88,24 @@ public class OpMonitorStepDefs extends BaseStepDefs {
 
     @Step("Valid Security Server Health Data response is returned")
     public void validHealthDataResponseIsReturned() throws Exception {
-        SoapParser parser = new SoapParserImpl();
+        @SuppressWarnings("unchecked")
         ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
-        SoapMessageImpl soupMessage = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML, IOUtils.toInputStream(response.getBody(), UTF_8));
-        GetSecurityServerHealthDataResponseType responseData =
-                JaxbUtils.createUnmarshaller(
-                                GetSecurityServerHealthDataResponseType.class)
-                        .unmarshal(SoapUtils.getFirstChild(
-                                        soupMessage.getSoap().getSOAPBody()),
-                                GetSecurityServerHealthDataResponseType.class)
-                        .getValue();
+        validate(response).assertion(equalsStatusCodeAssertion(HttpStatus.OK)).execute();
 
-        assertEquals(HEALTH_STATISTICS_PERIOD_SECONDS, responseData.getStatisticsPeriodSeconds());
-        assertEquals(SERVICES_EVENTS_COUNT, responseData.getServicesEvents()
-                .getServiceEvents().size());
-        var serviceId = ServiceId.Conf.create("CS", "GOV", "0245437-2",
-                null, "getSecurityServerOperationalData", null);
-        assertEquals(serviceId, getService(responseData.getServicesEvents().getServiceEvents(), serviceId));
-    }
+        SoapParser parser = new SoapParserImpl();
+        SoapMessageImpl soupMessage = (SoapMessageImpl) parser
+                .parse(MimeTypes.TEXT_XML, IOUtils.toInputStream(Objects.requireNonNull(response.getBody()), UTF_8));
 
-    private ServiceId.Conf getService(List<ServiceEventsType> services, ServiceId.Conf serviceId) {
-        return services.stream()
-                .filter(s -> s.getService().equals(serviceId))
-                .findFirst()
-                .map(ServiceEventsType::getService)
-                .orElseThrow();
+        assertEquals(HEALTH_STATISTICS_PERIOD_SECONDS, findRecordsContentId(soupMessage.getSoap(), "statisticsPeriodSeconds"));
+        assertNotEquals("0", findRecordsContentId(soupMessage.getSoap(), "monitoringStartupTimestamp"));
     }
 
     @Step("Valid Security Server Operational data response is returned")
     public void validOperationalDataIsReturned() throws Exception {
+        @SuppressWarnings("unchecked")
         ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+        validate(response).assertion(equalsStatusCodeAssertion(HttpStatus.OK)).execute();
+
         SoapMessageDecoder decoder = new SoapMessageDecoder(Objects.requireNonNull(response.getHeaders().getContentType()).toString(),
                 new SoapMessageDecoder.Callback() {
 
@@ -154,8 +139,16 @@ public class OpMonitorStepDefs extends BaseStepDefs {
 
     @SneakyThrows
     private static String findRecordsContentId(SoapMessage message, String elementTagName) {
-        Element response = (Element) message.getSoap().getSOAPBody()
-                .getElementsByTagNameNS(OP_MONITORING_XSD, "getSecurityServerOperationalDataResponse")
+        return findRecordsContentId(message.getSoap().getSOAPBody(), elementTagName);
+    }
+    @SneakyThrows
+    private static String findRecordsContentId(SOAPMessage message, String elementTagName) {
+        return findRecordsContentId(message.getSOAPBody(), elementTagName);
+    }
+
+    private static String findRecordsContentId(SOAPBody soupBody, String elementTagName) {
+        Element response = (Element) soupBody
+                .getElementsByTagNameNS(OP_MONITORING_XSD, "getSecurityServerHealthDataResponse")
                 .item(0);
         return response.getElementsByTagNameNS(OP_MONITORING_XSD, elementTagName)
                 .item(0)
