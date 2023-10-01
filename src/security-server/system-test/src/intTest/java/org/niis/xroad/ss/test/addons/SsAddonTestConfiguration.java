@@ -62,7 +62,7 @@ public class SsAddonTestConfiguration {
                 .decoder(decoder)
                 .requestInterceptor(requestTemplate -> requestTemplate
                         .target(String.format("http://%s:%s", appInfoProvider.getHost(), appInfoProvider.getMappedPort(Port.SERVICE)))
-                        .header("Content-Type", MimeTypes.TEXT_XML_UTF8))
+                        .header("Content-Type", MimeTypes.TEXT_XML_UTF8)
                         .header("x-hash-algorithm", "SHA-512")
                 )
                 .contract(contract)
