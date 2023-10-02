@@ -29,6 +29,7 @@ package org.niis.xroad.ss.test.ui.container.service;
 import com.nortal.test.testcontainers.TestContainerService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
@@ -62,7 +63,7 @@ public class TestDatabaseService implements DisposableBean {
     private String getJdbcUrl(String database) {
         return String.format("jdbc:postgresql://%s:%d/%s",
                 testContainerService.getHost(),
-                testContainerService.getMappedPort(5432),
+                testContainerService.getMappedPort(Port.DB),
                 database);
     }
 

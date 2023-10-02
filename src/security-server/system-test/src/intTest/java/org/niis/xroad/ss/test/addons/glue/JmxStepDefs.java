@@ -24,15 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.addons.api;
+package org.niis.xroad.ss.test.addons.glue;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.ss.test.addons.jmx.JmxClient;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@FeignClient(name = "xRoadSoapRequestsApi")
-public interface FeignXRoadSoapRequestsApi {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_JMX_RESPONSE;
 
-    @PostMapping
-    ResponseEntity<String> getXRoadSoapResponse(byte[] requestBody);
+public class JmxStepDefs extends BaseStepDefs {
+
+    @Autowired
+    private JmxClient jmxClient;
+
+
+    @Step("JMX request for object {string} attribute {string}")
+    public void executeJmxSecurityServerMetricsRequest(final String objectName, String attribte) {
+        var value = jmxClient.getValue(objectName, attribte);
+        putStepData(XROAD_JMX_RESPONSE, value);
+    }
+
+    @Step("JMX returned valid numeric value")
+    public void validMumericJmxSecurityServerMetric() {
+        Object attrValue = getStepData(XROAD_JMX_RESPONSE).orElseThrow();
+        assertThat(attrValue)
+                .isNotNull()
+                .asString()
+                .isNotEmpty()
+                .containsOnlyDigits();
+    }
+
+    @Step("JMX returned valid string value")
+    public void validStringJmxSecurityServerMetric() {
+        Object attrValue = getStepData(XROAD_JMX_RESPONSE).orElseThrow();
+        assertThat(attrValue)
+                .isNotNull()
+                .asString()
+                .isNotEmpty();
+    }
 }

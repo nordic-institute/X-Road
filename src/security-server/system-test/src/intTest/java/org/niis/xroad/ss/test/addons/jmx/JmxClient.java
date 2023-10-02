@@ -24,15 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.addons.api;
+package org.niis.xroad.ss.test.addons.jmx;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-
-@FeignClient(name = "xRoadSoapRequestsApi")
-public interface FeignXRoadSoapRequestsApi {
-
-    @PostMapping
-    ResponseEntity<String> getXRoadSoapResponse(byte[] requestBody);
+public interface JmxClient {
+    Object getValue(String objectNameFragment, String attribute);
 }
