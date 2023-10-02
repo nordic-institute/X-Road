@@ -65,7 +65,6 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private static final String HEALTH_DATA_REQUEST = "src/intTest/resources/files/soap-requests/health-data.request";
     private static final String OPERATIONAL_DATA_JSON = "operational-monitoring-data.json.gz";
     private static final String OP_MONITORING_XSD = "http://x-road.eu/xsd/op-monitoring.xsd";
-    private static final String HEALTH_STATISTICS_PERIOD_SECONDS = "600";
 
     @SuppressWarnings("checkstyle:OperatorWrap")
     @Step("Security Server Operational Data request was sent")
@@ -96,8 +95,8 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         SoapMessageImpl soupMessage = (SoapMessageImpl) parser
                 .parse(MimeTypes.TEXT_XML, IOUtils.toInputStream(Objects.requireNonNull(response.getBody()), UTF_8));
 
-        assertEquals(HEALTH_STATISTICS_PERIOD_SECONDS, findRecordsContentId(soupMessage.getSoap(), "statisticsPeriodSeconds"));
-        assertNotEquals("0", findRecordsContentId(soupMessage.getSoap(), "monitoringStartupTimestamp"));
+        assertEquals("600", findRecordsContentId(soupMessage.getSoap(), "statisticsPeriodSeconds"));
+        assertEquals("3", findRecordsContentId(soupMessage.getSoap(), "successfulRequestCount"));
     }
 
     @Step("Valid Security Server Operational data response is returned")
