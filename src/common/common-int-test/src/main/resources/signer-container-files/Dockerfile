@@ -1,6 +1,6 @@
 # Explicitly defining linux/amd64 ubuntu:22.04 image
-FROM ubuntu@sha256:56887c5194fddd8db7e36ced1c16b3569d89f74c801dc8a5adbf48236fb34564
-RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
+FROM ubuntu@sha256:b492494d8e0113c4ad3fe4528a4b5ff89faa5331f7d52c5c138196f69ce176a6
+RUN apt-get clean && apt-get -y update && apt-get install -qq -y locales && locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8

@@ -98,6 +98,8 @@ public abstract class BaseTestSignerSetup {
                         .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
                 genericContainer
                         .withCommand("java",
+                                "-Xmx50m",
+                                "-XX:MaxMetaspaceSize=70m",
                                 "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
                                 "-Dxroad.internal.passwordstore-provider=file",
                                 "-Dxroad.grpc.internal.host=0.0.0.0",
