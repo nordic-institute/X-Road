@@ -34,6 +34,5 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface FeignXRoadSoapRequestsApi {
 
     @PostMapping
-    ResponseEntity<String> getSecurityServerMetrics(byte[] body);
-
+    ResponseEntity<String> getXRoadSoapResponse(byte[] requestBody);
 }
