@@ -162,7 +162,7 @@ public class TaskQueue extends UntypedAbstractActor {
 
         if (timestampTasks.isEmpty()) {
             log.trace("Nothing to time-stamp, task queue is empty");
-
+            indicateSuccess();
             return;
         }
 
