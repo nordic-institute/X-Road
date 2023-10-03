@@ -39,6 +39,21 @@ function release_current {
     sed -i "0,/ - UNRELEASED$/ s// - $CURRENT_DATE/" ../CHANGELOG.md
 }
 
+function validate_version {
+  if [[ ! $1 =~ ^[0-9][0-9]?\.[0-9][0-9]?\.[0-9][0-9]?$ ]]; then
+      echo "Version must be in format x.y.z"
+      exit 1
+  fi
+}
+
+function set_last_supported_version {
+  if [ -z $(sed -i "s/^$1=.*$/$1=$2/w /dev/stdout" "$3") ]; then
+    echo -e "\e[0;31mWarning:\e[0m file [$3] not updated"
+  else
+    echo "Successfully updated file [$3]"
+  fi
+}
+
 for i in "$@"; do
 case "$1" in
     "-r"|"--release")
@@ -61,10 +76,7 @@ if [[ -z $VERSION ]]; then
     fi
 fi
 
-if [[ ! $VERSION =~ ^[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?$ ]]; then
-    echo "Version must be in format x.y.z"
-    exit 1
-fi
+validate_version "$VERSION"
 
 if [[ $VERSION == $CURRENT_VERSION ]]; then
     echo "$VERSION is the current version"
@@ -110,3 +122,15 @@ sed -i "s/^xroadVersion.*$/xroadVersion=$VERSION/" gradle.properties
 sed -i "s/^VERSION=$CURRENT_VERSION.*$/VERSION=$VERSION/" packages/build-rpm.sh
 
 echo "Version updated to $VERSION"
+
+LAST_SUPPORTED_VERSION_CANDIDATE="$(grep -E "^## [0-9]+\.[0-9]+\.[0-9]+" ../CHANGELOG.md | awk '{print $2}'| cut -d'.' -f1,2 | uniq | head -3 | tail -1).0"
+read -p "Enter the last supported version [default $LAST_SUPPORTED_VERSION_CANDIDATE]: " lastVersion
+LAST_SUPPORTED_VERSION=${lastVersion:-$LAST_SUPPORTED_VERSION_CANDIDATE}
+validate_version "$LAST_SUPPORTED_VERSION"
+echo "Setting the last supported version to $LAST_SUPPORTED_VERSION"
+
+set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" packages/src/xroad/default-configuration/override-securityserver-ee.ini
+set_last_supported_version "server-min-supported-client-version" "$LAST_SUPPORTED_VERSION" packages/src/xroad/default-configuration/override-securityserver-fi.ini
+
+set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" packages/build-deb.sh
+set_last_supported_version "LAST_SUPPORTED_VERSION" "$LAST_SUPPORTED_VERSION" packages/build-rpm.sh
