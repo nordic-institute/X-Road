@@ -64,7 +64,7 @@ import java.util.Set;
 
 /**
  * Base class for proxy integration tests
- * Starts and stops an test proxy instance and a service simulator.
+ * Starts and stops the test proxy instance and a service simulator.
  */
 @Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
@@ -134,7 +134,7 @@ public abstract class AbstractProxyIntegrationTest {
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
                 .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(getFreePort())));
 
-        MessageLog.init(actorSystem, jobManager);
+        MessageLog.init(jobManager);
         OpMonitoring.init();
         AddOn.BindableServiceRegistry serviceRegistry = new AddOn.BindableServiceRegistry();
         for (AddOn addon : ServiceLoader.load(AddOn.class)) {
@@ -165,6 +165,7 @@ public abstract class AbstractProxyIntegrationTest {
         }
 
         OpMonitoring.shutdown();
+        MessageLog.shutdown();
         actorSystem.terminate();
         RESERVED_PORTS.clear();
     }

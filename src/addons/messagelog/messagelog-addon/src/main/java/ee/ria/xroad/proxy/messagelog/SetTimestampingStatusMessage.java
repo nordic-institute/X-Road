@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import akka.dispatch.ControlMessage;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -33,14 +32,15 @@ import java.time.Instant;
 
 @Data
 @RequiredArgsConstructor
-class SetTimestampingStatusMessage implements ControlMessage {
+class SetTimestampingStatusMessage {
     /**
      * Status
      */
     public enum Status {
         SUCCESS,
-        FAILURE;
+        FAILURE
     }
+
     private final Status status;
     /**
      * Time when the status was achieved
@@ -49,6 +49,7 @@ class SetTimestampingStatusMessage implements ControlMessage {
 
     /**
      * Constructor that sets status change timestamp to current time.
+     *
      * @param status
      */
     SetTimestampingStatusMessage(Status status) {

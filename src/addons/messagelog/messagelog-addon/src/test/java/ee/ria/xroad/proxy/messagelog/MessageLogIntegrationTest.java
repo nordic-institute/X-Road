@@ -60,8 +60,6 @@ public class MessageLogIntegrationTest extends AbstractMessageLogTest {
             //timestampSynchronously();
 
             startArchiving();
-
-            awaitTermination();
         } finally {
             testTearDown();
         }

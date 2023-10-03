@@ -74,6 +74,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
@@ -105,7 +106,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     @Parameterized.Parameters(name = "encrypted = {0}")
     public static Object[] params() {
-        return new Object[] {Boolean.FALSE, Boolean.TRUE};
+        return new Object[]{Boolean.FALSE, Boolean.TRUE};
     }
 
     @Parameterized.Parameter(0)
@@ -118,6 +119,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Logs a message and timestamps it explicitly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -142,6 +144,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Logs a message and calls explicit timestamping on it twice. The returned timestamps must match.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -167,6 +170,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     /**
      * Logs 3 messages (message and signature is same) and time-stamps them. Expects 1 time-stamp record and 3 message
      * records that refer to the time-stamp record. The time-stamp record must have hash chains.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -190,10 +194,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertEquals(3, timestamp.getHashChains().length);
 
         assertTaskQueueSize(0);
-
-        assertEquals(0, getDeadLetters().size());
-
-        log.info("dead letters: " + getDeadLetters());
     }
 
     /**
@@ -228,6 +228,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log.trace("testTimestampRecordsLimit()");
         int orig = MessageLogProperties.getTimestampRecordsLimit();
         try {
+            TestTaskQueue.successfulMessageSizes.clear();
             System.setProperty(MessageLogProperties.TIMESTAMP_RECORDS_LIMIT, "2");
             log(createMessage(), createSignature());
             log(createMessage(), createSignature());
@@ -238,10 +239,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
             startTimestamping();
 
-            TimestampSucceeded timestamp = waitForTimestampSuccessful();
-            assertTrue(TestTaskQueue.waitForTimestampSaved());
-
-            assertEquals(2, timestamp.getMessageRecords().length);
+            assertEquals(List.of(2, 2, 1), TestTaskQueue.successfulMessageSizes);
         } finally {
             System.setProperty(MessageLogProperties.TIMESTAMP_RECORDS_LIMIT, String.valueOf(orig));
         }
@@ -249,6 +247,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Timestamps message immediately. No messages are expected to be in the task queue.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -263,6 +262,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Timestamps message immediately, but time-stamping fails.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -284,11 +284,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Logs messages, time-stamps them. Then archives the messages and cleans the database.
-     * @throws Exception in case of any unexpected errors
      *
-     *         FUTURE As this test is quite expensive in terms of time and usable resources (in addition
-     *         depends on external
-     *         utilities), consider moving this test apart from unit tests.
+     * @throws Exception in case of any unexpected errors
+     *                   <p>
+     *                   FUTURE As this test is quite expensive in terms of time and usable resources (in addition
+     *                   depends on external
+     *                   utilities), consider moving this test apart from unit tests.
      */
     @Test
     public void logTimestampArchiveAndClean() throws Exception {
@@ -323,6 +324,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     /**
      * Logs 3 messages, time-stamping fails. Task queue must have 3 tasks. Logs 1 more message, task queue must
      * have 4 tasks.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -347,6 +349,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Logs messages, time-stamping failed. After acceptable period no more messages are accepted.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -373,6 +376,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Saving timestamp to database fails.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -411,6 +415,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Get message by query id.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -436,6 +441,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Wants to time-stamp, but no TSP urls configured.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -450,11 +456,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
 
-
     // ------------------------------------------------------------------------
 
     /**
      * Set up configuration.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Before
@@ -503,6 +509,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     /**
      * Cleanup test environment for other tests.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @After

@@ -69,8 +69,6 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
         try {
             timestampAsynchronously();
             //timestampSynchronously();
-
-            awaitTermination();
         } finally {
             testTearDown();
         }
