@@ -49,8 +49,12 @@ case "$1" in
 esac
 
 if [ -n "$HAS_DOCKER" ]; then
-  echo "IN docker"
+    PACKAGE_VERSION="$(date -u -r $(git show -s --format=%ct) +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
+    echo "Will build in docker. Package version: $PACKAGE_VERSION"
+
+    if [ "$(uname)" != "Darwin" ]; then
     docker build -q -t xroad-deb-focal "$XROAD/packages/docker/deb-focal" || errorExit "Error building deb-focal image."
+    fi
     docker build -q -t xroad-deb-jammy "$XROAD/packages/docker/deb-jammy" || errorExit "Error building deb-jammy image."
     docker build -q -t xroad-rpm "$XROAD/packages/docker/rpm" || errorExit "Error building rpm image."
     docker build -q -t xroad-rpm-el8 "$XROAD/packages/docker/rpm-el8" || errorExit "Error building rpm-el8 image."
@@ -60,10 +64,14 @@ if [ -n "$HAS_DOCKER" ]; then
     # makes it possible to stop build with Ctrl+C
     if [[ -t 1 ]]; then OPTS+=("-it"); fi
 
-    docker run "${OPTS[@]}" xroad-deb-focal /workspace/src/packages/build-deb.sh focal || errorExit "Error building deb-focal packages."
-    docker run "${OPTS[@]}" xroad-deb-jammy /workspace/src/packages/build-deb.sh jammy || errorExit "Error building deb-jammy packages."
-    docker run "${OPTS[@]}" xroad-rpm /workspace/src/packages/build-rpm.sh || errorExit "Error building rpm packages."
-    docker run "${OPTS[@]}" xroad-rpm-el8 /workspace/src/packages/build-rpm.sh || errorExit "Error building rpm-el8 packages."
+    if [ "$(uname)" != "Darwin" ]; then
+      docker run "${OPTS[@]}" xroad-deb-focal /workspace/src/packages/build-deb.sh focal "$PACKAGE_VERSION" || errorExit "Error building deb-focal packages."
+    else
+      echo "debian focal packages cannot be built under MacOS. Skipping.."
+    fi
+    docker run "${OPTS[@]}" xroad-deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
+    docker run "${OPTS[@]}" xroad-rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm packages."
+    docker run "${OPTS[@]}" xroad-rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
 else
     echo "Docker not installed, building only .deb packages for this distribution"
     cd "$XROAD/packages"

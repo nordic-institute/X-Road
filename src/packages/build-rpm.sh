@@ -10,12 +10,22 @@ if [[ $1 == "-release" ]] ; then
   CMD="bb"
 else
   RELEASE=0
-  DATE="$(date --utc --date @"$(git show -s --format=%ct || date +%s)" +'%Y%m%d%H%M%S')"
-  HASH="$(git show -s --format=git%h --abbrev=7 || echo 'local')"
-  SNAPSHOT=.$DATE$HASH
-  FILES=${1-'xroad-*.spec'}
+
+  # version was not given, use empty
+  if [ -z "$1" ]; then
+    DATE="$(date --utc --date @"$(git show -s --format=%ct || date +%s)" +'%Y%m%d%H%M%S')"
+    HASH="$(git show -s --format=git%h --abbrev=7 || echo 'local')"
+    SNAPSHOT=.$DATE$HASH
+    FILES=${1-'xroad-*.spec'}
+  else
+    SNAPSHOT=."$1"
+    FILES='xroad-*.spec'
+  fi
+
   CMD=${2-bb}
 fi
+
+echo "using packageVersion $SNAPSHOT"
 
 DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$DIR"
