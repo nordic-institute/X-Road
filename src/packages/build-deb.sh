@@ -33,6 +33,7 @@ EOF
     done
     sed -i "s/#LAST_SUPPORTED_VERSION#/${LAST_SUPPORTED_VERSION}/" debian/*.preinst
 
+    echo "Building $dist packages.."
     echo "using packageVersion $packageVersion"
     if [[ $packageVersion != "-release" ]]; then
         version=$version."$packageVersion"
