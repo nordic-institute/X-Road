@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.ss.test.addons;
 
+import ee.ria.xroad.common.util.MimeTypes;
+
 import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import feign.Contract;
 import feign.Feign;
@@ -35,6 +37,9 @@ import feign.codec.Encoder;
 import feign.hc5.ApacheHttp5Client;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
+import org.niis.xroad.ss.test.addons.jmx.JmxClient;
+import org.niis.xroad.ss.test.addons.jmx.JmxClientImpl;
+import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,6 +48,8 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(FeignClientsConfiguration.class)
 public class SsAddonTestConfiguration {
+
+    private static final String JMX_URL_TEMPLATE = "service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi";
 
     @Bean
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -54,12 +61,17 @@ public class SsAddonTestConfiguration {
                 .encoder(new Encoder.Default())
                 .decoder(decoder)
                 .requestInterceptor(requestTemplate -> requestTemplate
-                        .target(String.format("http://%s:%s", appInfoProvider.getHost(), appInfoProvider.getMappedPort(8080)))
-                        .header("Content-Type", "text/xml")
+                        .target(String.format("http://%s:%s", appInfoProvider.getHost(), appInfoProvider.getMappedPort(Port.SERVICE)))
+                        .header("Content-Type", MimeTypes.TEXT_XML_UTF8)
                         .header("x-hash-algorithm", "SHA-512")
                 )
                 .contract(contract)
                 .target(FeignXRoadSoapRequestsApi.class, "http://localhost");
+    }
+
+    @Bean
+    public JmxClient jmxClient(TestableApplicationInfoProvider appInfoProvider) {
+        return new JmxClientImpl(() -> String.format(JMX_URL_TEMPLATE, appInfoProvider.getHost(), appInfoProvider.getMappedPort(Port.JMX)));
     }
 
 }

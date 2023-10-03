@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,48 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite.testcases;
+package org.niis.xroad.ss.test.addons.glue;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
+import io.cucumber.java.en.Step;
+import org.niis.xroad.ss.test.addons.jmx.JmxClient;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.security.cert.X509Certificate;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_JMX_RESPONSE;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+public class JmxStepDefs extends BaseStepDefs {
 
-/**
- * Authentication certificate verification fails.
- */
-public class SslClientCertVerificationError extends SslMessageTestCase {
+    @Autowired
+    private JmxClient jmxClient;
 
-    /**
-     * Constructs the test case.
-     */
-    public SslClientCertVerificationError() {
-        requestFileName = "getstate.query";
+
+    @Step("JMX request for object {string} attribute {string}")
+    public void executeJmxSecurityServerMetricsRequest(final String objectName, String attribte) {
+        var value = jmxClient.getValue(objectName, attribte);
+        putStepData(XROAD_JMX_RESPONSE, value);
     }
 
-    @Override
-    protected void startUp() throws Exception {
-        ServerConf.reload(new TestSuiteServerConf());
-        GlobalConf.reload(new TestSuiteGlobalConf() {
-            @Override
-            public boolean authCertMatchesMember(X509Certificate cert,
-                    ClientId member) {
-                return false;
-            }
-        });
+    @Step("JMX returned valid numeric value")
+    public void validMumericJmxSecurityServerMetric() {
+        Object attrValue = getStepData(XROAD_JMX_RESPONSE).orElseThrow();
+        assertThat(attrValue)
+                .isNotNull()
+                .asString()
+                .isNotEmpty()
+                .containsOnlyDigits();
     }
 
-    @Override
-    protected void validateFaultResponse(Message receivedResponse)
-            throws Exception {
-        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_SSL_AUTH_FAILED);
+    @Step("JMX returned valid string value")
+    public void validStringJmxSecurityServerMetric() {
+        Object attrValue = getStepData(XROAD_JMX_RESPONSE).orElseThrow();
+        assertThat(attrValue)
+                .isNotNull()
+                .asString()
+                .isNotEmpty();
     }
 }

@@ -129,7 +129,8 @@ task runProxyTest(type: JavaExec) {
         '-Dxroad.proxy.server-connector-so-linger=-1',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
         '-Dproxy.akka.loglevel=DEBUG',
-        '-Dproxy.akka.remote.artery.canonical.port=0'
+        '-Dproxy.akka.remote.artery.canonical.port=0',
+        '-Dxroad.grpc.internal.tls-enabled=false'
 //      '-Djava.security.properties==src/main/resources/java.security'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'

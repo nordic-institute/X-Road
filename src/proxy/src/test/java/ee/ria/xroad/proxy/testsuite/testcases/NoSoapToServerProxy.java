@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
@@ -50,7 +51,7 @@ public class NoSoapToServerProxy extends MessageTestCase {
         requestContentType = "multipart/mixed; charset=UTF-8; "
                 + "boundary=jetty771207119h3h10dty";
 
-        url = "http://127.0.0.1:" + PortNumbers.PROXY_PORT;
+        url = "http://127.0.0.1:" + System.getProperty(SystemProperties.PROXY_SERVER_PORT, String.valueOf(PortNumbers.PROXY_PORT));
     }
 
     @Override

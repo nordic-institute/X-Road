@@ -93,7 +93,7 @@ public abstract class BaseStepDefs {
     }
 
     @SneakyThrows
-    private String evalXpath(String body, String xpath) {
+    protected String evalXpath(String body, String xpath) {
         InputStream is = new ByteArrayInputStream(body.getBytes());
 
         XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
@@ -113,7 +113,8 @@ public abstract class BaseStepDefs {
      * An enumerated key for data transfer between steps.
      */
     public enum StepDataKey {
-        XROAD_SOAP_RESPONSE
+        XROAD_SOAP_RESPONSE,
+        XROAD_JMX_RESPONSE
     }
 
 }

@@ -49,7 +49,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Slf4j
 public final class RpcClient<C extends RpcClient.ExecutionContext> {
-    private static final int DEFAULT_DEADLINE_MILIS = 60000;
+    private static final int DEFAULT_DEADLINE_MILLIS = 60 * 1000;
 
     private final ManagedChannel channel;
 
@@ -65,7 +65,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
 
     public static <C extends RpcClient.ExecutionContext> RpcClient<C> newClient(
             String host, int port, ExecutionContextFactory<C> contextFactory) throws Exception {
-        return newClient(host, port, DEFAULT_DEADLINE_MILIS, contextFactory);
+        return newClient(host, port, DEFAULT_DEADLINE_MILLIS, contextFactory);
     }
 
     public static <C extends RpcClient.ExecutionContext> RpcClient<C> newClient(

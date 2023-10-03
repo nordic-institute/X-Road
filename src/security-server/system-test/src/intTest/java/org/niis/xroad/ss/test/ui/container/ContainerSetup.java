@@ -53,6 +53,7 @@ public class ContainerSetup {
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
+
             TestableContainerProperties testableContainerProperties,
             @Value("${test-automation.custom.docker-root}") String dockerRoot,
             @Value("${test-automation.custom.package-repo}") String packageRepo,
@@ -86,7 +87,13 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(4000, 8080, 5432);
+                return List.of(Port.UI, Port.SERVICE, Port.DB);
+            }
+
+            @NotNull
+            @Override
+            public List<Integer> fixedExposedPorts() {
+                return List.of(Port.JMX);
             }
         };
     }

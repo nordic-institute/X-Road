@@ -79,10 +79,10 @@ public final class RpcSignerClient {
         private final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
 
         public SignerRpcExecutionContext(Channel channel) {
-            blockingTokenService = TokenServiceGrpc.newBlockingStub(channel);
-            blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel);
-            blockingKeyService = KeyServiceGrpc.newBlockingStub(channel);
-            blockingOcspService = OcspServiceGrpc.newBlockingStub(channel);
+            blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
+            blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel).withWaitForReady();
+            blockingKeyService = KeyServiceGrpc.newBlockingStub(channel).withWaitForReady();
+            blockingOcspService = OcspServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 

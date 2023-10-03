@@ -66,7 +66,7 @@ class MetricsRpcServiceTest {
         private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
         TestMetricsExecutionContext(Channel channel) {
-            metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel);
+            metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 

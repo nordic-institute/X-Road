@@ -23,48 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite.testcases;
+package org.niis.xroad.ss.test.ui.glue;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
+import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
+import io.cucumber.java.en.Step;
+import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.security.cert.X509Certificate;
+public class SignerStepDefs extends BaseUiStepDefs {
+    @Autowired
+    private TestableApplicationContainerProvider containerProvider;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+    @SneakyThrows
+    @Step("signer service is restarted")
+    public void signerServiceIsRestarted() {
+        var execResult = containerProvider.getContainer()
+                .execInContainer("supervisorctl", "restart", "xroad-signer");
 
-/**
- * Authentication certificate verification fails.
- */
-public class SslClientCertVerificationError extends SslMessageTestCase {
-
-    /**
-     * Constructs the test case.
-     */
-    public SslClientCertVerificationError() {
-        requestFileName = "getstate.query";
-    }
-
-    @Override
-    protected void startUp() throws Exception {
-        ServerConf.reload(new TestSuiteServerConf());
-        GlobalConf.reload(new TestSuiteGlobalConf() {
-            @Override
-            public boolean authCertMatchesMember(X509Certificate cert,
-                    ClientId member) {
-                return false;
-            }
-        });
-    }
-
-    @Override
-    protected void validateFaultResponse(Message receivedResponse)
-            throws Exception {
-        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_SSL_AUTH_FAILED);
+        testReportService.attachJson("supervisorctl restart xroad-signer", execResult);
     }
 }

@@ -6,6 +6,7 @@ Feature: 0300 - SS: Keys and certificates
     Given SecurityServer login page is open
     And Page is prepared to be tested
     And User xrd logs in to SecurityServer with password secret
+    And signer service is restarted
 
   Scenario Outline: <$label> key is added and imported
     Given Keys and certificates tab is selected

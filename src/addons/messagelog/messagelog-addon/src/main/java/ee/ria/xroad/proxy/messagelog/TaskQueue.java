@@ -147,7 +147,7 @@ public class TaskQueue {
 
         if (timestampTasks.isEmpty()) {
             log.trace("Nothing to time-stamp, task queue is empty");
-
+            indicateSuccess();
             return;
         }
 

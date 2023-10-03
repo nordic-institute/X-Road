@@ -62,7 +62,6 @@ public class MonitorClient {
                     .setIsClientOwner(isOwner)
                     .addAllMetricNames(metricNames)
                     .build()));
-            //TODO grpc REQUEST timeout is missing? it was 5secs
 
             return MetricTypes.of(response.getMetrics());
         } catch (Exception e) {
@@ -80,7 +79,7 @@ public class MonitorClient {
         private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
         MetricsRpcExecutionContext(Channel channel) {
-            metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel);
+            metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 

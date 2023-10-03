@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,48 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite.testcases;
+package org.niis.xroad.ss.test.addons.jmx;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
-import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
-
-import java.security.cert.X509Certificate;
-
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-
-/**
- * Authentication certificate verification fails.
- */
-public class SslClientCertVerificationError extends SslMessageTestCase {
-
-    /**
-     * Constructs the test case.
-     */
-    public SslClientCertVerificationError() {
-        requestFileName = "getstate.query";
-    }
-
-    @Override
-    protected void startUp() throws Exception {
-        ServerConf.reload(new TestSuiteServerConf());
-        GlobalConf.reload(new TestSuiteGlobalConf() {
-            @Override
-            public boolean authCertMatchesMember(X509Certificate cert,
-                    ClientId member) {
-                return false;
-            }
-        });
-    }
-
-    @Override
-    protected void validateFaultResponse(Message receivedResponse)
-            throws Exception {
-        assertErrorCodeStartsWith(SERVER_CLIENTPROXY_X, X_SSL_AUTH_FAILED);
-    }
+public interface JmxClient {
+    Object getValue(String objectNameFragment, String attribute);
 }

@@ -43,7 +43,7 @@ public class ProxyMonitor implements AddOn {
     public void init(final BindableServiceRegistry bindableServiceRegistry) {
         try {
             bindableServiceRegistry.register(new ProxyMonitorService());
-            //TODO grpc, client might require delayed init due to missing rpc service
+
             monitorClient = new MonitorClient();
         } catch (Exception e) {
             log.error("ProxyMonitor addon has failed to start. Monitor data will not be available!", e);

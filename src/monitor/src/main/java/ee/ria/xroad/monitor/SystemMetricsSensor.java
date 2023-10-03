@@ -127,7 +127,7 @@ public class SystemMetricsSensor extends AbstractSensor {
         private final MonitorServiceGrpc.MonitorServiceStub monitorServiceStub;
 
         ProxyRpcExecutionContext(Channel channel) {
-            monitorServiceStub = MonitorServiceGrpc.newStub(channel);
+            monitorServiceStub = MonitorServiceGrpc.newStub(channel).withWaitForReady();
         }
     }
 
