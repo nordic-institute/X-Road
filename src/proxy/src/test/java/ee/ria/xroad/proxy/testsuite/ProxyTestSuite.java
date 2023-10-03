@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.JobManager;
@@ -41,6 +42,7 @@ import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import scala.concurrent.Await;
@@ -54,6 +56,8 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static java.lang.String.valueOf;
 
 /**
  * Proxy test suite program.
@@ -139,12 +143,16 @@ public final class ProxyTestSuite {
         }
     }
 
+    @SneakyThrows
     private static void setPropsIfNotSet() {
 
         PropsSolver solver = new PropsSolver();
 
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, "8080");
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, "8443");
+        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(TestPortUtils.findRandomPort()));
+        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(TestPortUtils.findRandomPort()));
+        final var proxyPort = valueOf(TestPortUtils.findRandomPort());
+        solver.setIfNotSet(SystemProperties.PROXY_SERVER_LISTEN_PORT, proxyPort);
+        solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, proxyPort);
         solver.setIfNotSet(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
         solver.setIfNotSet(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
         solver.setIfNotSet(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
