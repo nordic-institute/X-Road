@@ -460,7 +460,7 @@ public class LogManager extends AbstractLogManager {
             if (scheduledTask != null) {
                 if (!scheduledTask.isCancelled()) {
                     boolean result = scheduledTask.cancel(false);
-                    log.debug("cancelNext called, cancel() return value: {}", result);
+                    log.trace("cancelNext called, cancel() return value: {}", result);
                 }
             }
         }
