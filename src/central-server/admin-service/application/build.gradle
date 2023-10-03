@@ -1,6 +1,3 @@
-group 'ee.ria.xroad'
-version '1.0'
-
 archivesBaseName = 'centralserver-admin-service'
 
 configurations {
