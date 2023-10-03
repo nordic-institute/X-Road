@@ -82,6 +82,11 @@ dependencyCheck {
     }
 }
 
+group = 'ee.ria.xroad'
+subprojects {
+    group = "${parent.group}.${name.replace(/\W/,"_")}"
+}
+
 allprojects {
     buildscript {
         repositories {
@@ -94,7 +99,6 @@ allprojects {
         mavenCentral()
     }
 
-    group = 'ee.ria.xroad'
     version = '1.0'
 
     jacoco {
@@ -121,7 +125,6 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
-    group = 'ee.ria.xroad'
     version = '1.0'
 
     java {
