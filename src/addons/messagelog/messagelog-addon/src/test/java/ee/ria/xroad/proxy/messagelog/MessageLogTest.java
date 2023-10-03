@@ -109,7 +109,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         return new Object[]{Boolean.FALSE, Boolean.TRUE};
     }
 
-    @Parameterized.Parameter(0)
+    @Parameterized.Parameter()
     public boolean encrypted;
 
     static Date logRecordTime;
@@ -556,11 +556,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     protected LogRecord findByQueryId(String queryId, String startTime, String endTime) throws Exception {
-        return logManager.findByQueryId(queryId, getDate(startTime), getDate(endTime));
+        return LogRecordManager.getByQueryId(queryId, getDate(startTime), getDate(endTime));
     }
 
     protected LogRecord findByQueryId(String queryId, Instant startTime, Instant endTime) throws Exception {
-        return logManager.findByQueryId(queryId, Date.from(startTime), Date.from(endTime));
+        return LogRecordManager.getByQueryId(queryId, Date.from(startTime), Date.from(endTime));
     }
 
     private String getLastEntryDeleteQuery() {

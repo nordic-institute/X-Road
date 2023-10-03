@@ -28,11 +28,9 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
 
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -50,12 +48,7 @@ public class NullLogManager extends AbstractLogManager {
         // do nothing
     }
 
-    @Override
-    public LogRecord findByQueryId(String queryId, Date startTime, Date endTime) {
-        return null;
-    }
-
-    @Override
+     @Override
     public TimestampRecord timestamp(Long messageRecordId) {
         return null;
     }

@@ -33,7 +33,6 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
@@ -149,13 +148,6 @@ public class LogManager extends AbstractLogManager {
 
             return timestampRecord;
         }
-    }
-
-    @Override
-    public LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
-        log.trace("findByQueryId({}, {}, {})", queryId, startTime, endTime);
-
-        return LogRecordManager.getByQueryId(queryId, startTime, endTime);
     }
 
     @Override

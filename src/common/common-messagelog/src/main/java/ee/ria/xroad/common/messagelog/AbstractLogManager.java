@@ -50,9 +50,6 @@ public abstract class AbstractLogManager {
 
     public abstract void log(LogMessage message) throws Exception;
 
-    // todo might be dropped? it is not used anywhere except tests
-    public abstract LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception;
-
     public abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;
 
     public abstract Map<String, DiagnosticsStatus> getDiagnosticStatus();
