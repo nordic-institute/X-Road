@@ -43,6 +43,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Manages passwords that are shared across different JVMs.
  */
 @Slf4j
+@SuppressWarnings("squid:S2068")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PasswordStore {
     private static final String CFG_PASSWORD_STORE_PROVIDER = SystemProperties.PREFIX + "internal.passwordstore-provider";

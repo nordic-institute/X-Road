@@ -40,6 +40,7 @@ import static java.lang.String.format;
  * This implementation is designed purely for testing purposes.
  */
 @Slf4j
+@SuppressWarnings("squid:S2068")
 public class FilePasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
     private static final String CFG_FILE_PASSWORD_STORE_PATH = SystemProperties.PREFIX + "internal.passwordstore-file-path";
 
