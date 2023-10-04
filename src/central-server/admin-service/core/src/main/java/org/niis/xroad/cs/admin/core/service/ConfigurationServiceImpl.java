@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
@@ -43,9 +44,11 @@ import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.HAClusterStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
@@ -59,6 +62,7 @@ import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -67,6 +71,8 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
@@ -96,6 +102,22 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final DistributedFileMapper distributedFileMapper;
     private final AuditDataHelper auditDataHelper;
     private final ConfigurationPartValidator configurationPartValidator;
+    private final HAClusterStatusService haClusterStatusService;
+    private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
+
+    @Override
+    public Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys() {
+        return configurationSourceRepository.findAll().stream().collect(toMap(
+                src -> systemParameterService.getCentralServerAddress(src.getHaNodeName()),
+                src -> src.getConfigurationSigningKeys().stream()
+                        .map(configurationSigningKeyMapper::toTarget)
+                        .collect(toList()),
+                (signingKeys1, signingKeys2) -> {
+                    signingKeys1.addAll(signingKeys2);
+                    return signingKeys1;
+                }
+        ));
+    }
 
     @Override
     public boolean hasSigningKeys(final ConfigurationSourceType sourceType) {

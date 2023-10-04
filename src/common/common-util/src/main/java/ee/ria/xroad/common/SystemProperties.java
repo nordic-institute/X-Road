@@ -53,7 +53,7 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 3;
 
     /** Minimum supported version number of the global configuration **/
     static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
@@ -1570,16 +1570,16 @@ public final class SystemProperties {
      */
     public static int getMinimumCentralServerGlobalConfigurationVersion() {
         // read the setting
-        int version = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
+        int minVersion = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
-        checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
+        checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION);
         // ignore the versions that are no longer supported
-        if (version < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
-            version = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        if (minVersion < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
+            minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
-        return version;
+        return minVersion;
     }
 
     /**
@@ -1587,17 +1587,17 @@ public final class SystemProperties {
      */
     public static int getMinimumConfigurationProxyGlobalConfigurationVersion() {
         // read the setting
-        int version = Integer.parseInt(System.getProperty(
+        int minVersion = Integer.parseInt(System.getProperty(
                 MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
-        checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
+        checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
         // ignore the versions that are no longer supported
-        if (version < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
-            version = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        if (minVersion < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
+            minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
-        return version;
+        return minVersion;
     }
 
     /**
@@ -1623,8 +1623,8 @@ public final class SystemProperties {
         return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
     }
 
-    private static void checkVersionValidity(int version, int current, String defaultVersion) {
-        if (version > current || version < 1) {
+    private static void checkVersionValidity(int min, int current, String defaultVersion) {
+        if (min > current || min < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
     }

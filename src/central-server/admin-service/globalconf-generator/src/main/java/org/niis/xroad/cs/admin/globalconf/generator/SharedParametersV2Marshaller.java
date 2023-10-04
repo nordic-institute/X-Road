@@ -38,7 +38,7 @@ import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
 
 @Component
-class SharedParametersMarshaller {
+class SharedParametersV2Marshaller {
     private final JAXBContext jaxbContext = createJaxbContext();
 
     @SneakyThrows
@@ -47,7 +47,7 @@ class SharedParametersMarshaller {
         var marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.setSchema(SharedParametersSchemaValidatorV2.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(SharedParametersConverter.INSTANCE.convert(parameters)), writer);
+        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV2Converter.INSTANCE.convert(parameters)), writer);
         return writer.toString();
     }
 

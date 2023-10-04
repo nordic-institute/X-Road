@@ -47,9 +47,11 @@ import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
+import org.niis.xroad.cs.admin.api.service.HAClusterStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
@@ -115,6 +117,10 @@ class ConfigurationServiceImplTest {
     private DistributedFileMapper distributedFileMapper = new DistributedFileMapperImpl();
     @Mock
     private ConfigurationSigningKeyRepository configurationSigningKeyRepository;
+    @Mock
+    private HAClusterStatusService haClusterStatusService;
+    @Mock
+    private ConfigurationSigningKeyMapper configurationSigningKeyMapper;
     private ConfigurationServiceImpl configurationServiceHa;
 
     @BeforeEach
@@ -238,7 +244,9 @@ class ConfigurationServiceImplTest {
                 distributedFileRepository,
                 distributedFileMapper,
                 auditDataHelper,
-                configurationPartValidator);
+                configurationPartValidator,
+                haClusterStatusService,
+                configurationSigningKeyMapper);
     }
 
     @Nested

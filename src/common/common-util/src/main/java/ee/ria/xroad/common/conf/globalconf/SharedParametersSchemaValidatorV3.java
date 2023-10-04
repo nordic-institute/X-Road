@@ -1,21 +1,20 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,34 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package ee.ria.xroad.common.conf.globalconf;
 
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
-import org.niis.xroad.cs.admin.api.domain.DistributedFile;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
-import org.niis.xroad.cs.admin.api.dto.File;
-import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.SchemaValidator;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
 
-public interface ConfigurationService {
+import java.io.StringReader;
 
-    Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys();
+public class SharedParametersSchemaValidatorV3 extends SchemaValidator {
 
-    boolean hasSigningKeys(ConfigurationSourceType sourceType);
+    private static final Schema SCHEMA = createSchema("globalconf/v3/shared-parameters.xsd");
 
-    Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType);
+    public static Schema getSchema() {
+        return SCHEMA;
+    }
 
-    File getConfigurationPartFile(String contentIdentifier, int version);
+    /**
+     * Validates the input XML as string against the schema.
+     * @param xml the input XML as string
+     * @throws Exception if validation fails
+     */
+    public static void validate(String xml) throws Exception {
+        validate(new StreamSource(new StringReader(xml)));
+    }
 
-    GlobalConfDownloadUrl getGlobalDownloadUrl(ConfigurationSourceType sourceType);
+    /**
+     * Validates the input source against the schema.
+     * @param source the input source
+     * @throws Exception if validation fails
+     */
+    public static void validate(Source source) throws Exception {
+        validate(SCHEMA, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
+    }
 
-    void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version);
-
-    Set<DistributedFile> getAllConfigurationFiles(int version);
-
-    void uploadConfigurationPart(ConfigurationSourceType sourceType, String contentIdentifier, String originalFileName, byte[] data);
 }

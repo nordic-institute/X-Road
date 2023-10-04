@@ -5,17 +5,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,34 +24,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.service;
+package org.niis.xroad.cs.admin.globalconf.generator;
 
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
-import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
-import org.niis.xroad.cs.admin.api.domain.DistributedFile;
-import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
-import org.niis.xroad.cs.admin.api.dto.File;
-import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
+import ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV3;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import lombok.SneakyThrows;
+import org.springframework.stereotype.Component;
 
-public interface ConfigurationService {
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 
-    Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys();
+import java.io.StringWriter;
 
-    boolean hasSigningKeys(ConfigurationSourceType sourceType);
+@Component
+public class SharedParametersV3Marshaller {
 
-    Set<ConfigurationParts> getConfigurationParts(ConfigurationSourceType sourceType);
+    private final JAXBContext jaxbContext = createJaxbContext();
 
-    File getConfigurationPartFile(String contentIdentifier, int version);
+    @SneakyThrows
+    String marshall(SharedParameters parameters) {
+        var writer = new StringWriter();
+        var marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setSchema(SharedParametersSchemaValidatorV3.getSchema());
+        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV3Converter.INSTANCE.convert(parameters)),
+                writer);
+        return writer.toString();
+    }
 
-    GlobalConfDownloadUrl getGlobalDownloadUrl(ConfigurationSourceType sourceType);
+    @SneakyThrows
+    private JAXBContext createJaxbContext() {
+        return JAXBContext.newInstance(ObjectFactory.class);
+    }
 
-    void saveConfigurationPart(String contentIdentifier, String fileName, byte[] data, int version);
-
-    Set<DistributedFile> getAllConfigurationFiles(int version);
-
-    void uploadConfigurationPart(ConfigurationSourceType sourceType, String contentIdentifier, String originalFileName, byte[] data);
 }

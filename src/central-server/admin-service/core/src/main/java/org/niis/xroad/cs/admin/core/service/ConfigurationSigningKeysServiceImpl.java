@@ -205,6 +205,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         }
     }
 
+    @Override
     public Optional<ConfigurationSigningKey> findActiveForSource(String sourceType) {
         return configurationSigningKeyRepository.findActiveForSource(sourceType, haConfigStatus.getCurrentHaNodeName())
                 .map(configurationSigningKeyMapper::toTarget);

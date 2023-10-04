@@ -36,12 +36,19 @@ import java.util.List;
 @Data
 class SharedParameters {
     private String instanceIdentifier;
+    private List<ConfigurationSource> sources;
     private List<ApprovedCA> approvedCAs;
     private List<ApprovedTSA> approvedTSAs;
     private List<Member> members;
     private List<SecurityServer> securityServers;
     private List<GlobalGroup> globalGroups;
     private GlobalSettings globalSettings;
+
+    @Data
+    public static class ConfigurationSource {
+        private String address;
+        private List<byte[]> verificationCerts;
+    }
 
     @Data
     public static class ApprovedCA {

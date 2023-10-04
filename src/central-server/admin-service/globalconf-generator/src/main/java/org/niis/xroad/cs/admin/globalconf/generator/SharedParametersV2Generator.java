@@ -33,10 +33,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SharedParametersGenerator {
-    private final SharedParametersMarshaller marshaller;
+public class SharedParametersV2Generator {
+    private final SharedParametersV2Marshaller marshaller;
     private final SharedParametersLoader loader;
-
 
     String generate() {
         log.debug("Generating shared parameters");

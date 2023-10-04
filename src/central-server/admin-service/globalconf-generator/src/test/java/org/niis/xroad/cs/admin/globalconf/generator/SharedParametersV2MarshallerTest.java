@@ -34,9 +34,9 @@ import javax.xml.bind.MarshalException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class SharedParametersMarshallerTest {
+class SharedParametersV2MarshallerTest {
 
-    private final SharedParametersMarshaller marshaller = new SharedParametersMarshaller();
+    private final SharedParametersV2Marshaller marshaller = new SharedParametersV2Marshaller();
 
     @Test
     void marshall() {
