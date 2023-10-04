@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202310031700-security-server-unique.xml">
+
+    <changeSet author="niis" id="202310031700-security-server-unique">
+        <comment>Make security server's code unique per owner.
+        </comment>
+        <addUniqueConstraint constraintName="unique_owner_server_code" tableName="security_servers" columnNames="owner_id,server_code" />
+    </changeSet>
+</databaseChangeLog>
