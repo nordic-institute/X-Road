@@ -9,30 +9,53 @@ if [ "$1" = "upgrade" ]; then
   source /usr/share/xroad/scripts/_read_cs_db_properties.sh
   prepare_db_props
 
-  # Start table system_parameters unique check (this check can be remove after LAST_SUPPORTED_VERSION > 7.4.0)
-  sys_param_select="select * from (select id, key, value, created_at, updated_at, ha_node_name, count(*) over (partition by key, ha_node_name order by key, ha_node_name) as count
-      from system_parameters) as s
-where s.count > 1;"
-  sys_param_check_result=$(
-    PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
-      "$sys_param_select"
-  )
+  psql_query() {
+    local query=$1
+    PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" \
+      psql -h "$db_host" -p "$db_port" -qA -c "$query"
+  }
 
-  if [ -n "$sys_param_check_result" ]; then
-    echo "ERROR: Data quality issues in the $db_database database. There are duplicate data in the table SYSTEM_PARAMETERS columns pair (KEY, HA_NODE_NAME):
+  check_unique() {
+    local query=$1
+    local error_message=$2
+
+    local query_result=$(psql_query "$query")
+    declare -i query_result_lines=$(echo "$query_result" | wc -l)
+    # subtract 2 for header and footer lines
+    local query_row_count=$((query_result_lines - 2))
+
+    if [ $query_row_count -gt 0 ]; then
+      echo "ERROR: Data quality issues in $db_database database. $error_message:
 ----------------------------------------------------------------------------------------------------------------------------------------------
-id|key|value|created_at|updated_at|ha_node_name|count
-$sys_param_check_result
+$query_result
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 To see duplicated rows, run the following query in the $db_database database:
-$sys_param_select
+$query
 
 Please fix incorrect data before continuing."
-    exit 1
-  fi
-  # End table system_parameters unique check
-# End database integrity checks
+      exit 1;
+    fi
+
+  }
+
+
+    # this check can be removed after LAST_SUPPORTED_VERSION > 7.4.0)
+    sys_param_select="select * from (select id, key, value, created_at, updated_at, ha_node_name, count(*) over (partition by key, ha_node_name order by key, ha_node_name) as count
+    from system_parameters) as s
+where s.count > 1;"
+      check_unique "$sys_param_select" "There is duplicate data in SYSTEM_PARAMETERS table, columns pair (KEY, HA_NODE_NAME)"
+
+
+    # this check can be removed after LAST_SUPPORTED_VERSION > 7.4.0)
+    security_server_select="select *
+from (select *, count(*) over (partition by server_code, owner_id) as count
+    from security_servers) as s
+where s.count > 1
+order by id;"
+      check_unique "$security_server_select" "There is duplicate data in SECURITY_SERVERS table, columns pair (SERVER_CODE, OWNER_ID)"
+
+  # End database integrity checks
 
 fi
 
