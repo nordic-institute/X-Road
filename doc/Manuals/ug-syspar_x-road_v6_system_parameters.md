@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.77
+Version: 2.78
 Doc. ID: UG-SYSPAR
 
 
@@ -88,6 +88,7 @@ Doc. ID: UG-SYSPAR
 | 13.06.2023 | 2.75    | Added new *complementary-user-role-mappings* parameters                                                                                                                                                                                                                                                                                                                                                        | Andres Rosenthal           |
 | 24.08.2023 | 2.76    | Added new *server-min-supported-client-version* parameter                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets              |
 | 02.10.2023 | 2.77    | Remove the separate section about changing the global configuration interval on the Central Server.                                                                                                                                                                                                                                                                                                            | Petteri Kivimäki           |
+| 02.10.2023 | 2.78    | Remove Akka references                                                                                                                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
 
 ## Table of Contents
 
@@ -222,11 +223,10 @@ This chapter describes the system parameters used by the components of the X-Roa
 
 ### 3.1 Common parameters : `[common]`
 
-| **Parameter**                                    | **Default value**                          | **Description**   |
-|--------------------------------------------------|--------------------------------------------|------------------ |
-| configuration-path                               | /etc/xroad/globalconf/                     | Absolute path to the directory where global configuration is stored.|
-| temp-files-path                                  | /var/tmp/xroad/                            | Absolute path to the directory where temporary files are stored. |
-| akka-use-secure-remote-transport                 | true                                       | Should Akka remoting use TLS (true) or not (false). The keypair used is ephemeral and recreated after boot. |
+| **Parameter**      | **Default value**      | **Description**                                                      |
+|--------------------|------------------------|----------------------------------------------------------------------|
+| configuration-path | /etc/xroad/globalconf/ | Absolute path to the directory where global configuration is stored. |
+| temp-files-path    | /var/tmp/xroad/        | Absolute path to the directory where temporary files are stored.     |
 
 ### 3.2 Proxy parameters: `[proxy]`
 

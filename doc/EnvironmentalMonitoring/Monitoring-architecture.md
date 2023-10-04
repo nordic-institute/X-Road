@@ -1,20 +1,21 @@
 # X-Road: Environmental Monitoring Architecture
 
-Version: 1.9  
+Version: 1.10  
 Doc. ID: ARC-ENVMON
 
-| Date       | Version | Description                                                                                                     | Author             |
-|------------|---------|-----------------------------------------------------------------------------------------------------------------|--------------------|
-| 15.12.2015 | 1.0     | Initial version                                                                                                 | Ilkka Seppälä         |
-| 04.01.2017 | 1.1     | Fix documentation links                                                                                         | Ilkka Seppälä         |
-| 20.01.2017 | 1.2     | Added license text, table of contents and version history                                                       | Sami Kallio |
-| 23.2.2017  | 1.3     | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
-| 18.8.2017  | 1.4     | Added details about the security server certificates monitoring data                                            | Olli Lindgren |
-| 18.10.2017 | 1.5     |                                                                                                                 | Joni Laurila |
-| 02.03.2018 | 1.6     | Added numbering, terms document references, removed unnecessary anchors                                         | Tatu Repo
-| 20.01.2020 | 1.7     | Update XroadProcessLister description                                                                           | Jarkko Hyöty
-| 25.06.2020 | 1.8     | Add chapter [2.2.1 JMX interface](#221-jmx-interface)                                                           | Petteri Kivimäki
-| 01.06.2023 | 1.9     | Update references                                                                                               | Petteri Kivimäki |
+| Date       | Version | Description                                                                                                     | Author            |
+|------------|---------|-----------------------------------------------------------------------------------------------------------------|-------------------|
+| 15.12.2015 | 1.0     | Initial version                                                                                                 | Ilkka Seppälä     |
+| 04.01.2017 | 1.1     | Fix documentation links                                                                                         | Ilkka Seppälä     |
+| 20.01.2017 | 1.2     | Added license text, table of contents and version history                                                       | Sami Kallio       |
+| 23.2.2017  | 1.3     | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren     |
+| 18.8.2017  | 1.4     | Added details about the security server certificates monitoring data                                            | Olli Lindgren     |
+| 18.10.2017 | 1.5     |                                                                                                                 | Joni Laurila      |
+| 02.03.2018 | 1.6     | Added numbering, terms document references, removed unnecessary anchors                                         | Tatu Repo         |
+| 20.01.2020 | 1.7     | Update XroadProcessLister description                                                                           | Jarkko Hyöty      |
+| 25.06.2020 | 1.8     | Add chapter [2.2.1 JMX interface](#221-jmx-interface)                                                           | Petteri Kivimäki  |
+| 01.06.2023 | 1.9     | Update references                                                                                               | Petteri Kivimäki  |
+| 04.10.2023 | 1.10    | Remove Akka references                                                                                          | Ričardas Bučiūnas |
 
 
 # Table of Contents
@@ -73,7 +74,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Monitoring metaservice (proxymonitor add-on)
 
-Monitoring metaservice responds to queries for monitoring data from security server's serverproxy interface. This metaservice requests the current monitoring data from local monitoring service, using [Akka](http://akka.io/). Monitoring metaservice translates the monitoring data to a SOAP XML response.
+Monitoring metaservice responds to queries for monitoring data from security server's serverproxy interface. This metaservice requests the current monitoring data from local monitoring service, using [gRPC](https://grpc.io/). Monitoring metaservice translates the monitoring data to a SOAP XML response.
 
 Monitoring service handles authorization of the requests, see [Access control](#33-access-control). It reads monitoring configuration from distributed global monitoring configuration (see [UC-GCONF, PR-GCONF](#12-references)).
 
@@ -81,7 +82,7 @@ Monitoring metaservice is installed as a proxy add-on, with name `xroad-addon-pr
 
 ### 2.2 Monitoring service (xroad-monitor)
 
-Monitoring service is responsible for collecting the monitoring data from one security server instance. It distributes the collected data to monitoring clients (normally the local monitoring metaservice) when requested through an Akka interface.
+Monitoring service is responsible for collecting the monitoring data from one security server instance. It distributes the collected data to monitoring clients (normally the local monitoring metaservice) when requested through an gRPC interface.
 
 Monitoring service uses several _sensors_ to collect the data. Sensors and related functionalities are build on top of [Dropwizard Metrics](https://github.com/dropwizard/metrics).
 
