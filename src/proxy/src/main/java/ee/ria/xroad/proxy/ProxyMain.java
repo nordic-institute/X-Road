@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
@@ -60,10 +59,7 @@ import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
-import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import io.grpc.BindableService;
@@ -89,7 +85,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
@@ -187,7 +182,7 @@ public final class ProxyMain {
         }
     }
 
-    private static void startup() throws Exception {
+    private static void startup() {
         log.trace("startup()");
         Version.outputVersionInfo(APP_NAME);
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
@@ -199,6 +194,7 @@ public final class ProxyMain {
 
     private static void shutdown() throws Exception {
         log.trace("shutdown()");
+        MessageLog.shutdown();
         OpMonitoring.shutdown();
         stopServices();
         Await.ready(actorSystem.terminate(), Duration.Inf());
@@ -214,7 +210,7 @@ public final class ProxyMain {
         MonitorAgent.init(actorSystem);
         RpcSignerClient.init();
         BatchSigner.init();
-        boolean messageLogEnabled = MessageLog.init(actorSystem, jobManager);
+        boolean messageLogEnabled = MessageLog.init(jobManager);
         OpMonitoring.init();
 
         AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
@@ -285,7 +281,7 @@ public final class ProxyMain {
         }
     }
 
-    private static AdminPort createAdminPort() throws Exception {
+    private static AdminPort createAdminPort() {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 
         addShutdownHook(adminPort);
@@ -404,14 +400,8 @@ public final class ProxyMain {
 
                 log.info("simple connection check result {}", statusesFromSimpleConnectionCheck);
 
-                ActorSelection logManagerSelection = actorSystem.actorSelection("/user/LogManager");
-
-                Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                 try {
-                    Map<String, DiagnosticsStatus> statusesFromLogManager =
-                            (Map<String, DiagnosticsStatus>) Await.result(
-                                    Patterns.ask(logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
-                                    timeout.duration());
+                    Map<String, DiagnosticsStatus> statusesFromLogManager = MessageLog.getDiagnosticStatus();
 
                     log.info("statusesFromLogManager {}", statusesFromLogManager.toString());
 

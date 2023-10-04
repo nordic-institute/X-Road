@@ -109,7 +109,7 @@ public final class ProxyTestSuite {
         startWatchdog();
 
         try {
-            MessageLog.init(actorSystem, jobManager);
+            MessageLog.init(jobManager);
             OpMonitoring.init();
 
             runNormalTestCases(normalTestCases);
@@ -117,6 +117,7 @@ public final class ProxyTestSuite {
             runIsolatedSslTestCases(isolatedSslTestCases);
 
         } finally {
+            MessageLog.shutdown();
             OpMonitoring.shutdown();
             jobManager.stop();
             Await.ready(actorSystem.terminate(), Duration.Inf());

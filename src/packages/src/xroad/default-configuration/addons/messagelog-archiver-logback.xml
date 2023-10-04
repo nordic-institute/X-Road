@@ -16,7 +16,6 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO"/>
-    <logger name="akka" level="WARN" />
 
     <root level="INFO">
         <appender-ref ref="FILE"/>
