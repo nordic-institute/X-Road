@@ -33,6 +33,8 @@ import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -48,9 +50,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.net.ConnectException;
 import java.security.PrivateKey;
@@ -60,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -308,9 +308,9 @@ public class OcspClientTest {
         when(testConf.getInstanceIdentifier()).thenReturn("TEST");
 
         when(testConf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
-                Arrays.asList(RESPONDER_URI));
+                List.of(RESPONDER_URI));
 
-        when(testConf.getOcspResponderCertificates()).thenReturn(Arrays.asList(ocspResponderCert));
+        when(testConf.getOcspResponderCertificates()).thenReturn(List.of(ocspResponderCert));
 
         when(testConf.getCaCert(Mockito.any(String.class), Mockito.any(X509Certificate.class))).thenReturn(
                 TestCertUtil.getCaCert());

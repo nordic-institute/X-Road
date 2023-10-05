@@ -32,14 +32,13 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.Optional;

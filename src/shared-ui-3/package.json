@@ -73,5 +73,5 @@
   "overrides": {
     "semver": "^7.5.3"
   },
-  "packageManager": "yarn@4.0.0-rc.50"
+  "packageManager": "yarn@4.0.1"
 }

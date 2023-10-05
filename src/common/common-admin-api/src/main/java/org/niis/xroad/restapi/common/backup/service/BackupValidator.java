@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.restapi.common.backup.service;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 import java.util.regex.Pattern;
 

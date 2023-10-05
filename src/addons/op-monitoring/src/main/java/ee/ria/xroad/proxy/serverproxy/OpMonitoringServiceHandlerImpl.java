@@ -37,10 +37,9 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.io.InputStream;
 import java.net.URI;

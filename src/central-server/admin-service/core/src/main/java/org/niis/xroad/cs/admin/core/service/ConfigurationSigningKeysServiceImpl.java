@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
@@ -56,8 +57,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.time.Instant;
 import java.util.Date;

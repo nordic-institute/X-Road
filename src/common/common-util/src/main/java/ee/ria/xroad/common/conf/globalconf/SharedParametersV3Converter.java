@@ -39,7 +39,7 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersT
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;

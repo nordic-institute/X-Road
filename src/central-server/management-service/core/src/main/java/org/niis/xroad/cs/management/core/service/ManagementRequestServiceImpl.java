@@ -96,18 +96,15 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         switch (requestType) {
             case CLIENT_REGISTRATION_REQUEST:
                 managementRequest = new ClientRegistrationRequestDto()
-                        .clientId(clientIdConverter.convertId(request.getClient()))
-                        .type(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
+                        .clientId(clientIdConverter.convertId(request.getClient()));
                 break;
             case OWNER_CHANGE_REQUEST:
                 managementRequest = new OwnerChangeRequestDto()
-                        .clientId(clientIdConverter.convertId(request.getClient()))
-                        .type(ManagementRequestTypeDto.OWNER_CHANGE_REQUEST);
+                        .clientId(clientIdConverter.convertId(request.getClient()));
                 break;
             case CLIENT_DELETION_REQUEST:
                 managementRequest = new ClientDeletionRequestDto()
-                        .clientId(clientIdConverter.convertId(request.getClient()))
-                        .type(ManagementRequestTypeDto.CLIENT_DELETION_REQUEST);
+                        .clientId(clientIdConverter.convertId(request.getClient()));
                 break;
             default:
                 throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);

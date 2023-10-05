@@ -19,44 +19,42 @@ sourceSets {
 }
 
 dependencies {
-    api 'org.apache.santuario:xmlsec:2.2.3'
+    api 'org.apache.santuario:xmlsec:2.2.4'
     api "org.bouncycastle:bcpkix-jdk15on:$bouncyCastleVersion"
     api 'org.apache.commons:commons-lang3:3.12.0'
-    api 'commons-io:commons-io:2.11.0'
+    api 'commons-io:commons-io:2.13.0'
     api "org.slf4j:jcl-over-slf4j:$slf4jVersion"
     api 'org.apache.james:apache-mime4j-core:0.8.7'
     api "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
-    api 'com.sun.xml.messaging.saaj:saaj-impl:1.5.3'
-    api 'com.sun.activation:jakarta.activation:1.2.2'
+    api 'com.sun.xml.messaging.saaj:saaj-impl:3.0.2'
+    api 'com.sun.activation:jakarta.activation:2.0.1'
     api "org.eclipse.jetty:jetty-server:$jettyVersion"
-    api 'org.apache.httpcomponents:httpclient:4.5.13'
-    api 'org.apache.httpcomponents:httpasyncclient:4.1.4'
+    api 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+    api 'org.apache.httpcomponents:httpclient:4.5.14'
+    api 'org.apache.httpcomponents:httpasyncclient:4.1.5'
 
     api platform("com.fasterxml.jackson:jackson-bom:$jacksonBomVersion")
     api "com.fasterxml.jackson.core:jackson-databind"
     api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-    api 'com.google.code.gson:gson:2.9.0'
+    api 'com.google.code.gson:gson:2.9.1'
     api "com.google.guava:guava:$guavaVersion"
 
     api "io.vavr:vavr:$vavrVersion"
 
-    api ('org.quartz-scheduler:quartz:2.3.2') {
-        exclude module: 'c3p0'
+    api('org.quartz-scheduler:quartz:2.3.2') {
+      exclude module: 'c3p0'
     }
 
-    api ('org.apache.commons:commons-configuration2:2.8.0') {
-        exclude group: 'org.apache.commons', module: 'commons-text'
+    api('org.apache.commons:commons-configuration2:2.8.0') {
+      exclude group: 'org.apache.commons', module: 'commons-text'
     }
     api 'org.apache.commons:commons-text:1.10.0'
 
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
     testImplementation project(':common:common-test')
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation "org.assertj:assertj-core:$assertjVersion"
-    testImplementation "org.mockito:mockito-inline:$mockitoVersion"
-
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"

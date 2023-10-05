@@ -28,9 +28,8 @@ package ee.ria.xroad.proxy.serverproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.Test;
-
-import javax.servlet.http.HttpServletRequest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;

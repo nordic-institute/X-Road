@@ -1,10 +1,7 @@
 ## properties that are not specific to a runtime (test or prod)
-
 spring:
   mvc:
     throw-exception-if-no-handler-found: true
-  resources:
-    add-mappings: false
   jpa:
     ## *.hbm.xml files are loaded from classpath
     mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml

@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
         xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
-        targetNamespace="http://x-road.eu/xsd/xroad.xsd"
-        xmlns:id="http://x-road.eu/xsd/identifiers">
-  <import namespace="http://x-road.eu/xsd/identifiers"
-          schemaLocation="identifiers.xsd" id="id"/>
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd">
 
   <element name="conf" type="tns:OcspNextUpdateType">
     <annotation>

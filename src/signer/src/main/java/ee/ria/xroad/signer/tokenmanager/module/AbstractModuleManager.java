@@ -36,11 +36,10 @@ import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 import ee.ria.xroad.signer.tokenmanager.token.WorkerWithLifecycle;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import java.nio.file.Paths;
 import java.util.Collection;

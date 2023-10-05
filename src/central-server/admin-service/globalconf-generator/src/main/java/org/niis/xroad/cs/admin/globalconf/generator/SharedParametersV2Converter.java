@@ -36,14 +36,13 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersT
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.xml.bind.JAXBElement;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
-
-import javax.xml.bind.JAXBElement;
 
 import java.util.HashMap;
 import java.util.List;

@@ -29,10 +29,11 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.Date;
@@ -91,11 +92,10 @@ public class ConfigurationAnchor
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof ConfigurationSource)) {
+        if (!(obj instanceof ConfigurationSource that)) {
             return false;
         }
 
-        ConfigurationSource that = (ConfigurationSource) obj;
         if (!getInstanceIdentifier().equals(that.getInstanceIdentifier())) {
             return false;
         }

@@ -36,16 +36,15 @@ import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,7 +99,7 @@ public class LogArchiver implements Job {
 
     private boolean handleArchive(long maxRecordId) throws Exception {
         return doInTransaction(session -> {
-            final int limit = getArchiveTransactionBatchSize();
+             final int limit = getArchiveTransactionBatchSize();
             final String archiveTransferCommand = getArchiveTransferCommand();
             final long start = System.currentTimeMillis();
             final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
@@ -174,7 +173,7 @@ public class LogArchiver implements Job {
                         + "UPDATE TimestampRecord t SET t.archived = true "
                         + "WHERE t.archived = false AND NOT EXISTS ("
                         + "SELECT 0 FROM MessageRecord m "
-                        + "WHERE m.archived = false and t.id = m.timestampRecord)"
+                        + "WHERE m.archived = false and t.id = m.timestampRecord.id)"
                 ).executeUpdate();
     }
 

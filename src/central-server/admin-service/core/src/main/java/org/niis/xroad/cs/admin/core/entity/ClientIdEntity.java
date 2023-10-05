@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.core.entity;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 import java.util.Optional;
 

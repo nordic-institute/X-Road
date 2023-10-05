@@ -28,14 +28,14 @@ package org.niis.xroad.common.managementrequest.verify;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 
 import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
 import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;

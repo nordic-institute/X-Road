@@ -31,11 +31,10 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.semver4j.Semver;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.util.Optional;
 

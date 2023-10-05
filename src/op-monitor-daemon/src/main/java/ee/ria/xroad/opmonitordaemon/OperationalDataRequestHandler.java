@@ -40,11 +40,10 @@ import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResp
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataType;
 import ee.ria.xroad.opmonitordaemon.message.SearchCriteriaType;
 
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
 
 import java.io.IOException;
 import java.io.OutputStream;

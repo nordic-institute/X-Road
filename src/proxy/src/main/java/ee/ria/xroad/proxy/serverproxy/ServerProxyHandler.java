@@ -34,13 +34,12 @@ import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -127,7 +126,7 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     private static X509Certificate[] getClientSslCertChain(HttpServletRequest request) {
-        Object attribute = request.getAttribute("javax.servlet.request.X509Certificate");
+        Object attribute = request.getAttribute("jakarta.servlet.request.X509Certificate");
 
         if (attribute != null) {
             return (X509Certificate[]) attribute;

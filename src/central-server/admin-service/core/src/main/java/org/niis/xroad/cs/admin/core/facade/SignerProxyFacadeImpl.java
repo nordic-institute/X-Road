@@ -32,12 +32,11 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 import java.util.Date;
 import java.util.List;
