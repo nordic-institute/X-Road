@@ -12,7 +12,7 @@ if [ $REL -lt 20 ]; then
     sudo apt-get update
 fi
 
-sudo apt-get install -y openjdk-11-jdk-headless build-essential git unzip debhelper devscripts
+sudo apt-get install -y openjdk-17-jdk-headless build-essential git unzip debhelper devscripts
 sudo update-ca-certificates -f
 
 mkdir -p /var/tmp/xroad

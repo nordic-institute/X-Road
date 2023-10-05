@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install curl software-properties-common gawk \
-  openjdk-11-jdk-headless build-essential git unzip debhelper \
+  openjdk-17-jdk-headless build-essential git unzip debhelper \
   && apt-get -qq autoremove \
   && apt-get -qq clean
 

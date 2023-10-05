@@ -21,6 +21,7 @@ test-automation:
     testable-container:
       reuse-between-runs: true
       spring-boot:
+        base-image: azul/zulu-openjdk:17
         jar-debug-enabled: true
         debug-port: 9000
         jacoco:
