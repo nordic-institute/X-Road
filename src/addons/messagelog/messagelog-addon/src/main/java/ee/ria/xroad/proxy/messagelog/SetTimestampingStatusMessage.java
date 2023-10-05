@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import akka.dispatch.ControlMessage;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +55,7 @@ class SetTimestampingStatusMessage implements ControlMessage {
      */
     SetTimestampingStatusMessage(Status status) {
         this.status = status;
-        this.atTime = Instant.now();
+        this.atTime = TimeUtils.now();
     }
 }
 
