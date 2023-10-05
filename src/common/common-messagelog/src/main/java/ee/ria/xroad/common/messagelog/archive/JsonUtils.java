@@ -61,7 +61,7 @@ final class JsonUtils {
         newObjectMapper.enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
         newObjectMapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
-        newObjectMapper.setVisibilityChecker(
+        newObjectMapper.setVisibility(
                 newObjectMapper.getSerializationConfig().
                 getDefaultVisibilityChecker().
                 withFieldVisibility(JsonAutoDetect.Visibility.ANY).

@@ -19,10 +19,11 @@ dependencies {
 }
 
 frontend {
-  var nodeDir = file("${rootDir}/.gradle/yarn-node/${frontendNodeVersion}")
   nodeVersion = frontendNodeVersion
-  nodeInstallDirectory = nodeDir
   cacheDirectory = file("${projectDir}/.gradle/yarn-cache")
+
+  var nodeDir = file("${rootDir}/.gradle/yarn-node/${frontendNodeVersion}")
+  nodeInstallDirectory = nodeDir
   if(nodeDir.exists()){
     nodeDistributionProvided = true
   }
@@ -31,6 +32,7 @@ frontend {
   if (System.getenv().containsKey("CI")) {
     installScript='install --immutable'
   }
+  cleanScript = null
 }
 
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn

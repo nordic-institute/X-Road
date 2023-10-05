@@ -33,14 +33,13 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import java.io.InputStream;
 import java.sql.Connection;
@@ -212,7 +211,7 @@ public final class LogRecordManager {
     }
 
     static long getNextRecordId(Session session) {
-        return ((Number) session.createSQLQuery("SELECT nextval('logrecord_sequence')").getSingleResult()).longValue();
+        return ((Number) session.createNativeQuery("SELECT nextval('logrecord_sequence')").getSingleResult()).longValue();
     }
 
     /**

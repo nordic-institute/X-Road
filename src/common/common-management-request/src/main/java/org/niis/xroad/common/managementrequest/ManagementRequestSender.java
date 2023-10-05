@@ -38,6 +38,7 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
@@ -45,8 +46,6 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequest;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import javax.xml.soap.SOAPException;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

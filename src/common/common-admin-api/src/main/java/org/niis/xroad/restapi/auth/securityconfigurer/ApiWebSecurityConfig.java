@@ -25,76 +25,67 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.Http401AuthenticationEntryPoint;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 
-import javax.servlet.http.HttpServletRequest;
+import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.csrfTokenRequestAttributeHandler;
+import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 
 /**
  * custom token / session cookie authentication for rest apis
  * matching url /api/**
  */
 @Configuration
-@Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
-public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+public class ApiWebSecurityConfig {
     private static final String PRINCIPAL_REQUEST_HEADER = "Authorization";
 
-    @Autowired
-    ApiKeyAuthenticationManager apiKeyAuthenticationManager;
-
-    @Autowired
-    private Http401AuthenticationEntryPoint http401AuthenticationEntryPoint;
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
+    public SecurityFilterChain apiWebSecurityFilterChain(HttpSecurity http,
+                                                         ApiKeyAuthenticationManager apiKeyAuthenticationManager,
+                                                         Http401AuthenticationEntryPoint http401AuthenticationEntryPoint) throws Exception {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
         filter.setAuthenticationManager(apiKeyAuthenticationManager);
         filter.setExceptionIfHeaderMissing(false); // exception at this point
         // would cause http 500, we want http 401
-        http
-            .antMatcher("/api/**")
-            .addFilter(filter)
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-                .and()
-            .authorizeRequests()
-                .anyRequest().authenticated()
-                .and()
-            .exceptionHandling()
-                .authenticationEntryPoint(http401AuthenticationEntryPoint)
-                .and()
-            .csrf()
-                // we require csrf protection only if there is a session alive
-                .requireCsrfProtectionMatcher(ApiWebSecurityConfigurerAdapter::sessionExists)
-                // CsrfFilter always generates a new token in the repo -> prevent with lazy
-                .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
-                .and()
-            .anonymous()
-                .disable()
-            .headers()
-                .contentSecurityPolicy("default-src 'none'")
-                .and()
-                .and()
-            .formLogin()
-                .disable();
+
+        return http
+                .securityMatcher("/api/**")
+                .addFilter(filter)
+                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.NEVER))
+                .authorizeHttpRequests(customizer -> customizer.anyRequest().authenticated())
+                .exceptionHandling(customizer -> customizer.authenticationEntryPoint(http401AuthenticationEntryPoint))
+                .csrf(customizer -> customizer
+                        .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
+                        // we require csrf protection only if there is a session alive
+                        .requireCsrfProtectionMatcher(ApiWebSecurityConfig::sessionExists)
+                        // CsrfFilter always generates a new token in the repo -> prevent with lazy
+                        .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
+                )
+                .anonymous(AbstractHttpConfigurer::disable)
+                .headers(headerPolicyDirectives("default-src 'none'"))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .build();
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/api/v1/openapi.yaml");
+    @Bean
+    @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
+    public WebSecurityCustomizer apiWebSecurityCustomizer() {
+        return customizer -> customizer.ignoring().requestMatchers("/api/v1/openapi.yaml");
     }
 
     /**

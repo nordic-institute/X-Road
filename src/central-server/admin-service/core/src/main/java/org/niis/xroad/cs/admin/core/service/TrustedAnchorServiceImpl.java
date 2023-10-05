@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -46,8 +47,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

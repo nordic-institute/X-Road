@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.test.api;
 
+import jakarta.validation.Valid;
 import org.niis.xroad.cs.openapi.InitializationApi;
 import org.niis.xroad.cs.openapi.model.InitialServerConfDto;
 import org.niis.xroad.cs.openapi.model.InitializationStatusDto;
@@ -34,8 +35,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.validation.Valid;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 

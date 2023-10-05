@@ -33,9 +33,8 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * Rest service handler interface

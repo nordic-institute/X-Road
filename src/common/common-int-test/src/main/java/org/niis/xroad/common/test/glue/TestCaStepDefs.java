@@ -29,14 +29,12 @@ package org.niis.xroad.common.test.glue;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.test.api.TestCaFeignApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -77,15 +75,6 @@ public class TestCaStepDefs extends BaseStepDefs {
 
     @SneakyThrows
     public static MultipartFile convert(File file) {
-        FileItem fileItem = new DiskFileItem(
-                "file",
-                Files.probeContentType(file.toPath()),
-                false,
-                file.getName(),
-                (int) file.length(),
-                file.getParentFile()
-        );
-        fileItem.getOutputStream().write(Files.readAllBytes(file.toPath()));
-        return new CommonsMultipartFile(fileItem);
+        return new MockMultipartFile("file", file.getName(), Files.probeContentType(file.toPath()), Files.newInputStream(file.toPath()));
     }
 }

@@ -620,19 +620,19 @@ public class AccessRightService {
 
         // get global members
         List<ServiceClientDto> globalMembers = getGlobalMembersAsDtos();
-        if (globalMembers.size() > 0) {
+        if (!globalMembers.isEmpty()) {
             dtos.addAll(globalMembers);
         }
 
         // get global groups
         List<ServiceClientDto> globalGroups = getGlobalGroupsAsDtos(instance);
-        if (globalMembers.size() > 0) {
+        if (!globalMembers.isEmpty()) {
             dtos.addAll(globalGroups);
         }
 
         // get local groups
         List<ServiceClientDto> localGroups = getLocalGroupsAsDtos(client.getLocalGroup());
-        if (localGroups.size() > 0) {
+        if (!localGroups.isEmpty()) {
             dtos.addAll(localGroups);
         }
 

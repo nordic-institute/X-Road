@@ -26,12 +26,12 @@
 package org.niis.xroad.restapi.util;
 
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 
 import java.sql.SQLException;

@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.test.api;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.niis.xroad.cs.openapi.ClientsApi;
 import org.niis.xroad.cs.openapi.model.ClientTypeDto;
 import org.niis.xroad.cs.openapi.model.PagedClientsDto;
@@ -34,9 +36,6 @@ import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
 
 @FeignClient(name = "clientsApi", path = "/api/v1")
 public interface FeignClientsApi extends ClientsApi {

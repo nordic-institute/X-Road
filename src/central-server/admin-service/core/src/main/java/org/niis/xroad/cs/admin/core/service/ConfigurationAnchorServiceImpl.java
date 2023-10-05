@@ -33,6 +33,11 @@ import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.transaction.Transactional;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.ServiceException;
@@ -50,11 +55,6 @@ import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.transaction.Transactional;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
@@ -68,6 +68,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
@@ -137,7 +138,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         }
 
         final var sources = configurationSourceRepository.findAllBySourceType(configurationType.name().toLowerCase());
-        final var now = TimeUtils.zonedDateTimeNow(ZoneId.of("UTC"));
+        final var now = TimeUtils.zonedDateTimeNow(ZoneId.of("UTC")).truncatedTo(MILLIS);
         final var anchorXml = buildAnchorXml(instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
         final var anchorXmlHash = CryptoUtils.calculateAnchorHashDelimited(anchorXmlBytes);

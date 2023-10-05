@@ -1,5 +1,6 @@
 # shared properties for dev/prod runtime
 # test runtime has a separate application.properties
+
 spring:
   jpa:
     mapping-resources:
@@ -12,6 +13,8 @@ spring:
     show-sql: false
     properties:
       hibernate:
+        id:
+          db_structure_naming_strategy: legacy #TODO Migrate to newer strategies
         dialect_resolvers: >
           ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialectResolver,
           ee.ria.xroad.common.db.Postgres12FixedImplicitSequenceDialectResolver,

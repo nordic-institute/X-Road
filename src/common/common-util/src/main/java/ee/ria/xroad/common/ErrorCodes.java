@@ -25,12 +25,11 @@
  */
 package ee.ria.xroad.common;
 
-import com.sun.xml.bind.api.AccessorException;
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.soap.SOAPException;
 import org.apache.james.mime4j.MimeException;
+import org.glassfish.jaxb.runtime.api.AccessorException;
 import org.xml.sax.SAXException;
-
-import javax.xml.bind.UnmarshalException;
-import javax.xml.soap.SOAPException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
