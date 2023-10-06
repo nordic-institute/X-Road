@@ -29,9 +29,9 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ClientType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
-import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.monotoring.MessageInfo;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

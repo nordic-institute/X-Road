@@ -48,7 +48,7 @@ public class NullLogManager extends AbstractLogManager {
         // do nothing
     }
 
-     @Override
+    @Override
     public TimestampRecord timestamp(Long messageRecordId) {
         return null;
     }

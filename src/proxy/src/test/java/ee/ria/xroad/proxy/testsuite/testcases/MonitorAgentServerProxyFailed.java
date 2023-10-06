@@ -27,8 +27,8 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
+import ee.ria.xroad.proxy.monotoring.MessageInfo;
+import ee.ria.xroad.proxy.monotoring.MessageInfo.Origin;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MonitorAgentMessageTestCase;
 

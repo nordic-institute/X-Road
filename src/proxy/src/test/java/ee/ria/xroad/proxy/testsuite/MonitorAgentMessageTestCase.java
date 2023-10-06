@@ -25,8 +25,7 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import ee.ria.xroad.common.monitoring.MonitorAgent;
-import ee.ria.xroad.common.monitoring.MonitorAgentProvider;
+import ee.ria.xroad.proxy.monotoring.MonitorAgent;
 
 /**
  * Monitor agent message test case.
@@ -44,7 +43,7 @@ public class MonitorAgentMessageTestCase extends MessageTestCase {
 
         monitorAgent.verifyAPICalls();
 
-        MonitorAgent.init((MonitorAgentProvider) null); // deinitialize
+        MonitorAgent.shutdown(); // deinitialize
     }
 
 }
