@@ -25,12 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 
-import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public class CustomErrorAttributes extends DefaultErrorAttributes {
     @Override
     public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options) {
         Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, options);
-        errorAttributes.put("timestamp", OffsetDateTime.now(ZoneOffset.UTC));
+        errorAttributes.put("timestamp", TimeUtils.offsetDateTimeNow(ZoneOffset.UTC));
         // Remove path to avoid reflecting input in response
         errorAttributes.remove("path");
         // Remove message since it's not defined

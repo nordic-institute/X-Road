@@ -64,7 +64,7 @@ public class JsonUtilsTest {
      */
     @Test
     public void testIgnoresTabsInContentType() throws Exception {
-        final Foo foo = new Foo(100, 200, OffsetDateTime.now(), null);
+        final Foo foo = new Foo(100, 200, TimeUtils.offsetDateTimeNow(), null);
         final String json = OBJECT_WRITER.writeValueAsString(foo);
         final Foo foo2 = OBJECT_READER.readValue(json, Foo.class);
 

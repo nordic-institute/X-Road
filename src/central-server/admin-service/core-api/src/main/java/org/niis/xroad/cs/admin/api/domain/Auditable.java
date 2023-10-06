@@ -26,12 +26,14 @@
  */
 package org.niis.xroad.cs.admin.api.domain;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import lombok.Data;
 
 import java.time.Instant;
 
 @Data
 public abstract class Auditable {
-    private Instant createdAt = Instant.now();
+    private Instant createdAt = TimeUtils.now();
     private Instant updatedAt = createdAt;
 }

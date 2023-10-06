@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -69,7 +70,7 @@ import static org.junit.Assert.assertTrue;
 @AutoConfigureWireMock(port = PortNumbers.ADMIN_PORT)
 public class DiagnosticsApiControllerTest extends AbstractApiControllerTestContext {
 
-    private static final OffsetDateTime PREVIOUS_UPDATE = OffsetDateTime.now().with(LocalTime.of(10, 42));
+    private static final OffsetDateTime PREVIOUS_UPDATE = TimeUtils.offsetDateTimeNow().with(LocalTime.of(10, 42));
     private static final OffsetDateTime NEXT_UPDATE = PREVIOUS_UPDATE.plusHours(1);
     private static final OffsetDateTime PREVIOUS_UPDATE_MIDNIGHT = PREVIOUS_UPDATE.with(LocalTime.of(0, 0));
     private static final OffsetDateTime NEXT_UPDATE_MIDNIGHT = PREVIOUS_UPDATE_MIDNIGHT.plusHours(1);
@@ -148,7 +149,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getGlobalConfDiagnosticsSuccess() {
-        final OffsetDateTime prevUpdate = OffsetDateTime.now();
+        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
         final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
         stubForDiagnosticsRequest("/status",
                 "{\"returnCode\":" + DiagnosticsErrorCodes.RETURN_SUCCESS + ",\"prevUpdate\":\"" + prevUpdate
@@ -166,7 +167,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getGlobalConfDiagnosticsWaiting() {
-        final OffsetDateTime prevUpdate = OffsetDateTime.now();
+        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
         final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
         stubForDiagnosticsRequest("/status", "{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED + ","
                 + "\"prevUpdate\":\"" + prevUpdate + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
@@ -183,7 +184,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() {
-        final OffsetDateTime prevUpdate = OffsetDateTime.now();
+        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
         final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
         stubForDiagnosticsRequest("/status",
                 "{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_INTERNAL + ",\"prevUpdate\":\"" + prevUpdate
@@ -201,7 +202,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() {
-        final OffsetDateTime prevUpdate = OffsetDateTime.now().with(LocalTime.of(0, 0));
+        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow().with(LocalTime.of(0, 0));
         final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
         stubForDiagnosticsRequest("/status",
                 "{\"returnCode\":" + ERROR_CODE_UNKNOWN + ",\"prevUpdate\":\"" + prevUpdate + "\",\"nextUpdate\":\""

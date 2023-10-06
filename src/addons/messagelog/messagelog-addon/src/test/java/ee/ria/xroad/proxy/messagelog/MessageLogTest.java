@@ -45,6 +45,7 @@ import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
@@ -205,7 +206,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         final String requestId = UUID.randomUUID().toString();
         final RestRequest message = createRestRequest("q-" + requestId, requestId);
 
-        final Instant atDate = Instant.now();
+        final Instant atDate = TimeUtils.now();
         final byte[] body = "\"test message body\"".getBytes(StandardCharsets.UTF_8);
         log(atDate, message, createSignature(), body);
         final MessageRecord logRecord = (MessageRecord) findByQueryId(message.getQueryId(), atDate.minusMillis(1),
@@ -363,7 +364,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
         assertTaskQueueSize(3);
 
-        logManager.setTimestampFailed(Instant.now().minusSeconds(60));
+        logManager.setTimestampFailed(TimeUtils.now().minusSeconds(60));
 
         startTimestamping();
         waitForMessageInTaskQueue();
