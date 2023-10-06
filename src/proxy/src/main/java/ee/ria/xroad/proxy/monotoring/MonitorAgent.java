@@ -23,12 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.monitoring;
+package ee.ria.xroad.proxy.monotoring;
 
-import akka.actor.ActorSystem;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.RpcClient;
 
 import java.util.Date;
+
+import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
+import static ee.ria.xroad.common.SystemProperties.getProxyGrpcPort;
+import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
 
 /**
  * This class encapsulates monitoring agent that can receive
@@ -42,22 +46,24 @@ public final class MonitorAgent {
     private MonitorAgent() {
     }
 
-    /**
-     * Initialize the MonitorAgent with given ActorSystem.
-     * This method must be called before any other methods in this class.
-     * @param actorSystem actor system to be used by this monitoring agent
-     */
-    public static void init(ActorSystem actorSystem) {
-        monitorAgentImpl = new DefaultMonitorAgentImpl(actorSystem);
+    public static void init() throws Exception {
+        init(getGrpcInternalHost(), getProxyGrpcPort(), getSignerClientTimeout());
     }
 
-    /**
-     * Initialize the MonitorAgent with given implementation.
-     * This method must be called before any other methods in this class.
-     * @param implementation monitor agent implementation to be used by this monitoring agent
-     */
-    public static void init(MonitorAgentProvider implementation) {
-        MonitorAgent.monitorAgentImpl = implementation;
+    public static void init(String host, int port, int clientTimeoutMillis) throws Exception {
+        var client = RpcClient.newClient(host, port, clientTimeoutMillis, DefaultMonitorAgentImpl.RpcMonitorAgentContext::new);
+        init(new DefaultMonitorAgentImpl(client));
+    }
+
+    public static void init(final MonitorAgentProvider monitorAgent) throws Exception {
+        monitorAgentImpl = monitorAgent;
+    }
+
+
+    public static void shutdown() {
+        if (monitorAgentImpl instanceof Shutdownable) {
+            ((Shutdownable) monitorAgentImpl).shutdown();
+        }
     }
 
     /**
@@ -67,7 +73,7 @@ public final class MonitorAgent {
      * @param endTime Time of end of the processing.
      */
     public static void success(MessageInfo messageInfo, Date startTime,
-            Date endTime) {
+                               Date endTime) {
         try {
             if (monitorAgentImpl != null) {
                 monitorAgentImpl.success(messageInfo, startTime, endTime);

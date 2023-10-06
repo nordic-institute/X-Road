@@ -23,20 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.monitoring;
+package ee.ria.xroad.proxy.monotoring;
 
-import lombok.Data;
-
-import java.io.Serializable;
-import java.util.Date;
-
-/**
- * Serizalizable message denoting successful message exchange.
- */
-@Data
-public class SuccessfulMessage implements Serializable {
-
-    private final MessageInfo message;
-    private final Date startTime;
-    private final Date endTime;
+public interface Shutdownable {
+    void shutdown();
 }

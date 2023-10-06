@@ -25,8 +25,8 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MonitorAgentProvider;
+import ee.ria.xroad.proxy.monotoring.MessageInfo;
+import ee.ria.xroad.proxy.monotoring.MonitorAgentProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.builder.EqualsBuilder;
