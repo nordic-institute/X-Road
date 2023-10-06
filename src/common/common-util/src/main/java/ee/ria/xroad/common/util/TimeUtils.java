@@ -88,18 +88,38 @@ public final class TimeUtils {
         return Instant.now().truncatedTo(MICROS);
     }
 
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return OffsetDateTime wil microseconds precision.
+     */
     public static OffsetDateTime offsetDateTimeNow() {
         return OffsetDateTime.now().truncatedTo(MICROS);
     }
 
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return OffsetDateTime wil microseconds precision.
+     */
     public static OffsetDateTime offsetDateTimeNow(ZoneId zoneId) {
         return OffsetDateTime.now(zoneId).truncatedTo(MICROS);
     }
 
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return LocalDateTime wil microseconds precision.
+     */
     public static LocalDateTime localDateTimeNow() {
         return LocalDateTime.now().truncatedTo(MICROS);
     }
 
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return ZonedDateTime wil microseconds precision.
+     */
     public static ZonedDateTime zonedDateTimeNow(ZoneId zoneId) {
         return ZonedDateTime.now(zoneId).truncatedTo(MICROS);
     }
