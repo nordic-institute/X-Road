@@ -44,6 +44,8 @@ import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.rpc.error.CodedExceptionProto;
 
+import java.util.concurrent.ForkJoinPool;
+
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -83,8 +85,9 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             }
         };
 
-        ManagedChannel channel = Grpc.newChannelBuilderForAddress(host, port, credentials)
+        final ManagedChannel channel = Grpc.newChannelBuilderForAddress(host, port, credentials)
                 .intercept(timeoutInterceptor)
+                .executor(ForkJoinPool.commonPool())
                 .build();
 
         var executionContext = contextFactory.createContext(channel);

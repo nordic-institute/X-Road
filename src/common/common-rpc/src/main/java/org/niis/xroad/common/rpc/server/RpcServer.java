@@ -42,6 +42,7 @@ import java.net.InetSocketAddress;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
 /**
@@ -52,9 +53,10 @@ public class RpcServer implements StartStop {
     private final Server server;
 
     public RpcServer(final String host, final int port, final ServerCredentials creds, final Consumer<ServerBuilder<?>> configFunc) {
-        ServerBuilder<?> builder = NettyServerBuilder.forAddress(new InetSocketAddress(host, port), creds);
-        configFunc.accept(builder);
+        ServerBuilder<?> builder = NettyServerBuilder.forAddress(new InetSocketAddress(host, port), creds)
+                .executor(ForkJoinPool.commonPool());
 
+        configFunc.accept(builder);
         server = builder.build();
     }
 
