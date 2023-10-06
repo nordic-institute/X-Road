@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,6 +31,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +68,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
 
-import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
@@ -138,7 +138,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         }
 
         final var sources = configurationSourceRepository.findAllBySourceType(configurationType.name().toLowerCase());
-        final var now = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(MILLIS);
+        final var now = TimeUtils.zonedDateTimeNow(ZoneId.of("UTC"));
         final var anchorXml = buildAnchorXml(configurationType, instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
         final var anchorXmlHash = CryptoUtils.calculateAnchorHashDelimited(anchorXmlBytes);

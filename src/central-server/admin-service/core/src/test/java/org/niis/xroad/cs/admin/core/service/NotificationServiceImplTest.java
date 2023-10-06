@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -54,7 +55,6 @@ import java.util.Set;
 
 import static ee.ria.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
-import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -94,7 +94,7 @@ class NotificationServiceImplTest {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
-        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, now()));
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
@@ -115,7 +115,7 @@ class NotificationServiceImplTest {
         confSigningKey.setKeyIdentifier("id-other");
         mockInitialized(true, true);
 
-        Instant time = Instant.now();
+        Instant time = TimeUtils.now();
         when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(FAILURE, time));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
@@ -140,7 +140,7 @@ class NotificationServiceImplTest {
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(false, true);
         when(systemParameterService.getConfExpireIntervalSeconds()).thenReturn(600);
-        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, now()));
+        when(globalConfGenerationStatus.get()).thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now()));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))
@@ -187,7 +187,7 @@ class NotificationServiceImplTest {
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, true);
         when(globalConfGenerationStatus.get())
-                .thenReturn(new GlobalConfGenerationStatus(SUCCESS, now().minus(1, HOURS)));
+                .thenReturn(new GlobalConfGenerationStatus(SUCCESS, TimeUtils.now().minus(1, HOURS)));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_INTERNAL))
                 .thenReturn(Optional.of(confSigningKey));
         when(configurationSigningKeysService.findActiveForSource(SOURCE_TYPE_EXTERNAL))

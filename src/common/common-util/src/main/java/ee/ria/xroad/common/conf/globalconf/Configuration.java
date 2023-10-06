@@ -25,12 +25,13 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,7 @@ public class Configuration {
      * @return true, if the configuration is expired at the current date
      */
     public boolean isExpired() {
-        return expirationDate != null && Instant.now().isAfter(expirationDate.toInstant());
+        return expirationDate != null && TimeUtils.now().isAfter(expirationDate.toInstant());
     }
 
 

@@ -25,10 +25,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.time.OffsetDateTime;
 
 import static org.junit.Assert.assertEquals;
 
@@ -39,6 +40,7 @@ public class ConfigurationPartMetadataTest {
 
     /**
      * Test that ensures metadata is written and read correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -46,7 +48,7 @@ public class ConfigurationPartMetadataTest {
         ConfigurationPartMetadata write = new ConfigurationPartMetadata();
         write.setContentIdentifier("SHARED-PARAMETERS");
         write.setInstanceIdentifier("FOO");
-        write.setExpirationDate(OffsetDateTime.now());
+        write.setExpirationDate(TimeUtils.offsetDateTimeNow());
 
         final byte[] bytes = write.toByteArray();
         ConfigurationPartMetadata read = ConfigurationPartMetadata.read(

@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.domain.AlertData;
@@ -48,7 +50,7 @@ public class AlertDataConverterTest {
 
     @Test
     public void convertAlertData() {
-        OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
+        OffsetDateTime date = TimeUtils.offsetDateTimeNow(ZoneOffset.UTC);
         AlertStatus alertStatus = new AlertStatus();
         alertStatus.setBackupRestoreRunningSince(date);
         alertStatus.setCurrentTime(date);

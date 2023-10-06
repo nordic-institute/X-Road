@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.commonui.OptionalConfPart;
 
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -99,7 +99,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
             log.debug("Starting global conf generation");
 
             generateAndSaveConfiguration();
-            var configGenerationTime = Instant.now();
+            var configGenerationTime = TimeUtils.now();
 
             var allConfigurationParts = toConfigurationParts(configurationService.getAllConfigurationFiles(CONFIGURATION_VERSION));
             var internalConfigurationParts = internalConfigurationParts(allConfigurationParts);
@@ -137,7 +137,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         return Files.isDirectory(dirPath)
                 && dirPath.getFileName().toString().matches("\\A\\d+\\z")
                 && Files.getLastModifiedTime(dirPath).toInstant().isBefore(
-                Instant.now().minusSeconds(OLD_CONF_PRESERVING_SECONDS));
+                TimeUtils.now().minusSeconds(OLD_CONF_PRESERVING_SECONDS));
     }
 
     @SneakyThrows
@@ -189,7 +189,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private String createSignedDirectory(Set<ConfigurationPart> configurationParts, String pathPrefix, ConfigurationSigningKey signingKey) {
         var directoryContentBuilder = new DirectoryContentBuilder(
                 getConfHashAlgoId(),
-                Instant.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds()),
+                TimeUtils.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds()),
                 pathPrefix,
                 systemParameterService.getInstanceIdentifier())
                 .contentParts(configurationParts);
@@ -236,7 +236,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private void writeLocalCopy(Set<ConfigurationPart> allConfigurationParts) {
         new LocalCopyWriter(systemParameterService.getInstanceIdentifier(),
                 Path.of(SystemProperties.getConfigurationPath()),
-                Instant.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds()))
+                TimeUtils.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds()))
                 .write(allConfigurationParts);
     }
 

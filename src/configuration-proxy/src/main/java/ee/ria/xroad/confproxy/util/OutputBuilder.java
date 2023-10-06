@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.signer.SignerProxy;
 
@@ -193,7 +194,7 @@ public class OutputBuilder implements AutoCloseable {
      */
     private void build(final ByteArrayOutputStream mimeContent) throws Exception {
         try (MultipartEncoder encoder = new MultipartEncoder(mimeContent, dataBoundary)) {
-            OffsetDateTime expireDate = OffsetDateTime.now().plusSeconds(conf.getValidityIntervalSeconds());
+            OffsetDateTime expireDate = TimeUtils.offsetDateTimeNow().plusSeconds(conf.getValidityIntervalSeconds());
             encoder.startPart(null, new String[]{
                     HEADER_EXPIRE_DATE + ": " + DATETIME_FORMAT.format(expireDate.truncatedTo(ChronoUnit.MILLIS)),
                     HEADER_VERSION + ": " + String.format("%d", version)
