@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -102,7 +103,7 @@ public class TokenCertificateConverter {
         if (!info.isActive()) {
             return CertificateOcspStatus.DISABLED;
         }
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         if (now.isAfter(details.getNotAfter())) {
             return CertificateOcspStatus.EXPIRED;
         }

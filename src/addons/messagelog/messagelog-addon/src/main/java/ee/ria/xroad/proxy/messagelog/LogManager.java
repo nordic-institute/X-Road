@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -41,6 +41,7 @@ import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
@@ -55,7 +56,6 @@ import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -301,7 +301,7 @@ public class LogManager extends AbstractLogManager {
      * @param url url of timestamper which stamped successfully
      */
     static void putStatusMapSuccess(String url) {
-        statusMap.put(url, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now()));
+        statusMap.put(url, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow()));
     }
 
     /**
@@ -314,7 +314,7 @@ public class LogManager extends AbstractLogManager {
         int errorCode = DiagnosticsUtils.getErrorCode(e);
         for (String tspUrl : ServerConf.getTspUrl()) {
             statusMap.put(tspUrl,
-                    new DiagnosticsStatus(errorCode, OffsetDateTime.now(), tspUrl));
+                    new DiagnosticsStatus(errorCode, TimeUtils.offsetDateTimeNow(), tspUrl));
         }
     }
 
@@ -371,7 +371,7 @@ public class LogManager extends AbstractLogManager {
             }
 
             if (isTimestampFailed()) {
-                if (Instant.now().minusSeconds(period).isAfter(timestampFailed)) {
+                if (TimeUtils.now().minusSeconds(period).isAfter(timestampFailed)) {
                     throw new CodedException(X_MLOG_TIMESTAMPER_FAILED, "Cannot time-stamp messages");
                 }
             }

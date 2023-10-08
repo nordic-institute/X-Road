@@ -1,6 +1,5 @@
 @SecurityServer
 @Initialization
-  @This
 Feature: 0100 - SS: Initialization
   Verify that SS can be initialized from fresh state.
 

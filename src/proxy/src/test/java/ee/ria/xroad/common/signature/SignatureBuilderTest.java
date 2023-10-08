@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,6 +30,7 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -44,7 +45,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
@@ -112,7 +112,7 @@ public class SignatureBuilderTest {
         SignatureBuilder builder = new SignatureBuilder();
         builder.addPart(hash);
 
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
 
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subjectCert, issuerCert, signerCert, signerKey,
                 CertificateStatus.GOOD, thisUpdate, null);
@@ -141,7 +141,7 @@ public class SignatureBuilderTest {
     public void buildSuccessfullyWithExtraCerts() throws Exception {
         SignatureBuilder builder = new SignatureBuilder();
 
-        final Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        final Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
 
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subjectCert, issuerCert, signerCert, signerKey,
                 CertificateStatus.GOOD, thisUpdate, null);

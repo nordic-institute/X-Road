@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class TimestampingServiceDiagnosticConverterTest {
 
     @Test
     public void convertSingleTimestampingServiceDiagnostics() {
-        final OffsetDateTime now = OffsetDateTime.now();
+        final OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, now);
         diagnosticsStatus.setDescription(URL_1);
         TimestampingServiceDiagnostics timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter.convert(
@@ -71,7 +72,7 @@ public class TimestampingServiceDiagnosticConverterTest {
 
     @Test
     public void convertMultipleTimestampingServiceDiagnostics() {
-        final OffsetDateTime prevUpdate = OffsetDateTime.now();
+        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
         final OffsetDateTime prevUpdate2 = prevUpdate.plusSeconds(60);
         DiagnosticsStatus diagnosticsStatus1 =
                 new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, prevUpdate);

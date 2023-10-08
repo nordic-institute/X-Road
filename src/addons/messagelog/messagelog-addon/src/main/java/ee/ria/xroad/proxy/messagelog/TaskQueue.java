@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -162,7 +162,7 @@ public class TaskQueue extends UntypedAbstractActor {
 
         if (timestampTasks.isEmpty()) {
             log.trace("Nothing to time-stamp, task queue is empty");
-
+            indicateSuccess();
             return;
         }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,6 +31,7 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.common.cache.Cache;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -46,7 +47,6 @@ import org.junit.Test;
 import java.lang.reflect.Field;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
@@ -80,7 +80,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void errorCertMismatch() throws Exception {
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
@@ -149,7 +149,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void errorThisUpdateAfterNow() throws Exception {
-        Date thisUpdate = Date.from(Instant.now().plusMillis(12345L));
+        Date thisUpdate = Date.from(TimeUtils.now().plusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, new Date());
@@ -166,7 +166,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void errorNextUpdateBeforeNow() throws Exception {
-        Date nextUpdate = Date.from(Instant.now().minusMillis(12345L));
+        Date nextUpdate = Date.from(TimeUtils.now().minusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 new Date(), nextUpdate);
@@ -184,7 +184,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void nextUpdateBeforeNow() throws Exception {
-        Date nextUpdate = Date.from(Instant.now().minusMillis(12345L));
+        Date nextUpdate = Date.from(TimeUtils.now().minusMillis(12345L));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 new Date(), nextUpdate);
@@ -199,7 +199,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void certStatusGood() throws Exception {
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, null);
@@ -215,7 +215,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void certStatusRevoked() throws Exception {
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey,
                 new RevokedStatus(new Date(), CRLReason.unspecified),
@@ -233,7 +233,7 @@ public class OcspVerifierTest {
      */
     @Test
     public void certStatusUnknown() throws Exception {
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, new UnknownStatus(),
                 thisUpdate, null);
@@ -246,7 +246,7 @@ public class OcspVerifierTest {
 
     @Test
     public void responseValidityCache() throws Exception {
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, null);

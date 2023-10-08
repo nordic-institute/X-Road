@@ -35,6 +35,7 @@ import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.ObjectFactory;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsType;
+import ee.ria.xroad.proxymonitor.message.OutputSpecType;
 
 import io.cucumber.java.en.Step;
 import jakarta.xml.bind.JAXBContext;
@@ -48,19 +49,35 @@ import org.springframework.http.ResponseEntity;
 
 import javax.xml.namespace.QName;
 
+import java.util.Optional;
+import java.util.function.Predicate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ProxyMonitorStepDefs extends BaseStepDefs {
 
     @Autowired
     private FeignXRoadSoapRequestsApi xRoadSoapRequestsApi;
 
+
+
     private static final Marshaller MARSHALLER = createMarshaller();
 
     @SuppressWarnings("checkstyle:OperatorWrap")
-    @Step("Security Server Metrics request was sent")
-    public void executeGetSecurityServerMetricsRequest() {
-        ResponseEntity<String> response = xRoadSoapRequestsApi.getSecurityServerMetrics(buildMetricsRequest("ID1234").getBytes());
+    @Step("Security Server Metrics request was sent with queryId {string}")
+    public void executeGetSecurityServerMetricsRequest(String queryId) {
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest(queryId, null)
+                .getBytes());
+        putStepData(XROAD_SOAP_RESPONSE, response);
+    }
+
+    @SuppressWarnings("checkstyle:OperatorWrap")
+    @Step("Security Server Metric: {string} request was sent with queryId {string}")
+    public void executeGetSecurityServerMetricsRequest(final String metricName, final String queryId) {
+        ResponseEntity<String> response = xRoadSoapRequestsApi.getXRoadSoapResponse(buildMetricsRequest(queryId, metricName)
+                .getBytes());
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
@@ -69,13 +86,30 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
         ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response)
                 .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
-                .assertion(xpath(response.getBody(), "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name",
+                .assertion(xpath(response.getBody(),
+                        "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name",
                         "SERVER:CS/GOV/0245437-2/SS1"))
                 .execute();
     }
 
+    @Step("Valid numeric value returned for metric: {string}")
+    public void validNumericMetricReturned(final String metricName) {
+        ResponseEntity<String> response = (ResponseEntity<String>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
+                .execute();
+
+        assertThat(evalXpath(response.getBody(),
+                "//monitoring:getSecurityServerMetricsResponse//monitoring:numericMetric[./monitoring:name/text()='"
+                + metricName
+                + "']/monitoring:value"))
+                .isNotEmpty()
+                .containsOnlyDigits();
+    }
+
+
     @SneakyThrows
-    private SoapMessageImpl buildMetricsRequest(String queryId) {
+    private SoapMessageImpl buildMetricsRequest(final String queryId, final String metricName) {
         SoapHeader header = new SoapHeader();
         ClientId member = ClientId.Conf.create("CS", "GOV", "0245437-2");
         header.setClient(member);
@@ -86,9 +120,19 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
 
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(header);
+        var body = new GetSecurityServerMetricsType();
+        Optional.ofNullable(metricName)
+                .filter(Predicate.not(String::isEmpty))
+                .map(name -> {
+                    var outputSpec = new OutputSpecType();
+                    outputSpec.getOutputField().add(name);
+                    return outputSpec;
+                })
+                .ifPresent(body::setOutputSpec);
+
         builder.setCreateBodyCallback(soapBodyNode -> MARSHALLER.marshal(
                 new JAXBElement<>(new QName("http://x-road.eu/xsd/monitoring", "getSecurityServerMetrics"),
-                        GetSecurityServerMetricsType.class, null, null), soapBodyNode)
+                        GetSecurityServerMetricsType.class, null, body), soapBodyNode)
         );
         return builder.build();
     }

@@ -28,7 +28,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 
 RUN pg_ctlcluster 14 main start \
     && apt-get update \
-    && apt-get -qq install xroad-securityserver xroad-autologin \
+    && apt-get -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
     && apt-get -qq clean \
     && pg_ctlcluster 14 main stop
 

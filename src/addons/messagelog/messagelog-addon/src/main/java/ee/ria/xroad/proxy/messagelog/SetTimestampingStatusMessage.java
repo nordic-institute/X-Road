@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.proxy.messagelog;
+
+import ee.ria.xroad.common.util.TimeUtils;
 
 import akka.dispatch.ControlMessage;
 import lombok.Data;
@@ -53,7 +55,7 @@ class SetTimestampingStatusMessage implements ControlMessage {
      */
     SetTimestampingStatusMessage(Status status) {
         this.status = status;
-        this.atTime = Instant.now();
+        this.atTime = TimeUtils.now();
     }
 }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -152,7 +153,7 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
         // ignore federated parameters that are expired
         if (parameters != null
                 && (parameters.getInstanceIdentifier().equals(instanceIdentifier)
-                    || parameters.getExpiresOn().isAfter(OffsetDateTime.now()))) {
+                    || parameters.getExpiresOn().isAfter(TimeUtils.offsetDateTimeNow()))) {
             return parameters;
         }
         return null;
@@ -162,7 +163,7 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
      * @return all known shared parameters
      */
     public List<SharedParametersV2> getShared() {
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         return sharedParameters.values()
                 .stream()
                 .filter(p -> p.getInstanceIdentifier().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now))

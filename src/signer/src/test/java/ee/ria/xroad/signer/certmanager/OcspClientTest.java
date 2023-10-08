@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -61,7 +62,6 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -109,7 +109,7 @@ public class OcspClientTest {
 
         GlobalConf.reload(getTestGlobalConf());
 
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
 
         responseData = OcspTestUtils.createOCSPResponse(subject, GlobalConf.getCaCert("EE", subject), ocspResponderCert,
                 getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();
@@ -137,7 +137,7 @@ public class OcspClientTest {
                 Arrays.asList("http://127.0.0.1:1234", RESPONDER_URI));
         GlobalConf.reload(conf);
 
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
 
         responseData = OcspTestUtils.createOCSPResponse(subject, GlobalConf.getCaCert("EE", subject), ocspResponderCert,
                 getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();

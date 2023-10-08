@@ -53,6 +53,7 @@ public class ContainerSetup {
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
+
             TestableContainerProperties testableContainerProperties,
             @Value("${test-automation.custom.docker-root}") String dockerRoot,
             @Value("${test-automation.custom.package-repo}") String packageRepo,
@@ -86,7 +87,13 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(4000, 8080);
+                return List.of(Port.UI, Port.SERVICE, Port.DB);
+            }
+
+            @NotNull
+            @Override
+            public List<Integer> fixedExposedPorts() {
+                return List.of(Port.JMX);
             }
         };
     }
@@ -104,9 +111,16 @@ public class ContainerSetup {
             @SneakyThrows
             public void afterStart(@NotNull GenericContainer<?> genericContainer) {
                 genericContainer.execInContainer("sudo", "-u", "xroad", "/etc/xroad/backup-keys/init_backup_encryption.sh");
+
+                // allow connection to postgres
+                genericContainer.execInContainer("sed", "-i",
+                        "s/#listen_addresses = 'localhost'/listen_addresses = '*'/", "/etc/postgresql/14/main/postgresql.conf");
+                genericContainer.execInContainer("sed", "-ri",
+                        "s/host    replication     all             127.0.0.1\\/32/host    all             all             0.0.0.0\\/0/g",
+                        "/etc/postgresql/14/main/pg_hba.conf");
+                genericContainer.execInContainer("supervisorctl", "restart", "postgres");
             }
         };
     }
-
 
 }

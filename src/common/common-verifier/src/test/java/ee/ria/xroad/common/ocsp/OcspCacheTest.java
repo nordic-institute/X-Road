@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,6 +29,7 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -37,7 +38,6 @@ import org.junit.Test;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -80,7 +80,7 @@ public class OcspCacheTest {
      */
     @Test
     public void putGet() throws Exception {
-        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
@@ -95,7 +95,7 @@ public class OcspCacheTest {
      */
     @Test
     public void expiredResponse() throws Exception {
-        Date thisUpdate = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
+        Date thisUpdate = Date.from(TimeUtils.now().minus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 

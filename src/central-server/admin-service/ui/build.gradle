@@ -46,9 +46,7 @@ task yarnUpdateDeps(type: RunYarn, dependsOn: [configurations.npm, installPackag
     .collect { '@niis/shared-ui@file:' + it }
     .join(' ')
 
-
-  println packages
-  script = 'add --mode=update-lockfile ' + packages
+  script = 'add  ' + packages
 }
 
 installFrontend {
