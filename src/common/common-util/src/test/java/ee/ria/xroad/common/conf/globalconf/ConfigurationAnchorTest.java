@@ -48,7 +48,7 @@ public class ConfigurationAnchorTest {
         assertEquals(3, a.getLocations().size());
 
         ConfigurationLocation l = a.getLocations().get(0);
-        assertEquals("http://www.bar.com/conf?version=2", l.getDownloadURL());
+        assertEquals("http://www.bar.com/conf", l.getDownloadURL());
 
         String hash = "t7+jfR1wnsN1EBtBpCt/q8JIasg=";
         String hashAlgoId = "http://www.w3.org/2000/09/xmldsig#sha1";

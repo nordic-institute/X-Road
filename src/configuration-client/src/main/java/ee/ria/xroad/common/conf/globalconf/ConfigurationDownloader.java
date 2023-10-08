@@ -27,14 +27,17 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.bouncycastle.operator.DigestCalculator;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -53,6 +56,7 @@ import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.generateConfigurationLocation;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -78,8 +82,12 @@ class ConfigurationDownloader {
 
     private final Map<ConfigurationSource, ConfigurationLocation> lastSuccessfulLocation = new HashMap<>();
 
-    ConfigurationDownloader(String globalConfigurationDir) {
+    @Getter
+    private int configurationVersion;
+
+    ConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
         fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+        this.configurationVersion = configurationVersion;
     }
 
     ConfigurationParser getParser() {
@@ -139,6 +147,7 @@ class ConfigurationDownloader {
     }
 
     Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {
+        location = buildVersionedLocation(location);
         log.info("Downloading configuration from {}", location.getDownloadURL());
 
         Configuration configuration = getParser().parse(location, contentIdentifiers);
@@ -258,6 +267,21 @@ class ConfigurationDownloader {
         log.trace("Downloading {} because file {} does not exist locally",
                 configurationFile.getContentLocation(), file);
         return true;
+    }
+
+    ConfigurationLocation buildVersionedLocation(ConfigurationLocation location) throws IOException {
+        if (configurationVersion > 2) {
+            URL url = new URL(generateConfigurationLocation(location.getDownloadURL(), configurationVersion));
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            if (connection.getResponseCode() != HttpStatus.SC_OK) {
+                log.info("Global conf V3 not available, defaulting back to V2");
+                configurationVersion = 2;
+            }
+            connection.disconnect();
+        }
+        return new ConfigurationLocation(location.getSource(),
+                ConfigurationUtils.generateConfigurationLocation(location.getDownloadURL(), configurationVersion),
+                location.getVerificationCerts());
     }
 
     byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {

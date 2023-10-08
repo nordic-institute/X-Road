@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -84,7 +85,7 @@ public class ConfigurationDownloaderTest {
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
             // Given
             ConfigurationDownloader downloader =
-                    getDownloader(LOCATION_URL_SUCCESS);
+                    getDownloader(LOCATION_URL_SUCCESS + "?version=2");
             List<String> locationUrls = getMixedLocationUrls();
 
             // When
@@ -123,11 +124,11 @@ public class ConfigurationDownloaderTest {
     }
 
     private Matcher<List<String>> hasOnlyOneSuccessfulUrl() {
-        return new TypeSafeMatcher<List<String>>() {
+        return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(List<String> parsedUrls) {
-                return  parsedUrls.size() == 1
-                        && parsedUrls.contains(LOCATION_URL_SUCCESS);
+                return parsedUrls.size() == 1
+                        && parsedUrls.contains(LOCATION_URL_SUCCESS + "?version=2");
             }
 
             @Override
@@ -146,7 +147,10 @@ public class ConfigurationDownloaderTest {
         downloader.download(getSource(locationUrls));
 
         // Then
-        verifyLocationsRandomized(downloader, locationUrls);
+        List<String> expectedLocationUrls = locationUrls.stream()
+                .map(url -> url + "?version=" + downloader.getConfigurationVersion())
+                .collect(toList());
+        verifyLocationsRandomized(downloader, expectedLocationUrls);
     }
 
     private void verifyLocationsRandomized(
@@ -168,7 +172,7 @@ public class ConfigurationDownloaderTest {
 
     private Matcher<List<String>> sameUrlsAreContained(
             final List<String> locationUrls) {
-        return new TypeSafeMatcher<List<String>>() {
+        return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(List<String> parsedUrls) {
                 return  locationUrls.size() == parsedUrls.size()
@@ -225,7 +229,7 @@ public class ConfigurationDownloaderTest {
 
     private ConfigurationDownloader getDownloader(
             String... successfulLocationUrls) {
-        return new ConfigurationDownloader("f") {
+        return new ConfigurationDownloader("f", 3) {
 
             ConfigurationParser parser =
                     new TestConfigurationParser(successfulLocationUrls);

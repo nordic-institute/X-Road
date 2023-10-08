@@ -163,7 +163,7 @@ public class ConfigurationClientTest {
         ConfigurationAnchorV2 configurationAnchor = getConfigurationAnchor(confPath + ".txt");
 
         ConfigurationDownloader configurations = new ConfigurationDownloader(
-                tempConfFolder.getRoot().getAbsolutePath()) {
+                tempConfFolder.getRoot().getAbsolutePath(), 2) {
             @Override
             ConfigurationParser getParser() {
                 return new ConfigurationParser() {

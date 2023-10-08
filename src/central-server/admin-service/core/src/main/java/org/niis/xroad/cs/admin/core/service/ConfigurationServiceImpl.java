@@ -44,7 +44,6 @@ import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
-import org.niis.xroad.cs.admin.api.service.HAClusterStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
@@ -102,7 +101,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final DistributedFileMapper distributedFileMapper;
     private final AuditDataHelper auditDataHelper;
     private final ConfigurationPartValidator configurationPartValidator;
-    private final HAClusterStatusService haClusterStatusService;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
 
     @Override
