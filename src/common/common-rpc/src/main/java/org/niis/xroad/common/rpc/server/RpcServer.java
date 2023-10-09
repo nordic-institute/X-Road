@@ -33,6 +33,9 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerCredentials;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
+import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
@@ -53,7 +56,14 @@ public class RpcServer implements StartStop {
     private final Server server;
 
     public RpcServer(final String host, final int port, final ServerCredentials creds, final Consumer<ServerBuilder<?>> configFunc) {
+        final var bossGroupThreadFactory = new DefaultThreadFactory("rpc-server-nio-boss-ELG", true);
+        final var workerGroupThreadFactory = new DefaultThreadFactory("rpc-server-nio-worker-ELG", true);
+
         ServerBuilder<?> builder = NettyServerBuilder.forAddress(new InetSocketAddress(host, port), creds)
+                .channelType(NioServerSocketChannel.class)
+                .channelFactory(NioServerSocketChannel::new)
+                .bossEventLoopGroup(new NioEventLoopGroup(1, bossGroupThreadFactory))
+                .workerEventLoopGroup(new NioEventLoopGroup(0, workerGroupThreadFactory))
                 .executor(ForkJoinPool.commonPool());
 
         configFunc.accept(builder);
