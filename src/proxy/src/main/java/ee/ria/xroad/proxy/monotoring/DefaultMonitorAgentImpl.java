@@ -43,14 +43,17 @@ public class DefaultMonitorAgentImpl implements MonitorAgentProvider, Shutdownab
     private static final StreamObserver<Void> NOOP_OBSERVER = new StreamObserver<>() {
         @Override
         public void onNext(Void value) {
+            //Noop impl, ignore item
         }
 
         @Override
         public void onError(Throwable t) {
+            //Noop impl, ignore error
         }
 
         @Override
         public void onCompleted() {
+            //Noop impl, ignore completion
         }
     };
 
