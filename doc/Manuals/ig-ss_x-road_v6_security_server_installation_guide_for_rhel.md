@@ -58,7 +58,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.2 Reference Data](#22-reference-data)
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  - [2.3.1 Installing Java 17 (RHEL 7 only)](#231-installing-java-17-rhel-7-only)
+    - [2.3.1 Installing Java 17 (RHEL 7 only)](#231-installing-java-17-rhel-7-only)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
