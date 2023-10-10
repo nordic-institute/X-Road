@@ -14,9 +14,23 @@
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_distribution_major_version}}.noarch.rpm"
   when: not epel.stat.exists
 
-- name: Install Azul repository (RHEL 7 only)
+- name: Setup the Adoptium repo (RHEL 7 only)
+  yum_repository:
+    name: "Adoptium"
+    file: "adoptium"
+    description: "Adoptium repository"
+    baseurl: "https://packages.adoptium.net/artifactory/rpm/rhel/7/x86_64"
+    enabled: yes
+    gpgcheck: yes
+    repo_gpgcheck: yes
+    gpgkey: "https://packages.adoptium.net/artifactory/api/gpg/key/public"
+    state: present
+  when: ansible_distribution_major_version == "7"
+
+- name: Install Temurin JDK 17 (RHEL 7 only)
+  become: yes
   yum:
-    name: "https://cdn.azul.com/zulu/bin/zulu-repo-1.0.0-1.noarch.rpm"
+    name: "temurin-17-jdk"
     state: present
   when: ansible_distribution_major_version == "7"
 
