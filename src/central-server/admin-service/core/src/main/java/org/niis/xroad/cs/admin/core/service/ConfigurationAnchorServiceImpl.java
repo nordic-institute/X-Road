@@ -69,7 +69,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
-import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INSTANCE_IDENTIFIER_NOT_SET;
@@ -189,9 +188,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
     }
 
     private String buildGlobalDownloadUrl(final ConfigurationSourceType sourceType, final String haNodeName, final boolean isHttps) {
-        final var csAddress = sourceType.equals(EXTERNAL) && isHttps
-                              ? systemParameterService.getCentralServerAddress(haNodeName) + ":4443" // make port into sys prop?
-                              : systemParameterService.getCentralServerAddress(haNodeName);
+        final var csAddress = systemParameterService.getCentralServerAddress(haNodeName);
         final String sourceDirectory = sourceType.equals(INTERNAL)
                 ? SystemProperties.getCenterInternalDirectory()
                 : SystemProperties.getCenterExternalDirectory();

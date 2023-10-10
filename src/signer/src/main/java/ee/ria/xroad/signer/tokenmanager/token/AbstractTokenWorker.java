@@ -32,8 +32,6 @@ import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
-import ee.ria.xroad.signer.protocol.message.SignCertificate;
-import ee.ria.xroad.signer.protocol.message.SignCertificateResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.CalculateSignature;
@@ -42,16 +40,6 @@ import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.cert.CertIOException;
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-
-import java.math.BigInteger;
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
@@ -110,8 +98,6 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
             handleDeleteCert((DeleteCert) message);
         } else if (message instanceof CalculateSignature) {
             handleCalculateSignature((CalculateSignature) message);
-        } else if (message instanceof SignCertificate) {
-            handleSignCertificate((SignCertificate) message);
         } else {
             unhandled(message);
         }
@@ -203,17 +189,6 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         }
     }
 
-    private void handleSignCertificate(SignCertificate message) {
-        try {
-            byte[] certificate = signCertificate(message.getKeyId(), message.getSignatureAlgorithmId(),
-                                                 message.getSubjectName(), message.getPublicKey());
-            sendResponse(new SignCertificateResponse(certificate));
-        } catch (Exception e) {
-            log.error("Error while signing certificate with key '{}'", message.getKeyId(), e);
-            throw translateError(customizeException(e)).withPrefix(X_CANNOT_SIGN);
-        }
-    }
-
     // ------------------------------------------------------------------------
 
     protected abstract void activateToken(ActivateToken message) throws Exception;
@@ -225,31 +200,10 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
     protected abstract byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception;
 
-    protected abstract byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName,
-                                              PublicKey publicKey) throws Exception;
-
     protected void assertKeyAvailable(String keyId) {
         if (!isKeyAvailable(keyId)) {
             throw keyNotAvailable(keyId);
         }
-    }
-
-    protected static JcaX509v3CertificateBuilder getCertificateBuilder(String subjectName,
-                                                                       PublicKey publicKey,
-                                                                       X509Certificate issuerX509Certificate)
-            throws CertIOException {
-        JcaX509v3CertificateBuilder certificateBuilder =
-                new JcaX509v3CertificateBuilder(
-                        new X500Name(issuerX509Certificate.getSubjectX500Principal().getName()),
-                        BigInteger.ONE,
-                        issuerX509Certificate.getNotBefore(),
-                        issuerX509Certificate.getNotAfter(),
-                        new X500Name(subjectName),
-                        publicKey
-                );
-        certificateBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
-        certificateBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
-        return certificateBuilder;
     }
 
     // ------------------------------------------------------------------------

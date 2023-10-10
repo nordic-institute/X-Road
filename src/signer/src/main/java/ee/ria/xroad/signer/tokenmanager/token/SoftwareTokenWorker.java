@@ -247,27 +247,6 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    protected byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception {
-        log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
-        checkSignatureAlgorithm(signatureAlgorithmId);
-        assertTokenAvailable();
-        assertKeyAvailable(keyId);
-        KeyInfo keyInfo = getKeyInfo(keyId);
-        CertificateInfo certificateInfo = keyInfo.getCerts().get(0);
-        X509Certificate issuerX509Certificate = readCertificate(certificateInfo.getCertificateBytes());
-        PrivateKey privateKey = getPrivateKey(keyId);
-        JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
-                                                                                        issuerX509Certificate);
-
-        log.debug("Signing certificate with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
-        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithmId).build(privateKey);
-        X509CertificateHolder certHolder = certificateBuilder.build(signer);
-        X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
-        CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
-        return certPath.getEncoded("PEM");
-    }
-
     // ------------------------------------------------------------------------
 
     private void updateStatus() {

@@ -226,7 +226,7 @@ class ConfigurationServiceImplTest {
 
             final GlobalConfDownloadUrl result = configurationService.getGlobalDownloadUrl(EXTERNAL);
 
-            assertThat(result.getUrl()).isEqualTo("https://" + CENTRAL_SERVICE + ":4443/externalconf");
+            assertThat(result.getUrl()).isEqualTo("https://" + CENTRAL_SERVICE + "/externalconf");
         }
     }
 

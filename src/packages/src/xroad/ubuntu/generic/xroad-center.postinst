@@ -225,21 +225,6 @@ create_certificates() {
         fi
     done
 
-    if [[ ! -r /etc/xroad/ssl/internal-conf.crt ]]; then
-       log "Generating TLS certificate for internal configuration from center-admin-service.crt"
-       cp /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/internal-conf.crt
-       chmod -f 660 /etc/xroad/ssl/internal-conf.crt
-       chown -f xroad:xroad /etc/xroad/ssl/internal-conf.crt
-    fi
-
-
-    if [[ ! -r /etc/xroad/ssl/external-conf.crt ]]; then
-       log "Generating TLS certificate for external configuration from center-admin-service.crt"
-       cp /etc/xroad/ssl/center-admin-service.crt /etc/xroad/ssl/external-conf.crt
-       chmod -f 660 /etc/xroad/ssl/external-conf.crt
-       chown -f xroad:xroad /etc/xroad/ssl/external-conf.crt
-    fi
-
     while :; do
         if [[ ! -r /etc/xroad/ssl/internal.crt || ! -r /etc/xroad/ssl/internal.key || ! -r /etc/xroad/ssl/internal.p12 ]]; then
             log "Generating new internal.[crt|key|p12] files "

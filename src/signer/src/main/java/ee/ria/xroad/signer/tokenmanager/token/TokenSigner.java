@@ -58,8 +58,6 @@ public class TokenSigner extends UntypedAbstractActor {
                 handleSignRequest((Sign) message);
             } else if (message instanceof CalculatedSignature) {
                 handleCalculatedSignature((CalculatedSignature) message);
-            } else if (message instanceof SignCertificate) {
-                handleSignCertificate((SignCertificate) message);
             } else {
                 unhandled(message);
             }
@@ -103,9 +101,4 @@ public class TokenSigner extends UntypedAbstractActor {
             }
         }
     }
-
-    private void handleSignCertificate(SignCertificate message) {
-        tokenWorker.tell(message, getSelf());
-    }
-
 }

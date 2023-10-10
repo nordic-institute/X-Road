@@ -791,20 +791,4 @@ public final class CryptoUtils {
             writer.writeObject(readCertificate(certBytes));
         }
     }
-
-    /**
-     * Writes the given certificate chain bytes into the provided output stream in PEM format.
-     * @param certBytes bytes content of the certificate chain
-     * @param out output stream for writing the PEM formatted certificate chain
-     * @throws IOException if an I/O error occurred
-     */
-    public static void writeCertificateChainPem(byte[] certBytes, OutputStream out)
-            throws IOException {
-        try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(out))) {
-            Collection<X509Certificate> chain = readCertificates(certBytes);
-            for (X509Certificate cert : chain) {
-                writer.writeObject(cert);
-            }
-        }
-    }
 }
