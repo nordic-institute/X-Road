@@ -205,22 +205,29 @@ Requirements to software and settings:
 
 *This is an optional step only for RHEL 7.*
 
-Java 17 is a prerequisite for running the Security Server. However, it is not included in the default repository and should be installed manually. Sample installation steps for Azul JDK are provided below, but other JDK distributions can also be used. 
+Java 17 is a prerequisite for running the Security Server. However, it is not included in the default repository and should be installed manually. Sample installation steps for Eclipse Temurin JDK are provided below, but other JDK distributions can also be used. 
 
-Follow these steps to install Azul Java 17 on RHEL 7:
+Follow these steps to install Temurin JDK 17 on RHEL 7:
 * Check the current java version:
 
         java -version
 
 If the current Java version is 17, following steps should be skipped.
 
-* Add the Azul repository to your system:
+* Add the Adoptium repository to your system:
 
-        sudo yum install -y https://cdn.azul.com/zulu/bin/zulu-repo-1.0.0-1.noarch.rpm
+        sudo cat <<EOF > /etc/yum.repos.d/adoptium.repo
+        [Adoptium]
+        name=Adoptium
+        baseurl=https://packages.adoptium.net/artifactory/rpm/${DISTRIBUTION_NAME:-$(. /etc/os-release; echo $ID)}/\$releasever/\$basearch
+        enabled=1
+        gpgcheck=1
+        gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+        EOF
 
-* Install Java 17 (Zulu JDK):
+* Install Java 17 (Eclipse Temurin JDK):
        
-        sudo yum -y install zulu17-jdk-headless
+        sudo yum -y temurin-17-jdk
 
 * Verify the installation:
     
