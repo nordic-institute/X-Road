@@ -216,10 +216,10 @@ If the current Java version is 17, following steps should be skipped.
 
 * Add the Adoptium repository to your system:
 
-        sudo cat <<EOF > /etc/yum.repos.d/adoptium.repo
+        sudo tee /etc/yum.repos.d/adoptium.repo <<EOF
         [Adoptium]
         name=Adoptium
-        baseurl=https://packages.adoptium.net/artifactory/rpm/${DISTRIBUTION_NAME:-$(. /etc/os-release; echo $ID)}/\$releasever/\$basearch
+        baseurl=https://packages.adoptium.net/artifactory/rpm/${DISTRIBUTION_NAME:-$(. /etc/os-release; echo $ID)}/7/\$basearch
         enabled=1
         gpgcheck=1
         gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
