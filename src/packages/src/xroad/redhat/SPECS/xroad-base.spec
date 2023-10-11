@@ -177,7 +177,7 @@ chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 
 %posttrans
-if [ $1 -gt 1 ] ; then
+if [ $1 -ge 1 ] ; then
   # 7.4.0. Check that the default java version is at least 17
   java_version_supported() {
     local java_exec=$1
@@ -186,6 +186,7 @@ if [ $1 -gt 1 ] ; then
   }
   if ! java_version_supported /etc/alternatives/java; then
     if [ -x /etc/alternatives/jre_17/bin/java ] && java_version_supported /etc/alternatives/jre_17/bin/java; then
+      echo "Configuring Java 17 as the default version..."
       alternatives --set java $(readlink -f /etc/alternatives/jre_17)/bin/java
     else
       echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2
