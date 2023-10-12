@@ -34,6 +34,13 @@
     state: present
   when: ansible_distribution_major_version == "7"
 
+- name: Install Java 17 (RHEL 8 only)
+  become: yes
+  yum:
+    name: "jre-17-openjdk-headless"
+    state: present
+  when: ansible_distribution_major_version == "8"
+
 - name: X-Road repo key
   rpm_key:
     state: present

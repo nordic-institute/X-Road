@@ -58,7 +58,9 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.2 Reference Data](#22-reference-data)
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-    - [2.3.1 Installing Java 17 (RHEL 7 only)](#231-installing-java-17-rhel-7-only)
+    - [2.3.1 Installing Java 17](#231-installing-java-17)
+      - [2.3.1.1 Installing Java 17 on RHEL 7](#2311-installing-java-17-on-rhel-7)
+      - [2.3.1.2 Installing Java 17 on RHEL 8](#2312-installing-java-17-on-rhel-8)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
@@ -197,22 +199,25 @@ Minimum recommended hardware parameters:
 Requirements to software and settings:
 
 * an installed and configured RHEL (v7.3 or newer; 8.0 or newer;) x86-64 operating system;
-* if using RHEL version 7, Java 17 should be installed manually;
+* Java 17 should be installed;
 * if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
-#### 2.3.1 Installing Java 17 (RHEL 7 only)
+#### 2.3.1 Installing Java 17 
 
-*This is an optional step only for RHEL 7.*
+Java 17 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server. For RHEL 8 it is available in default repository, however it is not included in RHEL 7.
+Sample installation steps are provided for both versions.
 
-Java 17 is a prerequisite for running the Security Server. However, it is not included in the default repository and should be installed manually. Sample installation steps for Eclipse Temurin JDK are provided below, but other JDK distributions can also be used. 
-
-Follow these steps to install Temurin JDK 17 on RHEL 7:
 * Check the current java version:
 
         java -version
 
-If the current Java version is 17, following steps should be skipped.
+If the current Java version is 17, following steps should be skipped. If not, follow the instructions depending on RHEL version.
+
+##### 2.3.1.1 Installing Java 17 on RHEL 7
+
+Sample installation steps for Eclipse Temurin JDK are provided below, but other JDK distributions can also be used.
+Follow these steps to install Temurin JDK 17 on RHEL 7:
 
 * Add the Adoptium repository to your system:
 
@@ -227,10 +232,24 @@ If the current Java version is 17, following steps should be skipped.
 
 * Install Java 17 (Eclipse Temurin JDK):
        
-        sudo yum -y temurin-17-jdk
+        sudo yum install temurin-17-jdk
 
 * Verify the installation:
     
+        java -version
+
+The output should contain Java version 17. If it does not, set the default Java version to 17 using *alternatives*:
+
+        sudo alternatives --config java
+
+##### 2.3.1.2 Installing Java 17 on RHEL 8
+
+Install Java 17 from default repository:
+
+        sudo yum install jre-17-openjdk-headless
+
+* Verify the installation:
+
         java -version
 
 The output should contain Java version 17. If it does not, set the default Java version to 17 using *alternatives*:
