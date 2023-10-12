@@ -203,7 +203,7 @@ Requirements to software and settings:
 * if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
-#### 2.3.1 Installing Java 17 
+#### 2.3.1 Installing Java 17
 
 Java 17 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server. For RHEL 8 it is available in default repository, however it is not included in RHEL 7.
 Sample installation steps are provided for both versions.
