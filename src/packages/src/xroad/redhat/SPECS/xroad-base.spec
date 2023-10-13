@@ -125,7 +125,7 @@ if [ $1 -gt 1 ] ; then
       java_home=$(grep -oP '^\s*JAVA_HOME=\K(.*)' /etc/xroad/services/local.conf | tail -n 1)
       if [ -n "$java_home" ]; then
         java_version=$("$java_home"/bin/java -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)
-        if [[ $java_version -lt 11 ]]; then
+        if [[ $java_version -lt 17 ]]; then
           sed -E -i 's/^(\s*JAVA_HOME=)/# \1/g' /etc/xroad/services/local.conf \
                   && echo "Removed JAVA_HOME from /etc/xroad/services/local.conf" >&2 \
                   || echo "Failed to remove JAVA_HOME from /etc/xroad/services/local.conf" >&2
