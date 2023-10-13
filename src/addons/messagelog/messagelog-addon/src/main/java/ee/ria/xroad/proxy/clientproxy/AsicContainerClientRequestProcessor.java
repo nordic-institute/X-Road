@@ -50,7 +50,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.monotoring.MessageInfo;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
@@ -427,11 +426,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
 
         return paramValue;
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        return null; // nothing to return
     }
 
     private static class VerificationConfWriter implements FileConsumer, Closeable {

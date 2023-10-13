@@ -52,19 +52,23 @@ import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.monotoring.MonitorAgent;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
+import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import io.grpc.BindableService;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -114,7 +118,7 @@ public final class ProxyMain {
 
     private static RpcServer rpcServer;
 
-    //private static ActorSystem actorSystem;
+    private static ActorSystem actorSystem;
 
     private static final ServiceLoader<AddOn> ADDONS = ServiceLoader.load(AddOn.class);
 
@@ -180,6 +184,10 @@ public final class ProxyMain {
     private static void startup() {
         log.trace("startup()");
         Version.outputVersionInfo(APP_NAME);
+        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
+                .withFallback(ConfigFactory.load())
+                .withValue("akka.remote.artery.canonical.port",
+                        ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
         log.info("Starting proxy ({})...", readProxyVersion());
     }
 
@@ -188,17 +196,16 @@ public final class ProxyMain {
         MessageLog.shutdown();
         OpMonitoring.shutdown();
         stopServices();
+        Await.ready(actorSystem.terminate(), Duration.Inf());
 
         BatchSigner.shutdown();
         rpcServer.stop();
-        MonitorAgent.shutdown();
         RpcSignerClient.shutdown();
     }
 
     private static void createServices() throws Exception {
         JobManager jobManager = new JobManager();
 
-        MonitorAgent.init();
         RpcSignerClient.init();
         BatchSigner.init();
         boolean messageLogEnabled = MessageLog.init(jobManager);

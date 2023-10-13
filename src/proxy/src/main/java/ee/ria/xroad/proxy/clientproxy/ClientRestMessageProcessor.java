@@ -40,8 +40,6 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.monotoring.MessageInfo;
-import ee.ria.xroad.proxy.monotoring.MonitorAgent;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
@@ -187,15 +185,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         // Add unique id to distinguish request/response pairs
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 
-        try {
-            final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
-            opMonitoringData.setRequestOutTs(getEpochMillisecond());
-            httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
-            opMonitoringData.setResponseInTs(getEpochMillisecond());
-        } catch (Exception e) {
-            MonitorAgent.serverProxyFailed(createRequestMessageInfo());
-            throw e;
-        }
+        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
+        opMonitoringData.setRequestOutTs(getEpochMillisecond());
+        httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
+        opMonitoringData.setResponseInTs(getEpochMillisecond());
     }
 
     private void parseResponse(HttpSender httpSender) throws Exception {
@@ -290,19 +283,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (response.hasRestBody()) {
             IOUtils.copy(response.getRestBody(), servletResponse.getOutputStream());
         }
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        if (restRequest == null) {
-            return null;
-        }
-
-        return new MessageInfo(MessageInfo.Origin.CLIENT_PROXY,
-                restRequest.getClientId(),
-                requestServiceId,
-                null,
-                null);
     }
 
     class ProxyMessageEntity extends AbstractHttpEntity {

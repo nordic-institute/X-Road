@@ -49,9 +49,6 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.monotoring.MessageInfo;
-import ee.ria.xroad.proxy.monotoring.MessageInfo.Origin;
-import ee.ria.xroad.proxy.monotoring.MonitorAgent;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
@@ -511,8 +508,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
 
-            monitorAgentNotifyFailure(exception);
-
             opMonitoringData.setFaultCodeAndString(exception);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
@@ -521,33 +516,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
         } else {
             throw ex;
         }
-    }
-
-    private void monitorAgentNotifyFailure(CodedException ex) {
-        MessageInfo info = null;
-
-        boolean requestIsComplete = requestMessage != null && requestMessage.getSoap() != null
-                && requestMessage.getSignature() != null;
-
-        // Include the request message only if the error was caused while
-        // exchanging information with the adapter server.
-        if (requestIsComplete && ex.getFaultCode().startsWith(SERVER_SERVERPROXY_X + "." + X_SERVICE_FAILED_X)) {
-            info = createRequestMessageInfo();
-        }
-
-        MonitorAgent.failure(info, ex.getFaultCode(), ex.getFaultString());
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        if (requestMessage == null) {
-            return null;
-        }
-
-        SoapMessageImpl soap = requestMessage.getSoap();
-
-        return new MessageInfo(Origin.SERVER_PROXY, soap.getClient(), requestServiceId, soap.getUserId(),
-                soap.getQueryId());
     }
 
     private X509Certificate getClientAuthCert() {
