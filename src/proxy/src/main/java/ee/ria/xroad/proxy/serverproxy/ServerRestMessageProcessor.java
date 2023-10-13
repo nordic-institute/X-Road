@@ -46,9 +46,6 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.monotoring.MessageInfo;
-import ee.ria.xroad.proxy.monotoring.MessageInfo.Origin;
-import ee.ria.xroad.proxy.monotoring.MonitorAgent;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
@@ -418,36 +415,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
             opMonitoringData.setFaultCodeAndString(exception);
-            monitorAgentNotifyFailure(exception);
             encoder.fault(SoapFault.createFaultXml(exception));
             encoder.close();
         } else {
             throw ex;
         }
-    }
-
-    private void monitorAgentNotifyFailure(CodedException ex) {
-        MessageInfo info = null;
-
-        boolean requestIsComplete = requestMessage != null && requestMessage.getRest() != null
-                && requestMessage.getSignature() != null;
-
-        // Include the request message only if the error was caused while
-        // exchanging information with the adapter server.
-        if (requestIsComplete && ex.getFaultCode().startsWith(SERVER_SERVERPROXY_X + "." + X_SERVICE_FAILED_X)) {
-            info = createRequestMessageInfo();
-        }
-
-        MonitorAgent.failure(info, ex.getFaultCode(), ex.getFaultString());
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        if (requestMessage == null) {
-            return null;
-        }
-        final RestRequest rest = requestMessage.getRest();
-        return new MessageInfo(Origin.SERVER_PROXY, rest.getClientId(), requestServiceId, null, rest.getQueryId());
     }
 
     private X509Certificate getClientAuthCert() {

@@ -35,7 +35,6 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.monotoring.MessageInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -97,11 +96,6 @@ public abstract class MessageProcessorBase {
      * @throws Exception in case of any errors
      */
     public abstract void process() throws Exception;
-
-    /**
-     * @return MessageInfo object for the request message being processed
-     */
-    public abstract MessageInfo createRequestMessageInfo();
 
     /**
      * Update operational monitoring data with SOAP message header data and

@@ -31,8 +31,6 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.PerformanceLogger;
-import ee.ria.xroad.proxy.monotoring.MessageInfo;
-import ee.ria.xroad.proxy.monotoring.MonitorAgent;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
@@ -46,7 +44,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
-import java.util.Date;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
@@ -92,13 +89,6 @@ class ServerProxyHandler extends HandlerBase {
             baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
             final MessageProcessorBase processor = createRequestProcessor(request, response, opMonitoringData);
             processor.process();
-
-            final MessageInfo messageInfo = processor.createRequestMessageInfo();
-            if (processor.verifyMessageExchangeSucceeded()) {
-                MonitorAgent.success(messageInfo, new Date(start), new Date());
-            } else {
-                MonitorAgent.failure(messageInfo, null, null);
-            }
         } catch (Throwable e) { // We want to catch serious errors as well
             CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, e);
 
@@ -133,7 +123,6 @@ class ServerProxyHandler extends HandlerBase {
     @Override
     protected void failure(HttpServletRequest request, HttpServletResponse response, CodedException e)
             throws IOException {
-        MonitorAgent.failure(null, e.getFaultCode(), e.getFaultString());
         sendErrorResponse(request, response, e);
     }
 

@@ -6,13 +6,6 @@ plugins {
 }
 
 sourceSets {
-  main {
-    java.srcDirs = [
-      'src/main/java'
-      , 'build/generated-sources'
-      , 'build/generated/source/proto/main/grpc'
-      , 'build/generated/source/proto/main/java']
-  }
   intTest {
     resources {
       srcDir '../common/common-int-test/src/main/resources/'
@@ -27,7 +20,6 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':common:common-messagelog')
     implementation project(':common:common-op-monitoring')
-    implementation project(':common:common-rpc')
 
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
     implementation "xerces:xercesImpl:$xercesVersion"
@@ -63,16 +55,6 @@ shadowJar {
   exclude('**/module-info.class')
   from rootProject.file("LICENSE.txt")
   mergeServiceFiles()
-}
-
-protobuf {
-  protoc { artifact = "com.google.protobuf:protoc:$protocVersion" }
-  plugins {
-    grpc { artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion" }
-  }
-  generateProtoTasks {
-    all()*.plugins { grpc {} }
-  }
 }
 
 compileJava.dependsOn generateProto

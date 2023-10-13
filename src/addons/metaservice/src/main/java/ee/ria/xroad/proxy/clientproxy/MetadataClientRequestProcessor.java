@@ -31,7 +31,6 @@ import ee.ria.xroad.common.metadata.ClientType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.monotoring.MessageInfo;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -104,11 +103,6 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
             default: // to nothing
                 break;
         }
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        return null; // nothing to return
     }
 
     private void handleListClients() throws Exception {

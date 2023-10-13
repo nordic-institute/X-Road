@@ -42,9 +42,6 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.monotoring.MessageInfo;
-import ee.ria.xroad.proxy.monotoring.MessageInfo.Origin;
-import ee.ria.xroad.proxy.monotoring.MonitorAgent;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
@@ -251,17 +248,10 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             // Add unique id to distinguish request/response pairs
             httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 
-            try {
-                opMonitoringData.setRequestOutTs(getEpochMillisecond());
-                httpSender.doPost(getServiceAddress(addresses), reqIns, CHUNKED_LENGTH, outputContentType);
-                opMonitoringData.setResponseInTs(getEpochMillisecond());
-            } catch (Exception e) {
-                // Failed to connect to server proxy
-                MonitorAgent.serverProxyFailed(createRequestMessageInfo());
+            opMonitoringData.setRequestOutTs(getEpochMillisecond());
+            httpSender.doPost(getServiceAddress(addresses), reqIns, CHUNKED_LENGTH, outputContentType);
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
 
-                // Rethrow
-                throw e;
-            }
         } finally {
             if (reqIns != null) {
                 reqIns.close();
@@ -429,16 +419,6 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         if (executionException == null) {
             executionException = translateException(ex);
         }
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        if (requestSoap == null) {
-            return null;
-        }
-
-        return new MessageInfo(Origin.CLIENT_PROXY, requestSoap.getClient(), requestServiceId, requestSoap.getUserId(),
-                requestSoap.getQueryId());
     }
 
     public void handleSoap() {
