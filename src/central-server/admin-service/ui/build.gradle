@@ -6,7 +6,7 @@ buildscript {
 
 plugins {
     id 'base'
-    id 'org.siouan.frontend-jdk11' version "$frontendVersion"
+    id 'org.siouan.frontend-jdk17' version "$frontendVersion"
 }
 
 configurations {

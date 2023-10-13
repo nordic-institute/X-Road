@@ -25,6 +25,7 @@ test-automation:
     testable-container:
       reuse-between-runs: ${reuse-between-runs}
       spring-boot:
+        base-image: eclipse-temurin:17-jammy
         jar-debug-enabled: false
         debug-port: 9000
         jacoco:
