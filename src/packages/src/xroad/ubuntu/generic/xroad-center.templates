@@ -47,19 +47,19 @@ Description: Insert TLS certificate subject name alternatives
 
 Template: xroad-common/global-conf-subject
 Type: string
-Description: Insert admin UI and REST API TLS certificate subject name
- This certificate will be used to secure admin UI and REST API connections.
+Description: Insert TLS certificate subject name for Global configuration distribution over HTTPS [default=/CN=${HOST}]
+ This certificate will be used to secure download Global configuration over HTTPS.
  .
- Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
+ Include most used hostname or IP address as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
  .
  Server reports full hostname as: ${HOST}
 
 Template: xroad-common/global-conf-altsubject
 Type: string
-Description: Insert admin UI and REST API TLS certificate subject name alternatives
- This certificate will be used to secure admin UI and REST API connections.
+Description: Insert TLS certificate subject alternatives for Global configuration distribution over HTTPS [default=${ALT}]
+ This certificate will be used to secure download Global configuration over HTTPS.
  .
- Include all alternative names and IP addresses which will be used for accessing admin WebUI
+ Include all alternative names and IP addresses which will be used for secure download Global configuration over HTTPS
  .
  Format is IP:<ipaddress>,DNS:<hostname>,...
  .
