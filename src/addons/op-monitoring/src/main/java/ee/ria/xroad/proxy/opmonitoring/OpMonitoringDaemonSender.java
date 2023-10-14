@@ -25,7 +25,10 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
 import ee.ria.xroad.common.util.HttpSender;
@@ -43,8 +46,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_ERROR;
 import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_OK;
@@ -64,31 +69,40 @@ public class OpMonitoringDaemonSender implements StartStop {
     private static final int SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
             OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
+    private final OpMonitoringDataProcessor opMonitoringDataProcessor = new OpMonitoringDataProcessor();
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final CloseableHttpClient httpClient;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+    private final AtomicBoolean processing = new AtomicBoolean(false);
 
-    OpMonitoringDaemonSender(OpMonitoringBuffer opMonitoringBuffer, CloseableHttpClient httpClient) {
-        this.httpClient = httpClient;
+    OpMonitoringDaemonSender(OpMonitoringBuffer opMonitoringBuffer) throws Exception {
+        this.httpClient = createHttpClient();
         this.opMonitoringBuffer = opMonitoringBuffer;
     }
 
-    void sendMessage(String json) {
-        log.trace("onReceive: {}", json);
-
+    void sendMessage(final List<OpMonitoringData> dataToProcess) {
         executorService.execute(() -> {
             try {
+                processing.set(true);
+                var json = opMonitoringDataProcessor.prepareMonitoringMessage(dataToProcess);
+                log.trace("onReceive: {}", json);
+
                 send(json);
-                opMonitoringBuffer.sendingSuccess();
+
+                processing.set(false);
+                opMonitoringBuffer.sendingSuccess(dataToProcess.size());
             } catch (Exception e) {
                 log.error("Sending operational monitoring data failed", e);
-
-                opMonitoringBuffer.sendingFailure();
+                processing.set(false);
+                opMonitoringBuffer.sendingFailure(dataToProcess);
             }
         });
     }
 
+    public boolean isReady() {
+        return Boolean.FALSE.equals(processing.get());
+    }
 
     private void send(String json) throws Exception {
         try (HttpSender sender = new HttpSender(httpClient)) {
@@ -127,6 +141,13 @@ public class OpMonitoringDaemonSender implements StartStop {
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
     }
 
+    CloseableHttpClient createHttpClient() throws Exception {
+        return OpMonitoringDaemonHttpClient.createHttpClient(ServerConf.getSSLKey(),
+                1, 1,
+                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds()),
+                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds()));
+    }
+
     @Override
     public void start() {
         //No-OP
@@ -135,6 +156,10 @@ public class OpMonitoringDaemonSender implements StartStop {
     @Override
     public void stop() {
         executorService.shutdown();
+
+        if (httpClient != null) {
+            IOUtils.closeQuietly(httpClient);
+        }
     }
 
     @Override
