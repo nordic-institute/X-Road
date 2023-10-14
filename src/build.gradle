@@ -188,7 +188,9 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
 
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
-        testImplementation "junit:junit:$junitVersion"
+
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+        testImplementation("org.junit.vintage:junit-vintage-engine:$junitVersion")
 
         compileOnly "org.projectlombok:lombok:${lombokVersion}"
         annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -199,6 +201,10 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
         intTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
         intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     }
+
+  test {
+    useJUnitPlatform()
+  }
 
     task testJar(type: Jar) {
         classifier 'test'

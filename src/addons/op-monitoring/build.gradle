@@ -5,6 +5,7 @@ dependencies {
   implementation project(':common:common-util')
   implementation project(':serverconf')
 
+  testImplementation project(':common:common-test')
   testImplementation 'commons-cli:commons-cli:1.4'
 }
 
