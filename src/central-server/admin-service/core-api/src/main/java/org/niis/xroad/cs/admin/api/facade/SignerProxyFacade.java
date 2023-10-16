@@ -46,7 +46,7 @@ public interface SignerProxyFacade {
     void initSoftwareToken(char[] password) throws Exception;
 
     /**
-     * {@link SignerProxy#getTokens()}cd
+     * {@link SignerProxy#getTokens()}
      */
     List<TokenInfo> getTokens() throws Exception;
 
