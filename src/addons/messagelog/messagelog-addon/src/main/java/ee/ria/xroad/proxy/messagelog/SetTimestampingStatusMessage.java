@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -54,7 +56,7 @@ class SetTimestampingStatusMessage {
      */
     SetTimestampingStatusMessage(Status status) {
         this.status = status;
-        this.atTime = Instant.now();
+        this.atTime = TimeUtils.now();
     }
 }
 

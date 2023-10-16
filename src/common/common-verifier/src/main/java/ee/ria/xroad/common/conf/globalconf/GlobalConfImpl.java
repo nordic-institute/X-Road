@@ -44,6 +44,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -102,7 +103,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         // it is important to get handle of confDir as this variable is volatile
         ConfigurationDirectoryV2 checkDir = confDir;
         String mainInstance = checkDir.getInstanceIdentifier();
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         try {
             if (now.isAfter(checkDir.getPrivate(mainInstance).getExpiresOn())) {
                 log.warn("Main privateParameters expired at {}", checkDir.getPrivate(mainInstance).getExpiresOn());

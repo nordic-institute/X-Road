@@ -39,6 +39,7 @@ import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
@@ -266,7 +267,7 @@ public class LogManager extends AbstractLogManager {
      * @param url url of timestamper which stamped successfully
      */
     static void putStatusMapSuccess(String url) {
-        statusMap.put(url, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now()));
+        statusMap.put(url, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow()));
     }
 
     /**
@@ -280,7 +281,7 @@ public class LogManager extends AbstractLogManager {
         int errorCode = DiagnosticsUtils.getErrorCode(e);
         for (String tspUrl : ServerConf.getTspUrl()) {
             statusMap.put(tspUrl,
-                    new DiagnosticsStatus(errorCode, OffsetDateTime.now(), tspUrl));
+                    new DiagnosticsStatus(errorCode, TimeUtils.offsetDateTimeNow(), tspUrl));
         }
     }
 
@@ -337,7 +338,7 @@ public class LogManager extends AbstractLogManager {
             }
 
             if (isTimestampFailed()) {
-                if (Instant.now().minusSeconds(period).isAfter(timestampFailed)) {
+                if (TimeUtils.now().minusSeconds(period).isAfter(timestampFailed)) {
                     throw new CodedException(X_MLOG_TIMESTAMPER_FAILED, "Cannot time-stamp messages");
                 }
             }

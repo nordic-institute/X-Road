@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.controller;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.domain.AlertData;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
@@ -72,7 +74,7 @@ public class NotificationsAlertsApiControllerTest extends AbstractApiControllerT
     @Test
     @WithMockUser
     public void checkAlertsBackupRestoreRunning() {
-        OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
+        OffsetDateTime date = TimeUtils.offsetDateTimeNow(ZoneOffset.UTC);
         AlertStatus alertStatus = new AlertStatus();
         alertStatus.setBackupRestoreRunningSince(date);
         alertStatus.setCurrentTime(date);

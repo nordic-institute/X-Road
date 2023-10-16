@@ -37,6 +37,7 @@ import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
@@ -258,7 +259,7 @@ public class OcspClientWorker {
         final OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), verifierOptions);
 
         for (String responderURI : responderURIs) {
-            final OffsetDateTime prevUpdate = OffsetDateTime.now();
+            final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
             final OffsetDateTime nextUpdate = prevUpdate
                     .plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval());
             int errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
@@ -405,7 +406,7 @@ public class OcspClientWorker {
 
                 addresses.forEach(responderURI -> responderStatusMap.computeIfAbsent(responderURI,
                         uri -> new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, uri, null,
-                                OffsetDateTime.now().plusSeconds(fetchInterval))));
+                                TimeUtils.offsetDateTimeNow().plusSeconds(fetchInterval))));
             } catch (Exception e) {
                 log.error("Error while initializing diagnostics", e);
             }

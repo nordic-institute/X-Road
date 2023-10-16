@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -330,8 +331,8 @@ class ConfigurationSigningKeysServiceImplTest {
 
         when(configurationSigningKeyRepository.findByKeyIdentifierIn(Set.of("keyId-1", "keyId-3")))
                 .thenReturn(List.of(
-                        new ConfigurationSigningKeyEntity("keyId-1", new byte[0], Instant.now(), TOKEN_ID),
-                        new ConfigurationSigningKeyEntity("keyId-3", new byte[0], Instant.now(), TOKEN_ID)
+                        new ConfigurationSigningKeyEntity("keyId-1", new byte[0], TimeUtils.now(), TOKEN_ID),
+                        new ConfigurationSigningKeyEntity("keyId-3", new byte[0], TimeUtils.now(), TOKEN_ID)
                 ));
 
         final List<ConfigurationSigningKeyWithDetails> keysWithDetails = configurationSigningKeysServiceImpl.findDetailedByToken(token);
@@ -376,7 +377,7 @@ class ConfigurationSigningKeysServiceImplTest {
         ConfigurationSigningKeyEntity configurationSigningKey = new ConfigurationSigningKeyEntity();
         configurationSigningKey.setKeyIdentifier("keyIdentifier");
         configurationSigningKey.setCert("keyCert".getBytes());
-        configurationSigningKey.setKeyGeneratedAt(Instant.now());
+        configurationSigningKey.setKeyGeneratedAt(TimeUtils.now());
         configurationSigningKey.setTokenIdentifier(TOKEN_ID);
 
         ConfigurationSourceEntity configurationSource = new ConfigurationSourceEntity();

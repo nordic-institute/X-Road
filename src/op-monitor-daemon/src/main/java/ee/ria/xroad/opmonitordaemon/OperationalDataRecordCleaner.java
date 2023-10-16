@@ -27,6 +27,7 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -72,7 +73,7 @@ final class OperationalDataRecordCleaner {
 
     private static void handleCleanup() throws Exception {
         cleanRecords(
-                Instant.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS));
+                TimeUtils.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS));
     }
 
     static int cleanRecords(Instant before) throws Exception {

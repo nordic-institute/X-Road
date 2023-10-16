@@ -26,6 +26,7 @@
 package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,6 @@ import org.hibernate.query.Query;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -62,7 +62,7 @@ public class LogCleaner implements Job {
     protected long handleClean() throws Exception {
 
         final Long time =
-                Instant.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
+                TimeUtils.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
         long count = 0;
         int removed;
         do {

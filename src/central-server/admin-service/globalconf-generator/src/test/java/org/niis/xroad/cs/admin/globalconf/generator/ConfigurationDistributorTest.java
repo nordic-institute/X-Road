@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -74,7 +76,7 @@ class ConfigurationDistributorTest {
 
     @Test
     void writeFiles() {
-        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, TimeUtils.now());
         var confDir = configurationDistributor.initConfLocation();
 
         configurationDistributor.writeConfigurationFiles(List.of(CONFIGURATION_PART1, CONFIGURATION_PART2));
@@ -89,7 +91,7 @@ class ConfigurationDistributorTest {
 
     @Test
     void writeFilesBeforeInitShouldThrow() {
-        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, TimeUtils.now());
         // initConfLocation omitted
 
         var configurationParts = List.of(CONFIGURATION_PART1);
@@ -100,7 +102,7 @@ class ConfigurationDistributorTest {
 
     @Test
     void writeDirectoryContent() {
-        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, TimeUtils.now());
         configurationDistributor.initConfLocation();
 
         configurationDistributor.writeDirectoryContentFile(CONF_DIRECTORY, "data".getBytes(UTF_8));
@@ -112,7 +114,7 @@ class ConfigurationDistributorTest {
 
     @Test
     void moveDirectoryContentFile() {
-        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, Instant.now());
+        ConfigurationDistributor configurationDistributor = new ConfigurationDistributor(generatedConfDir, VERSION, TimeUtils.now());
         configurationDistributor.initConfLocation();
         configurationDistributor.writeDirectoryContentFile(CONF_DIRECTORY + ".tmp", "data".getBytes(UTF_8));
 

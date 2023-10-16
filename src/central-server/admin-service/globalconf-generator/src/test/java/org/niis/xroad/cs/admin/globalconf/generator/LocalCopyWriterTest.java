@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -63,7 +65,7 @@ class LocalCopyWriterTest {
 
     @Test
     void shouldCreateDir() {
-        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, Instant.now());
+        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, TimeUtils.now());
         localCopyWriter.write(CONFIGURATION_PARTS);
 
         assertThat(localConfDir.resolve(INSTANCE))
@@ -73,7 +75,7 @@ class LocalCopyWriterTest {
 
     @Test
     void shouldWriteFiles() {
-        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, Instant.now());
+        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, TimeUtils.now());
         localCopyWriter.write(CONFIGURATION_PARTS);
 
         CONFIGURATION_PARTS.forEach(part ->
