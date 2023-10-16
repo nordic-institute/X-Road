@@ -56,8 +56,8 @@ public class RpcServer implements StartStop {
     private final Server server;
 
     public RpcServer(final String host, final int port, final ServerCredentials creds, final Consumer<ServerBuilder<?>> configFunc) {
-        final var bossGroupThreadFactory = new DefaultThreadFactory("rpc-server-nio-boss-ELG", true);
-        final var workerGroupThreadFactory = new DefaultThreadFactory("rpc-server-nio-worker-ELG", true);
+        final var bossGroupThreadFactory = new DefaultThreadFactory("rpc-server-nio-boss", true);
+        final var workerGroupThreadFactory = new DefaultThreadFactory("rpc-server-" + port + "-nio-worker", true);
 
         ServerBuilder<?> builder = NettyServerBuilder.forAddress(new InetSocketAddress(host, port), creds)
                 .channelType(NioServerSocketChannel.class)

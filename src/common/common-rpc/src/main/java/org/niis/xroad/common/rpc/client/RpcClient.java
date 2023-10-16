@@ -25,20 +25,17 @@
  */
 package org.niis.xroad.common.rpc.client;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.ClientCall;
-import io.grpc.ClientInterceptor;
-import io.grpc.Grpc;
-import io.grpc.ManagedChannel;
-import io.grpc.MethodDescriptor;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
+import io.grpc.*;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
+import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
@@ -75,7 +72,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
         var credentials = SystemProperties.isGrpcInternalTlsEnabled()
                 ? RpcCredentialsConfigurer.createClientCredentials() : InsecureRpcCredentialsConfigurer.createClientCredentials();
 
-        log.info("Starting grpc client with {} credentials..", credentials.getClass().getSimpleName());
+        log.info("Starting grpc client to {}:{} with {} credentials..", host, port, credentials.getClass().getSimpleName());
 
         final ClientInterceptor timeoutInterceptor = new ClientInterceptor() {
             @Override
@@ -85,9 +82,13 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             }
         };
 
-        final ManagedChannel channel = Grpc.newChannelBuilderForAddress(host, port, credentials)
-                .intercept(timeoutInterceptor)
+        final var workerGroupThreadFactory = new DefaultThreadFactory("rpc-client-" + port + "-nio-worker", true);
+        final ManagedChannel channel = NettyChannelBuilder.forAddress(host, port, credentials)
                 .executor(ForkJoinPool.commonPool())
+                .channelType(NioSocketChannel.class)
+                .channelFactory(NioSocketChannel::new)
+                .eventLoopGroup(new NioEventLoopGroup(0, workerGroupThreadFactory))
+                .intercept(timeoutInterceptor)
                 .build();
 
         var executionContext = contextFactory.createContext(channel);
