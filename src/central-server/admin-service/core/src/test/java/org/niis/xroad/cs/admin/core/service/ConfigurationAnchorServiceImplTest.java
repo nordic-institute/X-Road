@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,6 +26,8 @@
  */
 
 package org.niis.xroad.cs.admin.core.service;
+
+import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -76,7 +78,7 @@ public class ConfigurationAnchorServiceImplTest {
     private static final String EXTERNAL_CONFIGURATION = "external";
     private static final String CENTRAL_SERVICE = "cs";
     private static final String HA_NODE_NAME = "haNodeName";
-    private static final Instant FILE_UPDATED_AT = Instant.now();
+    private static final Instant FILE_UPDATED_AT = TimeUtils.now();
     private static final String HASH = "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF";
     private static final byte[] FILE_DATA = "file-data".getBytes(UTF_8);
 
@@ -222,7 +224,7 @@ public class ConfigurationAnchorServiceImplTest {
             verify(auditDataHelper).putAnchorHash(any());
 
             assertThat(result.getAnchorGeneratedAt().truncatedTo(MINUTES))
-                    .isEqualTo(Instant.now().truncatedTo(MINUTES));
+                    .isEqualTo(TimeUtils.now().truncatedTo(MINUTES));
 
             final var xml = new String(xmlCaptor.getValue());
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
@@ -296,7 +298,7 @@ public class ConfigurationAnchorServiceImplTest {
             verify(auditDataHelper).putAnchorHash(any());
 
             assertThat(result.getAnchorGeneratedAt().truncatedTo(MINUTES))
-                    .isEqualTo(Instant.now().truncatedTo(MINUTES));
+                    .isEqualTo(TimeUtils.now().truncatedTo(MINUTES));
 
             final var xml = new String(xmlCaptor.getValue());
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)

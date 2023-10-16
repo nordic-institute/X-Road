@@ -29,6 +29,7 @@ package ee.ria.xroad.signer.glue;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -71,7 +72,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -211,7 +211,7 @@ public class SignerStepDefs {
         final KeyInfo keyInToken = findKeyInToken(tokenId, keyName);
 
         final byte[] certBytes = SignerProxy.generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
-                "CN=" + client, Date.from(now().minus(5, DAYS)), Date.from(now().plus(5, DAYS)));
+                "CN=" + client, Date.from(TimeUtils.now().minus(5, DAYS)), Date.from(TimeUtils.now().plus(5, DAYS)));
         this.certHash = CryptoUtils.calculateCertHexHash(certBytes);
     }
 
@@ -351,6 +351,10 @@ public class SignerStepDefs {
         Thread t = new Thread(() -> {
             try {
                 ProcessBuilder pb = new ProcessBuilder("java",
+                        // --add-opens required for akka to work with java 17.
+                        // should be removed with akka.
+                        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+                        "--add-opens=java.base/java.nio=ALL-UNNAMED",
                         "-Dxroad.signer.port=" + port,
                         "-Dxroad.signer.key-configuration-file="
                                 + "build/resources/intTest/keyconf.xml",

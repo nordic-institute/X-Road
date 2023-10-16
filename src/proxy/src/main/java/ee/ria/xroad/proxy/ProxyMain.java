@@ -50,6 +50,7 @@ import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
@@ -77,7 +78,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -509,11 +509,11 @@ public final class ProxyMain {
                     log.warn("Timestamp check received HTTP error: {} - {}. Might still be ok", con.getResponseCode(),
                             con.getResponseMessage());
                     statuses.put(tspUrl,
-                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now(),
+                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
                                     tspUrl));
                 } else {
                     statuses.put(tspUrl,
-                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now(),
+                            new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
                                     tspUrl));
                 }
 
@@ -521,7 +521,7 @@ public final class ProxyMain {
                 log.warn("Timestamp status check failed {}", e);
 
                 statuses.put(tspUrl,
-                        new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), OffsetDateTime.now(), tspUrl));
+                        new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), TimeUtils.offsetDateTimeNow(), tspUrl));
             }
         }
         return statuses;

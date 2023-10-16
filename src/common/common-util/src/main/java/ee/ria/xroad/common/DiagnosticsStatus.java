@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -90,6 +92,6 @@ public class DiagnosticsStatus implements Serializable {
      */
     public void setReturnCodeNow(int newReturnCode) {
         this.returnCode = newReturnCode;
-        this.prevUpdate = OffsetDateTime.now();
+        this.prevUpdate = TimeUtils.offsetDateTimeNow();
     }
 }

@@ -28,6 +28,7 @@ package ee.ria.xroad.opmonitordaemon;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.MessageSendingJob;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
@@ -87,7 +88,7 @@ final class OperationalDataRecordCleaner extends UntypedAbstractActor {
 
     private static void handleCleanup() throws Exception {
         cleanRecords(
-                Instant.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS));
+                TimeUtils.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS));
     }
 
     static int cleanRecords(Instant before) throws Exception {

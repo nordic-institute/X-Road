@@ -46,7 +46,6 @@ pipeline {
             }
             environment {
                 GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
-                JAVA_HOME = '/usr/lib/jvm/java-11-openjdk-amd64'
             }
             steps {
                 withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
