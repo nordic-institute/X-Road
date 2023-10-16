@@ -40,13 +40,9 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,7 +69,6 @@ public final class ProxyTestSuite {
     private static ServerProxy serverProxy;
 
     private static JobManager jobManager;
-    private static ActorSystem actorSystem;
     private static RpcServer proxyRpcServer;
 
     private ProxyTestSuite() {
@@ -81,6 +76,7 @@ public final class ProxyTestSuite {
 
     /**
      * Main program entry point.
+     *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
@@ -120,7 +116,6 @@ public final class ProxyTestSuite {
             MessageLog.shutdown();
             OpMonitoring.shutdown();
             jobManager.stop();
-            Await.ready(actorSystem.terminate(), Duration.Inf());
 
             List<MessageTestCase> failed = getFailedTestcases(testCasesToRun);
 
@@ -181,7 +176,6 @@ public final class ProxyTestSuite {
         jobManager = new JobManager();
         jobManager.start();
 
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy"));
         AddOn.BindableServiceRegistry serviceRegistry = new AddOn.BindableServiceRegistry();
         for (AddOn addon : ServiceLoader.load(AddOn.class)) {
             addon.init(serviceRegistry);

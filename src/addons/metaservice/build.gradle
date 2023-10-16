@@ -42,7 +42,6 @@ task runMetaserviceTest(type: JavaExec) {
             '-Dxroad.proxy.server-connector-so-linger=-1',
             '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.MetadataServiceHandlerImpl',
             '-Dxroad.proxy.clientHandlers=ee.ria.xroad.proxy.clientproxy.MetadataHandler',
-            '-Dproxy.akka.remote.artery.canonical.port=0',
             '-Dxroad.grpc.internal.tls-enabled=false'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'

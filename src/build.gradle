@@ -167,16 +167,10 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
                 }
             }
             add('implementation', 'org.apache.commons:commons-text') {
-                because("Vulnerability fix regarding CVE-2022-42889")
-                version {
-                    require("$commonsTextVersion")
-                }
-            }
-            add('implementation', 'org.scala-lang:scala-library') {
-                because("Vulnerability fix regarding CVE-2022-36944")
-                version {
-                    require("$scalaLibraryVersion")
-                }
+              because("Vulnerability fix regarding CVE-2022-42889")
+              version {
+                require("$commonsTextVersion")
+              }
             }
             add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
                 because("Vulnerability fix regarding CVE-2022-40152")

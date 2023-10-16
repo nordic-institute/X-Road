@@ -43,9 +43,6 @@ import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -71,7 +68,6 @@ public abstract class AbstractProxyIntegrationTest {
 
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
 
-    private static ActorSystem actorSystem;
     private static JobManager jobManager;
     private static ClientProxy clientProxy;
     private static ServerProxy serverProxy;
@@ -131,8 +127,6 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         jobManager = new JobManager();
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(getFreePort())));
 
         MessageLog.init(jobManager);
         OpMonitoring.init();
@@ -166,7 +160,6 @@ public abstract class AbstractProxyIntegrationTest {
 
         OpMonitoring.shutdown();
         MessageLog.shutdown();
-        actorSystem.terminate();
         RESERVED_PORTS.clear();
     }
 

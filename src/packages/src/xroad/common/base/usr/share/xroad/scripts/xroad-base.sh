@@ -30,11 +30,6 @@ gen_grpc_internal_keypair() {
       chown xroad:xroad "$keystore"
 
       cat <<EOF >"$env_file"
-XROAD_COMMON_AKKA_REMOTE_TRANSPORT=tls-tcp
-XROAD_COMMON_AKKA_KEYSTORE="$keystore"
-XROAD_COMMON_AKKA_KEYSTORE_PASSWORD="$keystore_pw"
-XROAD_COMMON_AKKA_TRUSTSTORE="$keystore"
-XROAD_COMMON_AKKA_TRUSTSTORE_PASSWORD="$keystore_pw"
 XROAD_GRPC_INTERNAL_KEYSTORE_PASSWORD="$keystore_pw"
 XROAD_GRPC_INTERNAL_TRUSTSTORE_PASSWORD="$keystore_pw"
 EOF
