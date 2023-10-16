@@ -1,6 +1,6 @@
 @SecurityServer
 @Addon
-Feature: 0110 - SS: JMX monitor
+Feature: 2000 - SS: JMX monitor
 
   Background:
     Given SecurityServer login page is open

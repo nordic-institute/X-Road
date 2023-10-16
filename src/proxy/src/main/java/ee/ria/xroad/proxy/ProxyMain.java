@@ -43,7 +43,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
@@ -207,7 +206,6 @@ public final class ProxyMain {
     private static void createServices() throws Exception {
         JobManager jobManager = new JobManager();
 
-        MonitorAgent.init(actorSystem);
         RpcSignerClient.init();
         BatchSigner.init();
         boolean messageLogEnabled = MessageLog.init(jobManager);
