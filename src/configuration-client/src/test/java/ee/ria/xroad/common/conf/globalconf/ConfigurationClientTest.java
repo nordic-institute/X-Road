@@ -129,8 +129,8 @@ public class ConfigurationClientTest {
 
     // ------------------------------------------------------------------------
 
-    private static ConfigurationAnchorV2 getConfigurationAnchor(final String fileName) {
-        return new ConfigurationAnchorV2((String) null) {
+    private static ConfigurationAnchor getConfigurationAnchor(final String fileName) {
+        return new ConfigurationAnchor((String) null) {
 
             @Override
             public boolean hasChanged() {
@@ -160,7 +160,7 @@ public class ConfigurationClientTest {
     }
 
     private ConfigurationClient getClient(final String confPath, final List<String> receivedParts) {
-        ConfigurationAnchorV2 configurationAnchor = getConfigurationAnchor(confPath + ".txt");
+        ConfigurationAnchor configurationAnchor = getConfigurationAnchor(confPath + ".txt");
 
         ConfigurationDownloader configurations = new ConfigurationDownloader(
                 tempConfFolder.getRoot().getAbsolutePath(), 2) {

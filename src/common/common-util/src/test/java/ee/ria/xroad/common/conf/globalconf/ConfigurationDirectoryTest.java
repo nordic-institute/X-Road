@@ -56,7 +56,7 @@ public class ConfigurationDirectoryTest {
 
         assertEquals("EE", dir.getInstanceIdentifier());
 
-        PrivateParametersV2 p = dir.getPrivate("foo");
+        PrivateParameters p = dir.getPrivate("foo");
 
         assertNotNull(p);
         assertEquals("foo", p.getInstanceIdentifier());

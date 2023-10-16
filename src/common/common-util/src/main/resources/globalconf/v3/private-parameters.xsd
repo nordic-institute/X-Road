@@ -58,8 +58,6 @@
           </annotation>
         </element>
 
-        <!-- Allow introducing new elements which will be ignored by older xml schema validators -->
-        <any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
       </sequence>
     </complexType>
 

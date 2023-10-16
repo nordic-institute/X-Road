@@ -34,25 +34,25 @@ import java.time.OffsetDateTime;
 import java.util.Map;
 
 /**
- * Class for reading version 2 of global configuration directory. The directory must have subdirectory per instance
+ * Class for reading version 3 of global configuration directory. The directory must have subdirectory per instance
  * identifier.
  * Each subdirectory must contain private and/or shared parameters.
  * <b> When querying the parameters from this class, the parameters XML is checked for modifications and if the XML has
  * been modified, the parameters are reloaded from the XML.
  */
 @Slf4j
-public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<PrivateParametersV2> {
+public class ConfigurationDirectoryV3 extends VersionableConfigurationDirectory<PrivateParametersV3> {
 
-    public ConfigurationDirectoryV2(String directoryPath) throws Exception {
+    public ConfigurationDirectoryV3(String directoryPath) throws Exception {
         super(directoryPath);
     }
 
-    public ConfigurationDirectoryV2(String directoryPath, ConfigurationDirectoryV2 base) throws Exception {
+    public ConfigurationDirectoryV3(String directoryPath, ConfigurationDirectoryV3 base) throws Exception {
         super(directoryPath, base);
     }
 
     @Override
-    protected void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV2> basePrivateParameters) {
+    protected void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV3> basePrivateParameters) {
         String instanceId = instanceDir.getFileName().toString();
 
         Path privateParametersPath = Paths.get(instanceDir.toString(),
@@ -61,16 +61,16 @@ public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<
             try {
                 log.trace("Loading private parameters from {}", privateParametersPath);
 
-                PrivateParametersV2 existingParameters = basePrivateParameters.get(instanceId);
-                PrivateParametersV2 parametersToUse;
+                PrivateParametersV3 existingParameters = basePrivateParameters.get(instanceId);
+                PrivateParametersV3 parametersToUse;
                 OffsetDateTime fileExpiresOn = getFileExpiresOn(privateParametersPath);
 
                 if (existingParameters != null && !existingParameters.hasChanged()) {
                     log.trace("PrivateParametersV2 from {} have not changed, reusing", privateParametersPath);
-                    parametersToUse = new PrivateParametersV2(existingParameters, fileExpiresOn);
+                    parametersToUse = new PrivateParametersV3(existingParameters, fileExpiresOn);
                 } else {
                     log.trace("Loading PrivateParametersV2 from {}", privateParametersPath);
-                    parametersToUse = new PrivateParametersV2(privateParametersPath, fileExpiresOn);
+                    parametersToUse = new PrivateParametersV3(privateParametersPath, fileExpiresOn);
                 }
 
                 privateParameters.put(instanceId, parametersToUse);

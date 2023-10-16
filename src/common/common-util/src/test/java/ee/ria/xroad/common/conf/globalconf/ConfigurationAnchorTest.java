@@ -41,7 +41,7 @@ public class ConfigurationAnchorTest {
      */
     @Test
     public void readAnchorV2() {
-        ConfigurationAnchorV2 a = new ConfigurationAnchorV2(
+        ConfigurationAnchor a = new ConfigurationAnchor(
                 "src/test/resources/configuration-anchor1.xml");
 
         assertEquals("EE", a.getInstanceIdentifier());
@@ -63,11 +63,11 @@ public class ConfigurationAnchorTest {
      */
     @Test
     public void equalsAnchorV2() {
-        ConfigurationAnchorV2 a = new ConfigurationAnchorV2(
+        ConfigurationAnchor a = new ConfigurationAnchor(
                 "src/test/resources/configuration-anchor1.xml");
-        ConfigurationAnchorV2 b = new ConfigurationAnchorV2(
+        ConfigurationAnchor b = new ConfigurationAnchor(
                 "src/test/resources/configuration-anchor1.xml");
-        ConfigurationAnchorV2 c = new ConfigurationAnchorV2(
+        ConfigurationAnchor c = new ConfigurationAnchor(
                 "src/test/resources/configuration-anchor2.xml");
         assertEquals(a, a);
         assertEquals(a, b);

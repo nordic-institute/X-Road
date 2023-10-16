@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,37 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
+import java.time.OffsetDateTime;
 
-import ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidatorV2;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
+public interface PrivateParametersProvider {
 
-import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
+    PrivateParameters getPrivateParameters();
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+    boolean hasChanged();
 
-import java.io.StringWriter;
-
-@Component
-class PrivateParametersMarshaller {
-    private final JAXBContext jaxbContext = createJaxbContext();
-
-    @SneakyThrows
-    String marshall(PrivateParameters parameters) {
-        var writer = new StringWriter();
-        var marshaller = jaxbContext.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setSchema(PrivateParametersSchemaValidatorV2.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersConverter.INSTANCE.convert(parameters)), writer);
-        return writer.toString();
-    }
-
-    @SneakyThrows
-    private JAXBContext createJaxbContext() {
-        return JAXBContext.newInstance(ObjectFactory.class);
-    }
+    OffsetDateTime getExpiresOn();
 
 }

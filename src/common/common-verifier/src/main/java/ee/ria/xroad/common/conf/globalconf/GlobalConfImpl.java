@@ -77,21 +77,30 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @Slf4j
 public class GlobalConfImpl implements GlobalConfProvider {
 
-    private volatile ConfigurationDirectoryV2 confDir;
+    private volatile VersionableConfigurationDirectory<? extends PrivateParametersProvider> confDir;
 
     GlobalConfImpl() {
         try {
-            confDir = new ConfigurationDirectoryV2(getConfigurationPath());
+            confDir = new ConfigurationDirectoryV3(getConfigurationPath());
         } catch (Exception e) {
-            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+            log.info("Error reading underlying private parameters as V3, defaulting back to V2", e);
+            try {
+                confDir = new ConfigurationDirectoryV2(getConfigurationPath());
+            } catch (Exception ex) {
+                throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+            }
         }
     }
 
     @Override
     public void reload() {
-        ConfigurationDirectoryV2 original = confDir;
+        VersionableConfigurationDirectory<? extends PrivateParametersProvider> original = confDir;
         try {
-            confDir = new ConfigurationDirectoryV2(getConfigurationPath(), original);
+            if (original instanceof ConfigurationDirectoryV3) {
+                confDir = new ConfigurationDirectoryV3(getConfigurationPath(), (ConfigurationDirectoryV3) original);
+            } else {
+                confDir = new ConfigurationDirectoryV2(getConfigurationPath(), (ConfigurationDirectoryV2) original);
+            }
         } catch (Exception e) {
             throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }
@@ -101,12 +110,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public boolean isValid() {
         // it is important to get handle of confDir as this variable is volatile
-        ConfigurationDirectoryV2 checkDir = confDir;
+        VersionableConfigurationDirectory<? extends PrivateParametersProvider> checkDir = confDir;
         String mainInstance = checkDir.getInstanceIdentifier();
         OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         try {
-            if (now.isAfter(checkDir.getPrivate(mainInstance).getExpiresOn())) {
-                log.warn("Main privateParameters expired at {}", checkDir.getPrivate(mainInstance).getExpiresOn());
+            if (now.isAfter(checkDir.getPrivateExpiresOn(mainInstance))) {
+                log.warn("Main privateParameters expired at {}", checkDir.getPrivateExpiresOn(mainInstance));
                 return false;
             }
             if (now.isAfter(checkDir.getShared(mainInstance).getExpiresOn())) {
@@ -610,8 +619,8 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     // ------------------------------------------------------------------------
 
-    protected PrivateParametersV2 getPrivateParameters() {
-        PrivateParametersV2 p;
+    protected PrivateParameters getPrivateParameters() {
+        PrivateParameters p;
         try {
             p = confDir.getPrivate(getInstanceIdentifier());
         } catch (Exception e) {

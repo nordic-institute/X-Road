@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
 
 import lombok.RequiredArgsConstructor;
@@ -91,7 +91,7 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     @Override
     public TrustedAnchor preview(byte[] trustedAnchorFile) {
         try {
-            final ConfigurationAnchorV2 anchorV2 = new ConfigurationAnchorV2(trustedAnchorFile);
+            final ConfigurationAnchor anchorV2 = new ConfigurationAnchor(trustedAnchorFile);
             return trustedAnchorMapper.map(anchorV2, trustedAnchorFile);
         } catch (Exception e) {
             throw new ValidationFailureException(MALFORMED_ANCHOR);
@@ -102,7 +102,7 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
     public TrustedAnchor upload(byte[] trustedAnchor) {
         auditDataHelper.calculateAndPutAnchorHash(trustedAnchor);
 
-        final ConfigurationAnchorV2 anchorV2 = new ConfigurationAnchorV2(trustedAnchor);
+        final ConfigurationAnchor anchorV2 = new ConfigurationAnchor(trustedAnchor);
 
         auditDataHelper.put(INSTANCE_IDENTIFIER, anchorV2.getInstanceIdentifier());
         auditDataHelper.putDate(GENERATED_AT, anchorV2.getGeneratedAt());
@@ -116,7 +116,7 @@ class TrustedAnchorServiceImpl implements TrustedAnchorService {
         return trustedAnchorMapper.toTarget(entity);
     }
 
-    private TrustedAnchorEntity saveTrustedAnchor(ConfigurationAnchorV2 anchorV2, byte[] anchorFile) {
+    private TrustedAnchorEntity saveTrustedAnchor(ConfigurationAnchor anchorV2, byte[] anchorFile) {
         final TrustedAnchorEntity entity = trustedAnchorRepository.findFirstByInstanceIdentifier(anchorV2.getInstanceIdentifier())
                 .map(existing -> {
                     anchorUrlRepository.deleteByTrustedAnchorId(existing.getId());

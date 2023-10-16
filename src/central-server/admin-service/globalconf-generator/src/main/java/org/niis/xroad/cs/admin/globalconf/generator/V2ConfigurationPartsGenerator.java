@@ -42,7 +42,7 @@ public class V2ConfigurationPartsGenerator implements ConfigurationPartsGenerato
 
     private static final int CONFIGURATION_VERSION = 2;
 
-    private final PrivateParametersGenerator privateParametersGenerator;
+    private final PrivateParametersV2Generator privateParametersV2Generator;
     private final SharedParametersV2Generator sharedParametersV2Generator;
 
     public int getConfigurationVersion() {
@@ -54,7 +54,7 @@ public class V2ConfigurationPartsGenerator implements ConfigurationPartsGenerato
                 ConfigurationPart.builder()
                         .contentIdentifier(ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS)
                         .filename(ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS)
-                        .data(privateParametersGenerator.generate().getBytes(UTF_8))
+                        .data(privateParametersV2Generator.generate().getBytes(UTF_8))
                         .build(),
                 ConfigurationPart.builder()
                         .contentIdentifier(CONTENT_ID_SHARED_PARAMETERS)

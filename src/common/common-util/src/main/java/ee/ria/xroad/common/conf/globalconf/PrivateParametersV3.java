@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,8 +27,8 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersType;
 
 import lombok.Getter;
 
@@ -40,10 +41,10 @@ import java.time.OffsetDateTime;
 /**
  * Contains private parameters of a configuration instance.
  */
-public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> implements PrivateParametersProvider {
+public class PrivateParametersV3 extends AbstractXmlConf<PrivateParametersType> implements PrivateParametersProvider {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
-    private final PrivateParametersV2Converter converter = new PrivateParametersV2Converter();
+    private final PrivateParametersV3Converter converter = new PrivateParametersV3Converter();
 
     @Getter
     private final PrivateParameters privateParameters;
@@ -56,21 +57,21 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
     private boolean initCompleted;
 
 
-    PrivateParametersV2(byte[] content) {
+    PrivateParametersV3(byte[] content) {
         super(content, PrivateParametersSchemaValidatorV2.class);
         expiresOn = OffsetDateTime.MAX;
         privateParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    PrivateParametersV2(Path privateParametersPath, OffsetDateTime expiresOn) {
+    PrivateParametersV3(Path privateParametersPath, OffsetDateTime expiresOn) {
         super(privateParametersPath.toString(), PrivateParametersSchemaValidatorV2.class);
         this.expiresOn = expiresOn;
         privateParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    PrivateParametersV2(PrivateParametersV2 original, OffsetDateTime newExpiresOn) {
+    PrivateParametersV3(PrivateParametersV3 original, OffsetDateTime newExpiresOn) {
         super(original);
         expiresOn = newExpiresOn;
         privateParameters = original.getPrivateParameters();
@@ -107,5 +108,4 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
             throw new RuntimeException(e);
         }
     }
-
 }

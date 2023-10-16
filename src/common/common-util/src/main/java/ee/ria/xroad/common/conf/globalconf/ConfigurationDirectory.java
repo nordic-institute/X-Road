@@ -152,7 +152,6 @@ public interface ConfigurationDirectory {
      *
      * @param consumer the function instance that should be applied to all files belonging to the configuration
      * directory.
-     * @throws Exception if an error occurs
      */
-    void eachFile(FileConsumer consumer) throws Exception;
+    void eachFile(FileConsumer consumer) throws IOException;
 }

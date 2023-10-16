@@ -26,41 +26,20 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
-
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
 @RequiredArgsConstructor
-public class V3ConfigurationsPartsGenerator implements ConfigurationPartsGenerator {
+@Slf4j
+public class PrivateParametersV3Generator {
+    private final PrivateParametersV3Marshaller marshaller;
+    private final PrivateParametersLoader loader;
 
-    private static final int CONFIGURATION_VERSION = 3;
-
-    private final PrivateParametersV3Generator privateParametersV3Generator;
-    private final SharedParametersV3Generator sharedParametersV3Generator;
-
-    public int getConfigurationVersion() {
-        return CONFIGURATION_VERSION;
+    String generate() {
+        log.debug("Generating private parameters");
+        var parameters = loader.load();
+        return marshaller.marshall(parameters);
     }
-
-    public List<ConfigurationPart> generateConfigurationParts() {
-        return List.of(
-                ConfigurationPart.builder()
-                        .contentIdentifier(ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS)
-                        .filename(ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS)
-                        .data(privateParametersV3Generator.generate().getBytes(UTF_8))
-                        .build(),
-                ConfigurationPart.builder()
-                        .contentIdentifier(CONTENT_ID_SHARED_PARAMETERS)
-                        .filename(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS)
-                        .data(sharedParametersV3Generator.generate().getBytes(UTF_8))
-                        .build());
-    }
-
 }

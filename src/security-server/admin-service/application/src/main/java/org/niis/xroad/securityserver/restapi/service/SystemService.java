@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -212,7 +212,7 @@ public class SystemService {
      */
     public AnchorFile getAnchorFile() throws AnchorNotFoundException {
         AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(readAnchorFile()));
-        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromFile();
+        ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
         return anchorFile;
     }
@@ -228,7 +228,7 @@ public class SystemService {
      */
     public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, MalformedAnchorException {
-        ConfigurationAnchorV2 anchor = createAnchorFromBytes(anchorBytes);
+        ConfigurationAnchor anchor = createAnchorFromBytes(anchorBytes);
         if (shouldVerifyAnchorInstance) {
             verifyAnchorInstance(anchor);
         }
@@ -300,7 +300,7 @@ public class SystemService {
             throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
             ConfigurationDownloadException, ConfigurationVerifier.ConfigurationVerificationException {
         auditDataHelper.calculateAndPutAnchorHash(anchorBytes);
-        ConfigurationAnchorV2 anchor = createAnchorFromBytes(anchorBytes);
+        ConfigurationAnchor anchor = createAnchorFromBytes(anchorBytes);
         auditDataHelper.putDate(RestApiAuditProperty.GENERATED_AT, anchor.getGeneratedAt());
         if (shouldVerifyAnchorInstance) {
             verifyAnchorInstance(anchor);
@@ -348,10 +348,10 @@ public class SystemService {
      * @return
      * @throws MalformedAnchorException if the anchor is malformed or somehow invalid
      */
-    private ConfigurationAnchorV2 createAnchorFromBytes(byte[] anchorBytes) throws MalformedAnchorException {
-        ConfigurationAnchorV2 anchor = null;
+    private ConfigurationAnchor createAnchorFromBytes(byte[] anchorBytes) throws MalformedAnchorException {
+        ConfigurationAnchor anchor = null;
         try {
-            anchor = new ConfigurationAnchorV2(anchorBytes);
+            anchor = new ConfigurationAnchor(anchorBytes);
         } catch (CodedException ce) {
             if (isCausedByMalformedAnchorContent(ce)) {
                 throw new MalformedAnchorException("Anchor is invalid");
@@ -389,7 +389,7 @@ public class SystemService {
      * @param anchor
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      */
-    private void verifyAnchorInstance(ConfigurationAnchorV2 anchor) throws InvalidAnchorInstanceException {
+    private void verifyAnchorInstance(ConfigurationAnchor anchor) throws InvalidAnchorInstanceException {
         String anchorInstanceId = anchor.getInstanceIdentifier();
         String ownerInstance = currentSecurityServerId.getServerId().getOwner().getXRoadInstance();
         if (!anchorInstanceId.equals(ownerInstance)) {
@@ -419,7 +419,7 @@ public class SystemService {
      */
     public String getAnchorFilenameForDownload() {
         DateFormat df = new SimpleDateFormat(ANCHOR_DOWNLOAD_DATE_TIME_FORMAT);
-        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromFile();
+        ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
         return ANCHOR_DOWNLOAD_FILENAME_PREFIX + df.format(anchor.getGeneratedAt()) + ANCHOR_DOWNLOAD_FILE_EXTENSION;
     }
 

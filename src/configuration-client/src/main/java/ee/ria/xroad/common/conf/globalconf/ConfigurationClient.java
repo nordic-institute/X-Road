@@ -83,8 +83,8 @@ class ConfigurationClient {
     }
 
     protected List<ConfigurationSource> getConfigurationSources() {
-        PrivateParametersV2 privateParameters = loadPrivateParametersV2();
-        return privateParameters != null ? privateParameters.getConfigurationSource() : List.of();
+        PrivateParameters privateParameters = loadPrivateParameters();
+        return privateParameters != null ? privateParameters.getConfigurationAnchors() : List.of();
     }
 
     private void initConfigurationAnchor() throws Exception {
@@ -98,7 +98,7 @@ class ConfigurationClient {
         }
 
         try {
-            configurationAnchor = new ConfigurationAnchorV2(anchorFileName);
+            configurationAnchor = new ConfigurationAnchor(anchorFileName);
         } catch (Exception e) {
             String message = String.format("Failed to load configuration anchor from file %s", anchorFileName);
 
@@ -121,9 +121,14 @@ class ConfigurationClient {
         handleResult(downloader.download(configurationAnchor), true);
     }
 
-    private PrivateParametersV2 loadPrivateParametersV2() {
+    private PrivateParameters loadPrivateParameters() {
         try {
-            ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(globalConfigurationDir);
+            VersionableConfigurationDirectory<? extends PrivateParametersProvider> dir;
+            if (downloader.getConfigurationVersion() > 2) {
+                dir = new ConfigurationDirectoryV3(globalConfigurationDir);
+            } else {
+                dir = new ConfigurationDirectoryV2(globalConfigurationDir);
+            }
             return dir.getPrivate(configurationAnchor.getInstanceIdentifier());
         } catch (Exception e) {
             log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);

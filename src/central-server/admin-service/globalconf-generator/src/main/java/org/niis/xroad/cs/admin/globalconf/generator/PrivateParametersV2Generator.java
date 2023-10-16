@@ -26,29 +26,20 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class PrivateParametersV2Generator {
+    private final PrivateParametersV2Marshaller marshaller;
+    private final PrivateParametersLoader loader;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
-import org.mapstruct.factory.Mappers;
-
-@Mapper(uses = {ObjectFactory.class, MappingUtils.class},
-        unmappedTargetPolicy = ReportingPolicy.ERROR)
-interface PrivateParametersConverter {
-    PrivateParametersConverter INSTANCE = Mappers.getMapper(PrivateParametersConverter.class);
-
-    @Mapping(source = "configurationAnchors", target = "configurationAnchor")
-    PrivateParametersType convert(PrivateParameters parameters);
-
-    @Mapping(source = "sources", target = "source")
-    ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
-
-    @Mapping(source = "verificationCerts", target = "verificationCert")
-    ConfigurationSourceType convertSource(PrivateParameters.ConfigurationSource configurationSource);
-
+    String generate() {
+        log.debug("Generating private parameters");
+        var parameters = loader.load();
+        return marshaller.marshall(parameters);
+    }
 }

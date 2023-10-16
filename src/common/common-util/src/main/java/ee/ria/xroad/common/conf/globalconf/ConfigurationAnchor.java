@@ -43,29 +43,25 @@ import java.util.stream.Collectors;
  * Configuration anchor specifies the configuration source where a security
  * server can download global configuration.
  */
-public class ConfigurationAnchorV2
+public class ConfigurationAnchor
         extends AbstractXmlConf<ConfigurationAnchorType>
         implements ConfigurationSource {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
-    ConfigurationAnchorV2(ConfigurationAnchorType t) {
-        confType = t;
-    }
-
     /**
      * @param fileName the configuration anchor file name
      */
-    public ConfigurationAnchorV2(String fileName) {
+    public ConfigurationAnchor(String fileName) {
         super(fileName, PrivateParametersSchemaValidatorV2.class); // also applies to stand-alone configuration source
     }
 
     /**
      * A special constructor for creating a ConfigurationAnchorV2 from bytes instead of a file on the filesystem.
      * <b>Does not set <code>confFileChecker</code>. This constructor is used e.g. for creating a preview of an
-     * anchor.</b> {@link ConfigurationAnchorV2#ConfigurationAnchorV2(String)} should usually be preferred!
+     * anchor.</b> {@link ConfigurationAnchor#ConfigurationAnchor(String)} should usually be preferred!
      * @param fileBytes the configuration anchor file bytes
      */
-    public ConfigurationAnchorV2(byte[] fileBytes) {
+    public ConfigurationAnchor(byte[] fileBytes) {
         super(fileBytes, PrivateParametersSchemaValidatorV2.class);
     }
 

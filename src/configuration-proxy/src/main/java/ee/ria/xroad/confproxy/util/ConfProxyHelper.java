@@ -28,6 +28,7 @@ package ee.ria.xroad.confproxy.util;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV3;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +81,11 @@ public final class ConfProxyHelper {
         log.info("Running '{} {} {} {}' ...", ConfProxyProperties.getDownloadScriptPath(), sourceAnchor, path,
                 version);
         runConfClient(pb);
-        return new ConfigurationDirectoryV2(path);
+        if (version > 2) {
+            return new ConfigurationDirectoryV3(path);
+        } else {
+            return new ConfigurationDirectoryV2(path);
+        }
     }
 
     /**
