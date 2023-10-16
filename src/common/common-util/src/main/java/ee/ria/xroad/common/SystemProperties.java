@@ -96,6 +96,10 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL =
             PREFIX + "proxy-ui-api.auto-update-timestamp-service-url";
 
+    /** property name of flag to allow generating csr for key with certificates */
+    public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
+            PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
+
     // Proxy ------------------------------------------------------------------
 
     /** Property name of controlling SSL support between Proxies. */
@@ -753,6 +757,13 @@ public final class SystemProperties {
     public static boolean geUpdateTimestampServiceUrlsAutomatically() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL,
                 DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL));
+    }
+
+    /**
+     * @return whether generating CSR is allowed for with existing certificated, 'false' by default
+     */
+    public static boolean getAllowCsrForKeyWithCertificate() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, "false"));
     }
 
     /**

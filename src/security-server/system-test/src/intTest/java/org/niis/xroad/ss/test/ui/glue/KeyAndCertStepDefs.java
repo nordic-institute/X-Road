@@ -44,6 +44,7 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 @Slf4j
 public class KeyAndCertStepDefs extends BaseUiStepDefs {
@@ -163,6 +164,31 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(visible).click();
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @Step("CSR is generated for token {string}, key {string}, certification service {string}, format {string}")
+    public void csrIsGeneratedForKeyCertificationServiceFormat(String token, String key, String certService, String csrFormat) {
+        keyAndCertPageObj.section(token).tokenLabeledKeyGenerateCsrButton(key).shouldBe(enabled).click();
+
+        keyAndCertPageObj.addKeyWizardCsrDetails.csrService().click();
+        keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(certService).click();
+
+        keyAndCertPageObj.addKeyWizardCsrDetails.csrFormat().click();
+        keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(csrFormat).click();
+
+        keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(visible).click();
+
+        keyAndCertPageObj.addKeyWizardGenerate.serverDNS().setValue("ss1");
+        keyAndCertPageObj.addKeyWizardGenerate.organizationName().setValue(randomAlphabetic(10));
+
+        keyAndCertPageObj.addKeyWizardGenerate.generateButton().click();
+        keyAndCertPageObj.addKeyWizardGenerate.doneButton().click();
+    }
+
+    @Step("Token {string}, key {string} has {int} certificate signing requests")
+    public void tokenKeyHasCertificateSigningRequests(String token, String keyLabel, int count) {
+        keyAndCertPageObj.section(token).labeledKeyCsrRows(keyLabel).shouldBe(CollectionCondition.size(count));
+    }
+
     @SneakyThrows
     @Step("Generate CSR is set to DNS {string}, Organization {string} and CSR successfully generated")
     public void setGenerateCsr(String dns, String organization) {
@@ -179,7 +205,6 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         putStepData(StepDataKey.DOWNLOADED_FILE, certReq);
 
         keyAndCertPageObj.addKeyWizardGenerate.doneButton().click();
-
     }
 
     @Step("Token: {} - has key with label {string}")
@@ -225,4 +250,10 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         btnDelete.click();
         commonPageObj.dialog.btnSave().click();
     }
+
+    @Step("Token: {}, key {string} generate CSR button is disabled")
+    public void tokenKeyGenerateCSRButtonIsDisabled(String token, String keyLabel) {
+        keyAndCertPageObj.section(token).tokenLabeledKeyGenerateCsrButton(keyLabel).shouldBe(disabled);
+    }
+
 }
