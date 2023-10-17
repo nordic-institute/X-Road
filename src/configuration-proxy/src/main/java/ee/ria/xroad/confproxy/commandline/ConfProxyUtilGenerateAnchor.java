@@ -76,7 +76,7 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
         }
         String instance = sourceAnchor.getInstanceIdentifier();
 
-        if (conf.getConfigurationProxyURL().equals("0.0.0.0")) {
+        if (conf.getConfigurationProxyURLs().isEmpty()) {
             fail("configuration-proxy.address has not been"
                     + " configured in 'local.ini'!", null);
         }
@@ -110,32 +110,37 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
      * @throws Exception if xml generation fails
      */
     private void generateAnchorXml(final ConfProxyProperties conf,
-                                   final String instanceIdentifier, final OutputStream out)
-            throws Exception {
+                                   final String instanceIdentifier,
+                                   final OutputStream out) throws Exception {
         JAXBContext jaxbCtx = JAXBContext.newInstance(ObjectFactory.class);
         Marshaller marshaller = jaxbCtx.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 
         ObjectFactory factory = new ObjectFactory();
-        ConfigurationSourceType sourceType =
-                factory.createConfigurationSourceType();
-        sourceType.setDownloadURL(conf.getConfigurationProxyURL() + "/"
-                + OutputBuilder.SIGNED_DIRECTORY_NAME);
-        for (byte[] cert : conf.getVerificationCerts()) {
-            sourceType.getVerificationCert().add(cert);
-        }
-        ConfigurationAnchorType anchorType =
-                factory.createConfigurationAnchorType();
+        ConfigurationAnchorType anchorType = factory.createConfigurationAnchorType();
         anchorType.setInstanceIdentifier(instanceIdentifier);
         GregorianCalendar gcal = new GregorianCalendar();
         gcal.setTimeZone(TimeZone.getTimeZone("UTC"));
         XMLGregorianCalendar xgcal = DatatypeFactory.newInstance()
                 .newXMLGregorianCalendar(gcal);
         anchorType.setGeneratedAt(xgcal);
-        anchorType.getSource().add(sourceType);
+
+        addSources(conf, factory, anchorType);
+
         JAXBElement<ConfigurationAnchorType> root =
                 factory.createConfigurationAnchor(anchorType);
 
         marshaller.marshal(root, out);
+    }
+
+    private void addSources(ConfProxyProperties conf, ObjectFactory factory, ConfigurationAnchorType anchorType) throws Exception {
+        for (String url : conf.getConfigurationProxyURLs()) {
+            ConfigurationSourceType sourceType = factory.createConfigurationSourceType();
+            sourceType.setDownloadURL(url + "/" + OutputBuilder.SIGNED_DIRECTORY_NAME);
+            for (byte[] cert : conf.getVerificationCerts()) {
+                sourceType.getVerificationCert().add(cert);
+            }
+            anchorType.getSource().add(sourceType);
+        }
     }
 }

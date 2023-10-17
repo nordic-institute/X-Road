@@ -133,14 +133,15 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         }
         System.out.println();
 
-        System.out.println("Configuration URL");
+        System.out.println("Configuration URLs");
         System.out.println(delimiter);
-        if (conf.getConfigurationProxyURL().equals("0.0.0.0")) {
-            System.out.println("configuration-proxy.address has not been"
-                    + " configured in 'local.ini'!");
+        var configurationProxyURLs = conf.getConfigurationProxyURLs();
+        if (configurationProxyURLs.isEmpty()) {
+            System.out.println("configuration-proxy.address has not been configured in 'local.ini'!");
         } else {
-            System.out.println(conf.getConfigurationProxyURL() + "/"
-                    + OutputBuilder.SIGNED_DIRECTORY_NAME);
+            for (String proxyURL : configurationProxyURLs) {
+                System.out.println(proxyURL + "/" + OutputBuilder.SIGNED_DIRECTORY_NAME);
+            }
         }
         System.out.println();
 

@@ -10,6 +10,8 @@ dependencies {
 
     testImplementation project(':common:common-test')
     testImplementation "org.mockito:mockito-inline:$mockitoVersion"
+    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation "org.assertj:assertj-core:$assertjVersion"
 }
 
 ext {

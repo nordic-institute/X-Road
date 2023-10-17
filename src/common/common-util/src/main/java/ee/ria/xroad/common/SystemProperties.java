@@ -746,7 +746,7 @@ public final class SystemProperties {
 
     // --------------------------------------------------------------------- //
 
-    private static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
+    public static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
 
     /**
      * @return path to the directory where configuration files are located, '/etc/xroad/' by default.
