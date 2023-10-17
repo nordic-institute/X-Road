@@ -6,7 +6,7 @@ RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install \
     sudo dpkg-dev ca-certificates gnupg supervisor \
-    net-tools locales openjdk-11-jre-headless rlwrap \
+    net-tools locales openjdk-17-jre-headless rlwrap \
     ca-certificates-java crudini adduser expect \
     nginx-light curl rsyslog wget python3 \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \

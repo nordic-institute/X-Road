@@ -30,7 +30,7 @@ Description: X-Road central server
 Package: xroad-base
 Architecture: amd64 arm64
 Pre-depends: dpkg (>= 1.15.7.2)
-Depends: ${misc:Depends}, openjdk-11-jre-headless | java11-runtime-headless | java11-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl, gpg, gpg-agent
+Depends: ${misc:Depends}, openjdk-17-jre-headless | java17-runtime-headless | java17-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl, gpg, gpg-agent
 Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road base components
@@ -71,7 +71,7 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
+Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-17-jre-headless | java17-runtime-headless | java17-runtime
 Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities

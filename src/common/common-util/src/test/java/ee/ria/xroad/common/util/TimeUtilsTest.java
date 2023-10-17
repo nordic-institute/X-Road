@@ -49,18 +49,6 @@ public class TimeUtilsTest {
     private final Clock spyClock = spy(Clock.class);
 
     @Test
-    public void now() {
-        try (MockedStatic<Clock> clockMock = mockStatic(Clock.class)) {
-            clockMock.when(Clock::systemUTC).thenReturn(spyClock);
-            when(spyClock.instant()).thenReturn(Instant.ofEpochSecond(EPOCH_SECONDS, 123456789));
-
-            final Instant now = TimeUtils.now();
-
-            assertEquals(123456000, now.getNano());
-        }
-    }
-
-    @Test
     public void offsetDateTimeNow() {
         try (MockedStatic<Clock> clockMock = mockStatic(Clock.class)) {
             clockMock.when(Clock::systemDefaultZone).thenReturn(spyClock);

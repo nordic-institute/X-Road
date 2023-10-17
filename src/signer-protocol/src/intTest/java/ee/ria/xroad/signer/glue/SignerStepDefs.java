@@ -335,6 +335,10 @@ public class SignerStepDefs {
         Thread t = new Thread(() -> {
             try {
                 ProcessBuilder pb = new ProcessBuilder("java",
+                        // --add-opens required for akka to work with java 17.
+                        // should be removed with akka.
+                        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+                        "--add-opens=java.base/java.nio=ALL-UNNAMED",
                         "-Dxroad.signer.port=" + port,
                         "-Dxroad.signer.key-configuration-file="
                                 + "build/resources/intTest/keyconf.xml",

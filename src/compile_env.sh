@@ -12,7 +12,7 @@ ARCH=${ARCH/x86_64/amd64}
 
 if [ -z "$JAVA_HOME" ]
 then
-  JAVA_HOME="/usr/lib/jvm/java-11-openjdk-$ARCH"
+  JAVA_HOME="/usr/lib/jvm/java-17-openjdk-$ARCH"
   PATH="$JAVA_HOME/bin:$PATH"
 fi
 
