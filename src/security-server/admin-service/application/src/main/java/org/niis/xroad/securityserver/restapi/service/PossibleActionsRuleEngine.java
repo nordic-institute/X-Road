@@ -111,19 +111,23 @@ public class PossibleActionsRuleEngine {
         if (SOFTWARE_TOKEN_ID.equals(tokenInfo.getId())
                 && (keyInfo.getUsage() == null || keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION)
                 && !(!keyInfo.isAvailable() || !tokenInfo.isActive() || keyNotSupported)
-                && (isEmpty(keyInfo.getCerts()) || SystemProperties.getAllowCsrForKeyWithCertificate())) {
+                && keyHasNoCertificatesOrGenerateCsrAllowedInProperties(keyInfo)) {
             actions.add(PossibleActionEnum.GENERATE_AUTH_CSR);
         }
         // GENERATE_SIGN_CSR
         if ((keyInfo.getUsage() == null || keyInfo.getUsage() == KeyUsageInfo.SIGNING)
                 && !(!keyInfo.isAvailable() || !tokenInfo.isActive() || keyNotSupported)
-                && (isEmpty(keyInfo.getCerts()) || SystemProperties.getAllowCsrForKeyWithCertificate())) {
+                && keyHasNoCertificatesOrGenerateCsrAllowedInProperties(keyInfo)) {
             actions.add(PossibleActionEnum.GENERATE_SIGN_CSR);
         }
         // EDIT_FRIENDLY_NAME
         actions.add(PossibleActionEnum.EDIT_FRIENDLY_NAME);
 
         return actions;
+    }
+
+    private static boolean keyHasNoCertificatesOrGenerateCsrAllowedInProperties(KeyInfo keyInfo) {
+        return isEmpty(keyInfo.getCerts()) || SystemProperties.getAllowCsrForKeyWithCertificate();
     }
 
     /**
