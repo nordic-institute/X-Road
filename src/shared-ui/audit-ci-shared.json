@@ -9,7 +9,7 @@
     "*|webpack*",
     "GHSA-4wf5-vphf-c2xc|terser",
     "GHSA-fwr7-v2mv-hh25|async",
-    "GHSA-rp65-9cf3-cjxr|@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-svgo>svgo>css-select>nth-check",
+    "GHSA-rp65-9cf3-cjxr|postcss-svgo>svgo>css-select>nth-check",
     "GHSA-7jxr-cg7f-gpgv|vm2",
     "GHSA-xj72-wvfv-8985|vm2",
     "GHSA-ch3r-j5x3-6q2m|vm2",
