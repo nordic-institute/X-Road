@@ -67,6 +67,7 @@ public class GetAuthKeyReqHandler
         extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyInfoProto> {
 
     @Override
+    @SuppressWarnings("squid:S3776")
     protected AuthKeyInfoProto handle(GetAuthKeyReq request) throws Exception {
         var securityServer = SecurityServerIdMapper.fromDto(request.getSecurityServer());
         log.trace("Selecting authentication key for security server {}", securityServer);
@@ -169,8 +170,8 @@ public class GetAuthKeyReqHandler
         }
 
         log.trace("Ignoring authentication certificate {} because it does "
-                + "not belong to security server {} "
-                + "(server id from global conf: {})", CertUtils.identify(cert),
+                        + "not belong to security server {} "
+                        + "(server id from global conf: {})", CertUtils.identify(cert),
                 securityServer, serverIdFromConf);
 
         return false;

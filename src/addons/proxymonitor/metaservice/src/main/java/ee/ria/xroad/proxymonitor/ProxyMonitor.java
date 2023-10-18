@@ -37,14 +37,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProxyMonitor implements AddOn {
 
-    private static volatile MonitorClient monitorClient;
+    private static MonitorClient monitorClient;
 
     @Override
     public void init(final BindableServiceRegistry bindableServiceRegistry) {
         try {
             bindableServiceRegistry.register(new ProxyMonitorService());
 
-            monitorClient = new MonitorClient();
+            setMonitorClient(new MonitorClient());
         } catch (Exception e) {
             log.error("ProxyMonitor addon has failed to start. Monitor data will not be available!", e);
         }
@@ -61,8 +61,8 @@ public class ProxyMonitor implements AddOn {
         return monitorClient;
     }
 
-    static void setTestClient(MonitorClient testMonitorClient) {
-        ProxyMonitor.monitorClient = testMonitorClient;
+    static void setMonitorClient(MonitorClient monitorClient) {
+        ProxyMonitor.monitorClient = monitorClient;
     }
 
 }

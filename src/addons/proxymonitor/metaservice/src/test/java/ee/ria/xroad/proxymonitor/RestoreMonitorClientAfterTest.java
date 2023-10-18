@@ -48,6 +48,6 @@ public class RestoreMonitorClientAfterTest extends ExternalResource {
      * @param monitorClient
      */
     public static void setMonitorClient(MonitorClient monitorClient) {
-        ProxyMonitor.setTestClient(monitorClient);
+        ProxyMonitor.setMonitorClient(monitorClient);
     }
 }

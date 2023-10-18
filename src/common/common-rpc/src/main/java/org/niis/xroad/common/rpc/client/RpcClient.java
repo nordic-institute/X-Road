@@ -126,19 +126,23 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             }
             com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
             if (status != null) {
-                for (Any any : status.getDetailsList()) {
-                    if (any.is(CodedExceptionProto.class)) {
-                        try {
-                            final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
-                            throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
-                                    .withPrefix(SIGNER_X);
-                        } catch (InvalidProtocolBufferException e) {
-                            throw new RuntimeException("Failed to parse grpc message", e);
-                        }
-                    }
-                }
+                handleGenericStatusRuntimeException(status);
             }
             throw error;
+        }
+    }
+
+    private void handleGenericStatusRuntimeException(com.google.rpc.Status status) {
+        for (Any any : status.getDetailsList()) {
+            if (any.is(CodedExceptionProto.class)) {
+                try {
+                    final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
+                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
+                            .withPrefix(SIGNER_X);
+                } catch (InvalidProtocolBufferException e) {
+                    throw new RuntimeException("Failed to parse grpc message", e);
+                }
+            }
         }
     }
 

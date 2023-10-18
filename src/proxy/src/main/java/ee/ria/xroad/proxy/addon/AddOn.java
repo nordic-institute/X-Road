@@ -43,7 +43,6 @@ public interface AddOn {
      */
     void init(BindableServiceRegistry bindableServiceRegistry);
 
-
     void shutdown();
 
     class BindableServiceRegistry {

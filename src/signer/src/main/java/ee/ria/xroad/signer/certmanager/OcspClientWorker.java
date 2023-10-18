@@ -144,6 +144,7 @@ public class OcspClientWorker {
         }
     }
 
+    @SuppressWarnings("squid:S3776")
     public void execute(OcspClientExecuteScheduler ocspClientExecuteScheduler) {
         log.trace("execute()");
         log.info("OCSP-response refresh cycle started");
