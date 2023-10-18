@@ -155,6 +155,12 @@ tasks.register('intTest', Test) {
   testClassesDirs = sourceSets.intTest.output.classesDirs
   classpath = sourceSets.intTest.runtimeClasspath
 
+  def intTestArgs = []
+  if (project.hasProperty('intTestProfilesInclude')) {
+    intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+  }
+
+  jvmArgs intTestArgs
   testLogging {
     showStackTraces(true)
     showExceptions(true)

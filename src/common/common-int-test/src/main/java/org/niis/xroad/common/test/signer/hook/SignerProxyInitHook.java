@@ -35,6 +35,7 @@ import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -47,12 +48,15 @@ import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 public class SignerProxyInitHook implements BeforeSuiteHook {
     private final TestableApplicationInfoProvider testableApplicationInfoProvider;
 
+    @Value("${test-automation.custom.grpc-client-host-override:#{null}}")
+    private String grpcHostOverride;
+
     @Override
     @SneakyThrows
     public void beforeSuite() {
-        var host = testableApplicationInfoProvider.getHost();
+        var host = grpcHostOverride != null ? grpcHostOverride : testableApplicationInfoProvider.getHost();
         var port = testableApplicationInfoProvider.getMappedPort(SIGNER_GRPC_PORT);
-        log.info("Will use {}:{}  for signer RPC connection..", host, port);
+        log.info("Will use {}:{} (original port {})  for signer RPC connection..", host, port, SIGNER_GRPC_PORT);
 
         System.setProperty(SystemProperties.GRPC_INTERNAL_HOST, host);
         System.setProperty(SystemProperties.GRPC_SIGNER_PORT, String.valueOf(port));

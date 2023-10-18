@@ -56,6 +56,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public final class RpcClient<C extends RpcClient.ExecutionContext> {
     private static final int DEFAULT_DEADLINE_MILLIS = 60 * 1000;
 
+    private final long rpcDeadlineMillis;
     private final ManagedChannel channel;
 
     private final C executionContext;
@@ -63,8 +64,9 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
     /**
      * Construct client for accessing Signer services using the provided channel.
      */
-    private RpcClient(final ManagedChannel channel, final C executionContext) {
+    private RpcClient(final ManagedChannel channel, final long rpcDeadlineMillis, final C executionContext) {
         this.channel = channel;
+        this.rpcDeadlineMillis = rpcDeadlineMillis;
         this.executionContext = executionContext;
     }
 
@@ -98,7 +100,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
                 .build();
 
         var executionContext = contextFactory.createContext(channel);
-        return new RpcClient<>(channel, executionContext);
+        return new RpcClient<>(channel, clientTimeoutMillis, executionContext);
     }
 
     public void shutdown() {
@@ -118,7 +120,8 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             return grpcCall.exec(executionContext);
         } catch (StatusRuntimeException error) {
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw CodedException.tr(SIGNER_X, "signer_client_timeout", "Signer client timed out")
+                throw CodedException.tr(SIGNER_X, "signer_client_timeout",
+                                "Signer client timed out. Deadline: " + rpcDeadlineMillis + " ms")
                         .withPrefix(SIGNER_X);
             }
             com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);

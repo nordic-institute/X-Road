@@ -124,7 +124,7 @@ public abstract class BaseTestSignerSetup {
 
             @SneakyThrows
             private void prepareSignerDirs() {
-                deleteIfPresent("build/resources/intTest/container-files/etc/xroad/signer/softtoken/");
+                deleteIfPresent("build/resources/intTest/signer-container-files/etc/xroad/signer/softtoken/");
                 deleteIfPresent("build/container-passwordstore/");
             }
 

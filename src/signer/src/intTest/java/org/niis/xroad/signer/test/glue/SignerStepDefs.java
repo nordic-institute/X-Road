@@ -633,7 +633,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signerGetTokensFailsWithTimeoutException() {
         assertThatThrownBy(SignerProxy::getTokens)
                 .isInstanceOf(CodedException.class)
-                .hasMessage("Signer: Signer client timed out");
+                .hasMessageContaining("Signer: Signer client timed out.");
     }
 
 
