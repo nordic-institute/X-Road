@@ -51,7 +51,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.security.PublicKey;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -166,11 +165,6 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     @Override
     public byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) {
         throw new NotImplementedException("sign not implemented getSignMechanism.");
-    }
-
-    @Override
-    public byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) {
-        throw new NotImplementedException("sign not implemented signCertificate.");
     }
 
 }

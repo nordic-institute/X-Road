@@ -324,7 +324,7 @@ public class ConfigurationAnchorServiceImplTest {
 
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[3]/downloadURL")
-                    .isEqualTo("https://cs:4443/externalconf");
+                    .isEqualTo("https://cs/externalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[1]")
                     .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
@@ -334,7 +334,7 @@ public class ConfigurationAnchorServiceImplTest {
 
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[4]/downloadURL")
-                    .isEqualTo("https://cs2:4443/externalconf");
+                    .isEqualTo("https://cs2/externalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[4]/verificationCert[1]")
                     .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
