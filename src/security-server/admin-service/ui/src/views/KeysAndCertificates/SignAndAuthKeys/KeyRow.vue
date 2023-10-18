@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <tr>
+  <tr data-test="key-row">
     <td class="pl-8">
       <div class="name-wrap-top">
         <i class="icon-Key key-icon" />
@@ -44,6 +44,7 @@
         :outlined="false"
         text
         :disabled="disableGenerateCsr"
+        data-test="generate-csr-button"
         @click="generateCsr"
         >{{ $t('keys.generateCsr') }}</xrd-button
       >

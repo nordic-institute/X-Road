@@ -120,7 +120,7 @@ if [ $1 -gt 1 ] ; then
       fi
     fi
 
-    # 7.3.0 remove JAVA_HOME from local.conf if it points to java < 11
+    # 7.4.0 remove JAVA_HOME from local.conf if it points to java < 17
     if [ -f /etc/xroad/services/local.conf ]; then
       java_home=$(grep -oP '^\s*JAVA_HOME=\K(.*)' /etc/xroad/services/local.conf | tail -n 1)
       if [ -n "$java_home" ]; then
