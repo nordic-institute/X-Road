@@ -304,6 +304,8 @@ public final class SystemProperties {
 
     private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = "false";
 
+    private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = "false";
+
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
     private static final String DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME = "30000";
@@ -763,7 +765,8 @@ public final class SystemProperties {
      * @return whether generating CSR is allowed for with existing certificate, 'false' by default
      */
     public static boolean getAllowCsrForKeyWithCertificate() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, "false"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE,
+                DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE));
     }
 
     /**
