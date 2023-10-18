@@ -622,33 +622,35 @@ public final class SystemProperties {
      * Property name for gRPC host.
      */
     public static final String GRPC_INTERNAL_HOST =
-            PREFIX + "grpc.internal.host";
+            PREFIX + "common.grpc-internal-host";
 
     /**
      * Property name for gRPC host.
      */
     public static final String GRPC_INTERNAL_TLS_ENABLED =
-            PREFIX + "grpc.internal.tls-enabled";
+            PREFIX + "common.grpc-internal-tls-enabled";
 
     /**
      * Property name for gRPC signer port.
      */
-    public static final String GRPC_SIGNER_PORT =
-            PREFIX + "grpc.signer.port";
+    public static final String GRPC_SIGNER_PORT = PREFIX + "signer.grpc-port";
 
-    public static final String PROXY_GRPC_PORT = PREFIX + "grpc.proxy.port";
+    /**
+     * Property name for gRPC proxy port.
+     */
+    public static final String PROXY_GRPC_PORT = PREFIX + "proxy.grpc-port";
 
     /**
      * Property name for gRPC internal keystore location.
      */
     public static final String GRPC_INTERNAL_KEYSTORE =
-            PREFIX + "grpc.internal.keystore";
+            PREFIX + "common.grpc-internal-keystore";
 
     /**
      * Property name for gRPC internal keystore password.
      */
     public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
-            PREFIX + "grpc.internal.keystore-password";
+            PREFIX + "common.grpc-internal-keystore-password";
     public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV =
             GRPC_INTERNAL_KEYSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
 
@@ -656,13 +658,13 @@ public final class SystemProperties {
      * Property name for gRPC internal truststore location.
      */
     public static final String GRPC_INTERNAL_TRUSTSTORE =
-            PREFIX + "grpc.internal.truststore";
+            PREFIX + "common.grpc-internal-truststore";
 
     /**
      * Property name for gRPC internal truststore password.
      */
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
-            PREFIX + "grpc.internal.truststore-password";
+            PREFIX + "common.grpc-internal-truststore-password";
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
             GRPC_INTERNAL_TRUSTSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
     // Cluster node configuration ------------------------------------------ //

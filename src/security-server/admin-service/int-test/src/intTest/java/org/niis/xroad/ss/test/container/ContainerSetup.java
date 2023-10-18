@@ -70,7 +70,7 @@ public class ContainerSetup {
             public List<String> customizeCommandParts() {
                 return List.of(
                         "-Dxroad.signer.enforce-token-pin-policy=true",
-                        "-Dxroad.grpc.internal.tls-enabled=false");
+                        "-Dxroad.common.grpc-internal-tls-enabled=false");
             }
 
             @NotNull

@@ -25,10 +25,14 @@
  */
 package ee.ria.xroad.common;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * This interface contains global constants, such as port numbers
  * and configuration locations.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PortNumbers {
     /** Client proxy listens for HTTP queries. */
     public static final int CLIENT_HTTP_PORT = 80;
@@ -56,12 +60,6 @@ public final class PortNumbers {
      */
     public static final int SIGNER_GRPC_PORT = 5560;
 
-    /** Center-Service HTTP port. */
-    public static final int CENTER_SERVICE_HTTP_PORT = 3333;
-
-    /** Center-Service HTTPS port. */
-    public static final int CENTER_SERVICE_HTTPS_PORT = 3443;
-
     /** Port for Distributed Files Client. */
     public static final int CONFIGURATION_CLIENT_PORT = 5665;
 
@@ -75,17 +73,8 @@ public final class PortNumbers {
     public static final int OP_MONITOR_DAEMON_PORT = 2080;
 
     /**
-     * Proxy actorsystem port
-     */
-    @Deprecated
-    public static final int PROXY_ACTORSYSTEM_PORT = 5568;
-
-
-    /**
      * Proxy grpc port
      */
     public static final int PROXY_GRPC_PORT = 5567;
 
-    private PortNumbers() {
-    }
 }

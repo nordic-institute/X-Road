@@ -56,7 +56,7 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
     @PostConstruct
     void init() throws Exception {
         RpcSignerClient.init();
-        log.info("SignerService actorSystem initialized with admin-service config");
+        log.info("SignerService rpcClient initialized with admin-service config");
     }
 
     /**
