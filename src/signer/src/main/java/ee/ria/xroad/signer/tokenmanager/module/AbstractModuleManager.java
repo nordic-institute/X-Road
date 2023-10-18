@@ -102,7 +102,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
             try {
                 TokenManager.saveToConf();
             } catch (Exception e) {
-                throw new RuntimeException(e); //TODO
+                throw new RuntimeException(e);
             }
         }
 
@@ -234,7 +234,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
 
                 newModules.put(moduleWorker.getModuleType().getType(), moduleWorker);
             } catch (Exception e) {
-                throw new RuntimeException(e); //TODO
+                throw new RuntimeException(e);
             }
         });
         return newModules;

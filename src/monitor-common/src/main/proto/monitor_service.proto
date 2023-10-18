@@ -73,9 +73,9 @@ message SystemMetricsResp {
 
 message Metrics {
   oneof value {
-    MetricsGroup metricsGroup = 1;
-    SingleMetrics singleMetrics = 2;
-    HistogramMetrics singleHistogram = 3;
+    MetricsGroup metrics_group = 1;
+    SingleMetrics single_metrics = 2;
+    HistogramMetrics single_histogram = 3;
   }
 }
 

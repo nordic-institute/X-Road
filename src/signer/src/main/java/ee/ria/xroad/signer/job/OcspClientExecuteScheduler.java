@@ -63,13 +63,11 @@ public class OcspClientExecuteScheduler {
     }
 
     public void success() {
-        log.debug("received message OcspClientJob.SUCCESS");
         log.info("OCSP-response refresh cycle successfully completed, continuing with normal scheduling");
         retryMode = false;
     }
 
     public void failure() {
-        log.debug("received message OcspClientJob.FAILED");
         if (!retryMode) {
             log.info("OCSP-response refresh cycle failed, switching to retry backoff schedule");
             retryMode = true;
@@ -80,7 +78,6 @@ public class OcspClientExecuteScheduler {
     }
 
     public void globalConfInvalidated() {
-        log.debug("received message OcspClientWorker.GLOBAL_CONF_INVALIDATED");
         log.info("OCSP-response refresh cycle failed due to invalid global configuration, "
                 + "switching to global configuration recovery schedule");
         // attempted to execute OCSP refresh, but global conf was
@@ -102,7 +99,6 @@ public class OcspClientExecuteScheduler {
     }
 
     public void reschedule() {
-        log.debug("received message OcspClientWorker.RESCHEDULE");
         log.info("OCSP-response refresh cycle rescheduling");
         this.reschedule(getNextDelay());
     }
