@@ -52,6 +52,7 @@ public class SignerAdminPortConfig {
     CertificationServiceDiagnostics certificationServiceDiagnostics() {
         return new CertificationServiceDiagnostics();
     }
+
     @Bean
     AdminPort createAdminPort(final CertificationServiceDiagnostics diagnosticsDefault,
                               final OcspClientWorker ocspClientWorker,
@@ -128,6 +129,9 @@ public class SignerAdminPortConfig {
 
             } catch (Exception e) {
                 log.error("Error stopping admin port", e);
+                if (e instanceof InterruptedException) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
     }

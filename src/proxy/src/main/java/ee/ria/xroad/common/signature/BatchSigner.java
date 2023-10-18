@@ -209,6 +209,7 @@ public class BatchSigner {
                     }
                 } catch (InterruptedException interruptedException) {
                     log.trace("queue polling interrupted");
+                    Thread.currentThread().interrupt();
                 }
             }
             log.trace("Worker thread stopped");

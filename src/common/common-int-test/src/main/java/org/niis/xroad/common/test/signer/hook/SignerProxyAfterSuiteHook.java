@@ -33,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
@@ -46,8 +48,10 @@ public class SignerProxyAfterSuiteHook implements AfterSuiteHook {
         log.info("Setting permissions for signer files so they could be deleted");
         try {
             containerProvider.getContainer().execInContainer("chmod", "-R", "777", "/etc/xroad/signer/");
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("Failed to change file permissions", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

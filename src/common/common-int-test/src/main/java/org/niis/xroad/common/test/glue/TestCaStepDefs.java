@@ -63,6 +63,7 @@ public class TestCaStepDefs extends BaseStepDefs {
     }
 
     @SneakyThrows
+    @SuppressWarnings("squid:S5443")
     private void csrIsBeingProcessed(TestCaFeignApi.CsrType csrType) {
         Optional<File> csrFileOpt = getStepData(StepDataKey.DOWNLOADED_FILE);
         File csrFile = csrFileOpt.orElseThrow();
