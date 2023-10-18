@@ -45,6 +45,26 @@ Description: Insert TLS certificate subject name alternatives
  .
  Server reports following ip addresses and hostnames: ${ALT}
 
+Template: xroad-common/global-conf-subject
+Type: string
+Description: Insert TLS certificate subject name for Global configuration distribution over HTTPS [default=/CN=${HOST}]
+ This certificate will be used to secure download Global configuration over HTTPS.
+ .
+ Include most used hostname or IP address as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
+ .
+ Server reports full hostname as: ${HOST}
+
+Template: xroad-common/global-conf-altsubject
+Type: string
+Description: Insert TLS certificate subject alternatives for Global configuration distribution over HTTPS [default=${ALT}]
+ This certificate will be used to secure download Global configuration over HTTPS.
+ .
+ Include all alternative names and IP addresses which will be used for secure download Global configuration over HTTPS
+ .
+ Format is IP:<ipaddress>,DNS:<hostname>,...
+ .
+ Server reports following ip addresses and hostnames: ${ALT}
+
 Template: xroad-common/cert-generation-error
 Type: error
 Description: Error during certificate generation, please fix issues

@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.35
+Version: 2.36
 Doc. ID: IG-CS
 
 ---
@@ -52,7 +52,8 @@ Doc. ID: IG-CS
 | 23.05.2023 | 2.32    | Backup Encryption Configuration                                                                                                                                                               | Eneli Reimets      |
 | 31.05.2023 | 2.33    | Add Central Server network diagram                                                                                                                                                            | Petteri Kivimäki   |
 | 28.06.2023 | 2.34    | Update database properties to the new Spring datasource version                                                                                                                               | Raido Kaju         |
-| 13.09.2023 | 2.35    | Database integrity check errors before center upgrade                                                                                                                                         | Eneli reimets      |
+| 13.09.2023 | 2.35    | Database integrity check errors before center upgrade                                                                                                                                         | Eneli Reimets      |
+| 14.10.2023 | 2.36    | Add Global configuration distribution over https                                                                                                                                              | Eneli Reimets      |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -164,6 +165,7 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 | 1.8     |                                                                                                                                                                                                           | Central Server public IP address, NAT address                                                                                                                                                                                                                                              |
 | 1.9     | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                            | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
 | 1.10    | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                            | Information about the services TLS certificate                                                                                                                                                                                                                                             |
+| 1.11    | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                            | Information about the global configuration TLS certificate                                                                                                                                                                                                                                 |
 
 It is strongly recommended to protect the Central Server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the Central Server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the Central Server vulnerable to exploits and attacks.**
 
@@ -178,7 +180,7 @@ The table below lists the required connections between different components. Ple
 **Connection Type** | **Source**                        | **Target**                    | **Target Ports** | **Protocol** | **Note**                                                                                    |
 -----------|-----------------------------------|-------------------------------|------------|-----------|---------------------------------------------------------------------------------------------|
 Out | Monitoring Security Server        | X-Road Member Security Server | 5500, 5577 | tcp | Operational and environmental monitoring data collection                                    |
-In  | X-Road Member Security Server     | Central Server                | 80         | tcp | Global configuration distribution                                                           |
+In  | X-Road Member Security Server     | Central Server                | 80, 443    | tcp | Global configuration distribution                                                           |
 In  | X-Road Member Security Server     | Central Server                | 4001       | tcp | Authentication certificate registration requests from X-Road Members' Security Servers      |
 In  | Management Security Server        | Central Server                | 4002       | tcp | Source in the internal network. Management service requests from Management Security Server |
 In  | X-Road Member Security Server     | Management Security Server    | 5500, 5577 | tcp | Management service requests from X-Road Members' Security Servers                           |
@@ -303,6 +305,11 @@ Upon the first installation of the Central Server software, the system asks for 
   ATTENTION: The Central Server IP address or DNS name that Security Servers will use to connect to the server must be added to the certificate owner’s Distinguished Name (subjectDN) or alternative name forms (subjectAltName) list (reference data: 1.8).
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
+  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+- Identification of the TLS certificate that is used for securing the HTTPS access point used for global configuration distribution (reference data: 1.7; 1.11). The name and IP addresses detected from the operating system are suggested as default values.
+
+  The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
 ### 2.8 Installing the Support for Hardware Tokens

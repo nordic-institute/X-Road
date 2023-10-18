@@ -6,13 +6,15 @@
     vtype: "string" # parametrize if you add a different type of question to item list
     value: "{{ item.value }}"
   with_items:
-    - { question: "xroad-common/username",              value: "{{ xroad_ui_user }}" }
-    - { question: "xroad-common/database-host",         value: "{{ database_host }}" }
-    - { question: "xroad-common/admin-subject",         value: "/CN={{ inventory_hostname }}" }
-    - { question: "xroad-common/admin-altsubject",      value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
-    - { question: "xroad-common/service-subject",       value: "/CN={{ inventory_hostname }}" }
-    - { question: "xroad-common/service-altsubject",    value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
-    - { question: "xroad-common/skip-cs-db-migrations", value: "false" }
+    - { question: "xroad-common/username",               value: "{{ xroad_ui_user }}" }
+    - { question: "xroad-common/database-host",          value: "{{ database_host }}" }
+    - { question: "xroad-common/admin-subject",          value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/admin-altsubject",       value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/service-subject",        value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/service-altsubject",     value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/global-conf-subject",    value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/global-conf-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/skip-cs-db-migrations",  value: "false" }
   tags:
     - install-xroad-cs-packages
 

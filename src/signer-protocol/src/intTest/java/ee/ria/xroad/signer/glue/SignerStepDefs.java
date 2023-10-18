@@ -51,7 +51,6 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
 
 import java.io.BufferedReader;
@@ -59,9 +58,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -325,18 +321,6 @@ public class SignerStepDefs {
     @And("certificate status can be changed to {string}")
     public void certificateStatusCanBeChangedTo(String status) throws Exception {
         SignerProxy.setCertStatus(this.certInfo.getId(), status);
-    }
-
-    @And("certificate can be signed using key {string} from token {string}")
-    public void certificateCanBeSignedUsingKeyFromToken(String keyName, String tokenId) throws Exception {
-        final KeyInfo key = findKeyInToken(tokenId, keyName);
-        byte[] keyBytes = Base64.decode(key.getPublicKey().getBytes());
-        X509EncodedKeySpec x509publicKey = new X509EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        PublicKey publicKey = kf.generatePublic(x509publicKey);
-
-        final byte[] bytes = SignerProxy.signCertificate(key.getId(), SHA256WITHRSA_ID, "CN=cs", publicKey);
-        assertThat(bytes).isNotEmpty();
     }
 
     private static Config getConf() {

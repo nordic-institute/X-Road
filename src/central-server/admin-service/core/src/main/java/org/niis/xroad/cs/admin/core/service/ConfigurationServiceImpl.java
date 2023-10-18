@@ -188,9 +188,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public GlobalConfDownloadUrl getGlobalDownloadUrl(ConfigurationSourceType sourceType) {
-        final String csAddress = sourceType.equals(EXTERNAL)
-                              ? systemParameterService.getCentralServerAddress() + ":4443"
-                              : systemParameterService.getCentralServerAddress();
+        final String csAddress = systemParameterService.getCentralServerAddress();
         final String sourceDirectory = sourceType.equals(INTERNAL)
                 ? SystemProperties.getCenterInternalDirectory()
                 : SystemProperties.getCenterExternalDirectory();
