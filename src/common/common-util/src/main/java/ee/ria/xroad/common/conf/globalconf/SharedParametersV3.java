@@ -26,8 +26,8 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -40,14 +40,11 @@ import java.nio.file.Path;
 import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 
-/**
- * Contains shared parameters of a configuration instance.
- */
 @Getter(AccessLevel.PACKAGE)
-public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> implements SharedParametersProvider {
+public class SharedParametersV3 extends AbstractXmlConf<SharedParametersTypeV3> implements SharedParametersProvider {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
-    private final SharedParametersV2Converter converter = new SharedParametersV2Converter();
+    private final SharedParametersV3Converter converter = new SharedParametersV3Converter();
 
     @Getter
     private final SharedParameters sharedParameters;
@@ -60,22 +57,22 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     // This constructor is used for simple verifications after configuration download.
     // It does not initialise class fully!
-    SharedParametersV2(byte[] content) throws CertificateEncodingException, IOException {
-        super(content, SharedParametersSchemaValidatorV2.class);
+    SharedParametersV3(byte[] content) throws CertificateEncodingException, IOException {
+        super(content, SharedParametersSchemaValidatorV3.class);
         expiresOn = OffsetDateTime.MAX;
         sharedParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    public SharedParametersV2(Path sharedParametersPath, OffsetDateTime expiresOn)
+    public SharedParametersV3(Path sharedParametersPath, OffsetDateTime expiresOn)
             throws CertificateEncodingException, IOException {
-        super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
+        super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV3.class);
         this.expiresOn = expiresOn;
         sharedParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    public SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn)
+    public SharedParametersV3(SharedParametersV3 original, OffsetDateTime newExpiresOn)
             throws CertificateEncodingException, IOException {
         super(original);
         expiresOn = newExpiresOn;

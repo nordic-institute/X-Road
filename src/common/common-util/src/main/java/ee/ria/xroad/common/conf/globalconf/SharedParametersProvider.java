@@ -27,10 +27,9 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import java.time.OffsetDateTime;
 
-public interface PrivateParametersProvider {
+public interface SharedParametersProvider {
 
-    PrivateParameters getPrivateParameters();
+    SharedParameters getSharedParameters();
 
     OffsetDateTime getExpiresOn();
-
 }

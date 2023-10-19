@@ -47,9 +47,8 @@ public class PrivateParametersV2Converter {
         }
 
         if (source.getConfigurationAnchor() != null) {
-            target.setConfigurationAnchors(source.getConfigurationAnchor().stream()
-                    .map(this::toConfigurationAnchor)
-                    .collect(toList())
+            target.setConfigurationAnchors(
+                    source.getConfigurationAnchor().stream().map(this::toConfigurationAnchor).collect(toList())
             );
         }
 
@@ -62,9 +61,8 @@ public class PrivateParametersV2Converter {
         if (source.getGeneratedAt() != null) {
             configurationAnchor.setGeneratedAt(source.getGeneratedAt().toGregorianCalendar().toInstant());
         }
-        configurationAnchor.setSources(source.getSource().stream()
-                .map(this::toConfigurationSource)
-                .collect(toList())
+        configurationAnchor.setSources(
+                source.getSource().stream().map(this::toConfigurationSource).collect(toList())
         );
         return configurationAnchor;
     }

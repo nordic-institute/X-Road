@@ -37,11 +37,11 @@ import java.util.Map;
  * Class for reading version 2 of global configuration directory. The directory must have subdirectory per instance
  * identifier.
  * Each subdirectory must contain private and/or shared parameters.
- * <b> When querying the parameters from this class, the parameters XML is checked for modifications and if the XML has
- * been modified, the parameters are reloaded from the XML.
+ * <br/> When querying the parameters from this class, the parameters XML is checked for modifications and if the XML
+ * has been modified, the parameters are reloaded from the XML.
  */
 @Slf4j
-public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<PrivateParametersV2> {
+public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<PrivateParametersV2, SharedParametersV2> {
 
     public ConfigurationDirectoryV2(String directoryPath) throws Exception {
         super(directoryPath);
@@ -79,6 +79,36 @@ public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<
             }
         } else {
             log.trace("Not loading private parameters from {}, file does not exist", privateParametersPath);
+        }
+    }
+
+    protected void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> baseSharedParameters) {
+        String instanceId = instanceDir.getFileName().toString();
+
+        Path sharedParametersPath = Paths.get(instanceDir.toString(),
+                ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
+        if (Files.exists(sharedParametersPath)) {
+            try {
+                log.trace("Loading shared parameters from {}", sharedParametersPath);
+
+                SharedParametersV2 existingParameters = baseSharedParameters.get(instanceId);
+                SharedParametersV2 parametersToUse;
+                OffsetDateTime fileExpiresOn = getFileExpiresOn(sharedParametersPath);
+
+                if (existingParameters != null && !existingParameters.hasChanged()) {
+                    log.trace("SharedParametersV2 from {} have not changed, reusing", sharedParametersPath);
+                    parametersToUse = new SharedParametersV2(existingParameters, fileExpiresOn);
+                } else {
+                    log.trace("Loading SharedParametersV2 from {}", sharedParametersPath);
+                    parametersToUse = new SharedParametersV2(sharedParametersPath, fileExpiresOn);
+                }
+
+                sharedParameters.put(instanceId, parametersToUse);
+            } catch (Exception e) {
+                log.error("Unable to load shared parameters from {}", instanceDir, e);
+            }
+        } else {
+            log.trace("Not loading shared parameters from {}, file does not exist", sharedParametersPath);
         }
     }
 

@@ -314,15 +314,20 @@ class ConfigurationDownloader {
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
                 PrivateParameters privateParameters;
-                try {
-                    privateParameters = new PrivateParametersV2(content).getPrivateParameters();
-                } catch (Exception e) {
+                if (configurationVersion > 2) {
                     privateParameters = new PrivateParametersV3(content).getPrivateParameters();
+                } else {
+                    privateParameters = new PrivateParametersV2(content).getPrivateParameters();
                 }
                 handlePrivateParameters(privateParameters, file);
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                SharedParametersV2 sharedParameters = new SharedParametersV2(content);
+                SharedParameters sharedParameters;
+                if (configurationVersion > 2) {
+                    sharedParameters = new SharedParametersV3(content).getSharedParameters();
+                } else {
+                    sharedParameters = new SharedParametersV2(content).getSharedParameters();
+                }
                 handleSharedParameters(sharedParameters, file);
                 break;
             default:
@@ -334,7 +339,7 @@ class ConfigurationDownloader {
         verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(), file);
     }
 
-    void handleSharedParameters(SharedParametersV2 sharedParameters, ConfigurationFile file) {
+    void handleSharedParameters(SharedParameters sharedParameters, ConfigurationFile file) {
         verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(), file);
     }
 

@@ -55,13 +55,15 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInsta
 /**
  * Class for reading global configuration directory. The directory must have subdirectory per instance identifier.
  * Each subdirectory must contain private and/or shared parameters.
- * <b> When querying the parameters from this class, the parameters XML is checked for modifications and if the XML has
+ * <br/> When querying the parameters from this class, the parameters XML is checked for modifications and if the XML has
  * been modified, the parameters are reloaded from the XML.
  *
  * @param <T> PrivateParametersProvider
+ * @param <S> SharedParametersProvider
  */
 @Slf4j
-public abstract class VersionableConfigurationDirectory<T extends PrivateParametersProvider> implements ConfigurationDirectory {
+public abstract class VersionableConfigurationDirectory<T extends PrivateParametersProvider, S extends SharedParametersProvider>
+        implements ConfigurationDirectory {
 
     @Getter
     private final Path path;
@@ -70,7 +72,7 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
     private final String instanceIdentifier;
 
     protected final Map<String, T> privateParameters = new HashMap<>();
-    private final Map<String, SharedParametersV2> sharedParameters = new HashMap<>();
+    protected final Map<String, S> sharedParameters = new HashMap<>();
 
     // ------------------------------------------------------------------------
 
@@ -94,7 +96,7 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
      * @param base existing configuration directory to look for reusable parameter objects
      * @throws Exception if loading configuration fails
      */
-    VersionableConfigurationDirectory(String directoryPath, VersionableConfigurationDirectory<T> base) throws Exception {
+    VersionableConfigurationDirectory(String directoryPath, VersionableConfigurationDirectory<T, S> base) throws Exception {
         this.path = Paths.get(directoryPath);
 
         instanceIdentifier = loadInstanceIdentifier();
@@ -107,7 +109,7 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
      * @throws Exception if an error occurs during reload
      */
     private void loadParameters(Map<String, T> basePrivateParams,
-                                Map<String, SharedParametersV2> baseSharedParams) throws Exception {
+                                Map<String, S> baseSharedParams) throws Exception {
         log.trace("Reloading configuration from {}", path);
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, Files::isDirectory)) {
@@ -144,17 +146,17 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
      * @param instanceId the instance identifier
      * @return shared parameters or null, if no shared parameters exist for given instance identifier
      */
-    public SharedParametersV2 getShared(String instanceId) {
+    public SharedParameters getShared(String instanceId) {
         String safeInstanceId = escapeInstanceIdentifier(instanceId);
 
         log.trace("getShared(instance = {}, directory = {})", instanceId, safeInstanceId);
 
-        SharedParametersV2 parameters = sharedParameters.get(safeInstanceId);
+        S parameters = sharedParameters.get(safeInstanceId);
         // ignore federated parameters that are expired
-        if (parameters != null
-                && (parameters.getInstanceIdentifier().equals(instanceIdentifier)
+        if (parameters != null && parameters.getSharedParameters() != null
+                && (parameters.getSharedParameters().getInstanceIdentifier().equals(instanceIdentifier)
                 || parameters.getExpiresOn().isAfter(TimeUtils.offsetDateTimeNow()))) {
-            return parameters;
+            return parameters.getSharedParameters();
         }
         return null;
     }
@@ -162,18 +164,26 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
     /**
      * @return all known shared parameters
      */
-    public List<SharedParametersV2> getShared() {
+    public List<SharedParameters> getShared() {
         OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         return sharedParameters.values()
                 .stream()
-                .filter(p -> p.getInstanceIdentifier().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now))
+                .filter(p -> p.getSharedParameters() != null
+                        && p.getSharedParameters().getInstanceIdentifier().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now)
+                )
+                .map(SharedParametersProvider::getSharedParameters)
                 .collect(Collectors.toList());
+    }
+
+    public OffsetDateTime getSharedExpiresOn(String instanceId) {
+        String safeInstanceId = escapeInstanceIdentifier(instanceId);
+        return sharedParameters.get(safeInstanceId).getExpiresOn();
     }
 
     /**
      * Applies the given function to all files belonging to the configuration directory.
      * @param consumer the function instance that should be applied to
-     * @throws Exception if an error occurs
+     * @throws IOException if an error occurs
      */
     private synchronized void eachFile(final Consumer<Path> consumer) throws IOException {
         getConfigurationFiles().forEach(consumer);
@@ -265,34 +275,6 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
 
     protected abstract void loadPrivateParameters(Path instanceDir, Map<String, T> basePrivateParameters);
 
-    private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> baseSharedParameters) {
-        String instanceId = instanceDir.getFileName().toString();
-
-        Path sharedParametersPath = Paths.get(instanceDir.toString(),
-                ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
-        if (Files.exists(sharedParametersPath)) {
-            try {
-                log.trace("Loading shared parameters from {}", sharedParametersPath);
-
-                SharedParametersV2 existingParameters = baseSharedParameters.get(instanceId);
-                SharedParametersV2 parametersToUse;
-                OffsetDateTime fileExpiresOn = getFileExpiresOn(sharedParametersPath);
-
-                if (existingParameters != null && !existingParameters.hasChanged()) {
-                    log.trace("SharedParametersV2 from {} have not changed, reusing", sharedParametersPath);
-                    parametersToUse = new SharedParametersV2(existingParameters, fileExpiresOn);
-                } else {
-                    log.trace("Loading SharedParametersV2 from {}", sharedParametersPath);
-                    parametersToUse = new SharedParametersV2(sharedParametersPath, fileExpiresOn);
-                }
-
-                sharedParameters.put(instanceId, parametersToUse);
-            } catch (Exception e) {
-                log.error("Unable to load shared parameters from {}", instanceDir, e);
-            }
-        } else {
-            log.trace("Not loading shared parameters from {}, file does not exist", sharedParametersPath);
-        }
-    }
+    protected abstract void loadSharedParameters(Path instanceDir, Map<String, S> basePrivateParameters);
 
 }

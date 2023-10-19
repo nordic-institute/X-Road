@@ -123,7 +123,7 @@ class ConfigurationClient {
 
     private PrivateParameters loadPrivateParameters() {
         try {
-            VersionableConfigurationDirectory<? extends PrivateParametersProvider> dir;
+            VersionableConfigurationDirectory<? extends PrivateParametersProvider, ? extends SharedParametersProvider> dir;
             if (downloader.getConfigurationVersion() > 2) {
                 dir = new ConfigurationDirectoryV3(globalConfigurationDir);
             } else {

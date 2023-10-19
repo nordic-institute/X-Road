@@ -61,7 +61,7 @@ public class ConfigurationDirectoryTest {
         assertNotNull(p);
         assertEquals("foo", p.getInstanceIdentifier());
 
-        SharedParametersV2 s = dir.getShared("foo");
+        SharedParameters s = dir.getShared("foo");
 
         assertNotNull(s);
         assertEquals("foo", s.getInstanceIdentifier());

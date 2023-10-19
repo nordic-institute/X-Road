@@ -163,8 +163,7 @@ public final class ConfigurationClientMain {
         // Create configuration that does not persist files to disk.
         final String configurationPath = SystemProperties.getConfigurationPath();
 
-        ConfigurationDownloader configurationDownloader =
-                new ConfigurationDownloader(configurationPath, CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+        var configurationDownloader = new ConfigurationDownloader(configurationPath, CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void handleContent(byte[] content, ConfigurationFile file) throws Exception {
                 validateContent(file);
