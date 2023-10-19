@@ -26,7 +26,6 @@
 package ee.ria.xroad.confproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
@@ -74,10 +73,9 @@ public class ConfProxyTest {
         ConfProxyProperties conf = new ConfProxyProperties("PROXY1");
         ConfProxyHelper.purgeOutdatedGenerations(conf);
         ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(
-                conf.getConfigurationDownloadPath(SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION));
+                conf.getConfigurationDownloadPath(2));
 
-        try (OutputBuilder output = new OutputBuilder(confDir, conf,
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION)) {
+        try (OutputBuilder output = new OutputBuilder(confDir, conf, 2)) {
             CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
             assertEquals("InternalError: Signer is unreachable", exception.getMessage());
         }
