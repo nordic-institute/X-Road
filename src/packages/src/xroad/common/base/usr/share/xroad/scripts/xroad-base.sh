@@ -30,8 +30,8 @@ gen_grpc_internal_keypair() {
       chown xroad:xroad "$keystore"
 
       cat <<EOF >"$env_file"
-XROAD_GRPC_INTERNAL_KEYSTORE_PASSWORD="$keystore_pw"
-XROAD_GRPC_INTERNAL_TRUSTSTORE_PASSWORD="$keystore_pw"
+XROAD_COMMON_GRPC_INTERNAL_KEYSTORE_PASSWORD="$keystore_pw"
+XROAD_COMMON_GRPC_INTERNAL_TRUSTSTORE_PASSWORD="$keystore_pw"
 EOF
 
     chown xroad:xroad "$env_file"
