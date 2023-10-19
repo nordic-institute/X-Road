@@ -125,14 +125,16 @@
             {{ $t('apiKey.table.action.edit.dialog.message') }}
           </v-col>
         </v-row>
-        <v-row v-for="role in roles" :key="role" no-gutters>
+        <v-row v-for="role in rolesToEdit" :key="role" no-gutters>
           <v-col class="checkbox-wrapper">
-            <v-checkbox
-              v-model="selectedRoles"
-              height="10px"
-              :value="role"
-              :label="$t(`apiKey.role.${role}`)"
-            />
+            <v-checkbox v-model="selectedRoles" height="10px" :value="role">
+              <template #label>
+                <span>{{ $t(`apiKey.role.${role}`) }}</span>
+                <span v-if="!hasRole(role)" class="remove-only-role">
+                  &nbsp;{{ $t('apiKey.edit.roleRemoveOnly') }}
+                </span>
+              </template>
+            </v-checkbox>
           </v-col>
         </v-row>
       </div>
@@ -184,11 +186,11 @@ export default Vue.extend({
       confirmRevoke: false,
       savingChanges: false,
       removingApiKey: false,
-      roles: Roles,
+      rolesToEdit: [] as string[],
     };
   },
   computed: {
-    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission', 'hasRole']),
     canCreateApiKey(): boolean {
       return this.hasPermission(Permissions.CREATE_API_KEY);
     },
@@ -241,6 +243,9 @@ export default Vue.extend({
     editKey(apiKey: ApiKey): void {
       this.selectedKey = apiKey;
       this.selectedRoles = [...this.selectedKey.roles];
+      this.rolesToEdit = Roles.filter(
+        (role) => this.selectedRoles.includes(role) || this.hasRole(role),
+      );
       this.showEditDialog = true;
     },
     showRevokeDialog(apiKey: ApiKey): void {
@@ -319,5 +324,9 @@ export default Vue.extend({
 .server-code {
   font-weight: 600;
   font-size: 14px;
+}
+
+.remove-only-role {
+  font-style: italic;
 }
 </style>
