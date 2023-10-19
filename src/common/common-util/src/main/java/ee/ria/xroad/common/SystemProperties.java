@@ -96,6 +96,10 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL =
             PREFIX + "proxy-ui-api.auto-update-timestamp-service-url";
 
+    /** property name of the flag to allow generating csr for key with certificates */
+    public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
+            PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
+
     // Proxy ------------------------------------------------------------------
 
     /** Property name of controlling SSL support between Proxies. */
@@ -299,6 +303,8 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = "false";
 
     private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = "false";
+
+    private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = "false";
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -753,6 +759,14 @@ public final class SystemProperties {
     public static boolean geUpdateTimestampServiceUrlsAutomatically() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL,
                 DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL));
+    }
+
+    /**
+     * @return whether generating CSR is allowed for with existing certificate, 'false' by default
+     */
+    public static boolean getAllowCsrForKeyWithCertificate() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE,
+                DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE));
     }
 
     /**

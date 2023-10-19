@@ -129,7 +129,7 @@ public class GenerateSelfSignedCertRequestHandler extends AbstractRequestHandler
                     message.getNotBefore(), message.getNotAfter(), subject, publicKey);
 
             if (message.getKeyUsage() == KeyUsageInfo.SIGNING) {
-                KeyUsage keyUsage = new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.keyCertSign);
+                KeyUsage keyUsage = new KeyUsage(KeyUsage.nonRepudiation);
                 builder.addExtension(X509Extension.keyUsage, true, keyUsage);
                 builder.addExtension(X509Extension.basicConstraints,
                                       true, new BasicConstraints(true));

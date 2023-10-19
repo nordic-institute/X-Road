@@ -83,7 +83,6 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final ConfigurationService configurationService;
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final ApplicationEventPublisher eventPublisher;
-    private final GlobalConfTLSCertificateGenerator tlsCertificateGenerator;
 
     private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
 
@@ -131,8 +130,6 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
                 log.debug("Global conf generated");
                 success = true;
-
-                tlsCertificateGenerator.updateGlobalConfTLSCertificates(internalSigningKey, externalSigningKey);
             } finally {
                 eventPublisher.publishEvent(success ? SUCCESS : FAILURE);
             }

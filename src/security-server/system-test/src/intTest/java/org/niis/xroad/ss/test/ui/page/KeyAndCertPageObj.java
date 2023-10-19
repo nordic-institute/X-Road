@@ -96,6 +96,19 @@ public class KeyAndCertPageObj {
                     token));
         }
 
+        public SelenideElement tokenLabeledKeyGenerateCsrButton(String keyLabel) {
+            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING
+                            + "tr[@data-test='key-row' and td//span[text() = '%s']]//button[@data-test='generate-csr-button']",
+                    token, keyLabel));
+        }
+
+        public ElementsCollection labeledKeyCsrRows(String keyLabel) {
+            return $$x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING
+                            + "tr[@data-test='key-row' and td//span[text() = '%s']]//following-sibling::"
+                            + "tr[td[@class='td-name'] and //div[contains(text(), 'Request')]]",
+                    token, keyLabel));
+        }
+
         public ElementsCollection tokenSignKeyRows() {
             return $$x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='sign-keys-table']//i[contains(@class,'icon-Certificate')]",
                     token));

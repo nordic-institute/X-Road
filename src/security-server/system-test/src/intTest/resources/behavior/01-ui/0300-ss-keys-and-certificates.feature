@@ -18,6 +18,7 @@ Feature: 0300 - SS: Keys and certificates
     Then CSR is processed by test CA
     And Token: <$token> - Generated certificate is imported
     And Token: <$token> - has key "<$label>" with status "<$certStatus>"
+    And Token: <$token>, key "<$label>" generate CSR button is disabled
     Examples:
       | $token      | $usage         | $label             | $client          | $dns | $certService      | $certStatus |
       | softToken-0 | SIGNING        | test signing token | CS:GOV:0245437-2 |      | X-Road Test CA CN | Registered  |
@@ -55,3 +56,15 @@ Feature: 0300 - SS: Keys and certificates
     Then Token: softToken-0 - has 1 auth keys, 2 sign keys
     When Token: softToken-0 - "SIGNING" CSR in position 1 is deleted
     Then Token: softToken-0 - has 1 auth keys, 1 sign keys
+
+  Scenario: Generating multiple CSR for key
+    Given Keys and certificates tab is selected
+    And Token: softToken-0 is present and expanded
+    When Token: softToken-0 - Add key wizard is opened
+    And Key Label is set to "key for multiple csr"
+    And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "X-Road Test CA CN" and CSR format "PEM"
+    And Generate CSR is set to DNS "ss1", Organization "ui-test" and CSR successfully generated
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
+    Then Token "softToken-0", key "key for multiple csr" has 4 certificate signing requests

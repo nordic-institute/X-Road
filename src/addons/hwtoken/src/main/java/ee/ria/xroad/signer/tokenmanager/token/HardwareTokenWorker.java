@@ -49,20 +49,9 @@ import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 
 import javax.xml.bind.DatatypeConverter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.security.PublicKey;
-import java.security.cert.CertPath;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,10 +63,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addCert;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
@@ -435,27 +421,6 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    protected byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception {
-        log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
-
-        assertKeyAvailable(keyId);
-        KeyInfo keyInfo = getKeyInfo(keyId);
-        CertificateInfo certificateInfo = keyInfo.getCerts().get(0);
-        X509Certificate issuerX509Certificate = readCertificate(certificateInfo.getCertificateBytes());
-
-        ContentSigner contentSigner = new HardwareTokenContentSigner(keyId, signatureAlgorithmId);
-
-        JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
-                                                                               issuerX509Certificate);
-        X509CertificateHolder certHolder = certificateBuilder.build(contentSigner);
-        X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
-
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
-        CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
-        return certPath.getEncoded("PEM");
-    }
-
-
     // ------------------------------------------------------------------------
 
     private void findKeysNotInConf() throws Exception {
@@ -799,58 +764,5 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
 
         return false;
-    }
-
-    private class HardwareTokenContentSigner implements ContentSigner {
-
-        private final ByteArrayOutputStream out;
-        private final String keyId;
-        private final String signatureAlgorithmId;
-
-        HardwareTokenContentSigner(String keyId, String signatureAlgorithmId) {
-            this.keyId = keyId;
-            this.signatureAlgorithmId = signatureAlgorithmId;
-            out = new ByteArrayOutputStream();
-        }
-
-        @Override
-        public byte[] getSignature() {
-            try {
-                assertActiveSession();
-                pinVerificationPerSigningLogin();
-                byte[] dataToSign = out.toByteArray();
-                RSAPrivateKey privateKey = getPrivateKey(keyId);
-                if (privateKey == null) {
-                    throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
-                                            keyId, tokenId);
-                }
-                log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
-                Mechanism signatureMechanism = signMechanisms.get(signatureAlgorithmId);
-                if (signatureMechanism == null) {
-                    throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
-                                            "Unsupported signature algorithm '%s'", signatureAlgorithmId);
-                }
-                activeSession.signInit(signatureMechanism, privateKey);
-                String digestAlgorithmId = getDigestAlgorithmId(signatureAlgorithmId);
-                byte[] digest = calculateDigest(digestAlgorithmId, dataToSign);
-                byte[] dataDigestToSign = SignerUtil.createDataToSign(digest, signatureAlgorithmId);
-                return activeSession.sign(dataDigestToSign);
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                throw translateException(e);
-            } finally {
-                pinVerificationPerSigningLogout();
-            }
-        }
-
-        @Override
-        public OutputStream getOutputStream() {
-            return out;
-        }
-
-        @Override
-        public AlgorithmIdentifier getAlgorithmIdentifier() {
-            return new DefaultSignatureAlgorithmIdentifierFinder().find(signatureAlgorithmId);
-        }
     }
 }

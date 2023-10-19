@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.77
+Version: 2.78
 Doc. ID: UG-SYSPAR
 
 
@@ -88,6 +88,7 @@ Doc. ID: UG-SYSPAR
 | 13.06.2023 | 2.75    | Added new *complementary-user-role-mappings* parameters                                                                                                                                                                                                                                                                                                                                                        | Andres Rosenthal           |
 | 24.08.2023 | 2.76    | Added new *server-min-supported-client-version* parameter                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets              |
 | 02.10.2023 | 2.77    | Remove the separate section about changing the global configuration interval on the Central Server.                                                                                                                                                                                                                                                                                                            | Petteri Kivimäki           |
+| 16.10.2023 | 2.78    | Added new *allow-csr-for-key-with-certificate* parameter                                                                                                                                                                                                                                                                                                                                                       | Justas Samuolis            |
 
 ## Table of Contents
 
@@ -420,6 +421,7 @@ the message log.
 | cache-api-key-ttl                           | 60                        | Configures Api Key cache expiration in seconds. Can be used by various api services. Setting the value to -1 disables the cache.                                                                                                                                                                                                                                                                                                                                                                                     |
 | strict-identifier-checks                    | true*                     | Configures identifier input validation (member code, subsystem code etc).<br>Values:<br>`true`- identifiers must mach pattern `^[a-zA-Z0-9'()+,-.=?]*`.<br>`false`- identfiers must not contain colon (`:`), semicolon (`;`), slashes (`/\`), percent (`%`) or control characters.                                                                                                                                                                                                                                   |
 | complementary-user-role-mappings            |                           | Configures additional UNIX groups mapped to X-Road user roles. **Example:** *XROAD_SECURITY_OFFICER=group1,group2*<br/>**Note that following configurations are preconfigured and cannot be redefined:**<br/>*XROAD_SECURITY_OFFICER=xroad-security-officer*<br/>*XROAD_REGISTRATION_OFFICER=xroad-registration-officer*<br/>*XROAD_SERVICE_ADMINISTRATOR=xroad-service-administrator*<br/>*XROAD_SYSTEM_ADMINISTRATOR=xroad-system-administrator*<br/>*XROAD_SECURITYSERVER_OBSERVER=xroad-securityserver-observer* |
+| allow-csr-for-key-with-certificate          | false                     | Controls if generating the new CSR is allowed for a key that has an existing certificate.                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 > **NOTE**: `strict-identifier-checks` default value is true for new installations starting from version 7.3.0. It is 
 > set to `false` in `local.ini` during upgrade process if version installed before upgrade is less than 7.3.0.

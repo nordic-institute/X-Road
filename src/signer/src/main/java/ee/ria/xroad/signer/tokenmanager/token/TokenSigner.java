@@ -28,7 +28,6 @@ package ee.ria.xroad.signer.tokenmanager.token;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.ComponentNames;
 import ee.ria.xroad.signer.protocol.message.Sign;
-import ee.ria.xroad.signer.protocol.message.SignCertificate;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
@@ -58,8 +57,6 @@ public class TokenSigner extends UntypedAbstractActor {
                 handleSignRequest((Sign) message);
             } else if (message instanceof CalculatedSignature) {
                 handleCalculatedSignature((CalculatedSignature) message);
-            } else if (message instanceof SignCertificate) {
-                handleSignCertificate((SignCertificate) message);
             } else {
                 unhandled(message);
             }
@@ -103,9 +100,4 @@ public class TokenSigner extends UntypedAbstractActor {
             }
         }
     }
-
-    private void handleSignCertificate(SignCertificate message) {
-        tokenWorker.tell(message, getSelf());
-    }
-
 }
