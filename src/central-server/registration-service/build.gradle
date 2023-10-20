@@ -28,7 +28,6 @@ dependencies {
     implementation(project(":central-server:admin-service:api-client"))
     implementation(project(':central-server:openapi-model'))
     implementation(project(':common:common-util')) {
-        exclude group: 'com.typesafe.akka'
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.quartz-scheduler'
     }
@@ -55,9 +54,5 @@ dependencies {
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('com.github.tomakehurst:wiremock-jre8:2.33.1')
-}
-
-test {
-  useJUnitPlatform()
 }
 

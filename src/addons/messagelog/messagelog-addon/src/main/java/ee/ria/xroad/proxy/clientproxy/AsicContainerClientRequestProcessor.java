@@ -45,7 +45,6 @@ import ee.ria.xroad.common.messagelog.archive.EncryptionConfig;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GPGOutputStream;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
@@ -427,11 +426,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
 
         return paramValue;
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        return null; // nothing to return
     }
 
     private static class VerificationConfWriter implements FileConsumer, Closeable {

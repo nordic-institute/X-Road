@@ -63,7 +63,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         properties = {
                 "xroad.proxy-ui-api.rate-limit-requests-per-minute=10",
                 "xroad.proxy-ui-api.rate-limit-requests-per-second=5"})
-@ActiveProfiles({"nontest"})
+@ActiveProfiles({"nontest", "test"})
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class ApplicationIpRateLimitTest {
     private static final int RUNS_PER_MINUTE = 11;

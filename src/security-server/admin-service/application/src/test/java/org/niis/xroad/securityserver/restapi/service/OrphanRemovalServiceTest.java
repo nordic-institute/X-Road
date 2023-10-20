@@ -284,7 +284,7 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
         assertFalse(orphanRemovalService.isOrphanKey(
                 new TokenTestUtils.KeyInfoBuilder()
                         .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
-                        .cert(new CertificateTestUtils.CertificateInfoBuilder().clientId(null).build())
+                        .cert(new CertificateTestUtils.CertificateInfoBuilder().build())
                         .build(),
                 orphanSubsystemDeleted));
     }

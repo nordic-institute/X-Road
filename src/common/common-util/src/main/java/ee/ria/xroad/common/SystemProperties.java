@@ -281,8 +281,6 @@ public final class SystemProperties {
 
     private static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
 
-    private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
-
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
 
@@ -624,6 +622,57 @@ public final class SystemProperties {
 
     public static final String ONE_DAY_AS_SECONDS = String.valueOf(24 * 60 * 60);
 
+    // gRPC internal cross-component transport configuration  -------------------------- //
+
+    /**
+     * Property name for gRPC host.
+     */
+    public static final String GRPC_INTERNAL_HOST =
+            PREFIX + "common.grpc-internal-host";
+
+    /**
+     * Property name for gRPC host.
+     */
+    public static final String GRPC_INTERNAL_TLS_ENABLED =
+            PREFIX + "common.grpc-internal-tls-enabled";
+
+    /**
+     * Property name for gRPC signer port.
+     */
+    public static final String GRPC_SIGNER_PORT = PREFIX + "signer.grpc-port";
+
+    /**
+     * Property name for gRPC proxy port.
+     */
+    public static final String PROXY_GRPC_PORT = PREFIX + "proxy.grpc-port";
+
+    /**
+     * Property name for gRPC internal keystore location.
+     */
+    public static final String GRPC_INTERNAL_KEYSTORE =
+            PREFIX + "common.grpc-internal-keystore";
+
+    /**
+     * Property name for gRPC internal keystore password.
+     */
+    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
+            PREFIX + "common.grpc-internal-keystore-password";
+    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV =
+            GRPC_INTERNAL_KEYSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
+
+    /**
+     * Property name for gRPC internal truststore location.
+     */
+    public static final String GRPC_INTERNAL_TRUSTSTORE =
+            PREFIX + "common.grpc-internal-truststore";
+
+    /**
+     * Property name for gRPC internal truststore password.
+     */
+    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
+            PREFIX + "common.grpc-internal-truststore-password";
+    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
+            GRPC_INTERNAL_TRUSTSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -1230,10 +1279,10 @@ public final class SystemProperties {
     }
 
     /**
-     * @return proxy actorsystem port, {@link PortNumbers#PROXY_ACTORSYSTEM_PORT} by default.
+     * @return proxy grpc port, {@link PortNumbers#PROXY_GRPC_PORT} by default.
      */
-    public static int getProxyActorSystemPort() {
-        return Integer.getInteger(PROXY_ACTORSYSTEM_PORT, PortNumbers.PROXY_ACTORSYSTEM_PORT);
+    public static int getProxyGrpcPort() {
+        return Integer.getInteger(PROXY_GRPC_PORT, PortNumbers.PROXY_GRPC_PORT);
     }
 
     /**
@@ -1673,5 +1722,54 @@ public final class SystemProperties {
      */
     public static boolean isHSMHealthCheckEnabled() {
         return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static String getGrpcInternalHost() {
+        return System.getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static boolean isGrpcInternalTlsEnabled() {
+        return Boolean.parseBoolean(System.getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static int getGrpcSignerPort() {
+        return Integer.parseInt(System.getProperty(GRPC_SIGNER_PORT, String.valueOf(PortNumbers.SIGNER_GRPC_PORT)));
+    }
+
+    /**
+     * @return gRPC internal key store path. Uses JKS format.
+     */
+    public static String getGrpcInternalKeyStore() {
+        return System.getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
+    }
+
+    /**
+     * @return gRPC internal key store password.
+     */
+    public static String getGrpcInternalKeyStorePassword() {
+        return System.getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV));
+    }
+
+    /**
+     * @return gRPC internal trust store path. Uses JKS format.
+     */
+    public static String getGrpcInternalTrustStore() {
+        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
+    }
+
+    /**
+     * @return gRPC internal trust store path password.
+     */
+    public static String getGrpcInternalTruststorePassword() {
+        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
     }
 }

@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.StartStop;
 
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +57,9 @@ class DummyServerProxy extends Server implements StartStop {
 
         connector.setName("ClientConnector");
         connector.setHost("127.0.0.2");
-        connector.setPort(PortNumbers.PROXY_PORT);
+
+        final var port = System.getProperty(SystemProperties.PROXY_SERVER_PORT, String.valueOf(PortNumbers.PROXY_PORT));
+        connector.setPort(Integer.parseInt(port));
 
         addConnector(connector);
         setHandler(new ServiceHandler());

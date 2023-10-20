@@ -1,15 +1,15 @@
 dependencies {
-    implementation project(':common:common-op-monitoring')
+  implementation project(':common:common-op-monitoring')
 
-    implementation project(':proxy')
-    implementation project(':common:common-util')
-    implementation project(':serverconf')
+  implementation project(':proxy')
+  implementation project(':common:common-util')
+  implementation project(':serverconf')
 
-    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testImplementation 'commons-cli:commons-cli:1.4'
+  testImplementation project(':common:common-test')
+  testImplementation 'commons-cli:commons-cli:1.4'
 }
 
 task runOpMonitoringBufferMemoryUsage(type: JavaExec) {
-   mainClass = 'ee.ria.xroad.proxy.opmonitoring.OpMonitoringBufferMemoryUsage'
-   classpath = sourceSets.test.runtimeClasspath
+  mainClass = 'ee.ria.xroad.proxy.opmonitoring.OpMonitoringBufferMemoryUsage'
+  classpath = sourceSets.test.runtimeClasspath
 }

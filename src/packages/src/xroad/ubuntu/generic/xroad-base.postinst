@@ -63,6 +63,9 @@ if [ "$1" = configure ]; then
     test -d /etc/xroad/backup.d || mkdir -p /etc/xroad/backup.d
     chmod 0750 /etc/xroad/backup.d
     chown -R xroad:xroad /etc/xroad/backup.d
+
+    # restart is required to trigger any changes within xroad-base.sh
+    invoke-rc.d --quiet xroad-base try-restart || true
 fi
 
 if [ "$1" = triggered ]; then

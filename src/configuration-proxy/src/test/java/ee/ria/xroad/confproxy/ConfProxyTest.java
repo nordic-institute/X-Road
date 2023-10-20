@@ -29,14 +29,12 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.SignerProxy;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -47,6 +45,8 @@ import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_GENERATED
 import static ee.ria.xroad.common.SystemProperties.TEMP_FILES_PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test program for the configuration proxy,
@@ -55,13 +55,8 @@ import static org.junit.Assert.assertThrows;
 @Slf4j
 public class ConfProxyTest {
 
-    private static ActorSystem actorSystem;
-
     @Before
     public void setUp() {
-        actorSystem = ActorSystem.create("ConfigurationProxy",
-                ConfigFactory.load().getConfig("configuration-proxy"));
-        SignerClient.init(actorSystem);
         System.setProperty(CONFIGURATION_PROXY_CONF_PATH, "src/test/resources/conf-proxy-conf");
         System.setProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH, "build/tmp/test/generated-conf");
         System.setProperty(CONFIGURATION_PATH, "src/test/resources/test-conf-simple");
@@ -75,16 +70,15 @@ public class ConfProxyTest {
         ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(
                 conf.getConfigurationDownloadPath(2));
 
-        try (OutputBuilder output = new OutputBuilder(confDir, conf, 2)) {
-            CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
-            assertEquals("InternalError: Signer is unreachable", exception.getMessage());
+        try (MockedStatic<SignerProxy> signerProxyMock = mockStatic(SignerProxy.class)) {
+            signerProxyMock.when(() -> SignerProxy.getSignMechanism(any()))
+                    .thenThrow(new CodedException("InternalError", "Signer is unreachable"));
+            try (OutputBuilder output = new OutputBuilder(confDir, conf, 2)) {
+                CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
+                assertEquals("InternalError: Signer is unreachable", exception.getMessage());
+            }
+            assertEquals(0, Files.list(Paths.get("build/tmp/test/PROXY1")).count());
         }
-        assertEquals(0, Files.list(Paths.get("build/tmp/test/PROXY1")).count());
-    }
-
-    @After
-    public void tearDown() {
-        actorSystem.terminate();
     }
 
 }

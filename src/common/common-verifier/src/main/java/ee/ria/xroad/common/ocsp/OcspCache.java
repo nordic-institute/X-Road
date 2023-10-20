@@ -49,16 +49,6 @@ public class OcspCache {
 
     /**
      * @param key the key
-     * @param atDate the date
-     * @return the OCSP response or null if the response is not found or is
-     * expired at the specified date
-     */
-    public OCSPResp get(Object key, Date atDate) {
-        return getResponse(key, atDate);
-    }
-
-    /**
-     * @param key the key
      * @return the OCSP response or null if the response is not found or is
      * expired at the current date
      */

@@ -30,16 +30,21 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.SignerProxy.KeyIdInfo;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import java.util.List;
 
@@ -49,8 +54,20 @@ import java.util.List;
  * Exists to make testing easier by offering non-static methods.
  */
 @Slf4j
+@Profile("!test")
 @Component
 public class SignerProxyFacade {
+
+    @PostConstruct
+    public void init() throws Exception {
+        RpcSignerClient.init();
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        RpcSignerClient.shutdown();
+    }
+
     /**
      * {@link SignerProxy#initSoftwareToken(char[])}
      */

@@ -9,6 +9,7 @@ dependencies {
     implementation 'commons-cli:commons-cli:1.4'
 
     testImplementation project(':common:common-test')
+    testImplementation "org.mockito:mockito-inline:$mockitoVersion"
 }
 
 ext {
@@ -22,10 +23,10 @@ jar {
 }
 
 shadowJar {
-    classifier = ''
-    exclude('**/module-info.class')
-    append('reference.conf')
-    from rootProject.file("LICENSE.txt")
+  classifier = ''
+  exclude('**/module-info.class')
+  from rootProject.file("LICENSE.txt")
+  mergeServiceFiles()
 }
 
 jar.enabled = false

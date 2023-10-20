@@ -23,8 +23,9 @@ jar {
 }
 
 shadowJar {
-    exclude('**/module-info.class')
-    classifier = ''
+  exclude('**/module-info.class')
+  classifier = ''
+  mergeServiceFiles()
 }
 
 jar.enabled = false
