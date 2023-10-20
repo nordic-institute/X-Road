@@ -68,7 +68,9 @@
       </template>
 
       <template #[`item.roles`]="{ item }">
-        {{ translateRoles(item.roles) | commaSeparate }}
+        <span :data-test="`api-key-row-${item.id}-roles`">
+          {{ translateRoles(item.roles) | commaSeparate }}
+        </span>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -127,7 +129,12 @@
         </v-row>
         <v-row v-for="role in rolesToEdit" :key="role" no-gutters>
           <v-col class="checkbox-wrapper">
-            <v-checkbox v-model="selectedRoles" height="10px" :value="role">
+            <v-checkbox
+              v-model="selectedRoles"
+              height="10px"
+              :value="role"
+              :data-test="`role-${role}-checkbox`"
+            >
               <template #label>
                 <span>{{ $t(`apiKey.role.${role}`) }}</span>
                 <span v-if="!hasRole(role)" class="remove-only-role">

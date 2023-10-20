@@ -70,6 +70,7 @@
                       height="10px"
                       :value="role"
                       :label="$t(`apiKey.role.${role}`)"
+                      :data-test="`role-${role}-checkbox`"
                     />
                   </v-col>
                 </v-row>
@@ -142,7 +143,7 @@
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.apiKeyID') }}
               </v-col>
-              <v-col cols="6" sm="9">
+              <v-col cols="6" sm="9" data-test="created-apikey-id">
                 {{ apiKey.id }}
               </v-col>
             </v-row>

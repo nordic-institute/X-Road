@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,49 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.ui.glue;
 
-import io.cucumber.java.en.Step;
+package org.niis.xroad.ss.test.ui.utils;
 
-public class NavigationStepDefs extends BaseUiStepDefs {
+import com.codeborne.selenide.SelenideElement;
 
-    @Step("Clients tab is selected")
-    public void clientsTab() {
-        commonPageObj.menu.clientsTab().click();
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.tagName;
+import static com.codeborne.selenide.Condition.visible;
+
+public class VuetifyHelper {
+
+    private static final String TEXT_FIELD_ROOT_TAG = "div";
+    private static final String INPUT_XPATH = ".//input";
+
+    public static Checkbox vCheckbox(final SelenideElement vuetifyTextField) {
+        return new Checkbox(vuetifyTextField);
     }
 
-    @Step("Keys and certificates tab is selected")
-    public void keysAndCertificatesTab() {
-        commonPageObj.menu.keysAndCertificatesTab().click();
+    public static final class Checkbox {
+        private final SelenideElement controlElement;
+
+        private Checkbox(final SelenideElement vuetifyCheckbox) {
+            this.controlElement = vuetifyCheckbox.shouldBe(tagName(TEXT_FIELD_ROOT_TAG))
+                    .shouldHave(cssClass("v-input--checkbox"));
+        }
+
+        public void click() {
+            controlElement.shouldBe(visible)
+                    .$x(".//label")
+                    .click();
+        }
     }
 
-    @Step("Diagnostics tab is selected")
-    public void diagnosticsTab() {
-        commonPageObj.menu.diagnosticsTab().click();
-    }
-
-    @Step("Settings tab is selected")
-    public void settingsTab() {
-        commonPageObj.menu.settingsTab().click();
-    }
-
-    @Step("Backup and Restore sub-tab is selected")
-    public void navigateBackupAndRestoreSubTab() {
-        commonPageObj.subMenu.backupAndRestoresTab().click();
-    }
-
-    @Step("System Parameters sub-tab is selected")
-    public void navigateSystemParametersSubTab() {
-        commonPageObj.subMenu.systemParametersTab().click();
-    }
-
-    @Step("Security Server TLS Key sub-tab is selected")
-    public void navigateTlsKeySubTab() {
-        commonPageObj.subMenu.securityServerTLSKeyTab().click();
-    }
-
-    @Step("API Keys sub-tab is selected")
-    public void apiKeysSubTabIsSelected() {
-        commonPageObj.subMenu.apiKeysTab().click();
-    }
 }
