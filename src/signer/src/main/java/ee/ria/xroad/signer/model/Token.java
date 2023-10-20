@@ -31,13 +31,13 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 
 import lombok.Data;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -134,9 +134,9 @@ public final class Token {
 
         return token.getModuleType() != null
                 && token.getModuleType().equals(type)
-                && ObjectUtils.equals(token.getSerialNumber(), serialNumber)
-                && ObjectUtils.equals(token.getLabel(), label)
-                && ObjectUtils.equals(token.getSlotIndex(), slotIndex);
+                && Objects.equals(token.getSerialNumber(), serialNumber)
+                && Objects.equals(token.getLabel(), label)
+                && Objects.equals(token.getSlotIndex(), slotIndex);
     }
 
     /**
@@ -147,7 +147,7 @@ public final class Token {
     }
 
     private List<KeyInfo> getKeysAsDTOs() {
-        return keys.stream().map(k -> k.toDTO()).collect(Collectors.toList());
+        return keys.stream().map(Key::toDTO).collect(Collectors.toList());
     }
 
 }
