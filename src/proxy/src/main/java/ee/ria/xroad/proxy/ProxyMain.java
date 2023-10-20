@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
@@ -44,7 +43,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
@@ -59,18 +57,14 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
-import akka.actor.ActorSelection;
-import akka.actor.ActorSystem;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
+import io.grpc.BindableService;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
+import org.niis.xroad.common.rpc.server.RpcServer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -85,7 +79,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
@@ -96,6 +89,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
  * Main program for the proxy server.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
@@ -117,9 +111,9 @@ public final class ProxyMain {
 
     private static final List<StartStop> SERVICES = new ArrayList<>();
 
-    private static ActorSystem actorSystem;
+    private static RpcServer rpcServer;
 
-    private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
+    private static final ServiceLoader<AddOn> ADDONS = ServiceLoader.load(AddOn.class);
 
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
@@ -131,15 +125,13 @@ public final class ProxyMain {
 
     private static MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
-    private ProxyMain() {
-    }
-
     /**
      * Main program entry point.
+     *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         try {
             startup();
             loadConfigurations();
@@ -182,34 +174,37 @@ public final class ProxyMain {
         }
     }
 
-    private static void startup() throws Exception {
+    private static void startup() {
         log.trace("startup()");
         Version.outputVersionInfo(APP_NAME);
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withFallback(ConfigFactory.load())
-                .withValue("akka.remote.artery.canonical.port",
-                        ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
         log.info("Starting proxy ({})...", readProxyVersion());
     }
 
     private static void shutdown() throws Exception {
         log.trace("shutdown()");
+        MessageLog.shutdown();
+        OpMonitoring.shutdown();
         stopServices();
-        Await.ready(actorSystem.terminate(), Duration.Inf());
+
+        BatchSigner.shutdown();
+        rpcServer.stop();
+        RpcSignerClient.shutdown();
     }
 
     private static void createServices() throws Exception {
         JobManager jobManager = new JobManager();
 
-        MonitorAgent.init(actorSystem);
-        SignerClient.init(actorSystem);
-        BatchSigner.init(actorSystem);
-        boolean messageLogEnabled = MessageLog.init(actorSystem, jobManager);
-        OpMonitoring.init(actorSystem);
+        RpcSignerClient.init();
+        BatchSigner.init();
+        boolean messageLogEnabled = MessageLog.init(jobManager);
+        OpMonitoring.init();
 
-        for (AddOn addOn : addOns) {
-            addOn.init(actorSystem);
+        AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
+        for (AddOn addOn : ADDONS) {
+            addOn.init(bindableServiceRegistry);
         }
+        rpcServer = createRpcServer(bindableServiceRegistry.getRegisteredServices());
+        rpcServer.start();
 
         SERVICES.add(jobManager);
         SERVICES.add(new ClientProxy());
@@ -240,6 +235,17 @@ public final class ProxyMain {
                 getMessageLogArchiveEncryptionMembers(getMembers()));
     }
 
+    //TODO grpc. this is a god class that must be split.
+    public static RpcServer createRpcServer(final List<BindableService> bindableServices) throws Exception {
+        return RpcServer.newServer(
+                SystemProperties.getGrpcInternalHost(),
+                SystemProperties.getProxyGrpcPort(),
+                builder -> bindableServices.forEach(bindableService -> {
+                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
+                    builder.addService(bindableService);
+                }));
+    }
+
     private static List<ClientId> getMembers() {
         try {
             return new ArrayList<>(ServerConf.getMembers());
@@ -261,7 +267,7 @@ public final class ProxyMain {
         }
     }
 
-    private static AdminPort createAdminPort() throws Exception {
+    private static AdminPort createAdminPort() {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 
         addShutdownHook(adminPort);
@@ -380,14 +386,8 @@ public final class ProxyMain {
 
                 log.info("simple connection check result {}", statusesFromSimpleConnectionCheck);
 
-                ActorSelection logManagerSelection = actorSystem.actorSelection("/user/LogManager");
-
-                Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                 try {
-                    Map<String, DiagnosticsStatus> statusesFromLogManager =
-                            (Map<String, DiagnosticsStatus>)Await.result(
-                                    Patterns.ask(logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
-                                    timeout.duration());
+                    Map<String, DiagnosticsStatus> statusesFromLogManager = MessageLog.getDiagnosticStatus();
 
                     log.info("statusesFromLogManager {}", statusesFromLogManager.toString());
 
@@ -419,13 +419,15 @@ public final class ProxyMain {
 
     /**
      * Logic that determines correct DiagnosticsStatus based on simple connection check and LogManager status
-     * @param timestamperUrl url of timestamper
+     *
+     * @param timestamperUrl                  url of timestamper
      * @param statusFromSimpleConnectionCheck status from simple connection check
-     * @param statusFromLogManager (possible) status from LogManager
+     * @param statusFromLogManager            (possible) status from LogManager
      * @return
      */
     private static DiagnosticsStatus determineDiagnosticsStatus(String timestamperUrl,
-            DiagnosticsStatus statusFromSimpleConnectionCheck, DiagnosticsStatus statusFromLogManager) {
+                                                                DiagnosticsStatus statusFromSimpleConnectionCheck,
+                                                                DiagnosticsStatus statusFromLogManager) {
 
         DiagnosticsStatus status = statusFromSimpleConnectionCheck;
 
@@ -494,7 +496,7 @@ public final class ProxyMain {
 
                 log.info("Checking timestamp server status for url {}", url);
 
-                HttpURLConnection con = (HttpURLConnection)url.openConnection();
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setConnectTimeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS);
                 con.setReadTimeout(DIAGNOSTICS_READ_TIMEOUT_MS);
                 con.setDoOutput(true);
@@ -543,13 +545,14 @@ public final class ProxyMain {
 
     private static List<String> getBackupEncryptionKeyIds() {
         return Arrays.stream(StringUtils.split(
-                SystemProperties.getBackupEncryptionKeyIds(), ','))
+                        SystemProperties.getBackupEncryptionKeyIds(), ','))
                 .map(String::trim)
                 .collect(Collectors.toList());
     }
 
     /**
      * Return X-Road software version
+     *
      * @return version string e.g. 6.19.0
      */
     public static String readProxyVersion() {

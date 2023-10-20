@@ -29,9 +29,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;

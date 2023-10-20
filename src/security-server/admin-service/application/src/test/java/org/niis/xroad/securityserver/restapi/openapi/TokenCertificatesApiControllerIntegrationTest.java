@@ -125,9 +125,10 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             }
         }).when(signerProxyFacade).getCertForHash(any());
         doAnswer(answer -> new SignerProxy.KeyIdInfo("key-id", null)).when(signerProxyFacade).getKeyIdForCertHash(any());
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().build();
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id("key-id").build();
-        tokenInfo.getKeyInfo().add(keyInfo);
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .key(keyInfo)
+                .build();
         doAnswer(answer -> Collections.singletonList(tokenInfo)).when(signerProxyFacade).getTokens();
         TokenInfoAndKeyId tokenInfoAndKeyId = new TokenInfoAndKeyId(tokenInfo, keyInfo.getId());
         doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertRequestId(any());

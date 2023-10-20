@@ -192,6 +192,10 @@ if [ $1 -ge 1 ] ; then
       echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2
     fi
   fi
+
+  # restart is required to trigger any changes within xroad-base.sh
+  echo "Restarting xroad-base service.."
+  %systemd_postun_with_restart xroad-base.service
 fi
 
 %changelog

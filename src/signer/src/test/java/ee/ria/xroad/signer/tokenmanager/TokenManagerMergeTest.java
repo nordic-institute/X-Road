@@ -58,7 +58,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -204,7 +203,7 @@ public class TokenManagerMergeTest {
         assertNotNull("test setup failure", beforeCertInfo);
 
         // assert no ocsp response exists before test
-        assertNull("test setup failure", beforeCertInfo.getOcspBytes());
+        assertArrayEquals("test setup failure", new byte[0], beforeCertInfo.getOcspBytes());
 
         OCSPResp shouldMatchResponse = mock(OCSPResp.class);
         final byte[] shouldMatchOcspResponseBytes = "some example string  11 2 34".getBytes();

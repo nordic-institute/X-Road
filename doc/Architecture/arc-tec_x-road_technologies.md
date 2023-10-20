@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.10<br/>
+Version: 1.11<br/>
 05.10.2023
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
@@ -24,6 +24,7 @@ Doc. ID: ARC-TEC
 | 26.09.2022  | 1.8     | Remove Ubuntu 18.04 support                            | Andres Rosenthal |
 | 08.06.2023  | 1.9     | Central Server technologies update                     | Justas Samuolis  |
 | 05.10.2023  | 1.10    | Update to Java 17                                      | Justas Samuolis  |
+| 04.10.2023  | 1.11    | Remove Akka references                                 | Ričardas Bučiūnas |
 
 ## Table of Contents
 
@@ -81,7 +82,7 @@ Table 1. Technology matrix of the X-Road
 | Java 17                            |          X          |         X          |            X            |                 X                 |
 | C                                  |          X          |         X          |                         |                                   |
 | Logback                            |          X          |         X          |            X            |                 X                 |
-| Akka 2                             |          X          |         X          |            X            |                 X                 |
+| gRPC                               |          X          |         X          |            X            |                 X                 |
 | Jetty 9                            |  X\[[3](#Ref_3)\]   |  X\[[4](#Ref_4)\]  |                         |                                   |
 | Ubuntu 20.04                       |          X          |         X          |            X            |                 X                 |
 | Ubuntu 22.04                       |          X          |         X          |            X            |                 X                 |
@@ -129,7 +130,7 @@ Table 2. Technology matrix of the Central Server
 | Java 17                       |     X      |                    |                  X                  |              |                    |      X       |                     |            X             |
 | C                             |            |         X          |                                     |              |                    |              |                     |                          |
 | Logback                       |     X      |                    |                  X                  |              |                    |      X       |                     |            X             |
-| Akka 2                        |     X      |                    |                                     |              |                    |      X       |                     |                          |
+| gRPC                          |     X      |                    |                                     |              |                    |      X       |                     |                          |
 | Embedded Jetty 9              |            |                    |                  X                  |              |                    |              |                     |                          |
 | Embedded Tomcat 9             |            |                    |                                     |              |                    |      X       |                     |                          |
 | Spring Boot 2                 |            |                    |                  X                  |              |                    |      X       |                     |                          |
@@ -165,7 +166,7 @@ Table 3. Technology matrix of the configuration proxy
 |--------------------------|:--------------:|:---------------------------:|:----------:|:------------------------:|
 | Java 17                  |                |              X              |     X      |            X             |
 | Logback                  |                |              X              |     X      |            X             |
-| Akka 2                   |                |              X              |     X      |                          |
+| gRPC                     |                |              X              |     X      |                          |
 | nginx                    |       X        |                             |            |                          |
 | systemd                  |       X        |              X              |     X      |            X             |
 | PKCS \#11\[[2](#Ref_2)\] |                |                             |     X      |                          |
@@ -187,7 +188,7 @@ Table 4. Technology matrix of the Security Server
 | Java 17                      |     X      |     X     |                    |        X        |           X           |              |            X             |                             |      X       |      X      |                  X                   |                 X                 |                  X                  |
 | C                            |            |           |         X          |                 |                       |              |                          |                             |              |             |                                      |                                   |                                     |
 | Logback                      |     X      |     X     |                    |        X        |           X           |              |            X             |                             |      X       |             |                  X                   |                 X                 |                  X                  |
-| Akka 2                       |     X      |     X     |                    |        X        |                       |              |                          |                             |      X       |      X      |                  X                   |                 X                 |                                     |
+| gRPC                         |     X      |     X     |                    |        X        |                       |              |                          |                             |      X       |      X      |                  X                   |                 X                 |                                     |
 | Embedded Jetty 9             |            |     X     |                    |                 |                       |              |                          |                             |              |             |                                      |                                   |                                     |
 | Javascript                   |            |           |                    |                 |                       |              |                          |              X              |              |             |                                      |                                   |                                     |
 | PostgreSQL 9+\[[3](#Ref_3)\] |            |           |                    |                 |                       |      X       |                          |                             |      X       |             |                                      |                                   |                                     |
@@ -225,7 +226,7 @@ Table 5. Technology matrix of the operational monitoring daemon
 |:-----------------------------|:------------------------:|:---------------------:|:--------------------:|:------------------------:|
 | Java 17                      |            X             |           X           |          X           |            X             |
 | Logback                      |            X             |           X           |          X           |            X             |
-| Akka 2                       |            X             |           X           |                      |                          |
+| gRPC                         |            X             |           X           |                      |                          |
 | PostgreSQL 9+\[[1](#Ref_1)\] |            X             |           X           |                      |                          |
 | Liquibase 3                  |            X             |           X           |                      |                          |
 | Dropwizard Metrics 4         |            X             |           X           |                      |                          |

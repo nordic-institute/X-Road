@@ -1,47 +1,35 @@
+plugins {
+  id 'java-library'
+  id 'com.google.protobuf'
+}
 
-ext {
-  cucumberVersion = '7.12.1'
-  junitJupiterVersion = '5.9.3'
-  junitPlatformSuiteVersion = '1.9.3'
+sourceSets {
+  main {
+    java.srcDirs = [
+      'src/main/java'
+      , 'build/generated-sources'
+      , 'build/generated/source/proto/main/grpc'
+      , 'build/generated/source/proto/main/java']
+  }
 }
 
 dependencies {
   implementation project(':common:common-util')
-
-  intTestRuntimeOnly project(':signer')
-  intTestRuntimeOnly project(':common:common-util')
-
-  intTestImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
-  intTestImplementation "org.assertj:assertj-core:$assertjVersion"
-  intTestImplementation "io.cucumber:cucumber-java:$cucumberVersion"
-  intTestImplementation "io.cucumber:cucumber-junit-platform-engine:$cucumberVersion"
-  intTestImplementation "org.junit.platform:junit-platform-suite:$junitPlatformSuiteVersion"
-  intTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+  api project(':common:common-rpc')
 }
 
-test {
-  useJUnitPlatform()
-}
-
-tasks.register('intTest', Test) {
-  useJUnitPlatform()
-
-  setDescription("Runs integration tests.")
-  group = 'verification'
-
-  testClassesDirs = sourceSets.intTest.output.classesDirs
-  classpath = sourceSets.intTest.runtimeClasspath
-
-  systemProperty("java.library.path", "../passwordstore")
-
-  testLogging {
-    showStackTraces(true)
-    showExceptions(true)
-    showCauses(true)
-    showStandardStreams(true)
+protobuf {
+  protoc { artifact = "com.google.protobuf:protoc:$protocVersion" }
+  plugins {
+    grpc { artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion" }
+  }
+  generateProtoTasks {
+    all()*.plugins { grpc {} }
   }
 }
 
-tasks.named('check') {
-  dependsOn tasks.named('intTest')
+compileJava.dependsOn generateProto
+
+test {
+  useJUnitPlatform()
 }

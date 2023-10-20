@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,7 +53,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -117,13 +117,18 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     private TokenInfo parseTokenInfo(JsonNode json) {
-        final List<KeyInfo> keyInfoList = List.of();
-        Map<String, String> tokenParams = Map.of();
-
-        return new TokenInfo(json.get("type").asText(), json.get("friendlyName").asText(), json.get("id").asText(),
-                json.get("readOnly").asBoolean(), json.get("available").asBoolean(), json.get("active").asBoolean(),
-                json.get("serialNumber").asText(), json.get("label").asText(), json.get("slotIndex").asInt(),
-                TokenStatusInfo.valueOf(json.get("status").asText()), keyInfoList, tokenParams);
+        return new TokenInfo(TokenInfoProto.newBuilder()
+                .setType(json.get("type").asText())
+                .setFriendlyName(json.get("friendlyName").asText())
+                .setId(json.get("id").asText())
+                .setReadOnly(json.get("readOnly").asBoolean())
+                .setAvailable(json.get("available").asBoolean())
+                .setActive(json.get("active").asBoolean())
+                .setSerialNumber(json.get("serialNumber").asText())
+                .setLabel(json.get("label").asText())
+                .setSlotIndex(json.get("slotIndex").asInt())
+                .setStatus(TokenStatusInfo.valueOf(json.get("status").asText()))
+                .build());
     }
 
     @Override

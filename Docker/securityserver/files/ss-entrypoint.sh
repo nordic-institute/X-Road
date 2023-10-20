@@ -32,4 +32,9 @@ then
     unset XROAD_TOKEN_PIN
 fi
 
+#initialize transport keys
+mkdir -p -m0750 /var/run/xroad
+chown xroad:xroad /var/run/xroad
+su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
+
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

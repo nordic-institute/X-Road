@@ -28,10 +28,10 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import static org.junit.Assert.assertEquals;
 

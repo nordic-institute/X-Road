@@ -49,6 +49,11 @@ public interface TokenType {
     boolean isBatchSigningEnabled();
 
     /**
+     * @return true if pin must be verified per signing.
+     */
+    boolean isPinVerificationPerSigning();
+
+    /**
      * @return the slot index of the token
      */
     Integer getSlotIndex();

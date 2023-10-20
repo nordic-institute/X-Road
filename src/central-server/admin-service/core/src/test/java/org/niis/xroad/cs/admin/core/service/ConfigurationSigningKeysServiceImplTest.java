@@ -29,9 +29,10 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,15 +62,14 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
@@ -261,10 +261,20 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     private TokenInfo createToken(List<KeyInfo> keys) {
-        return new TokenInfo(null, "tokenName", TOKEN_ID,
-                true, true, true, "serialNumber", "tokenLabel",
-                1, TokenStatusInfo.OK, keys, new HashMap<>()
-        );
+        final TokenInfoProto.Builder builder = TokenInfoProto.newBuilder()
+                .setFriendlyName("tokenName")
+                .setId(TOKEN_ID)
+                .setReadOnly(true)
+                .setAvailable(true)
+                .setActive(true)
+                .setSerialNumber("serialNumber")
+                .setLabel("tokenLabel")
+                .setSlotIndex(1)
+                .setStatus(OK);
+        if (!keys.isEmpty()) {
+            builder.addAllKeyInfo(keys.stream().map(KeyInfo::getMessage).collect(toList()));
+        }
+        return new TokenInfo(builder.build());
     }
 
     @Test
@@ -332,15 +342,34 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     private KeyInfo createKeyInfo(String keyIdentifier) {
-        return new ee.ria.xroad.signer.protocol.dto.KeyInfo(true, KeyUsageInfo.SIGNING, "keyFriendlyName",
-                keyIdentifier, "keyLabel", "keyPublicKey", List.of(), List.of(), "keySignMechanismName");
+        return new ee.ria.xroad.signer.protocol.dto.KeyInfo(KeyInfoProto.newBuilder()
+                .setAvailable(true)
+                .setUsage(KeyUsageInfo.SIGNING)
+                .setFriendlyName("keyFriendlyName")
+                .setId(keyIdentifier)
+                .setLabel("keyLabel")
+                .setPublicKey("keyPublicKey")
+                .setSignMechanismName("keySignMechanismName")
+                .build());
     }
 
     private TokenInfo createTokenInfo(boolean active, boolean available, List<KeyInfo> keyInfos) {
-        return new TokenInfo(
-                "type", "TOKEN_FRIENDLY_NAME", "TOKEN_ID", false, available,
-                active, "TOKEN_SERIAL_NUMBER", "label", 13, OK, keyInfos, Map.of()
-        );
+        final TokenInfoProto.Builder builder = TokenInfoProto.newBuilder()
+                .setType("type")
+                .setFriendlyName("TOKEN_FRIENDLY_NAME")
+                .setId("TOKEN_ID")
+                .setReadOnly(false)
+                .setAvailable(available)
+                .setActive(active)
+                .setSerialNumber("TOKEN_SERIAL_NUMBER")
+                .setLabel("label")
+                .setSlotIndex(13)
+                .setStatus(OK);
+        if (!keyInfos.isEmpty()) {
+            builder.addAllKeyInfo(keyInfos.stream().map(KeyInfo::getMessage).collect(toList()));
+        }
+        return new TokenInfo(builder
+                .build());
     }
 
     private ConfigurationSigningKeyEntity createConfigurationSigningEntity(

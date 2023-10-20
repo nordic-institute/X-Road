@@ -32,7 +32,6 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -97,11 +96,6 @@ public abstract class MessageProcessorBase {
      * @throws Exception in case of any errors
      */
     public abstract void process() throws Exception;
-
-    /**
-     * @return MessageInfo object for the request message being processed
-     */
-    public abstract MessageInfo createRequestMessageInfo();
 
     /**
      * Update operational monitoring data with SOAP message header data and
