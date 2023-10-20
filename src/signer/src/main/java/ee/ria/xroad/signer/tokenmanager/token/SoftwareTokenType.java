@@ -76,6 +76,11 @@ public final class SoftwareTokenType implements TokenType {
     }
 
     @Override
+    public boolean isPinVerificationPerSigning() {
+        return false;
+    }
+
+    @Override
     public String getSignMechanismName() {
         return CryptoUtils.CKM_RSA_PKCS_NAME;
     }

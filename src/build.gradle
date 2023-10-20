@@ -10,14 +10,14 @@ buildscript {
 }
 
 plugins {
-    id 'org.sonarqube' version '4.2.1.3168'
-    id 'org.owasp.dependencycheck' version '8.4.0'
-    id 'jacoco'
-    id 'java'
-    id 'idea'
-    id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
-    id 'org.springframework.boot' version "${springBootVersion}" apply false
-    //id "com.dorongold.task-tree" version "2.1.0"
+  id 'org.sonarqube' version '4.2.1.3168'
+  id 'org.owasp.dependencycheck' version '8.4.0'
+  id 'jacoco'
+  id 'java'
+  id 'idea'
+  id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
+  id 'org.springframework.boot' version "${springBootVersion}" apply false
+  id 'com.google.protobuf' version "$protobufGradleVersion" apply false
 }
 
 repositories {
@@ -167,16 +167,10 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
                 }
             }
             add('implementation', 'org.apache.commons:commons-text') {
-                because("Vulnerability fix regarding CVE-2022-42889")
-                version {
-                    require("$commonsTextVersion")
-                }
-            }
-            add('implementation', 'org.scala-lang:scala-library') {
-                because("Vulnerability fix regarding CVE-2022-36944")
-                version {
-                    require("$scalaLibraryVersion")
-                }
+              because("Vulnerability fix regarding CVE-2022-42889")
+              version {
+                require("$commonsTextVersion")
+              }
             }
             add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
                 because("Vulnerability fix regarding CVE-2022-40152")
@@ -188,7 +182,9 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
 
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
-        testImplementation "junit:junit:$junitVersion"
+
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+        testImplementation("org.junit.vintage:junit-vintage-engine:$junitVersion")
 
         compileOnly "org.projectlombok:lombok:${lombokVersion}"
         annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -199,6 +195,10 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
         intTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
         intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     }
+
+  test {
+    useJUnitPlatform()
+  }
 
     task testJar(type: Jar) {
         classifier 'test'
@@ -263,6 +263,9 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
         header rootProject.file('LICENSE.txt')
         include '**/*.java'
         skipExistingHeaders = true
+      mapping {
+        java = 'SLASHSTAR_STYLE'
+      }
     }
 
     licenseMain.source = fileTree('src/main')

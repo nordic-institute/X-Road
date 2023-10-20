@@ -30,8 +30,12 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
+import com.google.protobuf.ByteString;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.springframework.core.io.ByteArrayResource;
@@ -42,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Utils for working with test x509 certificates
@@ -57,7 +63,7 @@ public final class CertificateTestUtils {
      * Version: V3
      * Subject: CN=N/A
      * Signature Algorithm: SHA512withRSA, OID = 1.2.840.113549.1.1.13
-     *
+     * <p>
      * Key:  Sun RSA public key, 2048 bits
      * public exponent: 65537
      * Validity: [From: Thu Jan 01 02:00:00 EET 1970,
@@ -88,7 +94,7 @@ public final class CertificateTestUtils {
      * Version: V3
      * Subject: O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
      * Signature Algorithm: SHA256withRSA, OID = 1.2.840.113549.1.1.11
-     *
+     * <p>
      * Key:  Sun RSA public key, 512 bits
      * public exponent: 65537
      * Validity: [From: Wed Apr 24 09:59:02 EEST 2019,
@@ -128,7 +134,7 @@ public final class CertificateTestUtils {
 
     /**
      * This is an authentication certificate created in a development setup
-     *
+     * <p>
      * Certificate Details:
      * Serial Number: 8 (0x8)
      * Validity
@@ -275,7 +281,7 @@ public final class CertificateTestUtils {
 
     /**
      * Certificate which does not have X509v3 Key Usage extension (and hence is not a sign or auth cert,
-     *  and CertUtils.isSigningCert & CertUtils.isAuthCert throw exceptions)
+     * and CertUtils.isSigningCert & CertUtils.isAuthCert throw exceptions)
      */
     public static X509Certificate getMockCertificateWithoutExtensions() {
         return getCertificate(MOCK_CERT_WITHOUT_EXTENSIONS);
@@ -312,6 +318,7 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2038
+     *
      * @return
      */
     public static byte[] getMockCertificateBytes() {
@@ -320,6 +327,7 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2039
+     *
      * @return
      */
     public static byte[] getMockAuthCertificateBytes() {
@@ -328,6 +336,7 @@ public final class CertificateTestUtils {
 
     /**
      * return given certificate bytes as an X509Certificate
+     *
      * @return
      */
     public static X509Certificate getCertificate(byte[] certificateBytes) {
@@ -336,6 +345,7 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2038
+     *
      * @return
      */
     public static X509Certificate getMockCertificate() {
@@ -344,6 +354,7 @@ public final class CertificateTestUtils {
 
     /**
      * Subject = CN=N/A, expires = 2039
+     *
      * @return
      */
     public static X509Certificate getMockAuthCertificate() {
@@ -360,6 +371,7 @@ public final class CertificateTestUtils {
     /**
      * Subject = O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
      * expires = Thu Apr 23 09:59:02 EEST 2020
+     *
      * @return
      */
     public static byte[] getWidgitsCertificateBytes() {
@@ -369,6 +381,7 @@ public final class CertificateTestUtils {
     /**
      * Subject = O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
      * expires = Thu Apr 23 09:59:02 EEST 2020
+     *
      * @return
      */
     public static X509Certificate getWidgitsCertificate() {
@@ -377,6 +390,7 @@ public final class CertificateTestUtils {
 
     /**
      * Return hash for getWidgitsCertificateBytes
+     *
      * @return
      */
     public static String getWidgitsCertificateHash() {
@@ -385,6 +399,7 @@ public final class CertificateTestUtils {
 
     /**
      * Base64 encoded junk, not a certificate
+     *
      * @return
      */
     public static byte[] getInvalidCertBytes() {
@@ -401,6 +416,7 @@ public final class CertificateTestUtils {
     public static class CertRequestInfoBuilder {
         private ClientId.Conf clientId = ClientId.Conf.create("a", "b", "c");
         private String id = "id";
+
         public CertRequestInfoBuilder() {
         }
 
@@ -415,10 +431,11 @@ public final class CertificateTestUtils {
         }
 
         public CertRequestInfo build() {
-            return new CertRequestInfo(
-                    id,
-                    clientId,
-                    "subject-name");
+            final CertRequestInfoProto.Builder builder = CertRequestInfoProto.newBuilder();
+            ofNullable(id).ifPresent(builder::setId);
+            ofNullable(clientId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
+            builder.setSubjectName("subject-name");
+            return new CertRequestInfo(builder.build());
         }
     }
 
@@ -442,6 +459,7 @@ public final class CertificateTestUtils {
         private boolean active = true;
         private String id = "1";
         private ClientId.Conf clientId = ClientId.Conf.create("a", "b", "c");
+        private boolean addOcspBytes = true;
 
 
         public CertificateInfoBuilder() {
@@ -482,25 +500,48 @@ public final class CertificateTestUtils {
             return this;
         }
 
+        public CertificateInfoBuilder addOcspBytes(boolean addOcspBytesParam) {
+            this.addOcspBytes = addOcspBytesParam;
+            return this;
+        }
+
         public CertificateInfo build() {
             try {
-                List<OCSPResp> ocsp = generateOcspResponses(
-                        Arrays.asList(certificate),
-                        ocspStatus);
-                CertificateInfo certificateInfo = new CertificateInfo(
+                byte[] ocspBytes = null;
+                if (addOcspBytes) {
+                    List<OCSPResp> ocsp = generateOcspResponses(
+                            Arrays.asList(certificate),
+                            ocspStatus);
+                    ocspBytes = ocsp.iterator().next().getEncoded();
+                }
+                return createCertificateInfo(
                         clientId,
                         active,
                         savedToConfiguration,
                         certificateStatus,
                         id,
                         certificate.getEncoded(),
-                        ocsp.iterator().next().getEncoded());
-                return certificateInfo;
-
+                        ocspBytes);
             } catch (Exception e) {
                 throw new RuntimeException("failed to create CertificateInfo", e);
             }
         }
+    }
+
+    public static CertificateInfo createCertificateInfo(ClientId.Conf clientId, boolean active, boolean savedToConfiguration,
+                                                        String status, String id, byte[] certBytes, byte[] ocspBytes) {
+
+        final CertificateInfoProto.Builder builder = CertificateInfoProto.newBuilder()
+                .setActive(active)
+                .setSavedToConfiguration(savedToConfiguration)
+                .setStatus(status)
+                .setId(id);
+
+        ofNullable(clientId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
+        ofNullable(certBytes).map(ByteString::copyFrom).ifPresent(builder::setCertificateBytes);
+        ofNullable(ocspBytes).map(ByteString::copyFrom).ifPresent(builder::setOcspBytes);
+
+        return new CertificateInfo(builder.build());
     }
 
     public static byte[] generateOcspBytes(X509Certificate cert, CertificateStatus status) throws Exception {
@@ -509,7 +550,7 @@ public final class CertificateTestUtils {
     }
 
     private static List<OCSPResp> generateOcspResponses(List<X509Certificate> certs,
-            CertificateStatus status) throws Exception {
+                                                        CertificateStatus status) throws Exception {
         List<OCSPResp> responses = new ArrayList<>();
         for (X509Certificate cert : certs) {
             responses.add(OcspTestUtils.createOCSPResponse(cert,
@@ -522,7 +563,7 @@ public final class CertificateTestUtils {
     }
 
     private static X509Certificate getIssuerCert(X509Certificate subject,
-            List<X509Certificate> certs) {
+                                                 List<X509Certificate> certs) {
         for (X509Certificate cert : certs) {
             if (cert.getSubjectX500Principal().equals(
                     subject.getIssuerX500Principal())) {

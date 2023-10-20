@@ -194,4 +194,8 @@ if [ $1 -ge 1 ] ; then
   fi
 fi
 
+# restart is required to trigger any changes within xroad-base.sh
+%postun
+%systemd_postun_with_restart xroad-base.service
+
 %changelog

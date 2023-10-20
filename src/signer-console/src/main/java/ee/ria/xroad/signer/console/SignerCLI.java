@@ -34,28 +34,25 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
-import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
 
-import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
 import asg.cliche.Command;
 import asg.cliche.InputConverter;
 import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
-import com.typesafe.config.ConfigFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -109,10 +106,10 @@ import static ee.ria.xroad.signer.console.Utils.printKeyInfo;
 import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
 import static ee.ria.xroad.signer.protocol.dto.KeyUsageInfo.AUTHENTICATION;
 import static ee.ria.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
-import static ee.ria.xroad.signer.protocol.message.CertificateRequestFormat.DER;
-import static ee.ria.xroad.signer.protocol.message.CertificateRequestFormat.PEM;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static org.niis.xroad.signer.proto.CertificateRequestFormat.DER;
+import static org.niis.xroad.signer.proto.CertificateRequestFormat.PEM;
 
 /**
  * Signer command line interface.
@@ -279,11 +276,11 @@ public class SignerCLI {
     @Command(description = "Returns all certificates of a member")
     public void getMemberCerts(
             @Param(name = "memberId", description = "Member identifier") ClientId memberId) throws Exception {
-        GetMemberCertsResponse response = SignerProxy.getMemberCerts(memberId);
+        List<CertificateInfo> certificateInfos = SignerProxy.getMemberCerts(memberId);
 
         System.out.println("Certs of member " + memberId + ":");
 
-        for (CertificateInfo cert : response.getCerts()) {
+        for (CertificateInfo cert : certificateInfos) {
             System.out.println("\tId:\t" + cert.getId());
             System.out.println("\t\tStatus:\t" + cert.getStatus());
             System.out.println("\t\tActive:\t" + cert.isActive());
@@ -801,11 +798,8 @@ public class SignerCLI {
             return;
         }
 
-        ActorSystem actorSystem = ActorSystem.create("SignerConsole", ConfigFactory.load().getConfig("signer-console")
-                .withFallback(ConfigFactory.load()));
-
         try {
-            SignerClient.init(actorSystem);
+            RpcSignerClient.init();
 
             String[] arguments = cmd.getArgs();
 
@@ -815,7 +809,7 @@ public class SignerCLI {
                 startCommandLoop();
             }
         } finally {
-            actorSystem.terminate();
+            RpcSignerClient.shutdown();
         }
     }
 

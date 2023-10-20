@@ -29,11 +29,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

@@ -27,24 +27,31 @@ package ee.ria.xroad.signer.tokenmanager.module;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
-import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.util.AbstractUpdateableActor;
-import ee.ria.xroad.signer.util.Update;
+import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
+import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
+import ee.ria.xroad.signer.tokenmanager.token.WorkerWithLifecycle;
 
-import akka.actor.ActorRef;
-import akka.actor.OneForOneStrategy;
-import akka.actor.Props;
-import akka.actor.SupervisorStrategy;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static java.util.Objects.requireNonNull;
@@ -53,35 +60,67 @@ import static java.util.Objects.requireNonNull;
  * Module manager base class.
  */
 @Slf4j
-public abstract class AbstractModuleManager extends AbstractUpdateableActor {
-
+public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider {
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
+    @Autowired
+    private OcspResponseManager ocspResponseManager;
+
+    @SuppressWarnings("java:S3077")
+    private volatile Map<String, AbstractModuleWorker> moduleWorkers = Collections.emptyMap();
+
+    private FileWatcherRunner keyConfFileWatcherRunner;
+
     @Override
-    public SupervisorStrategy supervisorStrategy() {
-        return new OneForOneStrategy(-1, Duration.Inf(),
-                throwable -> {
-                    if (throwable instanceof PKCS11Exception) {
-                        // PKCS11Exceptions should make the module reinitialized
-                        return SupervisorStrategy.restart();
-                    } else if (throwable instanceof Error) {
-                        return SupervisorStrategy.escalate();
-                    } else {
-                        return SupervisorStrategy.resume();
-                    }
-                }
-        );
+    @PostConstruct
+    public void start() {
+        log.info("Initializing module worker of instance {}", getClass().getSimpleName());
+        try {
+            TokenManager.init();
+
+            if (SLAVE.equals(SystemProperties.getServerNodeType())) {
+                // when the key conf file is changed from outside this system (i.e. a new copy from master),
+                // send an update event to the module manager so it knows to load the new config
+                this.keyConfFileWatcherRunner = FileWatcherRunner.create()
+                        .watchForChangesIn(Paths.get(SystemProperties.getKeyConfFile()))
+                        .listenToCreate().listenToModify()
+                        .andOnChangeNotify(this::refresh)
+                        .buildAndStartWatcher();
+            }
+            refresh();
+        } catch (Exception e) {
+            log.error("Failed to initialize token worker!", e);
+        }
+    }
+
+    @PreDestroy
+    @Override
+    public void stop() {
+        log.info("Destroying module worker");
+
+        if (!SLAVE.equals(SystemProperties.getServerNodeType())) {
+            try {
+                TokenManager.saveToConf();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if (this.keyConfFileWatcherRunner != null) {
+            this.keyConfFileWatcherRunner.stop();
+        }
     }
 
     @Override
-    protected void onUpdate() throws Exception {
+    public void refresh() {
+        log.trace("refresh()");
         loadModules();
 
         if (SLAVE.equals(serverNodeType)) {
             mergeConfiguration();
         }
 
-        updateModuleWorkers();
+        moduleWorkers.forEach((key, worker) -> worker.refresh());
 
         if (!SLAVE.equals(serverNodeType)) {
             persistConfiguration();
@@ -89,13 +128,27 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     }
 
     @Override
-    public void onMessage(Object message) throws Exception {
-        unhandled(message);
+    public Optional<TokenWorker> getTokenWorker(String tokenId) {
+        for (Map.Entry<String, AbstractModuleWorker> entry : moduleWorkers.entrySet()) {
+            var tokenOpt = entry.getValue().getTokenById(tokenId);
+            if (tokenOpt.isPresent()) {
+                return tokenOpt;
+            }
+        }
+        return Optional.empty();
     }
 
-    protected abstract void initializeModule(ModuleType module);
+    protected abstract AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception;
 
-    private void loadModules() throws Exception {
+    /**
+     * Returns HSM module operational status.
+     * Note: Only hardware token module manger returns a status. Default implementation returns null.
+     *
+     * @return status
+     */
+    public abstract Optional<Boolean> isHSMModuleOperational();
+
+    private void loadModules() {
         log.trace("loadModules()");
 
         if (!ModuleConf.hasChanged()) {
@@ -105,14 +158,30 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
 
         ModuleConf.reload();
 
-        Collection<ModuleType> modules = ModuleConf.getModules();
-        addNewModules(modules);
-        removeLostModules(modules);
+        final Collection<ModuleType> modules = ModuleConf.getModules();
+        final Map<String, AbstractModuleWorker> refreshedWorkerModules = loadModules(modules);
+        final var oldModuleWorkers = moduleWorkers;
+
+        log.trace("Registered {} modules in {}", refreshedWorkerModules.size(), getClass().getSimpleName());
+        moduleWorkers = Collections.unmodifiableMap(refreshedWorkerModules);
+        stopLostModules(oldModuleWorkers, modules);
     }
 
-    private void updateModuleWorkers() {
-        for (ActorRef worker : getContext().getChildren()) {
-            worker.tell(new Update(), getSelf());
+    private void stopLostModules(Map<String, AbstractModuleWorker> oldModuleWorkers, Collection<ModuleType> modules) {
+        final Set<String> moduleTypes = modules.stream()
+                .map(ModuleType::getType)
+                .collect(Collectors.toSet());
+
+        for (Map.Entry<String, AbstractModuleWorker> entry : oldModuleWorkers.entrySet()) {
+            if (!moduleTypes.contains(entry.getKey())) {
+                try {
+                    log.trace("Stopping module worker for module '{}'", entry.getKey());
+                    entry.getValue().stop();
+                } catch (Exception e) {
+                    log.error("Failed to stop module {}", entry.getKey(), e);
+                }
+
+            }
         }
     }
 
@@ -128,9 +197,12 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         TokenManager.merge(addedCerts -> {
             if (!addedCerts.isEmpty()) {
                 log.info("Requesting OCSP update for new certificates obtained in key configuration merge.");
-
-                ServiceLocator.getOcspResponseManager(getContext()).tell(mapCertListToGetOcspResponses(addedCerts),
-                        ActorRef.noSender());
+                try {
+                    ocspResponseManager.handleGetOcspResponses(mapCertListToGetOcspResponses(addedCerts));
+                } catch (Exception e) {
+                    log.error("Failed to refresh OCSP", e);
+                    //TODO what should be done if failed?
+                }
             }
         });
     }
@@ -149,48 +221,28 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         }).filter(Objects::nonNull).toArray(String[]::new));
     }
 
-    private void addNewModules(Collection<ModuleType> modules) {
-        modules.forEach(this::initializeModule);
-    }
+    private Map<String, AbstractModuleWorker> loadModules(Collection<ModuleType> modules) {
+        final Map<String, AbstractModuleWorker> newModules = new HashMap<>();
 
-    private void removeLostModules(Collection<ModuleType> modules) {
-        for (ActorRef module : getContext().getChildren()) {
-            String moduleId = module.path().name();
+        modules.forEach(moduleType -> {
+            try {
+                AbstractModuleWorker moduleWorker = moduleWorkers.get(moduleType.getType());
+                if (moduleWorker == null) {
+                    moduleWorker = createModuleWorker(moduleType);
+                    moduleWorker.start();
+                }
 
-            if (!containsModule(moduleId, modules)) {
-                deinitializeModuleWorker(moduleId);
+                newModules.put(moduleWorker.getModuleType().getType(), moduleWorker);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        }
+        });
+        return newModules;
     }
 
-    void initializeModuleWorker(String name, Props props) {
-        log.trace("Starting module worker for module '{}'", name);
-
-        getContext().watch(getContext().actorOf(props, name));
-    }
-
-    void deinitializeModuleWorker(String name) {
-        ActorRef worker = getContext().findChild(name).orElse(null);
-
-        if (worker != null) {
-            log.trace("Stopping module worker for module '{}'", name);
-
-            getContext().unwatch(worker);
-            getContext().stop(worker);
-        } else {
-            log.warn("Module worker for module '{}' not found", name);
-        }
-    }
 
     boolean isModuleInitialized(ModuleType module) {
-        return getContext().findChild(module.getType()).isPresent();
+        return moduleWorkers.containsKey(module.getType());
     }
 
-    private static boolean containsModule(String moduleId,
-            Collection<ModuleType> modules) {
-        return modules.stream()
-                .filter(m -> m.getType().equals(moduleId))
-                .findFirst()
-                .isPresent();
-    }
 }

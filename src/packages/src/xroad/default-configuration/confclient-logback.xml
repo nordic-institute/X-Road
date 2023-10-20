@@ -23,7 +23,6 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
-    <logger name="akka" level="WARN" />
     <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
 
     <root level="INFO">

@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
@@ -49,7 +50,7 @@ public class InvalidContentTypeFromClientProxy extends MessageTestCase {
     public InvalidContentTypeFromClientProxy() {
         requestFileName = "getstate.query";
 
-        url = "http://127.0.0.1:" + PortNumbers.PROXY_PORT;
+        url = "http://127.0.0.1:" + System.getProperty(SystemProperties.PROXY_SERVER_PORT, String.valueOf(PortNumbers.PROXY_PORT));
     }
 
     @Override
