@@ -49,20 +49,7 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
 
     @Step("Role {string} is being clicked")
     public void selectRole(String role) {
-        String roleEnum;
-        switch (role) {
-            case "Registration Officer":
-                roleEnum = "XROAD_REGISTRATION_OFFICER";
-                break;
-            case "Security Officer":
-                roleEnum = "XROAD_SECURITY_OFFICER";
-                break;
-            case "System Administrator":
-                roleEnum = "XROAD_SYSTEM_ADMINISTRATOR";
-                break;
-            default:
-                throw new IllegalArgumentException("Role [" + role + "] is not supported");
-        }
+        String roleEnum = mapRoleTextToEnum(role);
         vCheckbox(apiKeysPage.wizard.checkboxRole(roleEnum)).click();
     }
 
@@ -153,5 +140,27 @@ public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
     @Step("Newly created API key is edit dialog is opened")
     public void apiKeyEdited() {
         apiKeysPage.btnEditApiKey(createdApiKeyId).shouldBe(Condition.visible).click();
+    }
+
+    @Step("Role {string} is not available")
+    public void roleIsNotAvailable(String role) {
+        String roleEnum = mapRoleTextToEnum(role);
+        apiKeysPage.wizard.checkboxRole(roleEnum).shouldNotBe(Condition.visible);
+    }
+
+    @Step("Role {string} is available")
+    public void roleIsAvailable(String role) {
+        String roleEnum = mapRoleTextToEnum(role);
+        apiKeysPage.wizard.checkboxRole(roleEnum).shouldBe(Condition.visible);
+    }
+
+    private String mapRoleTextToEnum(String roleText) {
+        return switch (roleText) {
+            case "Registration Officer" -> "XROAD_REGISTRATION_OFFICER";
+            case "Security Officer" -> "XROAD_SECURITY_OFFICER";
+            case "System Administrator" -> "XROAD_SYSTEM_ADMINISTRATOR";
+            case "Management Services" -> "XROAD_MANAGEMENT_SERVICE";
+            default -> throw new IllegalArgumentException("Role [" + roleText + "] is not supported");
+        };
     }
 }
