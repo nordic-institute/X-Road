@@ -151,7 +151,7 @@ class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
 
     @Test
     @WithMockUser(authorities = "ROLE_XROAD_MANAGEMENT_SERVICE")
-    public void roleManagementServiceCantCreateApiKey() {
+    void roleManagementServiceCantCreateApiKey() {
         assertThrows(AccessDeniedException.class, () -> apiKeyService.create(List.of("XROAD_MANAGEMENT_SERVICE")),
                 "Missing authority: ROLE_XROAD_SYSTEM_ADMINISTRATOR");
 
@@ -165,7 +165,7 @@ class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
     }
 
     @Test
-    public void roleCanCreateOnlyItsOwnRoleApiKey() throws InvalidRoleNameException {
+    void roleCanCreateOnlyItsOwnRoleApiKey() throws InvalidRoleNameException {
         final EnumSet<Role> allRoles = EnumSet.allOf(Role.class);
         allRoles.remove(Role.XROAD_MANAGEMENT_SERVICE);
 
@@ -198,7 +198,7 @@ class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
     }
 
     @Test
-    public void onlyAdminRoleCanCreateManagementServiceApiKey() throws InvalidRoleNameException {
+    void onlyAdminRoleCanCreateManagementServiceApiKey() throws InvalidRoleNameException {
         mockUserRole(Role.XROAD_SYSTEM_ADMINISTRATOR);
         apiKeyService.create(Role.XROAD_MANAGEMENT_SERVICE.name());
         apiKeyService.create(List.of(Role.XROAD_MANAGEMENT_SERVICE.name(), Role.XROAD_SYSTEM_ADMINISTRATOR.name()));
@@ -218,7 +218,7 @@ class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
 
     @Test
     @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
-    public void testMultipleRoles() throws InvalidRoleNameException {
+    void testMultipleRoles() throws InvalidRoleNameException {
         mockUserRoles(EnumSet.allOf(Role.class));
         // user having all roles can create API with all roles
         apiKeyService.create(Arrays.stream(Role.values()).map(Role::name).collect(toList()));
@@ -237,7 +237,7 @@ class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
 
     @Test
     @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
-    public void testRemoveRolesFromApiKey() throws InvalidRoleNameException {
+    void testRemoveRolesFromApiKey() throws InvalidRoleNameException {
         mockUserRoles(EnumSet.allOf(Role.class));
         final PlaintextApiKeyDto apiKey = apiKeyService.create(Arrays.stream(Role.values()).map(Role::name).collect(toList()));
 
