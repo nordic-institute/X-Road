@@ -66,7 +66,7 @@ public class ApiKeysPageObj {
         }
 
         public SelenideElement checkboxRole(String role) {
-            var xpath ="//div[contains(@class, 'v-input--checkbox') and .//input[@data-test='role-%s-checkbox']]";
+            var xpath = "//div[contains(@class, 'v-input--checkbox') and .//input[@data-test='role-%s-checkbox']]";
             return $x(String.format(xpath, role));
         }
 

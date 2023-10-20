@@ -32,13 +32,15 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.tagName;
 import static com.codeborne.selenide.Condition.visible;
 
-public class VuetifyHelper {
+public final class VuetifyHelper {
 
     private static final String TEXT_FIELD_ROOT_TAG = "div";
-    private static final String INPUT_XPATH = ".//input";
 
     public static Checkbox vCheckbox(final SelenideElement vuetifyTextField) {
         return new Checkbox(vuetifyTextField);
+    }
+
+    private VuetifyHelper() {
     }
 
     public static final class Checkbox {
