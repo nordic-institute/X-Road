@@ -71,7 +71,7 @@ function handle_error {
 }
 
 #check certificate and request necessary subject information from user
-create_global_configuration_certicate() {
+create_global_configuration_certificate() {
   HOST=$(hostname -f)
   if ((${#HOST} > 64)); then
     HOST="$(hostname -s)"
@@ -121,7 +121,7 @@ create_global_configuration_certicate() {
   done
 }
 
-create_global_configuration_certicate
+create_global_configuration_certificate
 
 db_stop
 
