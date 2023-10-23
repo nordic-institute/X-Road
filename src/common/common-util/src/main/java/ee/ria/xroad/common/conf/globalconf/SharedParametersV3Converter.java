@@ -48,8 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.stream.Collectors.toList;
-
 public class SharedParametersV3Converter {
 
     SharedParameters convert(SharedParametersTypeV3 source) throws CertificateEncodingException, IOException {
@@ -67,16 +65,16 @@ public class SharedParametersV3Converter {
 
     private List<SharedParameters.ConfigurationSource> getConfigurationSources(SharedParametersTypeV3 source) {
         List<SharedParameters.ConfigurationSource> configurationSources = new ArrayList<>();
-        if (source != null) {
-            configurationSources.addAll(source.getSource().stream().map(this::toConfigurationSource).collect(toList()));
+        if (source.getSource() != null) {
+            configurationSources.addAll(source.getSource().stream().map(this::toConfigurationSource).toList());
         }
         return configurationSources;
     }
 
     private List<SharedParameters.ApprovedCA> getApprovedCAs(SharedParametersTypeV3 source) {
         List<SharedParameters.ApprovedCA> approvedCAs = new ArrayList<>();
-        if (source != null) {
-            approvedCAs.addAll(source.getApprovedCA().stream().map(this::toApprovedCa).collect(toList()));
+        if (source.getApprovedCA() != null) {
+            approvedCAs.addAll(source.getApprovedCA().stream().map(this::toApprovedCa).toList());
         }
         return approvedCAs;
     }
@@ -84,28 +82,28 @@ public class SharedParametersV3Converter {
 
     private List<SharedParameters.ApprovedTSA> getApprovedTSAs(SharedParametersTypeV3 source) {
         List<SharedParameters.ApprovedTSA> approvedTSAs = new ArrayList<>();
-        if (source != null) {
-            approvedTSAs.addAll(source.getApprovedTSA().stream().map(this::toApprovedTsa).collect(toList()));
+        if (source.getApprovedTSA() != null) {
+            approvedTSAs.addAll(source.getApprovedTSA().stream().map(this::toApprovedTsa).toList());
         }
         return approvedTSAs;
     }
 
     private List<SharedParameters.Member> getMembers(SharedParametersTypeV3 source) {
         List<SharedParameters.Member> members = new ArrayList<>();
-        if (source != null) {
-            members.addAll(source.getMember().stream().map(this::toMember).collect(toList()));
+        if (source.getMember() != null) {
+            members.addAll(source.getMember().stream().map(this::toMember).toList());
         }
         return members;
     }
 
     private List<SharedParameters.SecurityServer> getSecurityServers(SharedParametersTypeV3 source) {
         List<SharedParameters.SecurityServer> securityServers = new ArrayList<>();
-        if (source != null) {
+        if (source.getSecurityServer() != null) {
             Map<String, ClientId> clientIds = getClientIds(source);
             securityServers.addAll(
                     source.getSecurityServer().stream()
                             .map(s -> toSecurityServer(clientIds, s, source.getInstanceIdentifier()))
-                            .collect(toList())
+                            .toList()
             );
         }
         return securityServers;
@@ -124,14 +122,14 @@ public class SharedParametersV3Converter {
 
     private List<SharedParameters.GlobalGroup> getGlobalGroups(SharedParametersTypeV3 source) {
         List<SharedParameters.GlobalGroup> globalGroups = new ArrayList<>();
-        if (source != null) {
-            globalGroups.addAll(source.getGlobalGroup().stream().map(this::toGlobalGroup).collect(toList()));
+        if (source.getGlobalGroup() != null) {
+            globalGroups.addAll(source.getGlobalGroup().stream().map(this::toGlobalGroup).toList());
         }
         return globalGroups;
     }
 
     private SharedParameters.GlobalSettings getGlobalSettings(SharedParametersTypeV3 source) {
-        if (source != null) {
+        if (source.getGlobalSettings() != null) {
             return toGlobalSettings(source.getGlobalSettings());
         }
         return null;
@@ -152,7 +150,7 @@ public class SharedParametersV3Converter {
             target.setTopCA(toCaInfo(source.getTopCA()));
         }
         if (source.getIntermediateCA() != null) {
-            target.setIntermediateCas(source.getIntermediateCA().stream().map(this::toCaInfo).collect(toList()));
+            target.setIntermediateCas(source.getIntermediateCA().stream().map(this::toCaInfo).toList());
         }
         target.setCertificateProfileInfo(source.getCertificateProfileInfo());
         return target;
@@ -162,7 +160,7 @@ public class SharedParametersV3Converter {
         var caInfo = new SharedParameters.CaInfo();
         caInfo.setCert(source.getCert());
         if (source.getOcsp() != null) {
-            caInfo.setOcsp(source.getOcsp().stream().map(this::toOcspInfo).collect(toList()));
+            caInfo.setOcsp(source.getOcsp().stream().map(this::toOcspInfo).toList());
         }
         return caInfo;
     }
@@ -188,7 +186,7 @@ public class SharedParametersV3Converter {
         target.setMemberCode(source.getMemberCode());
         target.setName(source.getName());
         if (source.getSubsystem() != null) {
-            target.setSubsystems(source.getSubsystem().stream().map(this::toSubsystem).collect(toList()));
+            target.setSubsystems(source.getSubsystem().stream().map(this::toSubsystem).toList());
         }
         return target;
     }
@@ -243,7 +241,7 @@ public class SharedParametersV3Converter {
         target.setDescription(source.getDescription());
 
         if (source.getGroupMember() != null) {
-            target.setGroupMembers(source.getGroupMember().stream().map(ClientId.Conf::getMemberId).collect(toList()));
+            target.setGroupMembers(source.getGroupMember().stream().map(ClientId::getMemberId).toList());
         }
         return target;
     }
@@ -252,7 +250,7 @@ public class SharedParametersV3Converter {
         var target = new SharedParameters.GlobalSettings();
         target.setOcspFreshnessSeconds(source.getOcspFreshnessSeconds());
         if (source.getMemberClass() != null) {
-            target.setMemberClasses(source.getMemberClass().stream().map(this::toMemberClass).collect(toList()));
+            target.setMemberClasses(source.getMemberClass().stream().map(this::toMemberClass).toList());
         }
         return target;
     }
