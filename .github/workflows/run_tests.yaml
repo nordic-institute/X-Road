@@ -125,6 +125,9 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
+      - name: Initialize docker setup
+        working-directory: ./.github/docker/securityserver
+        run: ./init_context.sh
       - name: Download debian packages
         uses: actions/download-artifact@v3
         with:
