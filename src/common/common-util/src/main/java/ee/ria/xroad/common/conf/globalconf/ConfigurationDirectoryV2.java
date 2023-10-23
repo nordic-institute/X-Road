@@ -52,11 +52,10 @@ public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<
     }
 
     @Override
-    protected void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV2> basePrivateParameters) {
+    protected void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV2> basePrivateParameters) throws Exception {
         String instanceId = instanceDir.getFileName().toString();
 
-        Path privateParametersPath = Paths.get(instanceDir.toString(),
-                ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
+        Path privateParametersPath = Paths.get(instanceDir.toString(), ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
         if (Files.exists(privateParametersPath)) {
             try {
                 log.trace("Loading private parameters from {}", privateParametersPath);
@@ -76,13 +75,15 @@ public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<
                 privateParameters.put(instanceId, parametersToUse);
             } catch (Exception e) {
                 log.error("Unable to load private parameters from {}", instanceDir, e);
+                throw e;
             }
         } else {
             log.trace("Not loading private parameters from {}, file does not exist", privateParametersPath);
         }
     }
 
-    protected void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> baseSharedParameters) {
+    protected void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> baseSharedParameters)
+            throws Exception {
         String instanceId = instanceDir.getFileName().toString();
 
         Path sharedParametersPath = Paths.get(instanceDir.toString(),
@@ -106,6 +107,7 @@ public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<
                 sharedParameters.put(instanceId, parametersToUse);
             } catch (Exception e) {
                 log.error("Unable to load shared parameters from {}", instanceDir, e);
+                throw e;
             }
         } else {
             log.trace("Not loading shared parameters from {}, file does not exist", sharedParametersPath);

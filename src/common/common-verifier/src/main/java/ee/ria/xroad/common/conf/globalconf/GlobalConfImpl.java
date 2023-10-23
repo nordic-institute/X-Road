@@ -75,14 +75,9 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     GlobalConfImpl() {
         try {
-            confDir = new ConfigurationDirectoryV3(getConfigurationPath());
+            initConfDir();
         } catch (Exception e) {
-            log.info("Error reading underlying private parameters as V3, defaulting back to V2", e);
-            try {
-                confDir = new ConfigurationDirectoryV2(getConfigurationPath());
-            } catch (Exception ex) {
-                throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
-            }
+            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }
     }
 
@@ -90,13 +85,29 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public void reload() {
         VersionableConfigurationDirectory<? extends PrivateParametersProvider, ? extends SharedParametersProvider> original = confDir;
         try {
-            if (original instanceof ConfigurationDirectoryV3) {
-                confDir = new ConfigurationDirectoryV3(getConfigurationPath(), (ConfigurationDirectoryV3) original);
+            if (original instanceof ConfigurationDirectoryV3 configurationdirectoryv3) {
+                confDir = new ConfigurationDirectoryV3(getConfigurationPath(), configurationdirectoryv3);
             } else {
                 confDir = new ConfigurationDirectoryV2(getConfigurationPath(), (ConfigurationDirectoryV2) original);
             }
         } catch (Exception e) {
-            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+            log.warn("Error reloading global configuration, trying to reinitialize", e);
+            try {
+                initConfDir();
+            } catch (Exception ex) {
+                throw translateWithPrefix(X_MALFORMED_GLOBALCONF, ex);
+            }
+        }
+    }
+
+    private void initConfDir() throws Exception {
+        try {
+            confDir = new ConfigurationDirectoryV3(getConfigurationPath());
+            log.info("Successfully initialized global configuration V3");
+        } catch (Exception e) {
+            log.warn("Error reading underlying global configuration as V3, defaulting back to V2", e);
+            confDir = new ConfigurationDirectoryV2(getConfigurationPath());
+            log.info("Successfully initialized global configuration V2");
         }
     }
 

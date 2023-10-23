@@ -44,7 +44,7 @@
           </documentation>
         </annotation>
       </element>
-      <element name="source" type="tns:ConfigurationSourceType" minOccurs="0" maxOccurs="unbounded">
+      <element name="source" type="tns:ConfigurationSourceType" maxOccurs="unbounded">
         <annotation>
           <documentation>
             Describes one configuration source.

@@ -106,10 +106,9 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
 
     /**
      * Reloads the configuration directory. Only files that are new or have changed, are actually loaded.
-     * @throws Exception if an error occurs during reload
+     * @throws IOException if an error occurs during reload
      */
-    private void loadParameters(Map<String, T> basePrivateParams,
-                                Map<String, S> baseSharedParams) throws Exception {
+    private void loadParameters(Map<String, T> basePrivateParams, Map<String, S> baseSharedParams) throws Exception {
         log.trace("Reloading configuration from {}", path);
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, Files::isDirectory)) {
@@ -273,8 +272,8 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
         }
     }
 
-    protected abstract void loadPrivateParameters(Path instanceDir, Map<String, T> basePrivateParameters);
+    protected abstract void loadPrivateParameters(Path instanceDir, Map<String, T> basePrivateParameters) throws Exception;
 
-    protected abstract void loadSharedParameters(Path instanceDir, Map<String, S> basePrivateParameters);
+    protected abstract void loadSharedParameters(Path instanceDir, Map<String, S> basePrivateParameters) throws Exception;
 
 }

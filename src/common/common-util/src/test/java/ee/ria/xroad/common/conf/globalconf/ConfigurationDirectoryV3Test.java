@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.ExpectedCodedException;
 
 import org.junit.Rule;
@@ -34,13 +35,16 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * Tests to verify configuration directories are read correctly.
+ * Tests to verify v3 configuration directories are read correctly.
  */
-public class ConfigurationDirectoryTest {
+public class ConfigurationDirectoryV3Test {
 
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
@@ -51,8 +55,8 @@ public class ConfigurationDirectoryTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readDirectoryV2() throws Exception {
-        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2("src/test/resources/globalconf_good_v2");
+    public void readDirectoryV3() throws Exception {
+        ConfigurationDirectoryV3 dir = new ConfigurationDirectoryV3("src/test/resources/globalconf_good_v3");
 
         assertEquals("EE", dir.getInstanceIdentifier());
 
@@ -79,24 +83,28 @@ public class ConfigurationDirectoryTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readEmptyDirectoryV2() throws Exception {
-        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2("src/test/resources/globalconf_empty");
+    public void readEmptyDirectoryV3() throws Exception {
+        ConfigurationDirectoryV3 dir = new ConfigurationDirectoryV3("src/test/resources/globalconf_empty");
 
         assertNull(dir.getPrivate("foo"));
         assertNull(dir.getShared("foo"));
     }
 
     /**
-     * Test to ensure that reading of a malformed configuration fails.
+     * Test to ensure that reading of a reading v2 configuration fails.
      *
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readMalformedDirectoryV2() throws Exception {
-        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2("src/test/resources/globalconf_malformed");
-
-        assertNull(dir.getPrivate("foo"));
-        assertNull(dir.getShared("foo"));
+    public void readConfigurationDirectoryV2() {
+        CodedException exception = assertThrows(
+                CodedException.class,
+                () -> new ConfigurationDirectoryV3("src/test/resources/globalconf_good_v2")
+        );
+        assertEquals(
+                "cvc-complex-type.2.4.a: Invalid content was found starting with element 'approvedCA'. One of '{source}' is expected.",
+                exception.getFaultString()
+        );
     }
 
     /**
@@ -106,28 +114,28 @@ public class ConfigurationDirectoryTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readConfigurationFilesV2() throws Exception {
-        String rootDir = "src/test/resources/globalconf_good_v2";
-        ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(rootDir);
+    public void readConfigurationFilesV3() throws Exception {
+        String rootDir = "src/test/resources/globalconf_good_v3";
+        ConfigurationDirectoryV3 dir = new ConfigurationDirectoryV3(rootDir);
 
         List<Path> configurationFiles = dir.getConfigurationFiles();
 
-        assertEquals(false, pathExists(configurationFiles, rootDir + "/instance-identifier"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/instance-identifier"));
 
-        assertEquals(true, pathExists(configurationFiles, rootDir + "/bar/shared-params.xml"));
-        assertEquals(false, pathExists(configurationFiles, rootDir + "/bar/shared-params.xml.metadata"));
-        assertEquals(false, pathExists(configurationFiles, rootDir + "/bar/private-params.xml"));
-        assertEquals(false, pathExists(configurationFiles, rootDir + "/bar/private-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/bar/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/bar/shared-params.xml.metadata"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/bar/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/bar/private-params.xml.metadata"));
 
-        assertEquals(true, pathExists(configurationFiles, rootDir + "/EE/shared-params.xml"));
-        assertEquals(false, pathExists(configurationFiles, rootDir + "/EE/shared-params.xml.metadata"));
-        assertEquals(true, pathExists(configurationFiles, rootDir + "/EE/private-params.xml"));
-        assertEquals(false, pathExists(configurationFiles, rootDir + "/EE/private-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/EE/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/EE/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/EE/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/EE/private-params.xml.metadata"));
 
-        assertEquals(true, pathExists(configurationFiles, rootDir + "/foo/shared-params.xml"));
-        assertEquals(false, pathExists(configurationFiles, rootDir + "/foo/shared-params.xml.metadata"));
-        assertEquals(true, pathExists(configurationFiles, rootDir + "/foo/private-params.xml"));
-        assertEquals(false, pathExists(configurationFiles, rootDir + "/foo/private-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/foo/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/foo/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/foo/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/foo/private-params.xml.metadata"));
     }
 
     private boolean pathExists(List<Path> paths, String path) {
