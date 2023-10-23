@@ -13,8 +13,8 @@
 ../../../../src/xroad/common/addon/proxy/setup_messagelog_db.sh usr/share/xroad/scripts/
 
 ../../../../../addons/messagelog/messagelog-archiver/scripts/demo-upload.pl usr/share/doc/xroad-addon-messagelog/archive-server/
-../../../../../../doc/archive-hashchain-verifier.rb usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
-../../../../../../doc/archive-hashchain-verifier.README usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
+../../../../../addons/messagelog/messagelog-archive-verifier/build/libs/messagelog-archive-verifier.jar usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
+../../../../../addons/messagelog/messagelog-archive-verifier/README.md usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
 
 ../../../../../asicverifier/build/libs/asicverifier.jar usr/share/xroad/jlib/
 ../../../../../LICENSE.txt usr/share/doc/xroad-addon-messagelog/
