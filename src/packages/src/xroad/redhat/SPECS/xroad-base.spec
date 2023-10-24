@@ -176,7 +176,7 @@ chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 
-%posttrans
+%posttrans -p /bin/bash
 if [ $1 -ge 1 ] ; then
   # 7.4.0. Check that the default java version is at least 17
   java_version_supported() {
