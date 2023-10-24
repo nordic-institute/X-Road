@@ -45,6 +45,7 @@ export const useUser = defineStore('user', {
       authenticated: false,
       sessionAlive: undefined as boolean | undefined,
       permissions: [] as string[],
+      roles: [] as string[],
       username: '',
       currentSecurityServer: {} as SecurityServer,
       initializationStatus: undefined as InitializationStatus | undefined,
@@ -55,6 +56,9 @@ export const useUser = defineStore('user', {
   getters: {
     hasPermission: (state) => (perm: string) => {
       return state.permissions.includes(perm);
+    },
+    hasRole: (state) => (role: string) => {
+      return state.roles.includes(role);
     },
     hasAnyOfPermissions: (state) => (perm: string[]) => {
       // Return true if the user has at least one of the tabs permissions
@@ -154,6 +158,7 @@ export const useUser = defineStore('user', {
         .then((res) => {
           this.username = res.data.username;
           this.setPermissions(res.data.permissions);
+          this.setRoles(res.data.roles);
         })
         .catch((error) => {
           throw error;
@@ -186,6 +191,11 @@ export const useUser = defineStore('user', {
       this.bannedRoutes = tempBannedRoutes;
     },
 
+    setRoles(roles: string[]) {
+      this.roles = roles.map((role) =>
+        role.startsWith('ROLE_') ? role.slice(5) : role,
+      );
+    },
     async fetchCurrentSecurityServer() {
       return axios
         .get<SecurityServer[]>('/security-servers?current_server=true')

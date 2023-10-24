@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.80
+Version: 2.81
 Doc. ID: UG-SYSPAR
 
 
@@ -91,6 +91,7 @@ Doc. ID: UG-SYSPAR
 | 16.10.2023 | 2.78    | Added new *allow-csr-for-key-with-certificate* parameter                                                                                                                                                                                                                                                                                                                                                       | Justas Samuolis            |
 | 02.10.2023 | 2.79    | Remove Akka references                                                                                                                                                                                                                                                                                                                                                                                         | Ričardas Bučiūnas          |
 | 18.10.2023 | 2.80    | Add gRPC properties                                                                                                                                                                                                                                                                                                                                                                                            | Ričardas Bučiūnas          |
+| 23.10.2023 | 2.81    | Update supported command line arguments                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki           |
 
 ## Table of Contents
 
@@ -643,6 +644,7 @@ All possible properties to adjust in this file:
 | XROAD_ADDON_PARAMS                   | Parameters for all addons                            |
 | XROAD_CONFCLIENT_PARAMS              | Parameters for the Configuration Client              |
 | XROAD_CONFPROXY_PARAMS               | Parameters for the Configuration Proxy               |
+| XROAD_MESSAGELOG_ARCHIVER_PARAMS     | Parameters for the Message Log Archiver              |
 | XROAD_MONITOR_PARAMS                 | Parameters for the Environmental Monitor             |
 | XROAD_OPMON_PARAMS                   | Parameters for the Operational Monitor               |
 | XROAD_PROXY_PARAMS                   | Parameters for the Security Server                   |
