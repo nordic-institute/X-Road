@@ -69,7 +69,7 @@
                 {{ $t('apiKey.createApiKey.step.roles.description') }}
               </v-col>
               <v-col>
-                <v-row v-for="role in roles" :key="role" no-gutters>
+                <v-row v-for="role in availableRoles" :key="role" no-gutters>
                   <v-col class="underline">
                     <v-checkbox
                       v-model="selectedRoles"
@@ -203,7 +203,7 @@ import { Roles } from '@/global';
 import { ApiKey } from '@/api-types';
 import * as api from '@/util/api';
 import { toClipboard } from '@/util/helpers';
-import { mapActions } from 'pinia';
+import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import {
   VStepper,
@@ -212,6 +212,7 @@ import {
   VStepperWindow,
   VStepperWindowItem,
 } from 'vuetify/labs/VStepper';
+import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
   components: {
@@ -224,13 +225,16 @@ export default defineComponent({
   data() {
     return {
       step: 0,
-      roles: Roles,
       generatingKey: false,
       selectedRoles: [] as string[],
       apiKey: {} as ApiKey,
     };
   },
   computed: {
+    ...mapState(useUser, ['canAssignRole']),
+    availableRoles(): string[] {
+      return Roles.filter((role) => this.canAssignRole(role));
+    },
     nextButtonDisabled(): boolean {
       return this.selectedRoles.length === 0;
     },

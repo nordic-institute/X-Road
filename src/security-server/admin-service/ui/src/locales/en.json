@@ -95,6 +95,9 @@
       "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
       "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
     },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
+    },
     "table": {
       "action": {
         "edit": {

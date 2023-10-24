@@ -63,13 +63,14 @@
                 {{ $t('apiKey.createApiKey.step.roles.description') }}
               </v-col>
               <v-col>
-                <v-row v-for="role in roles" :key="role" no-gutters>
+                <v-row v-for="role in availableRoles" :key="role" no-gutters>
                   <v-col class="underline">
                     <v-checkbox
                       v-model="selectedRoles"
                       height="10px"
                       :value="role"
                       :label="$t(`apiKey.role.${role}`)"
+                      :data-test="`role-${role}-checkbox`"
                     />
                   </v-col>
                 </v-row>
@@ -142,7 +143,7 @@
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.apiKeyID') }}
               </v-col>
-              <v-col cols="6" sm="9">
+              <v-col cols="6" sm="9" data-test="created-apikey-id">
                 {{ apiKey.id }}
               </v-col>
             </v-row>
@@ -199,21 +200,25 @@ import { Roles } from '@/global';
 import { ApiKey } from '@/global-types';
 import * as api from '@/util/api';
 import { toClipboard } from '@/util/helpers';
-import { mapActions } from 'pinia';
+import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   name: 'CreateApiKeyStepper',
   data() {
     return {
       step: 1,
-      roles: Roles,
       generatingKey: false,
       selectedRoles: [] as string[],
       apiKey: {} as ApiKey,
     };
   },
   computed: {
+    ...mapState(useUser, ['hasRole']),
+    availableRoles(): string[] {
+      return Roles.filter((role) => this.hasRole(role));
+    },
     nextButtonDisabled(): boolean {
       return this.selectedRoles.length === 0;
     },

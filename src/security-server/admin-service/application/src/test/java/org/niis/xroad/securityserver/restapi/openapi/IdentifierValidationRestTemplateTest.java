@@ -263,7 +263,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     private void assertUpdateServiceDescriptionValidationFailure(String url, String restServiceCode) {
         Map<String, Object> response =
                 (Map<String, Object>) updateServiceDescription(url, restServiceCode);
-        assertEquals(new Integer(HttpStatus.BAD_REQUEST.value()), response.get("status"));
+        assertEquals(Integer.valueOf(HttpStatus.BAD_REQUEST.value()), response.get("status"));
         Map<String, Object> errors = (Map<String, Object>) response.get("error");
         assertEquals("validation_failure", errors.get("code"));
     }

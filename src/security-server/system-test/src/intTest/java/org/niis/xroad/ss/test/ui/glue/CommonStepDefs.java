@@ -53,6 +53,11 @@ public class CommonStepDefs extends BaseUiStepDefs {
                 .shouldBe(Condition.visible, ofSeconds(15));
     }
 
+    @Step("Dialog Save button is clicked")
+    public void clickDialogSave() {
+        commonPageObj.dialog.btnSave().click();
+    }
+
     @Step("Dialog data is saved and success message {string} is shown")
     public void dialogSave(String message) {
         commonPageObj.dialog.btnSave().click();

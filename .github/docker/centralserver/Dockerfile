@@ -62,6 +62,10 @@ RUN chown -R ca:ca /home/ca/CA \
   && chmod 0754 /home/ca/CA/sign_req.sh \
   && chmod 0755 /usr/share/xroad/scripts/verify_external_configuration.sh
 
+# Setup users
+ARG USER_PASSWD=secret
+RUN useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd"
+
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]

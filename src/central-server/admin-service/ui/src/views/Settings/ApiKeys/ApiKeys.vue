@@ -114,16 +114,22 @@
               {{ $t('apiKey.table.action.edit.dialog.message') }}
             </v-col>
           </v-row>
-          <v-row v-for="role in roles" :key="role" no-gutters>
+          <v-row v-for="role in rolesToEdit" :key="role" no-gutters>
             <v-col class="checkbox-wrapper">
               <v-checkbox
                 v-model="selectedRoles"
                 height="10px"
                 :value="role"
-                :label="$t(`apiKey.role.${role}`)"
                 :data-test="`role-${role}-checkbox`"
                 hide-details
-              />
+              >
+                <template #label>
+                  <span>{{ $t(`apiKey.role.${role}`) }}</span>
+                  <span v-if="!canAssignRole(role)" class="remove-only-role">
+                    &nbsp; {{ $t('apiKey.edit.roleRemoveOnly') }}
+                  </span>
+                </template>
+              </v-checkbox>
             </v-col>
           </v-row>
         </div>
@@ -180,12 +186,12 @@ export default defineComponent({
       confirmRevoke: false,
       savingChanges: false,
       removingApiKey: false,
-      roles: Roles,
+      rolesToEdit: [] as string[],
       apiKeys: new Array<ApiKey>(),
     };
   },
   computed: {
-    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission', 'canAssignRole']),
     canEdit(): boolean {
       return this.hasPermission(Permissions.UPDATE_API_KEY);
     },
@@ -232,6 +238,9 @@ export default defineComponent({
     editKey(apiKey: ApiKey): void {
       this.selectedKey = apiKey;
       this.selectedRoles = [...this.selectedKey.roles];
+      this.rolesToEdit = Roles.filter(
+        (role) => this.selectedRoles.includes(role) || this.canAssignRole(role),
+      );
       this.showEditDialog = true;
     },
     showRevokeDialog(apiKey: ApiKey): void {
@@ -308,5 +317,9 @@ export default defineComponent({
 .server-code {
   font-weight: 600;
   font-size: 14px;
+}
+
+.remove-only-role {
+  font-style: italic;
 }
 </style>
