@@ -51,36 +51,36 @@ public class SharedParametersV2Converter {
 
     SharedParameters convert(SharedParametersTypeV2 source) throws CertificateEncodingException, IOException {
         String instanceIdentifier = source.getInstanceIdentifier();
-        List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source);
-        List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source);
-        List<SharedParameters.Member> members = getMembers(source);
+        List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
+        List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source.getApprovedTSA());
+        List<SharedParameters.Member> members = getMembers(source.getMember());
         List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source);
-        List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source);
-        SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source);
+        List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
+        SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
         return new SharedParameters(instanceIdentifier, List.of(), approvedCAs, approvedTSAs,
                 members, securityServers, globalGroups, globalSettings);
     }
 
-    private List<SharedParameters.ApprovedCA> getApprovedCAs(SharedParametersTypeV2 source) {
+    private List<SharedParameters.ApprovedCA> getApprovedCAs(List<ApprovedCATypeV2> approvedCATypes) {
         List<SharedParameters.ApprovedCA> approvedCAs = new ArrayList<>();
-        if (source.getApprovedCA() != null) {
-            approvedCAs.addAll(source.getApprovedCA().stream().map(this::toApprovedCa).toList());
+        if (approvedCATypes != null) {
+            approvedCAs.addAll(approvedCATypes.stream().map(this::toApprovedCa).toList());
         }
         return approvedCAs;
     }
 
-    private List<SharedParameters.ApprovedTSA> getApprovedTSAs(SharedParametersTypeV2 source) {
+    private List<SharedParameters.ApprovedTSA> getApprovedTSAs(List<ApprovedTSAType> approvedTSATypes) {
         List<SharedParameters.ApprovedTSA> approvedTSAs = new ArrayList<>();
-        if (source.getApprovedTSA() != null) {
-            approvedTSAs.addAll(source.getApprovedTSA().stream().map(this::toApprovedTsa).toList());
+        if (approvedTSATypes != null) {
+            approvedTSAs.addAll(approvedTSATypes.stream().map(this::toApprovedTsa).toList());
         }
         return approvedTSAs;
     }
 
-    private List<SharedParameters.Member> getMembers(SharedParametersTypeV2 source) {
+    private List<SharedParameters.Member> getMembers(List<MemberType> memberTypes) {
         List<SharedParameters.Member> members = new ArrayList<>();
-        if (source.getMember() != null) {
-            members.addAll(source.getMember().stream().map(this::toMember).toList());
+        if (memberTypes != null) {
+            members.addAll(memberTypes.stream().map(this::toMember).toList());
         }
         return members;
     }
@@ -109,17 +109,17 @@ public class SharedParametersV2Converter {
         return ret;
     }
 
-    private List<SharedParameters.GlobalGroup> getGlobalGroups(SharedParametersTypeV2 source) {
+    private List<SharedParameters.GlobalGroup> getGlobalGroups(List<GlobalGroupType> globalGroupTypes) {
         List<SharedParameters.GlobalGroup> globalGroups = new ArrayList<>();
-        if (source.getGlobalGroup() != null) {
-            globalGroups.addAll(source.getGlobalGroup().stream().map(this::toGlobalGroup).toList());
+        if (globalGroupTypes != null) {
+            globalGroups.addAll(globalGroupTypes.stream().map(this::toGlobalGroup).toList());
         }
         return globalGroups;
     }
 
-    private SharedParameters.GlobalSettings getGlobalSettings(SharedParametersTypeV2 source) {
-        if (source.getGlobalSettings() != null) {
-            return toGlobalSettings(source.getGlobalSettings());
+    private SharedParameters.GlobalSettings getGlobalSettings(GlobalSettingsType globalSettingsType) {
+        if (globalSettingsType != null) {
+            return toGlobalSettings(globalSettingsType);
         }
         return null;
     }
