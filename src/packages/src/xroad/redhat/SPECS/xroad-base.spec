@@ -195,7 +195,7 @@ if [ $1 -ge 1 ] ; then
 
   # restart is required to trigger any changes within xroad-base.sh
   echo "Restarting xroad-base service.."
-  %systemd_postun_with_restart xroad-base.service
+  %systemd_try_restart xroad-base.service
 fi
 
 %changelog
