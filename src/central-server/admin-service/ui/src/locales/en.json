@@ -71,6 +71,9 @@
       "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
       "XROAD_MANAGEMENT_SERVICE": "Management Services"
     },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
+    },
     "table": {
       "action": {
         "edit": {

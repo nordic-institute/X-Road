@@ -40,6 +40,7 @@ export const useUser = defineStore('user', {
       isSessionAlive: false,
       username: '' as string,
       permissions: [] as string[],
+      roles: [] as string[],
       count: 0,
     };
   },
@@ -56,6 +57,16 @@ export const useUser = defineStore('user', {
     hasPermission: (state) => {
       // Return true if the user has given permission
       return (permission: string) => state.permissions.includes(permission);
+    },
+
+    canAssignRole: (state) => {
+      return (role: string) => {
+        return (
+          state.roles.includes(role) ||
+          (role === 'XROAD_MANAGEMENT_SERVICE' &&
+            state.roles.includes('XROAD_SYSTEM_ADMINISTRATOR'))
+        );
+      };
     },
 
     hasAnyOfPermissions: (state) => {
@@ -118,6 +129,9 @@ export const useUser = defineStore('user', {
         .then((user) => {
           this.username = user?.data?.username;
           this.setPermissions(user?.data?.permissions);
+          this.roles = user?.data?.roles.map((role) =>
+            role.startsWith('ROLE_') ? role.slice(5) : role,
+          );
         })
         .catch((error) => {
           throw error;
