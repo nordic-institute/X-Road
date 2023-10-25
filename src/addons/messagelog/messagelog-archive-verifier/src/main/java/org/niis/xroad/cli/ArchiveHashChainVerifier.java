@@ -118,7 +118,7 @@ public class ArchiveHashChainVerifier {
 
     private String[] parseArguments(String[] args) throws InputErrorException {
         if (args.length != 2) {
-            throw new InputErrorException("First argument must provide two arguments, but there is less.");
+            throw new InputErrorException("Invalid arguments. Expected 2 arguments, got " + args.length + ".");
         }
 
         String archiveFile = args[0];
