@@ -52,9 +52,10 @@ public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<
     }
 
     @Override
-    protected void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV2> basePrivateParameters) throws Exception {
-        String instanceId = instanceDir.getFileName().toString();
+    protected PrivateParametersV2 loadPrivateParameters(String instanceId, Map<String, PrivateParametersV2> basePrivateParameters)
+            throws Exception {
 
+        Path instanceDir = Paths.get(getPath().toString(), instanceId);
         Path privateParametersPath = Paths.get(instanceDir.toString(), ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
         if (Files.exists(privateParametersPath)) {
             try {
@@ -72,22 +73,22 @@ public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<
                     parametersToUse = new PrivateParametersV2(privateParametersPath, fileExpiresOn);
                 }
 
-                privateParameters.put(instanceId, parametersToUse);
+                return parametersToUse;
             } catch (Exception e) {
                 log.error("Unable to load private parameters from {}", instanceDir, e);
                 throw e;
             }
         } else {
             log.trace("Not loading private parameters from {}, file does not exist", privateParametersPath);
+            return null;
         }
     }
 
-    protected void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> baseSharedParameters)
+    protected SharedParametersV2 loadSharedParameters(String instanceId, Map<String, SharedParametersV2> baseSharedParameters)
             throws Exception {
-        String instanceId = instanceDir.getFileName().toString();
 
-        Path sharedParametersPath = Paths.get(instanceDir.toString(),
-                ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
+        Path instanceDir = Paths.get(getPath().toString(), instanceId);
+        Path sharedParametersPath = Paths.get(instanceDir.toString(), ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         if (Files.exists(sharedParametersPath)) {
             try {
                 log.trace("Loading shared parameters from {}", sharedParametersPath);
@@ -104,13 +105,14 @@ public class ConfigurationDirectoryV2 extends VersionableConfigurationDirectory<
                     parametersToUse = new SharedParametersV2(sharedParametersPath, fileExpiresOn);
                 }
 
-                sharedParameters.put(instanceId, parametersToUse);
+                return parametersToUse;
             } catch (Exception e) {
                 log.error("Unable to load shared parameters from {}", instanceDir, e);
                 throw e;
             }
         } else {
             log.trace("Not loading shared parameters from {}, file does not exist", sharedParametersPath);
+            return null;
         }
     }
 

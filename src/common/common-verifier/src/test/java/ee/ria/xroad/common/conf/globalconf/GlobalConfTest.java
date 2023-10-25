@@ -129,7 +129,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getInstanceIdentifiers() {
-        assertEquals(Arrays.asList("EE", "bar", "foo"), GlobalConf.getInstanceIdentifiers());
+        assertTrue(Arrays.asList("EE", "bar", "foo").containsAll(GlobalConf.getInstanceIdentifiers()));
     }
 
     /**

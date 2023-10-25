@@ -32,6 +32,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
+import javax.annotation.concurrent.Immutable;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,7 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -62,6 +63,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInsta
  * @param <S> SharedParametersProvider
  */
 @Slf4j
+@Immutable
 public abstract class VersionableConfigurationDirectory<T extends PrivateParametersProvider, S extends SharedParametersProvider>
         implements ConfigurationDirectory {
 
@@ -71,8 +73,8 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
     @Getter
     private final String instanceIdentifier;
 
-    protected final Map<String, T> privateParameters = new HashMap<>();
-    protected final Map<String, S> sharedParameters = new HashMap<>();
+    protected final Map<String, T> privateParameters;
+    protected final Map<String, S> sharedParameters;
 
     // ------------------------------------------------------------------------
 
@@ -87,7 +89,8 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
         instanceIdentifier = loadInstanceIdentifier();
 
         // empty maps as placeholders
-        loadParameters(new HashMap<>(), new HashMap<>());
+        privateParameters = Map.copyOf(loadPrivateParameters(new HashMap<>()));
+        sharedParameters = Map.copyOf(loadSharedParameters(new HashMap<>()));
     }
 
     /**
@@ -101,23 +104,50 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
 
         instanceIdentifier = loadInstanceIdentifier();
 
-        loadParameters(base.privateParameters, base.sharedParameters);
+        privateParameters = Map.copyOf(loadPrivateParameters(base.privateParameters));
+        sharedParameters = Map.copyOf(loadSharedParameters(base.sharedParameters));
     }
 
     /**
-     * Reloads the configuration directory. Only files that are new or have changed, are actually loaded.
-     * @throws IOException if an error occurs during reload
+     * Reloads private parameters. Only files that are new or have changed, are actually loaded.
+     * @throws Exception if an error occurs during reload
      */
-    private void loadParameters(Map<String, T> basePrivateParams, Map<String, S> baseSharedParams) throws Exception {
-        log.trace("Reloading configuration from {}", path);
+    private Map<String, T> loadPrivateParameters(Map<String, T> basePrivateParams) throws Exception {
+        log.trace("Reloading private parameters from {}", path);
 
+        Map<String, T> privateParams = new HashMap<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, Files::isDirectory)) {
             for (Path instanceDir : stream) {
-                log.trace("Loading parameters from {}", instanceDir);
-                loadPrivateParameters(instanceDir, basePrivateParams);
-                loadSharedParameters(instanceDir, baseSharedParams);
+                log.trace("Loading private parameters from {}", instanceDir);
+                String instanceId = instanceDir.getFileName().toString();
+                T params = loadPrivateParameters(instanceId, basePrivateParams);
+                if (params != null) {
+                    privateParams.put(instanceId, params);
+                }
             }
         }
+        return privateParams;
+    }
+
+    /**
+     * Reloads shared parameters. Only files that are new or have changed, are actually loaded.
+     * @throws Exception if an error occurs during reload
+     */
+    private Map<String, S> loadSharedParameters(Map<String, S> baseSharedParams) throws Exception {
+        log.trace("Reloading shared parameters from {}", path);
+
+        Map<String, S> sharedParams = new HashMap<>();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, Files::isDirectory)) {
+            for (Path instanceDir : stream) {
+                log.trace("Loading shared parameters from {}", instanceDir);
+                String instanceId = instanceDir.getFileName().toString();
+                S params = loadSharedParameters(instanceId, baseSharedParams);
+                if (params != null) {
+                    sharedParams.put(instanceId, params);
+                }
+            }
+        }
+        return sharedParams;
     }
 
     /**
@@ -171,7 +201,7 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
                         && p.getSharedParameters().getInstanceIdentifier().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now)
                 )
                 .map(SharedParametersProvider::getSharedParameters)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public OffsetDateTime getSharedExpiresOn(String instanceId) {
@@ -197,7 +227,7 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
                 .filter(p -> !p.toString().endsWith(ConfigurationDirectory.FILES))
                 .filter(p -> !p.toString().endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
                 .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -272,8 +302,8 @@ public abstract class VersionableConfigurationDirectory<T extends PrivateParamet
         }
     }
 
-    protected abstract void loadPrivateParameters(Path instanceDir, Map<String, T> basePrivateParameters) throws Exception;
+    protected abstract T loadPrivateParameters(String instanceId, Map<String, T> basePrivateParameters) throws Exception;
 
-    protected abstract void loadSharedParameters(Path instanceDir, Map<String, S> basePrivateParameters) throws Exception;
+    protected abstract S loadSharedParameters(String instanceId, Map<String, S> basePrivateParameters) throws Exception;
 
 }
