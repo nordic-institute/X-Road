@@ -78,6 +78,7 @@ include "common:common-test"
 include "addons:hwtoken"
 include "addons:messagelog:messagelog-addon"
 include "addons:messagelog:messagelog-archiver"
+include 'addons:messagelog:messagelog-archive-verifier'
 include "addons:messagelog:messagelog-db"
 include "addons:metaservice"
 
@@ -89,5 +90,4 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
-
 
