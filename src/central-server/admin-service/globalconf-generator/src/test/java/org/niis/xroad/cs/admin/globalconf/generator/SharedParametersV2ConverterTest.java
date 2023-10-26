@@ -113,6 +113,11 @@ class SharedParametersV2ConverterTest {
         log.info(writer.toString());
     }
 
+    @Test
+    void shouldReturnNullWhenInputIsNull() {
+        assertThat(SharedParametersV2Converter.INSTANCE.convert((SharedParameters) null)).isNull();
+    }
+
     private static void assertIdReferences(SharedParametersTypeV2 xmlType) {
         var ownerMember = xmlType.getMember().get(0);
         var client = ownerMember.getSubsystem().get(0);
