@@ -34,7 +34,7 @@
     <v-tabs
       v-if="$route.query.descriptionType !== serviceTypeEnum.WSDL"
       v-model="currentTab"
-      background-color="#F4F3F6"
+      bg-color="#F4F3F6"
       class="xrd-tabs"
       color="primary"
       slider-size="2"

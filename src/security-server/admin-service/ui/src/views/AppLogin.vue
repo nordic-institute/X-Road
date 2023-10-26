@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid fill-height class="login-view-wrap">
+  <v-container fluid class="login-view-wrap fill-height">
     <alerts-container class="alerts" />
     <v-row no-gutters class="fill-height">
       <v-col cols="5">
@@ -41,9 +41,9 @@
       </v-col>
       <v-col cols="7" align-self="center" class="d-flex justify-center">
         <v-card variant="flat" class="set-width flex-grow-1">
-          <v-card-title class="login-form-toolbar">
+          <v-card-title class="login-form">
             <div class="title-wrap">
-              <div class="login-form-toolbar-title">
+              <div class="login-form-title">
                 {{ $t('login.logIn') }}
               </div>
               <div class="sub-title">{{ $t('global.appTitle') }}</div>
@@ -315,13 +315,13 @@ export default defineComponent({
   flex-direction: column;
 }
 
-.login-form-toolbar {
+.login-form {
   background-color: white;
   margin-bottom: 30px;
   padding-left: 0;
 }
 
-.login-form-toolbar-title {
+.login-form-title {
   margin-left: 0;
   color: #252121;
   font-style: normal;

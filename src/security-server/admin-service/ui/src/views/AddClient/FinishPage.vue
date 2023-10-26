@@ -42,7 +42,6 @@
           <xrd-form-label :label-text="$t('wizard.client.register')" />
           <v-checkbox
             v-model="registerChecked"
-            color="primary"
             class="register-checkbox"
             data-test="register-member-checkbox"
           ></v-checkbox>

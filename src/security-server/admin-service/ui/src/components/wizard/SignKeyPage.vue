@@ -36,7 +36,7 @@
           class="wizard-form-input"
           type="text"
           data-test="key-label-input"
-          outlined
+          variant="outlined"
           autofocus
         ></v-text-field>
       </div>

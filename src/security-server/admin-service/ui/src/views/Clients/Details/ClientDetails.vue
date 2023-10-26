@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat">
+  <v-card variant="flat" class="mt-10">
     <table v-if="client && !clientLoading" class="xrd-table detail-table">
       <tr>
         <td>{{ $t('client.memberName') }}</td>
@@ -142,8 +142,6 @@ export default defineComponent({
 @import '../../../assets/tables';
 
 .detail-table {
-  margin-top: 40px;
-
   tr td:first-child {
     width: 20%;
   }
@@ -152,9 +150,5 @@ export default defineComponent({
 .cert-name {
   color: $XRoad-Link;
   cursor: pointer;
-}
-
-.details-certificates {
-  margin-top: 40px;
 }
 </style>

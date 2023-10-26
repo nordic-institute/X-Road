@@ -24,22 +24,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common" data-test="certificate-details-dialog">
-    <div class="new-content">
-      <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
-      <template v-if="certificate">
-        <div class="dtlv-cert-hash">
-          <certificateHash :hash="certificate.hash" />
-          <xrd-button
-            v-if="showDeleteButton"
-            outlined
-            @click="deleteCertificate()"
-            >{{ $t('action.delete') }}</xrd-button
-          >
-        </div>
-        <certificateInfo :certificate="certificate" />
-      </template>
-    </div>
+  <v-sheet
+    class="wrapper xrd-view-common pa-4 mt-4 rounded"
+    data-test="certificate-details-dialog"
+  >
+    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
+    <template v-if="certificate">
+      <div class="detail-view-cert-hash">
+        <certificateHash :hash="certificate.hash" />
+        <xrd-button
+          v-if="showDeleteButton"
+          outlined
+          data-test="tls-certificate-delete-button"
+          @click="deleteCertificate()"
+          >{{ $t('action.delete') }}
+        </xrd-button>
+      </div>
+      <certificateInfo :certificate="certificate" />
+    </template>
 
     <!-- Confirm dialog for delete -->
     <xrd-confirm-dialog
@@ -49,7 +51,7 @@
       @cancel="confirm = false"
       @accept="doDeleteCertificate()"
     />
-  </div>
+  </v-sheet>
 </template>
 
 <script lang="ts">

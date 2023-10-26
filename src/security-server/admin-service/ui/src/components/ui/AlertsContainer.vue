@@ -24,12 +24,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <v-container class="pa-0">
-      <GlobalAlerts />
-      <ContextualAlerts />
-    </v-container>
-  </div>
+  <v-container fluid class="pa-0">
+    <GlobalAlerts />
+    <ContextualAlerts />
+  </v-container>
 </template>
 
 <script lang="ts">

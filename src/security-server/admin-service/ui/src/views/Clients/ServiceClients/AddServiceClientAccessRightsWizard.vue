@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap" data-test="add-subject-view">
+  <v-sheet class="view-wrap" data-test="add-subject-view">
     <xrd-sub-view-title
       :title="$t('serviceClients.addServiceClientTitle')"
       :show-close="false"
@@ -69,7 +69,7 @@
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
-  </div>
+  </v-sheet>
 </template>
 
 <script lang="ts">
@@ -174,6 +174,7 @@ export default defineComponent({
 /* Modify wizard import */
 .view-wrap {
   max-width: 850px;
+  width: 100%;
   margin: 10px;
 }
 

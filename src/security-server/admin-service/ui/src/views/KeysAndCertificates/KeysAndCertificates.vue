@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-sub-view-wrapper">
-    <v-container class="xrd-view-common mt-7">
+    <v-container fluid class="xrd-view-common mt-7">
       <router-view />
     </v-container>
   </div>

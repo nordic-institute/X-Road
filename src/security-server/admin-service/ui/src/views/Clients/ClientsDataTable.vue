@@ -58,20 +58,20 @@
       </div>
     </div>
 
+    <!-- @vue-ignore -->
     <v-data-table
       :loading="clientsLoading"
       :headers="headers"
-      :items="getClients"
-      :search="search"
+      :items="filteredClients"
       :must-sort="true"
       :items-per-page="-1"
-      :sort-by="[{ key: 'visibleName', order: 'asc' }]"
-      :custom-sort="customSort"
-      :custom-filter="customFilter"
+      :sort-by="sortBy"
+      :custom-key-sort="dummyKeySort"
       hide-default-footer
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
+      @update:sort-by="sort"
     >
       <!-- https://stackoverflow.com/questions/61344980/v-slot-directive-doesnt-support-any-modifier -->
       <template #[`item.visibleName`]="{ item }">
@@ -235,12 +235,19 @@ export default defineComponent({
   data: () => ({
     search: '',
     clientTypes: ClientTypes,
-    pagination: {
-      sortBy: 'visibleName',
-    },
     confirmRegisterClient: false,
     registerClientLoading: false,
     selectedClient: undefined as undefined | ExtendedClient,
+    filteredClients: [] as ExtendedClient[],
+    sortBy: [{ key: 'visibleName', order: 'asc' }],
+    // Currently the new version of v-data-table is missing the customSort property,
+    // so we'll ignore its internal sorting for now and do our own sorting externally
+    // https://github.com/vuetifyjs/vuetify/issues/16654
+    dummyKeySort: {
+      visibleName: () => 0,
+      id: () => 0,
+      status: () => 0,
+    },
   }),
 
   computed: {
@@ -291,8 +298,23 @@ export default defineComponent({
       return this.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
     },
   },
+
+  watch: {
+    search(newValue: string) {
+      const filteredClients = this.getClients.filter((client) =>
+        this.customFilter('', newValue, client),
+      );
+      this.filteredClients = this.customSort(
+        filteredClients,
+        this.sortBy[0].key,
+        this.sortBy[0].order === 'desc',
+      );
+    },
+  },
+
   created() {
     this.fetchData();
+    this.sort(this.sortBy);
   },
 
   methods: {
@@ -419,13 +441,22 @@ export default defineComponent({
       return isFiltered;
     },
 
+    sort(event: { key: string; order: string }[]) {
+      this.filteredClients = this.customSort(
+        this.filteredClients,
+        event[0].key,
+        event[0].order === 'desc',
+      );
+      this.sortBy = [{ key: event[0].key, order: event[0].order }];
+    },
+
     customSort(
       items: ExtendedClient[],
-      sortBy: string[],
-      sortDesc: boolean[],
+      sortBy: string,
+      sortDesc: boolean,
     ): ExtendedClient[] {
-      const index = sortBy[0] as keyof ExtendedClient;
-      const sortDirection = !sortDesc[0] ? 1 : -1;
+      const index = sortBy as keyof ExtendedClient;
+      const sortDirection = !sortDesc ? 1 : -1;
 
       // Filter out all subsystems for later use
       const subsystems = items.filter(
@@ -491,9 +522,14 @@ export default defineComponent({
     },
 
     fetchData() {
-      this.fetchClients().catch((error: AxiosError) => {
-        this.showError(error);
-      });
+      this.fetchClients()
+        .catch((error: AxiosError) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.filteredClients = this.getClients;
+          this.sort(this.sortBy);
+        });
     },
   },
 });

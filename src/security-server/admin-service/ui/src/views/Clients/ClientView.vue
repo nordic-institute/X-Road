@@ -25,8 +25,8 @@
  -->
 <template>
   <div class="xrd-sub-view-wrapper">
-    <v-container class="xrd-view-common mt-7">
-      <v-flex mb-4 class="title-action identifier-wrap">
+    <v-container fluid class="xrd-view-common mt-7">
+      <v-row class="title-action identifier-wrap mx-0">
         <div v-if="clientLoading" class="xrd-view-title mb-3">
           {{ $t('noData.loading') }}
         </div>
@@ -51,7 +51,7 @@
             @done="fetchData"
           />
         </div>
-      </v-flex>
+      </v-row>
 
       <router-view />
     </v-container>

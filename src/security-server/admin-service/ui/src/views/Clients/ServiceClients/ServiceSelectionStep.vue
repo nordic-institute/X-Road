@@ -32,6 +32,8 @@
         single-line
         hide-details
         data-test="search-service-client-service"
+        variant="underlined"
+        density="compact"
         class="search-input"
         autofocus
         append-inner-icon="mdi-magnify"
@@ -60,6 +62,7 @@
                   v-model="selections"
                   :value="accessRight"
                   data-test="access-right-checkbox-input"
+                  hide-details
                 />
               </div>
             </td>

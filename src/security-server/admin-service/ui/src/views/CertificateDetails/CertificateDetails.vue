@@ -27,7 +27,7 @@
   <div class="certificate-details-wrapper xrd-default-shadow">
     <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
-      <div v-if="certificate" class="dtlv-tools">
+      <div v-if="certificate" class="detail-view-tools">
         <xrd-button
           v-if="showActivate"
           class="button-spacing"
@@ -66,7 +66,7 @@
         >
       </div>
       <template v-if="certificate && certificate.certificate_details">
-        <div class="dtlv-cert-hash">
+        <div class="detail-view-cert-hash">
           <certificateHash :hash="certificate.certificate_details.hash" />
         </div>
         <certificateInfo :certificate="certificate.certificate_details" />

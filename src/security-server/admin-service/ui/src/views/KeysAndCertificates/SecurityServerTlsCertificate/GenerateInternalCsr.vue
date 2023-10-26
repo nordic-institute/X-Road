@@ -46,7 +46,7 @@
           <v-text-field
             v-model="distinguishedName"
             autofocus
-            outlined
+            variant="outlined"
             data-text="generate-internal-csr-distinguished-name-field"
             :placeholder="
               $t('ssTlsCertificate.generateInternalCsr.step1.placeholder')

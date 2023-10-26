@@ -33,6 +33,8 @@
         hide-details
         data-test="search-service-client"
         class="search-input"
+        variant="underlined"
+        density="compact"
         autofocus
         append-inner-icon="mdi-magnify"
       >

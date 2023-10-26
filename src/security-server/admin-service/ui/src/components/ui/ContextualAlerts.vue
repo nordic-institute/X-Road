@@ -209,6 +209,7 @@ export default defineComponent({
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
+  background-color: $XRoad-White100;
 }
 
 .row-wrapper-top {
@@ -241,6 +242,7 @@ export default defineComponent({
   overflow-wrap: break-word;
   justify-content: center;
   margin-right: 30px;
+  color: $XRoad-Black100;
 }
 
 .id-button {

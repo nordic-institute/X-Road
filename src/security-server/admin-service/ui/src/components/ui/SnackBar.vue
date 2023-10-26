@@ -24,47 +24,46 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <!-- Success -->
-    <v-snackbar
-      v-for="notification in successNotifications"
-      :key="notification.timeAdded"
-      v-model="notification.show"
-      data-test="success-snackbar"
-      :timeout="snackbarTimeout(notification)"
-      :color="colors.Success10"
-      :transition="transitionName"
-      multi-line
-      class="success-snackbar"
-      :min-width="760"
-      @update:model-value="closeSuccess(notification.timeAdded)"
-    >
-      <div class="row-wrapper-top scrollable identifier-wrap">
-        <xrd-icon-base :color="colors.Success100">
-          <xrd-icon-checker />
-        </xrd-icon-base>
-        <div class="row-wrapper">
-          <div v-if="notification.successMessage">
-            {{ $t(notification.successMessage) }}
-          </div>
+  <!-- Success -->
+  <v-snackbar
+    v-for="notification in successNotifications"
+    :key="notification.timeAdded"
+    v-model="notification.show"
+    data-test="success-snackbar"
+    :timeout="snackbarTimeout(notification)"
+    :color="colors.Success10"
+    :transition="transitionName"
+    multi-line
+    class="success-snackbar"
+    :min-width="760"
+    :close-on-back="false"
+    @update:model-value="closeSuccess(notification.timeAdded)"
+  >
+    <div class="row-wrapper-top scrollable identifier-wrap">
+      <xrd-icon-base :color="colors.Success100">
+        <xrd-icon-checker />
+      </xrd-icon-base>
+      <div class="row-wrapper">
+        <div v-if="notification.successMessage">
+          {{ $t(notification.successMessage) }}
         </div>
       </div>
-      <template #actions>
-        <v-btn
-          icon
-          variant="text"
-          rounded
-          :color="colors.Black100"
-          data-test="close-snackbar"
-          @click="closeSuccess(notification.timeAdded)"
-        >
-          <xrd-icon-base>
-            <xrd-icon-close />
-          </xrd-icon-base>
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </div>
+    </div>
+    <template #actions>
+      <v-btn
+        icon
+        variant="text"
+        rounded
+        :color="colors.Black100"
+        data-test="close-snackbar"
+        @click="closeSuccess(notification.timeAdded)"
+      >
+        <xrd-icon-base>
+          <xrd-icon-close />
+        </xrd-icon-base>
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script lang="ts">

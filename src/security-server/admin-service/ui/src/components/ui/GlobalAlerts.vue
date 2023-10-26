@@ -32,12 +32,11 @@
     <v-alert
       v-if="showGlobalConfAlert"
       data-test="global-alert-global-configuration"
-      :value="showGlobalConfAlert"
-      color="red"
-      border="left"
-      colored-border
+      variant="outlined"
+      border="start"
       class="alert"
       icon="icon-Error-notification"
+      type="error"
     >
       <span class="alert-text">{{
         $t('globalAlert.globalConfigurationInvalid')
@@ -46,12 +45,11 @@
     <v-alert
       v-if="isAllowedToLoginToken && showSoftTokenPinEnteredAlert"
       data-test="global-alert-soft-token-pin"
-      :value="showSoftTokenPinEnteredAlert"
-      color="red"
-      border="left"
-      colored-border
+      variant="outlined"
+      border="start"
       class="alert"
       icon="icon-Error-notification"
+      type="error"
     >
       <span
         v-if="showLoginLink"
@@ -67,12 +65,11 @@
     <v-alert
       v-if="showRestoreInProgress"
       data-test="global-alert-restore"
-      :value="showRestoreInProgress"
-      color="red"
-      border="left"
-      colored-border
+      variant="outlined"
+      border="start"
       class="alert"
       icon="icon-Error-notification"
+      type="error"
     >
       <span class="alert-text">{{
         $t('globalAlert.backupRestoreInProgress', {
@@ -83,12 +80,11 @@
     <v-alert
       v-if="isSecondaryNode"
       data-test="global-alert-secondary-node"
-      :value="isSecondaryNode"
-      color="red"
-      border="left"
-      colored-border
+      variant="outlined"
+      border="start"
       class="alert"
       icon="icon-Error-notification"
+      type="error"
     >
       <span class="alert-text">{{ $t('globalAlert.secondaryNode') }}</span>
     </v-alert>
@@ -162,6 +158,7 @@ export default defineComponent({
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
+  background-color: $XRoad-White100;
 }
 
 .alert-text {

@@ -24,9 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center column>
-    <clientsDataTable />
-  </v-layout>
+  <clientsDataTable />
 </template>
 
 <script lang="ts">

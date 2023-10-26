@@ -42,8 +42,8 @@
           v-model="keyLabel"
           class="wizard-form-input"
           type="text"
-          outlined
-          data-test="key-label-button"
+          variant="outlined"
+          data-test="key-label-input"
           autofocus
         ></v-text-field>
       </div>

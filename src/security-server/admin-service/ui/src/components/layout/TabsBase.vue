@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content" align-left>
+  <v-layout class="main-content">
     <app-icon />
     <v-tabs
       v-model="currentTab"
@@ -100,15 +100,18 @@ export default defineComponent({
   height: 56px;
   padding-left: 92px;
   @media only screen and (max-width: 920px) {
-    padding-left: 0px;
+    padding-left: 0;
   }
 }
 
-.tabs-wrap {
+.main-tabs {
   margin-left: 20px;
+  max-width: 1000px;
 }
 
-.main-tabs {
-  max-width: 1000px;
+:deep(.v-tab) {
+  text-transform: none;
+  font-weight: 600;
+  color: rgb(0 0 0 / 54%);
 }
 </style>

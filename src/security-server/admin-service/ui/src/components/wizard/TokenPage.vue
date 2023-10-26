@@ -195,7 +195,6 @@ export default defineComponent({
 @import '@/assets/wizards';
 
 .wizard-token-step-form-content {
-  width: 100%;
   padding: 30px;
 }
 

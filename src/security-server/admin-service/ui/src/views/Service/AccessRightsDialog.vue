@@ -32,7 +32,7 @@
     persistent
   >
     <v-card class="xrd-card px-0 mx-0" height="90vh">
-      <v-card-title>
+      <v-card-title class="d-flex pt-4">
         <span class="text-h5" data-test="access-rights-dialog-title">
           {{ title }}
         </span>
@@ -40,8 +40,8 @@
         <i id="close-x" data-test="cancel" @click="cancel()"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px">
-        <xrd-expandable :is-open="true">
+      <v-card-text style="height: 500px" class="pa-0">
+        <xrd-expandable :is-open="true" class="px-4">
           <template #link="{ toggle }">
             <div class="exp-title cursor-pointer" @click="toggle">
               {{ $t('localGroup.searchOptions') }}
@@ -50,7 +50,7 @@
 
           <template #content>
             <div class="flex-wrap">
-              <div class="input-row">
+              <div class="input-row px-2 pb-4">
                 <v-text-field
                   v-model="name"
                   :label="$t('general.name')"
@@ -74,7 +74,7 @@
                 ></v-select>
               </div>
 
-              <div class="input-row">
+              <div class="input-row px-2 pb-4">
                 <v-select
                   v-model="memberClass"
                   :items="memberClasses"
@@ -96,7 +96,7 @@
                 ></v-text-field>
               </div>
 
-              <div class="input-row">
+              <div class="input-row px-2 pb-4">
                 <v-text-field
                   v-model="subsystemCode"
                   :label="$t('general.subsystemCode')"
@@ -373,5 +373,9 @@ export default defineComponent({
 
 .first-column {
   width: 40px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

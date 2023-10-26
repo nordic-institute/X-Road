@@ -43,14 +43,14 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" text outlined @click="cancel()">{{
+        <xrd-button color="primary" variant="outlined" @click="cancel()">{{
           $t(cancelButtonText)
         }}</xrd-button>
         <xrd-button
           color="primary"
-          text
-          outlined
+          variant="outlined"
           :loading="loading"
+          data-test="service-url-change-button"
           @click="accept()"
           >{{ $t(acceptButtonText) }}</xrd-button
         >

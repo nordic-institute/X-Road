@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center class="mt-6">
+  <v-row align="center" justify="center" class="mt-6">
     <div class="view-wrap">
       <xrd-sub-view-title
         class="wizard-view-title"
@@ -106,7 +106,7 @@
         @accept="acceptInitWarning()"
       ></warningDialog>
     </div>
-  </v-layout>
+  </v-row>
 </template>
 
 <script lang="ts">

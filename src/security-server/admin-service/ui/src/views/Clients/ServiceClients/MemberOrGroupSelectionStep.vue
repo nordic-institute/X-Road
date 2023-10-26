@@ -33,6 +33,8 @@
         hide-details
         autofocus
         data-test="search-service-client"
+        variant="underlined"
+        density="compact"
         class="search-input"
         append-inner-icon="mdi-magnify"
       >

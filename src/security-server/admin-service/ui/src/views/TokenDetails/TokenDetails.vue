@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width dtlv-outer">
-    <div class="dtlv-content">
+  <div class="xrd-tab-max-width detail-view-outer">
+    <div class="detail-view-content">
       <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
       <v-row>
         <v-col>
@@ -118,7 +118,7 @@
         </v-col>
       </v-row>
     </div>
-    <div class="dtlv-actions-footer">
+    <div class="detail-view-actions-footer">
       <xrd-button outlined data-test="token-details-cancel" @click="close()">
         {{ $t('action.cancel') }}
       </xrd-button>

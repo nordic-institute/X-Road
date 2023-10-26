@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width dtlv-outer">
-    <div class="dtlv-content">
+  <div class="xrd-tab-max-width detail-view-outer">
+    <div class="detail-view-content">
       <div>
         <xrd-sub-view-title
           v-if="key.usage == 'SIGNING'"
@@ -42,7 +42,7 @@
           :title="$t('keys.detailsTitle')"
           @close="close"
         />
-        <div class="dtlv-tools">
+        <div class="detail-view-tools">
           <xrd-button
             v-if="canDelete"
             :loading="deleting"
@@ -84,7 +84,7 @@
         </div>
       </div>
     </div>
-    <div class="dtlv-actions-footer">
+    <div class="detail-view-actions-footer">
       <xrd-button outlined @click="close()"
         >{{ $t('action.cancel') }}
       </xrd-button>

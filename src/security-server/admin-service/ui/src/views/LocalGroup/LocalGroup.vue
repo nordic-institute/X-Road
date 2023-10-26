@@ -45,7 +45,7 @@
       <template v-if="canEditDescription">
         <v-text-field
           v-model="description"
-          outlined
+          variant="outlined"
           :label="$t('localGroup.description')"
           hide-details
           data-test="local-group-edit-description-input"

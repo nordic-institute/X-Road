@@ -494,6 +494,6 @@ export default defineComponent({
 }
 
 .button-icon {
-  margin-top: -14px; // fix for icon position
+  margin-top: 12px; // fix for icon position
 }
 </style>

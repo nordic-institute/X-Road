@@ -36,6 +36,7 @@
         <v-text-field
           v-model="notice"
           single-line
+          variant="underlined"
           class="dlg-row-input"
         ></v-text-field>
       </div>

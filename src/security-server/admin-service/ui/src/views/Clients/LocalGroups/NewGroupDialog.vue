@@ -36,7 +36,7 @@
       <div class="dlg-input-width">
         <v-text-field
           v-model="code"
-          outlined
+          variant="outlined"
           :label="$t('localGroup.code')"
           autofocus
           data-test="add-local-group-code-input"
@@ -47,7 +47,7 @@
         <v-text-field
           v-model="description"
           :label="$t('localGroup.description')"
-          outlined
+          variant="outlined"
           data-test="add-local-group-description-input"
         ></v-text-field>
       </div>

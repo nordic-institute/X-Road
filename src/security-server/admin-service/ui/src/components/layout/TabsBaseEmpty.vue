@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content" align-left>
+  <v-layout class="main-content">
     <app-icon />
     <div class="tabs-wrap"></div>
     <app-drop-menu />

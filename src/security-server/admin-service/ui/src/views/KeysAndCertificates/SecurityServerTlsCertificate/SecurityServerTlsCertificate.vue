@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <div class="dtlv-tools">
+    <div class="detail-view-tools">
       <xrd-button
         v-if="generateKeyVisible"
         class="button-spacing"
