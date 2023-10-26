@@ -71,6 +71,15 @@
           :loader-height="2"
           data-test="owned-servers-table"
         >
+          <template #[`item.server_id.server_code`]="{ item }">
+            <div
+              class="server-code xrd-clickable"
+              :data-test="`owned-server-${item.raw.server_id.server_code}`"
+              @click="toSecurityServerDetails(item.raw)"
+            >
+              {{ item.raw.server_id.server_code }}
+            </div>
+          </template>
           <template #bottom>
             <custom-data-table-footer />
           </template>
@@ -146,7 +155,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors, Permissions } from '@/global';
+import { Colors, Permissions, RouteName } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
@@ -275,6 +284,12 @@ export default defineComponent({
     cancelDelete() {
       this.showDeleteDialog = false;
     },
+    toSecurityServerDetails(securityServer: SecurityServer): void {
+      this.$router.push({
+        name: RouteName.SecurityServerDetails,
+        params: { serverId: securityServer.server_id.encoded_id || '' },
+      });
+    },
   },
 });
 </script>
@@ -282,6 +297,14 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '@/assets/colors';
 @import '@/assets/tables';
+
+.server-code {
+  color: $XRoad-Purple100;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
 
 .card-title {
   font-size: 12px;

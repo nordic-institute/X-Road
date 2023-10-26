@@ -46,7 +46,7 @@ public class MemberDetailsStepDefs extends BaseUiStepDefs {
     public void ownedSecurityServersTableIsShown() {
         memberDetailsPageObj.tableTitle("Owned Servers").shouldBe(visible);
         memberDetailsPageObj.ownerServersSearch().shouldBe(visible);
-        memberDetailsPageObj.ownerServersTable().shouldBe(visible);
+        memberDetailsPageObj.ownedServers().table().shouldBe(visible);
     }
 
     @Step("The Global Groups table is correctly shown")
@@ -88,6 +88,16 @@ public class MemberDetailsStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("owned servers contains server {string}")
+    public void ownedServersContainsServer(String serverCode) {
+        memberDetailsPageObj.ownedServers().server(serverCode).shouldBe(visible);
+    }
+
+    @Step("user clicks on owned server {string}")
+    public void userClicksOnOwnedServer(String serverCode) {
+        memberDetailsPageObj.ownedServers().server(serverCode).click();
     }
 
 }
