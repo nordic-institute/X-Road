@@ -206,9 +206,11 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSource.getConfigurationSigningKeys())
                     .thenReturn(new LinkedHashSet<>(List.of(signingKeyEntity1, signingKeyEntity2)));
             when(configurationSource.getConfigurationSigningKey()).thenReturn(signingKeyEntity1);
+            when(configurationSource.getSourceType()).thenReturn(INTERNAL_CONFIGURATION);
             when(configurationSource2.getHaNodeName()).thenReturn(HA_NODE_NAME2);
             when(configurationSource2.getConfigurationSigningKeys()).thenReturn(Set.of(signingKeyEntity3));
             when(configurationSource2.getConfigurationSigningKey()).thenReturn(null);
+            when(configurationSource2.getSourceType()).thenReturn(INTERNAL_CONFIGURATION);
             when(signingKeyEntity1.getCert()).thenReturn(CERT1.getBytes(UTF_8));
             when(signingKeyEntity2.getCert()).thenReturn(CERT2.getBytes(UTF_8));
             when(signingKeyEntity3.getCert()).thenReturn(CERT3.getBytes(UTF_8));

@@ -33,15 +33,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SharedParametersGenerator {
-    private final SharedParametersMarshaller marshaller;
-    private final SharedParametersLoader loader;
-
+public class PrivateParametersV2Generator {
+    private final PrivateParametersV2Marshaller marshaller;
+    private final PrivateParametersLoader loader;
 
     String generate() {
-        log.debug("Generating shared parameters");
+        log.debug("Generating private parameters");
         var parameters = loader.load();
-        log.trace("Shared parameters loaded: {}", parameters);
         return marshaller.marshall(parameters);
     }
 }

@@ -34,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,13 +51,12 @@ class ConfigurationClient {
 
     private ConfigurationSource configurationAnchor;
 
-    ConfigurationClient(String globalConfigurationDir) {
+    ConfigurationClient(String globalConfigurationDir, int version) {
         this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir);
+        downloader = new ConfigurationDownloader(globalConfigurationDir, version);
     }
 
-    ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader,
-                               ConfigurationSource configurationAnchor) {
+    ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader, ConfigurationSource configurationAnchor) {
         this.globalConfigurationDir = globalConfigurationDir;
         this.downloader = downloader;
         this.configurationAnchor = configurationAnchor;
@@ -72,21 +72,25 @@ class ConfigurationClient {
         }
 
         downloadConfigurationFromAnchor();
-        PrivateParametersV2 privateParameters = loadPrivateParameters();
+        List<ConfigurationSource> configurationSources = getConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
                 new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
 
-        deleteExtraConfigurationDirectories(privateParameters, sourceFilter);
+        deleteExtraConfigurationDirectories(configurationSources, sourceFilter);
 
-        downloadConfigurationFromAdditionalSources(privateParameters, sourceFilter);
+        downloadConfigurationFromAdditionalSources(configurationSources, sourceFilter);
+    }
+
+    protected List<ConfigurationSource> getConfigurationSources() {
+        PrivateParameters privateParameters = loadPrivateParameters();
+        return privateParameters != null ? privateParameters.getConfigurationAnchors() : List.of();
     }
 
     private void initConfigurationAnchor() throws Exception {
         log.trace("initConfigurationAnchor()");
 
         String anchorFileName = SystemProperties.getConfigurationAnchorFile();
-
         if (!Files.exists(Paths.get(anchorFileName))) {
             log.warn("Cannot download configuration, anchor file {} does not exist", anchorFileName);
 
@@ -94,7 +98,7 @@ class ConfigurationClient {
         }
 
         try {
-            configurationAnchor = new ConfigurationAnchorV2(anchorFileName);
+            configurationAnchor = new ConfigurationAnchor(anchorFileName);
         } catch (Exception e) {
             String message = String.format("Failed to load configuration anchor from file %s", anchorFileName);
 
@@ -117,9 +121,14 @@ class ConfigurationClient {
         handleResult(downloader.download(configurationAnchor), true);
     }
 
-    private PrivateParametersV2 loadPrivateParameters() {
+    private PrivateParameters loadPrivateParameters() {
         try {
-            ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(globalConfigurationDir);
+            VersionableConfigurationDirectory<? extends PrivateParametersProvider, ? extends SharedParametersProvider> dir;
+            if (downloader.getConfigurationVersion() > 2) {
+                dir = new ConfigurationDirectoryV3(globalConfigurationDir);
+            } else {
+                dir = new ConfigurationDirectoryV2(globalConfigurationDir);
+            }
             return dir.getPrivate(configurationAnchor.getInstanceIdentifier());
         } catch (Exception e) {
             log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);
@@ -127,12 +136,11 @@ class ConfigurationClient {
         }
     }
 
-    protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
+    protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
                                                      FederationConfigurationSourceFilter sourceFilter) {
         Set<String> directoriesToKeep;
-        if (privateParameters != null) {
-            directoriesToKeep = privateParameters.getConfigurationSource()
-                    .stream()
+        if (configurationSources != null) {
+            directoriesToKeep = configurationSources.stream()
                     .map(ConfigurationSource::getInstanceIdentifier)
                     .filter(sourceFilter::shouldDownloadConfigurationFor)
                     .map(ConfigurationUtils::escapeInstanceIdentifier)
@@ -149,13 +157,12 @@ class ConfigurationClient {
         ConfigurationDirectory.deleteExtraDirs(globalConfigurationDir, directoriesToKeep);
     }
 
-    private void downloadConfigurationFromAdditionalSources(PrivateParametersV2 privateParameters,
+    private void downloadConfigurationFromAdditionalSources(List<ConfigurationSource> configurationSources,
                                                 FederationConfigurationSourceFilter sourceFilter) throws Exception {
-        if (privateParameters != null) {
-            for (ConfigurationSource source : privateParameters.getConfigurationSource()) {
+        if (configurationSources != null) {
+            for (ConfigurationSource source : configurationSources) {
                 if (sourceFilter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {
-                    DownloadResult result = downloader.download(
-                            source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
+                    DownloadResult result = downloader.download(source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
                     handleResult(result, false);
                 }
             }

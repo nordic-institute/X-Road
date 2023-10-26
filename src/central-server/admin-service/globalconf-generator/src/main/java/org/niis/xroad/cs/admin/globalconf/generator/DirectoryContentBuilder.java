@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.globalconf.generator.MultipartMessage.header;
 import static org.niis.xroad.cs.admin.globalconf.generator.MultipartMessage.partBuilder;
 
@@ -51,6 +52,7 @@ public class DirectoryContentBuilder {
     private final String pathPrefix;
     private final String instanceIdentifier;
     private final HashCalculator hashCalculator;
+    private final int configurationVersion;
     private final List<ConfigurationPart> configurationParts = new ArrayList<>();
 
     @SneakyThrows
@@ -58,10 +60,12 @@ public class DirectoryContentBuilder {
             @NonNull String hashAlgorithmId,
             @NonNull Instant expireDate,
             @NonNull String pathPrefix,
-            @NonNull String instanceIdentifier) {
+            @NonNull String instanceIdentifier,
+            int configurationVersion) {
         this.expireDate = expireDate;
         this.pathPrefix = pathPrefix;
         this.instanceIdentifier = instanceIdentifier;
+        this.configurationVersion = configurationVersion;
 
         hashCalculator = new HashCalculator(CryptoUtils.getDigestAlgorithmURI(hashAlgorithmId));
     }
@@ -81,7 +85,7 @@ public class DirectoryContentBuilder {
         var builder = MultipartMessage.builder();
         builder.part(partBuilder()
                 .header(header("Expire-date", EXPIRE_DATE_FORMATTER.format(expireDate)))
-                .header(header("Version", "2"))
+                .header(header("Version", valueOf(configurationVersion)))
                 .build());
         configurationParts.forEach(confPart -> builder.part(buildPart(confPart)));
         var multipartMessage = builder.build();

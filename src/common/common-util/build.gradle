@@ -90,21 +90,37 @@ task xjc() {
             binding: 'src/main/resources/identifiers-bindings.xml'
         )
 
-        // Generate classes for federateable global external conf
+        // Generate classes for federateable global external conf v2
         ant.xjc(
             destdir: project.ext.schemaTargetDir,
             package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v2',
-            schema: 'src/main/resources/globalconf/shared-parameters.xsd',
+            schema: 'src/main/resources/globalconf/v2/shared-parameters.xsd',
             binding: 'src/main/resources/identifiers-bindings.xml'
         )
 
-        // Generate classes for federateable global internal conf
+        // Generate classes for federateable global internal conf v2
         ant.xjc(
             destdir: project.ext.schemaTargetDir,
             package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v2',
-            schema: 'src/main/resources/globalconf/private-parameters.xsd',
+            schema: 'src/main/resources/globalconf/v2/private-parameters.xsd',
             binding: 'src/main/resources/identifiers-bindings.xml'
         )
+
+      // Generate classes for federateable global external conf v3
+      ant.xjc(
+        destdir: project.ext.schemaTargetDir,
+        package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v3',
+        schema: 'src/main/resources/globalconf/v3/shared-parameters.xsd',
+        binding: 'src/main/resources/identifiers-bindings.xml'
+      )
+
+      // Generate classes for federateable global internal conf v3
+      ant.xjc(
+        destdir: project.ext.schemaTargetDir,
+        package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v3',
+        schema: 'src/main/resources/globalconf/v2/private-parameters.xsd',
+        binding: 'src/main/resources/identifiers-bindings.xml'
+      )
 
         // Generate classes for request, using identifier classes
         ant.xjc(

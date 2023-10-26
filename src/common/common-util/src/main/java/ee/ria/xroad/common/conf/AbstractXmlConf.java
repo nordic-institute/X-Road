@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.common.util.SchemaValidator;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.bind.JAXBContext;
@@ -70,6 +71,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     protected JAXBElement<T> root;
 
+    @Getter
     protected T confType;
 
     private FileContentChangeChecker confFileChecker;

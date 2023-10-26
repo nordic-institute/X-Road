@@ -138,7 +138,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
 
         final var sources = configurationSourceRepository.findAllBySourceType(configurationType.name().toLowerCase());
         final var now = TimeUtils.zonedDateTimeNow(ZoneId.of("UTC"));
-        final var anchorXml = buildAnchorXml(configurationType, instanceIdentifier, now, sources);
+        final var anchorXml = buildAnchorXml(instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
         final var anchorXmlHash = CryptoUtils.calculateAnchorHashDelimited(anchorXmlBytes);
         if (addAuditLog) {
@@ -156,8 +156,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         return new ConfigurationAnchor(anchorXmlHash, now.toInstant());
     }
 
-    private String buildAnchorXml(final ConfigurationSourceType configurationType,
-                                  final String instanceIdentifier,
+    private String buildAnchorXml(final String instanceIdentifier,
                                   final ZonedDateTime now,
                                   final List<ConfigurationSourceEntity> sources) {
         try {
@@ -171,10 +170,10 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
             configurationAnchor.setInstanceIdentifier(instanceIdentifier);
 
             sources.stream()
-                    .map(src -> toXmlSource(src, configurationType, factory, false))
+                    .map(src -> toXmlSource(src, factory, false))
                     .forEach(configurationAnchor.getSource()::add);
             sources.stream()
-                    .map(src -> toXmlSource(src, configurationType, factory, true))
+                    .map(src -> toXmlSource(src, factory, true))
                     .forEach(configurationAnchor.getSource()::add);
 
             JAXBElement<ConfigurationAnchorType> root = factory.createConfigurationAnchor(configurationAnchor);
@@ -187,9 +186,9 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         }
     }
 
-    private String buildGlobalDownloadUrl(final ConfigurationSourceType sourceType, final String haNodeName, final boolean isHttps) {
+    private String buildGlobalDownloadUrl(final String sourceType, final String haNodeName, final boolean isHttps) {
         final var csAddress = systemParameterService.getCentralServerAddress(haNodeName);
-        final String sourceDirectory = sourceType.equals(INTERNAL)
+        final String sourceDirectory = INTERNAL.name().equalsIgnoreCase(sourceType)
                 ? SystemProperties.getCenterInternalDirectory()
                 : SystemProperties.getCenterExternalDirectory();
         final String protocol = isHttps ? "https" : "http";
@@ -199,12 +198,11 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
 
     private ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType toXmlSource(
             final ConfigurationSourceEntity source,
-            final ConfigurationSourceType configurationType,
             final ObjectFactory factory,
             final boolean isHttps) {
         final var xmlSource = factory.createConfigurationSourceType();
 
-        xmlSource.setDownloadURL(buildGlobalDownloadUrl(configurationType, source.getHaNodeName(), isHttps));
+        xmlSource.setDownloadURL(buildGlobalDownloadUrl(source.getSourceType(), source.getHaNodeName(), isHttps));
         source.getConfigurationSigningKeys().stream()
                 .map(ConfigurationSigningKeyEntity::getCert)
                 .forEach(xmlSource.getVerificationCert()::add);

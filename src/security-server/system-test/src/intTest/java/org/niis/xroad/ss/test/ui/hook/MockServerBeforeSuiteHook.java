@@ -30,6 +30,7 @@ import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mockserver.mock.Expectation;
+import org.mockserver.model.Parameter;
 import org.niis.xroad.ss.test.ui.container.MockServerService;
 import org.springframework.stereotype.Component;
 
@@ -51,27 +52,33 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
 
     @Override
     public void beforeSuite() {
-        mockFileResponse(GLOBALCONF_DIR, "internalconf", "/");
-        mockFileResponse(GLOBALCONF_DIR, "externalconf", "/");
-        mockFileResponse(GLOBALCONF_DIR, CONF_PART_DIR + "/private-params.xml", "/v2/");
-        mockFileResponse(GLOBALCONF_DIR, CONF_PART_DIR + "/shared-params.xml", "/v2/");
-        mockFileResponse(GLOBALCONF_DIR, CONF_PART_DIR + "/fetchinterval-params.xml", "/v2/");
+        mockFileResponse(GLOBALCONF_DIR, "/", "internalconf", new Parameter("version", "2"));
+        mockFileResponse(GLOBALCONF_DIR, "/", "externalconf", new Parameter("version", "2"));
+        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/private-params.xml");
+        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/shared-params.xml");
+        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/fetchinterval-params.xml");
 
-        mockFileResponse(TESTSERVICES_DIR, "testopenapi1.yaml", PREFIX_TESTSERVICES);
-        mockFileResponse(TESTSERVICES_DIR, "testopenapi11.yaml", PREFIX_TESTSERVICES);
-        mockFileResponse(TESTSERVICES_DIR, "testopenapi2.json", PREFIX_TESTSERVICES);
+        mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testopenapi1.yaml");
+        mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testopenapi11.yaml");
+        mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testopenapi2.json");
 
-        mockFileResponse(TESTSERVICES_DIR, "testservice1.wsdl", PREFIX_TESTSERVICES);
-        mockFileResponse(TESTSERVICES_DIR, "testservice2.wsdl", PREFIX_TESTSERVICES);
-        mockFileResponse(TESTSERVICES_DIR, "testservice3.wsdl", PREFIX_TESTSERVICES);
+        mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice1.wsdl");
+        mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice2.wsdl");
+        mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice3.wsdl");
     }
 
-    private void mockFileResponse(String fileDir, String fileName, String urlPrefix) {
+    private void mockFileResponse(String fileDir, String pathPrefix, String path) {
+        mockFileResponse(fileDir, pathPrefix, path, null);
+    }
+
+    private void mockFileResponse(String fileDir, String pathPrefix, String path, Parameter queryParam) {
         var expectations = mockServerService.client()
                 .when(request()
-                        .withPath(urlPrefix + fileName))
+                        .withPath(pathPrefix + path)
+                        .withQueryStringParameter(queryParam)
+                )
                 .respond(response()
-                        .withBody(classpathFileResolver.getFileAsString(fileDir + fileName))
+                        .withBody(classpathFileResolver.getFileAsString(fileDir + path))
                 );
 
         for (Expectation expectation : expectations) {

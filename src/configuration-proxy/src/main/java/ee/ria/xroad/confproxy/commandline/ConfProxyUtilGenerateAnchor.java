@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
@@ -68,9 +68,9 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
         ensureProxyExists(commandLine);
         final ConfProxyProperties conf = loadConf(commandLine);
 
-        ConfigurationAnchorV2 sourceAnchor = null;
+        ConfigurationAnchor sourceAnchor = null;
         try {
-            sourceAnchor = new ConfigurationAnchorV2(conf.getProxyAnchorPath());
+            sourceAnchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
         } catch (Exception ex) {
             fail("Could not load source anchor: ", ex);
         }

@@ -38,6 +38,8 @@ public interface ConfigurationSigningKeyRepository extends GenericRepository<Con
 
     List<ConfigurationSigningKeyEntity> findByKeyIdentifierIn(Collection<String> keyIds);
 
+    List<ConfigurationSigningKeyEntity> findForSourceIn(List<String> sourceTypes);
+
     void deleteByKeyIdentifier(String identifier);
 
     Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);

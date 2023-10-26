@@ -30,7 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -182,8 +182,8 @@ public class GlobalConfService {
      * {@link TspType#getId()} is null for all returned items
      */
     public List<TspType> getApprovedTspsForThisInstance() {
-        List<ApprovedTSAType> approvedTspTypes =
-                globalConfFacade.getApprovedTspTypes(globalConfFacade.getInstanceIdentifier());
+        List<SharedParameters.ApprovedTSA> approvedTspTypes =
+                globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
         List<TspType> tsps = approvedTspTypes.stream()
                 .map(this::createTspType)
                 .collect(Collectors.toList());
@@ -193,10 +193,10 @@ public class GlobalConfService {
     /**
      * init TspType DTO with name and url. id will be null
      */
-    private TspType createTspType(ApprovedTSAType approvedTSAType) {
+    private TspType createTspType(SharedParameters.ApprovedTSA approvedTSA) {
         TspType tsp = new TspType();
-        tsp.setUrl(approvedTSAType.getUrl());
-        tsp.setName(approvedTSAType.getName());
+        tsp.setUrl(approvedTSA.getUrl());
+        tsp.setName(approvedTSA.getName());
         return tsp;
     }
 

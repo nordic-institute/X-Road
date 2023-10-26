@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 
 import org.mapstruct.Mapper;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
@@ -47,7 +47,7 @@ import static org.mapstruct.ReportingPolicy.ERROR;
 @Mapper(componentModel = SPRING, unmappedTargetPolicy = ERROR)
 public interface TrustedAnchorMapper extends GenericUniDirectionalMapper<TrustedAnchorEntity, TrustedAnchor> {
 
-    default TrustedAnchor map(ConfigurationAnchorV2 anchorV2, byte[] anchorBytes) {
+    default TrustedAnchor map(ConfigurationAnchor anchorV2, byte[] anchorBytes) {
         final TrustedAnchor trustedAnchor = new TrustedAnchor();
         trustedAnchor.setInstanceIdentifier(anchorV2.getInstanceIdentifier());
         trustedAnchor.setGeneratedAt(anchorV2.getGeneratedAt().toInstant());

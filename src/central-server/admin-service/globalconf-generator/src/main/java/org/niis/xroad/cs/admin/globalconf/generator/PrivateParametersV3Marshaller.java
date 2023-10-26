@@ -26,20 +26,36 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidatorV3;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
+
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
-@Slf4j
-public class PrivateParametersGenerator {
-    private final PrivateParametersMarshaller marshaller;
-    private final PrivateParametersLoader loader;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 
-    String generate() {
-        log.debug("Generating private parameters");
-        var parameters = loader.load();
-        return marshaller.marshall(parameters);
+import java.io.StringWriter;
+
+@Component
+public class PrivateParametersV3Marshaller {
+
+    private final JAXBContext jaxbContext = createJaxbContext();
+
+    @SneakyThrows
+    String marshall(PrivateParameters parameters) {
+        var writer = new StringWriter();
+        var marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setSchema(PrivateParametersSchemaValidatorV3.getSchema());
+        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersV3Converter.INSTANCE.convert(parameters)),
+                writer);
+        return writer.toString();
     }
+
+    @SneakyThrows
+    private JAXBContext createJaxbContext() {
+        return JAXBContext.newInstance(ObjectFactory.class);
+    }
+
 }

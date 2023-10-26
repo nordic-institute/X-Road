@@ -52,15 +52,12 @@ import java.util.Map;
 import static java.util.stream.Collectors.toList;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
-abstract class SharedParametersConverter {
-    public static final SharedParametersConverter INSTANCE = Mappers.getMapper(SharedParametersConverter.class);
-    private static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
+abstract class SharedParametersV2Converter {
+    public static final SharedParametersV2Converter INSTANCE = Mappers.getMapper(SharedParametersV2Converter.class);
+    protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     SharedParametersTypeV2 convert(SharedParameters sharedParameters) {
-        if (sharedParameters == null) {
-            return null;
-        }
-        return convert(sharedParameters, createClientIdMap(sharedParameters));
+        return sharedParameters != null ? convert(sharedParameters, createClientIdMap(sharedParameters)) : null;
     }
 
     @Mapping(source = "approvedCAs", target = "approvedCA")

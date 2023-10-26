@@ -24,31 +24,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.identifier.ClientId;
 
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
+import lombok.Data;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
-import org.mapstruct.factory.Mappers;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@Mapper(uses = {ObjectFactory.class, MappingUtils.class},
-        unmappedTargetPolicy = ReportingPolicy.ERROR)
-interface PrivateParametersConverter {
-    PrivateParametersConverter INSTANCE = Mappers.getMapper(PrivateParametersConverter.class);
+@Data
+public class PrivateParameters {
+    private String instanceIdentifier;
+    private BigInteger timeStampingIntervalSeconds;
+    private ManagementService managementService;
+    private List<ConfigurationSource> configurationAnchors;
 
-    @Mapping(source = "configurationAnchors", target = "configurationAnchor")
-    PrivateParametersType convert(PrivateParameters parameters);
+    @Data
+    public static class ManagementService {
+        private String authCertRegServiceAddress;
+        private byte[] authCertRegServiceCert;
+        private ClientId managementRequestServiceProviderId;
+    }
 
-    @Mapping(source = "sources", target = "source")
-    ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
+    @Data
+    public static class ConfigurationAnchor implements ConfigurationSource {
+        private Instant generatedAt;
+        private String instanceIdentifier;
+        private List<Source> sources;
 
-    @Mapping(source = "verificationCerts", target = "verificationCert")
-    ConfigurationSourceType convertSource(PrivateParameters.ConfigurationSource configurationSource);
+        @Override
+        public List<ConfigurationLocation> getLocations() {
+            return sources.stream()
+                    .map(l -> new ConfigurationLocation(this, l.getDownloadURL(), l.getVerificationCerts()))
+                    .collect(Collectors.toList());
+        }
+
+        @Override
+        public boolean hasChanged() {
+            return false;
+        }
+    }
+
+    @Data
+    public static class Source {
+        private String downloadURL;
+        private List<byte[]> verificationCerts;
+    }
 
 }

@@ -47,7 +47,8 @@ class DirectoryContentBuilderTest {
                 CryptoUtils.SHA1_ID,
                 Instant.parse("2022-12-08T08:05:01.123Z"),
                 "/V2/some/path",
-                "CS-INSTANCE");
+                "CS-INSTANCE",
+                 2);
         var dirContent = directoryContentBuilder
                 .contentPart(ConfigurationPart.builder()
                         .filename("config-file.txt")

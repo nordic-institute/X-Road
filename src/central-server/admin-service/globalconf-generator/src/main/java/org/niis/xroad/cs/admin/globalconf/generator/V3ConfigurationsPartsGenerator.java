@@ -26,34 +26,41 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV2;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 
-import lombok.SneakyThrows;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+import java.util.List;
 
-import java.io.StringWriter;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
-class SharedParametersMarshaller {
-    private final JAXBContext jaxbContext = createJaxbContext();
+@RequiredArgsConstructor
+public class V3ConfigurationsPartsGenerator implements ConfigurationPartsGenerator {
 
-    @SneakyThrows
-    String marshall(SharedParameters parameters) {
-        var writer = new StringWriter();
-        var marshaller = jaxbContext.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setSchema(SharedParametersSchemaValidatorV2.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(SharedParametersConverter.INSTANCE.convert(parameters)), writer);
-        return writer.toString();
+    private static final int CONFIGURATION_VERSION = 3;
+
+    private final PrivateParametersV3Generator privateParametersV3Generator;
+    private final SharedParametersV3Generator sharedParametersV3Generator;
+
+    public int getConfigurationVersion() {
+        return CONFIGURATION_VERSION;
     }
 
-    @SneakyThrows
-    private JAXBContext createJaxbContext() {
-        return JAXBContext.newInstance(ObjectFactory.class);
+    public List<ConfigurationPart> generateConfigurationParts() {
+        return List.of(
+                ConfigurationPart.builder()
+                        .contentIdentifier(ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS)
+                        .filename(ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS)
+                        .data(privateParametersV3Generator.generate().getBytes(UTF_8))
+                        .build(),
+                ConfigurationPart.builder()
+                        .contentIdentifier(CONTENT_ID_SHARED_PARAMETERS)
+                        .filename(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS)
+                        .data(sharedParametersV3Generator.generate().getBytes(UTF_8))
+                        .build());
     }
 
 }

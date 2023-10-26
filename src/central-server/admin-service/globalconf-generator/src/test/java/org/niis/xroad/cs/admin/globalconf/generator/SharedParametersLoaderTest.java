@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.api.domain.AuthCert;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
@@ -48,6 +49,7 @@ import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
@@ -56,6 +58,7 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
@@ -66,29 +69,31 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SharedParametersLoaderTest {
-    public static final String CA_NAME = "ca name";
-    public static final byte[] CA_CERT = "ca cert".getBytes(UTF_8);
-    public static final String CA_PROFILE_INFO = "profile-info";
-    public static final String CA_OCSP_URL = "ca ocsp url";
-    public static final byte[] CA_OCSP_CERT = "ca ocsp cert".getBytes(UTF_8);
-    public static final byte[] INTERMEDIATE_CA_CERT = "intermediate ca cert".getBytes(UTF_8);
-    public static final String INTERMEDIATE_CA_OCSP_URL = "intermediate ca ocsp url";
-    public static final byte[] INTERMEDIATE_CA_OCSP_CERT = "intermediate ca ocsp cert".getBytes(UTF_8);
-    public static final String TSA_NAME = "TSA name";
-    public static final String TSA_URL = "TSA url";
-    public static final byte[] TSA_CERT = "TSA cert".getBytes(UTF_8);
-    public static final String XROAD_INSTANCE = "XRD";
-    public static final String SECURITY_SERVER_ADDRESS = "security-server-address";
-    public static final String SECURITY_SERVER_CODE = "SS1";
-    public static final int SECURITY_SERVER_ID = 1;
-    public static final byte[] SECURITY_SERVER_AUTH_CERT = "auth cert".getBytes(UTF_8);
-    public static final String GLOBAL_GROUP_CODE = "GG";
-    public static final String GLOBAL_GROUP_DESCRIPTION = "GG description";
-    public static final int GLOBAL_GROUP_ID = 2;
-    public static final String CENTRAL_SERVICE_CODE = "service-code";
-    public static final String MEMBER_CLASS_CODE = "MCLASS";
-    public static final String MEMBER_CLASS_DESCRIPTION = "Member class description";
-    public static final int OCSP_FRESHNESS_SECONDS = 333;
+    private static final String CA_NAME = "ca name";
+    private static final byte[] CA_CERT = "ca cert".getBytes(UTF_8);
+    private static final String CA_PROFILE_INFO = "profile-info";
+    private static final String CA_OCSP_URL = "ca ocsp url";
+    private static final byte[] CA_OCSP_CERT = "ca ocsp cert".getBytes(UTF_8);
+    private static final byte[] INTERMEDIATE_CA_CERT = "intermediate ca cert".getBytes(UTF_8);
+    private static final String INTERMEDIATE_CA_OCSP_URL = "intermediate ca ocsp url";
+    private static final byte[] INTERMEDIATE_CA_OCSP_CERT = "intermediate ca ocsp cert".getBytes(UTF_8);
+    private static final String TSA_NAME = "TSA name";
+    private static final String TSA_URL = "TSA url";
+    private static final byte[] TSA_CERT = "TSA cert".getBytes(UTF_8);
+    private static final String XROAD_INSTANCE = "XRD";
+    private static final String SECURITY_SERVER_ADDRESS = "security-server-address";
+    private static final String SECURITY_SERVER_CODE = "SS1";
+    private static final int SECURITY_SERVER_ID = 1;
+    private static final byte[] SECURITY_SERVER_AUTH_CERT = "auth cert".getBytes(UTF_8);
+    private static final String GLOBAL_GROUP_CODE = "GG";
+    private static final String GLOBAL_GROUP_DESCRIPTION = "GG description";
+    private static final int GLOBAL_GROUP_ID = 2;
+    private static final String MEMBER_CLASS_CODE = "MCLASS";
+    private static final String MEMBER_CLASS_DESCRIPTION = "Member class description";
+    private static final int OCSP_FRESHNESS_SECONDS = 333;
+    private static final String CENTRAL_SERVICE = "cs";
+    private static final byte[] CONFIGURATION_SIGNING_CERT = "conf signing cert".getBytes(UTF_8);
+
     @Mock
     SystemParameterService systemParameterService;
     @Mock
@@ -105,6 +110,8 @@ class SharedParametersLoaderTest {
     GlobalGroupMemberService globalGroupMemberService;
     @Mock
     MemberClassService memberClassService;
+    @Mock
+    ConfigurationService configurationService;
 
     @InjectMocks
     SharedParametersLoader sharedParametersLoader;
@@ -112,6 +119,8 @@ class SharedParametersLoaderTest {
     @Test
     void loadSharedParameters() {
         when(systemParameterService.getInstanceIdentifier()).thenReturn(XROAD_INSTANCE);
+        when(configurationService.getNodeAddressesWithConfigurationSigningKeys())
+                .thenReturn(getNodeAddressesWithConfigurationSigningKeys());
         when(certificationServicesService.findAll()).thenReturn(List.of(getCertificationService()));
 
         when(timestampingServicesService.getTimestampingServices()).thenReturn(Set.of(getApprovedTsa()));
@@ -132,6 +141,7 @@ class SharedParametersLoaderTest {
 
         assertThat(parameters).isNotNull();
         assertThat(parameters.getInstanceIdentifier()).isEqualTo(XROAD_INSTANCE);
+        assertNodeAddressesWithConfigurationSigningKeys(parameters);
         assertApprovedCa(parameters);
         assertApproveTsa(parameters);
         assertSecurityServers(parameters);
@@ -199,6 +209,17 @@ class SharedParametersLoaderTest {
         });
     }
 
+    private void assertNodeAddressesWithConfigurationSigningKeys(SharedParameters parameters) {
+        assertThat(parameters.getSources()).singleElement().satisfies(src -> {
+            assertThat(src.getAddress()).isEqualTo(CENTRAL_SERVICE);
+            assertThat(src.getVerificationCerts()).hasSize(1);
+            assertThat(src.getVerificationCerts().get(0)).isEqualTo(CONFIGURATION_SIGNING_CERT);
+        });
+    }
+
+    private Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys() {
+        return Map.of(CENTRAL_SERVICE, List.of(new ConfigurationSigningKey().setCert(CONFIGURATION_SIGNING_CERT)));
+    }
 
     private CertificationService getCertificationService() {
         var certificationService = new CertificationService();

@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 @Slf4j
-class SharedParametersConverterTest {
+class SharedParametersV2ConverterTest {
     private static final Map<String, String> FIELD_NAME_MAP = Map.ofEntries(
             entry("securityServer", "securityServers"),
             entry("approvedCA", "approvedCAs"),
@@ -70,7 +70,7 @@ class SharedParametersConverterTest {
     @Test
     void shouldConvertAllFields() {
         var sharedParameters = getSharedParameters();
-        var xmlType = SharedParametersConverter.INSTANCE.convert(sharedParameters);
+        var xmlType = SharedParametersV2Converter.INSTANCE.convert(sharedParameters);
 
         var conf = RecursiveComparisonConfiguration.builder()
                 .withIntrospectionStrategy(compareRenamedFields())
@@ -100,7 +100,7 @@ class SharedParametersConverterTest {
 
     @Test
     void shouldBeAbleToMarshall() throws JAXBException {
-        var xmlType = SharedParametersConverter.INSTANCE.convert(getSharedParameters());
+        var xmlType = SharedParametersV2Converter.INSTANCE.convert(getSharedParameters());
 
         JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
         var writer = new StringWriter();
@@ -111,6 +111,11 @@ class SharedParametersConverterTest {
         assertThatNoException().isThrownBy(() -> marshaller.marshal(conf, writer));
 
         log.info(writer.toString());
+    }
+
+    @Test
+    void shouldReturnNullWhenInputIsNull() {
+        assertThat(SharedParametersV2Converter.INSTANCE.convert((SharedParameters) null)).isNull();
     }
 
     private static void assertIdReferences(SharedParametersTypeV2 xmlType) {

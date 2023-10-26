@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,10 +25,10 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ManagementServiceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ManagementServiceType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
@@ -42,13 +41,15 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class PrivateParametersConverterTest {
+class PrivateParametersV3ConverterTest {
+
     private static final String INSTANCE = "INSTANCE";
     private static final String DOWNLOAD_URL = "http://example.com";
     private static final byte[] VERIFICATION_CERT = "VERIFICATION_CERT".getBytes(UTF_8);
     private static final byte[] AUTH_CERT_REG_SERVICE_CERT = "authCertRegServiceCert".getBytes(UTF_8);
     private static final String OTHER_INSTANCE = "OTHER_INSTANCE";
-    private static final ClientId SERVICE_PROVIDER_ID = ClientId.Conf.create(INSTANCE, "MEMBER-CLASS", "SERVICE-PROVIDER");
+    private static final ClientId
+            SERVICE_PROVIDER_ID = ClientId.Conf.create(INSTANCE, "MEMBER-CLASS", "SERVICE-PROVIDER");
     private static final String AUTH_CERT_REG_SERVICE_ADDRESS = "http://getAuthCertReg.example.com";
     private static final Integer TIMESTAMPING_INTERVAL = 123;
 
@@ -56,7 +57,7 @@ class PrivateParametersConverterTest {
     void shouldMapAllProperties() {
         PrivateParameters privateParameters = getPrivateParameters();
 
-        var xmlType = PrivateParametersConverter.INSTANCE.convert(privateParameters);
+        var xmlType = PrivateParametersV3Converter.INSTANCE.convert(privateParameters);
 
         assertPrivateParameters(xmlType);
     }
@@ -77,9 +78,9 @@ class PrivateParametersConverterTest {
                 () -> assertThat(privateParameters).isNotNull(),
                 () -> assertThat(privateParameters.getInstanceIdentifier()).isEqualTo(INSTANCE),
                 () -> assertThat(privateParameters.getConfigurationAnchor())
-                        .satisfiesExactly(PrivateParametersConverterTest::assertConfigurationAnchor),
+                        .satisfiesExactly(PrivateParametersV3ConverterTest::assertConfigurationAnchor),
                 () -> assertThat(privateParameters.getManagementService()).satisfies(
-                        PrivateParametersConverterTest::assertManagementService),
+                        PrivateParametersV3ConverterTest::assertManagementService),
                 () -> assertThat(privateParameters.getTimeStampingIntervalSeconds()).isEqualTo(BigInteger.valueOf(TIMESTAMPING_INTERVAL)),
                 () -> assertThat(privateParameters).hasNoNullFieldsOrProperties()
         );
@@ -99,7 +100,7 @@ class PrivateParametersConverterTest {
                 () -> assertThat(anchor.getInstanceIdentifier()).isEqualTo(OTHER_INSTANCE),
                 () -> assertThat(anchor.getGeneratedAt().toGregorianCalendar().toInstant()).isEqualTo(Instant.EPOCH),
                 () -> assertThat(anchor.getSource())
-                        .satisfiesExactly(PrivateParametersConverterTest::assertConfigurationSource),
+                        .satisfiesExactly(PrivateParametersV3ConverterTest::assertConfigurationSource),
                 () -> assertThat(anchor).hasNoNullFieldsOrProperties()
         );
     }

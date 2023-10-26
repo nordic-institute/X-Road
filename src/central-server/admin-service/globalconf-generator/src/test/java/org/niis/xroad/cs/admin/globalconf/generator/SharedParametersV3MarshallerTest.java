@@ -26,35 +26,44 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import org.junit.jupiter.api.Test;
 
-import ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidatorV2;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
+import javax.xml.bind.MarshalException;
 
-import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.io.StringWriter;
+class SharedParametersV3MarshallerTest {
 
-@Component
-class PrivateParametersMarshaller {
-    private final JAXBContext jaxbContext = createJaxbContext();
+    private final SharedParametersV3Marshaller marshaller = new SharedParametersV3Marshaller();
 
-    @SneakyThrows
-    String marshall(PrivateParameters parameters) {
-        var writer = new StringWriter();
-        var marshaller = jaxbContext.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setSchema(PrivateParametersSchemaValidatorV2.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersConverter.INSTANCE.convert(parameters)), writer);
-        return writer.toString();
+    @Test
+    void marshall() {
+        SharedParameters sharedParams = new SharedParameters();
+        sharedParams.setInstanceIdentifier("CS");
+
+        var configurationSource = new SharedParameters.ConfigurationSource();
+        configurationSource.setAddress("cs");
+        configurationSource.setVerificationCerts(List.of("conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
+        sharedParams.setGlobalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParams.setSources(List.of(configurationSource));
+
+        final String result = marshaller.marshall(sharedParams);
+
+        assertThat(result).isNotBlank();
     }
 
-    @SneakyThrows
-    private JAXBContext createJaxbContext() {
-        return JAXBContext.newInstance(ObjectFactory.class);
+    @Test
+    void marshallShouldFailWhenInvalid() {
+        SharedParameters sharedParams = new SharedParameters();
+        sharedParams.setInstanceIdentifier("CS");
+        sharedParams.setSources(List.of(new SharedParameters.ConfigurationSource())); // missing address or cert
+        sharedParams.setGlobalSettings(new SharedParameters.GlobalSettings(null, 60));
+        assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParams));
     }
+
 
 }

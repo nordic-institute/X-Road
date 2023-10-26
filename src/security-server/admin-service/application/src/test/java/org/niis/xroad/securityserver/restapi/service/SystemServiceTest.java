@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -245,7 +245,7 @@ public class SystemServiceTest {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         when(anchorRepository.readAnchorFile()).thenReturn(anchorBytes);
         when(anchorRepository.loadAnchorFromFile())
-                .thenReturn(new ConfigurationAnchorV2("src/test/resources/internal-configuration-anchor.xml"));
+                .thenReturn(new ConfigurationAnchor("src/test/resources/internal-configuration-anchor.xml"));
         systemService.uploadInitialAnchor(anchorBytes);
     }
 }

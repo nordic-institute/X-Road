@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.AuthCert;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
@@ -42,6 +43,7 @@ import org.niis.xroad.cs.admin.api.dto.CertificationService;
 import org.niis.xroad.cs.admin.api.dto.OcspResponder;
 import org.niis.xroad.cs.admin.api.service.CertificationServicesService;
 import org.niis.xroad.cs.admin.api.service.ClientService;
+import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupService;
 import org.niis.xroad.cs.admin.api.service.MemberClassService;
@@ -69,10 +71,12 @@ class SharedParametersLoader {
     private final GlobalGroupService globalGroupService;
     private final GlobalGroupMemberService globalGroupMemberService;
     private final MemberClassService memberClassService;
+    private final ConfigurationService configurationService;
 
 
     SharedParameters load() {
         var parameters = new SharedParameters();
+        parameters.setSources(getSources());
         parameters.setInstanceIdentifier(systemParameterService.getInstanceIdentifier());
         parameters.setApprovedCAs(getApprovedCAs());
         parameters.setApprovedTSAs(getApprovedTSAs());
@@ -81,6 +85,25 @@ class SharedParametersLoader {
         parameters.setGlobalGroups(getGlobalGroups());
         parameters.setGlobalSettings(getGlobalSettings());
         return parameters;
+    }
+
+    private List<SharedParameters.ConfigurationSource> getSources() {
+        return configurationService.getNodeAddressesWithConfigurationSigningKeys().entrySet().stream()
+                .map(this::toSource)
+                .collect(toList());
+    }
+
+    private SharedParameters.ConfigurationSource toSource(
+            Map.Entry<String, List<ConfigurationSigningKey>> addressWithConfigurationSigningKeys
+    ) {
+        var source = new SharedParameters.ConfigurationSource();
+        source.setAddress(addressWithConfigurationSigningKeys.getKey());
+        source.setVerificationCerts(
+                addressWithConfigurationSigningKeys.getValue().stream()
+                        .map(ConfigurationSigningKey::getCert)
+                        .collect(toList())
+        );
+        return source;
     }
 
     private List<SharedParameters.ApprovedCA> getApprovedCAs() {

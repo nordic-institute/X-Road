@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
@@ -102,10 +102,10 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
      */
     private void displayInfo(final String instance,
                              final ConfProxyProperties conf) throws Exception {
-        ConfigurationAnchorV2 anchor = null;
+        ConfigurationAnchor anchor = null;
         String anchorError = null;
         try {
-            anchor = new ConfigurationAnchorV2(conf.getProxyAnchorPath());
+            anchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
         } catch (Exception e) {
             anchorError = "'" + ConfProxyProperties.ANCHOR_XML
                     + "' could not be loaded: " + e;

@@ -62,6 +62,7 @@ import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVA
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
@@ -112,10 +113,10 @@ public final class ConfigurationClientMain {
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
             // Run configuration client in one-shot mode downloading the specified global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1]));
+            System.exit(download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2])));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
             // Run configuration client in one-shot mode downloading the current global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1]));
+            System.exit(download(actualArgs[0], actualArgs[1], CURRENT_GLOBAL_CONFIGURATION_VERSION));
         } else if (actualArgs.length == 1) {
             // Run configuration client in validate mode.
             System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
@@ -137,16 +138,16 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
-    private static int download(String configurationAnchorFile, String configurationPath) {
+    private static int download(String configurationAnchorFile, String configurationPath, int version) {
         log.debug("Downloading configuration using anchor {} path = {})",
                 configurationAnchorFile, configurationPath);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 
-        client = new ConfigurationClient(configurationPath) {
+        client = new ConfigurationClient(configurationPath, version) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    PrivateParametersV2 privateParameters,
+                    List<ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -155,13 +156,14 @@ public final class ConfigurationClientMain {
         return execute();
     }
 
-    private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator) {
+    private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator)
+            throws Exception {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
 
         // Create configuration that does not persist files to disk.
         final String configurationPath = SystemProperties.getConfigurationPath();
 
-        ConfigurationDownloader configurationDownloader = new ConfigurationDownloader(configurationPath) {
+        var configurationDownloader = new ConfigurationDownloader(configurationPath, CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void handleContent(byte[] content, ConfigurationFile file) throws Exception {
                 validateContent(file);
@@ -188,10 +190,10 @@ public final class ConfigurationClientMain {
 
         };
 
-        ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
+        ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
         client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
+            protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
@@ -234,7 +236,7 @@ public final class ConfigurationClientMain {
     private static void setup() {
         log.trace("setUp()");
 
-        client = new ConfigurationClient(SystemProperties.getConfigurationPath());
+        client = new ConfigurationClient(SystemProperties.getConfigurationPath(), CURRENT_GLOBAL_CONFIGURATION_VERSION);
 
         adminPort = new AdminPort(SystemProperties.getConfigurationClientAdminPort());
 
