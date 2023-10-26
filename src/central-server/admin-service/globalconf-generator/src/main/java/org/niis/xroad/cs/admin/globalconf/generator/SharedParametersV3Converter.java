@@ -60,10 +60,7 @@ abstract class SharedParametersV3Converter {
     protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     SharedParametersTypeV3 convert(SharedParameters sharedParameters) {
-        if (sharedParameters == null) {
-            return null;
-        }
-        return convert(sharedParameters, createClientIdMap(sharedParameters));
+        return sharedParameters != null ? convert(sharedParameters, createClientIdMap(sharedParameters)) : null;
     }
 
     @Mapping(source = "sources", target = "source")

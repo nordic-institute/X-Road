@@ -57,10 +57,7 @@ abstract class SharedParametersV2Converter {
     protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     SharedParametersTypeV2 convert(SharedParameters sharedParameters) {
-        if (sharedParameters == null) {
-            return null;
-        }
-        return convert(sharedParameters, createClientIdMap(sharedParameters));
+        return sharedParameters != null ? convert(sharedParameters, createClientIdMap(sharedParameters)) : null;
     }
 
     @Mapping(source = "approvedCAs", target = "approvedCA")

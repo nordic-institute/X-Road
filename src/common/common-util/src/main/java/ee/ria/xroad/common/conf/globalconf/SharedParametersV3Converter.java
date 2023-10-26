@@ -129,10 +129,7 @@ public class SharedParametersV3Converter {
     }
 
     private SharedParameters.GlobalSettings getGlobalSettings(GlobalSettingsType globalSettingsType) {
-        if (globalSettingsType != null) {
-            return toGlobalSettings(globalSettingsType);
-        }
-        return null;
+        return globalSettingsType != null ? toGlobalSettings(globalSettingsType) : null;
     }
 
     private SharedParameters.ConfigurationSource toConfigurationSource(ConfigurationSourceType source) {

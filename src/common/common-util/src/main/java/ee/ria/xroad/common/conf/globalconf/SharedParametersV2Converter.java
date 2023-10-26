@@ -118,10 +118,7 @@ public class SharedParametersV2Converter {
     }
 
     private SharedParameters.GlobalSettings getGlobalSettings(GlobalSettingsType globalSettingsType) {
-        if (globalSettingsType != null) {
-            return toGlobalSettings(globalSettingsType);
-        }
-        return null;
+        return globalSettingsType != null ? toGlobalSettings(globalSettingsType) : null;
     }
 
     private SharedParameters.ApprovedCA toApprovedCa(ApprovedCATypeV2 source) {
