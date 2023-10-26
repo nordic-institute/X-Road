@@ -30,6 +30,7 @@
     class="alerts-container px-3"
   >
     <v-alert
+      v-if="showGlobalConfAlert"
       data-test="global-alert-global-configuration"
       :value="showGlobalConfAlert"
       color="red"
@@ -43,7 +44,7 @@
       }}</span>
     </v-alert>
     <v-alert
-      v-if="isAllowedToLoginToken"
+      v-if="isAllowedToLoginToken && showSoftTokenPinEnteredAlert"
       data-test="global-alert-soft-token-pin"
       :value="showSoftTokenPinEnteredAlert"
       color="red"
@@ -64,6 +65,7 @@
       </span>
     </v-alert>
     <v-alert
+      v-if="showRestoreInProgress"
       data-test="global-alert-restore"
       :value="showRestoreInProgress"
       color="red"
@@ -74,11 +76,12 @@
     >
       <span class="alert-text">{{
         $t('globalAlert.backupRestoreInProgress', {
-          startTime: formatDateTime(restoreStartTime),
+          startTime: $filters.formatDateTime(restoreStartTime),
         })
       }}</span>
     </v-alert>
     <v-alert
+      v-if="isSecondaryNode"
       data-test="global-alert-secondary-node"
       :value="isSecondaryNode"
       color="red"
@@ -93,15 +96,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
 import { useSystem } from '@/store/modules/system';
 import { useUser } from '@/store/modules/user';
-import { formatDateTime } from '@/filters';
 import { Permissions, RouteName } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   computed: {
     ...mapState(useAlerts, [
       'showGlobalConfAlert',
@@ -132,7 +134,6 @@ export default Vue.extend({
     },
   },
   methods: {
-    formatDateTime,
     tokenLogin(): void {
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
@@ -141,7 +142,7 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .alerts-container {
   padding: 0;

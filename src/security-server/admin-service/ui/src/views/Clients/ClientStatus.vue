@@ -31,13 +31,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     status: {
       type: String,
-      default: undefined,
+      default: '',
     },
   },
 
@@ -88,7 +88,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .status-wrapper {
   display: flex;

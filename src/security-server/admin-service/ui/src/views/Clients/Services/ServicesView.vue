@@ -34,8 +34,8 @@
         autofocus
         data-test="search-service"
         class="search-input"
+        append-inner-icon="mdi-magnify"
       >
-        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
 
       <div>
@@ -48,7 +48,9 @@
           class="rest-button"
           @click="showAddRestDialog"
         >
-          <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-add />
+          </xrd-icon-base>
           {{ $t('services.addRest') }}
         </xrd-button>
 
@@ -59,7 +61,9 @@
           class="ma-0"
           @click="showAddWsdlDialog"
         >
-          <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-add />
+          </xrd-icon-base>
           {{ $t('services.addWsdl') }}
         </xrd-button>
       </div>
@@ -86,11 +90,10 @@
         <template #action>
           <v-switch
             :key="componentKey"
-            class="switch"
-            :input-value="!serviceDesc.disabled"
+            :model-value="!serviceDesc.disabled"
             :disabled="!canDisable"
             data-test="service-description-enable-disable"
-            @change="switchChanged($event, serviceDesc, index)"
+            @update:model-value="switchChanged($event, serviceDesc, index)"
           ></v-switch>
         </template>
 
@@ -101,9 +104,9 @@
             data-test="service-description-header"
             @click="descriptionClick(serviceDesc)"
           >
-            {{ serviceDesc.type }} ({{ serviceDesc.url }})
+            {{ `${serviceDesc.type} (${serviceDesc.url})` }}
           </div>
-          <div v-else>{{ serviceDesc.type }} ({{ serviceDesc.url }})</div>
+          <div v-else>{{ `${serviceDesc.type} (${serviceDesc.url})` }}</div>
         </template>
 
         <template #content>
@@ -111,7 +114,7 @@
             <div class="refresh-row">
               <div class="refresh-time">
                 {{ $t('services.lastRefreshed') }}
-                {{ serviceDesc.refreshed_at | formatDateTime }}
+                {{ $filters.formatDateTime(serviceDesc.refreshed_at) }}
               </div>
               <xrd-button
                 v-if="showRefreshButton(serviceDesc.type)"
@@ -157,17 +160,17 @@
       </xrd-expandable>
     </template>
 
-    <addWsdlDialog
+    <AddWsdlDialog
       :dialog="addWsdlDialog"
       @save="wsdlSave"
       @cancel="cancelAddWsdl"
     />
-    <addRestDialog
+    <AddRestDialog
       :dialog="addRestDialog"
       @save="restSave"
       @cancel="cancelAddRest"
     />
-    <disableServiceDescDialog
+    <DisableServiceDescDialog
       v-if="disableDescDialog"
       :subject="selectedServiceDesc"
       :subject-index="selectedIndex"
@@ -204,7 +207,7 @@
 
 <script lang="ts">
 // View for services tab
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
@@ -214,17 +217,20 @@ import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
 import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
-import { Service, ServiceDescription, ServiceType } from '@/openapi-types';
+import {
+  CodeWithDetails,
+  Service,
+  ServiceDescription,
+  ServiceType,
+} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
-import { Prop } from 'vue/types/options';
-import { sortServiceDescriptionServices } from '@/util/sorting';
 import { deepClone } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useServices } from '@/store/modules/services';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     AddWsdlDialog,
     AddRestDialog,
@@ -234,7 +240,7 @@ export default Vue.extend({
   },
   props: {
     id: {
-      type: String as Prop<string>,
+      type: String as PropType<string>,
       required: true,
     },
   },
@@ -245,12 +251,11 @@ export default Vue.extend({
       addWsdlDialog: false as boolean,
       addRestDialog: false as boolean,
       disableDescDialog: false as boolean,
-      selectedServiceDesc: undefined as undefined | ServiceDescription,
+      selectedServiceDesc: {} as ServiceDescription,
       selectedIndex: -1 as number,
       componentKey: 0 as number,
       expanded: [] as string[],
-      serviceDescriptions: [] as ServiceDescription[],
-      warningInfo: [] as string[],
+      warningInfo: [] as CodeWithDetails[],
       saveWsdlWarningDialog: false as boolean,
       saveRestWarningDialog: false as boolean,
       refreshWarningDialog: false as boolean,
@@ -270,7 +275,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useServices, ['descExpanded']),
+    ...mapState(useServices, ['descExpanded', 'serviceDescriptions']),
 
     showAddWSDLButton(): boolean {
       return this.hasPermission(Permissions.ADD_WSDL);
@@ -340,7 +345,11 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useServices, ['hideDesc', 'expandDesc']),
+    ...mapActions(useServices, [
+      'hideDesc',
+      'expandDesc',
+      'fetchServiceDescriptions',
+    ]),
 
     showRefreshButton(serviceDescriptionType: string): boolean {
       if (serviceDescriptionType === this.serviceTypeEnum.WSDL) {
@@ -361,7 +370,7 @@ export default Vue.extend({
       service: Service,
     ): void {
       this.$router.push({
-        name: RouteName.Service,
+        name: RouteName.ServiceParameters,
         params: { serviceId: service.id, clientId: this.id },
         query: { descriptionType: serviceDescription.type },
       });
@@ -665,16 +674,7 @@ export default Vue.extend({
 
     fetchData(): void {
       this.loading = true;
-      api
-        .get<ServiceDescription[]>(
-          `/clients/${encodePathParameter(this.id)}/service-descriptions`,
-        )
-        .then((res) => {
-          const serviceDescriptions: ServiceDescription[] = res.data;
-          this.serviceDescriptions = serviceDescriptions.map(
-            sortServiceDescriptionServices,
-          );
-        })
+      this.fetchServiceDescriptions(this.id)
         .catch((error) => {
           this.showError(error);
         })

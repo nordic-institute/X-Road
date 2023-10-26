@@ -26,55 +26,62 @@
 <template>
   <div>
     <!-- Success -->
-    <transition-group :name="transitionName()">
-      <v-snackbar
-        v-for="notification in successNotifications"
-        :key="notification.timeAdded"
-        v-model="notification.show"
-        data-test="success-snackbar"
-        :timeout="snackbarTimeout(notification)"
-        :color="colors.Success10"
-        multi-line
-        class="success-snackbar"
-        :min-width="760"
-        @input="deleteSuccessNotification(notification.timeAdded)"
-      >
-        <div class="row-wrapper-top scrollable identifier-wrap">
-          <v-icon :color="colors.Success100">icon-Checker</v-icon>
-          <div class="row-wrapper">
-            <div v-if="notification.successMessage">
-              {{ $t(notification.successMessage) }}
-            </div>
+    <v-snackbar
+      v-for="notification in successNotifications"
+      :key="notification.timeAdded"
+      v-model="notification.show"
+      data-test="success-snackbar"
+      :timeout="snackbarTimeout(notification)"
+      :color="colors.Success10"
+      :transition="transitionName"
+      multi-line
+      class="success-snackbar"
+      :min-width="760"
+      @update:model-value="closeSuccess(notification.timeAdded)"
+    >
+      <div class="row-wrapper-top scrollable identifier-wrap">
+        <xrd-icon-base :color="colors.Success100">
+          <xrd-icon-checker />
+        </xrd-icon-base>
+        <div class="row-wrapper">
+          <div v-if="notification.successMessage">
+            {{ $t(notification.successMessage) }}
           </div>
-          <v-btn
-            icon
-            :color="colors.Black100"
-            data-test="close-snackbar"
-            @click="deleteSuccessNotification(notification.timeAdded)"
-          >
-            <v-icon dark>icon-Close</v-icon>
-          </v-btn>
         </div>
-      </v-snackbar>
-    </transition-group>
+      </div>
+      <template #actions>
+        <v-btn
+          icon
+          variant="text"
+          rounded
+          :color="colors.Black100"
+          data-test="close-snackbar"
+          @click="closeSuccess(notification.timeAdded)"
+        >
+          <xrd-icon-base>
+            <xrd-icon-close />
+          </xrd-icon-base>
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Colors } from '@/global';
 import { Notification } from '@/ui-types';
 
-import { mapActions, mapState } from 'pinia';
+import { mapActions, mapWritableState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
 declare global {
   interface Window {
-    e2eTestingMode: boolean;
+    e2eTestingMode?: boolean;
   }
 }
 
-export default Vue.extend({
+export default defineComponent({
   // Component for snackbar notifications
   data() {
     return {
@@ -82,23 +89,26 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useNotifications, ['successNotifications']),
+    ...mapWritableState(useNotifications, ['successNotifications']),
+    transitionName(): string {
+      // Check global window value to see if e2e testing mode should be enabled
+      if (window.e2eTestingMode === true) {
+        return 'no-transition'; // Transition class name that doesn't exist
+      }
+      return 'fade-transition'; // Proper transition class name
+    },
   },
   methods: {
     ...mapActions(useNotifications, ['deleteSuccessNotification']),
-    snackbarTimeout(notification: Notification) {
+    closeSuccess(timeAdded: number): void {
+      this.deleteSuccessNotification(timeAdded);
+    },
+    snackbarTimeout(notification: Notification): number {
       // Check global window value to see if e2e testing mode should be enabled
       if (window.e2eTestingMode === true) {
         return -1;
       }
       return notification.timeout;
-    },
-    transitionName() {
-      // Check global window value to see if e2e testing mode should be enabled
-      if (window.e2eTestingMode === true) {
-        return 'no-transition'; // Transition class name that doesn't exist
-      }
-      return 'fade'; // Proper transition class name
     },
   },
 });
@@ -120,6 +130,7 @@ export default Vue.extend({
   align-items: center;
   padding-left: 14px;
 }
+
 .row-wrapper {
   display: flex;
   flex-direction: column;
@@ -139,14 +150,5 @@ export default Vue.extend({
 .scrollable {
   overflow-y: auto;
   max-height: 300px;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 1s;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

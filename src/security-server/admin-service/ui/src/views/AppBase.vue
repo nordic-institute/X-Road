@@ -64,14 +64,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       sessionPollInterval: 0,
@@ -86,7 +86,7 @@ export default Vue.extend({
   },
   created() {
     // Set interval to poll backend for session
-    this.sessionPollInterval = setInterval(
+    this.sessionPollInterval = window.setInterval(
       () => this.pollSessionStatus(),
       30000,
     );
@@ -99,7 +99,7 @@ export default Vue.extend({
       return api
         .get('/notifications/session-status')
         .then(() => {
-          // Check alert status after a successfull session-status call
+          // Check alert status after a successful session-status call
           this.checkAlertStatus();
         })
         .catch((error) => {

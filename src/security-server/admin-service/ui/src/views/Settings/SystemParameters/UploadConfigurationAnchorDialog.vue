@@ -38,7 +38,9 @@
         class="ml-5"
         @click="upload"
       >
-        <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-upload />
+        </xrd-icon-base>
         {{
           $t('systemParameters.configurationAnchor.action.upload.button')
         }}</xrd-button
@@ -47,13 +49,13 @@
 
     <v-dialog
       v-if="showPreview"
-      :value="showPreview"
+      :model-value="showPreview"
       persistent
       max-width="850"
     >
       <v-card class="xrd-card">
         <v-card-title>
-          <span data-test="dialog-title" class="headline">
+          <span data-test="dialog-title" class="text-h5">
             {{
               $t(
                 'systemParameters.configurationAnchor.action.upload.dialog.title',
@@ -81,7 +83,7 @@
                 }}
               </v-col>
               <v-col cols="12" sm="9">{{
-                anchorPreview.hash | colonize
+                $filters.colonize(anchorPreview.hash)
               }}</v-col>
             </v-row>
             <v-row no-gutters>
@@ -93,7 +95,7 @@
                 }}
               </v-col>
               <v-col cols="12" sm="9">{{
-                anchorPreview.created_at | formatDateTime
+                $filters.formatDateTime(anchorPreview.created_at)
               }}</v-col>
             </v-row>
             <v-row class="mt-5">
@@ -128,29 +130,32 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { Anchor } from '@/openapi-types';
-import { FileUploadResult } from '@niis/shared-ui';
 import { PostPutPatch } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import { FileUploadResult } from '@/ui-types';
+import { XrdIconUpload } from '@niis/shared-ui';
 
 const EmptyAnchorPreview: Anchor = {
   hash: '',
   created_at: '',
 };
 
-export default Vue.extend({
+export default defineComponent({
   name: 'UploadConfigurationAnchorDialog',
+  components: { XrdIconUpload },
   props: {
     initMode: {
       type: Boolean,
       default: false,
     },
   },
+  emits: ['uploaded'],
   data() {
     return {
       previewing: false as boolean,

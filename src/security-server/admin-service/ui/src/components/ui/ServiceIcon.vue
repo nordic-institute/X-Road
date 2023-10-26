@@ -24,17 +24,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-icon small :color="getServiceIconColor(service)">{{
-    getServiceIcon(service)
-  }}</v-icon>
+  <v-icon
+    size="small"
+    :color="getServiceIconColor(service)"
+    :icon="getServiceIcon(service)"
+  />
 </template>
 
 <script lang="ts">
 // Icon for a service. Shows lock icon with proper color.
-import Vue, { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { Service } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     service: {
       type: Object as PropType<Service>,

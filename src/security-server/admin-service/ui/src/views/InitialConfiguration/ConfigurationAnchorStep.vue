@@ -41,7 +41,7 @@
               {{ $t('initialConfiguration.anchor.hash') }}
             </div>
             <template v-if="configuratonAnchor">{{
-              configuratonAnchor.hash | colonize
+              $filters.colonize(configuratonAnchor.hash)
             }}</template>
           </div>
 
@@ -50,7 +50,7 @@
               {{ $t('initialConfiguration.anchor.generated') }}
             </div>
             <template v-if="configuratonAnchor">{{
-              configuratonAnchor.created_at | formatDateTime
+              $filters.formatDateTime(configuratonAnchor.created_at)
             }}</template>
           </div>
         </template>
@@ -61,7 +61,7 @@
       <div>
         <xrd-button
           :disabled="!configuratonAnchor"
-          data-test="save-button"
+          data-test="configuration-anchor-save-button"
           @click="done"
           >{{ $t(saveButtonText) }}</xrd-button
         >
@@ -71,7 +71,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
@@ -79,7 +79,7 @@ import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     UploadConfigurationAnchorDialog,
   },
@@ -93,6 +93,7 @@ export default Vue.extend({
       default: true,
     },
   },
+  emits: ['done'],
   data() {
     return {
       showAnchorDialog: false as boolean,
@@ -121,7 +122,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 
 /* Expand imported wizard class */
 .wizard-label {

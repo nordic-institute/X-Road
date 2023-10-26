@@ -120,20 +120,22 @@ export const useTokens = defineStore('tokens', {
       return state.expandedTokens.includes(id);
     },
 
-    tokensFilteredByName: (state) => (search: string | undefined) => {
-      // Filter term is applied to token name
-      const arr = sortTokens(state.tokens);
+    tokensFilteredByName:
+      (state) =>
+      (search: string | undefined): Token[] => {
+        // Filter term is applied to token name
+        const arr: Token[] = sortTokens(state.tokens);
 
-      if (!search || search.length < 1) {
-        return arr;
-      }
+        if (!search || search.length < 1) {
+          return arr;
+        }
 
-      const mysearch = search.toLowerCase();
+        const mysearch = search.toLowerCase();
 
-      return arr.filter((token: Token) => {
-        return token.name.toLowerCase().includes(mysearch);
-      });
-    },
+        return arr.filter((token: Token) => {
+          return token.name.toLowerCase().includes(mysearch);
+        });
+      },
   },
 
   actions: {

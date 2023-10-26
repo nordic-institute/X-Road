@@ -34,13 +34,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-export default Vue.extend({
+export default defineComponent({
   components: {
     SubTabs,
   },

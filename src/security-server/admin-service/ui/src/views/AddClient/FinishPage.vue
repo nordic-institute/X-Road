@@ -75,7 +75,7 @@
       >
     </div>
     <!-- Accept warnings -->
-    <warningDialog
+    <WarningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
       localization-parent="wizard.warning"
@@ -86,7 +86,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
@@ -99,17 +99,19 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useAddClient } from '@/store/modules/addClient';
 import { useUser } from '@/store/modules/user';
 import { useCsr } from '@/store/modules/certificateSignRequest';
+import { CodeWithDetails } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     WarningDialog,
   },
+  emits: ['cancel', 'previous', 'done'],
   data() {
     return {
       disableCancel: false,
       registerChecked: true,
       submitLoading: false,
-      warningInfo: [] as string[],
+      warningInfo: [] as CodeWithDetails[],
       warningDialog: false,
     };
   },
@@ -268,5 +270,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 </style>

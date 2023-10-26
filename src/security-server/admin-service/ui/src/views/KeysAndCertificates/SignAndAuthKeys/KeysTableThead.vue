@@ -115,12 +115,12 @@
 /**
  * Table component for an array of keys
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import SortButton from './SortButton.vue';
 import { Colors } from '@/global';
 import { KeysSortColumn } from './keyColumnSorting';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     SortButton,
   },
@@ -134,6 +134,7 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['set-sort'],
   data() {
     return {
       colors: Colors,
@@ -155,7 +156,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 /* Needs two classes to override xrd-table style */
 .target-row {

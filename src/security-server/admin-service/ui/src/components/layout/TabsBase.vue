@@ -26,35 +26,29 @@
 <template>
   <v-layout class="main-content" align-left>
     <app-icon />
-    <div class="tabs-wrap">
-      <v-tabs
-        v-model="currentTab"
-        class="main-tabs"
-        color="black"
-        height="56px"
-        slider-size="2"
-        slider-color="primary"
-        :show-arrows="true"
+    <v-tabs
+      v-model="currentTab"
+      class="main-tabs"
+      color="black"
+      height="56px"
+      slider-size="2"
+      slider-color="primary"
+      :show-arrows="true"
+    >
+      <v-tab
+        v-for="tab in allowedTabs"
+        :key="tab.key"
+        :to="tab.to"
+        :data-test="tab.key"
+        >{{ $t(tab.name) }}</v-tab
       >
-        <v-tabs-slider
-          color="primary"
-          class="xrd-main-tabs-slider"
-        ></v-tabs-slider>
-        <v-tab
-          v-for="tab in allowedTabs"
-          :key="tab.key"
-          :to="tab.to"
-          :data-test="tab.key"
-          >{{ $t(tab.name) }}</v-tab
-        >
-      </v-tabs>
-    </div>
+    </v-tabs>
     <app-drop-menu />
   </v-layout>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
 import AppIcon from './AppIcon.vue';
@@ -62,7 +56,7 @@ import AppDropMenu from './AppDropMenu.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     AppIcon,
     AppDropMenu,

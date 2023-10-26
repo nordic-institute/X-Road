@@ -25,14 +25,14 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     title="localGroup.addLocalGroup"
     :disable-save="!formReady"
     width="620"
     @save="save"
     @cancel="cancel"
   >
-    <div slot="content">
+    <template #content>
       <div class="dlg-input-width">
         <v-text-field
           v-model="code"
@@ -46,24 +46,23 @@
       <div class="dlg-input-width">
         <v-text-field
           v-model="description"
-          hint
           :label="$t('localGroup.description')"
           outlined
           data-test="add-local-group-description-input"
         ></v-text-field>
       </div>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     id: {
       type: String,
@@ -74,7 +73,7 @@ export default Vue.extend({
       required: true,
     },
   },
-
+  emits: ['cancel', 'group-added'],
   data() {
     return {
       code: '',

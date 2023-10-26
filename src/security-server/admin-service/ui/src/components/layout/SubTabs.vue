@@ -25,23 +25,14 @@
  -->
 <template>
   <div class="xrd-sub-view-wrapper">
-    <v-tabs
-      class="xrd-tabs"
-      color="primary"
-      background-color="#F4F3F6"
-      slider-size="2"
-    >
-      <v-tabs-slider
-        color="primary"
-        class="xrd-sub-tabs-slider"
-      ></v-tabs-slider>
+    <v-tabs class="xrd-tabs" color="primary" bg-color="#F4F3F6" slider-size="2">
       <slot></slot>
     </v-tabs>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({});
+export default defineComponent({});
 </script>

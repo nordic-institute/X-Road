@@ -48,7 +48,9 @@
                 outlined
                 @click="downloadAnchor"
               >
-                <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
+                <xrd-icon-base class="xrd-large-button-icon">
+                  <xrd-icon-download />
+                </xrd-icon-base>
                 {{ $t('systemParameters.configurationAnchor.action.download') }}
               </xrd-button>
 
@@ -83,9 +85,9 @@
                 data-test="system-parameters-configuration-anchor-table-body"
               >
                 <tr v-if="configuratonAnchor">
-                  <td>{{ configuratonAnchor.hash | colonize }}</td>
+                  <td>{{ $filters.colonize(configuratonAnchor.hash) }}</td>
                   <td class="pr-4">
-                    {{ configuratonAnchor.created_at | formatDateTime }}
+                    {{ $filters.formatDateTime(configuratonAnchor.created_at) }}
                   </td>
                 </tr>
 
@@ -102,7 +104,7 @@
       </v-card-text>
     </v-card>
     <v-card flat class="xrd-card" :class="{ disabled: !messageLogEnabled }">
-      <v-card-text class="card-text ">
+      <v-card-text class="card-text">
         <v-row
           v-if="hasPermission(permissions.VIEW_TSPS)"
           no-gutters
@@ -247,7 +249,9 @@
                       )
                     }}
                   </td>
-                  <td class="pr-4">{{ approvedCA.not_after | formatDate }}</td>
+                  <td class="pr-4">
+                    {{ $filters.formatDate(approvedCA.not_after) }}
+                  </td>
                 </tr>
 
                 <XrdEmptyPlaceholderRow
@@ -266,7 +270,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import {
   AddOnStatus,
   Anchor,
@@ -282,16 +286,18 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import { XrdIconDownload } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    XrdIconDownload,
     TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
     AddTimestampingServiceDialog,
   },
   data() {
     return {
-      configuratonAnchor: undefined as Anchor | unknown,
+      configuratonAnchor: undefined as Anchor | undefined,
       downloadingAnchor: false,
       configuredTimestampingServices: [] as TimestampingService[],
       certificateAuthorities: [] as CertificateAuthority[],
@@ -379,8 +385,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 h3 {
   color: $XRoad-Black100;

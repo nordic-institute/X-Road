@@ -25,13 +25,12 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="true"
     title="services.disableTitle"
     save-button-text="action.ok"
     @save="save"
     @cancel="cancel"
   >
-    <div slot="content">
+    <template #content>
       <div class="dlg-edit-row">
         <div class="dlg-row-title">{{ $t('services.disableNotice') }}</div>
         <v-text-field
@@ -40,18 +39,19 @@
           class="dlg-row-input"
         ></v-text-field>
       </div>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 // Dialog to confirm service description disabling
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
+import { ServiceDescription } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     subject: {
-      type: Object,
+      type: Object as PropType<ServiceDescription>,
       required: true,
     },
     subjectIndex: {
@@ -59,13 +59,12 @@ export default Vue.extend({
       required: true,
     },
   },
-
+  emits: ['cancel', 'save'],
   data() {
     return {
       notice: '',
     };
   },
-
   methods: {
     cancel(): void {
       this.$emit('cancel', this.subject, this.subjectIndex);

@@ -31,10 +31,10 @@
           {{ $t('noData.loading') }}
         </div>
         <div v-else-if="client && client.owner" class="xrd-view-title mb-3">
-          {{ client.member_name }} ({{ $t('client.owner') }})
+          {{ `${client.member_name} (${$t('client.owner')})` }}
         </div>
         <div v-else-if="client" class="xrd-view-title mb-3">
-          {{ client.member_name }} ({{ $t('client.member') }})
+          {{ `${client.member_name} (${$t('client.member')})` }}
         </div>
 
         <div class="action-block">
@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 import { Permissions } from '@/global';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
@@ -70,7 +70,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     UnregisterClientButton,
     DeleteClientButton,
@@ -86,20 +86,16 @@ export default Vue.extend({
     ...mapState(useClient, ['client', 'clientLoading']),
     ...mapState(useUser, ['hasPermission']),
     showMakeOwner(): boolean {
-      if (!this.client) return false;
-
       return (
-        this.client &&
+        !!this.client &&
         this.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
         this.client.status === 'REGISTERED' &&
         !this.client.owner
       );
     },
     showUnregister(): boolean {
-      if (!this.client) return false;
-
       return (
-        this.client &&
+        !!this.client &&
         this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
         (this.client.status === 'REGISTERED' ||
           this.client.status === 'REGISTRATION_IN_PROGRESS')

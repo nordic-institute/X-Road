@@ -23,12 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-declare module '*.vue' {
-  import type { DefineComponent } from 'vue';
-  const component: DefineComponent<
-    Record<string, unknown>,
-    Record<string, unknown>,
-    unknown
-  >;
-  export default component;
+
+import VueRoute from 'vue-router';
+import { Filters } from '@/filters';
+import VueI18n from 'vue-i18n';
+
+declare module '@vue/runtime-core' {
+  interface ComponentCustomProperties {
+    $router: VueRoute;
+    $filters: Filters;
+    $t: VueI18n;
+  }
 }

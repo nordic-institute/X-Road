@@ -25,12 +25,21 @@
  */
 
 import { defineStore } from 'pinia';
-import { Endpoint, Service, ServiceClient } from '@/openapi-types';
+import {
+  Endpoint,
+  Service,
+  ServiceClient,
+  ServiceDescription,
+} from '@/openapi-types';
+import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
+import { sortServiceDescriptionServices } from '@/util/sorting';
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
   service: Service;
   serviceClients: ServiceClient[];
+  serviceDescriptions: ServiceDescription[];
 }
 
 export const useServices = defineStore('services', {
@@ -45,11 +54,21 @@ export const useServices = defineStore('services', {
         url: '',
       },
       serviceClients: [],
+      serviceDescriptions: [],
     };
   },
   getters: {
     descExpanded: (state) => (id: string) => {
       return state.expandedServiceDescriptions.includes(id);
+    },
+    endpoints: (state) => {
+      if (!state.service.endpoints) {
+        return [];
+      }
+      return state.service.endpoints.filter(
+        (endpoint: Endpoint) =>
+          !(endpoint.method === '*' && endpoint.path === '**'),
+      );
     },
   },
 
@@ -90,6 +109,22 @@ export const useServices = defineStore('services', {
 
     setServiceClients(serviceClients: ServiceClient[]) {
       this.serviceClients = serviceClients;
+    },
+
+    fetchServiceDescriptions(clientId: string, sort = true) {
+      return api
+        .get<ServiceDescription[]>(
+          `/clients/${encodePathParameter(clientId)}/service-descriptions`,
+        )
+        .then((res) => {
+          const serviceDescriptions: ServiceDescription[] = res.data;
+          this.serviceDescriptions = sort
+            ? serviceDescriptions.map(sortServiceDescriptionServices)
+            : serviceDescriptions;
+        })
+        .catch((error) => {
+          throw error;
+        });
     },
   },
 });

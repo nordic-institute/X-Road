@@ -26,7 +26,7 @@
 <template>
   <div class="xrd-tab-max-width xrd-main-wrap">
     <xrd-sub-view-title
-      :title="service.full_service_code"
+      :title="service.full_service_code ?? ''"
       class="sub-view-title-spacing"
       @close="close"
     />
@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
@@ -72,7 +72,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useServices } from '@/store/modules/services';
 import { ServiceClient, Service } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     serviceId: {
       type: String,
@@ -162,7 +162,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .sub-view-title-spacing {
   margin-bottom: 30px;

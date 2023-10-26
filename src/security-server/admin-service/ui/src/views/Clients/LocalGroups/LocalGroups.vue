@@ -33,17 +33,20 @@
         single-line
         hide-details
         class="search-input"
+        append-inner-icon="mdi-magnify"
       >
-        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
 
       <xrd-button
         v-if="showAddGroup"
         data-test="add-local-group-button"
         @click="addGroup"
-        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-        {{ $t('localGroups.addGroup') }}</xrd-button
       >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add />
+        </xrd-icon-base>
+        {{ $t('localGroups.addGroup') }}
+      </xrd-button>
     </div>
 
     <v-data-table
@@ -67,10 +70,10 @@
       </template>
 
       <template #[`item.updated_at`]="{ item }">
-        {{ item.updated_at | formatDate }}
+        {{ $filters.formatDate(item.updated_at) }}
       </template>
 
-      <template #footer>
+      <template #bottom>
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
@@ -85,8 +88,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import NewGroupDialog from './NewGroupDialog.vue';
 
@@ -98,10 +100,13 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     NewGroupDialog,
+    VDataTable,
   },
   props: {
     id: {
@@ -127,28 +132,24 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('localGroups.code') as string,
+          title: this.$t('localGroups.code') as string,
           align: 'start',
-          value: 'code',
-          class: 'xrd-table-header lg-table-header-code',
+          key: 'code',
         },
         {
-          text: this.$t('localGroups.description') as string,
+          title: this.$t('localGroups.description') as string,
           align: 'start',
-          value: 'description',
-          class: 'xrd-table-header lg-table-header-description',
+          key: 'description',
         },
         {
-          text: this.$t('localGroups.memberCount') as string,
+          title: this.$t('localGroups.memberCount') as string,
           align: 'start',
-          value: 'member_count',
-          class: 'xrd-table-header lg-table-header-member-count',
+          key: 'member_count',
         },
         {
-          text: this.$t('localGroups.updated') as string,
+          title: this.$t('localGroups.updated') as string,
           align: 'start',
-          value: 'updated_at',
-          class: 'xrd-table-header lg-table-header-updated',
+          key: 'updated_at',
         },
       ];
     },
@@ -211,7 +212,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .group-code {
   color: $XRoad-Link;

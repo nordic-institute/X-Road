@@ -32,7 +32,7 @@
         </div>
 
         <div v-else-if="client" class="xrd-view-title mb-3">
-          {{ client.subsystem_code }} ({{ $t('general.subsystem') }})
+          {{ `${client.subsystem_code} (${$t('general.subsystem')})` }}
         </div>
         <div>
           <DeleteClientButton v-if="showDelete" :id="id" />
@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
 import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
@@ -59,7 +59,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     UnregisterClientButton,
     DeleteClientButton,

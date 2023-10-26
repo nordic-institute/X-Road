@@ -25,7 +25,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     :width="750"
     title="serviceClients.addService"
     scrollable
@@ -33,7 +33,7 @@
     @save="save"
     @cancel="cancel"
   >
-    <div v-if="serviceCandidates.length > 0" slot="content">
+    <template v-if="serviceCandidates.length > 0" #content>
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
@@ -42,8 +42,8 @@
         hide-details
         data-test="search-service-client"
         class="search-input"
+        append-inner-icon="mdi-magnify"
       >
-        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <table class="xrd-table">
         <thead>
@@ -74,28 +74,28 @@
           </tr>
         </tbody>
       </table>
-    </div>
-    <div v-else slot="content">
+    </template>
+    <template v-else #content>
       <p>{{ $t('serviceClients.noAvailableServices') }}</p>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { AccessRight } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 import { ServiceCandidate } from '@/ui-types';
-export default Vue.extend({
+export default defineComponent({
   props: {
     dialog: {
-      type: Boolean as Prop<boolean>,
+      type: Boolean,
       required: true,
     },
     serviceCandidates: {
-      type: Array as Prop<ServiceCandidate[]>,
+      type: Array as PropType<ServiceCandidate[]>,
       required: true,
     },
   },
+  emits: ['save', 'cancel'],
   data() {
     return {
       selections: [] as AccessRight[],

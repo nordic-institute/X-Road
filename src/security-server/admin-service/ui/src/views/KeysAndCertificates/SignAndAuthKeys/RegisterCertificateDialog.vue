@@ -25,75 +25,60 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     title="keys.registrationRequest"
-    :disable-save="!isValid"
+    :disable-save="!meta.valid"
     @save="save"
     @cancel="cancel"
   >
-    <div slot="content">
-      <ValidationObserver ref="form" v-slot="{}">
-        <div class="dlg-edit-row">
-          <div class="dlg-row-title">{{ $t('keys.certRegistrationInfo') }}</div>
-
-          <ValidationProvider
-            v-slot="{ errors }"
-            rules="required"
-            name="dns"
-            class="validation-provider dlg-row-input"
-          >
-            <v-text-field
-              v-model="url"
-              single-line
-              name="dns"
-              :error-messages="errors"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-      </ValidationObserver>
-    </div>
+    <template #content>
+      <div class="dlg-edit-row">
+        <div class="dlg-row-title">{{ $t('keys.certRegistrationInfo') }}</div>
+        <v-text-field
+          v-model="address"
+          single-line
+          variant="underlined"
+          :error-messages="errors"
+          class="dlg-row-input"
+        />
+      </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { defineComponent } from 'vue';
+import { useField } from 'vee-validate';
 
-export default Vue.extend({
-  components: { ValidationProvider, ValidationObserver },
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
   },
-  data() {
-    return {
-      url: '',
-    };
-  },
-  computed: {
-    isValid(): boolean {
-      if (this.url && this.url.length > 0) {
-        return true;
-      }
-
-      return false;
-    },
+  emits: ['cancel', 'save'],
+  setup() {
+    const { meta, errors, value, resetField } = useField(
+      'dns',
+      {
+        required: true,
+      },
+      { initialValue: '' },
+    );
+    return { meta, errors, address: value, resetField };
   },
   methods: {
     cancel(): void {
       this.$emit('cancel');
-
       this.clear();
     },
     save(): void {
-      this.$emit('save', this.url);
+      this.$emit('save', this.address);
       this.clear();
     },
     clear(): void {
-      this.url = '';
-      (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
+      this.resetField();
     },
   },
 });

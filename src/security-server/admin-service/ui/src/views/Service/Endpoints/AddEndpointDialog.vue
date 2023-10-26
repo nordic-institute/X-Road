@@ -24,96 +24,102 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver v-if="dialog" ref="form" v-slot="{ invalid }">
-    <xrd-simple-dialog
-      :dialog="dialog"
-      :width="750"
-      title="endpoints.addEndpoint"
-      :disable-save="invalid"
-      @save="save"
-      @cancel="cancel"
-    >
-      <div slot="content">
-        <div class="dlg-edit-row">
-          <v-select
-            v-model="method"
-            class="ml-2"
-            data-test="endpoint-method"
-            :label="$t('endpoints.httpRequestMethod')"
-            autofocus
-            outlined
-            :items="methods"
-          />
-        </div>
+  <xrd-simple-dialog
+    v-if="dialog"
+    :width="750"
+    title="endpoints.addEndpoint"
+    z-index="1999"
+    :disable-save="!meta.valid"
+    @save="save"
+    @cancel="cancel"
+  >
+    <template #content>
+      <div class="dlg-edit-row">
+        <v-select
+          v-bind="methodRef"
+          class="ml-2"
+          data-test="endpoint-method"
+          :label="$t('endpoints.httpRequestMethod')"
+          autofocus
+          variant="outlined"
+          :items="methods"
+          z-index="2410"
+        />
+      </div>
 
-        <div class="dlg-edit-row">
-          <ValidationProvider
-            ref="path"
-            v-slot="{ errors }"
-            rules="required|xrdEndpoint"
-            name="path"
-            class="validation-provider"
-          >
-            <v-text-field
-              v-model="path"
-              class="ml-2"
-              outlined
-              :label="$t('endpoints.path')"
-              :error-messages="errors"
-              name="path"
-              data-test="endpoint-path"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
+      <div class="dlg-edit-row">
+        <v-text-field
+          v-bind="pathRef"
+          class="ml-2"
+          variant="outlined"
+          :label="$t('endpoints.path')"
+          name="path"
+          data-test="endpoint-path"
+        ></v-text-field>
+      </div>
 
-        <div class="pl-2">
-          <div>
-            <div>{{ $t('endpoints.endpointHelp1') }}</div>
-            <div>{{ $t('endpoints.endpointHelp2') }}</div>
-            <div>{{ $t('endpoints.endpointHelp3') }}</div>
-            <div>{{ $t('endpoints.endpointHelp4') }}</div>
-          </div>
+      <div class="pl-2">
+        <div>
+          <div>{{ $t('endpoints.endpointHelp1') }}</div>
+          <div>{{ $t('endpoints.endpointHelp2') }}</div>
+          <div>{{ $t('endpoints.endpointHelp3') }}</div>
+          <div>{{ $t('endpoints.endpointHelp4') }}</div>
         </div>
       </div>
-    </xrd-simple-dialog>
-  </ValidationObserver>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import { defineComponent } from 'vue';
+import { PublicPathState, useForm } from 'vee-validate';
 
-export default Vue.extend({
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
   },
+  emits: ['save', 'cancel'],
+  setup() {
+    const { meta, resetForm, values, defineComponentBinds } = useForm({
+      validationSchema: {
+        method: 'required',
+        path: 'required|xrdEndpoint',
+      },
+      initialValues: {
+        method: '*',
+        path: '/',
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const methodRef = defineComponentBinds('method', componentConfig);
+    const pathRef = defineComponentBinds('path', componentConfig);
+    return { meta, resetForm, values, methodRef, pathRef };
+  },
   data() {
     return {
       methods: [
-        { text: this.$t('endpoints.all'), value: '*' },
-        { text: 'GET', value: 'GET' },
-        { text: 'POST', value: 'POST' },
-        { text: 'PUT', value: 'PUT' },
-        { text: 'PATCH', value: 'PATCH' },
-        { text: 'DELETE', value: 'DELETE' },
-        { text: 'HEAD', value: 'HEAD' },
-        { text: 'OPTIONS', value: 'OPTIONS' },
-        { text: 'TRACE', value: 'TRACE' },
+        { title: this.$t('endpoints.all'), value: '*' },
+        { title: 'GET', value: 'GET' },
+        { title: 'POST', value: 'POST' },
+        { title: 'PUT', value: 'PUT' },
+        { title: 'PATCH', value: 'PATCH' },
+        { title: 'DELETE', value: 'DELETE' },
+        { title: 'HEAD', value: 'HEAD' },
+        { title: 'OPTIONS', value: 'OPTIONS' },
+        { title: 'TRACE', value: 'TRACE' },
       ],
-      method: '*',
-      path: '/',
     };
   },
   methods: {
     save(): void {
-      this.$emit('save', this.method, this.path);
+      this.$emit('save', this.values.method, this.values.path);
       this.clear();
     },
     cancel(): void {
@@ -121,9 +127,7 @@ export default Vue.extend({
       this.clear();
     },
     clear(): void {
-      this.path = '/';
-      this.method = '*';
-      (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
+      this.resetForm();
     },
   },
 });

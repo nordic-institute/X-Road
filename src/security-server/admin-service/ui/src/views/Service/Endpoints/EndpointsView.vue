@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 import { Endpoint } from '@/openapi-types';
 import * as api from '@/util/api';
@@ -100,7 +100,7 @@ import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useServices } from '@/store/modules/services';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     addEndpointDialog,
   },
@@ -114,6 +114,7 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['update-service'],
   data() {
     return {
       isAddEndpointDialogVisible: false,
@@ -121,18 +122,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useServices, ['service']),
-
-    endpoints(): Endpoint[] {
-      // Check if the service has endpoints
-      if (!this.service.endpoints) {
-        return [];
-      }
-
-      return this.service.endpoints.filter((endpoint: Endpoint) => {
-        return !this.isBaseEndpoint(endpoint);
-      });
-    },
+    ...mapState(useServices, ['service', 'endpoints']),
 
     canAddEndpoint(): boolean {
       return this.hasPermission(Permissions.ADD_OPENAPI3_ENDPOINT);
@@ -166,9 +156,6 @@ export default Vue.extend({
           this.isAddEndpointDialogVisible = false;
           this.$emit('update-service', this.service.id);
         });
-    },
-    isBaseEndpoint(endpoint: Endpoint): boolean {
-      return endpoint.method === '*' && endpoint.path === '**';
     },
     editEndpoint(endpoint: Endpoint): void {
       if (!endpoint.id) {
@@ -204,8 +191,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .generated {
   color: $XRoad-Black50;

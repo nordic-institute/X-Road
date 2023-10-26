@@ -43,7 +43,7 @@
 
     <!-- Confirm dialog for delete -->
     <xrd-confirm-dialog
-      :dialog="confirm"
+      v-if="confirm"
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
       @cancel="confirm = false"
@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 import { Permissions } from '@/global';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
@@ -66,7 +66,7 @@ import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useClient } from '@/store/modules/client';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     CertificateInfo,
     CertificateHash,
@@ -100,7 +100,7 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
     fetchData(clientId: string, hash: string): void {
       api
@@ -145,7 +145,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/detail-views';
+@import '@/assets/detail-views';
 
 .wrapper {
   display: flex;

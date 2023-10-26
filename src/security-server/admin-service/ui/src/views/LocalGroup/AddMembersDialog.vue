@@ -24,7 +24,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
+  <v-dialog
+    v-if="dialog"
+    :model-value="dialog"
+    width="842"
+    scrollable
+    persistent
+  >
     <v-card class="xrd-card px-0 mx-0" height="90vh">
       <v-card-title>
         <span class="headline" data-test="add-members-dialog-title">{{
@@ -126,8 +132,10 @@
               <td>
                 <div class="checkbox-wrap">
                   <v-checkbox
-                    color="primary"
-                    @change="checkboxChange(member.id, $event)"
+                    data-test="add-local-group-member-checkbox"
+                    @update:model-value="
+                      checkboxChange(member.id as string, $event)
+                    "
                   ></v-checkbox>
                 </div>
               </td>
@@ -153,25 +161,27 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <xrd-button class="button-margin" outlined @click="cancel()">{{
-          $t('action.cancel')
-        }}</xrd-button>
+        <xrd-button class="button-margin" outlined @click="cancel()"
+          >{{ $t('action.cancel') }}
+        </xrd-button>
 
-        <xrd-button :disabled="!canSave" @click="save()">{{
-          $t('localGroup.addSelected')
-        }}</xrd-button>
+        <xrd-button :disabled="!canSave" @click="save()"
+          >{{ $t('localGroup.addSelected') }}
+        </xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import * as api from '@/util/api';
-import { Client } from '@/openapi-types';
+import { Client, GroupMember } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
+import { Colors } from '@/global';
+import { XrdExpandable } from '@niis/shared-ui';
 
 const initialState = () => {
   return {
@@ -180,23 +190,24 @@ const initialState = () => {
     memberClass: '',
     memberCode: '',
     subsystemCode: '',
-    expandPanel: [0],
     members: [] as Client[],
     selectedIds: [] as string[],
     noResults: false,
     checkbox1: true,
     loading: false,
+    colors: Colors,
   };
 };
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdExpandable },
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
     filtered: {
-      type: Array as PropType<Client[]>,
+      type: Array as PropType<GroupMember[]>,
       default: undefined,
     },
     title: {
@@ -204,7 +215,7 @@ export default Vue.extend({
       default: 'localGroup.addMembers',
     },
   },
-
+  emits: ['cancel', 'members-added'],
   data() {
     return { ...initialState() };
   },
@@ -254,7 +265,7 @@ export default Vue.extend({
           if (this.filtered && this.filtered.length > 0) {
             // Filter out members that are already added
             this.members = res.data.filter((member) => {
-              return !this.filtered.find((item) => {
+              return !this.filtered?.find((item) => {
                 return item.id === member.id;
               });
             });

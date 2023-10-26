@@ -118,7 +118,7 @@
 
     <!-- Confirm dialog delete group -->
     <xrd-confirm-dialog
-      :dialog="confirmGroup"
+      v-if="confirmGroup"
       title="localGroup.deleteTitle"
       text="localGroup.deleteText"
       @cancel="confirmGroup = false"
@@ -127,7 +127,7 @@
 
     <!-- Confirm dialog remove member -->
     <xrd-confirm-dialog
-      :dialog="confirmMember"
+      v-if="confirmMember"
       title="localGroup.removeTitle"
       text="localGroup.removeText"
       @cancel="confirmMember = false"
@@ -136,7 +136,7 @@
 
     <!-- Confirm dialog remove all members -->
     <xrd-confirm-dialog
-      :dialog="confirmAllMembers"
+      v-if="confirmAllMembers"
       title="localGroup.removeAllTitle"
       text="localGroup.removeAllText"
       @cancel="confirmAllMembers = false"
@@ -155,7 +155,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
 import { GroupMember, LocalGroup } from '@/openapi-types';
 import AddMembersDialog from './AddMembersDialog.vue';
@@ -165,7 +165,7 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     AddMembersDialog,
   },
@@ -179,6 +179,7 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['backk'],
   data() {
     return {
       confirmGroup: false,
@@ -217,7 +218,7 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
 
     saveDescription(): void {
@@ -337,7 +338,7 @@ export default Vue.extend({
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
           this.showSuccess(this.$t('localGroup.groupDeleted'));
-          this.$router.go(-1);
+          this.$router.back();
         })
         .catch((error) => {
           this.showError(error);
@@ -348,7 +349,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .group-members-row {
   width: 100%;
