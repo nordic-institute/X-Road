@@ -35,6 +35,7 @@ import java.time.Duration;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
 
 public class AuthStepDefs extends BaseUiStepDefs {
     private final LoginPageObj loginPageObj = new LoginPageObj();
@@ -53,12 +54,10 @@ public class AuthStepDefs extends BaseUiStepDefs {
     @Step("User {} logs in to {} with password {}")
     public void doLogin(final String username, final String target, final String password) {
 
-        loginPageObj.inputUsername()
-                .shouldBe(visible)
-                .setValue(username);
-        loginPageObj.inputPassword()
-                .shouldBe(visible)
-                .setValue(password);
+        loginPageObj.inputUsername().shouldBe(visible);
+        vTextField(loginPageObj.inputUsername()).setValue(username);
+        loginPageObj.inputPassword().shouldBe(visible);
+        vTextField(loginPageObj.inputPassword()).setValue(password);
 
         loginPageObj.btnLogin()
                 .shouldBe(visible)
@@ -68,7 +67,7 @@ public class AuthStepDefs extends BaseUiStepDefs {
 
     @Step("Error message for incorrect credentials is shown")
     public void errorMessageIsShown() {
-        loginPageObj.inputeErorMessageWithText("Wrong username or password")
+        loginPageObj.inputErrorMessageWithText("Wrong username or password")
                 .shouldBe(visible);
     }
 

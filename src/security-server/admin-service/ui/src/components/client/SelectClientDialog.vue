@@ -95,7 +95,7 @@
 
         <xrd-button
           :disabled="!selectedMember"
-          data-test="save-button"
+          data-test="select-client-save-button"
           @click="save()"
           >{{ $t('localGroup.addSelected') }}</xrd-button
         >

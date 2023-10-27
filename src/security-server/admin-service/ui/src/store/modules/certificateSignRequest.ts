@@ -114,7 +114,7 @@ export const useCsr = defineStore('csr', {
       if (state.tokenType === TokenType.HARDWARE) {
         return true;
       }
-      // Usage type can be selected only when the Key doesn't have already have it set
+      // Usage type can be selected only when the Key doesn't already have it set
       if (state.csrKey && state.csrKey.usage) {
         return true;
       }

@@ -55,8 +55,7 @@ public class ClientPageObj {
     }
 
     public SelenideElement linkClientDetailsOfName(String name) {
-        return $x(format("//div[.//a[contains(@class, 'v-tab--active') and @data-test='clients']]//div[contains(@class, 'base-full-width')]"
-                + "//tbody//span[contains(text(),'%s')]", name));
+        return $x(format("//tbody//span[contains(text(),'%s')]", name));
     }
 
     public SelenideElement tableRowWithNameAndStatus(String name, String status) {
@@ -72,7 +71,7 @@ public class ClientPageObj {
     }
 
     public SelenideElement tableHeader(String name) {
-        return $x(format("//thead//th/span[text()='%s']", name));
+        return $x(format("//thead//span[text()='%s']", name));
     }
 
     public SelenideElement btnAddSubsystem(String name) {
@@ -85,31 +84,31 @@ public class ClientPageObj {
         }
 
         public SelenideElement btnSelectDialogSave() {
-            return $x("//button[@data-test='save-button']");
+            return $x("//button[@data-test='select-client-save-button']");
         }
 
         public SelenideElement radioSubsystemById(String id) {
-            return $x(format("//tbody//tr[td[3][contains(text(),'%s')] ]//div[@class ='v-input--selection-controls__input']", id));
+            return $x(format("//tbody//tr[td[3][contains(text(),'%s')] ]//div[@class ='v-selection-control__input']", id));
         }
 
         public SelenideElement memberNameValue() {
-            return $x("//div[@data-test ='selected-member-name']");
+            return $x("//div[@data-test='selected-member-name']");
         }
 
         public SelenideElement memberClassValue() {
-            return $x("//div[@data-test ='selected-member-class']");
+            return $x("//div[@data-test='selected-member-class']");
         }
 
         public SelenideElement memberCodeValue() {
-            return $x("//div[@data-test ='selected-member-code']");
+            return $x("//div[@data-test='selected-member-code']");
         }
 
         public SelenideElement inputSubsystem() {
-            return $x("//input[@data-test='subsystem-code-input']");
+            return $x("//div[@data-test='subsystem-code-input']");
         }
 
         public SelenideElement inputRegisterSubsystem() {
-            return $x("//input[@data-test='register-subsystem-checkbox']/following-sibling::div");
+            return $x("//div[@data-test='register-subsystem-checkbox']");
         }
 
         public SelenideElement btnSubmit() {
@@ -128,24 +127,23 @@ public class ClientPageObj {
         }
 
         public SelenideElement radioClientById(String id) {
-            return $x(format("//tbody//tr[td[3][contains(text(),'%s')] ]//div[@class ='v-input--selection-controls__input']", id));
+            return $x(format("//tbody//tr[td[3][contains(text(),'%s')] ]//div[@class='v-selection-control__input']", id));
         }
 
         public SelenideElement btnAddSelected() {
-            return $x("(//button[@data-test='save-button'])[3]");
+            return $x("//button[@data-test='select-client-save-button']");
         }
 
         public SelenideElement selectMemberClass() {
-            return $x("//div[@class='v-select__selections' and input[@data-test='member-class-input']]"
-                    + "/div[contains(@class,'v-select__selection')]");
+            return $x("//div[@data-test='member-class-input']//div[@class='v-select__selection']");
         }
 
         public SelenideElement inputMemberCode() {
-            return $x("//input[@data-test='member-code-input']");
+            return $x("//div[@data-test='member-code-input']");
         }
 
         public SelenideElement inputSubsystemCode() {
-            return $x("//input[@data-test='subsystem-code-input']");
+            return $x("//div[@data-test='subsystem-code-input']");
         }
 
         public SelenideElement btnNext() {
@@ -157,9 +155,8 @@ public class ClientPageObj {
 
     public static class AddClientToken {
 
-        public SelenideElement checkedRadioByTokenName(String name) {
-            return $x(format("//div[@class='radio-row' and //input[@data-test='token-radio-button' and @aria-checked='true']]"
-                    + "//label[text()='%s']", name));
+        public SelenideElement radioByTokenName(String name) {
+            return $x(format("//div[.//label[text()='Token softToken-0'] and @data-test='token-radio-button']", name));
         }
 
         public SelenideElement btnNext() {
@@ -173,7 +170,7 @@ public class ClientPageObj {
 
     public static class AddClientSignKey {
         public SelenideElement inputLabel() {
-            return $x("//input[@data-test='key-label-input']");
+            return $x("//div[@data-test='key-label-input']");
         }
 
         public SelenideElement btnNext() {
@@ -183,16 +180,12 @@ public class ClientPageObj {
 
     public static class AddClientCsrDetails {
         public SelenideElement csrService() {
-            return $x("//div[contains(@class, 'v-select__selections') and input[@data-test='csr-certification-service-select']]");
+            return $x("//div[@data-test='csr-certification-service-select']");
         }
 
 
         public SelenideElement csrFormat() {
-            return $x("//div[contains(@class, 'v-select__selections') and input[@data-test='csr-format-select']]");
-        }
-
-        public SelenideElement selectorOptionOf(String value) {
-            return $x(format("//div[@class='v-list-item__content']//div[text() = '%s']", value));
+            return $x("//div[@data-test='csr-format-select']");
         }
 
         public SelenideElement btnNext() {
@@ -202,7 +195,7 @@ public class ClientPageObj {
 
     public static class AddClientGenerateCsr {
         public SelenideElement inputOrganizationName() {
-            return $x("//input[@name='O' and @data-test='dynamic-csr-input']");
+            return $x("//div[@data-test='dynamic-csr-input_O']");
         }
 
         public SelenideElement btnNext() {

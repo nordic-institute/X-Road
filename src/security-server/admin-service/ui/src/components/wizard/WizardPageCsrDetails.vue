@@ -230,6 +230,9 @@ export default defineComponent({
         this.setFieldValue('csr.client', val[0].id);
       }
     },
+    usage(val) {
+      this.setFieldValue('csr.usage', val);
+    },
   },
 
   created() {

@@ -37,7 +37,7 @@ import static java.lang.String.format;
 public class KeyAndCertPageObj {
     private static final String X_FOLLOWING = "//following::";
     private static final String X_TOKEN_EXPANDABLE = "//div[@class='exp-wrapper expandable']"
-            + "//div[@class='clickable-link identifier-wrap' and span[text()='Token: %s']]";
+            + "//div[span[text()='Token: %s']]";
     private static final String X_TOKEN_EXPANDABLE_W_FOLLOWING = X_TOKEN_EXPANDABLE + X_FOLLOWING;
 
     public final TokenLoginDialog tokenLoginDialog = new TokenLoginDialog();
@@ -128,12 +128,12 @@ public class KeyAndCertPageObj {
 
         public SelenideElement btnDeleteAuthCsrByPos(int pos) {
             return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='auth-keys-table']"
-                    + "//tr//button[contains(span/text(), 'Delete CSR')][%d]", token, pos));
+                    + "//tr//button[@data-test='delete-csr-button'][%d]", token, pos));
         }
 
         public SelenideElement btnDeleteSignCsrByPos(int pos) {
             return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='sign-keys-table']"
-                    + "//tr//button[contains(span/text(), 'Delete CSR')][%d]", token, pos));
+                    + "//tr//button[@data-test='delete-csr-button'][%d]", token, pos));
         }
 
         public SelenideElement btnImportCert() {
@@ -166,7 +166,7 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement keyLabel() {
-            return $x("//input[@data-test='key-label-button']");
+            return $x("//div[@data-test='key-label-input']");
         }
 
     }
@@ -181,25 +181,21 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement csrUsage() {
-            return $x("//div[contains(@class, 'v-select__selections') and ./input[@data-test='csr-usage-select']]");
+            return $x("//div[@data-test='csr-usage-select']");
         }
 
 
         public SelenideElement csrService() {
-            return $x("//div[contains(@class, 'v-select__selections') and input[@data-test='csr-certification-service-select']]");
+            return $x("//div[@data-test='csr-certification-service-select']");
         }
 
 
         public SelenideElement csrFormat() {
-            return $x("//div[contains(@class, 'v-select__selections') and input[@data-test='csr-format-select']]");
-        }
-
-        public SelenideElement selectorOptionOf(String value) {
-            return $x(format("//div[@class='v-list-item__content']//div[text() = '%s']", value));
+            return $x("//div[@data-test='csr-format-select']");
         }
 
         public SelenideElement csrClient() {
-            return $x("//div[contains(@class, 'v-select__selections') and input[@data-test='csr-client-select']]");
+            return $x("//div[@data-test='csr-client-select']");
         }
     }
 
@@ -207,7 +203,6 @@ public class KeyAndCertPageObj {
         public SelenideElement doneButton() {
             return $x("(//button[@data-test='save-button'])[2]");
         }
-
 
         public SelenideElement cancelButton() {
             return $x("(//button[@data-test='cancel-button'])[3]");
@@ -218,11 +213,11 @@ public class KeyAndCertPageObj {
         }
 
         public SelenideElement organizationName() {
-            return $x("//input[@name='O' and @data-test='dynamic-csr-input']");
+            return $x("//div[@data-test='dynamic-csr-input_O']");
         }
 
         public SelenideElement serverDNS() {
-            return $x("//input[@name='CN' and @data-test='dynamic-csr-input']");
+            return $x("//div[@data-test='dynamic-csr-input_CN']");
         }
     }
 

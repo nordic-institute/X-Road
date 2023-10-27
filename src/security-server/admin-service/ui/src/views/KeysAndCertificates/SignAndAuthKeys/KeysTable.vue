@@ -127,6 +127,7 @@
                 class="table-button-fix"
                 :outlined="false"
                 text
+                data-test="delete-csr-button"
                 @click="showDeleteCsrDialog(req, key)"
                 >{{ $t('keys.deleteCsr') }}</xrd-button
               >

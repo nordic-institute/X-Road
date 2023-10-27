@@ -32,6 +32,8 @@ import org.niis.xroad.ss.test.ui.page.InitializationPageObj;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
 
 public class InitializationStepDefs extends BaseUiStepDefs {
     private final InitializationPageObj initializationPageObj = new InitializationPageObj();
@@ -68,11 +70,11 @@ public class InitializationStepDefs extends BaseUiStepDefs {
     public void ownerMemberConfigure(String memberClass, String memberCode, String securityServerCode) {
 
         initializationPageObj.wizardOwnerMember.selectMemberClass().click();
-        initializationPageObj.wizardOwnerMember.selectMemberClassOption(memberClass).click();
+        selectorOptionOf(memberClass).click();
 
-        initializationPageObj.wizardOwnerMember.inputMemberCode().setValue(memberCode);
+        vTextField(initializationPageObj.wizardOwnerMember.inputMemberCode()).setValue(memberCode);
 
-        initializationPageObj.wizardOwnerMember.securityServerCode().setValue(securityServerCode);
+        vTextField(initializationPageObj.wizardOwnerMember.securityServerCode()).setValue(securityServerCode);
 
         initializationPageObj.wizardOwnerMember.btnContinue().shouldBe(enabled);
     }
@@ -86,13 +88,15 @@ public class InitializationStepDefs extends BaseUiStepDefs {
     @Step("PIN is set to {string}")
     public void pinInputIsPresentAndNotVerified(String pin) {
         initializationPageObj.initializationView().shouldBe(visible);
-        initializationPageObj.wizardTokenPin.inputPin().shouldBe(visible).setValue(pin);
+        initializationPageObj.wizardTokenPin.inputPin().shouldBe(visible);
+        vTextField(initializationPageObj.wizardTokenPin.inputPin()).setValue(pin);
     }
 
     @Step("Confirmation PIN is set to {string}")
     public void pinInputIsPresentAndVerified(String pin) {
         initializationPageObj.initializationView().shouldBe(visible);
-        initializationPageObj.wizardTokenPin.inputConfirmPin().shouldBe(visible).setValue(pin);
+        initializationPageObj.wizardTokenPin.inputConfirmPin().shouldBe(visible);
+        vTextField(initializationPageObj.wizardTokenPin.inputConfirmPin()).setValue(pin);
 
         initializationPageObj.wizardTokenPin.btnContinue().shouldBe(enabled);
     }

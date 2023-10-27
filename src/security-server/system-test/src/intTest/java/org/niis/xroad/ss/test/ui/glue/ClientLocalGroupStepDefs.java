@@ -40,6 +40,9 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
 import static org.openqa.selenium.Keys.ENTER;
 
 public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
@@ -52,9 +55,9 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
                 .click();
 
         commonPageObj.dialog.btnSave().shouldBe(disabled);
-        clientInfoPageObj.localGroups.inputLocalGroupCode().setValue(name);
+        vTextField(clientInfoPageObj.localGroups.inputLocalGroupCode()).setValue(name);
         commonPageObj.dialog.btnSave().shouldBe(disabled);
-        clientInfoPageObj.localGroups.inputLocalGroupDescription().setValue(desc);
+        vTextField(clientInfoPageObj.localGroups.inputLocalGroupDescription()).setValue(desc);
         commonPageObj.dialog.btnSave()
                 .shouldBe(enabled)
                 .click();
@@ -73,7 +76,7 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
 
     @Step("Local group filter is set to {string}")
     public void setFilter(String query) {
-        clientInfoPageObj.localGroups.inputFilter().setValue(query);
+        vTextField(clientInfoPageObj.localGroups.inputFilter()).setValue(query);
     }
 
     @Step("Local group table is ordered as follows:")
@@ -123,9 +126,10 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
 
     @Step("Local group description is set to {string}")
     public void setDescription(String desc) {
-        clearInput(clientInfoPageObj.localGroups.details.inputLocalGroupDescription());
-        clientInfoPageObj.localGroups.details.inputLocalGroupDescription().setValue(desc);
-        clientInfoPageObj.localGroups.details.inputLocalGroupDescription().sendKeys(ENTER);
+        vTextField(clientInfoPageObj.localGroups.details.inputLocalGroupDescription())
+                .clear()
+                .setValue(desc)
+                .sendKeys(ENTER);
 
         if (isNotBlank(desc)) {
             commonPageObj.snackBar.success().shouldHave(text("Description saved"));
@@ -139,10 +143,10 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.localGroups.details.btnAddMembers().click();
 
         clientInfoPageObj.localGroups.details.addMember.inputInstance().click();
-        clientInfoPageObj.localGroups.details.addMember.selectDropdownOption(instance).click();
+        selectorOptionOf(instance).click();
 
         clientInfoPageObj.localGroups.details.addMember.inputMemberCode().click();
-        clientInfoPageObj.localGroups.details.addMember.selectDropdownOption(memberClass).click();
+        selectorOptionOf(memberClass).click();
 
         clientInfoPageObj.localGroups.details.addMember.btnSearch().click();
     }
@@ -150,7 +154,7 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
     @Step("Following members are added to local group:")
     public void lookupAddMembers(DataTable dataTable) {
         clientInfoPageObj.localGroups.details.addMember.btnAddSelected().shouldBe(disabled);
-        dataTable.asList().forEach(member -> clientInfoPageObj.localGroups.details.addMember.checkboxSelectMember(member)
+        dataTable.asList().forEach(member -> vCheckbox(clientInfoPageObj.localGroups.details.addMember.checkboxSelectMember(member))
                 .scrollIntoView(false)
                 .click());
 

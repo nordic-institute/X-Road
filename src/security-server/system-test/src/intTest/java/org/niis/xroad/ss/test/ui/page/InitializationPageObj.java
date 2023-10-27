@@ -31,7 +31,6 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.$x;
 
 public class InitializationPageObj {
-    private static final String BTN_SAVE = "//button[@data-test='save-button']";
 
     public final WizardOwnerMember wizardOwnerMember = new WizardOwnerMember();
     public final WizardTokenPin wizardTokenPin = new WizardTokenPin();
@@ -57,21 +56,21 @@ public class InitializationPageObj {
         }
 
         public SelenideElement btnContinue() {
-            return $x(BTN_SAVE);
+            return $x("//button[@data-test='configuration-anchor-save-button']");
         }
     }
 
     public static class WizardOwnerMember {
         public SelenideElement securityServerCode() {
-            return $x("//input[@data-test='security-server-code-input']");
+            return $x("//div[@data-test='security-server-code-input']");
         }
 
         public SelenideElement inputMemberCode() {
-            return $x("//input[@data-test='member-code-input']");
+            return $x("//div[@data-test='member-code-input']");
         }
 
         public SelenideElement selectMemberClass() {
-            return $x("//input[@data-test='member-class-input']");
+            return $x("//div[@data-test='member-class-input']");
         }
 
         public SelenideElement selectMemberClassOption(String option) {
@@ -80,23 +79,21 @@ public class InitializationPageObj {
         }
 
         public SelenideElement btnContinue() {
-            return $x("//div[@class='v-stepper__content' and not(contains(@style,'display: none'))]"
-                    + BTN_SAVE);
+            return $x("//button[@data-test='owner-member-save-button']");
         }
     }
 
     public static class WizardTokenPin {
         public SelenideElement inputPin() {
-            return $x("//input[@data-test='pin-input']");
+            return $x("//div[@data-test='pin-input']");
         }
 
         public SelenideElement inputConfirmPin() {
-            return $x("//input[@data-test='confirm-pin-input']");
+            return $x("//div[@data-test='confirm-pin-input']");
         }
 
         public SelenideElement btnContinue() {
-            return $x("//div[@class='v-stepper__content' and not(contains(@style,'display: none'))]"
-                    + BTN_SAVE);
+            return $x("//button[@data-test='token-pin-save-button']");
         }
     }
 }

@@ -38,6 +38,7 @@
           single-line
           variant="underlined"
           class="dlg-row-input"
+          data-test="disable-notice-text-field"
         ></v-text-field>
       </div>
     </template>

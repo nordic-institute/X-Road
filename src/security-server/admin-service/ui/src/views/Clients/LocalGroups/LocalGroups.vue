@@ -35,6 +35,7 @@
         variant="underlined"
         density="compact"
         class="search-input"
+        data-test="local-group-search-input"
         append-inner-icon="mdi-magnify"
       >
       </v-text-field>
