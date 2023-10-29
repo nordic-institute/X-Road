@@ -116,7 +116,7 @@ public final class ConfigurationClientMain {
             System.exit(download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2])));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
             // Run configuration client in one-shot mode downloading the current global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1], CURRENT_GLOBAL_CONFIGURATION_VERSION));
+            System.exit(download(actualArgs[0], actualArgs[1], null));
         } else if (actualArgs.length == 1) {
             // Run configuration client in validate mode.
             System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
@@ -138,7 +138,7 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
-    private static int download(String configurationAnchorFile, String configurationPath, int version) {
+    private static int download(String configurationAnchorFile, String configurationPath, Integer version) {
         log.debug("Downloading configuration using anchor {} path = {})",
                 configurationAnchorFile, configurationPath);
 

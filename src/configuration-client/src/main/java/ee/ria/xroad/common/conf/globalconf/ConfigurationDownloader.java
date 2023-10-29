@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.operator.DigestCalculator;
 
 import java.io.File;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -56,7 +58,7 @@ import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.generateConfigurationLocation;
+import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -78,14 +80,16 @@ class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
 
+    private static final String VERSION_QUERY_PARAMETER = "version";
+
     protected final FileNameProvider fileNameProvider;
 
     private final Map<ConfigurationSource, ConfigurationLocation> lastSuccessfulLocation = new HashMap<>();
 
     @Getter
-    private int configurationVersion;
+    private final Integer configurationVersion;
 
-    ConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
+    ConfigurationDownloader(String globalConfigurationDir, Integer configurationVersion) {
         fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
         this.configurationVersion = configurationVersion;
     }
@@ -107,6 +111,7 @@ class ConfigurationDownloader {
 
         for (ConfigurationLocation location : getLocations(source)) {
             try {
+                location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
                 rememberLastSuccessfulLocation(location);
                 return result.success(config);
@@ -147,7 +152,6 @@ class ConfigurationDownloader {
     }
 
     Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {
-        location = buildVersionedLocation(location);
         log.info("Downloading configuration from {}", location.getDownloadURL());
 
         Configuration configuration = getParser().parse(location, contentIdentifiers);
@@ -269,19 +273,38 @@ class ConfigurationDownloader {
         return true;
     }
 
-    ConfigurationLocation buildVersionedLocation(ConfigurationLocation location) throws IOException {
-        if (configurationVersion > 2) {
-            URL url = new URL(generateConfigurationLocation(location.getDownloadURL(), configurationVersion));
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            if (connection.getResponseCode() != HttpStatus.SC_OK) {
-                log.info("Global conf V3 not available, defaulting back to V2");
-                configurationVersion = 2;
-            }
-            connection.disconnect();
+    private ConfigurationLocation toVersionedLocation(ConfigurationLocation location) throws IOException, URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder(location.getDownloadURL());
+        if (configurationVersion == null) {
+            log.trace("Determining suitable global conf version");
+            chooseVersion(uriBuilder);
+        } else {
+            log.trace("Global conf version {} is enforced", configurationVersion);
+            // Force a.k.a. add "version" query parameter to the URI or replace if already exists
+            uriBuilder.setParameter(VERSION_QUERY_PARAMETER, configurationVersion.toString());
         }
-        return new ConfigurationLocation(location.getSource(),
-                ConfigurationUtils.generateConfigurationLocation(location.getDownloadURL(), configurationVersion),
-                location.getVerificationCerts());
+        return new ConfigurationLocation(location.getSource(), uriBuilder.build().toString(), location.getVerificationCerts());
+
+    }
+
+    private void chooseVersion(URIBuilder uriBuilder) throws IOException {
+        if (uriBuilder.getQueryParams().stream().anyMatch(param -> VERSION_QUERY_PARAMETER.equals(param.getName()))) {
+            log.trace("Respecting the already existing global conf \"version\" query parameter in the URL.");
+            return;
+        }
+        log.info("Determining whether global conf version {} is available for {}", CURRENT_GLOBAL_CONFIGURATION_VERSION, uriBuilder);
+        uriBuilder.addParameter(VERSION_QUERY_PARAMETER, String.valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION));
+        URL url = new URL(uriBuilder.toString());
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        if (connection.getResponseCode() == HttpStatus.SC_NOT_FOUND) {
+            int fallBackVersion = CURRENT_GLOBAL_CONFIGURATION_VERSION - 1;
+            log.info("Global conf version {} query resulted in HTTP {}, defaulting back to version {}.",
+                    CURRENT_GLOBAL_CONFIGURATION_VERSION, HttpStatus.SC_NOT_FOUND, fallBackVersion);
+            uriBuilder.setParameter(VERSION_QUERY_PARAMETER, String.valueOf(fallBackVersion));
+        } else {
+            log.info("Using Global conf version {}", CURRENT_GLOBAL_CONFIGURATION_VERSION);
+        }
+        connection.disconnect();
     }
 
     byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {
@@ -314,18 +337,18 @@ class ConfigurationDownloader {
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
                 PrivateParameters privateParameters;
-                if (configurationVersion > 2) {
+                try {
                     privateParameters = new PrivateParametersV3(content).getPrivateParameters();
-                } else {
+                } catch (Exception e) {
                     privateParameters = new PrivateParametersV2(content).getPrivateParameters();
                 }
                 handlePrivateParameters(privateParameters, file);
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
                 SharedParameters sharedParameters;
-                if (configurationVersion > 2) {
+                try {
                     sharedParameters = new SharedParametersV3(content).getSharedParameters();
-                } else {
+                } catch (Exception e) {
                     sharedParameters = new SharedParametersV2(content).getSharedParameters();
                 }
                 handleSharedParameters(sharedParameters, file);
