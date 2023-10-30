@@ -71,11 +71,11 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @Slf4j
 public class GlobalConfImpl implements GlobalConfProvider {
 
-    private volatile VersionableConfigurationDirectory<? extends PrivateParametersProvider, ? extends SharedParametersProvider> confDir;
+    private volatile VersionedConfigurationDirectory confDir;
 
     GlobalConfImpl() {
         try {
-            initConfDir();
+            confDir = new VersionedConfigurationDirectory(getConfigurationPath());
         } catch (Exception e) {
             throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }
@@ -83,31 +83,11 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public void reload() {
-        VersionableConfigurationDirectory<? extends PrivateParametersProvider, ? extends SharedParametersProvider> original = confDir;
+        VersionedConfigurationDirectory original = confDir;
         try {
-            if (original instanceof ConfigurationDirectoryV3 configurationdirectoryv3) {
-                confDir = new ConfigurationDirectoryV3(getConfigurationPath(), configurationdirectoryv3);
-            } else {
-                confDir = new ConfigurationDirectoryV2(getConfigurationPath(), (ConfigurationDirectoryV2) original);
-            }
+            confDir = new VersionedConfigurationDirectory(getConfigurationPath(), original);
         } catch (Exception e) {
-            log.warn("Error reloading global configuration, trying to reinitialize", e);
-            try {
-                initConfDir();
-            } catch (Exception ex) {
-                throw translateWithPrefix(X_MALFORMED_GLOBALCONF, ex);
-            }
-        }
-    }
-
-    private void initConfDir() throws Exception {
-        try {
-            confDir = new ConfigurationDirectoryV3(getConfigurationPath());
-            log.info("Successfully initialized global configuration V3");
-        } catch (Exception e) {
-            log.warn("Error reading underlying global configuration as V3, defaulting back to V2", e);
-            confDir = new ConfigurationDirectoryV2(getConfigurationPath());
-            log.info("Successfully initialized global configuration V2");
+            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }
     }
 
@@ -115,7 +95,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public boolean isValid() {
         // it is important to get handle of confDir as this variable is volatile
-        VersionableConfigurationDirectory<? extends PrivateParametersProvider, ? extends SharedParametersProvider> checkDir = confDir;
+        VersionedConfigurationDirectory checkDir = confDir;
         String mainInstance = checkDir.getInstanceIdentifier();
         OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         try {

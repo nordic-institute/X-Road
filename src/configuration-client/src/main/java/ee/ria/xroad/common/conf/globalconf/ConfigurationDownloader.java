@@ -45,6 +45,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,6 +64,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static java.lang.String.valueOf;
 
 /**
  * Downloads configuration directory from a configuration location defined
@@ -89,9 +91,14 @@ class ConfigurationDownloader {
     @Getter
     private final Integer configurationVersion;
 
-    ConfigurationDownloader(String globalConfigurationDir, Integer configurationVersion) {
+    ConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
         fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
         this.configurationVersion = configurationVersion;
+    }
+
+    ConfigurationDownloader(String globalConfigurationDir) {
+        fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+        this.configurationVersion = null;
     }
 
     ConfigurationParser getParser() {
@@ -333,25 +340,16 @@ class ConfigurationDownloader {
         //make possible with current structure to be overridden and validations called
     }
 
-    void handleContent(byte[] content, ConfigurationFile file) throws Exception {
+    void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
+        boolean isVersion3 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(file.getMetadata().getConfigurationVersion());
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                PrivateParameters privateParameters;
-                try {
-                    privateParameters = new PrivateParametersV3(content).getPrivateParameters();
-                } catch (Exception e) {
-                    privateParameters = new PrivateParametersV2(content).getPrivateParameters();
-                }
-                handlePrivateParameters(privateParameters, file);
+                PrivateParametersProvider pp = isVersion3 ? new PrivateParametersV3(content) : new PrivateParametersV2(content);
+                handlePrivateParameters(pp.getPrivateParameters(), file);
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                SharedParameters sharedParameters;
-                try {
-                    sharedParameters = new SharedParametersV3(content).getSharedParameters();
-                } catch (Exception e) {
-                    sharedParameters = new SharedParametersV2(content).getSharedParameters();
-                }
-                handleSharedParameters(sharedParameters, file);
+                SharedParametersProvider sp = isVersion3 ? new SharedParametersV3(content) : new SharedParametersV2(content);
+                handleSharedParameters(sp.getSharedParameters(), file);
                 break;
             default:
                 break;

@@ -38,14 +38,15 @@ import java.io.InputStream;
 import java.time.OffsetDateTime;
 
 /**
- * Represents meta data information for a configuration part.
- * The meta data contains the following information:
+ * Represents metadata information for a configuration part.
+ * The metadata contains the following information:
  * <ul>
  * <li>content identifier</li>
  * <li>instance identifier</li>
  * <li>expiration date</li>
  * <li>content file name</li>
  * <li>content location</li>
+ * <li>configuration version</li>
  * </ul>
  */
 @Getter
@@ -61,6 +62,8 @@ public class ConfigurationPartMetadata {
     private String contentFileName;
 
     private String contentLocation;
+
+    private String configurationVersion;
 
     private static final ObjectMapper MAPPER;
 
@@ -83,7 +86,7 @@ public class ConfigurationPartMetadata {
     }
 
     /**
-     * Reads the meta data from input stream.
+     * Reads the metadata from input stream.
      * @param in the input stream
      * @return the meta data
      * @throws IOException if an error occurs while deserializing the data

@@ -103,7 +103,7 @@ public class ConfigurationDownloaderTest {
         // Given
         int presetVersion = 1;
         ConfigurationDownloader downloader =
-                getDownloader(null, LOCATION_URL_SUCCESS + "?version=" + presetVersion);
+                getDownloader(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
         List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
 
         // When
@@ -116,7 +116,7 @@ public class ConfigurationDownloaderTest {
     @Test
     public void v3PrevailsWhenVersionNeitherPresetNorEnforced() {
         // Given
-        ConfigurationDownloader downloader = getDownloader(null, LOCATION_URL_SUCCESS + "?version=" + 3);
+        ConfigurationDownloader downloader = getDownloader(LOCATION_URL_SUCCESS + "?version=" + 3);
         List<String> locationUrls = List.of(LOCATION_URL_SUCCESS);
 
         // When
@@ -130,7 +130,7 @@ public class ConfigurationDownloaderTest {
     public void v2PrevailsWhenVersionNeitherPresetNorEnforcedAndV3NotAvailable() {
         // Given
         String url = LOCATION_URL_SUCCESS + "/nope";
-        ConfigurationDownloader downloader = getDownloader(null, url + "?version=" + 2);
+        ConfigurationDownloader downloader = getDownloader(url + "?version=" + 2);
         List<String> locationUrls = List.of(url);
 
         // When
@@ -287,8 +287,21 @@ public class ConfigurationDownloaderTest {
     }
 
 
-    private ConfigurationDownloader getDownloader(Integer confVersion, String... successfulLocationUrls) {
+    private ConfigurationDownloader getDownloader(int confVersion, String... successfulLocationUrls) {
         return new ConfigurationDownloader("f", confVersion) {
+
+            ConfigurationParser parser =
+                    new TestConfigurationParser(successfulLocationUrls);
+
+            @Override
+            ConfigurationParser getParser() {
+                return parser;
+            }
+        };
+    }
+
+    private ConfigurationDownloader getDownloader(String... successfulLocationUrls) {
+        return new ConfigurationDownloader("f") {
 
             ConfigurationParser parser =
                     new TestConfigurationParser(successfulLocationUrls);

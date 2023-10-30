@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isVersion3;
 
 /**
  * Configuration client downloads the configuration from sources found in the configuration anchor.
@@ -53,9 +54,14 @@ class ConfigurationClient {
 
     private ConfigurationSource configurationAnchor;
 
-    ConfigurationClient(String globalConfigurationDir, Integer version) {
+    ConfigurationClient(String globalConfigurationDir, int configurationVersion) {
         this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir, version);
+        downloader = new ConfigurationDownloader(globalConfigurationDir, configurationVersion);
+    }
+
+    ConfigurationClient(String globalConfigurationDir) {
+        this.globalConfigurationDir = globalConfigurationDir;
+        downloader = new ConfigurationDownloader(globalConfigurationDir);
     }
 
     ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader, ConfigurationSource configurationAnchor) {
@@ -124,15 +130,14 @@ class ConfigurationClient {
         handleResult(downloader.download(configurationAnchor), true);
     }
 
+
     private PrivateParameters loadPrivateParameters() {
         try {
             Path privateParamsPath = Path.of(globalConfigurationDir, configurationAnchor.getInstanceIdentifier(),
                     ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
-            try {
-                return new PrivateParametersV3(privateParamsPath, OffsetDateTime.MAX).getPrivateParameters();
-            } catch (Exception e) {
-                return new PrivateParametersV2(privateParamsPath, OffsetDateTime.MAX).getPrivateParameters();
-            }
+            PrivateParametersProvider p = isVersion3(privateParamsPath) ? new PrivateParametersV3(privateParamsPath, OffsetDateTime.MAX)
+                    : new PrivateParametersV2(privateParamsPath, OffsetDateTime.MAX);
+            return p.getPrivateParameters();
         } catch (Exception e) {
             log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);
             return null;
