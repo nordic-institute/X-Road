@@ -4,7 +4,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
 
-    <instanceIdentifier>v2</instanceIdentifier>
+    <instanceIdentifier>foo_v2</instanceIdentifier>
 
     <approvedCA>
         <name>pki2</name>

@@ -138,7 +138,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading PrivateParameters from {} ", privateParametersPath);
-                    parametersToUse = isVersion3(privateParametersPath) ? new PrivateParametersV3(privateParametersPath, fileExpiresOn)
+                    parametersToUse = isCurrentVersion(privateParametersPath)
+                            ? new PrivateParametersV3(privateParametersPath, fileExpiresOn)
                             : new PrivateParametersV2(privateParametersPath, fileExpiresOn);
                 }
                 basePrivateParams.put(instanceId, parametersToUse);
@@ -182,7 +183,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading SharedParameters from {} ", sharedParametersPath);
-                    parametersToUse = isVersion3(sharedParametersPath) ? new SharedParametersV3(sharedParametersPath, fileExpiresOn)
+                    parametersToUse = isCurrentVersion(sharedParametersPath)
+                            ? new SharedParametersV3(sharedParametersPath, fileExpiresOn)
                             : new SharedParametersV2(sharedParametersPath, fileExpiresOn);
                 }
                 baseSharedParams.put(instanceId, parametersToUse);
@@ -320,7 +322,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         }
     }
 
-    public static boolean isVersion3(Path filePath) {
+    public static boolean isCurrentVersion(Path filePath) {
         try {
             String confVersion = getMetadata(filePath).getConfigurationVersion();
             return valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(confVersion);

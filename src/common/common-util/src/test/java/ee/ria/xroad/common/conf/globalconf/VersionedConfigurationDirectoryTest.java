@@ -111,17 +111,17 @@ public class VersionedConfigurationDirectoryTest {
 
         assertEquals("EE", dir.getInstanceIdentifier());
 
-        PrivateParameters p = dir.getPrivate("v2");
+        PrivateParameters p = dir.getPrivate("foo_v2");
 
         assertNotNull(p);
-        assertEquals("v2", p.getInstanceIdentifier());
+        assertEquals("foo_v2", p.getInstanceIdentifier());
 
-        SharedParameters s = dir.getShared("v2");
+        SharedParameters s = dir.getShared("foo_v2");
 
         assertNotNull(s);
-        assertEquals("v2", s.getInstanceIdentifier());
+        assertEquals("foo_v2", s.getInstanceIdentifier());
 
-        dir.getShared("v2"); // intentional
+        dir.getShared("foo_v2"); // intentional
 
         assertNull(dir.getPrivate("bar"));
         assertNotNull(dir.getShared("bar"));
@@ -153,10 +153,10 @@ public class VersionedConfigurationDirectoryTest {
         assertTrue(pathExists(configurationFiles, rootDir + "/EE/private-params.xml"));
         assertFalse(pathExists(configurationFiles, rootDir + "/EE/private-params.xml.metadata"));
 
-        assertTrue(pathExists(configurationFiles, rootDir + "/v2/shared-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/v2/shared-params.xml.metadata"));
-        assertTrue(pathExists(configurationFiles, rootDir + "/v2/private-params.xml"));
-        assertFalse(pathExists(configurationFiles, rootDir + "/v2/private-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/foo_v2/shared-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/foo_v2/shared-params.xml.metadata"));
+        assertTrue(pathExists(configurationFiles, rootDir + "/foo_v2/private-params.xml"));
+        assertFalse(pathExists(configurationFiles, rootDir + "/foo_v2/private-params.xml.metadata"));
     }
 
     /**
