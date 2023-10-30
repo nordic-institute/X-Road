@@ -118,7 +118,7 @@ allprojects {
     }
 }
 
-configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].contains(it.name) }) {
+configure(subprojects.findAll { !["frontend", "shared-ui-3", "ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
