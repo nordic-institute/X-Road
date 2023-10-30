@@ -32,13 +32,16 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
 
 /**
  * Configuration client downloads the configuration from sources found in the configuration anchor.
@@ -51,9 +54,14 @@ class ConfigurationClient {
 
     private ConfigurationSource configurationAnchor;
 
-    ConfigurationClient(String globalConfigurationDir, int version) {
+    ConfigurationClient(String globalConfigurationDir, int configurationVersion) {
         this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir, version);
+        downloader = new ConfigurationDownloader(globalConfigurationDir, configurationVersion);
+    }
+
+    ConfigurationClient(String globalConfigurationDir) {
+        this.globalConfigurationDir = globalConfigurationDir;
+        downloader = new ConfigurationDownloader(globalConfigurationDir);
     }
 
     ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader, ConfigurationSource configurationAnchor) {
@@ -72,7 +80,7 @@ class ConfigurationClient {
         }
 
         downloadConfigurationFromAnchor();
-        List<ConfigurationSource> configurationSources = getConfigurationSources();
+        List<ConfigurationSource> configurationSources = getAdditionalConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
                 new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
@@ -82,7 +90,7 @@ class ConfigurationClient {
         downloadConfigurationFromAdditionalSources(configurationSources, sourceFilter);
     }
 
-    protected List<ConfigurationSource> getConfigurationSources() {
+    protected List<ConfigurationSource> getAdditionalConfigurationSources() {
         PrivateParameters privateParameters = loadPrivateParameters();
         return privateParameters != null ? privateParameters.getConfigurationAnchors() : List.of();
     }
@@ -108,6 +116,7 @@ class ConfigurationClient {
         }
 
         saveInstanceIdentifier();
+
     }
 
     void saveInstanceIdentifier() throws Exception {
@@ -121,15 +130,15 @@ class ConfigurationClient {
         handleResult(downloader.download(configurationAnchor), true);
     }
 
+
     private PrivateParameters loadPrivateParameters() {
         try {
-            VersionableConfigurationDirectory<? extends PrivateParametersProvider, ? extends SharedParametersProvider> dir;
-            if (downloader.getConfigurationVersion() > 2) {
-                dir = new ConfigurationDirectoryV3(globalConfigurationDir);
-            } else {
-                dir = new ConfigurationDirectoryV2(globalConfigurationDir);
-            }
-            return dir.getPrivate(configurationAnchor.getInstanceIdentifier());
+            Path privateParamsPath = Path.of(globalConfigurationDir, configurationAnchor.getInstanceIdentifier(),
+                    ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
+            PrivateParametersProvider p = isCurrentVersion(privateParamsPath)
+                    ? new PrivateParametersV3(privateParamsPath, OffsetDateTime.MAX)
+                    : new PrivateParametersV2(privateParamsPath, OffsetDateTime.MAX);
+            return p.getPrivateParameters();
         } catch (Exception e) {
             log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);
             return null;

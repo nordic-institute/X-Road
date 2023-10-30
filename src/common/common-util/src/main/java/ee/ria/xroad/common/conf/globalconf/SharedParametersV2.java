@@ -35,7 +35,9 @@ import lombok.Getter;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 
 /**
@@ -58,21 +60,21 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     // This constructor is used for simple verifications after configuration download.
     // It does not initialise class fully!
-    SharedParametersV2(byte[] content) throws Exception {
+    SharedParametersV2(byte[] content) throws CertificateEncodingException, IOException {
         super(content, SharedParametersSchemaValidatorV2.class);
         expiresOn = OffsetDateTime.MAX;
         sharedParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    public SharedParametersV2(Path sharedParametersPath, OffsetDateTime expiresOn) throws Exception {
+    public SharedParametersV2(Path sharedParametersPath, OffsetDateTime expiresOn) throws CertificateEncodingException, IOException {
         super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
         this.expiresOn = expiresOn;
         sharedParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    public SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn) throws Exception {
+    public SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn) throws CertificateEncodingException, IOException {
         super(original);
         expiresOn = newExpiresOn;
         sharedParameters = converter.convert(confType);

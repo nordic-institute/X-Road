@@ -50,7 +50,9 @@ import org.quartz.JobListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -62,7 +64,6 @@ import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVA
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
@@ -112,11 +113,12 @@ public final class ConfigurationClientMain {
         CommandLine cmd = getCommandLine(args);
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
+
             // Run configuration client in one-shot mode downloading the specified global configuration version.
             System.exit(download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2])));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
             // Run configuration client in one-shot mode downloading the current global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1], CURRENT_GLOBAL_CONFIGURATION_VERSION));
+            System.exit(download(actualArgs[0], actualArgs[1]));
         } else if (actualArgs.length == 1) {
             // Run configuration client in validate mode.
             System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
@@ -138,13 +140,31 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
-    private static int download(String configurationAnchorFile, String configurationPath, int version) {
+    private static int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
         log.debug("Downloading configuration using anchor {} path = {})",
                 configurationAnchorFile, configurationPath);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 
-        client = new ConfigurationClient(configurationPath, version) {
+        client = new ConfigurationClient(configurationPath, configurationVersion) {
+            @Override
+            protected void deleteExtraConfigurationDirectories(
+                    List<ConfigurationSource> configurationSources,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
+            }
+        };
+
+        return execute();
+    }
+
+    private static int download(String configurationAnchorFile, String configurationPath) {
+        log.debug("Downloading configuration using anchor {} path = {})",
+                configurationAnchorFile, configurationPath);
+
+        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
+
+        client = new ConfigurationClient(configurationPath) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<ConfigurationSource> configurationSources,
@@ -163,9 +183,9 @@ public final class ConfigurationClientMain {
         // Create configuration that does not persist files to disk.
         final String configurationPath = SystemProperties.getConfigurationPath();
 
-        var configurationDownloader = new ConfigurationDownloader(configurationPath, CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+        var configurationDownloader = new ConfigurationDownloader(configurationPath) {
             @Override
-            void handleContent(byte[] content, ConfigurationFile file) throws Exception {
+            void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
                 validateContent(file);
                 super.handleContent(content, file);
             }
@@ -236,7 +256,7 @@ public final class ConfigurationClientMain {
     private static void setup() {
         log.trace("setUp()");
 
-        client = new ConfigurationClient(SystemProperties.getConfigurationPath(), CURRENT_GLOBAL_CONFIGURATION_VERSION);
+        client = new ConfigurationClient(SystemProperties.getConfigurationPath());
 
         adminPort = new AdminPort(SystemProperties.getConfigurationClientAdminPort());
 

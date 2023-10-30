@@ -3,7 +3,7 @@
     xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
-    <instanceIdentifier>foo</instanceIdentifier>
+    <instanceIdentifier>foo_v2</instanceIdentifier>
     <configurationAnchor>
         <instanceIdentifier>bar</instanceIdentifier>
         <source>

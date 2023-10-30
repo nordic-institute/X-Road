@@ -43,6 +43,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 import static ee.ria.xroad.common.util.MimeUtils.PARAM_INSTANCE;
 
 final class ConfigurationFile extends AbstractConfigurationPart {
@@ -67,6 +68,10 @@ final class ConfigurationFile extends AbstractConfigurationPart {
 
     String getContentLocation() {
         return parameters.get(HEADER_CONTENT_LOCATION);
+    }
+
+    String getConfigurationVersion() {
+        return parameters.get(HEADER_VERSION);
     }
 
     String getHashAlgorithmId() {
@@ -98,6 +103,7 @@ final class ConfigurationFile extends AbstractConfigurationPart {
         metadata.setExpirationDate(getExpirationDate());
         metadata.setContentFileName(getContentFileName());
         metadata.setContentLocation(getContentLocation());
+        metadata.setConfigurationVersion(getConfigurationVersion());
         return metadata;
     }
 

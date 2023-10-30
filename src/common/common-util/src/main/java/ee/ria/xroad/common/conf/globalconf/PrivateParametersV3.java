@@ -53,18 +53,18 @@ public class PrivateParametersV3 extends AbstractXmlConf<PrivateParametersType> 
     private final OffsetDateTime expiresOn;
 
 
-    // variable to prevent using load methods after constrution
+    // variable to prevent using load methods after construction
     private boolean initCompleted;
 
 
-    PrivateParametersV3(byte[] content) throws Exception {
+    PrivateParametersV3(byte[] content) {
         super(content, PrivateParametersSchemaValidatorV2.class);
         expiresOn = OffsetDateTime.MAX;
         privateParameters = converter.convert(confType);
         initCompleted = true;
     }
 
-    PrivateParametersV3(Path privateParametersPath, OffsetDateTime expiresOn) throws Exception {
+    PrivateParametersV3(Path privateParametersPath, OffsetDateTime expiresOn) {
         super(privateParametersPath.toString(), PrivateParametersSchemaValidatorV2.class);
         this.expiresOn = expiresOn;
         privateParameters = converter.convert(confType);

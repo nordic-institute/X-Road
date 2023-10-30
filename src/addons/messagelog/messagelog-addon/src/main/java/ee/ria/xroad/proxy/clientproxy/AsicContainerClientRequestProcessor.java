@@ -34,9 +34,9 @@ import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.conf.globalconf.FileConsumer;
+import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -157,7 +157,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void handleVerificationConfRequest() throws Exception {
         // GlobalConf.verifyValidity() is not necessary here.
 
-        ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(SystemProperties.getConfigurationPath());
+        VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(SystemProperties.getConfigurationPath());
 
         servletResponse.setContentType(MimeTypes.ZIP);
         servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");

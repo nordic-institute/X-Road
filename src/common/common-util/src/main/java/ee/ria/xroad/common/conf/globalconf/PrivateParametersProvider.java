@@ -29,8 +29,18 @@ import java.time.OffsetDateTime;
 
 public interface PrivateParametersProvider {
 
+    default PrivateParametersProvider refresh(OffsetDateTime fileExpiresOn) {
+        if (this instanceof PrivateParametersV3 v3) {
+            return new PrivateParametersV3(v3, fileExpiresOn);
+        } else {
+            return new PrivateParametersV2((PrivateParametersV2) this, fileExpiresOn);
+        }
+    }
+
     PrivateParameters getPrivateParameters();
 
     OffsetDateTime getExpiresOn();
+
+    boolean hasChanged();
 
 }

@@ -26,7 +26,7 @@
 package ee.ria.xroad.confproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
+import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 import ee.ria.xroad.signer.SignerProxy;
@@ -67,8 +67,7 @@ public class ConfProxyTest {
     public void cleanupTempDirectoriesWhenBuildingSignedDirectoryFails() throws Exception {
         ConfProxyProperties conf = new ConfProxyProperties("PROXY1");
         ConfProxyHelper.purgeOutdatedGenerations(conf);
-        ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(
-                conf.getConfigurationDownloadPath(2));
+        VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(conf.getConfigurationDownloadPath(2));
 
         try (MockedStatic<SignerProxy> signerProxyMock = mockStatic(SignerProxy.class)) {
             signerProxyMock.when(() -> SignerProxy.getSignMechanism(any()))

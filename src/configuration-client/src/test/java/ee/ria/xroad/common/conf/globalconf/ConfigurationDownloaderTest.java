@@ -49,7 +49,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
-    private static final String LOCATION_URL_SUCCESS = "http://www.example.com/SUCCESS";
+    private static final String LOCATION_URL_SUCCESS = "http://www.example.com";
 
     /**
      * For better HA, the order of sources to be tried to download configuration
@@ -81,11 +81,11 @@ public class ConfigurationDownloaderTest {
      */
     @Test
     public void rememberLastSuccessfulDownloadLocation() {
+        int version = 3;
         // We loop in order to make failing due to wrong URL more certain.
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
             // Given
-            ConfigurationDownloader downloader =
-                    getDownloader(LOCATION_URL_SUCCESS + "?version=2");
+            ConfigurationDownloader downloader = getDownloader(version, LOCATION_URL_SUCCESS + "?version=" + version);
             List<String> locationUrls = getMixedLocationUrls();
 
             // When
@@ -94,8 +94,64 @@ public class ConfigurationDownloaderTest {
             downloader.download(getSource(locationUrls));
 
             // Then
-            verifyLastSuccessfulLocationUsedSecondTime(downloader);
+            verifySuccessfulLocation(downloader, version);
         }
+    }
+
+    @Test
+    public void presetVersionPrevailsWhenVersionNotEnforced() {
+        // Given
+        int presetVersion = 1;
+        ConfigurationDownloader downloader =
+                getDownloader(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
+        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, presetVersion);
+    }
+
+    @Test
+    public void v3PrevailsWhenVersionNeitherPresetNorEnforced() {
+        // Given
+        ConfigurationDownloader downloader = getDownloader(LOCATION_URL_SUCCESS + "?version=" + 3);
+        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, 3);
+    }
+
+    @Test
+    public void v2PrevailsWhenVersionNeitherPresetNorEnforcedAndV3NotAvailable() {
+        // Given
+        String url = LOCATION_URL_SUCCESS + "/nope";
+        ConfigurationDownloader downloader = getDownloader(url + "?version=" + 2);
+        List<String> locationUrls = List.of(url);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, url, 2);
+    }
+
+    @Test
+    public void enforcedVersionPrevailsPresetVersion() {
+        // Given
+        int enforcedVersion = 2;
+        ConfigurationDownloader downloader = getDownloader(enforcedVersion, LOCATION_URL_SUCCESS + "?version=" + enforcedVersion);
+        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + 3);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, enforcedVersion);
     }
 
     /**
@@ -115,20 +171,24 @@ public class ConfigurationDownloaderTest {
         getParser(downloader).reset();
     }
 
-    private void verifyLastSuccessfulLocationUsedSecondTime(
-            ConfigurationDownloader downloader) {
-        List<String> successfulDownloadUrls =
-                getParser(downloader).getConfigurationUrls();
+    private void verifySuccessfulLocation(ConfigurationDownloader downloader, String expectedUrl, int expectedLocationVersion) {
+        List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl());
+        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(expectedUrl, expectedLocationVersion));
     }
 
-    private Matcher<List<String>> hasOnlyOneSuccessfulUrl() {
+    private void verifySuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
+        List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
+
+        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_URL_SUCCESS, expectedLocationVersion));
+    }
+
+    private Matcher<List<String>> hasOnlyOneSuccessfulUrl(String url, int version) {
         return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(List<String> parsedUrls) {
                 return parsedUrls.size() == 1
-                        && parsedUrls.contains(LOCATION_URL_SUCCESS + "?version=2");
+                        && parsedUrls.contains(url + "?version=" + version);
             }
 
             @Override
@@ -140,7 +200,7 @@ public class ConfigurationDownloaderTest {
 
     private void executeDownload() {
         // Given
-        ConfigurationDownloader downloader = getDownloader();
+        ConfigurationDownloader downloader = getDownloader(3);
         List<String> locationUrls = getAllFailedLocationUrls();
 
         // When
@@ -227,9 +287,21 @@ public class ConfigurationDownloaderTest {
     }
 
 
-    private ConfigurationDownloader getDownloader(
-            String... successfulLocationUrls) {
-        return new ConfigurationDownloader("f", 3) {
+    private ConfigurationDownloader getDownloader(int confVersion, String... successfulLocationUrls) {
+        return new ConfigurationDownloader("f", confVersion) {
+
+            ConfigurationParser parser =
+                    new TestConfigurationParser(successfulLocationUrls);
+
+            @Override
+            ConfigurationParser getParser() {
+                return parser;
+            }
+        };
+    }
+
+    private ConfigurationDownloader getDownloader(String... successfulLocationUrls) {
+        return new ConfigurationDownloader("f") {
 
             ConfigurationParser parser =
                     new TestConfigurationParser(successfulLocationUrls);
