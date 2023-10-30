@@ -762,7 +762,7 @@ __metadata:
 
 "@niis/shared-ui@file:/home/mikkb/IdeaProjects/X-Road/src/shared-ui-3/niis-shared-ui-3.0.0.tgz::locator=frontend%40workspace%3A.":
   version: 3.0.0
-  resolution: "@niis/shared-ui@file:/home/mikkb/IdeaProjects/X-Road/src/shared-ui-3/niis-shared-ui-3.0.0.tgz#/home/mikkb/IdeaProjects/X-Road/src/shared-ui-3/niis-shared-ui-3.0.0.tgz::hash=e98f3a&locator=frontend%40workspace%3A."
+  resolution: "@niis/shared-ui@file:/home/mikkb/IdeaProjects/X-Road/src/shared-ui-3/niis-shared-ui-3.0.0.tgz#/home/mikkb/IdeaProjects/X-Road/src/shared-ui-3/niis-shared-ui-3.0.0.tgz::hash=56571b&locator=frontend%40workspace%3A."
   dependencies:
     "@fontsource/open-sans": "npm:^5.0.12"
     "@mdi/font": "npm:^7.2.96"
@@ -771,7 +771,7 @@ __metadata:
     vue: ^3.3.4
     vue-i18n: ^9.4.0
     vuetify: ^3.3.17
-  checksum: abd0d0889a05cd84ed2677d50538ae9833d155dd21027939eb0f80aa6788e013fffc3d107f2e5db40722059530fd63402808e05a12c171cf63429ce663bab921
+  checksum: ba4f57c77b2b462258a73f9cae772b17172d1de79601621d9a65ca798c42e9b7a37a0cb3d81cf62c5439535a4df780bf23d8027f9bcb689fbced2adc0a2e9f30
   languageName: node
   linkType: hard
 

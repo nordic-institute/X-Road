@@ -40,9 +40,9 @@
         <data-table-toolbar title-key="globalConf.downloadUrl.title" />
       </template>
       <template #[`item.url`]="{ item }">
-        <div class="xrd-clickable" @click="openInNewTab(item.raw.url)">
+        <div class="xrd-clickable" @click="openInNewTab(item.url)">
           <v-icon class="internal-conf-icon" icon="mdi-link" />
-          {{ item.raw.url }}
+          {{ item.url }}
         </div>
       </template>
       <template #bottom>

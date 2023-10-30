@@ -58,17 +58,17 @@
         @update:options="changeOptions"
       >
         <template #top></template>
-        <template #[`item.member_name`]="{ item }">
+        <template #[`item.member_name`]="{ item, internalItem }">
           <div
             v-if="hasPermissionToMemberDetails"
             class="members-table-cell-name-action"
-            @click="toDetails(item.raw)"
+            @click="toDetails(item)"
           >
             <xrd-icon-base class="xrd-clickable mr-4">
               <xrd-icon-folder-outline />
             </xrd-icon-base>
 
-            {{ item.columns.member_name }}
+            {{ internalItem.columns.member_name }}
           </div>
 
           <div v-else class="members-table-cell-name">
@@ -76,7 +76,7 @@
               <xrd-icon-folder-outline />
             </xrd-icon-base>
 
-            {{ item.columns.member_name }}
+            {{ internalItem.columns.member_name }}
           </div>
         </template>
       </v-data-table-server>

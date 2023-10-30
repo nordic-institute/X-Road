@@ -48,11 +48,11 @@
         @update:options="findServers"
       >
         <template #[`item.server_id.server_code`]="{ item }">
-          <div class="server-code xrd-clickable" @click="toDetails(item.raw)">
+          <div class="server-code xrd-clickable" @click="toDetails(item)">
             <xrd-icon-base class="mr-4">
               <xrd-icon-security-server />
             </xrd-icon-base>
-            {{ item.raw.server_id.server_code }}
+            {{ item.server_id.server_code }}
           </div>
         </template>
       </v-data-table-server>

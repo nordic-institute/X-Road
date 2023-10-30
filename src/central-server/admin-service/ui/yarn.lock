@@ -831,7 +831,7 @@ __metadata:
 
 "@niis/shared-ui@file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz::locator=xroad-centralserver-admin-ui%40workspace%3A.":
   version: 3.0.0
-  resolution: "@niis/shared-ui@file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz#../../../shared-ui-3/niis-shared-ui-3.0.0.tgz::hash=47e4b0&locator=xroad-centralserver-admin-ui%40workspace%3A."
+  resolution: "@niis/shared-ui@file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz#../../../shared-ui-3/niis-shared-ui-3.0.0.tgz::hash=56571b&locator=xroad-centralserver-admin-ui%40workspace%3A."
   dependencies:
     "@fontsource/open-sans": "npm:^5.0.12"
     "@mdi/font": "npm:^7.2.96"
@@ -840,7 +840,7 @@ __metadata:
     vue: ^3.3.4
     vue-i18n: ^9.4.0
     vuetify: ^3.3.17
-  checksum: 0ef19565237c66a6323a9e048197ec2387ff718a9448274ff37023d9ab50bc50eb06ec8045ef8a5db8d61195fb81f68d112dfd92fa115603083a558472d4952b
+  checksum: ba4f57c77b2b462258a73f9cae772b17172d1de79601621d9a65ca798c42e9b7a37a0cb3d81cf62c5439535a4df780bf23d8027f9bcb689fbced2adc0a2e9f30
   languageName: node
   linkType: hard
 
@@ -5674,9 +5674,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vuetify@npm:^3.3.17":
-  version: 3.3.17
-  resolution: "vuetify@npm:3.3.17"
+"vuetify@npm:^3.3.19":
+  version: 3.3.23
+  resolution: "vuetify@npm:3.3.23"
   peerDependencies:
     typescript: ">=4.7"
     vite-plugin-vuetify: ^1.0.0-alpha.12
@@ -5692,7 +5692,7 @@ __metadata:
       optional: true
     webpack-plugin-vuetify:
       optional: true
-  checksum: eaed5c79daa87380231043ebae2db0ece2992ffb57571e32747d757c511dfd938f29b81fef440fb408f9937735c20ecf5a3479e9a72f1458017845b0573a7455
+  checksum: 9de67b3b2789d32c8e87f8963a45c5980ce473801692647af625bbf6d96ac0040a4a7ff5d5cd0ccaaf031ce89f7fd409288c07493afa0ac1b1a926ac98025a2f
   languageName: node
   linkType: hard
 
@@ -5868,7 +5868,7 @@ __metadata:
     vue-i18n: "npm:~9.4.1"
     vue-router: "npm:^4.2.5"
     vue-tsc: "npm:^1.8.8"
-    vuetify: "npm:^3.3.17"
+    vuetify: "npm:^3.3.19"
   languageName: unknown
   linkType: soft
 

@@ -53,15 +53,15 @@
       data-test="global-groups-table"
     >
       <template #[`item.code`]="{ item }">
-        <div class="group-code xrd-clickable" @click="toDetails(item.raw)">
+        <div class="group-code xrd-clickable" @click="toDetails(item)">
           <xrd-icon-base class="mr-4">
             <XrdIconFolder />
           </xrd-icon-base>
-          <div data-test="group-code">{{ item.raw.code }}</div>
+          <div data-test="group-code">{{ item.code }}</div>
         </div>
       </template>
       <template #[`item.updated_at`]="{ item }">
-        <date-time :value="item.raw.updated_at" />
+        <date-time :value="item.updated_at" />
       </template>
 
       <template #footer>

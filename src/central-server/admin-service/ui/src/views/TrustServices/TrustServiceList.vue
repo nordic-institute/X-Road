@@ -55,22 +55,22 @@
             <div
               v-if="hasPermissionToDetails"
               class="xrd-clickable"
-              @click="toDetails(item.raw)"
+              @click="toDetails(item)"
             >
-              {{ item.raw.name }}
+              {{ item.name }}
             </div>
             <div v-else>
-              {{ item.raw.name }}
+              {{ item.name }}
             </div>
           </template>
           <template #[`item.not_before`]="{ item }">
             <div>
-              <date-time :value="item.raw.not_before" />
+              <date-time :value="item.not_before" />
             </div>
           </template>
           <template #[`item.not_after`]="{ item }">
             <div>
-              <date-time :value="item.raw.not_after" />
+              <date-time :value="item.not_after" />
             </div>
           </template>
 

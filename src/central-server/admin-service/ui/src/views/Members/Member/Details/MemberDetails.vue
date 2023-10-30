@@ -74,10 +74,10 @@
           <template #[`item.server_id.server_code`]="{ item }">
             <div
               class="server-code xrd-clickable"
-              :data-test="`owned-server-${item.raw.server_id.server_code}`"
-              @click="toSecurityServerDetails(item.raw)"
+              :data-test="`owned-server-${item.server_id.server_code}`"
+              @click="toSecurityServerDetails(item)"
             >
-              {{ item.raw.server_id.server_code }}
+              {{ item.server_id.server_code }}
             </div>
           </template>
           <template #bottom>
@@ -105,7 +105,7 @@
           data-test="global-groups-table"
         >
           <template #[`item.added_to_group`]="{ item }">
-            <date-time :value="item.raw.added_to_group" />
+            <date-time :value="item.added_to_group" />
           </template>
           <template #bottom>
             <custom-data-table-footer />

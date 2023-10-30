@@ -43,16 +43,16 @@
       <template #[`item.issuer_common_name`]="{ item }">
         <div
           class="icon-cell"
-          @click="navigateToCertificateDetails(item.raw.id)"
+          @click="navigateToCertificateDetails(item.id)"
         >
           <xrd-icon-base icon-name="certificate" class="mr-4"
             ><XrdIconCertificate
           /></xrd-icon-base>
-          {{ item.raw.issuer_common_name }}
+          {{ item.issuer_common_name }}
         </div>
       </template>
       <template #[`item.not_after`]="{ item }">
-        <date-time :value="item.raw.not_after" />
+        <date-time :value="item.not_after" />
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -62,7 +62,7 @@
             data-test="delete-AC-button"
             text
             :outlined="false"
-            @click="openDeleteConfirmationDialog(item.raw.id)"
+            @click="openDeleteConfirmationDialog(item.id)"
           >
             {{ $t('action.delete') }}
           </xrd-button>

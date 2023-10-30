@@ -31,7 +31,7 @@
     :persistent="true"
     :scrollable="scrollable"
     :z-index="zIndex"
-    class="xdr-dialog-simple"
+    class="xrd-dialog-simple"
   >
 <!-- TODO vue3 should work just fine without z-index (AddMemberDialog)   -->
     <v-card class="xrd-card " data-test="dialog-simple">
@@ -183,7 +183,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-.xdr-dialog-simple {
+.xrd-dialog-simple {
   .xrd-card {
     .xrd-card-actions {
       background-color: $XRoad-WarmGrey10;
