@@ -43,7 +43,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 import static ee.ria.xroad.common.util.MimeUtils.PARAM_INSTANCE;
 
 final class ConfigurationFile extends AbstractConfigurationPart {
@@ -54,24 +53,25 @@ final class ConfigurationFile extends AbstractConfigurationPart {
     private final OffsetDateTime expirationDate;
 
     @Getter
+    private final String configurationVersion;
+
+    @Getter
     private final String hash;
 
     private ConfigurationFile(Map<String, String> parameters,
             ContentIdentifier contentIdentifier, OffsetDateTime expirationDate,
+            String configurationVersion,
             String hash) {
         super(parameters);
 
         this.contentIdentifier = contentIdentifier;
         this.expirationDate = expirationDate;
+        this.configurationVersion = configurationVersion;
         this.hash = hash;
     }
 
     String getContentLocation() {
         return parameters.get(HEADER_CONTENT_LOCATION);
-    }
-
-    String getConfigurationVersion() {
-        return parameters.get(HEADER_VERSION);
     }
 
     String getHashAlgorithmId() {
@@ -108,7 +108,7 @@ final class ConfigurationFile extends AbstractConfigurationPart {
     }
 
     static ConfigurationFile of(Map<String, String> headers,
-            OffsetDateTime expirationDate, String hash) {
+            OffsetDateTime expirationDate, String version, String hash) {
         if (headers == null) {
             throw new IllegalArgumentException("headers must not be null");
         }
@@ -127,7 +127,7 @@ final class ConfigurationFile extends AbstractConfigurationPart {
 
         return new ConfigurationFile(headers,
                 getContentIdentififer(h.get(HEADER_CONTENT_IDENTIFIER)),
-                expirationDate, hash);
+                expirationDate, version, hash);
     }
 
     private static ContentIdentifier getContentIdentififer(String value) {
