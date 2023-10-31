@@ -51,6 +51,9 @@ public class Configuration {
     @Setter(AccessLevel.PACKAGE)
     private OffsetDateTime expirationDate;
 
+    @Setter(AccessLevel.PACKAGE)
+    private String version;
+
     /**
      * For each file, calls a function taking the ConfigurationLocation
      * and ConfigurationFile as arguments.
