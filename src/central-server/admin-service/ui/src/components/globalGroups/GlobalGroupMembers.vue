@@ -78,7 +78,7 @@
           <xrd-icon-base class="mr-4">
             <XrdIconFolderOutline />
           </xrd-icon-base>
-          <div data-test="member-name">{{ item.raw.name }}</div>
+          <div data-test="member-name">{{ item.name }}</div>
         </div>
       </template>
 
@@ -89,36 +89,36 @@
             data-test="delete-member-button"
             text
             :outlined="false"
-            @click="groupMemberToDelete = item.raw"
+            @click="groupMemberToDelete = item"
             >{{ $t('action.remove') }}
           </xrd-button>
         </div>
       </template>
 
       <template #[`item.type`]="{ item }">
-        <div>{{ item.raw.client_id.type }}</div>
+        <div>{{ item.client_id.type }}</div>
       </template>
 
       <template #[`item.instance`]="{ item }">
-        <span data-test="instance">{{ item.raw.client_id.instance_id }}</span>
+        <span data-test="instance">{{ item.client_id.instance_id }}</span>
       </template>
 
       <template #[`item.class`]="{ item }">
-        <span data-test="class">{{ item.raw.client_id.member_class }}</span>
+        <span data-test="class">{{ item.client_id.member_class }}</span>
       </template>
 
       <template #[`item.code`]="{ item }">
-        <span data-test="code">{{ item.raw.client_id.member_code }}</span>
+        <span data-test="code">{{ item.client_id.member_code }}</span>
       </template>
 
       <template #[`item.subsystem`]="{ item }">
         <span data-test="subsystem">{{
-          item.raw.client_id.subsystem_code
+          item.client_id.subsystem_code
         }}</span>
       </template>
 
       <template #[`item.created_at`]="{ item }">
-        <date-time :value="item.raw.created_at" />
+        <date-time :value="item.created_at" />
       </template>
     </v-data-table-server>
 

@@ -25,7 +25,7 @@
  -->
 <template>
   <v-img
-    :src="require('../../assets/xroad7_logo.svg')"
+    :src="xroad7Logo"
     height="35"
     width="132"
     max-height="35"
@@ -36,30 +36,30 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import xroad7Logo from '@/assets/xroad7_logo.svg';
 
-export default Vue.extend({
+export default defineComponent({
   computed: {
     ...mapState(useUser, ['firstAllowedTab']),
+    xroad7Logo(): string {
+      return xroad7Logo;
+    },
   },
   methods: {
     home(): void {
-      this.$router
-        .replace({
-          name: this.firstAllowedTab.to.name,
-        })
-        .catch((err) => {
-          // Ignore the error regarding navigating to the same path
-          if (err.name === 'NavigationDuplicated') {
-            // eslint-disable-next-line no-console
-            console.info('Duplicate navigation');
-          } else {
-            // Throw for any other errors
-            throw err;
-          }
-        });
+      this.$router.replace(this.firstAllowedTab.to).catch((err) => {
+        // Ignore the error regarding navigating to the same path
+        if (err.name === 'NavigationDuplicated') {
+          // eslint-disable-next-line no-console
+          console.info('Duplicate navigation');
+        } else {
+          // Throw for any other errors
+          throw err;
+        }
+      });
     },
   },
 });

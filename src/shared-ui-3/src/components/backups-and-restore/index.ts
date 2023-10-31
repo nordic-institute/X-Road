@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-import XdrDownloadBackupButton from './XdrDownloadBackupButton.vue';
+import XrdDownloadBackupButton from './XrdDownloadBackupButton.vue';
 import XrdBackupsDataTable from './XrdBackupsDataTable.vue';
 import XrdBackupsToolbar from './XrdBackupsToolbar.vue';
 import XrdDeleteBackupButton from './XrdDeleteBackupButton.vue';
@@ -33,7 +33,7 @@ import XrdRestoreBackupButton from './XrdRestoreBackupButton.vue';
 
 
 export {
-  XdrDownloadBackupButton,
+  XrdDownloadBackupButton,
   XrdBackupsDataTable,
   XrdBackupsToolbar,
   XrdDeleteBackupButton,

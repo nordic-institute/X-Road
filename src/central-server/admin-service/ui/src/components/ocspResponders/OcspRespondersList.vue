@@ -54,7 +54,7 @@
 
       <template #[`item.url`]="{ item }">
         <div class="xrd-clickable">
-          {{ item.raw.url }}
+          {{ item.url }}
         </div>
       </template>
 
@@ -64,7 +64,7 @@
             text
             :outlined="false"
             data-test="view-ocsp-responder-certificate"
-            @click="navigateToCertificateDetails(item.raw)"
+            @click="navigateToCertificateDetails(item)"
           >
             {{ $t('trustServices.viewCertificate') }}
           </xrd-button>
@@ -72,7 +72,7 @@
             text
             :outlined="false"
             data-test="edit-ocsp-responder"
-            @click="openEditOcspResponderDialog(item.raw)"
+            @click="openEditOcspResponderDialog(item)"
           >
             {{ $t('action.edit') }}
           </xrd-button>
@@ -80,7 +80,7 @@
             text
             :outlined="false"
             data-test="delete-ocsp-responder"
-            @click="openDeleteConfirmationDialog(item.raw)"
+            @click="openDeleteConfirmationDialog(item)"
           >
             {{ $t('action.delete') }}
           </xrd-button>

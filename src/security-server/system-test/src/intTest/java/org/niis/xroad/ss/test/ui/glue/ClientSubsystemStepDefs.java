@@ -31,7 +31,8 @@ import org.niis.xroad.ss.test.ui.page.ClientPageObj;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientSubsystemStepDefs extends BaseUiStepDefs {
     private final ClientPageObj clientPageObj = new ClientPageObj();
@@ -49,12 +50,12 @@ public class ClientSubsystemStepDefs extends BaseUiStepDefs {
 
     @Step("Subsystem code is set to {string}")
     public void setSubsystem(String subsystem) {
-        clientPageObj.subsystem.inputSubsystem().setValue(subsystem);
+        vTextField(clientPageObj.subsystem.inputSubsystem()).setValue(subsystem);
     }
 
     @Step("Register subsystem is unchecked")
     public void checkRegisterSubsystem() {
-        clientPageObj.subsystem.inputRegisterSubsystem().click();
+        vCheckbox(clientPageObj.subsystem.inputRegisterSubsystem()).click();
     }
 
     @Step("Register client send registration request dialog is confirmed")
@@ -67,7 +68,7 @@ public class ClientSubsystemStepDefs extends BaseUiStepDefs {
         clientPageObj.subsystem.memberNameValue().shouldBe(text(memberName));
         clientPageObj.subsystem.memberClassValue().shouldBe(text(memberClass));
         clientPageObj.subsystem.memberCodeValue().shouldBe(text(memberCode));
-        clientPageObj.subsystem.inputSubsystem().shouldBe(value(subsystemCode));
+        vTextField(clientPageObj.subsystem.inputSubsystem()).shouldHaveText(subsystemCode);
     }
 
     @Step("Add subsystem form is submitted")

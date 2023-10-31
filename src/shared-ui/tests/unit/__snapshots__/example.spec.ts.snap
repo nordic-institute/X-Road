@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Button.vue renders props.msg when passed 1`] = `<button type="button" class="large-button v-btn v-btn--has-bg v-btn--rounded theme--light v-size--default primary" style="height: 40px; min-width: 90px;" msg="Test"><span class="v-btn__content"></span></button>`;

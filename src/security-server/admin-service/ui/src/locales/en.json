@@ -271,7 +271,8 @@
   "customValidation": {
     "invalidEndpoint": "Endpoint contains illegal characters",
     "invalidUrl": "URL is not valid",
-    "invalidXrdIdentifier": "Identifier value contains illegal characters"
+    "invalidXrdIdentifier": "Identifier value contains illegal characters",
+    "requiredIf": "The {fieldName} field is required"
   },
   "diagnostics": {
     "addOnStatus": {
@@ -507,7 +508,7 @@
   },
   "fields": {
     "addClient": {
-      "memberClass": "Member class",
+      "memberClass": "Member Class",
       "memberCode": "Member Code",
       "subsystemCode": "Subsystem Code"
     },
@@ -534,6 +535,8 @@
     "password": "Password",
     "path": "path",
     "pin": "PIN",
+    "memberClass": "Member Class",
+    "memberCode": "Member Code",
     "securityServerCode": "Security Server Code",
     "serialNumber": "Serial Number",
     "serviceCode": "Service Code",
@@ -569,7 +572,8 @@
     }
   },
   "global": {
-    "name": "Name"
+    "name": "Name",
+    "appTitle": "X-Road Security Server"
   },
   "general": {
     "instance": "Instance",
@@ -1003,7 +1007,7 @@
     "AssertFalse": "value should be 'false'",
     "AssertTrue": "value should be 'true'",
     "DecimalMax": "numeric value exceeds the maximum allowed",
-    "DecimalMin": "numeric value is under the miminum allowed",
+    "DecimalMin": "numeric value is under the minimum allowed",
     "Digits": "value should contain only digits",
     "Email": "value does not meet the email format",
     "Future": "datetime value should be in the future",

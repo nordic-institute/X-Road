@@ -70,22 +70,22 @@
           </template>
           <template #[`item.client_id.member_code`]="{ item }">
             <span data-test="code">
-              {{ item.raw.client_id.member_code }}
+              {{ item.client_id.member_code }}
             </span>
           </template>
           <template #[`item.client_id.member_class`]="{ item }">
             <span data-test="class">
-              {{ item.raw.client_id.member_class }}
+              {{ item.client_id.member_class }}
             </span>
           </template>
           <template #[`item.client_id.subsystem_code`]="{ item }">
             <span data-test="subsystem">
-              {{ item.raw.client_id.subsystem_code }}
+              {{ item.client_id.subsystem_code }}
             </span>
           </template>
           <template #[`item.client_id.instance_id`]="{ item }">
             <span data-test="instance">
-              {{ item.raw.client_id.instance_id }}
+              {{ item.client_id.instance_id }}
             </span>
           </template>
         </v-data-table-server>

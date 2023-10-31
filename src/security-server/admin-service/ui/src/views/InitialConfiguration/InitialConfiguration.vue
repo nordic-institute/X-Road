@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center class="mt-6">
+  <v-row align="center" justify="center" class="mt-6">
     <div class="view-wrap">
       <xrd-sub-view-title
         class="wizard-view-title"
@@ -32,6 +32,7 @@
         :show-close="false"
         data-test="wizard-title"
       />
+      <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
       <v-stepper
         v-model="currentStep"
         :alt-labels="true"
@@ -39,58 +40,61 @@
       >
         <!-- Headers without anchor page -->
         <v-stepper-header v-if="isAnchorImported" class="wizard-noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{
+          <v-stepper-item :complete="currentStep > 1" :value="1">{{
             $t('initialConfiguration.member.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 2" step="2">{{
+          <v-stepper-item :complete="currentStep > 2" :value="2">{{
             $t('initialConfiguration.pin.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
         </v-stepper-header>
         <!-- Headers with anchor page -->
         <v-stepper-header v-else class="wizard-noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{
+          <v-stepper-item :complete="currentStep > 1" :value="1">{{
             $t('initialConfiguration.anchor.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 2" step="2">{{
+          <v-stepper-item :complete="currentStep > 2" :value="2">{{
             $t('initialConfiguration.member.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 3" step="3">{{
+          <v-stepper-item :complete="currentStep > 3" :value="3">{{
             $t('initialConfiguration.pin.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
         </v-stepper-header>
 
-        <v-stepper-items v-if="isAnchorImported" class="wizard-stepper-content">
+        <v-stepper-window
+          v-if="isAnchorImported"
+          class="wizard-stepper-content"
+        >
           <!-- Member step -->
-          <v-stepper-content step="1">
+          <v-stepper-window-item :value="1">
             <OwnerMemberStep :show-previous-button="false" @done="nextStep" />
-          </v-stepper-content>
+          </v-stepper-window-item>
           <!-- PIN step -->
-          <v-stepper-content step="2">
+          <v-stepper-window-item :value="2">
             <TokenPinStep @previous="currentStep = 1" @done="tokenPinReady" />
-          </v-stepper-content>
-        </v-stepper-items>
+          </v-stepper-window-item>
+        </v-stepper-window>
 
-        <v-stepper-items v-else class="wizard-stepper-content">
+        <v-stepper-window v-else class="wizard-stepper-content">
           <!-- Anchor step -->
-          <v-stepper-content step="1">
+          <v-stepper-window-item :value="1">
             <ConfigurationAnchorStep @done="nextStep" />
-          </v-stepper-content>
+          </v-stepper-window-item>
           <!-- Member step -->
-          <v-stepper-content step="2">
+          <v-stepper-window-item :value="2">
             <OwnerMemberStep @previous="currentStep = 1" @done="nextStep" />
-          </v-stepper-content>
+          </v-stepper-window-item>
           <!-- PIN step -->
-          <v-stepper-content step="3">
+          <v-stepper-window-item :value="3">
             <TokenPinStep
               :save-busy="pinSaveBusy"
               @previous="currentStep = 2"
               @done="tokenPinReady"
             />
-          </v-stepper-content>
-        </v-stepper-items>
+          </v-stepper-window-item>
+        </v-stepper-window>
       </v-stepper>
 
       <!-- Confirm dialog for warnings when initializing server -->
@@ -102,26 +106,38 @@
         @accept="acceptInitWarning()"
       ></warningDialog>
     </div>
-  </v-layout>
+  </v-row>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 import TokenPinStep from './TokenPinStep.vue';
 import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
 import * as api from '@/util/api';
-import { InitialServerConf } from '@/openapi-types';
+import { CodeWithDetails, InitialServerConf } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useInitializeServer } from '@/store/modules/initializeServer';
+import {
+  VStepper,
+  VStepperHeader,
+  VStepperItem,
+  VStepperWindow,
+  VStepperWindowItem,
+} from 'vuetify/labs/VStepper';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    VStepper,
+    VStepperHeader,
+    VStepperItem,
+    VStepperWindow,
+    VStepperWindowItem,
     TokenPinStep,
     ConfigurationAnchorStep,
     OwnerMemberStep,
@@ -131,7 +147,7 @@ export default Vue.extend({
     return {
       currentStep: 1 as number,
       pinSaveBusy: false as boolean,
-      warningInfo: [] as string[],
+      warningInfo: [] as CodeWithDetails[],
       confirmInitWarning: false as boolean,
       requestPayload: {} as InitialServerConf,
     };
@@ -205,9 +221,7 @@ export default Vue.extend({
           this.pinSaveBusy = false;
           this.fetchCurrentSecurityServer();
           this.checkAlertStatus(); // Check if we have any alerts after initialisation
-          this.$router.replace({
-            name: this.firstAllowedTab.to.name,
-          });
+          this.$router.replace(this.firstAllowedTab.to);
         })
         .catch((error) => {
           if (error?.response?.data?.warnings) {
@@ -224,5 +238,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 </style>

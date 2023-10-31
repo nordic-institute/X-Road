@@ -25,7 +25,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     title="warning"
     cancel-button-text="action.cancel"
     save-button-text="action.yes"
@@ -33,9 +33,13 @@
     @save="accept"
     @cancel="cancel"
   >
-    <div slot="content" data-test="dialog-content-text">
-      <template v-if="errorResponse">{{ $t('keys.unregisterError') }}</template>
-    </div>
+    <template #content>
+      <div data-test="dialog-content-text">
+        <template v-if="errorResponse">{{
+          $t('keys.unregisterError')
+        }}</template>
+      </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
@@ -44,9 +48,9 @@
  * A dialog for handling error in unregister auth certificate
  */
 
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
@@ -62,7 +66,7 @@ export default Vue.extend({
       default: false,
     },
   },
-
+  emits: ['cancel', 'accept'],
   methods: {
     cancel(): void {
       this.$emit('cancel');

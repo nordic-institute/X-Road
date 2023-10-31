@@ -25,7 +25,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     title="warning"
     :cancel-button-text="cancelButtonText"
     :save-button-text="acceptButtonText"
@@ -34,24 +34,26 @@
     @save="accept"
     @cancel="cancel"
   >
-    <div slot="content" data-test="dialog-content-text">
-      <div v-for="warning in warnings" :key="warning.code">
-        <!-- Create the localisation key from warning code -->
-        <div class="dlg-warning-header">
-          {{ $t(localizationParent + '.' + warning.code) }}
+    <template #content>
+      <div data-test="dialog-content-text">
+        <div v-for="warning in warnings" :key="warning.code">
+          <!-- Create the localisation key from warning code -->
+          <div class="dlg-warning-header">
+            {{ $t(localizationParent + '.' + warning.code) }}
+          </div>
+          <div v-for="meta in warning.metadata" :key="meta">{{ meta }}</div>
         </div>
-        <div v-for="meta in warning.metadata" :key="meta">{{ meta }}</div>
       </div>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 // A dialog for backend warnings
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
+import { CodeWithDetails } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
@@ -62,7 +64,7 @@ export default Vue.extend({
       required: true,
     },
     warnings: {
-      type: Array as Prop<string[]>,
+      type: Array as PropType<CodeWithDetails[]>,
       required: true,
     },
     cancelButtonText: {
@@ -82,7 +84,7 @@ export default Vue.extend({
       default: false,
     },
   },
-
+  emits: ['cancel', 'accept'],
   methods: {
     cancel(): void {
       this.$emit('cancel');

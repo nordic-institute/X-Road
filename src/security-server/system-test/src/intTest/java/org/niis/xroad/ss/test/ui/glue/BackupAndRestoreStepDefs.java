@@ -37,6 +37,7 @@ import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
 
 public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     private final BackupAndRestorePageObj backupAndRestorePageObj = new BackupAndRestorePageObj();
@@ -115,7 +116,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
 
     @Step("Configuration backup filter is set to last created backup")
     public void configurationBackupCountIsEqualTo() {
-        backupAndRestorePageObj.btnSearch().click();
-        backupAndRestorePageObj.inputSearch().setValue(createdBackupName);
+        backupAndRestorePageObj.inputSearch().click();
+        vTextField(backupAndRestorePageObj.inputSearch()).setValue(createdBackupName);
     }
 }

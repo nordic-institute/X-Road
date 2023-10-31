@@ -23,23 +23,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
-import Vue from 'vue';
-import Vuetify from 'vuetify/lib';
+import { createVuetify } from 'vuetify';
+import { aliases, mdi } from 'vuetify/iconsets/mdi';
 
-Vue.use(Vuetify);
-
-export default new Vuetify({
+export default createVuetify({
+  defaults: {
+    VTextField: {
+      color: 'primary',
+    },
+    VSwitch: {
+      color: 'primary',
+    },
+    VStepperItem: {
+      color: 'primary',
+    },
+    VRadioGroup: {
+      color: 'primary',
+    },
+    VRadio: {
+      color: 'primary',
+    },
+    VCheckbox: {
+      color: 'primary',
+    },
+  },
   icons: {
-    iconfont: 'mdi',
+    defaultSet: 'mdi',
+    aliases,
+    sets: {
+      mdi,
+    },
   },
   theme: {
     themes: {
       light: {
-        primary: '#663cdc',
-        secondary: '#00C9E7',
-        accent: '#8c9eff',
-        grey: '#9c9c9c',
+        dark: false,
+        colors: {
+          primary: '#663cdc',
+          secondary: '#00C9E7',
+          accent: '#8c9eff',
+          grey: '#9c9c9c',
+        },
       },
     },
   },

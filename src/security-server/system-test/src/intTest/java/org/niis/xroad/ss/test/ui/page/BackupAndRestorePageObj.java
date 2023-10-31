@@ -66,10 +66,6 @@ public class BackupAndRestorePageObj {
     }
 
     public SelenideElement inputSearch() {
-        return $x("//input[@data-test='search-input']");
-    }
-
-    public SelenideElement btnSearch() {
-        return $x("//button[contains(@class, 'mdi-magnify')]");
+        return $x("//div[@data-test='search-input']");
     }
 }

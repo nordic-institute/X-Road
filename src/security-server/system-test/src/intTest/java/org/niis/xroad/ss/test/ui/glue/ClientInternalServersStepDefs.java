@@ -36,6 +36,7 @@ import java.io.FileNotFoundException;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.selectorOptionOf;
 
 public class ClientInternalServersStepDefs extends BaseUiStepDefs {
     private final CertificatePageObj certificatePageObj = new CertificatePageObj();
@@ -45,7 +46,7 @@ public class ClientInternalServersStepDefs extends BaseUiStepDefs {
     @Step("Internal server connection type is set to {string}")
     public void setConnectionType(String connectionType) {
         clientInfoPageObj.internalServers.menuConnectionType().click();
-        clientInfoPageObj.internalServers.selectDropdownOption(connectionType).click();
+        selectorOptionOf(connectionType).click();
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();

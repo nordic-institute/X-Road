@@ -59,34 +59,34 @@
         @update:options="changeOptions"
       >
         <template #[`item.id`]="{ item }">
-          <management-request-id-cell :management-request="item.raw" />
+          <management-request-id-cell :management-request="item" />
         </template>
 
         <template #[`item.created_at`]="{ item }">
           <div>
-            <date-time :value="item.raw.created_at" />
+            <date-time :value="item.created_at" />
           </div>
         </template>
 
         <template #[`item.type`]="{ item }">
-          <mr-type-cell :type="item.raw.type" />
+          <mr-type-cell :type="item.type" />
         </template>
 
         <template #[`item.security_server_owner`]="{ item }">
-          <div>{{ item.raw.security_server_owner }}</div>
+          <div>{{ item.security_server_owner }}</div>
         </template>
 
         <template #[`item.security_server_id`]="{ item }">
-          <div>{{ item.raw.security_server_id.encoded_id }}</div>
+          <div>{{ item.security_server_id.encoded_id }}</div>
         </template>
 
         <template #[`item.status`]="{ item }">
-          <mr-status-cell :status="item.raw.status" />
+          <mr-status-cell :status="item.status" />
         </template>
 
         <template #[`item.button`]="{ item }">
           <mr-actions-cell
-            :management-request="item.raw"
+            :management-request="item"
             @approve="fetchItems"
             @decline="fetchItems"
           />

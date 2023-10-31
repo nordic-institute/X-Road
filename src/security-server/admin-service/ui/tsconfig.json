@@ -1,26 +1,30 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "esnext",
+    "target": "ESNext",
+    "module": "ESNext",
     "strict": true,
     "jsx": "preserve",
     "importHelpers": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
-      "webpack-env",
+      "vite/client",
       "jest",
-      "vuetify"
+      "vuetify",
     ],
     "paths": {
       "@/*": [
         "src/*"
       ]
     },
+    "rootDirs": [
+      "src/"
+    ],
     "lib": [
       "esnext",
       "dom",

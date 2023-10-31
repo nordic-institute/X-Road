@@ -60,7 +60,7 @@
           <xrd-button
             text
             data-test="system-settings-edit-member-class-button"
-            @click="openEditMemberClassDialog(item.raw)"
+            @click="openEditMemberClassDialog(item)"
           >
             {{ $t('action.edit') }}
           </xrd-button>
@@ -68,7 +68,7 @@
           <xrd-button
             text
             data-test="system-settings-delete-member-class-button"
-            @click="openDeleteMemberClassDialog(item.raw)"
+            @click="openDeleteMemberClassDialog(item)"
           >
             {{ $t('action.delete') }}
           </xrd-button>

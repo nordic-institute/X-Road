@@ -55,7 +55,7 @@
           {{
             $t(
               'trustServices.trustService.timestampingService.timestampingIntervalMinutes',
-              { min: toMinutes(item.raw.timestamping_interval) },
+              { min: toMinutes(item.timestamping_interval) },
             )
           }}
         </template>
@@ -63,7 +63,7 @@
           {{
             $t(
               'trustServices.trustService.timestampingService.costValues.' +
-                item.raw.cost,
+                item.cost,
             )
           }}
         </template>
@@ -73,7 +73,7 @@
               text
               :outlined="false"
               data-test="view-timestamping-service-certificate"
-              @click="navigateToCertificateDetails(item.raw)"
+              @click="navigateToCertificateDetails(item)"
             >
               {{ $t('trustServices.viewCertificate') }}
             </xrd-button>
@@ -82,7 +82,7 @@
               text
               :outlined="false"
               data-test="edit-timestamping-service"
-              @click="openEditDialog(item.raw)"
+              @click="openEditDialog(item)"
             >
               {{ $t('action.edit') }}
             </xrd-button>
@@ -91,7 +91,7 @@
               text
               :outlined="false"
               data-test="delete-timestamping-service"
-              @click="showDeleteDialog(item.raw)"
+              @click="showDeleteDialog(item)"
             >
               {{ $t('action.delete') }}
             </xrd-button>

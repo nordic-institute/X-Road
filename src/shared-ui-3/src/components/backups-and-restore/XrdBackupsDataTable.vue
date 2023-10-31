@@ -40,19 +40,19 @@
     >
       <template #item.buttons="{ item }">
         <div class="cs-table-actions-wrap">
-          <xdr-download-backup-button
+          <xrd-download-backup-button
             :backup-handler="backupHandler"
-            :filename="item.raw.filename"
+            :filename="item.filename"
             :can-backup="canBackup"
           />
           <xrd-restore-backup-button
             :backup-handler="backupHandler"
-            :filename="item.raw.filename"
+            :filename="item.filename"
             :can-backup="canBackup"
           />
           <xrd-delete-backup-button
             :backup-handler="backupHandler"
-            :filename="item.raw.filename"
+            :filename="item.filename"
             :can-backup="canBackup"
             @delete="$emit('delete')"
           />
@@ -71,12 +71,12 @@ import { defineComponent, PropType } from 'vue';
 import { BackupHandler, BackupItem } from '../../types';
 import XrdDeleteBackupButton from "./XrdDeleteBackupButton.vue";
 import XrdRestoreBackupButton from "./XrdRestoreBackupButton.vue";
-import XdrDownloadBackupButton from "./XdrDownloadBackupButton.vue";
+import XrdDownloadBackupButton from "./XrdDownloadBackupButton.vue";
 import { VDataTable } from "vuetify/labs/VDataTable";
 
 export default defineComponent({
   components: {
-    XdrDownloadBackupButton,
+    XrdDownloadBackupButton,
     XrdRestoreBackupButton,
     XrdDeleteBackupButton,
     VDataTable

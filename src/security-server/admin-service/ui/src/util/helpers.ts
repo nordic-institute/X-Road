@@ -27,14 +27,14 @@ import { Client } from '@/openapi-types';
 import { AxiosResponse } from 'axios';
 
 // Filters an array of objects excluding specified object key
-export function selectedFilter<T, K extends keyof T>(
+export function selectedFilter<T extends object, K extends keyof T>(
   arr: T[],
   search: string,
   excluded?: K,
 ): T[] {
   // Clean the search string
-  const mysearch = search.toString().toLowerCase();
-  if (mysearch.trim() === '') {
+  const mySearch = search.toString().toLowerCase();
+  if (mySearch.trim() === '') {
     return arr;
   }
 
@@ -49,7 +49,7 @@ export function selectedFilter<T, K extends keyof T>(
     }
 
     return filteredKeys.find((key: K) => {
-      return String(g[key]).toLowerCase().includes(mysearch);
+      return String(g[key]).toLowerCase().includes(mySearch);
     });
   });
 
@@ -162,7 +162,7 @@ export const debounce = <F extends (...args: any[]) => any>(
         clearTimeout(timeout);
       }
 
-      timeout = setTimeout(() => resolve(func(...args)), waitFor);
+      timeout = window.setTimeout(() => resolve(func(...args)), waitFor);
     });
 };
 

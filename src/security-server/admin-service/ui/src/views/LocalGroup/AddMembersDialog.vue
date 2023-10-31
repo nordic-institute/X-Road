@@ -24,92 +24,92 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
+  <v-dialog
+    v-if="dialog"
+    :model-value="dialog"
+    width="842"
+    scrollable
+    persistent
+  >
     <v-card class="xrd-card px-0 mx-0" height="90vh">
-      <v-card-title>
-        <span class="headline" data-test="add-members-dialog-title">{{
+      <v-card-title class="d-flex pt-4">
+        <span class="text-h5" data-test="add-members-dialog-title">{{
           $t(title)
         }}</span>
         <v-spacer />
         <i id="close-x" @click="cancel()"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px" class="elevation-0 px-0">
-        <v-expansion-panels
-          v-model="expandPanel"
-          class="elevation-0 px-0"
-          multiple
-        >
-          <v-expansion-panel class="elevation-0 px-0">
-            <v-expansion-panel-header></v-expansion-panel-header>
-            <v-expansion-panel-content class="elevation-0 px-0">
-              <template #header>
-                <v-spacer />
-                <div class="exp-title">
-                  {{ $t('localGroup.searchOptions') }}
-                </div>
-              </template>
+      <v-card-text style="height: 500px" class="pa-0">
+        <xrd-expandable :is-open="true" class="px-4">
+          <template #link="{ toggle }">
+            <div class="exp-title cursor-pointer" @click="toggle">
+              {{ $t('localGroup.searchOptions') }}
+            </div>
+          </template>
+          <template #content>
+            <div class="flex-wrap">
+              <div class="input-row px-2 pb-4">
+                <v-text-field
+                  v-model="name"
+                  :label="$t('general.name')"
+                  variant="outlined"
+                  autofocus
+                  clearable
+                  hide-details
+                  class="flex-input"
+                ></v-text-field>
 
-              <div>
-                <div class="flex-wrap">
-                  <div class="input-row">
-                    <v-text-field
-                      v-model="name"
-                      :label="$t('general.name')"
-                      outlined
-                      autofocus
-                      clearable
-                      hide-details
-                      class="flex-input"
-                    ></v-text-field>
-
-                    <v-select
-                      v-model="instance"
-                      :items="xroadInstances"
-                      :label="$t('general.instance')"
-                      class="flex-input"
-                      clearable
-                      outlined
-                    ></v-select>
-                  </div>
-
-                  <div class="input-row">
-                    <v-select
-                      v-model="memberClass"
-                      :items="memberClasses"
-                      :label="$t('general.memberClass')"
-                      class="flex-input"
-                      clearable
-                      outlined
-                    ></v-select>
-                    <v-text-field
-                      v-model="memberCode"
-                      :label="$t('general.memberCode')"
-                      outlined
-                      clearable
-                      hide-details
-                      class="flex-input"
-                    ></v-text-field>
-                  </div>
-                  <v-text-field
-                    v-model="subsystemCode"
-                    :label="$t('general.subsystemCode')"
-                    outlined
-                    clearable
-                    hide-details
-                    class="flex-input"
-                  ></v-text-field>
-                </div>
-
-                <div class="search-wrap">
-                  <xrd-button :loading="loading" @click="search()">{{
-                    $t('action.search')
-                  }}</xrd-button>
-                </div>
+                <v-select
+                  v-model="instance"
+                  :items="xroadInstances"
+                  :label="$t('general.instance')"
+                  class="flex-input"
+                  clearable
+                  variant="outlined"
+                  hide-details
+                ></v-select>
               </div>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-        </v-expansion-panels>
+
+              <div class="input-row px-2 pb-4">
+                <v-select
+                  v-model="memberClass"
+                  :items="memberClasses"
+                  :label="$t('general.memberClass')"
+                  class="flex-input"
+                  clearable
+                  variant="outlined"
+                  hide-details
+                ></v-select>
+                <v-text-field
+                  v-model="memberCode"
+                  :label="$t('general.memberCode')"
+                  variant="outlined"
+                  clearable
+                  hide-details
+                  class="flex-input"
+                ></v-text-field>
+              </div>
+
+              <div class="input-row px-2 pb-4">
+                <v-text-field
+                  v-model="subsystemCode"
+                  :label="$t('general.subsystemCode')"
+                  variant="outlined"
+                  clearable
+                  hide-details
+                  class="flex-input"
+                ></v-text-field>
+              </div>
+            </div>
+
+            <div class="search-wrap">
+              <xrd-button :loading="loading" @click="search()"
+                >{{ $t('action.search') }}
+              </xrd-button>
+            </div>
+          </template>
+        </xrd-expandable>
 
         <!-- Table -->
 
@@ -126,8 +126,10 @@
               <td>
                 <div class="checkbox-wrap">
                   <v-checkbox
-                    color="primary"
-                    @change="checkboxChange(member.id, $event)"
+                    data-test="add-local-group-member-checkbox"
+                    @update:model-value="
+                      checkboxChange(member.id as string, $event)
+                    "
                   ></v-checkbox>
                 </div>
               </td>
@@ -153,25 +155,27 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <xrd-button class="button-margin" outlined @click="cancel()">{{
-          $t('action.cancel')
-        }}</xrd-button>
+        <xrd-button class="button-margin" outlined @click="cancel()"
+          >{{ $t('action.cancel') }}
+        </xrd-button>
 
-        <xrd-button :disabled="!canSave" @click="save()">{{
-          $t('localGroup.addSelected')
-        }}</xrd-button>
+        <xrd-button :disabled="!canSave" @click="save()"
+          >{{ $t('localGroup.addSelected') }}
+        </xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import * as api from '@/util/api';
-import { Client } from '@/openapi-types';
+import { Client, GroupMember } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
+import { Colors } from '@/global';
+import { XrdExpandable } from '@niis/shared-ui';
 
 const initialState = () => {
   return {
@@ -180,23 +184,24 @@ const initialState = () => {
     memberClass: '',
     memberCode: '',
     subsystemCode: '',
-    expandPanel: [0],
     members: [] as Client[],
     selectedIds: [] as string[],
     noResults: false,
     checkbox1: true,
     loading: false,
+    colors: Colors,
   };
 };
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdExpandable },
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
     filtered: {
-      type: Array as PropType<Client[]>,
+      type: Array as PropType<GroupMember[]>,
       default: undefined,
     },
     title: {
@@ -204,7 +209,7 @@ export default Vue.extend({
       default: 'localGroup.addMembers',
     },
   },
-
+  emits: ['cancel', 'members-added'],
   data() {
     return { ...initialState() };
   },
@@ -254,7 +259,7 @@ export default Vue.extend({
           if (this.filtered && this.filtered.length > 0) {
             // Filter out members that are already added
             this.members = res.data.filter((member) => {
-              return !this.filtered.find((item) => {
+              return !this.filtered?.find((item) => {
                 return item.id === member.id;
               });
             });
@@ -295,4 +300,8 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../assets/tables';
 @import '../../assets/add-dialogs';
+
+.cursor-pointer {
+  cursor: pointer;
+}
 </style>

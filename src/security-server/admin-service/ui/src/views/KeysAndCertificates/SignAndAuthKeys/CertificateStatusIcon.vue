@@ -31,14 +31,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { CertificateStatus, TokenCertificate } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     certificate: {
-      type: Object as Prop<TokenCertificate>,
+      type: Object as PropType<TokenCertificate>,
       required: true,
     },
   },
@@ -97,7 +96,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .cert-row-wrap {
   display: flex;

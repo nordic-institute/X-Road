@@ -26,16 +26,14 @@
 <template>
   <v-app-bar
     class="main-toolbar"
-    app
-    dark
+    theme="dark"
     absolute
     color="#636161"
     flat
     height="32"
-    max-height="32"
   >
     <div v-if="authenticated" class="auth-container">
-      <div class="server-type">X-ROAD SECURITY SERVER</div>
+      <div class="server-type">{{ $t('global.appTitle').toUpperCase() }}</div>
       <div
         v-show="currentSecurityServer.id"
         class="server-name"
@@ -60,14 +58,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { NodeType } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 
-export default Vue.extend({
-  name: 'Toolbar',
+export default defineComponent({
   computed: {
     ...mapState(useUser, ['authenticated', 'currentSecurityServer']),
     ...mapState(useSystem, ['securityServerNodeType']),
@@ -85,7 +82,7 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .server-name {
   margin: 20px;

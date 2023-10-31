@@ -42,8 +42,8 @@
           v-model="keyLabel"
           class="wizard-form-input"
           type="text"
-          outlined
-          data-test="key-label-button"
+          variant="outlined"
+          data-test="key-label-input"
           autofocus
         ></v-text-field>
       </div>
@@ -65,11 +65,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapWritableState } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     tokenType: {
       type: String,
@@ -77,6 +77,7 @@ export default Vue.extend({
       default: undefined,
     },
   },
+  emits: ['cancel', 'done'],
   data() {
     return {
       disableDone: true,

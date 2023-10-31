@@ -56,24 +56,24 @@
         <div
           v-if="hasPermissionToDetails"
           class="xrd-clickable"
-          @click="toDetails(item.raw)"
+          @click="toDetails(item)"
         >
-          {{ item.raw.ca_certificate.subject_common_name }}
+          {{ item.ca_certificate.subject_common_name }}
         </div>
         <div v-else>
-          {{ item.raw.ca_certificate.subject_common_name }}
+          {{ item.ca_certificate.subject_common_name }}
         </div>
       </template>
 
       <template #[`item.ca_certificate.not_before`]="{ item }">
         <div>
-          <date-time :value="item.raw.ca_certificate.not_before" />
+          <date-time :value="item.ca_certificate.not_before" />
         </div>
       </template>
 
       <template #[`item.ca_certificate.not_after`]="{ item }">
         <div>
-          <date-time :value="item.raw.ca_certificate.not_after" />
+          <date-time :value="item.ca_certificate.not_after" />
         </div>
       </template>
 
@@ -83,7 +83,7 @@
             text
             :outlined="false"
             data-test="view-intermediate-ca-certificate"
-            @click="navigateToCertificateDetails(item.raw)"
+            @click="navigateToCertificateDetails(item)"
           >
             {{ $t('trustServices.viewCertificate') }}
           </xrd-button>
@@ -91,7 +91,7 @@
             text
             :outlined="false"
             data-test="delete-intermediate-ca"
-            @click="openDeleteConfirmationDialog(item.raw)"
+            @click="openDeleteConfirmationDialog(item)"
           >
             {{ $t('action.delete') }}
           </xrd-button>

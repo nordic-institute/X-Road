@@ -65,7 +65,7 @@
         <tr v-for="sc in serviceClients" :key="sc.id">
           <td class="identifier-wrap">{{ sc.name }}</td>
           <td class="identifier-wrap">{{ sc.id }}</td>
-          <td>{{ sc.rights_given_at | formatDateTime }}</td>
+          <td>{{ $filters.formatDateTime(sc.rights_given_at ?? '') }}</td>
           <td>
             <xrd-button
               v-if="canEdit"
@@ -82,7 +82,7 @@
 
     <!-- Confirm dialog remove all Access Right subjects -->
     <xrd-confirm-dialog
-      :dialog="confirmDeleteAll"
+      v-if="confirmDeleteAll"
       title="accessRights.removeAllTitle"
       text="accessRights.removeAllText"
       @cancel="resetDeletionSettings(true)"
@@ -91,7 +91,7 @@
 
     <!-- Confirm dialog remove Access Right subject -->
     <xrd-confirm-dialog
-      :dialog="confirmDeleteOne"
+      v-if="confirmDeleteOne"
       title="accessRights.removeTitle"
       text="accessRights.removeText"
       @cancel="resetDeletionSettings(false)"
@@ -111,7 +111,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { Endpoint, ServiceClient } from '@/openapi-types';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
@@ -122,7 +122,7 @@ import { useUser } from '@/store/modules/user';
 
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'EndpointAccessRights',
   components: {
     AccessRightsDialog,
@@ -160,7 +160,7 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
     removeAll(): void {
       this.confirmDeleteAll = true;
@@ -244,7 +244,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .group-members-row {
   width: 100%;

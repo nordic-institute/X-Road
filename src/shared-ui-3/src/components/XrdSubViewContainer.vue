@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts">/**
- * View wrapper component for sub views. See Settings.vue for example
+ * View wrapper component for sub views. See SettingsView.vue for example
  */
 import { defineComponent } from "vue";
 
