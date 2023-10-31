@@ -1,0 +1,43 @@
+Content-Type: multipart/related; charset=UTF-8; boundary=qVCPAAwYS7WHNMSIAsRl
+
+--qVCPAAwYS7WHNMSIAsRl
+Content-Type: multipart/mixed; charset=UTF-8; boundary=7Imp253AXDInOBrZdSVN
+
+--7Imp253AXDInOBrZdSVN
+Expire-date: 2033-10-27T16:44:27Z
+Version: 3
+
+--7Imp253AXDInOBrZdSVN
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: SHARED-PARAMETERS; instance='CS'
+Content-location: /V3/20231030164426998064000/shared-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
+
+DvUQSIgvnV63D71ok2LWh7xqWKRWtk0Meqk8arvuvSrcIkeCAr/+xV6MCi25aDDBbo3IJWahGhCEObHii2G0eQ==
+--7Imp253AXDInOBrZdSVN
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: PRIVATE-PARAMETERS; instance='CS'
+Content-location: /V3/20231030164426998064000/private-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
+
+vNL7DqJnyEQg8dkIxdmxgmqY1qZb7a531dScnSXeVL5NLkjrom629lu0+iVMm9XdRhZHFOViKl6pI1vvrgPUIQ==
+--7Imp253AXDInOBrZdSVN
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: FETCHINTERVAL; instance='CS'
+Content-location: /V3/20231030164426998064000/fetchinterval-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
+
+3zCzNdt2pRQIEXD9NQ9z2IYAldmyoxWyLJvFHQpqdwERFfr2a4tyYA5RLjdSxySMpu69PQ3LjViyxTv5MheYcQ==
+--7Imp253AXDInOBrZdSVN--
+
+--qVCPAAwYS7WHNMSIAsRl
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+Signature-Algorithm-Id: http://www.w3.org/2001/04/xmldsig-more#rsa-sha512
+Verification-certificate-hash: W2F4hzoUhJJPkdFdF8I1xJJMa23M3lenSNP4hs7fFcT+bujRmNopiBSipWVmErejnHpqo0TWVn7LItY7JkKl+w==; hash-algorithm-id="http://www.w3.org/2001/04/xmlenc#sha512"
+
+hZR3RTNnRjc1aBNyfytjDr00n8QqXUdkc7MPUAt86QuHkw1LKR/w18+l9Y6NpAlnjbaW2M858y8EifyQdlQa8M6g2Ft4xIRoxRRfcg4Gkj7lb8WmXOb7zDsLd/sVJn3QXg/NVS+kVN/8BuGzHzGuV98WebI8qZgNphRu5Hpolpws/wXiME8IGGbUDy1cRpLOQA/SB/Rbt8pe7saqT4cI/7yo9ce3OcrkvLUgxOgAQowuQ+D1jSnCH/7Sx72fnQJFwU6Yq+3KHbXt5jdL6K9ugmwGRKc3qRY0Piyt8D0dxQ5BqjMOenta99tMy90NO2B1yvdulaonFpp405bDB6pKoQ==
+--qVCPAAwYS7WHNMSIAsRl--

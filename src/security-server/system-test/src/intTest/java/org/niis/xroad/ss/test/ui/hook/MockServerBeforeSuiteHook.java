@@ -43,20 +43,20 @@ import static org.mockserver.model.HttpResponse.response;
 public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
     private static final String PREFIX_TESTSERVICES = "/test-services/";
 
-    private static final String GLOBALCONF_DIR = "files/globalconf/V2/";
+    private static final String GLOBALCONF_DIR = "files/globalconf/V3/";
     private static final String TESTSERVICES_DIR = "files" + PREFIX_TESTSERVICES;
-    private static final String CONF_PART_DIR = "20230614171349563665000";
+    private static final String CONF_PART_DIR = "20231030164426998064000";
 
     private final ClasspathFileResolver classpathFileResolver;
     private final MockServerService mockServerService;
 
     @Override
     public void beforeSuite() {
-        mockFileResponse(GLOBALCONF_DIR, "/", "internalconf", new Parameter("version", "2"));
-        mockFileResponse(GLOBALCONF_DIR, "/", "externalconf", new Parameter("version", "2"));
-        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/private-params.xml");
-        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/shared-params.xml");
-        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/fetchinterval-params.xml");
+        mockFileResponse(GLOBALCONF_DIR, "/", "internalconf", new Parameter("version", "3"));
+        mockFileResponse(GLOBALCONF_DIR, "/", "externalconf", new Parameter("version", "3"));
+        mockFileResponse(GLOBALCONF_DIR, "/V3/", CONF_PART_DIR + "/private-params.xml");
+        mockFileResponse(GLOBALCONF_DIR, "/V3/", CONF_PART_DIR + "/shared-params.xml");
+        mockFileResponse(GLOBALCONF_DIR, "/V3/", CONF_PART_DIR + "/fetchinterval-params.xml");
 
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testopenapi1.yaml");
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testopenapi11.yaml");
@@ -65,6 +65,8 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice1.wsdl");
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice2.wsdl");
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice3.wsdl");
+
+        mockManagementRequest();
     }
 
     private void mockFileResponse(String fileDir, String pathPrefix, String path) {
@@ -87,4 +89,20 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
     }
 
 
+    private void mockManagementRequest() {
+        var expectations = mockServerService.client()
+                .when(request()
+                        .withMethod("POST")
+                        .withPath("/managementservice/")
+                )
+                .respond(response()
+                        .withBody(classpathFileResolver.getFileAsString("files/soap-responses/management-response-1.xml"))
+                );
+
+        for (Expectation expectation : expectations) {
+            log.info("Registered new mock-service response for request {}", expectation.getHttpRequest().toString());
+        }
+
+
+    }
 }
