@@ -1,6 +1,6 @@
 # X-Road: Configuration Proxy Manual
 
-Version: 2.10  
+Version: 2.11  
 Doc. ID: UG-CP
 
 ## Version History
@@ -24,6 +24,7 @@ Doc. ID: UG-CP
 | 18.02.2021 | 2.8     | Add Ubuntu 20.04 in supported platforms                                                                                                                                                       | Petteri Kivimäki |
 | 01.07.2021 | 2.9     | Update 3rd party key server                                                                                                                                                                   | Petteri Kivimäki |
 | 26.09.2022 | 2.10    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal |
+| 30.10.2023 | 2.11    | Configuring TLS Certificates                                                                                                                                                                  | Madis Loitmaa    |
 
 
 ## Table of Contents
@@ -43,6 +44,7 @@ Doc. ID: UG-CP
   * [2.5 Installation](#25-installation)
   * [2.6 Post-Installation Checks](#26-post-installation-checks)
   * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+  * [2.8 Configuring TLS Certificates](#28-configuring-tls-certificates)
 * [3 Configuration](#3-configuration)
   * [3.1 Prerequisites](#31-prerequisites)
     * [3.1.1 Security Token Activation](#311-security-token-activation)
