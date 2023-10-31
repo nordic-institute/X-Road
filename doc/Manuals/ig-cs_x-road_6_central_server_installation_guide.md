@@ -74,6 +74,7 @@ Doc. ID: IG-CS
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
   - [2.7 Package Installation](#27-package-installation)
+    - [2.7.1 Configuring TLS Certificates](#271-configuring-tls-certificates)
   - [2.8 Installing the Support for Hardware Tokens](#28-installing-the-support-for-hardware-tokens)
   - [2.9 Installing the Support for Monitoring](#29-installing-the-support-for-monitoring)
   - [2.10 Pre-configuration for Registration Web Service](#210-pre-configuration-for-registration-web-service)
@@ -311,6 +312,19 @@ Upon the first installation of the Central Server software, the system asks for 
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+#### 2.7.1 Configuring TLS Certificates
+
+The installation process creates a self-signed TLS certificates. However, self-signed certificates are not recommended for production use, and should be substituted with certificate issued by a trusted Certificate Authority (CA).
+
+To configure the Central Server to use a certificate issued by a trusted CA for serving global configurations over HTTPS, replace the existing certificate files (`global-conf.crt`) and its associated private key (`global-conf.key`), located in the `/etc/xroad/ssl/` directory.
+
+Reload the nginx service for the certificate change to take effect.
+
+```bash
+systemctl reload nginx
+```
+
 
 ### 2.8 Installing the Support for Hardware Tokens
 
