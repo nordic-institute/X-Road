@@ -71,6 +71,11 @@ Description: Error during certificate generation, please fix issues
   output was:
   ${ERR}
 
+Template: xroad-common/cert-generation-retry
+Default: false
+Type: boolean
+Description: Retry certificate generation
+
 Template: xroad-common/username
 Type: string
 Default:
