@@ -58,6 +58,7 @@ import org.apache.commons.io.IOUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -74,6 +75,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.METADATA_SUFFIX;
 import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
 import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
 import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
@@ -446,11 +448,22 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 zos.putNextEntry(new ZipEntry(buildPath(metadata)));
                 IOUtils.copy(contents, zos);
                 zos.closeEntry();
+
+                zos.putNextEntry(new ZipEntry(buildPath(metadata) + METADATA_SUFFIX));
+                var verificationConfMetaData = toVerificationConfMetaData(metadata);
+                IOUtils.copy(new ByteArrayInputStream(verificationConfMetaData.toJson()), zos);
+                zos.closeEntry();
             }
         }
 
         private String buildPath(ConfigurationPartMetadata metadata) {
             return PREFIX + metadata.getInstanceIdentifier() + "/" + ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
+        }
+
+        private ConfigurationPartMetadata toVerificationConfMetaData(ConfigurationPartMetadata source) {
+            var metaData = new ConfigurationPartMetadata();
+            metaData.setConfigurationVersion(source.getConfigurationVersion());
+            return metaData;
         }
 
         @Override
