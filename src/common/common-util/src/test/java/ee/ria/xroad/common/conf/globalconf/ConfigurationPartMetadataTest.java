@@ -50,7 +50,7 @@ public class ConfigurationPartMetadataTest {
         write.setInstanceIdentifier("FOO");
         write.setExpirationDate(TimeUtils.offsetDateTimeNow());
 
-        final byte[] bytes = write.toByteArray();
+        final byte[] bytes = write.toJson();
         ConfigurationPartMetadata read = ConfigurationPartMetadata.read(
                 new ByteArrayInputStream(bytes));
 

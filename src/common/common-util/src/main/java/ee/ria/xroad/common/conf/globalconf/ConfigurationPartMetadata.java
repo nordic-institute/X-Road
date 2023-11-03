@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,6 +70,7 @@ public class ConfigurationPartMetadata {
 
     static {
         final ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(Include.NON_NULL);
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
@@ -78,10 +80,10 @@ public class ConfigurationPartMetadata {
     // ------------------------------------------------------------------------
 
     /**
-     * @return the metadata as byte array
+     * @return the metadata JSON as byte array
      * @throws JsonProcessingException if an error occurs while serializing the data
      */
-    public byte[] toByteArray() throws JsonProcessingException {
+    public byte[] toJson() throws JsonProcessingException {
         return MAPPER.writeValueAsBytes(this);
     }
 

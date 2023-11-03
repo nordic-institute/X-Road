@@ -334,7 +334,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     protected static OffsetDateTime getFileExpiresOn(Path filePath) {
         try {
-            return getMetadata(filePath).getExpirationDate();
+            OffsetDateTime expiresOn = getMetadata(filePath).getExpirationDate();
+            return expiresOn != null ? expiresOn : OffsetDateTime.MAX;
         } catch (IOException e) {
             log.error("Unable to read expiration date", e);
             return OffsetDateTime.MAX;

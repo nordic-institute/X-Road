@@ -90,7 +90,7 @@ public interface ConfigurationDirectory {
      */
     static void saveMetadata(Path fileName, ConfigurationPartMetadata metadata) throws Exception {
         AtomicSave.execute(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA,
-                "expires", metadata.toByteArray(), StandardCopyOption.ATOMIC_MOVE);
+                "expires", metadata.toJson(), StandardCopyOption.ATOMIC_MOVE);
     }
 
     /**
