@@ -620,9 +620,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         }
 
         if (p == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Invalid instance identifier: %s",
-                    getInstanceIdentifier());
+            throw new CodedException(X_INTERNAL_ERROR, "Private params for instance identifier %s not found", getInstanceIdentifier());
         }
 
         return p;
@@ -637,8 +635,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         }
 
         if (p == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Invalid instance identifier: %s", instanceIdentifier);
+            throw new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier);
         }
 
         return p;
