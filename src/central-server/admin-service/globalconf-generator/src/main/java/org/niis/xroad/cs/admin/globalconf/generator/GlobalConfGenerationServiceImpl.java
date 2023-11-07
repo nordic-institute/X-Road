@@ -126,7 +126,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
                 cleanUpOldConfigurations(generatedConfDir.resolve(configDistributor.getVersionSubPath()));
 
-                writeLocalCopy(allConfigurationParts);
+                writeLocalCopy(confVersion, allConfigurationParts);
 
                 log.debug("Global conf generated");
                 success = true;
@@ -231,10 +231,12 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         return CryptoUtils.getAlgorithmId(systemParameterService.getConfHashAlgoUri());
     }
 
-    private void writeLocalCopy(Set<ConfigurationPart> allConfigurationParts) {
-        new LocalCopyWriter(systemParameterService.getInstanceIdentifier(),
+    private void writeLocalCopy(int configurationVersion, Set<ConfigurationPart> allConfigurationParts) {
+        new LocalCopyWriter(configurationVersion,
+                systemParameterService.getInstanceIdentifier(),
                 Path.of(SystemProperties.getConfigurationPath()),
-                TimeUtils.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds()))
+                TimeUtils.now().plusSeconds(systemParameterService.getConfExpireIntervalSeconds())
+        )
                 .write(allConfigurationParts);
     }
 
