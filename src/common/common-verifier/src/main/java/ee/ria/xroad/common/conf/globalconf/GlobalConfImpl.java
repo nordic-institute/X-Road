@@ -548,7 +548,11 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     SharedParameters.GlobalGroup findGlobalGroup(GlobalGroupId groupId) {
-        return getSharedParameters(groupId.getXRoadInstance()).getGlobalGroups().stream()
+        SharedParameters sharedParameters = confDir.getShared(groupId.getXRoadInstance());
+        if (sharedParameters == null) {
+            return null;
+        }
+        return sharedParameters.getGlobalGroups().stream()
                 .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
                 .findFirst().orElse(null);
     }
