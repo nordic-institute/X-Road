@@ -1983,7 +1983,7 @@ paths:
           schema:
             example: foobar
             format: text
-            maxLength: 25
+            maxLength: 255
             type: string
         - description: >
             optional paging and sorting parameters. Sorting possible according to one of the following values:
@@ -2212,7 +2212,7 @@ paths:
           schema:
             example: foobar
             format: text
-            maxLength: 25
+            maxLength: 255
             type: string
         - description: >
             optional paging and sorting parameters. Sorting possible according to one of the following values:
