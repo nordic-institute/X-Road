@@ -44,7 +44,7 @@ public interface FeignClientsApi extends ClientsApi {
     @Override
     @GetMapping(value = "/clients", produces = {"application/json"})
     ResponseEntity<PagedClientsDto> findClients(
-            @Size(max = 25) @Valid @RequestParam(value = "q", required = false) String q,
+            @Size(max = 255) @Valid @RequestParam(value = "q", required = false) String q,
             @SpringQueryMap @Valid PagingSortingParametersDto pagingSorting,
             @Size(min = 0, max = 255) @Valid @RequestParam(value = "name", required = false) String name,
             @Size(min = 0, max = 255) @Valid @RequestParam(value = "instance", required = false) String instance,
