@@ -86,7 +86,7 @@ public class ConfigurationDownloaderTest {
         // We loop in order to make failing due to wrong URL more certain.
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
             // Given
-            ConfigurationDownloader downloader = getDownloader(version, LOCATION_HTTPS_URL_SUCCESS + "?version=" + version);
+            ConfigurationDownloader downloader = getDownloader(version, LOCATION_URL_SUCCESS + "?version=" + version);
             List<String> locationUrls = getMixedLocationUrls();
 
             // When
