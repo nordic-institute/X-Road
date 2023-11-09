@@ -50,6 +50,7 @@ import static org.junit.Assert.assertTrue;
 public class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
     private static final String LOCATION_URL_SUCCESS = "http://www.example.com";
+    private static final String LOCATION_HTTPS_URL_SUCCESS = "https://www.example.com";
 
     /**
      * For better HA, the order of sources to be tried to download configuration
@@ -85,7 +86,7 @@ public class ConfigurationDownloaderTest {
         // We loop in order to make failing due to wrong URL more certain.
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
             // Given
-            ConfigurationDownloader downloader = getDownloader(version, LOCATION_URL_SUCCESS + "?version=" + version);
+            ConfigurationDownloader downloader = getDownloader(version, LOCATION_HTTPS_URL_SUCCESS + "?version=" + version);
             List<String> locationUrls = getMixedLocationUrls();
 
             // When
@@ -277,6 +278,7 @@ public class ConfigurationDownloaderTest {
 
         result.add("http://www.example.com/failure1");
         result.add(LOCATION_URL_SUCCESS);
+        result.add(LOCATION_HTTPS_URL_SUCCESS);
         result.add("http://www.example.com/failure2");
 
         return result;

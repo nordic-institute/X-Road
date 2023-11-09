@@ -459,6 +459,12 @@ public final class SystemProperties {
     public static final String CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON =
             PREFIX + "configuration-client.proxy-configuration-backup-cron";
 
+    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION =
+            PREFIX + "configuration-client.global_conf_tls_cert_verification";
+
+    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
+            PREFIX + "configuration-client.global_conf_hostname_verification";
+
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
 
@@ -1084,6 +1090,14 @@ public final class SystemProperties {
      */
     public static String getConfigurationClientProxyConfigurationBackupCron() {
         return System.getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "0 15 3 * * ?");
+    }
+
+    public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, "true"));
+    }
+
+    public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true"));
     }
 
     public static String getConfigurationClientAllowedFederations() {

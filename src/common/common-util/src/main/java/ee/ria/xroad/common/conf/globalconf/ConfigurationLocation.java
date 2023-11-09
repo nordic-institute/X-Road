@@ -34,6 +34,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.cert.X509Certificate;
@@ -69,6 +70,7 @@ public class ConfigurationLocation {
     public InputStream getInputStream() throws Exception {
         try {
             URLConnection connection = getDownloadURLConnection(downloadURL);
+            ConfigurationHttpUrlConnectionConfig.apply((HttpURLConnection) connection);
             return connection.getInputStream();
         } catch (IOException e) {
             throw new CodedException(X_HTTP_ERROR, e);

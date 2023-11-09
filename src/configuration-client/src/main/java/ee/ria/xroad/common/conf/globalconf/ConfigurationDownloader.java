@@ -84,6 +84,8 @@ class ConfigurationDownloader {
 
     private static final String VERSION_QUERY_PARAMETER = "version";
 
+    private static final String HTTPS = "https";
+
     protected final FileNameProvider fileNameProvider;
 
     private final Map<ConfigurationSource, ConfigurationLocation> lastSuccessfulLocation = new HashMap<>();
@@ -140,12 +142,23 @@ class ConfigurationDownloader {
 
         preferLastSuccessLocation(source, result);
 
-        List<ConfigurationLocation> randomized = new ArrayList<>(source.getLocations());
+        List<ConfigurationLocation> randomized = new ArrayList<>(getLocationsPreferHttps(source));
         Collections.shuffle(randomized);
         result.addAll(randomized);
 
         result.removeIf(Objects::isNull);
 
+        return result;
+    }
+
+    private List<ConfigurationLocation> getLocationsPreferHttps(ConfigurationSource source) {
+        List<ConfigurationLocation> result = new ArrayList<>();
+        result.addAll(source.getLocations().stream()
+                .filter(l -> l.getDownloadURL().startsWith(HTTPS))
+                .toList());
+        result.addAll(source.getLocations().stream()
+                .filter(l -> !l.getDownloadURL().startsWith(HTTPS))
+                .toList());
         return result;
     }
 
@@ -303,6 +316,7 @@ class ConfigurationDownloader {
         uriBuilder.addParameter(VERSION_QUERY_PARAMETER, String.valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION));
         URL url = new URL(uriBuilder.toString());
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        ConfigurationHttpUrlConnectionConfig.apply(connection);
         if (connection.getResponseCode() == HttpStatus.SC_NOT_FOUND) {
             int fallBackVersion = CURRENT_GLOBAL_CONFIGURATION_VERSION - 1;
             log.info("Global conf version {} query resulted in HTTP {}, defaulting back to version {}.",
