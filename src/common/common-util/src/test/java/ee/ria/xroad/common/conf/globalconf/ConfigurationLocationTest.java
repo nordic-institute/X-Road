@@ -27,6 +27,8 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import org.junit.Test;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import java.io.IOException;
 import java.net.URLConnection;
 
@@ -37,6 +39,8 @@ import static org.junit.Assert.assertTrue;
  * Unit tests for {@link ConfigurationLocation}
  */
 public class ConfigurationLocationTest {
+    private static final String TLS_CERTIFICATION_VERIFICATION_ENABLED = "xroad.configuration-client.global_conf_tls_cert_verification";
+    private static final String HOSTNAME_VERIFICATION_ENABLED = "xroad.configuration-client.global_conf_hostname_verification";
 
     /**
      * Checks that {@link ConfigurationLocation} uses connections that timeout after a period of time.
@@ -44,8 +48,18 @@ public class ConfigurationLocationTest {
      */
     @Test
     public void connectionsTimeout() throws IOException {
-        URLConnection connection = ConfigurationLocation.getDownloadURLConnection("http://test.download.com");
+        URLConnection connection = ConfigurationLocation.getDownloadURLConnection("https://test.download.com");
         assertEquals(connection.getReadTimeout(), ConfigurationLocation.READ_TIMEOUT);
         assertTrue(connection.getReadTimeout() > 0);
+    }
+
+    @Test
+    public void connectionShouldWorkAfterDisablingTlsCertificationAndHostnameVerification() throws IOException {
+        System.setProperty(TLS_CERTIFICATION_VERIFICATION_ENABLED, "false");
+        System.setProperty(HOSTNAME_VERIFICATION_ENABLED, "false");
+        HttpsURLConnection connection = (HttpsURLConnection) ConfigurationLocation.getDownloadURLConnection("https://test.download.com");
+        assertEquals(connection.getReadTimeout(), ConfigurationLocation.READ_TIMEOUT);
+        assertTrue(connection.getReadTimeout() > 0);
+        assertEquals("NO_OP", connection.getHostnameVerifier().toString());
     }
 }

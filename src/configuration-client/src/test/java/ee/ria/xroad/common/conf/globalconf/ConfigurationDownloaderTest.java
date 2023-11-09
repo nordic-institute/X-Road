@@ -145,14 +145,14 @@ public class ConfigurationDownloaderTest {
     public void enforcedVersionPrevailsPresetVersion() {
         // Given
         int enforcedVersion = 2;
-        ConfigurationDownloader downloader = getDownloader(enforcedVersion, LOCATION_URL_SUCCESS + "?version=" + enforcedVersion);
-        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + 3);
+        ConfigurationDownloader downloader = getDownloader(enforcedVersion, LOCATION_HTTPS_URL_SUCCESS + "?version=" + enforcedVersion);
+        List<String> locationUrls = List.of(LOCATION_HTTPS_URL_SUCCESS + "?version=" + 3);
 
         // When
         downloader.download(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, enforcedVersion);
+        verifySuccessfulLocation(downloader, LOCATION_HTTPS_URL_SUCCESS, enforcedVersion);
     }
 
     /**

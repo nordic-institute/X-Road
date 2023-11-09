@@ -70,7 +70,6 @@ public class ConfigurationLocation {
     public InputStream getInputStream() throws Exception {
         try {
             URLConnection connection = getDownloadURLConnection(downloadURL);
-            ConfigurationHttpUrlConnectionConfig.apply((HttpURLConnection) connection);
             return connection.getInputStream();
         } catch (IOException e) {
             throw new CodedException(X_HTTP_ERROR, e);
@@ -85,6 +84,7 @@ public class ConfigurationLocation {
         URL url = new URL(urlStr);
         URLConnection connection = url.openConnection();
         connection.setReadTimeout(READ_TIMEOUT);
+        ConfigurationHttpUrlConnectionConfig.apply((HttpURLConnection) connection);
         return connection;
     }
 
