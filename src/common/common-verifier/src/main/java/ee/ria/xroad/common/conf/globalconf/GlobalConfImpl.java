@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -538,19 +539,16 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public boolean isSubjectInGlobalGroup(ClientId subjectId, GlobalGroupId groupId) {
-
-        SharedParameters.GlobalGroup group = findGlobalGroup(groupId);
-        if (group == null) {
-            return false;
-        }
-
-        return group.getGroupMembers().stream().anyMatch(m -> m.equals(subjectId));
+        return findGlobalGroup(groupId)
+                .filter(group -> group.getGroupMembers().stream().anyMatch(m -> m.equals(subjectId)))
+                .isPresent();
     }
 
-    SharedParameters.GlobalGroup findGlobalGroup(GlobalGroupId groupId) {
-        return getSharedParameters(groupId.getXRoadInstance()).getGlobalGroups().stream()
-                .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
-                .findFirst().orElse(null);
+    Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
+        Optional<SharedParameters> sharedParameters = Optional.ofNullable(confDir.getShared(groupId.getXRoadInstance()));
+        return sharedParameters.flatMap(params -> params.getGlobalGroups().stream()
+                        .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
+                        .findFirst());
     }
 
     @Override

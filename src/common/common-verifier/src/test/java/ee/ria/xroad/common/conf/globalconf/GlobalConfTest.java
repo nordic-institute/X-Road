@@ -133,6 +133,21 @@ public class GlobalConfTest {
     }
 
     /**
+     * Tests checking if subject is in global group.
+     */
+    @Test
+    public void isSubjectInGlobalGroup() {
+        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member2"),
+                GlobalGroupId.Conf.create("EE", "Test group"))
+        );
+        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member2"),
+                GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
+        );
+    }
+
+    /**
      * Tests getting the global group description.
      */
     @Test
