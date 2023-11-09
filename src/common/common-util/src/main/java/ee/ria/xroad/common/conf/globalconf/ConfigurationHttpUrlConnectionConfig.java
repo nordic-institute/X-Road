@@ -41,11 +41,13 @@ import java.net.HttpURLConnection;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 @Slf4j
 public final class ConfigurationHttpUrlConnectionConfig {
 
+    private static final String TLS = "TLS";
     private static final SSLSocketFactory SSL_SOCKET_FACTORY;
     private static final boolean TLS_CERTIFICATION_VERIFICATION_ENABLED =
             SystemProperties.isConfigurationClientGlobalConfTlsCertVerificationEnabled();
@@ -54,7 +56,7 @@ public final class ConfigurationHttpUrlConnectionConfig {
 
     static {
         try {
-            final SSLContext sslContext = SSLContext.getInstance("TLS");
+            final SSLContext sslContext = SSLContext.getInstance(TLS);
             sslContext.init(null, new TrustManager[]{new NoopTrustManager()}, new SecureRandom());
             SSL_SOCKET_FACTORY = sslContext.getSocketFactory();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
@@ -79,7 +81,7 @@ public final class ConfigurationHttpUrlConnectionConfig {
     }
 
     private static void logSystemPropertiesInfo() {
-        log.info("Global conf TLS certificate verification is " + isEnabled(TLS_CERTIFICATION_VERIFICATION_ENABLED)
+        log.info("Global conf download TLS certificate verification is " + isEnabled(TLS_CERTIFICATION_VERIFICATION_ENABLED)
                 + ", hostname verification is " + isEnabled(HOSTNAME_VERIFICATION_ENABLED));
     }
 
@@ -87,15 +89,16 @@ public final class ConfigurationHttpUrlConnectionConfig {
         return paramValue ? "enabled" : "disabled";
     }
 
+    @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified in production environment")
     static class NoopTrustManager implements X509TrustManager {
         @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
-            //NOP
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            // The method gets never called
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
-            //NOP
+        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            // Trust all
         }
 
         @Override
