@@ -31,7 +31,11 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
-import javax.net.ssl.*;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import java.net.HttpURLConnection;
 import java.security.KeyManagementException;
@@ -43,8 +47,10 @@ import java.security.cert.X509Certificate;
 public final class ConfigurationHttpUrlConnectionConfig {
 
     private static final SSLSocketFactory SSL_SOCKET_FACTORY;
-    private static final boolean TLS_CERTIFICATION_VERIFICATION_ENABLED = SystemProperties.isConfigurationClientGlobalConfTlsCertVerificationEnabled();
-    private static final boolean HOSTNAME_VERIFICATION_ENABLED = SystemProperties.isConfigurationClientGlobalConfHostnameVerificationEnabled();
+    private static final boolean TLS_CERTIFICATION_VERIFICATION_ENABLED =
+            SystemProperties.isConfigurationClientGlobalConfTlsCertVerificationEnabled();
+    private static final boolean HOSTNAME_VERIFICATION_ENABLED =
+            SystemProperties.isConfigurationClientGlobalConfHostnameVerificationEnabled();
 
     static {
         try {
@@ -78,7 +84,7 @@ public final class ConfigurationHttpUrlConnectionConfig {
     }
 
     private static String isEnabled(boolean paramValue) {
-        return paramValue? "enabled" : "disabled";
+        return paramValue ? "enabled" : "disabled";
     }
 
     static class NoopTrustManager implements X509TrustManager {
