@@ -127,7 +127,7 @@ export default defineComponent({
         upload: uploadBackup,
         delete: this.deleteBackup,
         download: this.downloadBackup,
-        restore: this.downloadBackup,
+        restore: this.restoreBackup,
       };
     },
     fetchData() {
@@ -159,7 +159,7 @@ export default defineComponent({
         .then((resp) => saveResponseAsFile(resp, fileName));
     },
     restoreBackup(fileName: string) {
-      api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
+      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
     },
     displaySuccess(textKey: string, data: Record<string, unknown> = {}) {
       this.showSuccess(this.$t(textKey, data));
