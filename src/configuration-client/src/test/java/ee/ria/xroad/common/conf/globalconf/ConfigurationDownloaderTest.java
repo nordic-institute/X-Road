@@ -117,14 +117,14 @@ public class ConfigurationDownloaderTest {
     @Test
     public void v3PrevailsWhenVersionNeitherPresetNorEnforced() {
         // Given
-        ConfigurationDownloader downloader = getDownloader(LOCATION_URL_SUCCESS + "?version=" + 3);
-        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS);
+        ConfigurationDownloader downloader = getDownloader(LOCATION_HTTPS_URL_SUCCESS + "?version=" + 3);
+        List<String> locationUrls = List.of(LOCATION_HTTPS_URL_SUCCESS);
 
         // When
         downloader.download(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, 3);
+        verifySuccessfulLocation(downloader, LOCATION_HTTPS_URL_SUCCESS, 3);
     }
 
     @Test
@@ -211,14 +211,16 @@ public class ConfigurationDownloaderTest {
         List<String> expectedLocationUrls = locationUrls.stream()
                 .map(url -> url + "?version=" + downloader.getConfigurationVersion())
                 .collect(toList());
-        verifyLocationsRandomized(downloader, expectedLocationUrls);
+        verifyLocationsRandomizedPreferHttps(downloader, expectedLocationUrls);
     }
 
-    private void verifyLocationsRandomized(
+    private void verifyLocationsRandomizedPreferHttps(
             ConfigurationDownloader downloader, List<String> locationUrls) {
         List<String> urlsParsedInOrder =
                 getParser(downloader).getConfigurationUrls();
 
+        assertTrue(locationUrls.get(0).startsWith("http:"));
+        assertTrue(urlsParsedInOrder.get(0).startsWith("https"));
         assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
         assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
     }
@@ -267,8 +269,8 @@ public class ConfigurationDownloaderTest {
         List<String> result = new ArrayList<>();
 
         result.add("http://www.example.com/loc1");
-        result.add("http://www.example.com/loc2");
-        result.add("http://www.example.com/loc3");
+        result.add("https://www.example.com/loc2");
+        result.add("https://www.example.com/loc3");
 
         return result;
     }
