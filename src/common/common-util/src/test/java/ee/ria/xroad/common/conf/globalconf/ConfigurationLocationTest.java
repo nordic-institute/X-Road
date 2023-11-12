@@ -49,7 +49,7 @@ public class ConfigurationLocationTest {
     @Test
     public void connectionsTimeout() throws IOException {
         URLConnection connection = ConfigurationLocation.getDownloadURLConnection("https://configurationLocationTestu.com");
-        assertEquals(connection.getReadTimeout(), ConfigurationLocation.READ_TIMEOUT);
+        assertEquals(ConfigurationLocation.READ_TIMEOUT, connection.getReadTimeout());
         assertTrue(connection.getReadTimeout() > 0);
     }
 
@@ -57,9 +57,8 @@ public class ConfigurationLocationTest {
     public void connectionShouldWorkAfterDisablingTlsCertificationAndHostnameVerification() throws IOException {
         System.setProperty(TLS_CERTIFICATION_VERIFICATION_ENABLED, "false");
         System.setProperty(HOSTNAME_VERIFICATION_ENABLED, "false");
-        HttpsURLConnection connection = (HttpsURLConnection) ConfigurationLocation.getDownloadURLConnection("https://ConfigurationLocationTest.com");
-        assertEquals(connection.getReadTimeout(), ConfigurationLocation.READ_TIMEOUT);
-        assertTrue(connection.getReadTimeout() > 0);
+        HttpsURLConnection connection =
+                (HttpsURLConnection) ConfigurationLocation.getDownloadURLConnection("https://ConfigurationLocationTest.com");
         assertEquals("NO_OP", connection.getHostnameVerifier().toString());
     }
 }
