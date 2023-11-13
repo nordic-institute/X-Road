@@ -25,12 +25,12 @@
  -->
 <template>
   <div class="ml-1">
-    <v-icon v-if="arrowState" class="arrow-down" :color="iconColor"
-      >icon-Sorting-arrow</v-icon
-    >
-    <v-icon v-else class="arrow-up" :color="iconColor"
-      >icon-Sorting-arrow</v-icon
-    >
+    <xrd-icon-base v-if="arrowState" class="arrow-down" :color="iconColor">
+      <xrd-icon-sorting-arrow />
+    </xrd-icon-base>
+    <xrd-icon-base v-else class="arrow-up" :color="iconColor">
+      <xrd-icon-sorting-arrow />
+    </xrd-icon-base>
   </div>
 </template>
 
@@ -38,10 +38,12 @@
 /**
  * Component for sorting icon (up and down)
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Colors } from '@/global';
+import { XrdIconSortingArrow } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdIconSortingArrow },
   props: {
     arrowState: {
       type: Boolean,

@@ -23,14 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import axios from 'axios';
+import * as api from '@/util/api';
 import { Client } from '@/openapi-types';
 import { createClientId, deepClone, Mutable } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
-import i18n from './../../i18n';
+import i18n from '@/plugins/i18n';
+import { defineStore } from 'pinia';
 
-const UNKNOWN_NAME: string = i18n.t('client.unknownMember') as string;
+const UNKNOWN_NAME: string = i18n.global.t('client.unknownMember') as string;
 
 export interface ClientsState {
   clients: Client[];
@@ -41,8 +42,6 @@ export interface ClientsState {
   realMembers: ExtendedClient[]; // local actual real members, owner +1
   subsystems: ExtendedClient[];
 }
-
-import { defineStore } from 'pinia';
 
 export const useClients = defineStore('clients', {
   state: (): ClientsState => {
@@ -64,8 +63,8 @@ export const useClients = defineStore('clients', {
     fetchClients() {
       this.clientsLoading = true;
 
-      return axios
-        .get('/clients')
+      return api
+        .get<Client[]>('/clients')
         .then((res) => {
           this.storeClients(res.data);
         })

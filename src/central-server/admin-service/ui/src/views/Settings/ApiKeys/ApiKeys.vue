@@ -52,13 +52,13 @@
           <xrd-icon-base class="mr-4">
             <xrd-icon-key />
           </xrd-icon-base>
-          {{ item.raw.id }}
+          {{ item.id }}
         </div>
       </template>
 
       <template #[`item.roles`]="{ item }">
-        <span :data-test="`api-key-row-${item.raw.id}-roles`">{{
-          translateRoles(item.raw.roles).join(', ')
+        <span :data-test="`api-key-row-${item.id}-roles`">{{
+          translateRoles(item.roles).join(', ')
         }}</span>
       </template>
 
@@ -67,9 +67,9 @@
           <xrd-button
             v-if="canEdit"
             text
-            :data-test="`api-key-row-${item.raw.id}-edit-button`"
+            :data-test="`api-key-row-${item.id}-edit-button`"
             :outlined="false"
-            @click="editKey(item.raw)"
+            @click="editKey(item)"
           >
             {{ $t('action.edit') }}
           </xrd-button>
@@ -77,9 +77,9 @@
           <xrd-button
             v-if="canRevoke"
             text
-            :data-test="`api-key-row-${item.raw.id}-revoke-button`"
+            :data-test="`api-key-row-${item.id}-revoke-button`"
             :outlined="false"
-            @click="showRevokeDialog(item.raw)"
+            @click="showRevokeDialog(item)"
           >
             {{ $t('apiKey.table.action.revoke.button') }}
           </xrd-button>

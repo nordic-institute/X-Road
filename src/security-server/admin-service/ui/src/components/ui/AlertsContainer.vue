@@ -24,20 +24,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <v-container class="pa-0">
-      <GlobalAlerts />
-      <ContextualAlerts />
-    </v-container>
-  </div>
+  <v-container fluid class="pa-0">
+    <GlobalAlerts />
+    <ContextualAlerts />
+  </v-container>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import ContextualAlerts from './ContextualAlerts.vue';
 import GlobalAlerts from './GlobalAlerts.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     ContextualAlerts,
     GlobalAlerts,

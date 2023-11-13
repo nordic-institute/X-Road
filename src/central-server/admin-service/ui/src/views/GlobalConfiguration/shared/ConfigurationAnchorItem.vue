@@ -44,12 +44,12 @@
         <xrd-icon-base class="internal-conf-icon">
           <XrdIconCertificate />
         </xrd-icon-base>
-        <span data-test="anchor-hash">{{ item.raw.hash }}</span>
+        <span data-test="anchor-hash">{{ item.hash }}</span>
       </template>
       <template #[`item.createdAt`]="{ item }">
         <date-time
           data-test="anchor-created-at"
-          :value="item.raw.createdAt"
+          :value="item.createdAt"
           with-seconds
         />
       </template>

@@ -44,15 +44,15 @@
 
           <CertificateRow
             v-for="cert in key.certificates"
-            :key="cert.id"
+            :key="cert.certificate_details.issuer_distinguished_name"
             :cert="cert"
             @certificate-click="certificateClick(cert, key)"
           >
-            <div slot="certificateAction">
+            <template #certificateAction>
               <xrd-button
                 v-if="
                   showRegisterCertButton &&
-                  cert.possible_actions.includes('REGISTER')
+                  cert.possible_actions?.includes(PossibleAction.REGISTER)
                 "
                 class="table-button-fix test-register"
                 :outlined="false"
@@ -60,7 +60,7 @@
                 @click="showRegisterCertDialog(cert)"
                 >{{ $t('action.register') }}</xrd-button
               >
-            </div>
+            </template>
           </CertificateRow>
         </template>
 
@@ -75,14 +75,18 @@
 
           <CertificateRow
             v-for="cert in key.certificates"
-            :key="cert.id"
+            :key="cert.certificate_details.issuer_distinguished_name"
             :cert="cert"
             @certificate-click="certificateClick(cert, key)"
           >
-            <div slot="certificateAction">
+            <template #certificateAction>
               <template v-if="canImportFromToken">
                 <xrd-button
-                  v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
+                  v-if="
+                    cert.possible_actions?.includes(
+                      PossibleAction.IMPORT_FROM_TOKEN,
+                    )
+                  "
                   class="table-button-fix"
                   :outlined="false"
                   text
@@ -95,7 +99,7 @@
                   {{ $t('keys.authNotSupported') }}
                 </div>
               </template>
-            </div>
+            </template>
           </CertificateRow>
         </template>
 
@@ -117,11 +121,13 @@
             <td class="td-align-right">
               <xrd-button
                 v-if="
-                  req.possible_actions.includes('DELETE') && canDeleteCsr(key)
+                  req.possible_actions.includes(PossibleAction.DELETE) &&
+                  canDeleteCsr(key)
                 "
                 class="table-button-fix"
                 :outlined="false"
                 text
+                data-test="delete-csr-button"
                 @click="showDeleteCsrDialog(req, key)"
                 >{{ $t('keys.deleteCsr') }}</xrd-button
               >
@@ -138,7 +144,7 @@
     />
 
     <xrd-confirm-dialog
-      :dialog="confirmDeleteCsr"
+      v-if="confirmDeleteCsr"
       title="keys.deleteCsrTitle"
       text="keys.deleteCsrText"
       @cancel="confirmDeleteCsr = false"
@@ -151,13 +157,14 @@
 /**
  * Table component for an array of keys
  */
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
 import KeysTableThead from './KeysTableThead.vue';
 import {
   Key,
+  PossibleAction,
   TokenCertificate,
   TokenCertificateSigningRequest,
   TokenType,
@@ -167,12 +174,11 @@ import { KeysSortColumn } from './keyColumnSorting';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import * as Sorting from './keyColumnSorting';
-import { Prop } from 'vue/types/options';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     RegisterCertificateDialog,
     KeyRow,
@@ -181,7 +187,7 @@ export default Vue.extend({
   },
   props: {
     keys: {
-      type: Array as Prop<Key[]>,
+      type: Array as PropType<Key[]>,
       required: true,
     },
     tokenLoggedIn: {
@@ -192,6 +198,13 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: [
+    'key-click',
+    'certificate-click',
+    'generate-csr',
+    'import-cert-by-hash',
+    'refresh-list',
+  ],
   data() {
     return {
       registerDialog: false,
@@ -205,6 +218,9 @@ export default Vue.extend({
     };
   },
   computed: {
+    PossibleAction() {
+      return PossibleAction;
+    },
     ...mapState(useUser, ['hasPermission']),
     sortedKeys(): Key[] {
       return Sorting.keyArraySort(
@@ -307,7 +323,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .cert-icon {
   color: $XRoad-WarmGrey100;

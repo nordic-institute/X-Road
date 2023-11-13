@@ -94,8 +94,8 @@
                 class="mr-4"
                 data-test="access-right-remove"
                 @click="remove(accessRight)"
-                >{{ $t('action.remove') }}</xrd-button
-              >
+                >{{ $t('action.remove') }}
+              </xrd-button>
             </div>
           </td>
         </tr>
@@ -107,9 +107,9 @@
     </p>
 
     <div class="xrd-footer-buttons-wrap">
-      <xrd-button data-test="close" @click="close()">{{
-        $t('action.close')
-      }}</xrd-button>
+      <xrd-button data-test="close" @click="close()"
+        >{{ $t('action.close') }}
+      </xrd-button>
     </div>
 
     <AddServiceClientServiceDialog
@@ -143,30 +143,25 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
-import {
-  AccessRight,
-  AccessRights,
-  ServiceClient,
-  ServiceDescription,
-} from '@/openapi-types';
+import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
 import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
 import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
 
 import { ServiceCandidate } from '@/ui-types';
 import { sortAccessRightsByServiceCode } from '@/util/sorting';
-import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import { useServices } from '@/store/modules/services';
 
 interface UiAccessRight extends AccessRight {
   uiKey: number;
 }
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     AddServiceClientServiceDialog,
   },
@@ -186,13 +181,13 @@ export default Vue.extend({
       serviceClient: {} as ServiceClient,
       accessRightToDelete: null as AccessRight | null,
       isAddServiceDialogVisible: false as boolean,
-      clientServiceDescriptions: [] as ServiceDescription[],
       showConfirmDeleteAll: false as boolean,
       showConfirmDeleteOne: false as boolean,
     };
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
+    ...mapState(useServices, ['serviceDescriptions']),
     canEdit(): boolean {
       return this.hasPermission(Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES);
     },
@@ -202,24 +197,17 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useServices, ['fetchServiceDescriptions']),
     fetchData(): void {
       this.fetchAccessRights();
-      this.fetchServiceDescriptions();
+      this.fetchServiceDescriptions(this.id, false).catch((error) =>
+        this.showError(error),
+      );
       api
         .get<ServiceClient>(
           `/clients/${this.id}/service-clients/${this.serviceClientId}`,
         )
         .then((response) => (this.serviceClient = response.data))
-        .catch((error) => this.showError(error));
-    },
-    fetchServiceDescriptions(): void {
-      api
-        .get<ServiceDescription[]>(
-          `/clients/${encodePathParameter(this.id)}/service-descriptions`,
-        )
-        .then((response) => {
-          this.clientServiceDescriptions = response.data;
-        })
         .catch((error) => this.showError(error));
     },
     fetchAccessRights(): void {
@@ -235,7 +223,7 @@ export default Vue.extend({
         .catch((error) => this.showError(error));
     },
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
     resetDeletionSettings(): void {
       this.showConfirmDeleteOne = false;
@@ -307,7 +295,7 @@ export default Vue.extend({
     },
     serviceCandidates(): ServiceCandidate[] {
       return serviceCandidatesForServiceClient(
-        this.clientServiceDescriptions,
+        this.serviceDescriptions,
         this.serviceClientAccessRights,
       );
     },
@@ -324,7 +312,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .group-members-row {
   width: 100%;
@@ -334,6 +322,7 @@ export default Vue.extend({
 
   .row-buttons {
     display: flex;
+
     * {
       margin-left: 20px;
     }

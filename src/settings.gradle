@@ -34,7 +34,6 @@ include "asic-util"
 include "monitor"
 include "monitor-common"
 include "op-monitor-daemon"
-include "shared-ui"
 include "shared-ui-3"
 
 include "central-server"

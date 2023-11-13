@@ -60,14 +60,14 @@ Feature: Clients API
       | <$query> | <$name> | <$instance> | <$memberClass> | <$memberCode> | <$subsystemCode> | <$clientType> | <$securityServer> | <$sortBy> | <$desc> | <$limit> | <$offset> |
     Then Response is of status code <$statusCode> and error code "<$errorCode>"
     Examples:
-      | $query       | $name         | $instance     | $memberClass  | $memberCode   | $subsystemCode | $clientType | $securityServer | $sortBy | $desc | $limit | $offset | $statusCode | $errorCode                    |
-      | $RND-STR-26$ |               |               |               |               |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
-      |              | $RND-STR-256$ |               |               |               |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
-      |              |               | $RND-STR-256$ |               |               |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
-      |              |               |               | $RND-STR-256$ |               |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
-      |              |               |               |               | $RND-STR-256$ |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
-      |              |               |               |               |               | $RND-STR-256$  |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
-      |              |               | CS            |               |               |                |             | MISSING:SERVER  |         |       | 25     | 0       | 400         | invalid_encoded_id            |
-      |              |               | POTATO        |               |               |                |             |                 | NOTHING |       | 25     | 0       | 400         | invalid_sort_properties       |
-      |              |               |               | TEST2         |               |                |             |                 |         |       | -1     | 0       | 400         | invalid_pagination_properties |
-      |              |               |               | TEST2         | member        |                |             |                 |         |       | 25     | -1      | 400         | invalid_pagination_properties |
+      | $query        | $name         | $instance     | $memberClass  | $memberCode   | $subsystemCode | $clientType | $securityServer | $sortBy | $desc | $limit | $offset | $statusCode | $errorCode                    |
+      | $RND-STR-256$ |               |               |               |               |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
+      |               | $RND-STR-256$ |               |               |               |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
+      |               |               | $RND-STR-256$ |               |               |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
+      |               |               |               | $RND-STR-256$ |               |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
+      |               |               |               |               | $RND-STR-256$ |                |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
+      |               |               |               |               |               | $RND-STR-256$  |             |                 |         |       | 25     | 0       | 400         | validation_failure            |
+      |               |               | CS            |               |               |                |             | MISSING:SERVER  |         |       | 25     | 0       | 400         | invalid_encoded_id            |
+      |               |               | POTATO        |               |               |                |             |                 | NOTHING |       | 25     | 0       | 400         | invalid_sort_properties       |
+      |               |               |               | TEST2         |               |                |             |                 |         |       | -1     | 0       | 400         | invalid_pagination_properties |
+      |               |               |               | TEST2         | member        |                |             |                 |         |       | 25     | -1      | 400         | invalid_pagination_properties |

@@ -42,11 +42,11 @@ public class SystemParametersPageObj {
     }
 
     public SelenideElement tableTimestampingServices() {
-        return $x("//*[@data-test='system-parameters-timestamping-services-table-body']");
+        return $x("//tbody[@data-test='system-parameters-timestamping-services-table-body']");
     }
 
     public ElementsCollection tableTimestampingServicesRows() {
-        return $$x("//*[@data-test='system.parameters-timestamping-service-row']");
+        return $$x("//tr[@data-test='system-parameters-timestamping-service-row']");
     }
 
     public SelenideElement tableTimestampingServiceNameByRow(int index, String name) {
@@ -58,7 +58,7 @@ public class SystemParametersPageObj {
     }
 
     public SelenideElement btnDeleteTimestampingServicesByRow(int index) {
-        return $$x("//*[@data-test='system.parameters-timestamping-service-row']")
+        return $$x("//tr[@data-test='system-parameters-timestamping-service-row']")
                 .get(index).$x(".//button[@data-test='system-parameters-timestamping-service-delete-button']");
     }
 
@@ -68,7 +68,7 @@ public class SystemParametersPageObj {
         }
 
         public SelenideElement radioGroupTimestampingServicesSelection(int index) {
-            return radioGroupTimestampingServices().$x(".//*[@class='v-input--selection-controls__input']", index);
+            return radioGroupTimestampingServices().$x(".//div[@class='v-selection-control__input']", index);
         }
 
         public SelenideElement btnAdd() {

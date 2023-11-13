@@ -8,7 +8,7 @@
     "build:gradle": "vite build",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
+    "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
     "npx-check-audit": "yarn dlx audit-ci@6.6.0 --config ../../../shared-ui-3/audit-ci-shared.json >build/reports/audit-ci.txt",
@@ -33,7 +33,7 @@
     "vue": "^3.3.4",
     "vue-i18n": "~9.4.1",
     "vue-router": "^4.2.5",
-    "vuetify": "^3.3.17"
+    "vuetify": "^3.3.19"
   },
   "devDependencies": {
     "@apidevtools/swagger-cli": "~4.0.4",

@@ -25,7 +25,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     title="ssTlsCertificate.generateTlsAndCertificateDialog.title"
     save-button-text="action.confirm"
     :show-close="false"
@@ -33,7 +33,7 @@
     @save="save"
     @cancel="$emit('cancel')"
   >
-    <div slot="content">
+    <template #content>
       <p data-test="generate-tls-and-certificate-dialog-explanation-text">
         {{ $t('ssTlsCertificate.generateTlsAndCertificateDialog.explanation') }}
       </p>
@@ -42,23 +42,24 @@
           $t('ssTlsCertificate.generateTlsAndCertificateDialog.confirmation')
         }}
       </p>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
   },
+  emits: ['cancel', 'saved'],
   data() {
     return {
       loading: false,

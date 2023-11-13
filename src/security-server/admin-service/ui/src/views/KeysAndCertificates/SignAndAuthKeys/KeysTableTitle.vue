@@ -26,20 +26,30 @@
 <template>
   <div class="table-title" :class="{ 'table-closed': !arrowState }">
     <div class="title-text" data-test="key-title-sort" @click="arrowClick">
-      <v-btn icon :color="colors.WarmGrey100">
-        <v-icon v-if="arrowState">icon-Sorting-arrow</v-icon>
-        <v-icon v-else class="arrow-degree">icon-Sorting-arrow</v-icon>
+      <v-btn icon variant="text">
+        <xrd-icon-base v-if="arrowState">
+          <xrd-icon-sorting-arrow />
+        </xrd-icon-base>
+        <xrd-icon-base v-else class="arrow-degree">
+          <xrd-icon-sorting-arrow />
+        </xrd-icon-base>
       </v-btn>
 
       {{ title }}
     </div>
     <div class="status-wrap">
       <div v-if="errors > 0" class="errors">
-        <v-icon color="red">icon-Error</v-icon> {{ errors }}
+        <xrd-icon-base color="red">
+          <xrd-icon-error />
+        </xrd-icon-base>
+        {{ errors }}
         {{ $t('keys.globalErrors') }}
       </div>
       <div v-else-if="registered === certificateCount" class="registered">
-        <v-icon color="green">icon-Checked</v-icon> {{ $t('keys.noIssues') }}
+        <xrd-icon-base color="green">
+          <xrd-icon-checked />
+        </xrd-icon-base>
+        {{ $t('keys.noIssues') }}
       </div>
     </div>
   </div>
@@ -47,15 +57,16 @@
 
 <script lang="ts">
 // View for a token
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { Colors } from '@/global';
 import { CertificateStatus, Key, TokenCertificate } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
+import { XrdIconChecked, XrdIconError } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdIconError, XrdIconChecked },
   props: {
     keys: {
-      type: Array as Prop<Key[]>,
+      type: Array as PropType<Key[]>,
       required: true,
     },
     title: {
@@ -67,6 +78,7 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['click'],
   data() {
     return {
       errors: 0,
@@ -101,8 +113,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .status-wrap {
   text-transform: uppercase;

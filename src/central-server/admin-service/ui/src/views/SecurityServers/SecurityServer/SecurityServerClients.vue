@@ -46,12 +46,12 @@
         <div
           v-if="hasPermissionToMemberDetails"
           class="table-cell-member-name-action"
-          @click="toMemberDetails(item.raw)"
+          @click="toMemberDetails(item)"
         >
           <xrd-icon-base class="xrd-clickable mr-4">
             <xrd-icon-folder-outline
           /></xrd-icon-base>
-          {{ item.raw.member_name }}
+          {{ item.member_name }}
         </div>
 
         <div v-else class="table-cell-member-name">

@@ -27,7 +27,7 @@
 import { Notification, ValidationError } from '@/ui-types';
 import { defineStore } from 'pinia';
 import { TranslateResult } from 'vue-i18n';
-import { AxiosError } from 'axios';
+import axios from 'axios';
 
 // Helper functions
 
@@ -39,25 +39,14 @@ function containsNotification(
   if (!notification || !errorNotifications || errorNotifications.length === 0) {
     return -1;
   }
-  return errorNotifications.findIndex((e: Notification) => {
-    if (notification?.responseData !== e?.responseData) {
-      return false;
-    }
-
-    if (notification?.url !== e?.url) {
-      return false;
-    }
-
-    if (notification?.status !== e?.status) {
-      return false;
-    }
-
-    if (notification?.errorCode !== e?.errorCode) {
-      return false;
-    }
-
-    return notification?.errorMessage === e?.errorMessage;
-  });
+  return errorNotifications.findIndex(
+    (e: Notification) =>
+      notification?.errorMessage === e?.errorMessage &&
+      notification?.responseData === e?.responseData &&
+      notification?.url === e?.url &&
+      notification?.status === e?.status &&
+      notification?.errorCode === e?.errorCode,
+  );
 }
 
 // Add error notification to the store
@@ -108,57 +97,63 @@ export const useNotifications = defineStore('notifications', {
       );
     },
 
-    deleteSuccessNotification(id: number): void {
+    deleteSuccessNotification(timeAdded: number): void {
       this.successNotifications = this.successNotifications.filter(
-        (item: Notification) => item.timeAdded !== id,
+        (item: Notification) => item.timeAdded !== timeAdded,
       );
     },
 
-    resetNotifications() {
+    resetNotifications(): void {
       // Clear the store state
       this.$reset();
     },
 
     // Show error notification with axios error object
-    showError(errorObject: AxiosError): void {
+    showError(errorObject: unknown): void {
       // Show error using the x-road specific data in an axios error object
-      // Don't show errors when the errorcode is 401 which is usually because of session expiring
-      if (errorObject?.response?.status !== 401) {
-        const notification = createEmptyNotification(-1);
+      // Don't show errors when the error code is 401 which is usually because of session expiring
+      if (axios.isAxiosError(errorObject)) {
+        if (errorObject?.response?.status !== 401) {
+          const notification = createEmptyNotification(-1);
 
-        // Add validation errors
+          // Add validation errors
 
-        const validationErrors =
-          errorObject?.response?.data?.error?.validation_errors;
+          const validationErrors =
+            errorObject?.response?.data?.error?.validation_errors;
 
-        if (validationErrors) {
-          notification.validationErrors = Object.keys(validationErrors).map(
-            (field) =>
-              ({
-                field,
-                errorCodes: validationErrors[field],
-              } as ValidationError),
+          if (validationErrors) {
+            notification.validationErrors = Object.keys(validationErrors).map(
+              (field) =>
+                ({
+                  field,
+                  errorCodes: validationErrors[field],
+                }) as ValidationError,
+            );
+          }
+
+          // Store error object as a string that can be shown to the user
+          notification.errorObjectAsString = errorObject.toString();
+
+          // Data shown in notification component
+          notification.errorCode = errorObject?.response?.data?.error?.code;
+          notification.metaData = errorObject?.response?.data?.error?.metadata;
+          notification.responseData = errorObject?.response?.config?.data;
+          notification.errorId =
+            errorObject?.response?.headers['x-road-ui-correlation-id'];
+
+          // Data needed to compare with other notifications for handling duplicates
+          notification.url = errorObject?.response?.config?.url;
+          notification.status = errorObject?.response?.data?.status;
+
+          this.errorNotifications = addErrorNotification(
+            this.errorNotifications,
+            notification,
           );
         }
-
-        // Store error object as a string that can be shown to the user
-        notification.errorObjectAsString = errorObject.toString();
-
-        // Data shown in nofitication component
-        notification.errorCode = errorObject?.response?.data?.error?.code;
-        notification.metaData = errorObject?.response?.data?.error?.metadata;
-        notification.responseData = errorObject?.response?.config?.data;
-        notification.errorId =
-          errorObject?.response?.headers['x-road-ui-correlation-id'];
-
-        // Data needed to compare with other notificatios for handling duplicates
-        notification.url = errorObject?.response?.config?.url;
-        notification.status = errorObject?.response?.data?.status;
-
-        this.errorNotifications = addErrorNotification(
-          this.errorNotifications,
-          notification,
-        );
+      } else if (errorObject instanceof Error) {
+        this.showErrorMessage(errorObject.message);
+      } else {
+        this.showErrorMessage('Unexpected error');
       }
     },
 

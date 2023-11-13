@@ -23,127 +23,135 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Vue from 'vue';
-import i18n from './i18n';
+import { App } from 'vue';
+import i18n from './plugins/i18n';
 
-Vue.filter('capitalize', (value: string): string => {
-  if (!value) {
-    return '';
-  }
-  value = value.toString();
-  return value.charAt(0).toUpperCase() + value.slice(1);
-});
-
-// Add colon for every two characters.  xxxxxx -> xx:xx:xx
-Vue.filter('colonize', (value: string): string => {
-  if (!value) {
-    return '';
+export class Filters {
+  capitalize(value: string): string {
+    if (!value) {
+      return '';
+    }
+    value = value.toString();
+    return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
-  const colonized = value.replace(/(.{2})/g, '$1:');
+  // Add colon for every two characters.  xxxxxx -> xx:xx:xx
+  colonize(value: string): string {
+    if (!value) {
+      return '';
+    }
 
-  if (colonized[colonized.length - 1] === ':') {
-    return colonized.slice(0, -1);
+    const colonized = value.replace(/(.{2})/g, '$1:');
+
+    if (colonized[colonized.length - 1] === ':') {
+      return colonized.slice(0, -1);
+    }
+
+    return colonized;
   }
 
-  return colonized;
-});
-
-// Upper case every word
-Vue.filter('upperCaseWords', (value: string): string => {
-  if (!value) {
-    return '';
-  }
-  return value
-    .toLowerCase()
-    .split(' ')
-    .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
-    .join(' ');
-});
-
-// Format date string. Result YYYY-MM-DD.
-Vue.filter('formatDate', (value: string): string => {
-  const timestamp = Date.parse(value);
-
-  if (isNaN(timestamp)) {
-    return '-';
+  // Upper case every word
+  upperCaseWords(value: string): string {
+    if (!value) {
+      return '';
+    }
+    return value
+      .toLowerCase()
+      .split(' ')
+      .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+      .join(' ');
   }
 
-  const date = new Date(value);
+  // Format date string. Result YYYY-MM-DD.
+  formatDate(value: string): string {
+    const timestamp = Date.parse(value);
 
-  return (
-    date.getFullYear() +
-    '-' +
-    (date.getMonth() + 1).toString().padStart(2, '0') +
-    '-' +
-    date.getDate().toString().padStart(2, '0')
-  );
-});
-
-// Format date string. Result YYYY-MM-DD HH:MM.
-export const formatDateTime = (value: string): string => {
-  const timestamp = Date.parse(value);
-
-  if (isNaN(timestamp)) {
-    return '-';
-  }
-
-  const date = new Date(value);
-
-  return (
-    date.getFullYear() +
-    '-' +
-    (date.getMonth() + 1).toString().padStart(2, '0') +
-    '-' +
-    date.getDate().toString().padStart(2, '0') +
-    ' ' +
-    date.getHours().toString().padStart(2, '0') +
-    ':' +
-    date.getMinutes().toString().padStart(2, '0')
-  );
-};
-
-Vue.filter('formatDateTime', formatDateTime);
-
-// Format date string. Result HH:MM.
-Vue.filter('formatHoursMins', (value: string): string => {
-  const timestamp = Date.parse(value);
-
-  if (isNaN(timestamp)) {
-    return '-';
-  }
-
-  const date = new Date(value);
-  return (
-    date.getHours().toString().padStart(2, '0') +
-    ':' +
-    date.getMinutes().toString().padStart(2, '0')
-  );
-});
-
-// Return readable string from OCSP status code
-Vue.filter('ocspStatus', (value: string): string => {
-  if (!value) {
-    return '-';
-  }
-  switch (value) {
-    case 'DISABLED':
-      return i18n.t('keys.ocspStatus.disabled') as string;
-    case 'EXPIRED':
-      return i18n.t('keys.ocspStatus.expired') as string;
-    case 'OCSP_RESPONSE_UNKNOWN':
-      return i18n.t('keys.ocspStatus.unknown') as string;
-    case 'OCSP_RESPONSE_GOOD':
-      return i18n.t('keys.ocspStatus.good') as string;
-    case 'OCSP_RESPONSE_SUSPENDED':
-      return i18n.t('keys.ocspStatus.suspended') as string;
-    case 'OCSP_RESPONSE_REVOKED':
-      return i18n.t('keys.ocspStatus.revoked') as string;
-    default:
+    if (isNaN(timestamp)) {
       return '-';
-  }
-});
+    }
 
-Vue.filter('commaSeparate', (value: string[]) => {
-  return value.join(', ');
-});
+    const date = new Date(value);
+
+    return (
+      date.getFullYear() +
+      '-' +
+      (date.getMonth() + 1).toString().padStart(2, '0') +
+      '-' +
+      date.getDate().toString().padStart(2, '0')
+    );
+  }
+
+  // Format date string. Result YYYY-MM-DD HH:MM.
+  formatDateTime(value: string): string {
+    const timestamp = Date.parse(value);
+
+    if (isNaN(timestamp)) {
+      return '-';
+    }
+
+    const date = new Date(value);
+
+    return (
+      date.getFullYear() +
+      '-' +
+      (date.getMonth() + 1).toString().padStart(2, '0') +
+      '-' +
+      date.getDate().toString().padStart(2, '0') +
+      ' ' +
+      date.getHours().toString().padStart(2, '0') +
+      ':' +
+      date.getMinutes().toString().padStart(2, '0')
+    );
+  }
+
+  // Format date string. Result HH:MM.
+  formatHoursMins(value: string): string {
+    const timestamp = Date.parse(value);
+
+    if (isNaN(timestamp)) {
+      return '-';
+    }
+
+    const date = new Date(value);
+    return (
+      date.getHours().toString().padStart(2, '0') +
+      ':' +
+      date.getMinutes().toString().padStart(2, '0')
+    );
+  }
+
+  // Return readable string from OCSP status code
+  ocspStatus(value: string): string {
+    if (!value) {
+      return '-';
+    }
+    switch (value) {
+      case 'DISABLED':
+        return i18n.global.t('keys.ocspStatus.disabled') as string;
+      case 'EXPIRED':
+        return i18n.global.t('keys.ocspStatus.expired') as string;
+      case 'OCSP_RESPONSE_UNKNOWN':
+        return i18n.global.t('keys.ocspStatus.unknown') as string;
+      case 'OCSP_RESPONSE_GOOD':
+        return i18n.global.t('keys.ocspStatus.good') as string;
+      case 'OCSP_RESPONSE_SUSPENDED':
+        return i18n.global.t('keys.ocspStatus.suspended') as string;
+      case 'OCSP_RESPONSE_REVOKED':
+        return i18n.global.t('keys.ocspStatus.revoked') as string;
+      default:
+        return '-';
+    }
+  }
+
+  commaSeparate(value: string[]): string {
+    return value.join(', ');
+  }
+}
+
+export function createFilters() {
+  return {
+    install(app: App) {
+      app.config.globalProperties.$filters = new Filters();
+    },
+  };
+}

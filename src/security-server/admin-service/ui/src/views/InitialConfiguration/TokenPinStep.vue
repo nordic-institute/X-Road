@@ -25,112 +25,86 @@
  -->
 <template>
   <div class="step-content-wrapper">
-    <ValidationObserver ref="form1" v-slot="{ invalid }">
-      <div class="wizard-step-form-content">
-        {{ $t('initialConfiguration.pin.info1') }}
-        <div class="mt-6 mb-4">
-          <ValidationProvider
-            v-slot="{ errors }"
-            name="pin"
-            rules="required|password:@confirmPin"
-          >
-            <v-text-field
-              v-model="pin"
-              class="wizard-form-input"
-              name="pin"
-              autofocus
-              :label="$t('initialConfiguration.pin.pin')"
-              type="password"
-              :error-messages="errors"
-              data-test="pin-input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
+    <div class="wizard-step-form-content">
+      {{ $t('initialConfiguration.pin.info1') }}
+      <div class="mt-6 mb-4">
+        <v-text-field
+          v-bind="pinRef"
+          class="wizard-form-input"
+          autofocus
+          :label="$t('initialConfiguration.pin.pin')"
+          type="password"
+          data-test="pin-input"
+        ></v-text-field>
+      </div>
 
-        <div class="mb-6">
-          <ValidationProvider
-            v-slot="{ errors }"
-            name="confirmPin"
-            rules="required"
-          >
-            <v-text-field
-              v-model="pinConfirm"
-              class="wizard-form-input"
-              name="confirmPin"
-              :label="$t('initialConfiguration.pin.confirmPin')"
-              type="password"
-              :error-messages="errors"
-              data-test="confirm-pin-input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-        {{ $t('initialConfiguration.pin.info2') }}
-        <br />
-        <br />
-        {{ $t('initialConfiguration.pin.info3') }}
+      <div class="mb-6">
+        <v-text-field
+          v-bind="confirmPinRef"
+          class="wizard-form-input"
+          :label="$t('initialConfiguration.pin.confirmPin')"
+          type="password"
+          data-test="confirm-pin-input"
+        ></v-text-field>
       </div>
-      <div class="button-footer">
-        <v-spacer></v-spacer>
-        <div>
-          <xrd-button
-            outlined
-            class="previous-button"
-            data-test="previous-button"
-            @click="previous"
-            >{{ $t('action.previous') }}</xrd-button
-          >
-          <xrd-button
-            :disabled="invalid"
-            :loading="saveBusy"
-            data-test="save-button"
-            @click="done"
-            >{{ $t('action.submit') }}</xrd-button
-          >
-        </div>
+      {{ $t('initialConfiguration.pin.info2') }}
+      <br />
+      <br />
+      {{ $t('initialConfiguration.pin.info3') }}
+    </div>
+    <div class="button-footer">
+      <v-spacer></v-spacer>
+      <div>
+        <xrd-button
+          outlined
+          class="previous-button"
+          data-test="previous-button"
+          @click="previous"
+          >{{ $t('action.previous') }}</xrd-button
+        >
+        <xrd-button
+          :disabled="!meta.valid"
+          :loading="saveBusy"
+          data-test="token-pin-save-button"
+          @click="done"
+          >{{ $t('action.submit') }}</xrd-button
+        >
       </div>
-    </ValidationObserver>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { extend } from 'vee-validate';
-import i18n from '@/i18n';
+import { defineComponent } from 'vue';
+import { PublicPathState, useForm } from 'vee-validate';
 
-const PASSWORD_MATCH_ERROR: string = i18n.t(
-  'initialConfiguration.pin.pinMatchError',
-) as string;
-
-extend('password', {
-  params: ['target'],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validate(value, { target }: Record<string, any>) {
-    return value === target;
-  },
-  message: PASSWORD_MATCH_ERROR,
-});
-
-export default Vue.extend({
-  components: {
-    ValidationObserver,
-    ValidationProvider,
-  },
+export default defineComponent({
   props: {
     saveBusy: {
       type: Boolean,
     },
   },
-  data() {
-    return {
-      pin: '' as string,
-      pinConfirm: '' as string,
-    };
+  emits: ['done', 'previous'],
+  setup() {
+    const { meta, values, defineComponentBinds } = useForm({
+      validationSchema: {
+        pin: 'required',
+        confirmPin: 'required|confirmed:@pin',
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const pinRef = defineComponentBinds('pin', componentConfig);
+    const confirmPinRef = defineComponentBinds('confirmPin', componentConfig);
+    return { meta, values, pinRef, confirmPinRef };
   },
 
   methods: {
     done(): void {
-      this.$emit('done', this.pin);
+      this.$emit('done', this.values.pin);
     },
     previous(): void {
       this.$emit('previous');

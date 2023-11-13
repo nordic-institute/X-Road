@@ -24,10 +24,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" width="750" scrollable persistent>
+  <v-dialog
+    v-if="dialog"
+    :model-value="dialog"
+    width="750"
+    scrollable
+    persistent
+  >
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{ title }}</span>
+        <span class="text-h5">{{ title }}</span>
         <v-spacer />
         <i data-test="x-close-button" @click="cancel()"></i>
       </v-card-title>
@@ -41,8 +47,10 @@
           class="search-input"
           data-test="client-search-input"
           autofocus
+          variant="underlined"
+          density="compact"
+          append-inner-icon="mdi-magnify"
         >
-          <v-icon slot="append">mdi-magnify</v-icon>
         </v-text-field>
 
         <!-- Table -->
@@ -87,7 +95,7 @@
 
         <xrd-button
           :disabled="!selectedMember"
-          data-test="save-button"
+          data-test="select-client-save-button"
           @click="save()"
           >{{ $t('localGroup.addSelected') }}</xrd-button
         >
@@ -97,10 +105,10 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { Client } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
@@ -116,12 +124,12 @@ export default Vue.extend({
     },
     selectableClients: {
       type: Array as PropType<Client[]>,
-      default() {
+      default: () => {
         return [];
       },
     },
   },
-
+  emits: ['cancel', 'save'],
   data() {
     return {
       search: '',

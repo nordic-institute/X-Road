@@ -24,138 +24,151 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <!-- Error -->
-    <v-container
-      v-if="errorNotifications && errorNotifications.length > 0"
-      fluid
-      class="alerts-container px-3"
+  <!-- Error -->
+  <v-container
+    v-if="errorNotifications && errorNotifications.length > 0"
+    fluid
+    class="alerts-container px-3"
+  >
+    <v-alert
+      v-for="notification in errorNotifications"
+      :key="notification.timeAdded"
+      v-model="notification.show"
+      data-test="contextual-alert"
+      :color="notificationColor(notification)"
+      border="start"
+      border-color="error"
+      variant="outlined"
+      class="alert mb-2"
     >
-      <v-alert
-        v-for="notification in errorNotifications"
-        :key="notification.timeAdded"
-        v-model="notification.show"
-        data-test="contextual-alert"
-        :color="notificationColor(notification)"
-        border="left"
-        colored-border
-        class="alert"
-      >
-        <div class="row-wrapper-top scrollable identifier-wrap">
-          <div class="icon-wrapper">
-            <v-icon v-if="notification.isWarning" class="warning-icon"
-              >icon-Warning</v-icon
-            >
-            <v-icon v-else class="error-icon"> icon-Error-notification</v-icon>
-            <div class="row-wrapper">
-              <!-- Show message text -->
-              <div v-if="notification.errorMessage">
-                {{ notification.errorMessage }}
+      <div class="row-wrapper-top scrollable identifier-wrap">
+        <div class="icon-wrapper">
+          <xrd-icon-base v-if="notification.isWarning" class="warning-icon">
+            <xrd-icon-warning />
+          </xrd-icon-base>
+          <xrd-icon-base v-else class="error-icon">
+            <xrd-icon-error-notification />
+          </xrd-icon-base>
+          <div class="row-wrapper">
+            <!-- Show message text -->
+            <div v-if="notification.errorMessage">
+              {{ notification.errorMessage }}
+            </div>
+
+            <!-- Show localised text by id from error object -->
+            <div v-else-if="notification.errorCode">
+              {{ $t(`error_code.${notification.errorCode}`) }}
+            </div>
+
+            <!-- If error doesn't have a text or localisation key then just print the error object -->
+            <div v-else-if="notification.errorObjectAsString">
+              {{ notification.errorObjectAsString }}
+            </div>
+
+            <!-- Special case for pin code validation -->
+            <template v-if="notification.errorCode === 'weak_pin'">
+              <div>
+                {{
+                  $t(`error_code.${notification.metaData?.[0]}`) +
+                  `: ${notification.metaData?.[1]}`
+                }}
               </div>
-
-              <!-- Show localised text by id from error object -->
-              <div v-else-if="notification.errorCode">
-                {{ $t(`error_code.${notification.errorCode}`) }}
+              <div>
+                {{
+                  $t(`error_code.${notification.metaData?.[2]}`) +
+                  `: ${notification.metaData?.[3]}`
+                }}
               </div>
+            </template>
 
-              <!-- If error doesn't have a text or localisation key then just print the error object -->
-              <div v-else-if="notification.errorObjectAsString">
-                {{ notification.errorObjectAsString }}
-              </div>
+            <!-- Show the error metadata if it exists -->
+            <div v-for="meta in notification.metaData" v-else :key="meta">
+              {{ meta }}
+            </div>
 
-              <!-- Special case for pin code validation -->
-              <template v-if="notification.errorCode === 'weak_pin'">
-                <div>
-                  {{
-                    $t(`error_code.${notification.metaData[0]}`) +
-                    `: ${notification.metaData[1]}`
-                  }}
-                </div>
-                <div>
-                  {{
-                    $t(`error_code.${notification.metaData[2]}`) +
-                    `: ${notification.metaData[3]}`
-                  }}
-                </div>
-              </template>
+            <!-- Show validation errors -->
+            <ul v-if="notification.validationErrors">
+              <li
+                v-for="validationError in notification.validationErrors"
+                :key="validationError.field"
+              >
+                {{ $t(`fields.${validationError.field}`) + ':' }}
+                <template v-if="validationError.errorCodes.length === 1">
+                  {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
+                </template>
+                <template v-else>
+                  <ul>
+                    <li
+                      v-for="errCode in validationError.errorCodes"
+                      :key="`${validationError.field}.${errCode}`"
+                    >
+                      {{ $t(`validationError.${errCode}`) }}
+                    </li>
+                  </ul>
+                </template>
+              </li>
+            </ul>
 
-              <!-- Show the error metadata if it exists -->
-              <div v-for="meta in notification.metaData" v-else :key="meta">
-                {{ meta }}
-              </div>
+            <!-- Error ID -->
+            <div v-if="notification.errorId">
+              {{ $t('alert.id') + ':' }}
+              {{ notification.errorId }}
+            </div>
 
-              <!-- Show validation errors -->
-              <ul v-if="notification.validationErrors">
-                <li
-                  v-for="validationError in notification.validationErrors"
-                  :key="validationError.field"
-                >
-                  {{ $t(`fields.${validationError.field}`) }}:
-                  <template v-if="validationError.errorCodes.length === 1">
-                    {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
-                  </template>
-                  <template v-else>
-                    <ul>
-                      <li
-                        v-for="errCode in validationError.errorCodes"
-                        :key="`${validationError.field}.${errCode}`"
-                      >
-                        {{ $t(`validationError.${errCode}`) }}
-                      </li>
-                    </ul>
-                  </template>
-                </li>
-              </ul>
-
-              <!-- Error ID -->
-              <div v-if="notification.errorId">
-                {{ $t('alert.id') }}:
-                {{ notification.errorId }}
-              </div>
-
-              <!-- count -->
-              <div v-if="notification.count > 1 && !notification.isWarning">
-                {{ $t('alert.count') }}
-                {{ notification.count }}
-              </div>
+            <!-- count -->
+            <div v-if="notification.count > 1 && !notification.isWarning">
+              {{ $t('alert.count') }}
+              {{ notification.count }}
             </div>
           </div>
-          <xrd-button
-            v-if="notification.errorId"
-            text
-            :outlined="false"
-            class="id-button"
-            data-test="copy-id-button"
-            @click.prevent="copyId(notification)"
-            ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
-            >{{ $t('action.copyId') }}</xrd-button
-          >
-
-          <div class="buttons">
-            <v-btn
-              icon
-              color="primary"
-              data-test="close-alert"
-              @click="closeError(notification.timeAdded)"
-            >
-              <v-icon dark>icon-Close</v-icon>
-            </v-btn>
-          </div>
         </div>
-      </v-alert>
-    </v-container>
-  </div>
+        <xrd-button
+          v-if="notification.errorId"
+          text
+          :outlined="false"
+          class="id-button"
+          data-test="copy-id-button"
+          @click.prevent="copyId(notification)"
+        >
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-copy />
+          </xrd-icon-base>
+          {{ $t('action.copyId') }}
+        </xrd-button>
+      </div>
+
+      <template #close>
+        <v-btn
+          icon
+          variant="plain"
+          color="primary"
+          data-test="close-alert"
+          @click="closeError(notification.timeAdded)"
+        >
+          <xrd-icon-base dark>
+            <xrd-icon-close />
+          </xrd-icon-base>
+        </v-btn>
+      </template>
+    </v-alert>
+  </v-container>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 import { Colors } from '@/global';
+import {
+  XrdIconCopy,
+  XrdIconErrorNotification,
+  XrdIconWarning,
+} from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdIconWarning, XrdIconErrorNotification, XrdIconCopy },
   // Component for contextual notifications
   computed: {
     ...mapState(useNotifications, ['errorNotifications']),
@@ -181,7 +194,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .alerts-container {
   padding: 0;
@@ -196,6 +209,7 @@ export default Vue.extend({
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
+  background-color: $XRoad-White100;
 }
 
 .row-wrapper-top {
@@ -228,17 +242,12 @@ export default Vue.extend({
   overflow-wrap: break-word;
   justify-content: center;
   margin-right: 30px;
+  color: $XRoad-Black100;
 }
 
 .id-button {
   margin-left: 0;
   margin-right: auto;
-}
-
-.buttons {
-  height: 100%;
-  display: flex;
-  flex-direction: row;
 }
 
 .scrollable {

@@ -38,8 +38,8 @@
       </div>
     </td>
     <td>{{ cert.owner_id }}</td>
-    <td>{{ cert.ocsp_status | ocspStatus }}</td>
-    <td>{{ cert.certificate_details.not_after | formatDate }}</td>
+    <td>{{ $filters.ocspStatus(cert.ocsp_status) }}</td>
+    <td>{{ $filters.formatDate(cert.certificate_details.not_after) }}</td>
     <td class="status-cell">
       <certificate-status-icon :certificate="cert" />
     </td>
@@ -53,23 +53,23 @@
 /**
  * Table component for an array of keys
  */
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
 import CertificateStatusIcon from './CertificateStatusIcon.vue';
 import { CertificateStatus } from '@/openapi-types';
 import { TokenCertificate } from '@/openapi-types';
 import { Colors } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     CertificateStatusIcon,
   },
   props: {
     cert: {
-      type: Object as Prop<TokenCertificate>,
+      type: Object as PropType<TokenCertificate>,
       required: true,
     },
   },
+  emits: ['certificate-click'],
   computed: {
     certStatusColor(): string {
       return this.cert.status === CertificateStatus.GLOBAL_ERROR
@@ -87,7 +87,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .td-align-right {
   text-align: right;

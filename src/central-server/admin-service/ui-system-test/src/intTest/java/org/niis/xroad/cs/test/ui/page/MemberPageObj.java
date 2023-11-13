@@ -38,6 +38,14 @@ public class MemberPageObj {
         return $x("//button[@data-test='add-member-button']");
     }
 
+    public SelenideElement searchIcon() {
+        return $x("//div[@data-test='search-query-field']");
+    }
+
+    public SelenideElement searchInput() {
+        return $x("//div[@data-test='search-query-field']//input");
+    }
+
     public SelenideElement listRowOf(String memberName) {
         var xpath = "//div[@data-test='members-table']//table//tbody//tr//td//div[contains(text(), '%s')]";
         return $x(String.format(xpath, memberName));

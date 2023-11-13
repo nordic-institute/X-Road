@@ -66,13 +66,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     TabsBase,
     AlertsContainer,
@@ -82,9 +82,7 @@ export default Vue.extend({
   },
   methods: {
     home(): void {
-      this.$router.replace({
-        name: this.firstAllowedTab.to.name,
-      });
+      this.$router.replace(this.firstAllowedTab.to);
     },
     goBack(): void {
       this.$router.go(-2); // needs to be two steps
@@ -94,7 +92,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .xrd-view-common {
   width: 100%;

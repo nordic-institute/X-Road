@@ -25,11 +25,16 @@
  -->
 <template>
   <div class="drop-menu">
-    <v-menu bottom right>
-      <template #activator="{ on }">
-        <v-btn text class="no-uppercase" data-test="username-button" v-on="on">
+    <v-menu location="bottom right">
+      <template #activator="{ props }">
+        <v-btn
+          variant="text"
+          class="no-uppercase"
+          data-test="username-button"
+          v-bind="props"
+        >
           {{ username }}
-          <v-icon>mdi-chevron-down</v-icon>
+          <v-icon icon="mdi-chevron-down" />
         </v-btn>
       </template>
 
@@ -49,12 +54,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { RouteName } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   computed: {
     ...mapState(useUser, ['username']),
   },

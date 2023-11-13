@@ -43,32 +43,32 @@
       </template>
       <template #[`item.file_updated_at`]="{ item }">
         <span
-          :data-test="`configuration-part-${item.raw.content_identifier}-updated-at`"
+          :data-test="`configuration-part-${item.content_identifier}-updated-at`"
         >
-          <date-time :value="item.raw.file_updated_at" with-seconds />
+          <date-time :value="item.file_updated_at" with-seconds />
         </span>
       </template>
       <template #[`item.content_identifier`]="{ item }">
-        <span :data-test="`configuration-part-${item.raw.content_identifier}`">
-          {{ item.raw.content_identifier }}
+        <span :data-test="`configuration-part-${item.content_identifier}`">
+          {{ item.content_identifier }}
         </span>
       </template>
       <template #[`item.version`]="{ item }">
-        <template v-if="item.raw.version === 0">
+        <template v-if="item.version === 0">
           {{ $t('globalConf.cfgParts.allVersions') }}
         </template>
         <template v-else>
-          {{ item.raw.version }}
+          {{ item.version }}
         </template>
       </template>
       <template #[`item.actions`]="{ item }">
         <configuration-part-download-button
           :configuration-type="configurationType"
-          :configuration-part="item.raw"
+          :configuration-part="item"
         />
         <configuration-part-upload-button
           :configuration-type="configurationType"
-          :configuration-part="item.raw"
+          :configuration-part="item"
           @save="fetchConfigurationParts"
         />
       </template>

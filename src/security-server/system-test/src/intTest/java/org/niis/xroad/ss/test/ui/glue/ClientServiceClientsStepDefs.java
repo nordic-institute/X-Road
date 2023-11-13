@@ -39,6 +39,8 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj.ServiceClients serviceClients = new ClientInfoPageObj.ServiceClients();
@@ -54,7 +56,7 @@ public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
     public void selectMemberSubjectWizard(String search, int resultCount, String id) {
         serviceClients.addSubject.btnNext().shouldBe(disabled);
 
-        serviceClients.addSubject.inputMemberSearch().shouldBe(empty).setValue(search);
+        vTextField(serviceClients.addSubject.inputMemberSearch()).shouldBe(empty).setValue(search);
 
         serviceClients.addSubject.tableMemberRows().shouldHave(size(resultCount));
 
@@ -73,11 +75,11 @@ public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
         serviceClients.addSubject.btnNext().click();
         serviceClients.addSubject.btnFinish().shouldBe(disabled);
 
-        serviceClients.addSubject.inputServiceSearch().shouldBe(empty).setValue(search);
+        vTextField(serviceClients.addSubject.inputServiceSearch()).shouldBe(empty).setValue(search);
 
         serviceClients.addSubject.tableServiceRows().shouldHave(size(resultCount));
 
-        serviceClients.addSubject.tableServiceRowRadioById(serviceCode).shouldBe(visible).click();
+        vCheckbox(serviceClients.addSubject.tableServiceRowRadioById(serviceCode)).click();
         serviceClients.addSubject.btnFinish().shouldBe(enabled).click();
 
         commonPageObj.snackBar.success().shouldHave(text("Access rights successfully added"));
@@ -97,8 +99,7 @@ public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
 
     @Step("Service clients list is filtered with {string}")
     public void searchTable(String query) {
-        clearInput(serviceClients.inputMemberSearch());
-        serviceClients.inputMemberSearch().setValue(query);
+        vTextField(serviceClients.inputMemberSearch()).clear().setValue(query);
     }
 
     @Step("Service clients list sorted by col no {} {sortDir}")
@@ -183,7 +184,7 @@ public class ClientServiceClientsStepDefs extends BaseUiStepDefs {
         serviceClients.edit.btnAddService().click();
 
         var rows = dataTable.asMaps();
-        rows.forEach(row -> serviceClients.addSubject.tableServiceRowRadioById(row.get("$serviceCode")).click());
+        rows.forEach(row -> vCheckbox(serviceClients.addSubject.tableServiceRowRadioById(row.get("$serviceCode"))).click());
 
         commonPageObj.dialog.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Access rights successfully added"));

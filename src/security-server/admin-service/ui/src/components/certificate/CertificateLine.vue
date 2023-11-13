@@ -26,13 +26,13 @@
 <template>
   <div>
     <div v-if="sourceObject[childKey]">
-      <b v-if="label" class="cert-label">{{ label }}:</b>
-      <b v-else class="cert-label"
-        >{{ childKey | prettyTitle | upperCaseWords }}:</b
-      >
+      <b v-if="label" class="cert-label">{{ label + ':' }}</b>
+      <b v-else class="cert-label">{{
+        $filters.upperCaseWords(title) + ':'
+      }}</b>
 
       <div v-if="chunk" class="chunk">
-        <pre>{{ sourceObject[childKey] | colonize | lineBreaks }}</pre>
+        <pre>{{ lineBreaks($filters.colonize(sourceObject[childKey])) }}</pre>
       </div>
 
       <span v-else>{{ formattedData() }}</span>
@@ -41,20 +41,9 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({
-  filters: {
-    prettyTitle(value: string) {
-      // Replace "snake case" with spaces
-      return value.replace(new RegExp('_', 'g'), ' ');
-    },
-
-    lineBreaks(value: string) {
-      // Add line break after every 60 characters
-      return value.replace(/(.{60})/g, '$1\n');
-    },
-  },
+export default defineComponent({
   props: {
     childKey: {
       type: String,
@@ -90,8 +79,18 @@ export default Vue.extend({
   data() {
     return {};
   },
-  computed: {},
+  computed: {
+    title() {
+      // Replace "snake case" with spaces
+      return this.childKey.replace(new RegExp('_', 'g'), ' ');
+    },
+  },
   methods: {
+    lineBreaks(value: string) {
+      // Add line break after every 60 characters
+      return value.replace(/(.{60})/g, '$1\n');
+    },
+
     formattedData(): string {
       if (this.info) {
         return this.info;

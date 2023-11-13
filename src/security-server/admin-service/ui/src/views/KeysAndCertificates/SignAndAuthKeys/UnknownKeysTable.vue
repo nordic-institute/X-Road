@@ -44,14 +44,18 @@
         <!-- Certificate -->
         <CertificateRow
           v-for="cert in key.certificates"
-          :key="cert.id"
+          :key="cert.certificate_details.issuer_distinguished_name"
           :cert="cert"
           @certificate-click="certificateClick(cert, key)"
         >
-          <div slot="certificateAction">
+          <template #certificateAction>
             <template v-if="canImportFromToken">
               <xrd-button
-                v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
+                v-if="
+                  cert.possible_actions?.includes(
+                    PossibleAction.IMPORT_FROM_TOKEN,
+                  )
+                "
                 class="table-button-fix"
                 :outlined="false"
                 text
@@ -65,7 +69,7 @@
                 {{ $t('keys.authNotSupported') }}
               </div>
             </template>
-          </div>
+          </template>
         </CertificateRow>
       </tbody>
     </table>
@@ -76,7 +80,7 @@
 /**
  * Table component for an array of keys
  */
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
 import KeysTableThead from './KeysTableThead.vue';
@@ -89,11 +93,10 @@ import {
 import { Permissions } from '@/global';
 import { KeysSortColumn } from './keyColumnSorting';
 import * as Sorting from './keyColumnSorting';
-import { Prop } from 'vue/types/options';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     KeyRow,
     CertificateRow,
@@ -101,7 +104,7 @@ export default Vue.extend({
   },
   props: {
     keys: {
-      type: Array as Prop<Key[]>,
+      type: Array as PropType<Key[]>,
       required: true,
     },
     tokenLoggedIn: {
@@ -112,7 +115,12 @@ export default Vue.extend({
       required: true,
     },
   },
-
+  emits: [
+    'key-click',
+    'certificate-click',
+    'generate-csr',
+    'import-cert-by-hash',
+  ],
   data() {
     return {
       registerDialog: false,
@@ -127,6 +135,9 @@ export default Vue.extend({
 
   computed: {
     ...mapState(useUser, ['hasPermission']),
+    PossibleAction() {
+      return PossibleAction;
+    },
     sortedKeys(): Key[] {
       return Sorting.keyArraySort(
         this.keys,
@@ -186,7 +197,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .keys-table {
   margin-top: 20px;

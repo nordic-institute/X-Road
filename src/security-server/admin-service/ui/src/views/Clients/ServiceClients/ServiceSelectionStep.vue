@@ -32,10 +32,12 @@
         single-line
         hide-details
         data-test="search-service-client-service"
+        variant="underlined"
+        density="compact"
         class="search-input"
         autofocus
+        append-inner-icon="mdi-magnify"
       >
-        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
     </div>
     <div class="scrollable">
@@ -60,6 +62,7 @@
                   v-model="selections"
                   :value="accessRight"
                   data-test="access-right-checkbox-input"
+                  hide-details
                 />
               </div>
             </td>
@@ -109,8 +112,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
 import { ServiceCandidate } from '@/ui-types';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
@@ -118,21 +120,22 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     id: {
-      type: String as Prop<string>,
+      type: String as PropType<string>,
       required: true,
     },
     serviceCandidates: {
-      type: Array as Prop<ServiceCandidate[]>,
+      type: Array as PropType<ServiceCandidate[]>,
       required: true,
     },
     serviceClientCandidateSelection: {
-      type: Object as Prop<ServiceClient>,
+      type: Object as PropType<ServiceClient>,
       required: true,
     },
   },
+  emits: ['set-step'],
   data() {
     return {
       selections: [] as ServiceCandidate[],
@@ -186,7 +189,7 @@ export default Vue.extend({
       this.selections = [];
     },
     cancel(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
   },
 });

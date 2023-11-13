@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content" align-left>
+  <v-layout class="main-content">
     <app-icon />
     <div class="tabs-wrap"></div>
     <app-drop-menu />
@@ -32,11 +32,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './AppDropMenu.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     AppIcon,
     AppDropMenu,
