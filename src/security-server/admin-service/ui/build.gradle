@@ -9,7 +9,7 @@ configurations {
 }
 
 dependencies {
-    npm project(path: ":shared-ui-3", configuration: "npm")
+    npm project(path: ":shared-ui", configuration: "npm")
 }
 
 frontend {
@@ -30,9 +30,17 @@ frontend {
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 task yarnUpdateDeps(type: RunYarn, dependsOn: [configurations.npm, installPackageManager]) {
+    var currentDir = java.nio.file.Path.of("${projectDir}")
     inputs.files('package.json')
     outputs.files('yarn.lock')
-    script = 'add --mode=update-lockfile ' + configurations.npm.files.collect { it.toString() }.join(' ')
+
+    var packages = configurations.npm.files
+            .collect { it.toPath() }
+            .collect { currentDir.relativize(it) }
+            .collect { '@niis/shared-ui@file:' + it }
+            .join(' ')
+
+    script = 'add --mode=update-lockfile ' + packages
 }
 
 installFrontend {

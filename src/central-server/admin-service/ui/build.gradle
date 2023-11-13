@@ -15,7 +15,7 @@ configurations {
 }
 
 dependencies {
-  npm project(path: ":shared-ui-3", configuration: "npm")
+  npm project(path: ":shared-ui", configuration: "npm")
 }
 
 frontend {
