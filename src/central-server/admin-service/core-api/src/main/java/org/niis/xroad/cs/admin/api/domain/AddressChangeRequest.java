@@ -24,35 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.managementrequest.model;
 
-import ee.ria.xroad.common.CodedException;
+package org.niis.xroad.cs.admin.api.domain;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+public class AddressChangeRequest extends Request {
+    private String serverAddress;
 
-public enum ManagementRequestType {
-    AUTH_CERT_REGISTRATION_REQUEST("authCertReg"),
-    CLIENT_REGISTRATION_REQUEST("clientReg"),
-    OWNER_CHANGE_REQUEST("ownerChange"),
-    CLIENT_DELETION_REQUEST("clientDeletion"),
-    AUTH_CERT_DELETION_REQUEST("authCertDeletion"),
-    ADDRESS_CHANGE_REQUEST("addressChange");
-
-    @Getter
-    private final String serviceCode;
-
-    ManagementRequestType(String serviceCode) {
-        this.serviceCode = serviceCode;
+    public AddressChangeRequest(Origin origin, SecurityServerId identifier, String address) {
+        super(origin, identifier);
+        this.serverAddress = address;
     }
 
-    public static ManagementRequestType getByServiceCode(String serviceCode) {
-        for (ManagementRequestType requestType : values()) {
-            if (requestType.getServiceCode().equalsIgnoreCase(serviceCode)) {
-                return requestType;
-            }
-        }
-        throw new CodedException(X_INVALID_REQUEST, "Unknown service code '%.20s'", serviceCode);
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.ADDRESS_CHANGE_REQUEST;
     }
 }

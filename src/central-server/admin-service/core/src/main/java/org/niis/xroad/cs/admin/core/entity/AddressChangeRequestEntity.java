@@ -24,35 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.managementrequest.model;
 
-import ee.ria.xroad.common.CodedException;
+package org.niis.xroad.cs.admin.core.entity;
+
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
 
-public enum ManagementRequestType {
-    AUTH_CERT_REGISTRATION_REQUEST("authCertReg"),
-    CLIENT_REGISTRATION_REQUEST("clientReg"),
-    OWNER_CHANGE_REQUEST("ownerChange"),
-    CLIENT_DELETION_REQUEST("clientDeletion"),
-    AUTH_CERT_DELETION_REQUEST("authCertDeletion"),
-    ADDRESS_CHANGE_REQUEST("addressChange");
+import static org.niis.xroad.cs.admin.core.entity.AddressChangeRequestEntity.DISCRIMINATOR_VALUE;
 
+
+@Entity
+@NoArgsConstructor
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
+public class AddressChangeRequestEntity extends RequestEntity {
+
+    public static final String DISCRIMINATOR_VALUE = "AddressChangeRequest";
+
+    @Column(name = "address")
     @Getter
-    private final String serviceCode;
+    @Setter
+    private String address;
 
-    ManagementRequestType(String serviceCode) {
-        this.serviceCode = serviceCode;
+    public AddressChangeRequestEntity(Origin origin, SecurityServerId identifier, String comments, String address) {
+        super(origin, identifier, comments);
+        this.address = address;
     }
 
-    public static ManagementRequestType getByServiceCode(String serviceCode) {
-        for (ManagementRequestType requestType : values()) {
-            if (requestType.getServiceCode().equalsIgnoreCase(serviceCode)) {
-                return requestType;
-            }
-        }
-        throw new CodedException(X_INVALID_REQUEST, "Unknown service code '%.20s'", serviceCode);
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.ADDRESS_CHANGE_REQUEST;
     }
 }
