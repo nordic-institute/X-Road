@@ -190,7 +190,7 @@ Starting X-Road version from 7.4 it can be published global configuration over H
 
 ### 5.1 Central Server TLS configuration
 
-To configure the Central Server to use a certificate issued by a trusted CA for serving global configurations over HTTPS follow "Central Server Installation Guide" [IG-CS](Ref_IG-CS) section "Configuring TLS Certificates".
+To configure the Central Server to use a certificate issued by a trusted CA for serving global configurations over HTTPS follow "Central Server Installation Guide" [IG-CS](#Ref_IG-CS) section "Configuring TLS Certificates".
 
 ### 5.2 Configuration Proxy TLS configuration
 
@@ -206,4 +206,4 @@ For example, it can be done by the following command on Ubuntu:
     -file global-conf-cert.pem \
     -keystore /etc/ssl/certs/java/cacerts
 
-It is possible to disable the verification of the global configuration endpoint’s TLS certificate via system properties. They should be disabled in test and dev environments only. System parameters are specified in the [UG-SYSPAR](Ref_UG-SYSPAR") section "Configuration Client parameters: [configuration-client]".
+It is possible to disable the verification of the global configuration endpoint’s TLS certificate via system properties. They should be disabled in test and dev environments only. System parameters are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR") section "Configuration Client parameters: [configuration-client]".
