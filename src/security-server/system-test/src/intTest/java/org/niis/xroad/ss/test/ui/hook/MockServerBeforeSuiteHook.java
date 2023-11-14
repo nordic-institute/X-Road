@@ -45,7 +45,7 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
 
     private static final String GLOBALCONF_DIR = "files/globalconf/V3/";
     private static final String TESTSERVICES_DIR = "files" + PREFIX_TESTSERVICES;
-    private static final String CONF_PART_DIR = "20231030164426998064000";
+    private static final String CONF_PART_DIR = "20231113171950380797000";
 
     private final ClasspathFileResolver classpathFileResolver;
     private final MockServerService mockServerService;
@@ -66,7 +66,7 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice2.wsdl");
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice3.wsdl");
 
-        mockManagementRequest();
+//        mockManagementRequest();
     }
 
     private void mockFileResponse(String fileDir, String pathPrefix, String path) {

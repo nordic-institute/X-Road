@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:keyConf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <device>
+        <deviceType>softToken</deviceType>
+        <friendlyName>softToken-0</friendlyName>
+        <id>0</id>
+        <pinIndex>0</pinIndex>
+        <key usage="SIGNING">
+            <friendlyName>sign</friendlyName>
+            <label>sign</label>
+            <keyId>3D47895272492D2A5950CD3936D89B69374EDB22</keyId>
+            <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4U71KJpjRZ57UlpADF980ORfMr3ea3vuZhGGmODkLuePeN6fjd1oFyu/vdCcJo9iXEtnA6DE9DFOhS173QLa4TJPzXkA+PNa9uHA1r1LzGfd+QuAz8fCR7WoqeP2Oty7WJwn0XFgOM6XJlJ2UdVFoFIKZwnVZlmFfarsY9tdS8TWH/woWY1K3/hTjwnORwh+R9YKyPjZEB4KUxteytlKFVOoaOEvaIaygwa5d3vOTu8UuU1z1E/8Hz+4QjvkfAztmnoMZiMuRRfxD0c46Y0OCVcLDs6wF0tPXdXBiS/f6KKkqvKKi3Prky9Gv27XtARx9nVv5uim5NJCwKfK65pZ4QIDAQAB</publicKey>
+            <cert active="true" id="B8F38495A19E24D0177055A8BC58EFF1661795D5">
+                <memberId ns2:objectType="MEMBER">
+                    <ns2:xRoadInstance>CS</ns2:xRoadInstance>
+                    <ns2:memberClass>ORG</ns2:memberClass>
+                    <ns2:memberCode>2908758-4</ns2:memberCode>
+                </memberId>
+                <contents>MIIEOzCCAiOgAwIBAgIBBjANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yMTAzMTAwODI2NTdaFw00MTAzMDUwODI2NTdaMEgxCzAJBgNVBAYTAkZJMRAwDgYDVQQKDAdUZXN0T3JnMRIwEAYDVQQDDAkyOTA4NzU4LTQxEzARBgNVBAUTCkNTL1NTMC9PUkcwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDhTvUommNFnntSWkAMX3zQ5F8yvd5re+5mEYaY4OQu54943p+N3WgXK7+90Jwmj2JcS2cDoMT0MU6FLXvdAtrhMk/NeQD481r24cDWvUvMZ935C4DPx8JHtaip4/Y63LtYnCfRcWA4zpcmUnZR1UWgUgpnCdVmWYV9quxj211LxNYf/ChZjUrf+FOPCc5HCH5H1grI+NkQHgpTG17K2UoVU6ho4S9ohrKDBrl3e85O7xS5TXPUT/wfP7hCO+R8DO2aegxmIy5FF/EPRzjpjQ4JVwsOzrAXS09d1cGJL9/ooqSq8oqLc+uTL0a/bte0BHH2dW/m6Kbk0kLAp8rrmlnhAgMBAAGjHTAbMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgZAMA0GCSqGSIb3DQEBCwUAA4ICAQA86e5eogjRWMV/+Qmwe0vNA12a5VELpJ2/WlxooqKyzT4j4BBEuCLJHPWUuG0p9I2fQ6XLUSsG43x0ZT19c1cy3QljXWI7DUA4+y03eZuSXw5DHKOdRoAQrmfJfqf9q+G1b6jqzYLZsrZYnuOzt9KmFjJMNIpcRFcAEhODu6raZJKgc37AHkuDFFQyQicjpH2SKNY/u8nyQXMI/TqKJWb92HDh+tgSeumdaHrTXXlzC0Gdx5qYgXjZVkzfK1b3eZi2N3Tp3HccNrND84GoLrHLsBwZNL0uS6+U3yKPfNGsz6gUFoXRKhVyxxDnUsCm7RCA7x2Wxxj2g7/CSQBcKKrY1ETuzc0ksla5cttQdU7TnGB3Acai3VnfDs+w5kxkUg8HMTH6ygEjPKGcxESKwmWwG0wH0ICYY3D4S3q+gIs8BvjB/6gC0UxJeu4yiR72uco9EFIikRI9w/+s3GGBr2NbJAJn+EEmK32BPoBky4GNI0BpjVUUcukJMXXJPdnq3ifto8CJT8ZF4XCAkhWD12nA+9JdNIBq1/AFqrpZ4J0oKlzhXyETbrLi2AIcJQg5/3QR5Pbvv/N5FdZG8DZPJNFlqfqpBrgCUQWQlJIqB85EPh2Qyq4JW/bTVavqS2igW8QRKXsxjQMC10dH0VRBFG6HVss1SrkCF6Fpm4R32tC5CA==</contents>
+                <status>registered</status>
+            </cert>
+        </key>
+        <key usage="AUTHENTICATION">
+            <friendlyName>auth</friendlyName>
+            <label>auth</label>
+            <keyId>5BA8103EF79C111C8F4B3E869DDD4403A5284CE1</keyId>
+            <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAihqNfPRvM6cHLDf0+7Ffz/bo0bMq2IbuTsFsJGQEu/lSpNgtY5z6Foie7n9vOQou+1okzFM6eSbvMEjn9ytc+UIuCmUobQc8OJQ5r+cXHQSHB7pJURW5cN481ekzNIXcUYMzph+tRISybOSeTrjVvOhqCNHp/T5sbRVWyPUUWgPmcAH1UeJZK8Rr3d1KpakTSEdCGCC3VPp3ZRHLNM9ZYVNeDwW0xmJ2Ho1bOWzqUCIiTn+RkX6wHp30aUTChxsNKs+Kqpsqid3PLqHSL9z1HUQw2jQWvotS1oJfvN8wkm/hYKHvmaYVV9aJIYo4OOZmT8Ay4awAkzGQW7TZAqClFQIDAQAB</publicKey>
+            <cert active="true" id="7DC0E08D926130E3529B58A56F86281BED02592F">
+                <contents>MIIEVDCCAjygAwIBAgIBBTANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yMTAzMTAwODI2NDFaFw00MTAzMDUwODI2NDFaMEIxCzAJBgNVBAYTAkZJMRAwDgYDVQQKDAdUZXN0T3JnMQwwCgYDVQQDDANzczAxEzARBgNVBAUTCkNTL1NTMC9PUkcwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCKGo189G8zpwcsN/T7sV/P9ujRsyrYhu5OwWwkZAS7+VKk2C1jnPoWiJ7uf285Ci77WiTMUzp5Ju8wSOf3K1z5Qi4KZShtBzw4lDmv5xcdBIcHuklRFblw3jzV6TM0hdxRgzOmH61EhLJs5J5OuNW86GoI0en9PmxtFVbI9RRaA+ZwAfVR4lkrxGvd3UqlqRNIR0IYILdU+ndlEcs0z1lhU14PBbTGYnYejVs5bOpQIiJOf5GRfrAenfRpRMKHGw0qz4qqmyqJ3c8uodIv3PUdRDDaNBa+i1LWgl+83zCSb+Fgoe+ZphVX1okhijg45mZPwDLhrACTMZBbtNkCoKUVAgMBAAGjPDA6MAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgO4MB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATANBgkqhkiG9w0BAQsFAAOCAgEAZZNYPSlfHLnYbWm1prWo6aLoNK3vH/ikJWPQAAYGtBBjM7UtyylbjwZ1E/kGrL8Myc3A1OLygsGZz5K4qNsUrOI3woaSctE+aprum/ToWoQyZsmu2YpxolfZ00Rq0qI5MO0imSptNDKS8OF8pnICk2BcrBwghbg8M795njTqJyfd9iB8xjmopWSqM5RKll2d26NIg1HiVOJduCEiKRaq1ypd37MQjgeZatgemj/yidIBVp6fZZjcU7EGINvXGeHovVczDQSn0iNeuRxAQDE/vTpBVqIbUv1s4uh6A9bZtugyj4eEqmFo81TW8aIUA1NFypzx4urTBKny0Npbse8AvCUzq/wkMWWtNaY2tzvKO9Y6cmZn+zbrQHYcLRIARVmyQZCCRTBfixsdeVRpqW9+5tNN0w7v/uMzpr5h/HPex3rldoiU8A4l+1rC4XocEtwsDrDbcGiF67xJJ2kUK76zQyIWEIw+S0yzkR9dbtGgKuMq2p8LQZpes8R4RyQTtCaEKccAwrVOju/5Dk9Pao9HCcI3t+WtyTL0sD7PjV3gNxKQuoN7GRd/MtletJJwHdCG1ZwF74cNAms/NYROERRyHa3eqZ3iWnyLSS9Xdsf6XspRZsaw5JHR8VkNf9IaXbGUJil4cVcpn7jZbfU62Xn6xJCFK9S24MWChcIX69AOJh0=</contents>
+                <status>registered</status>
+            </cert>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>TestService SIGN</friendlyName>
+            <label>TestService SIGN</label>
+            <keyId>F52E45CDF6E4C78B1713B1EAEC3B4DD52A5C05EA</keyId>
+            <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAimmPTJCyIFzk8/59XPlB6yHrvS86igmBaumHEUwaeKxq2tFyO752GLYAf2i6qIUnjJYwCWjLn+4Mzkb/iO6uK9qlyL8ltPHS0AcMgdVAuDwAALoaZofEAGAisrVJ6HnXDStwgNFN5FGd98tyoGu4LvS7Br6nUD1ITuLfVh/FzFXbZEnc/bcB00IMhW4dlLp5AXS3AOcB+1rPMZBDbVg3WvPYICZ4ZKIgjNC62NuizTvroaJX05htY9r9pNqRYn9Gj87oQBIXyWCDe8XESHIEX/1ZoS6Y1ZZOYKw3wGV9SC6num50Hn5jRoKN/CPU3rl/WxnfuSFfC+ebPnOVdxiSYQIDAQAB</publicKey>
+            <cert active="true" id="F13482EA3B4C97024B2E30E7A14318CF645E87AB">
+                <memberId ns2:objectType="MEMBER">
+                    <ns2:xRoadInstance>CS</ns2:xRoadInstance>
+                    <ns2:memberClass>GOV</ns2:memberClass>
+                    <ns2:memberCode>0245437-2</ns2:memberCode>
+                </memberId>
+                <contents>MIIEOjCCAiKgAwIBAgIBEjANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yMjA1MzExMzE1MDZaFw00MjA1MjYxMzE1MDZaMEcxCzAJBgNVBAYTAkZJMQ8wDQYDVQQKDAZOT1JUQUwxEjAQBgNVBAMMCTAyNDU0MzctMjETMBEGA1UEBRMKQ1MvU1MwL0dPVjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAIppj0yQsiBc5PP+fVz5Qesh670vOooJgWrphxFMGnisatrRcju+dhi2AH9ouqiFJ4yWMAloy5/uDM5G/4jurivapci/JbTx0tAHDIHVQLg8AAC6GmaHxABgIrK1Seh51w0rcIDRTeRRnffLcqBruC70uwa+p1A9SE7i31YfxcxV22RJ3P23AdNCDIVuHZS6eQF0twDnAftazzGQQ21YN1rz2CAmeGSiIIzQutjbos0766GiV9OYbWPa/aTakWJ/Ro/O6EASF8lgg3vFxEhyBF/9WaEumNWWTmCsN8BlfUgup7pudB5+Y0aCjfwj1N65f1sZ37khXwvnmz5zlXcYkmECAwEAAaMdMBswCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCBkAwDQYJKoZIhvcNAQELBQADggIBAGEQFCS3w9nPzSixsDFO89HEXUYzykWcIM41yvAG43CIPiu3k6FPn7vyksMeoJ8vVQMRRYyJf9tYZ6ts6xOroZV6oz9i0Yqvu2DsFhog4VbtK0xpqTJGu3j3jUgUzjh/Qyb+k1OIIvsHsCSj3/A56Xl8F+TcSMVyiJXxeeVtuYgokmNE8P9Nguo0BWZHGP/VMSvNsZY6PSq0bZggaDHDqO4idRL8q9d4CO83fN2j23t5d3T5Y2EiV3k0+uQ0xJtFO+A+n/weoS+fOxuTLFZ2vtWEpZ8VA1M/6U6htHpI+oa+fbNPRGKCzwjzvOR2ZraD1O0O8RqSIWSXYir1Yrc0AO6HX44IfdxGxjNqz7JY1VagIVRRtpHx4j7zNradUckICobqeJ+0qMOfK+M4PyQBy1Ryfu1//pL9D1hd0zDSSbrRU5e+lKs1gwdZWPuqjoZtbizuakmoeNiPWaw+pduq82P+b09nRq0RhJ28gyrcCnu2013rIdNJyaUMD8zUwaa7YZ4mXhVMD9fTLBy2FktiUA8q2+NhBffpOIO6Gp0bMm54y0QvxgI2hKS6mBrRF6VGoLVhHK0AiAHtz9J8MrUVkxD4RheHZssgEMCzV2ZNfmMn3Dz/04P7VUtndDCQ1cmcJVsR30K27S33yv5+e+8fTYuq7WsP18lGqQnZ61Ln/ndd</contents>
+                <status>registered</status>
+            </cert>
+        </key>
+        <signMechanismName>CKM_RSA_PKCS</signMechanismName>
+    </device>
+</ns3:keyConf>
