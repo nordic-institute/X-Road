@@ -206,4 +206,4 @@ For example, it can be done by the following command on Ubuntu:
     -file global-conf-cert.pem \
     -keystore /etc/ssl/certs/java/cacerts
 
-It is possible to disable the verification of the global configuration endpoint’s TLS certificate via system properties. They should be disabled in test and dev environments only. System parameters are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR") section "Configuration Client parameters: [configuration-client]".
+It is possible to disable the verification of the global configuration endpoint’s TLS certificate via system properties. They should be disabled in test and dev environments only. System parameters are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Configuration Client parameters: [configuration-client]".
