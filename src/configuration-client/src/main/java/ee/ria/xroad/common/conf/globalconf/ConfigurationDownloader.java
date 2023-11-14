@@ -35,6 +35,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.operator.DigestCalculator;
 
+import javax.net.ssl.SSLHandshakeException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,6 +86,8 @@ class ConfigurationDownloader {
 
     private static final String VERSION_QUERY_PARAMETER = "version";
 
+    private static final String HTTPS = "https";
+
     protected final FileNameProvider fileNameProvider;
 
     private final Map<ConfigurationSource, ConfigurationLocation> lastSuccessfulLocation = new HashMap<>();
@@ -122,6 +126,9 @@ class ConfigurationDownloader {
                 Configuration config = download(location, contentIdentifiers);
                 rememberLastSuccessfulLocation(location);
                 return result.success(config);
+            } catch (SSLHandshakeException e) {
+                log.warn("The Security Server can't download Global Configuration over HTTPS. Because " + e);
+                result.addFailure(location, e);
             } catch (Exception e) {
                 result.addFailure(location, e);
             }
@@ -140,13 +147,31 @@ class ConfigurationDownloader {
 
         preferLastSuccessLocation(source, result);
 
-        List<ConfigurationLocation> randomized = new ArrayList<>(source.getLocations());
-        Collections.shuffle(randomized);
+        List<ConfigurationLocation> randomized = new ArrayList<>(getLocationsPreferHttps(source));
         result.addAll(randomized);
 
         result.removeIf(Objects::isNull);
 
         return result;
+    }
+
+    private List<ConfigurationLocation> getLocationsPreferHttps(ConfigurationSource source) {
+        List<ConfigurationLocation> result = new ArrayList<>();
+        result.addAll(getRandomizedLocations(source, true));
+        result.addAll(getRandomizedLocations(source, false));
+        return result;
+    }
+
+    private List<ConfigurationLocation> getRandomizedLocations(ConfigurationSource source, boolean startWithHttps) {
+        List<ConfigurationLocation> randomized = new ArrayList<>(source.getLocations().stream()
+                .filter(location -> assertStartWithHttps(location.getDownloadURL(), startWithHttps))
+                .toList());
+        Collections.shuffle(randomized);
+        return randomized;
+    }
+
+    private boolean assertStartWithHttps(String url, boolean expectedResult) {
+        return url.startsWith(HTTPS) == expectedResult;
     }
 
     private void preferLastSuccessLocation(ConfigurationSource source, List<ConfigurationLocation> result) {
@@ -303,6 +328,7 @@ class ConfigurationDownloader {
         uriBuilder.addParameter(VERSION_QUERY_PARAMETER, String.valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION));
         URL url = new URL(uriBuilder.toString());
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        ConfigurationHttpUrlConnectionConfig.apply(connection);
         if (connection.getResponseCode() == HttpStatus.SC_NOT_FOUND) {
             int fallBackVersion = CURRENT_GLOBAL_CONFIGURATION_VERSION - 1;
             log.info("Global conf version {} query resulted in HTTP {}, defaulting back to version {}.",

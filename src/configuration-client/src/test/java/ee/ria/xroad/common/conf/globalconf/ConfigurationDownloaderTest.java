@@ -50,6 +50,7 @@ import static org.junit.Assert.assertTrue;
 public class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
     private static final String LOCATION_URL_SUCCESS = "http://www.example.com";
+    private static final String LOCATION_HTTPS_URL_SUCCESS = "https://www.example.com";
 
     /**
      * For better HA, the order of sources to be tried to download configuration
@@ -85,7 +86,7 @@ public class ConfigurationDownloaderTest {
         // We loop in order to make failing due to wrong URL more certain.
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
             // Given
-            ConfigurationDownloader downloader = getDownloader(version, LOCATION_URL_SUCCESS + "?version=" + version);
+            ConfigurationDownloader downloader = getDownloader(version, LOCATION_HTTPS_URL_SUCCESS + "?version=" + version);
             List<String> locationUrls = getMixedLocationUrls();
 
             // When
@@ -116,14 +117,14 @@ public class ConfigurationDownloaderTest {
     @Test
     public void v3PrevailsWhenVersionNeitherPresetNorEnforced() {
         // Given
-        ConfigurationDownloader downloader = getDownloader(LOCATION_URL_SUCCESS + "?version=" + 3);
-        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS);
+        ConfigurationDownloader downloader = getDownloader(LOCATION_HTTPS_URL_SUCCESS + "?version=" + 3);
+        List<String> locationUrls = List.of(LOCATION_HTTPS_URL_SUCCESS);
 
         // When
         downloader.download(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, 3);
+        verifySuccessfulLocation(downloader, LOCATION_HTTPS_URL_SUCCESS, 3);
     }
 
     @Test
@@ -144,14 +145,14 @@ public class ConfigurationDownloaderTest {
     public void enforcedVersionPrevailsPresetVersion() {
         // Given
         int enforcedVersion = 2;
-        ConfigurationDownloader downloader = getDownloader(enforcedVersion, LOCATION_URL_SUCCESS + "?version=" + enforcedVersion);
-        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + 3);
+        ConfigurationDownloader downloader = getDownloader(enforcedVersion, LOCATION_HTTPS_URL_SUCCESS + "?version=" + enforcedVersion);
+        List<String> locationUrls = List.of(LOCATION_HTTPS_URL_SUCCESS + "?version=" + 3);
 
         // When
         downloader.download(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, enforcedVersion);
+        verifySuccessfulLocation(downloader, LOCATION_HTTPS_URL_SUCCESS, enforcedVersion);
     }
 
     /**
@@ -180,7 +181,7 @@ public class ConfigurationDownloaderTest {
     private void verifySuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_URL_SUCCESS, expectedLocationVersion));
+        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
     }
 
     private Matcher<List<String>> hasOnlyOneSuccessfulUrl(String url, int version) {
@@ -210,14 +211,16 @@ public class ConfigurationDownloaderTest {
         List<String> expectedLocationUrls = locationUrls.stream()
                 .map(url -> url + "?version=" + downloader.getConfigurationVersion())
                 .collect(toList());
-        verifyLocationsRandomized(downloader, expectedLocationUrls);
+        verifyLocationsRandomizedPreferHttps(downloader, expectedLocationUrls);
     }
 
-    private void verifyLocationsRandomized(
+    private void verifyLocationsRandomizedPreferHttps(
             ConfigurationDownloader downloader, List<String> locationUrls) {
         List<String> urlsParsedInOrder =
                 getParser(downloader).getConfigurationUrls();
 
+        assertTrue(locationUrls.get(0).startsWith("http:"));
+        assertTrue(urlsParsedInOrder.get(0).startsWith("https"));
         assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
         assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
     }
@@ -266,8 +269,8 @@ public class ConfigurationDownloaderTest {
         List<String> result = new ArrayList<>();
 
         result.add("http://www.example.com/loc1");
-        result.add("http://www.example.com/loc2");
-        result.add("http://www.example.com/loc3");
+        result.add("https://www.example.com/loc2");
+        result.add("https://www.example.com/loc3");
 
         return result;
     }
@@ -277,6 +280,7 @@ public class ConfigurationDownloaderTest {
 
         result.add("http://www.example.com/failure1");
         result.add(LOCATION_URL_SUCCESS);
+        result.add(LOCATION_HTTPS_URL_SUCCESS);
         result.add("http://www.example.com/failure2");
 
         return result;
