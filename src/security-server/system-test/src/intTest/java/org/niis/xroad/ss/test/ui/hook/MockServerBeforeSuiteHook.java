@@ -65,8 +65,6 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice1.wsdl");
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice2.wsdl");
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testservice3.wsdl");
-
-//        mockManagementRequest();
     }
 
     private void mockFileResponse(String fileDir, String pathPrefix, String path) {
@@ -88,21 +86,4 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
         }
     }
 
-
-    private void mockManagementRequest() {
-        var expectations = mockServerService.client()
-                .when(request()
-                        .withMethod("POST")
-                        .withPath("/managementservice/")
-                )
-                .respond(response()
-                        .withBody(classpathFileResolver.getFileAsString("files/soap-responses/management-response-1.xml"))
-                );
-
-        for (Expectation expectation : expectations) {
-            log.info("Registered new mock-service response for request {}", expectation.getHttpRequest().toString());
-        }
-
-
-    }
 }
