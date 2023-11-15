@@ -20,7 +20,7 @@ test-automation:
         isolation-tag: "Modifying"
     glue-append: "org.niis.xroad.cs.test.glue"
     filter:
-      tags: "not @Skip and @This"
+      tags: "not @Skip"
   containers:
     testable-container:
       reuse-between-runs: ${reuse-between-runs}
