@@ -181,7 +181,7 @@ public final class CryptoUtils {
             case SHA512WITHRSAANDMGF1_ID:
                 return SHA512_ID;
             default:
-                throw new NoSuchAlgorithmException("Unkown signature algorithm id: " + signatureAlgorithm);
+                throw new NoSuchAlgorithmException("Unknown signature algorithm id: " + signatureAlgorithm);
         }
     }
 
