@@ -1,13 +1,29 @@
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 configurations {
-    npm
-    dist
+  yarn
+  dist
 }
 
 dependencies {
-    npm project(path: ":shared-ui", configuration: "npm")
+  yarn project(path: ":shared-ui", configuration: "yarn")
 }
+
+tasks.register('yarnUpdateDeps', RunYarn) {
+  var currentDir = java.nio.file.Path.of("${projectDir}")
+  inputs.files('package.json')
+  outputs.files('yarn.lock')
+
+  var packages = configurations.yarn.files
+    .collect { it.toPath() }
+    .collect { currentDir.relativize(it) }
+    .collect { '@niis/shared-ui@file:' + it }
+    .join(' ')
+
+  script = 'add --mode=update-lockfile ' + packages
+}
+
+installFrontend.dependsOn("yarnUpdateDeps")
 
 tasks.register('yarnBuild', RunYarn) {
   dependsOn assembleFrontend
@@ -35,14 +51,14 @@ tasks.register('frontendUnitTests', RunYarn) {
 }
 
 clean {
-    delete file('dist')
+  delete file('dist')
 }
 
 // checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
 assemble.dependsOn yarnBuild
 
 artifacts {
-    dist(file("dist/")) {
-        builtBy(yarnBuild)
-    }
+  dist(file("dist/")) {
+    builtBy(yarnBuild)
+  }
 }
