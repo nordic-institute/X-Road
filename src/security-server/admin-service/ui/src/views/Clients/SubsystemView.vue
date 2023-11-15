@@ -35,6 +35,8 @@
           {{ `${client.subsystem_code} (${$t('general.subsystem')})` }}
         </div>
         <div>
+          <DisableClientButton v-if="showDisable" :id="id" @done="fetchData" />
+          <EnableClientButton v-if="showEnable" :id="id" @done="fetchData" />
           <DeleteClientButton v-if="showDelete" :id="id" />
           <UnregisterClientButton
             v-if="showUnregister"
@@ -54,13 +56,18 @@ import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
 import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
+import DisableClientButton from '@/components/client/DisableClientButton.vue';
+import EnableClientButton from '@/components/client/EnableClientButton.vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
+import { ClientStatus } from '@/openapi-types';
 
 export default defineComponent({
   components: {
+    EnableClientButton,
+    DisableClientButton,
     UnregisterClientButton,
     DeleteClientButton,
   },
@@ -99,6 +106,22 @@ export default defineComponent({
       }
 
       return this.hasPermission(Permissions.DELETE_CLIENT);
+    },
+
+    showDisable(): boolean {
+      return (
+        !!this.client &&
+        this.client.status === ClientStatus.REGISTERED &&
+        this.hasPermission(Permissions.DISABLE_CLIENT)
+      );
+    },
+
+    showEnable(): boolean {
+      return (
+        !!this.client &&
+        this.client.status === ClientStatus.DISABLED &&
+        this.hasPermission(Permissions.ENABLE_CLIENT)
+      );
     },
   },
   created() {

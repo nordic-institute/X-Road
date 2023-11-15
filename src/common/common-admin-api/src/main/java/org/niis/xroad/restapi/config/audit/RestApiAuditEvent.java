@@ -73,6 +73,8 @@ public enum RestApiAuditEvent {
     ADD_LOCAL_GROUP_MEMBERS("Add members to group"),
     REMOVE_LOCAL_GROUP_MEMBERS("Remove members from group"),
     DELETE_LOCAL_GROUP("Delete group"),
+    DISABLE_CLIENT("Disable client"),
+    ENABLE_CLIENT("Enable client"),
 
     // system parameters
     GENERATE_INTERNAL_TLS_CSR("Generate certificate request for TLS"),

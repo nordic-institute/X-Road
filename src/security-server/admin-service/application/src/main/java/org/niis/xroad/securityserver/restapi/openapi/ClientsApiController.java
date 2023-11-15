@@ -121,6 +121,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT_INTERNAL_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHANS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DISABLE_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ENABLE_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SEND_OWNER_CHANGE_REQ;
@@ -582,6 +584,30 @@ public class ClientsApiController implements ClientsApi {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DISABLE_CLIENT')")
+    @AuditEventMethod(event = DISABLE_CLIENT)
+    public ResponseEntity<Void> disableClient(String encodedClientId) {
+        ClientId.Conf clientId = clientIdConverter.convertId(encodedClientId);
+        try {
+            clientService.disableClient(clientId);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException
+                 | ClientService.CannotUnregisterOwnerException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ENABLE_CLIENT')")
+    @AuditEventMethod(event = ENABLE_CLIENT)
+    public ResponseEntity<Void> enableClient(String id) {
+        // TODO
+        return null;
     }
 
     @Override

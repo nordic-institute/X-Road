@@ -71,6 +71,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
@@ -559,6 +560,38 @@ public class ClientService {
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
+    }
+
+    /**
+     * Unregister a client
+     *
+     * @param clientId client to unregister
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws CannotUnregisterOwnerException when trying to unregister the security server owner
+     * @throws ActionNotPossibleException when trying do unregister a client that cannot be unregistered
+     */
+    public void disableClient(ClientId.Conf clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotUnregisterOwnerException, ActionNotPossibleException {
+
+        auditDataHelper.put(clientId);
+
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        if (!STATUS_REGISTERED.equals(client.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot disable client with status " + client.getClientStatus());
+        }
+        ClientId.Conf ownerId = currentSecurityServerId.getServerId().getOwner();
+        if (clientId.equals(ownerId)) {
+            throw new CannotUnregisterOwnerException(); // FIXME: exception
+        }
+//        try {
+            // Integer requestId = managementRequestSenderService.sendDisableClientRequest(clientId);
+            auditDataHelper.putClientStatus(client);
+            // auditDataHelper.putManagementRequestId(requestId);
+            client.setClientStatus(STATUS_DISABLING_INPROG);
+//        } catch (ManagementRequestSendingFailedException e) {
+//            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+//        }
     }
 
     /**
