@@ -186,7 +186,7 @@ For example, setting the value `server-min-supported-client-version = 7.3.1` mea
 
 ## 5. Publish global configuration over HTTPS
 
-Starting X-Road version from 7.4 it can be published global configuration over HTTPS using a TLS certificate issued by a trusted CA. The CA must be trusted by the Security Server's Java installation.
+Starting from X-Road version 7.4, it is possible to publish global configuration over HTTPS using a TLS certificate issued by a trusted CA. The CA must be trusted by the Security Server's Java installation.
 
 ### 5.1 Central Server TLS configuration
 
@@ -198,12 +198,20 @@ To configure the Configuration Proxy to use a certificate issued by a trusted CA
 
 ### 5.3 Security Server TLS configuration
 
-The TLS certificate used by the source must be signed by a trusted CA (one trusted by the JAVA installation).
+The TLS certificate used by the global configuration endpoint must be signed by a trusted CA (one trusted by the JAVA installation).
 
-For example, it can be done by the following command on Ubuntu:
+If the certificate isn't trusted by the Security Server's JAVA installation by default, it can be manually added to the system truststore by following the steps below:
 
-    keytool -import -alias global-conf-cert \
-    -file global-conf-cert.pem \
-    -keystore /etc/ssl/certs/java/cacerts
+**Example on Ubuntu 18.04 / 20.04**
 
-It is possible to disable the verification of the global configuration endpoint’s TLS certificate via system properties. They should be disabled in test and dev environments only. System parameters are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Configuration Client parameters: [configuration-client]".
+Copy the `.crt` file (PEM) into the `/usr/local/share/ca-certificates` folder.
+
+Run `sudo update-ca-certificates`.
+
+**Example on RHEL 7 / 8**
+
+Copy the `.crt` file (PEM or DER) into the `/etc/pki/ca-trust/source/anchors` folder.
+
+Run `sudo update-ca-trust extract`.
+
+It is possible to disable the verification of the global configuration endpoint’s TLS certificate via system properties. The verification may be disabled in test and development environments. Instead, the verification must always be enabled in production environments. System parameters are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Configuration Client parameters: [configuration-client]".
