@@ -40,9 +40,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,12 +71,16 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     public SignerProxyFacadeMockHttpImpl(RestTemplateBuilder builder, @Value("${signerProxyMockUri}") String signerProxyMockUri,
                                          ObjectMapper objectMapper) {
         log.info("Creating mocked SignerProxyFacade");
-        ConnectionConfig.custom().build();
+
+        var connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.of(1000, TimeUnit.MILLISECONDS))
+                .setSocketTimeout(Timeout.of(1000, TimeUnit.MILLISECONDS))
+                .build();
+        var httpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultConnectionConfig(connectionConfig)
+                .build();
         final CloseableHttpClient client = HttpClients.custom()
-                .setDefaultRequestConfig(RequestConfig.custom()
-                        .setConnectTimeout(Timeout.of(1000, TimeUnit.MILLISECONDS))
-                        .setConnectionRequestTimeout(Timeout.of(1000, TimeUnit.MILLISECONDS))
-                        .build())
+                .setConnectionManager(httpClientConnectionManager)
                 .disableAutomaticRetries()
                 .disableCookieManagement()
                 .disableRedirectHandling()
