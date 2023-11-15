@@ -173,7 +173,7 @@ public final class CryptoUtils {
             case SHA256WITHRSA_ID, SHA256WITHRSAANDMGF1_ID -> SHA256_ID; // fall through
             case SHA384WITHRSA_ID, SHA384WITHRSAANDMGF1_ID -> SHA384_ID; // fall through
             case SHA512WITHRSA_ID, SHA512WITHRSAANDMGF1_ID -> SHA512_ID;
-            default -> throw new NoSuchAlgorithmException("Unkown signature algorithm id: " + signatureAlgorithm);
+            default -> throw new NoSuchAlgorithmException("Unknown signature algorithm id: " + signatureAlgorithm);
         };
     }
 
@@ -246,25 +246,22 @@ public final class CryptoUtils {
      */
     public static String getSignatureAlgorithmId(String digestAlgorithmId, String signMechanismName)
             throws NoSuchAlgorithmException {
-        switch (signMechanismName) {
-            case CKM_RSA_PKCS_NAME:
-                return switch (digestAlgorithmId) {
-                    case SHA1_ID -> SHA1WITHRSA_ID;
-                    case SHA256_ID -> SHA256WITHRSA_ID;
-                    case SHA384_ID -> SHA384WITHRSA_ID;
-                    case SHA512_ID -> SHA512WITHRSA_ID;
-                    default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
-                };
-            case CKM_RSA_PKCS_PSS_NAME:
-                return switch (digestAlgorithmId) {
-                    case SHA256_ID -> SHA256WITHRSAANDMGF1_ID;
-                    case SHA384_ID -> SHA384WITHRSAANDMGF1_ID;
-                    case SHA512_ID -> SHA512WITHRSAANDMGF1_ID;
-                    default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
-                };
-            default:
-                throw new NoSuchAlgorithmException("Unknown signing mechanism: " + signMechanismName);
-        }
+        return switch (signMechanismName) {
+            case CKM_RSA_PKCS_NAME -> switch (digestAlgorithmId) {
+                case SHA1_ID -> SHA1WITHRSA_ID;
+                case SHA256_ID -> SHA256WITHRSA_ID;
+                case SHA384_ID -> SHA384WITHRSA_ID;
+                case SHA512_ID -> SHA512WITHRSA_ID;
+                default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+            };
+            case CKM_RSA_PKCS_PSS_NAME -> switch (digestAlgorithmId) {
+                case SHA256_ID -> SHA256WITHRSAANDMGF1_ID;
+                case SHA384_ID -> SHA384WITHRSAANDMGF1_ID;
+                case SHA512_ID -> SHA512WITHRSAANDMGF1_ID;
+                default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+            };
+            default -> throw new NoSuchAlgorithmException("Unknown signing mechanism: " + signMechanismName);
+        };
     }
 
     /**

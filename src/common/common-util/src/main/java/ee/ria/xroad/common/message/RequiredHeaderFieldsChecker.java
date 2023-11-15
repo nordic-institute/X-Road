@@ -68,8 +68,8 @@ class RequiredHeaderFieldsChecker extends Unmarshaller.Listener {
                             annotation.name());
                 }
 
-                if (value instanceof ValidatableField) {
-                    ((ValidatableField) value).validate();
+                if (value instanceof ValidatableField vField) {
+                    vField.validate();
                 }
             }
         }
