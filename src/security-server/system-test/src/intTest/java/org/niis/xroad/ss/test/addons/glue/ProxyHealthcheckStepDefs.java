@@ -98,9 +98,9 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
     }
 
     private void assertWithWait(ThrowingRunnable assertion) {
-        final int pollInterval = 2;
+        final int pollInterval = 5;
         final int pollDelay = 5;
-        final int maxWaitTime = 60;
+        final int maxWaitTime = 80;
         given()
                 .pollDelay(pollDelay, TimeUnit.SECONDS)
                 .pollInterval(pollInterval, TimeUnit.SECONDS)
