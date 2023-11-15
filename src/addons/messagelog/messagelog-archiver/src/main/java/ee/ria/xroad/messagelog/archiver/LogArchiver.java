@@ -99,7 +99,7 @@ public class LogArchiver implements Job {
 
     private boolean handleArchive(long maxRecordId) throws Exception {
         return doInTransaction(session -> {
-             final int limit = getArchiveTransactionBatchSize();
+            final int limit = getArchiveTransactionBatchSize();
             final String archiveTransferCommand = getArchiveTransferCommand();
             final long start = System.currentTimeMillis();
             final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
