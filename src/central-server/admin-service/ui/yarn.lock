@@ -831,7 +831,7 @@ __metadata:
 
 "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz::locator=xroad-centralserver-admin-ui%40workspace%3A.":
   version: 3.0.0
-  resolution: "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz#../../../shared-ui/niis-shared-ui-3.0.0.tgz::hash=7ec644&locator=xroad-centralserver-admin-ui%40workspace%3A."
+  resolution: "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz#../../../shared-ui/niis-shared-ui-3.0.0.tgz::hash=6b76dc&locator=xroad-centralserver-admin-ui%40workspace%3A."
   dependencies:
     "@fontsource/open-sans": "npm:^5.0.12"
     "@mdi/font": "npm:^7.2.96"

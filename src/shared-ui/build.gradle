@@ -1,27 +1,13 @@
-plugins {
-    id 'base'
-    id 'org.siouan.frontend-jdk17' version "$frontendVersion"
-}
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 configurations {
-    npm { canBeConsumed(true); canBeResolved(false) }
+    yarn { canBeConsumed(true); canBeResolved(false) }
 }
-
-frontend {
-  nodeVersion = frontendNodeVersion
-  nodeInstallDirectory = file("${rootDir}/.gradle/yarn-node/${frontendNodeVersion}")
-  cacheDirectory = file("${projectDir}/.gradle/yarn-cache")
-
-  if (System.getenv().containsKey("CI")) {
-    installScript='install --immutable'
-  }
-}
-
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 var archive = 'niis-shared-ui-3.0.0.tgz'
 
-task yarnBuild(type: RunYarn, dependsOn: installFrontend) {
+tasks.register('yarnBuild', RunYarn) {
+  dependsOn installFrontend
   inputs.files(
     'src/',
     'public/',
@@ -38,26 +24,11 @@ task yarnBuild(type: RunYarn, dependsOn: installFrontend) {
   script = 'run build'
 }
 
-task yarnPack(type: RunYarn, dependsOn: yarnBuild) {
+tasks.register('yarnPack', RunYarn) {
+  dependsOn yarnBuild
   inputs.files("dist")
   outputs.file(archive)
   script = "pack --out ${archive}"
-}
-
-task checkFrontAudit(type: RunYarn, dependsOn: installFrontend) {
-  inputs.files(
-    'package.json',
-    'yarn.lock'
-  )
-  outputs.files("${buildDir}/reports/audit-ci.txt")
-  script = 'run npx-check-audit'
-}
-
-// check that npm run license-check passes
-task checkFrontLicense(type: RunYarn, dependsOn: installFrontend) {
-  inputs.files("LICENSE.txt", "src/", "test/", "public/")
-  outputs.upToDateWhen { true }
-  script = 'run license-check'
 }
 
 clean {
@@ -65,15 +36,10 @@ clean {
   delete file('dist')
 }
 
-assemble.dependsOn yarnPack
-check.dependsOn checkFrontLicense
-
-if (project.hasProperty('frontend-npm-audit')) {
-  yarnBuild.dependsOn checkFrontAudit
-}
+assembleFrontend.dependsOn yarnPack
 
 artifacts {
-  npm(file(archive)) {
+  yarn(file(archive)) {
     builtBy(yarnPack)
   }
 }

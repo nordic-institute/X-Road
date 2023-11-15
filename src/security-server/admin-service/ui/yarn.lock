@@ -762,7 +762,7 @@ __metadata:
 
 "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz::locator=frontend%40workspace%3A.":
   version: 3.0.0
-  resolution: "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz#../../../shared-ui/niis-shared-ui-3.0.0.tgz::hash=7ec644&locator=frontend%40workspace%3A."
+  resolution: "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz#../../../shared-ui/niis-shared-ui-3.0.0.tgz::hash=94638d&locator=frontend%40workspace%3A."
   dependencies:
     "@fontsource/open-sans": "npm:^5.0.12"
     "@mdi/font": "npm:^7.2.96"
@@ -771,7 +771,7 @@ __metadata:
     vue: ^3.3.4
     vue-i18n: ^9.4.0
     vuetify: ^3.3.19
-  checksum: a7b007662c348ddc8af201ad4ed4888fcf3465907a1a73bcd4e0d55a6d79745dff86a74c55a7da86f52289f2f4d9e3051de8aa849d393ced1bda7e4fbc39f2a8
+  checksum: efb5cbfa2bd2dd3fc7f385f23090d4d04f8752513ff64e7a1363a8f75b9666ebcae6f8f09cfcb67cfa8a2956b8fc66bfdaf1d7260e2238dcdacdf32399360ca1
   languageName: node
   linkType: hard
 

@@ -1,7 +1,4 @@
-plugins {
-    id 'base'
-    id 'org.siouan.frontend-jdk17' version "$frontendVersion"
-}
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 configurations {
     npm
@@ -12,98 +9,37 @@ dependencies {
     npm project(path: ":shared-ui", configuration: "npm")
 }
 
-frontend {
-  var nodeDir = file("${rootDir}/.gradle/yarn-node/${frontendNodeVersion}")
-  nodeVersion = frontendNodeVersion
-  nodeInstallDirectory = nodeDir
-  cacheDirectory = file("${projectDir}/.gradle/yarn-cache")
-  if(nodeDir.exists()){
-    nodeDistributionProvided = true
-  }
-
-
-  if (System.getenv().containsKey("CI")) {
-    installScript='install --immutable'
-  }
+tasks.register('yarnBuild', RunYarn) {
+  dependsOn assembleFrontend
+  inputs.files(
+    'src/',
+    'public/',
+    'package.json',
+    'yarn.lock',
+    'tsconfig.js',
+    'vite.config.js',
+    fileTree('node_modules') {
+      exclude '.cache'
+      exclude 'webpack-dev-server/ssl'
+    }
+  )
+  outputs.dir('dist')
+  script = 'run build'
 }
 
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
-
-task yarnUpdateDeps(type: RunYarn, dependsOn: [configurations.npm, installPackageManager]) {
-    var currentDir = java.nio.file.Path.of("${projectDir}")
-    inputs.files('package.json')
-    outputs.files('yarn.lock')
-
-    var packages = configurations.npm.files
-            .collect { it.toPath() }
-            .collect { currentDir.relativize(it) }
-            .collect { '@niis/shared-ui@file:' + it }
-            .join(' ')
-
-    script = 'add --mode=update-lockfile ' + packages
-}
-
-installFrontend {
-  dependsOn += 'yarnUpdateDeps'
-}
-
-task yarnBuild(type: RunYarn, dependsOn: installFrontend) {
-    inputs.files(
-        'src/',
-        'public/',
-        'package.json',
-        'yarn.lock',
-        'tsconfig.js',
-        'vite.config.js',
-        fileTree('node_modules') {
-            exclude '.cache'
-            exclude 'webpack-dev-server/ssl'
-        }
-    )
-    outputs.dir('dist')
-    script = 'run build'
-}
-
-task checkFrontAudit(type: RunYarn, dependsOn: installFrontend) {
-    inputs.files(
-        'package.json',
-        'yarn.lock'
-    )
-    outputs.files("${buildDir}/reports/audit-ci.txt")
-    script = 'run npx-check-audit'
-}
-
-// check that npm run license-check passes
-task checkFrontLicense(type: RunYarn, dependsOn: installFrontend) {
-    inputs.files(
-        "test/",
-        "public/",
-        fileTree('src/') {
-            exclude 'openapi-types'
-        }
-    )
-    outputs.upToDateWhen { true }
-    script = 'run license-check'
-}
-
-task frontendUnitTests(type: RunYarn, dependsOn: installFrontend) {
-    inputs.files("dist", "test", "public")
-    outputs.upToDateWhen { true }
-    script = 'run test:unit'
+tasks.register('frontendUnitTests', RunYarn) {
+  dependsOn assembleFrontend
+  inputs.files("dist", "test", "public")
+  outputs.upToDateWhen { true }
+  script = 'run test:unit'
 }
 
 clean {
-    delete file('node_modules')
     delete file('dist')
 }
 
 // checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
 assemble.dependsOn yarnBuild
-check.dependsOn checkFrontLicense
-
-if (project.hasProperty('frontend-npm-audit')) {
-  yarnBuild.dependsOn checkFrontAudit
-}
 
 artifacts {
     dist(file("dist/")) {

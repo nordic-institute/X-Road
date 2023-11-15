@@ -65,5 +65,5 @@
     "vue-eslint-parser": "^9.3.1",
     "vue-tsc": "^1.6.5"
   },
-  "packageManager": "yarn@4.0.0-rc.50"
+  "packageManager": "yarn@4.0.2"
 }
