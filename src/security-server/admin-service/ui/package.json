@@ -47,7 +47,6 @@
     "@vitejs/plugin-vue": "^4.3.3",
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "@vue/eslint-config-typescript": "~11.0.3",
-    "chromedriver": "113.0.0",
     "eslint": "~8.48.0",
     "eslint-config-prettier": "~9.0.0",
     "eslint-plugin-prettier-vue": "~5.0.0",
