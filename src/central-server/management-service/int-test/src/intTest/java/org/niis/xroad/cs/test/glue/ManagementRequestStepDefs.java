@@ -40,6 +40,7 @@ import org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequestBuilder;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestPayload;
+import org.niis.xroad.common.managemenetrequest.test.TestSimpleManagementRequestBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -207,5 +208,15 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
         executeRequest(TestManagementRequestPayload.empty());
     }
 
+    @Step("Address change request with new address {string} was sent")
+    public void addressChangeRequestWithNewAddressWasSent(String address) {
+        var clientId = resolveClientIdFromEncodedStr("EE:CLASS:MEMBER");
+        var request = TestSimpleManagementRequestBuilder.newBuilder()
+                .withSenderClientId(clientId)
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withSoapMessageBuilder((keyPairGenerator, builder) -> builder.buildAddressChangeRequest(DEFAULT_SERVER_ID, address))
+                .build();
+        executeRequest(request.createPayload());
+    }
 
 }
