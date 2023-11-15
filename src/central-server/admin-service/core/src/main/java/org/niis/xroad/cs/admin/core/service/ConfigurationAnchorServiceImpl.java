@@ -68,7 +68,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Optional;
 
-import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.ERROR_RECREATING_ANCHOR;
@@ -138,7 +137,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         }
 
         final var sources = configurationSourceRepository.findAllBySourceType(configurationType.name().toLowerCase());
-        final var now = TimeUtils.zonedDateTimeNow(ZoneId.of("UTC")).truncatedTo(MILLIS);
+        final var now = TimeUtils.zonedDateTimeNow(ZoneId.of("UTC"));
         final var anchorXml = buildAnchorXml(instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
         final var anchorXmlHash = CryptoUtils.calculateAnchorHashDelimited(anchorXmlBytes);
