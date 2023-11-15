@@ -90,6 +90,7 @@ public class SystemService {
     private final AnchorRepository anchorRepository;
     private final ConfigurationVerifier configurationVerifier;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
 
     @Setter
@@ -340,6 +341,19 @@ public class SystemService {
             // global conf does not exist
         }
         return isGlobalConfInitialized;
+    }
+
+    /**
+     * Sends a management request to change Security Server address
+     * @param newAddress new address
+     * @return request ID in the central server database
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException
+     */
+    public Integer changeSecurityServerAddress(String newAddress) throws GlobalConfOutdatedException,
+            ManagementRequestSendingFailedException {
+        auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
+        return managementRequestSenderService.sendAddressChangeRequest(newAddress);
     }
 
     /**

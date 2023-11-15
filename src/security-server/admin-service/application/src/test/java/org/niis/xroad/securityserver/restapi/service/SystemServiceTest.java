@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,6 +43,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.exception.util.CommonDeviationMessage;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
@@ -58,6 +60,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -66,6 +69,7 @@ public class SystemServiceTest {
     private static final String TSA_1_NAME = "TSA 1";
     private static final String TSA_2_URL = "https://example.com";
     private static final String TSA_2_NAME = "TSA 2";
+    private static final String SERVER_ADDRESS = "new.address";
 
     @Mock
     private ServerConfService serverConfService;
@@ -77,6 +81,8 @@ public class SystemServiceTest {
     private ConfigurationVerifier configurationVerifier;
     @Mock
     private CurrentSecurityServerId currentSecurityServerId;
+    @Mock
+    private ManagementRequestSenderService managementRequestSenderService;
     @Mock
     private AuditDataHelper auditDataHelper;
     @Rule
@@ -97,7 +103,7 @@ public class SystemServiceTest {
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
         systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
-                configurationVerifier, currentSecurityServerId, auditDataHelper);
+                configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
         systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }
@@ -247,5 +253,13 @@ public class SystemServiceTest {
         when(anchorRepository.loadAnchorFromFile())
                 .thenReturn(new ConfigurationAnchor("src/test/resources/internal-configuration-anchor.xml"));
         systemService.uploadInitialAnchor(anchorBytes);
+    }
+
+    @Test
+    public void changeSecurityServerAddress() throws Exception {
+        systemService.changeSecurityServerAddress(SERVER_ADDRESS);
+
+        verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, SERVER_ADDRESS);
+        verify(managementRequestSenderService).sendAddressChangeRequest(SERVER_ADDRESS);
     }
 }

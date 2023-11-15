@@ -4375,6 +4375,49 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /system/server-address:
+    put:
+      tags:
+        - system
+      operationId: addressChange
+      summary: Change Security Server address
+      description: <h3>Administrator changes Security Server address</h3>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityServerAddress'
+      responses:
+        '202':
+          description: address change request submitted
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /certificate-authorities:
     get:
       tags:
