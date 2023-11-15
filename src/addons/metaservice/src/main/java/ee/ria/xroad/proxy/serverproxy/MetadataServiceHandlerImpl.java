@@ -148,8 +148,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         requestMessage = requestProxyMessage.getSoap();
 
-        return switch (requestServiceId.getServiceCode()) { // $FALL-THROUGH$
-            // $FALL-THROUGH$
+        return switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
                 requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(
                         requestProxyMessage.getSoapContentType(),
