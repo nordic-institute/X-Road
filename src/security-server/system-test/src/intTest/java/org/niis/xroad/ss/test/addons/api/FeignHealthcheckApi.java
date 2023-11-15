@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,41 +25,15 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.ss.test.ui.container;
+package org.niis.xroad.ss.test.addons.api;
 
-import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
-import org.jetbrains.annotations.NotNull;
-import org.mockserver.client.MockServerClient;
-import org.springframework.stereotype.Component;
-import org.testcontainers.containers.MockServerContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.Objects;
+@FeignClient(name = "healthcheckApi", path = "/", url = "http://localhost:5558")
+public interface FeignHealthcheckApi {
 
-
-@Component
-public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServerContainer> {
-
-    private static final String DOCKER_IMAGE = "mockserver/mockserver";
-    private static final String NETWORK_ALIAS = "mock-server";
-
-    @NotNull
-    @Override
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public MockServerContainer configure() {
-        final DockerImageName mockserverImage = DockerImageName
-                .parse(DOCKER_IMAGE)
-                .withTag("mockserver-" + MockServerClient.class.getPackage().getImplementationVersion());
-
-        return new MockServerContainer(mockserverImage)
-                .withNetworkAliases(NETWORK_ALIAS)
-                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(512 * 1024 * 1024L));
-    }
-
-    @NotNull
-    @Override
-    public String getConfigurationKey() {
-        return "mock-server";
-    }
-
+    @GetMapping
+    ResponseEntity<String> getHealthcheck();
 }

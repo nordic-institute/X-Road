@@ -28,38 +28,49 @@
 package org.niis.xroad.ss.test.ui.container;
 
 import com.nortal.test.testcontainers.AbstractAuxiliaryContainer;
+import com.nortal.test.testcontainers.configuration.ContainerProperties;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.mockserver.client.MockServerClient;
 import org.springframework.stereotype.Component;
-import org.testcontainers.containers.MockServerContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.MountableFile;
 
 import java.util.Objects;
 
-
+@Slf4j
 @Component
-public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServerContainer> {
+@SuppressWarnings("checkstyle:MagicNumber")
+@RequiredArgsConstructor
+public class ReverseProxyAuxiliaryContainer extends AbstractAuxiliaryContainer<ReverseProxyAuxiliaryContainer.NginxContainer> {
+    private static final String NETWORK_ALIAS = "cs";
 
-    private static final String DOCKER_IMAGE = "mockserver/mockserver";
-    private static final String NETWORK_ALIAS = "mock-server";
+    private final ContainerProperties testableContainerProperties;
+
+    public static class NginxContainer extends GenericContainer<NginxContainer> {
+        public NginxContainer() {
+            super("nginx:latest");
+        }
+    }
 
     @NotNull
     @Override
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public MockServerContainer configure() {
-        final DockerImageName mockserverImage = DockerImageName
-                .parse(DOCKER_IMAGE)
-                .withTag("mockserver-" + MockServerClient.class.getPackage().getImplementationVersion());
-
-        return new MockServerContainer(mockserverImage)
+    public ReverseProxyAuxiliaryContainer.NginxContainer configure() {
+        var nginxConfig = MountableFile.forClasspathResource("nginx-container-files/");
+        return new ReverseProxyAuxiliaryContainer.NginxContainer()
+                .withReuse(testableContainerProperties.getContextContainers().get(getConfigurationKey()).getReuseBetweenRuns())
+                .withExposedPorts(80, 4001, 8888, 8899)
                 .withNetworkAliases(NETWORK_ALIAS)
-                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(512 * 1024 * 1024L));
+                .withCopyFileToContainer(nginxConfig, "/etc/nginx/conf.d/")
+
+                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(64 * 1024 * 1024L));
     }
 
     @NotNull
     @Override
     public String getConfigurationKey() {
-        return "mock-server";
+        return "reverse-proxy";
     }
+
 
 }

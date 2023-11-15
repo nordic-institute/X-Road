@@ -43,6 +43,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Configuration
@@ -87,7 +88,7 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(Port.UI, Port.SERVICE, Port.DB);
+                return List.of(Port.UI, Port.SERVICE, Port.DB, Port.HEALTHCHECK);
             }
 
             @NotNull
@@ -104,7 +105,9 @@ public class ContainerSetup {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                genericContainer.withNetworkAliases(NETWORK_ALIAS);
+                genericContainer
+                        .withNetworkAliases(NETWORK_ALIAS)
+                        .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(2048 * 1024 * 1024L));
             }
 
             @Override

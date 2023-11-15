@@ -43,20 +43,20 @@ import static org.mockserver.model.HttpResponse.response;
 public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
     private static final String PREFIX_TESTSERVICES = "/test-services/";
 
-    private static final String GLOBALCONF_DIR = "files/globalconf/V2/";
+    private static final String GLOBALCONF_DIR = "files/globalconf/V3/";
     private static final String TESTSERVICES_DIR = "files" + PREFIX_TESTSERVICES;
-    private static final String CONF_PART_DIR = "20230614171349563665000";
+    private static final String CONF_PART_DIR = "20231113171950380797000";
 
     private final ClasspathFileResolver classpathFileResolver;
     private final MockServerService mockServerService;
 
     @Override
     public void beforeSuite() {
-        mockFileResponse(GLOBALCONF_DIR, "/", "internalconf", new Parameter("version", "2"));
-        mockFileResponse(GLOBALCONF_DIR, "/", "externalconf", new Parameter("version", "2"));
-        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/private-params.xml");
-        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/shared-params.xml");
-        mockFileResponse(GLOBALCONF_DIR, "/v2/", CONF_PART_DIR + "/fetchinterval-params.xml");
+        mockFileResponse(GLOBALCONF_DIR, "/", "internalconf", new Parameter("version", "3"));
+        mockFileResponse(GLOBALCONF_DIR, "/", "externalconf", new Parameter("version", "3"));
+        mockFileResponse(GLOBALCONF_DIR, "/V3/", CONF_PART_DIR + "/private-params.xml");
+        mockFileResponse(GLOBALCONF_DIR, "/V3/", CONF_PART_DIR + "/shared-params.xml");
+        mockFileResponse(GLOBALCONF_DIR, "/V3/", CONF_PART_DIR + "/fetchinterval-params.xml");
 
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testopenapi1.yaml");
         mockFileResponse(TESTSERVICES_DIR, PREFIX_TESTSERVICES, "testopenapi11.yaml");
@@ -85,6 +85,5 @@ public class MockServerBeforeSuiteHook implements BeforeSuiteHook {
             log.info("Registered new mock-service response for request {}", expectation.getHttpRequest().toString());
         }
     }
-
 
 }
