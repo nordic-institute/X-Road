@@ -57,7 +57,6 @@ public class SsAddonTestConfiguration {
     private static final String JMX_URL_TEMPLATE = "service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi";
 
     @Bean
-    @SuppressWarnings("checkstyle:MagicNumber")
     public FeignXRoadSoapRequestsApi feignManagementRequestsApi(
             Decoder decoder, TestableApplicationInfoProvider appInfoProvider, Contract contract) {
         return Feign.builder()
