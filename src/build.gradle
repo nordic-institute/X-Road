@@ -320,7 +320,7 @@ configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
   }
 
   if (project.hasProperty('frontend-npm-audit')) {
-    yarnBuild.dependsOn checkFrontAudit
+    assemble.dependsOn checkFrontAudit
   }
 
   checkFrontend.dependsOn checkFrontLicense
