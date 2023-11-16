@@ -40,7 +40,6 @@ import org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequestBuilder;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestPayload;
-import org.niis.xroad.common.managemenetrequest.test.TestSimpleManagementRequestBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -209,21 +208,24 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
     }
 
     @Step("Address change request with new address {string} was sent")
-    public void addressChangeRequestWithNewAddressWasSent(String address) {
+    public void addressChangeRequestWithNewAddressWasSent(String address) throws Exception {
         addressChangeRequestWasSent("EE:CLASS:MEMBER", DEFAULT_SERVER_ID.asEncodedId(), address);
     }
 
     @Step("Address change request with clientId {string} and serverId {string} and address {string} was sent")
-    public void addressChangeRequestWasSent(String clientIdString, String serverId, String address) {
-
+    public void addressChangeRequestWasSent(String clientIdString, String serverId, String address) throws Exception {
         var clientId = resolveClientIdFromEncodedStr(clientIdString);
-        var server = resolveServerIdFromEncodedStr(serverId);
-        var request = TestSimpleManagementRequestBuilder.newBuilder()
+        var req = TestGenericClientRequestBuilder.newBuilder()
                 .withSenderClientId(clientId)
                 .withReceiverClientId(DEFAULT_RECEIVER)
-                .withSoapMessageBuilder((keyPairGenerator, builder) -> builder.buildAddressChangeRequest(server, address))
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildOwnerChangeRegRequest)
+                .withSoapMessageBuilder(
+                        (builder, serverId1, clientId1) -> builder.buildAddressChangeRequest(serverId1, address))
                 .build();
-        executeRequest(request.createPayload());
+        executeRequest(req.createPayload());
     }
 
 }

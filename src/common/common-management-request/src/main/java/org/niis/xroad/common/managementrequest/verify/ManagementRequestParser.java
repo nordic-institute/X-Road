@@ -27,7 +27,6 @@
 package org.niis.xroad.common.managementrequest.verify;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
@@ -66,7 +65,14 @@ public final class ManagementRequestParser {
         return parse(message, serviceCode);
     }
 
-    private static <T> T parse(SoapMessageImpl message, String serviceCode) throws SOAPException {
+    /**
+     * Parses management request into requested type
+     * @param message the request SOAP message
+     * @param serviceCode management request type
+     * @return parsed request
+     * @throws SOAPException
+     */
+    public static <T> T parse(SoapMessageImpl message, String serviceCode) throws SOAPException {
         if (log.isTraceEnabled()) {
             try {
                 log.trace("parse(expectedNodeName: {}, message: {})", serviceCode, message.getXml());
@@ -122,10 +128,6 @@ public final class ManagementRequestParser {
     public static ClientRequestType parseRequest(SoapMessageImpl message, String managementRequestName)
             throws Exception {
         return parse(message, managementRequestName);
-    }
-
-    public static AddressChangeRequestType parseAddressChangeRequest(SoapMessageImpl message) throws Exception {
-        return parse(message, ManagementRequestType.ADDRESS_CHANGE_REQUEST.getServiceCode());
     }
 
     static {
