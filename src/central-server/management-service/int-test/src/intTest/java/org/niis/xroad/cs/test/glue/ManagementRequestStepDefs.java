@@ -210,11 +210,18 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
 
     @Step("Address change request with new address {string} was sent")
     public void addressChangeRequestWithNewAddressWasSent(String address) {
-        var clientId = resolveClientIdFromEncodedStr("EE:CLASS:MEMBER");
+        addressChangeRequestWasSent("EE:CLASS:MEMBER", DEFAULT_SERVER_ID.asEncodedId(), address);
+    }
+
+    @Step("Address change request with clientId {string} and serverId {string} and address {string} was sent")
+    public void addressChangeRequestWasSent(String clientIdString, String serverId, String address) {
+
+        var clientId = resolveClientIdFromEncodedStr(clientIdString);
+        var server = resolveServerIdFromEncodedStr(serverId);
         var request = TestSimpleManagementRequestBuilder.newBuilder()
                 .withSenderClientId(clientId)
                 .withReceiverClientId(DEFAULT_RECEIVER)
-                .withSoapMessageBuilder((keyPairGenerator, builder) -> builder.buildAddressChangeRequest(DEFAULT_SERVER_ID, address))
+                .withSoapMessageBuilder((keyPairGenerator, builder) -> builder.buildAddressChangeRequest(server, address))
                 .build();
         executeRequest(request.createPayload());
     }

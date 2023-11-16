@@ -125,6 +125,18 @@ public final class ManagementRequestSender {
     }
 
     /**
+     * Sends the SecurityServer address change request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @param address the new address
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendAddressChangeRequest(SecurityServerId.Conf securityServer, String address) throws Exception {
+        // todo: should be signed?
+        return sendToProxy(builder.buildAddressChangeRequest(securityServer, address));
+    }
+
+    /**
      * Sends a client registration request as a normal X-Road message.
      * @param securityServer the security server id
      * @param clientId the client id that will be registered

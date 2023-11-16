@@ -43,6 +43,7 @@ import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.xml.SimpleNamespaceContext;
 import org.xml.sax.InputSource;
@@ -131,6 +132,7 @@ public abstract class BaseStepDefs {
 
     protected void executeRequest(TestManagementRequestPayload payload) {
         ResponseEntity<String> responseEntity = null;
+        cucumberScenarioProvider.getCucumberScenario().attach(new String(payload.getPayload()), MediaType.TEXT_PLAIN_VALUE, "request");
         try {
             responseEntity = managementRequestsApi.addManagementRequest(payload.getContentType(), payload.getPayload());
         } catch (FeignException e) {
@@ -138,6 +140,7 @@ public abstract class BaseStepDefs {
         } catch (Exception e) {
             log.error("Unexpected feign client failure.", e);
         }
+        cucumberScenarioProvider.getCucumberScenario().attach(responseEntity.getBody(), MediaType.TEXT_PLAIN_VALUE, "response");
         putStepData(StepDataKey.RESPONSE, responseEntity);
     }
 

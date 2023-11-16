@@ -14,3 +14,8 @@ Feature: Management requests API: Security Server address change
     "server_address" : "server.address"
     }
     """
+
+  Scenario: Address change request fails with soap fault when request sender is not server owner
+    When Address change request with clientId "EE:CLASS:MEMBER" and serverId "EE:CLASS:MEMBER2:SS1" and address "address" was sent
+    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Sender does not match server owner." is returned
+    And Admin api has not received any request
