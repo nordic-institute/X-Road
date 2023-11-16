@@ -282,7 +282,6 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 }
 
 //Configure frontend projects
-//apply from: "${rootDir}/build-frontend-subprojects.gradle"
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 // Gradle script that is applied on frontend subprojects (namely ui,shared-ui)
 
@@ -312,7 +311,7 @@ configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
   // check that yarn run license-check passes
   tasks.register('checkFrontLicense', RunYarn) {
     dependsOn assembleFrontend
-    inputs.files("LICENSE.txt", "test/", "public/",fileTree('src/') {
+    inputs.files("LICENSE.txt", "test/", "public/", fileTree('src/') {
       exclude 'openapi-types'
     })
     outputs.upToDateWhen { true }
@@ -327,14 +326,16 @@ configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
 
   clean.dependsOn {
     //due to module dependencies between subprojects, installFrontend cannot run during clean.
-    tasks.findAll { it.name == 'installFrontend' }.each { task ->
+    tasks.findAll { ["installNode"].contains(it.name) }.each { task ->
       task.enabled = false
+      println("${task.name} is disabled during clean")
     }
   }
   assemble.dependsOn {
     //reenable tasks to allow combining clean and assemble/build.
-    tasks.findAll { it.name == 'installFrontend' }.each { task ->
+    tasks.findAll { ["installNode"].contains(it.name) }.each { task ->
       task.enabled = true
+      println("${task.name} is enabled during install")
     }
   }
 }

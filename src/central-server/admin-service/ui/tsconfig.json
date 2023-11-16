@@ -19,6 +19,9 @@
       "vuetify"
     ],
     "paths": {
+      "@niis/shared-ui" : [
+        "../../../shared-ui/src/index.ts"
+      ],
       "@/*": [
         "src/*"
       ]

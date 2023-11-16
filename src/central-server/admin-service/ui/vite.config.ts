@@ -25,29 +25,30 @@
  * THE SOFTWARE.
  */
 
-import { resolve } from 'node:path';
+import {resolve} from 'node:path';
 
-import { defineConfig, loadEnv } from 'vite';
+import {defineConfig, loadEnv} from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import vuetify from 'vite-plugin-vuetify';
 import viteBasicSslPlugin from '@vitejs/plugin-basic-ssl';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({command, mode}) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
     plugins: [
       vue(),
       vueJsx(),
-      vuetify({ autoImport: true }),
+      vuetify({autoImport: true}),
       viteBasicSslPlugin(),
     ],
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),
         'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
+        '@niis/shared-ui': resolve(__dirname, './../../../shared-ui/src/index.ts'),
       },
     },
     build: {
@@ -66,6 +67,10 @@ export default defineConfig(({ command, mode }) => {
           secure: false,
           target: env.PROXY_ADDRESS || 'https://127.0.0.1:4000',
         },
+      },
+      fs: {
+        // Allow serving files from one level up to the project root
+        allow: ['.', '../../../shared-ui/src'],
       },
     },
   };
