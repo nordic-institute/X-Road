@@ -144,6 +144,7 @@ jobs:
           reporter: java-junit
       - name: Upload SS report
         uses: actions/upload-artifact@v3
+        run: sudo chown $USER src/security-server/system-test/build/
         if: failure()
         with:
           name: SS System Test report
