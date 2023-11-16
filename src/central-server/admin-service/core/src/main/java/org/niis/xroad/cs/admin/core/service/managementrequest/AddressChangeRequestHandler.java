@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.ValidationFailureException;
@@ -38,8 +39,6 @@ import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_SERVER_ADDRESS;
 

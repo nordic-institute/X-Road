@@ -29,15 +29,14 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.Origin;
-
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
 
 import static org.niis.xroad.cs.admin.core.entity.AddressChangeRequestEntity.DISCRIMINATOR_VALUE;
 

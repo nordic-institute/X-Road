@@ -33,6 +33,7 @@ import com.nortal.test.asserts.AssertionOperation;
 import io.cucumber.java.en.Step;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.RequestDefinition;
+import org.niis.xroad.cs.openapi.model.AddressChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
@@ -65,6 +66,7 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
             case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestDto();
             case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestDto();
             case AUTH_CERT_DELETION_REQUEST -> new AuthenticationCertificateDeletionRequestDto();
+            case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestDto();
         };
         response.setId(id);
         response.setType(type);
