@@ -53,6 +53,9 @@ export default defineConfig(({command, mode}) => {
     },
     build: {
       cssCodeSplit: false,
+      rollupOptions: {
+        external: [],
+      },
     },
     server: {
       https: true,

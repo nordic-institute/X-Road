@@ -50,8 +50,10 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { VAlert } from "vuetify/components";
 
 export default defineComponent({
+  components:{VAlert},
   props: {
     // Alert visible / hidden
     show: {

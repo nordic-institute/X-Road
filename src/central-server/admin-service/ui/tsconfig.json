@@ -27,7 +27,8 @@
       ]
     },
     "rootDirs": [
-      "src/"
+      "src/",
+      "../../../shared-ui/src/"
     ],
     "lib": [
       "esnext",
