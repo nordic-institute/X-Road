@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
@@ -41,8 +42,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-
-import javax.validation.ConstraintViolationException;
 
 /**
  * Application exception handler.

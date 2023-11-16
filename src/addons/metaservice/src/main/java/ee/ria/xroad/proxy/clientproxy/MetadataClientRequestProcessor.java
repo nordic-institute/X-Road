@@ -39,14 +39,13 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Streams;
 import com.google.common.net.MediaType;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;

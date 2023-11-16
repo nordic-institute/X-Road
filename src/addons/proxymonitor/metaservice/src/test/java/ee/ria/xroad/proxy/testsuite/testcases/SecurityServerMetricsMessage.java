@@ -45,6 +45,9 @@ import ee.ria.xroad.proxymonitor.message.MetricType;
 
 import com.google.protobuf.util.Timestamps;
 import io.grpc.stub.StreamObserver;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.SOAPBody;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.HistogramMetrics;
@@ -53,10 +56,6 @@ import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.common.MetricsServiceGrpc;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
 import org.niis.xroad.monitor.common.SystemMetricsResp;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.SOAPBody;
 
 import java.math.BigDecimal;
 import java.util.List;

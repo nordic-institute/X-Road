@@ -34,8 +34,12 @@ import io.cucumber.java.en.Step;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.RequestDefinition;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
+import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -55,7 +59,13 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
 
     @Step("Admin api is mocked with a response with status-code {int}, type {managementRequestTypeDto} and id {int}")
     public void adminApiIsMocked(Integer statusCode, ManagementRequestTypeDto type, Integer id) throws Exception {
-        var response = new ManagementRequestDto();
+        var response = switch (type) {
+            case AUTH_CERT_REGISTRATION_REQUEST -> new AuthenticationCertificateRegistrationRequestDto();
+            case CLIENT_REGISTRATION_REQUEST -> new ClientRegistrationRequestDto();
+            case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestDto();
+            case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestDto();
+            case AUTH_CERT_DELETION_REQUEST -> new AuthenticationCertificateDeletionRequestDto();
+        };
         response.setId(id);
         response.setType(type);
 

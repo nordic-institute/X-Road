@@ -128,7 +128,7 @@ final class OpMonitorDaemon implements StartStop {
 
     @SneakyThrows
     private static ServerConnector createDaemonSslConnector(Server server) {
-        SslContextFactory cf = new SslContextFactory(false);
+        var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
@@ -140,7 +140,6 @@ final class OpMonitorDaemon implements StartStop {
                 new SecureRandom());
 
         cf.setSslContext(ctx);
-
         return new ServerConnector(server, cf);
     }
 

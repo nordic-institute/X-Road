@@ -40,13 +40,13 @@ import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 import java.util.UUID;

@@ -26,9 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;
-
-import javax.xml.bind.MarshalException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

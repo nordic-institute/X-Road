@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.admin.jpa.config;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.springframework.jdbc.datasource.JdbcTransactionObjectSupport;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -35,8 +36,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.TransactionDefinition;
-
-import javax.persistence.EntityManagerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

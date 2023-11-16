@@ -29,3 +29,7 @@ file-upload-endpoints:
 
 common-module-endpoints:
   base-path: /api/v1
+management:
+  tracing:
+    sampling:
+      probability: 1.0

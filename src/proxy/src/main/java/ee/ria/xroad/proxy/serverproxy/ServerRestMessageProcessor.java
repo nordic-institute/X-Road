@@ -51,6 +51,8 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -75,9 +77,6 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.OutputStream;
 import java.security.cert.X509Certificate;
@@ -486,35 +485,17 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 address += "?" + query;
             }
 
-            HttpRequestBase req;
-            switch (requestProxyMessage.getRest().getVerb()) {
-                case GET:
-                    req = new HttpGet(address);
-                    break;
-                case POST:
-                    req = new HttpPost(address);
-                    break;
-                case PUT:
-                    req = new HttpPut(address);
-                    break;
-                case DELETE:
-                    req = new HttpDelete(address);
-                    break;
-                case PATCH:
-                    req = new HttpPatch(address);
-                    break;
-                case OPTIONS:
-                    req = new HttpOptions(address);
-                    break;
-                case HEAD:
-                    req = new HttpHead(address);
-                    break;
-                case TRACE:
-                    req = new HttpTrace(address);
-                    break;
-                default:
-                    throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
-            }
+            HttpRequestBase req = switch (requestProxyMessage.getRest().getVerb()) {
+                case GET -> new HttpGet(address);
+                case POST -> new HttpPost(address);
+                case PUT -> new HttpPut(address);
+                case DELETE -> new HttpDelete(address);
+                case PATCH -> new HttpPatch(address);
+                case OPTIONS -> new HttpOptions(address);
+                case HEAD -> new HttpHead(address);
+                case TRACE -> new HttpTrace(address);
+                default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
+            };
 
             int timeout = TimeUtils.secondsToMillis(ServerConf
                     .getServiceTimeout(requestProxyMessage.getRest().getServiceId()));

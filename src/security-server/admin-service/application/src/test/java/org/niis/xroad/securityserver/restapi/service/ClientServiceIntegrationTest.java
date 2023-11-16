@@ -94,48 +94,33 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     private ClientId.Conf ownerClientId = ClientId.Conf.create("FI", "GOV", "M1", null);
     private ClientId.Conf newOwnerClientId = ClientId.Conf.create("FI", "GOV", "M2", null);
 
-    private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
-            TestUtils.MEMBER_CLASS_PRO);
+    private static final List<String> MEMBER_CLASSES = List.of(TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CLASS_PRO);
 
     @Before
     public void setup() throws Exception {
-        List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
+        List<MemberInfo> globalMemberInfos = new ArrayList<>(List.of(
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM2),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM2),
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3,
-                        TestUtils.SUBSYSTEM1),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
-                        TestUtils.SUBSYSTEM3),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM1),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3,
-                        null)));
-        when(globalConfFacade.getMembers(any())).thenReturn(globalMemberInfos);
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3, TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, TestUtils.SUBSYSTEM3),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null)));
+        when(globalConfFacade.getMembers()).thenReturn(globalMemberInfos);
         when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
-            Optional<MemberInfo> m = globalMemberInfos.stream()
+            return globalMemberInfos.stream()
                     .filter(g -> g.getId().equals(clientId))
-                    .findFirst();
-            if (m.isPresent()) {
-                return m.get().getName();
-            } else {
-                return null;
-            }
+                    .findFirst()
+                    .map(MemberInfo::getName)
+                    .orElse(null);
         });
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);

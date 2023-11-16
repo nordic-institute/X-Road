@@ -32,7 +32,6 @@ dependencies {
     testImplementation('org.liquibase:liquibase-core')
     testImplementation('org.xmlunit:xmlunit-core:2.9.0')
     testImplementation('org.xmlunit:xmlunit-assertj3:2.9.0')
-    testImplementation("org.mockito:mockito-inline:$mockitoVersion")
 }
 
 sourceSets {

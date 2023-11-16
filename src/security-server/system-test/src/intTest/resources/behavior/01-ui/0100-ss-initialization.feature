@@ -9,7 +9,8 @@ Feature: 0100 - SS: Initialization
     And User xrd logs in to SecurityServer with password secret
 
   Scenario: Security server is initialized
-    Given Initial Configuration form is visible
+    Given healthcheck has errors and error message is "Global configuration is expired"
+    And Initial Configuration form is visible
     And Configuration anchor "configuration_anchor_CS_internal.xml" is uploaded
     And Configuration anchor details are confirmed
     Then Configuration anchor selection is submitted

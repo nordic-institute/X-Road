@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.common.message;
 
+import jakarta.xml.soap.SOAPMessage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import javax.xml.soap.SOAPMessage;
 
 import java.io.UnsupportedEncodingException;
 

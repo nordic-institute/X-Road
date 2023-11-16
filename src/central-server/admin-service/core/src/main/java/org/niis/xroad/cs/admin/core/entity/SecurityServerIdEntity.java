@@ -30,10 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
 
 import java.util.Optional;
 

@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
+import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
@@ -35,8 +36,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-
-import javax.servlet.Filter;
 
 import static org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
 

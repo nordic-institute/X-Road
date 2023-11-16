@@ -27,14 +27,13 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.junit.Test;
 import org.mockito.MockedStatic;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 

@@ -33,15 +33,14 @@ import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.w3c.dom.Node;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.SOAPException;
 
 import java.io.UnsupportedEncodingException;
 

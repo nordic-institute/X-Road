@@ -29,11 +29,10 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidatorV3;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
 
 import java.io.StringWriter;
 

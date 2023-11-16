@@ -29,11 +29,10 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 
 import java.io.IOException;
 import java.nio.file.Path;

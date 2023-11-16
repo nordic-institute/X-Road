@@ -35,6 +35,8 @@ import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
 import feign.FeignException;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.mockserver.client.MockServerClient;
@@ -48,8 +50,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.xml.SimpleNamespaceContext;
 import org.xml.sax.InputSource;
 
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
