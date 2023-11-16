@@ -27,8 +27,8 @@
 
 package org.niis.xroad.ss.test.ui.utils;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
@@ -52,6 +52,7 @@ public final class VuetifyHelper {
 
         return new Checkbox(vuetifyCheckboxField);
     }
+
     public static Radio vRadio(final SelenideElement vuetifyRadioField) {
         return new Radio(vuetifyRadioField);
     }
@@ -79,6 +80,7 @@ public final class VuetifyHelper {
             controlElement.$x(".//i").shouldHave(cssClass("mdi-checkbox-marked"));
             return this;
         }
+
         public boolean isChecked() {
             return controlElement.$x(".//i").has(cssClass("mdi-checkbox-marked"));
         }
@@ -141,7 +143,7 @@ public final class VuetifyHelper {
             input.shouldHave(value(text));
         }
 
-        public TextField shouldBe(Condition condition) {
+        public TextField shouldBe(WebElementCondition condition) {
             input.shouldBe(condition);
             return this;
         }

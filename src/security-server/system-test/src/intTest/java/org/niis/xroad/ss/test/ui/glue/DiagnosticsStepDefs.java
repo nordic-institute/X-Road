@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.WebElementCondition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.DiagnosticsPageObj;
 
@@ -48,7 +49,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
 
     @Step("Diagnostics tab is {string}")
     public void diagnosticsTabIsVisible(String conditionStr) {
-        Condition condition;
+        WebElementCondition condition;
         if ("visible".equals(conditionStr)) {
             condition = Condition.visible;
         } else {

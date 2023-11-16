@@ -3,6 +3,10 @@ logging:
   level:
     ROOT: INFO
     cucumber: TRACE
+    com:
+      codeborne:
+        selenide:
+          proxy: ERROR
     org.springframework: INFO
 
 test-automation:
