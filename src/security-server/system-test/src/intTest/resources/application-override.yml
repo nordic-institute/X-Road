@@ -28,9 +28,6 @@ test-automation:
       ca-server:
         enabled: true
         reuse-between-runs: ${reuse-between-runs}
-      mock-server:
-        enabled: true
-        reuse-between-runs: ${reuse-between-runs}
   selenide:
     browser: CHROME # Options: CHROME, EDGE, FIREFOX, OPERA, SAFARI (works only with Mac)
     browser-size: "1920x1080"

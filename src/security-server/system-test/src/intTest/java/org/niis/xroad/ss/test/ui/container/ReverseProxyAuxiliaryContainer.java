@@ -44,6 +44,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ReverseProxyAuxiliaryContainer extends AbstractAuxiliaryContainer<ReverseProxyAuxiliaryContainer.NginxContainer> {
     private static final String NETWORK_ALIAS = "cs";
+    private static final String NETWORK_ALIAS_MOCK_SERVER = "mock-server";
 
     private final ContainerProperties testableContainerProperties;
 
@@ -57,12 +58,11 @@ public class ReverseProxyAuxiliaryContainer extends AbstractAuxiliaryContainer<R
     @Override
     public ReverseProxyAuxiliaryContainer.NginxContainer configure() {
         var nginxConfig = MountableFile.forClasspathResource("nginx-container-files/");
+
         return new ReverseProxyAuxiliaryContainer.NginxContainer()
                 .withReuse(testableContainerProperties.getContextContainers().get(getConfigurationKey()).getReuseBetweenRuns())
-                .withExposedPorts(80, 4001, 8888, 8899)
-                .withNetworkAliases(NETWORK_ALIAS)
-                .withCopyFileToContainer(nginxConfig, "/etc/nginx/conf.d/")
-
+                .withNetworkAliases(NETWORK_ALIAS, NETWORK_ALIAS_MOCK_SERVER)
+                .withCopyFileToContainer(nginxConfig, ".")
                 .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(64 * 1024 * 1024L));
     }
 
