@@ -29,10 +29,10 @@ package org.niis.xroad.ss.test.ui.container;
 import java.util.List;
 
 public final class Port {
-    public static final int JMX = 9999, UI = 4000, SERVICE = 8080, DB = 5432, HEALTHCHECK = 5558;
+    public static final int UI = 4000, SERVICE = 8080, DB = 5432, HEALTHCHECK = 5558;
 
     public static List<Integer> allSsPorts() {
-        return List.of(UI, SERVICE, JMX);
+        return List.of(UI, SERVICE);
     }
 
     private Port() {

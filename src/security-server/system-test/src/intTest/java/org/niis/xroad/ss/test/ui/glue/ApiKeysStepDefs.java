@@ -27,6 +27,7 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers.SelenideValidation;
@@ -115,7 +116,7 @@ public class ApiKeysStepDefs extends BaseUiStepDefs {
         for (Map<String, String> columns : rows) {
             var role = columns.get("$role");
 
-            Condition condition;
+            WebElementCondition condition;
             if (SelenideValidation.PRESENT.name().equalsIgnoreCase(columns.get("$condition"))) {
                 condition = Condition.partialText(role);
             } else {

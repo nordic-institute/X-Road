@@ -7,12 +7,11 @@
         </encoder>
     </appender>
 
-    <logger name="org.springframework" level="INFO" />
 
-    <logger name="ee.ria.xroad" level="TRACE" />
+    <logger name="ee.ria.xroad" level="INFO" />
 
     <!--TokenManager is very verbose /-->
-    <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="TRACE" />
+    <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="INFO" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

@@ -18,6 +18,7 @@ plugins {
   id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
   id 'org.springframework.boot' version "${springBootVersion}" apply false
   id 'com.google.protobuf' version "$protobufGradleVersion" apply false
+  id 'org.siouan.frontend-jdk17' version "$frontendPluginVersion" apply false
 }
 
 repositories {
@@ -118,7 +119,8 @@ allprojects {
     }
 }
 
-configure(subprojects.findAll { !["frontend", "shared-ui-3", "ui"].contains(it.name) }) {
+//Configure java projects
+configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
@@ -278,6 +280,52 @@ configure(subprojects.findAll { !["frontend", "shared-ui-3", "ui"].contains(it.n
         duplicatesStrategy = DuplicatesStrategy.WARN
     }
 }
+
+//Configure frontend projects
+//apply from: "${rootDir}/build-frontend-subprojects.gradle"
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
+// Gradle script that is applied on frontend subprojects (namely ui,shared-ui)
+
+configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
+  apply plugin: 'org.siouan.frontend-jdk17'
+
+  frontend {
+    nodeVersion = frontendNodeVersion
+    nodeInstallDirectory = file("${rootDir}/.gradle/yarn-node/${frontendNodeVersion}")
+    cacheDirectory = file("${projectDir}/.gradle/yarn-cache")
+    maxDownloadAttempts = 3
+    if (System.getenv().containsKey("CI")) {
+      installScript='install --immutable'
+    }
+  }
+
+  tasks.register('checkFrontAudit', RunYarn) {
+    dependsOn assembleFrontend
+    inputs.files(
+      'package.json',
+      'yarn.lock'
+    )
+    outputs.files("${buildDir}/reports/audit-ci.txt")
+    script = 'run npx-check-audit'
+  }
+
+  // check that yarn run license-check passes
+  tasks.register('checkFrontLicense', RunYarn) {
+    dependsOn assembleFrontend
+    inputs.files("LICENSE.txt", "test/", "public/",fileTree('src/') {
+      exclude 'openapi-types'
+    })
+    outputs.upToDateWhen { true }
+    script = 'run license-check'
+  }
+
+  if (project.hasProperty('frontend-npm-audit')) {
+    assemble.dependsOn checkFrontAudit
+  }
+
+  checkFrontend.dependsOn checkFrontLicense
+}
+
 
 clean.delete << "${rootDir}/packages/build"
 

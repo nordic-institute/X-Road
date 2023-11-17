@@ -33,6 +33,8 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.util.Objects;
+
 import static org.testcontainers.containers.PostgreSQLContainer.POSTGRESQL_PORT;
 
 @SuppressWarnings("resource")
@@ -58,8 +60,10 @@ public class PostgresContextualContainer extends AbstractAuxiliaryContainer<Post
 
     @NotNull
     @Override
+    @SuppressWarnings("checkstyle:magicnumber")
     public XRoadTestPostgreSQLContainer configure() {
         return new XRoadTestPostgreSQLContainer()
+                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(512 * 1024 * 1024L))
                 .withDatabaseName("xrd_cs")
                 .withUsername("xrd")
                 .withPassword("secret")

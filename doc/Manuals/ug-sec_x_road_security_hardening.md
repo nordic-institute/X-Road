@@ -202,7 +202,7 @@ The TLS certificate used by the global configuration endpoint must be signed by 
 
 If the certificate isn't trusted by the Security Server's JAVA installation by default, it can be manually added to the system truststore by following the steps below:
 
-**Example on Ubuntu 18.04 / 20.04**
+**Example on Ubuntu 20.04 / 22.04**
 
 Copy the `.crt` file (PEM) into the `/usr/local/share/ca-certificates` folder.
 
