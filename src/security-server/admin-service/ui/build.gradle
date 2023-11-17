@@ -57,6 +57,10 @@ clean {
 // checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
 assemble.dependsOn yarnBuild
 
+tasks.named("installFrontend") {
+  dependsOn(":shared-ui:yarnPack")
+}
+
 artifacts {
   dist(file("dist/")) {
     builtBy(yarnBuild)

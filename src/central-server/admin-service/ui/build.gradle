@@ -62,6 +62,10 @@ clean {
 
 assemble.dependsOn yarnBuild
 
+tasks.named("installFrontend") {
+  dependsOn(":shared-ui:yarnPack")
+}
+
 artifacts {
   dist(file("dist/")) {
     builtBy(yarnBuild)

@@ -324,19 +324,6 @@ configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
   }
 
   checkFrontend.dependsOn checkFrontLicense
-
-  clean.dependsOn {
-    //due to module dependencies between subprojects, installFrontend cannot run during clean.
-    tasks.findAll { it.name == 'installFrontend' }.each { task ->
-      task.enabled = false
-    }
-  }
-  assemble.dependsOn {
-    //reenable tasks to allow combining clean and assemble/build.
-    tasks.findAll { it.name == 'installFrontend' }.each { task ->
-      task.enabled = true
-    }
-  }
 }
 
 
