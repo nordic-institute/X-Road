@@ -3,6 +3,6 @@ server:
 
 logging:
   level:
-    ROOT: DEBUG
+    ROOT: INFO
     org:
       springframework: INFO

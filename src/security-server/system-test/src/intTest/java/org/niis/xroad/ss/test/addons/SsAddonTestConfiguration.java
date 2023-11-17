@@ -47,6 +47,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import static org.niis.xroad.ss.test.ui.container.ContainerSetup.JMX_PORT_SUPPLIER;
 import static org.niis.xroad.ss.test.ui.container.Port.HEALTHCHECK;
 
 @Slf4j
@@ -90,7 +91,7 @@ public class SsAddonTestConfiguration {
 
     @Bean
     public JmxClient jmxClient(TestableApplicationInfoProvider appInfoProvider) {
-        return new JmxClientImpl(() -> String.format(JMX_URL_TEMPLATE, appInfoProvider.getHost(), appInfoProvider.getMappedPort(Port.JMX)));
+        return new JmxClientImpl(() -> String.format(JMX_URL_TEMPLATE, appInfoProvider.getHost(), JMX_PORT_SUPPLIER.get()));
     }
 
 }

@@ -80,7 +80,7 @@ public abstract class BaseTestSignerSetup {
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(5558, 5560, 5005);
+                return List.of(5558, 5560);
             }
         };
     }
@@ -108,7 +108,6 @@ public abstract class BaseTestSignerSetup {
                                 "-Dxroad.common.grpc-internal-keystore-password=111111",
                                 "-Dxroad.common.grpc-internal-truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
                                 "-Dxroad.common.grpc-internal-truststore-password=111111",
-                                "-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n",
                                 modulemanager,
                                 "-cp",
                                 "/root/lib/hwtoken.jar:/root/app.jar",

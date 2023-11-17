@@ -1,11 +1,11 @@
 ---
-debug: true
+debug: false
 
 spring:
   cache:
     type: none
   jpa:
-    show-sql: true
+    show-sql: false
 
 xroad:
   admin-service:

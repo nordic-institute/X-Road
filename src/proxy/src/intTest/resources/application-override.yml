@@ -8,7 +8,7 @@ logging:
     org.springframework: INFO
     org.niis: TRACE
     com.nortal.test: INFO # TRACE is helpful for development
-    ee.ria.xroad.common.signature.BatchSigner: TRACE
+    ee.ria.xroad.common.signature.BatchSigner: INFO
 
 test-automation:
   report-name: xroad-proxy-test-suite

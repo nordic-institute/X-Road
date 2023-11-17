@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component;
 import org.testcontainers.containers.MockServerContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import java.util.Objects;
+
 
 @Component
 public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServerContainer> {
@@ -43,12 +45,14 @@ public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServe
 
     @NotNull
     @Override
+    @SuppressWarnings("checkstyle:magicnumber")
     public MockServerContainer configure() {
         final DockerImageName mockserverImage = DockerImageName
                 .parse(DOCKER_IMAGE)
                 .withTag("mockserver-" + MockServerClient.class.getPackage().getImplementationVersion());
 
         return new MockServerContainer(mockserverImage)
+                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(512 * 1024 * 1024L))
                 .withNetworkAliases(NETWORK_ALIAS);
     }
 
