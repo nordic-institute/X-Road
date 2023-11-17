@@ -9,21 +9,21 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts  --fix --ignore-path .gitignore",
-    "npx-check-audit": "yarn dlx audit-ci@6.6.0 --config ../../../shared-ui-3/audit-ci-shared.json > build/reports/audit-ci.txt",
+    "npx-check-audit": "yarn dlx audit-ci@6.6.0 --config ../../../shared-ui/audit-ci-shared.json > build/reports/audit-ci.txt",
     "generate-types": "openapi --input ../../openapi-model/src/main/resources/META-INF/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
-    "install-ui-lib": "cd ../../../shared-ui-3 && yarn install",
-    "build-ui-lib": "cd ../../../shared-ui-3 && npm run build",
-    "install-build-ui-lib": "cd ../../../shared-ui-3 && yarn install && npm run build",
-    "audit-check-ui-lib": "cd ../../../shared-ui-3 && npm run npx-check-audit",
-    "license-check-ui-lib": "cd ../../../shared-ui-3 && npm run license-check",
+    "install-ui-lib": "cd ../../../shared-ui && yarn install",
+    "build-ui-lib": "cd ../../../shared-ui && npm run build",
+    "install-build-ui-lib": "cd ../../../shared-ui && yarn install && npm run build",
+    "audit-check-ui-lib": "cd ../../../shared-ui && npm run npx-check-audit",
+    "license-check-ui-lib": "cd ../../../shared-ui && npm run license-check",
     "build-all": "npm run install-build-ui-lib && yarn install && npm run build",
     "cleanup": "rm -rf dist && rm -rf yarn.lock && rm -rf node_modules"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.5.0",
-    "@niis/shared-ui": "file:../../../shared-ui-3/niis-shared-ui-3.0.0.tgz",
+    "@niis/shared-ui": "file:../../../shared-ui/niis-shared-ui-3.0.0.tgz",
     "@vee-validate/i18n": "~4.11.6",
     "@vee-validate/rules": "~4.11.6",
     "axios": "~1.4.0",
@@ -47,7 +47,6 @@
     "@vitejs/plugin-vue": "^4.3.3",
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "@vue/eslint-config-typescript": "~11.0.3",
-    "chromedriver": "113.0.0",
     "eslint": "~8.48.0",
     "eslint-config-prettier": "~9.0.0",
     "eslint-plugin-prettier-vue": "~5.0.0",
@@ -65,5 +64,5 @@
     "vue-eslint-parser": "^9.3.1",
     "vue-tsc": "^1.6.5"
   },
-  "packageManager": "yarn@4.0.1"
+  "packageManager": "yarn@4.0.2"
 }

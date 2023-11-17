@@ -37,6 +37,7 @@ import {
   XrdCloseButton,
   XrdConfirmDialog,
   XrdEmptyPlaceholder,
+  XrdEmptyPlaceholderRow,
   XrdExpandable,
   XrdFileUpload,
   XrdFormLabel,
@@ -105,6 +106,7 @@ app.component('XrdSubViewContainer', XrdSubViewContainer);
 app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);
 app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
+app.component('XrdEmptyPlaceholderRow', XrdEmptyPlaceholderRow);
 app.component('XrdSubViewTitle', XrdSubViewTitle);
 app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdFileUpload', XrdFileUpload);

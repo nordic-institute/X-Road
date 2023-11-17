@@ -9,7 +9,6 @@ const path = require('path');
 export default defineConfig({
   plugins: [vue(), vueJsx(), vuetify({ autoImport: true }), basicSsl()],
   build: {
-    sourcemap: true,
     cssCodeSplit: false,
   },
   resolve: {
