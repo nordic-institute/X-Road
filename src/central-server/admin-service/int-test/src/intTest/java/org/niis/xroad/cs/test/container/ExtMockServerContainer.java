@@ -45,6 +45,7 @@ public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServe
 
     @NotNull
     @Override
+    @SuppressWarnings("checkstyle:magicnumber")
     public MockServerContainer configure() {
         final DockerImageName mockserverImage = DockerImageName
                 .parse(DOCKER_IMAGE)

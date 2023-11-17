@@ -60,6 +60,7 @@ public class PostgresContextualContainer extends AbstractAuxiliaryContainer<Post
 
     @NotNull
     @Override
+    @SuppressWarnings("checkstyle:magicnumber")
     public XRoadTestPostgreSQLContainer configure() {
         return new XRoadTestPostgreSQLContainer()
                 .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(512 * 1024 * 1024L))

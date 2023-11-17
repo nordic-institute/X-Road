@@ -91,6 +91,7 @@ public class ContainerSetup {
     }
 
     @Bean
+    @SuppressWarnings("checkstyle:magicnumber")
     public TestContainerConfigurator.TestContainerInitListener testContainerInitListener(LiquibaseExecutor liquibaseExecutor) {
         return new TestContainerConfigurator.TestContainerInitListener() {
 
