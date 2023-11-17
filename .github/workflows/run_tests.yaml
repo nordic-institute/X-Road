@@ -105,8 +105,8 @@ jobs:
           path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
       - name: Upload CS screenshots
-        uses: actions/upload-artifact@v3
         if: failure()
+        uses: actions/upload-artifact@v3
         with:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
@@ -144,6 +144,7 @@ jobs:
           reporter: java-junit
       - name: Fix system-test build dir permissions
         run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/
+        if: failure()
       - name: Upload SS report
         uses: actions/upload-artifact@v3
         if: failure()
