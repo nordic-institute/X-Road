@@ -44,6 +44,10 @@ else
   PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
   "INSERT INTO apikey(id, encodedkey) VALUES ((SELECT NEXTVAL('hibernate_sequence')), '$encoded_token');
   INSERT INTO apikey_roles(apikey_id,role) VALUES ((SELECT id FROM apikey WHERE encodedkey = '$encoded_token'), 'XROAD_MANAGEMENT_SERVICE');"
+  if [ $? -ne 0 ] ; then
+        echo "Failed to finish configuring new API KEY"
+        exit 1
+  fi
   crudini --set /etc/xroad/conf.d/local.ini "$1" api-token "$token"
   echo "New API KEY successfully configured"
 fi
