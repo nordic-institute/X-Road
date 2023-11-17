@@ -32,8 +32,11 @@ import com.nortal.test.testcontainers.configuration.ContainerProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
 import java.util.Objects;
@@ -59,11 +62,15 @@ public class ReverseProxyAuxiliaryContainer extends AbstractAuxiliaryContainer<R
     public ReverseProxyAuxiliaryContainer.NginxContainer configure() {
         var nginxConfig = MountableFile.forClasspathResource("nginx-container-files/");
 
+        var logger = LoggerFactory.getLogger(getConfigurationKey());
+        var logConsumer = new Slf4jLogConsumer(logger).withSeparateOutputStreams();
         return new ReverseProxyAuxiliaryContainer.NginxContainer()
                 .withReuse(testableContainerProperties.getContextContainers().get(getConfigurationKey()).getReuseBetweenRuns())
                 .withNetworkAliases(NETWORK_ALIAS, NETWORK_ALIAS_MOCK_SERVER)
                 .withCopyFileToContainer(nginxConfig, ".")
-                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(64 * 1024 * 1024L));
+                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(64 * 1024 * 1024L))
+                .withLogConsumer(logConsumer)
+                .waitingFor(Wait.forLogMessage(".*start worker processes.*", 1));
     }
 
     @NotNull
