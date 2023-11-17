@@ -29,6 +29,45 @@
 
     <v-card flat class="xrd-card">
       <v-card-text class="card-text">
+        <v-row no-gutters class="px-4">
+          <v-col>
+            <h3>{{ $t('systemParameters.securityServer.securityServer') }}</h3>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <table class="xrd-table">
+              <thead>
+                <tr>
+                  <th>{{ $t('systemParameters.securityServer.serverAddress') }}</th>
+                  <th></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{ currentSecurityServer.server_address }}</td>
+                  <td>
+                    <div class="status-wrapper">
+                      <xrd-status-icon :status="'progress-register'"/>
+                      <div class="status-text">todo: status</div>
+                    </div>
+                  </td>
+                  <td class="pr-4">
+                    <xrd-button v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)" :outlined="false" text
+                        @click="showEditServerAddressDialog = true">
+                      {{ $t('action.edit') }}
+                    </xrd-button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+    <v-card flat class="xrd-card">
+      <v-card-text class="card-text">
         <v-row
           v-if="hasPermission(permissions.VIEW_ANCHOR)"
           no-gutters
@@ -267,6 +306,14 @@
       </v-card-text>
     </v-card>
   </div>
+
+  <edit-security-server-address-dialog
+    v-if="showEditServerAddressDialog"
+    :address="currentSecurityServer.server_address"
+    @cancel="showEditServerAddressDialog = false"
+    @address-updated="showEditServerAddressDialog = false"
+  />
+
 </template>
 
 <script lang="ts">
@@ -286,10 +333,13 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { XrdIconDownload } from '@niis/shared-ui';
+import { XrdButton, XrdIconDownload } from '@niis/shared-ui';
+import EditSecurityServerAddressDialog from "@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue";
 
 export default defineComponent({
   components: {
+    EditSecurityServerAddressDialog,
+    XrdButton,
     XrdIconDownload,
     TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
@@ -307,10 +357,11 @@ export default defineComponent({
       loadingCAs: false,
       loadingMessageLogEnabled: false,
       messageLogEnabled: false,
+      showEditServerAddressDialog: false,
     };
   },
   computed: {
-    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission', 'currentSecurityServer']),
     orderedCertificateAuthorities(): CertificateAuthority[] {
       const temp = this.certificateAuthorities;
 
@@ -433,5 +484,18 @@ tr td:last-child {
 .anchor-buttons {
   display: flex;
   justify-content: flex-end;
+}
+.status-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.status-text {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+  color: $XRoad-WarmGrey100;
+  margin-left: 2px;
 }
 </style>
