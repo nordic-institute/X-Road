@@ -3,6 +3,10 @@ logging:
   level:
     ROOT: INFO
     cucumber: TRACE
+    com:
+      codeborne:
+        selenide:
+          proxy: ERROR
     org.springframework: INFO
 
 test-automation:
@@ -26,9 +30,6 @@ test-automation:
         enabled: true
         reuse-between-runs: ${reuse-between-runs}
       ca-server:
-        enabled: true
-        reuse-between-runs: ${reuse-between-runs}
-      mock-server:
         enabled: true
         reuse-between-runs: ${reuse-between-runs}
   selenide:

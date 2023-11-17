@@ -41,6 +41,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Configuration
 @SuppressWarnings("checkstyle:MagicNumber")
@@ -70,7 +71,11 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<String> customizeCommandParts() {
-                return List.of("-Dxroad.signer.enforce-token-pin-policy=true");
+                return List.of(
+                        "-Xmx600m",
+                        "-XX:MaxMetaspaceSize=200m",
+                        "-Dlogging.config=/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
+                        "-Dxroad.signer.enforce-token-pin-policy=true");
             }
 
             @NotNull
@@ -100,8 +105,8 @@ public class ContainerSetup {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                genericContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1));
-
+                genericContainer.waitingFor(Wait.forLogMessage(".*Started Main in.*", 1))
+                        .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(768 * 1024 * 1024L));
                 liquibaseExecutor.executeChangesets();
             }
 

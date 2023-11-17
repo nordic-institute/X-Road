@@ -60,7 +60,7 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
             var stopWatch = StopWatch.createStarted();
             byte[] result = SignerProxy.sign(key.getId(), SHA256WITHRSA_ID, calculateDigest(SHA256_ID, digest.getBytes(UTF_8)));
             stopWatch.stop();
-            log.info("Executed sign in {} ms.", stopWatch.getTime());
+            log.trace("Executed sign in {} ms.", stopWatch.getTime());
             return result;
         }, threads, loops);
 

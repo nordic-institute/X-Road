@@ -40,6 +40,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Configuration
 @SuppressWarnings("checkstyle:MagicNumber")
@@ -90,12 +91,14 @@ public class ContainerSetup {
     }
 
     @Bean
+    @SuppressWarnings("checkstyle:magicnumber")
     public TestContainerConfigurator.TestContainerInitListener testContainerInitListener(LiquibaseExecutor liquibaseExecutor) {
         return new TestContainerConfigurator.TestContainerInitListener() {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                genericContainer.waitingFor(Wait.forLogMessage(".*Started RestApiApplication in.*", 1));
+                genericContainer.waitingFor(Wait.forLogMessage(".*Started RestApiApplication in.*", 1))
+                        .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(768 * 1024 * 1024L));
 
                 liquibaseExecutor.executeChangesets();
             }
