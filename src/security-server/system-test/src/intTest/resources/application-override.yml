@@ -19,7 +19,7 @@ test-automation:
         enabled: false # Tests are executed in sequential order
     glue-append: "org.niis.xroad.ss.test.ui.glue,org.niis.xroad.common.test.glue,org.niis.xroad.ss.test.addons.glue"
     filter:
-      tags: "@Initialization"
+      tags: "not @Skip"
   containers:
     testable-container:
       reuse-between-runs: ${reuse-between-runs}
