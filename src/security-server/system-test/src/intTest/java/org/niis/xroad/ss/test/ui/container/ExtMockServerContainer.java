@@ -34,23 +34,26 @@ import org.springframework.stereotype.Component;
 import org.testcontainers.containers.MockServerContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import java.util.Objects;
+
 
 @Component
 public class ExtMockServerContainer extends AbstractAuxiliaryContainer<MockServerContainer> {
 
     private static final String DOCKER_IMAGE = "mockserver/mockserver";
     private static final String NETWORK_ALIAS = "mock-server";
-    private static final String NETWORK_ALIAS_CS = "cs";
 
     @NotNull
     @Override
+    @SuppressWarnings("checkstyle:MagicNumber")
     public MockServerContainer configure() {
         final DockerImageName mockserverImage = DockerImageName
                 .parse(DOCKER_IMAGE)
                 .withTag("mockserver-" + MockServerClient.class.getPackage().getImplementationVersion());
 
         return new MockServerContainer(mockserverImage)
-                .withNetworkAliases(NETWORK_ALIAS, NETWORK_ALIAS_CS);
+                .withNetworkAliases(NETWORK_ALIAS)
+                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(512 * 1024 * 1024L));
     }
 
     @NotNull

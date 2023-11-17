@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
-    xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0"
+    xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" jxb:version="3.0"
     targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
 
     <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../../../common/common-util/src/main/resources/identifiers.xsd"/>

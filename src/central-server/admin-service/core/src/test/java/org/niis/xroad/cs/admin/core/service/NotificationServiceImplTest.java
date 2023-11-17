@@ -158,7 +158,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void getAlertsKeyNotActiveConfStatusUnkown() throws Exception {
+    void getAlertsKeyNotActiveConfStatusUnknown() throws Exception {
         ConfigurationSigningKey confSigningKey = new ConfigurationSigningKey();
         confSigningKey.setKeyIdentifier("id");
         mockInitialized(true, false);

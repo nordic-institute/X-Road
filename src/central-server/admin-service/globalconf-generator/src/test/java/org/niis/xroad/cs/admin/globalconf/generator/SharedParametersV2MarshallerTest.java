@@ -27,9 +27,8 @@
 
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;
-
-import javax.xml.bind.MarshalException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;

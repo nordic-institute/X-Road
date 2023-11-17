@@ -34,5 +34,8 @@
         <!-- hikariCP config -->
         <property name="hikari.maximumPoolSize">10</property>
         <property name="hikari.dataSource.sslmode">allow</property>
+
+        <!--TODO Migrate to newer strategies -->
+        <property name="hibernate.id.db_structure_naming_strategy">legacy</property>
     </session-factory>
 </hibernate-configuration>

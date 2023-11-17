@@ -28,13 +28,12 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PreUpdate;
 import lombok.Getter;
-
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PreUpdate;
 
 import java.time.Instant;
 

@@ -22,6 +22,9 @@ test-automation:
       directory-mounts:
         - "/var/log/xroad/:build/ss-container-logs/" # useful for debugging. This will attach logs
     context-containers:
+      reverse-proxy:
+        enabled: true
+        reuse-between-runs: ${reuse-between-runs}
       ca-server:
         enabled: true
         reuse-between-runs: ${reuse-between-runs}

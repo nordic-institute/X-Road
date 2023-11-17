@@ -8,6 +8,7 @@ dependencies {
     compileOnly("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
 
     api("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
+    api("jakarta.validation:jakarta.validation-api:$jakartaValidationApiVersion")
 }
 
 sourceSets {
@@ -41,6 +42,7 @@ openApiGenerate {
         supportingFiles        : 'ApiUtil.java'
     ]
     configOptions = [
+      useJakartaEe: "true",
         interfaceOnly       : "true",
         useTags             : "true",
         documentationProvider  : "none",

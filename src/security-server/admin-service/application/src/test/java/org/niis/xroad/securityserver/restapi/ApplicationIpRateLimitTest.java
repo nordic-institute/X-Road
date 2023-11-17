@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
+import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
@@ -42,8 +43,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import javax.annotation.PostConstruct;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

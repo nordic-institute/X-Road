@@ -16,7 +16,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation "jakarta.validation:jakarta.validation-api:$jakartaValidationApiVersion"
     implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
     implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 

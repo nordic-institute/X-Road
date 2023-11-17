@@ -35,7 +35,9 @@ import feign.Logger;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.hc5.ApacheHttp5Client;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.niis.xroad.ss.test.addons.jmx.JmxClient;
 import org.niis.xroad.ss.test.addons.jmx.JmxClientImpl;
@@ -45,6 +47,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import static org.niis.xroad.ss.test.ui.container.Port.HEALTHCHECK;
+
+@Slf4j
 @Configuration
 @Import(FeignClientsConfiguration.class)
 public class SsAddonTestConfiguration {
@@ -52,7 +57,6 @@ public class SsAddonTestConfiguration {
     private static final String JMX_URL_TEMPLATE = "service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi";
 
     @Bean
-    @SuppressWarnings("checkstyle:MagicNumber")
     public FeignXRoadSoapRequestsApi feignManagementRequestsApi(
             Decoder decoder, TestableApplicationInfoProvider appInfoProvider, Contract contract) {
         return Feign.builder()
@@ -67,6 +71,21 @@ public class SsAddonTestConfiguration {
                 )
                 .contract(contract)
                 .target(FeignXRoadSoapRequestsApi.class, "http://localhost");
+    }
+
+    @Bean
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public FeignHealthcheckApi feignHealthcheckApi(
+            Decoder decoder, TestableApplicationInfoProvider appInfoProvider, Contract contract) {
+        return Feign.builder()
+                .logLevel(Logger.Level.FULL)
+                .client(new ApacheHttp5Client(HttpClients.createDefault()))
+                .encoder(new Encoder.Default())
+                .decoder(decoder)
+                .requestInterceptor(requestTemplate -> requestTemplate
+                        .target(String.format("http://%s:%s", appInfoProvider.getHost(), appInfoProvider.getMappedPort(HEALTHCHECK))))
+                .contract(contract)
+                .target(FeignHealthcheckApi.class, "http://localhost");
     }
 
     @Bean

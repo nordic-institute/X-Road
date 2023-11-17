@@ -39,9 +39,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -53,6 +55,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -69,12 +72,15 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
                                          ObjectMapper objectMapper) {
         log.info("Creating mocked SignerProxyFacade");
 
+        var connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.of(1000, TimeUnit.MILLISECONDS))
+                .setSocketTimeout(Timeout.of(1000, TimeUnit.MILLISECONDS))
+                .build();
+        var httpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultConnectionConfig(connectionConfig)
+                .build();
         final CloseableHttpClient client = HttpClients.custom()
-                .setDefaultRequestConfig(RequestConfig.custom()
-                        .setConnectTimeout(1000)
-                        .setSocketTimeout(1000)
-                        .setConnectionRequestTimeout(1000)
-                        .build())
+                .setConnectionManager(httpClientConnectionManager)
                 .disableAutomaticRetries()
                 .disableCookieManagement()
                 .disableRedirectHandling()

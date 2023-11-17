@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
+import jakarta.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-
-import javax.persistence.criteria.CriteriaQuery;
 
 import java.util.List;
 
@@ -60,7 +59,7 @@ class AbstractDAOImpl<T> {
         }
     }
 
-    static void setString(Query q, String name, String value) {
+    static <T> void setString(Query<T> q, String name, String value) {
         if (value != null) {
             q.setParameter(name, value);
         }

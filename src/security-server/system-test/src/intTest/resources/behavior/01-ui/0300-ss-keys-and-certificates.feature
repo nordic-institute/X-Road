@@ -9,7 +9,8 @@ Feature: 0300 - SS: Keys and certificates
     And signer service is restarted
 
   Scenario Outline: <$label> key is added and imported
-    Given Keys and certificates tab is selected
+    Given healthcheck has errors and error message is "No certificate chain available in authentication key."
+    And Keys and certificates tab is selected
     And Token: <$token> is present and expanded
     When Token: <$token> - Add key wizard is opened
     And Key Label is set to "<$label>"

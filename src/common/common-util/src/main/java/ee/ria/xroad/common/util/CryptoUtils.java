@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.util;
 
 import com.google.common.base.Splitter;
+import jakarta.xml.bind.DatatypeConverter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
@@ -47,7 +48,6 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.util.encoders.Hex;
 
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.crypto.dsig.DigestMethod;
 
 import java.io.ByteArrayInputStream;
@@ -168,21 +168,13 @@ public final class CryptoUtils {
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
     public static String getDigestAlgorithmId(String signatureAlgorithm) throws NoSuchAlgorithmException {
-        switch (signatureAlgorithm) {
-            case SHA1WITHRSA_ID:
-                return SHA1_ID;
-            case SHA256WITHRSA_ID: // fall through
-            case SHA256WITHRSAANDMGF1_ID:
-                return SHA256_ID;
-            case SHA384WITHRSA_ID: // fall through
-            case SHA384WITHRSAANDMGF1_ID:
-                return SHA384_ID;
-            case SHA512WITHRSA_ID: // fall through
-            case SHA512WITHRSAANDMGF1_ID:
-                return SHA512_ID;
-            default:
-                throw new NoSuchAlgorithmException("Unkown signature algorithm id: " + signatureAlgorithm);
-        }
+        return switch (signatureAlgorithm) {
+            case SHA1WITHRSA_ID -> SHA1_ID; // fall through
+            case SHA256WITHRSA_ID, SHA256WITHRSAANDMGF1_ID -> SHA256_ID; // fall through
+            case SHA384WITHRSA_ID, SHA384WITHRSAANDMGF1_ID -> SHA384_ID; // fall through
+            case SHA512WITHRSA_ID, SHA512WITHRSAANDMGF1_ID -> SHA512_ID;
+            default -> throw new NoSuchAlgorithmException("Unknown signature algorithm id: " + signatureAlgorithm);
+        };
     }
 
     /**
@@ -192,20 +184,14 @@ public final class CryptoUtils {
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
     public static String getDigestAlgorithmURI(String algoId) throws NoSuchAlgorithmException {
-        switch (algoId) {
-            case SHA1_ID:
-                return DigestMethod.SHA1;
-            case SHA224_ID:
-                return MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224;
-            case SHA256_ID:
-                return DigestMethod.SHA256;
-            case SHA384_ID:
-                return MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384;
-            case SHA512_ID:
-                return DigestMethod.SHA512;
-            default:
-                throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
-        }
+        return switch (algoId) {
+            case SHA1_ID -> DigestMethod.SHA1;
+            case SHA224_ID -> MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224;
+            case SHA256_ID -> DigestMethod.SHA256;
+            case SHA384_ID -> MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384;
+            case SHA512_ID -> DigestMethod.SHA512;
+            default -> throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
+        };
     }
 
     /**
@@ -215,24 +201,16 @@ public final class CryptoUtils {
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
     public static String getSignatureAlgorithmURI(String algoId) throws NoSuchAlgorithmException {
-        switch (algoId) {
-            case SHA1WITHRSA_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA1;
-            case SHA256WITHRSA_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA256;
-            case SHA384WITHRSA_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA384;
-            case SHA512WITHRSA_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA512;
-            case SHA256WITHRSAANDMGF1_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA256_MGF1;
-            case SHA384WITHRSAANDMGF1_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA384_MGF1;
-            case SHA512WITHRSAANDMGF1_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA512_MGF1;
-            default:
-                throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
-        }
+        return switch (algoId) {
+            case SHA1WITHRSA_ID -> ALGO_ID_SIGNATURE_RSA_SHA1;
+            case SHA256WITHRSA_ID -> ALGO_ID_SIGNATURE_RSA_SHA256;
+            case SHA384WITHRSA_ID -> ALGO_ID_SIGNATURE_RSA_SHA384;
+            case SHA512WITHRSA_ID -> ALGO_ID_SIGNATURE_RSA_SHA512;
+            case SHA256WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA256_MGF1;
+            case SHA384WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA384_MGF1;
+            case SHA512WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA512_MGF1;
+            default -> throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
+        };
     }
 
     /**
@@ -242,34 +220,21 @@ public final class CryptoUtils {
      * @throws NoSuchAlgorithmException if the algorithm URI is unknown
      */
     public static String getAlgorithmId(String algoURI) throws NoSuchAlgorithmException {
-        switch (algoURI) {
-            case DigestMethod.SHA1:
-                return SHA1_ID;
-            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224:
-                return SHA224_ID;
-            case DigestMethod.SHA256:
-                return SHA256_ID;
-            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384:
-                return SHA384_ID;
-            case DigestMethod.SHA512:
-                return SHA512_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA1:
-                return SHA1WITHRSA_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA256:
-                return SHA256WITHRSA_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA384:
-                return SHA384WITHRSA_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA512:
-                return SHA512WITHRSA_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA256_MGF1:
-                return SHA256WITHRSAANDMGF1_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA384_MGF1:
-                return SHA384WITHRSAANDMGF1_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA512_MGF1:
-                return SHA512WITHRSAANDMGF1_ID;
-            default:
-                throw new NoSuchAlgorithmException("Unknown algorithm URI: " + algoURI);
-        }
+        return switch (algoURI) {
+            case DigestMethod.SHA1 -> SHA1_ID;
+            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224 -> SHA224_ID;
+            case DigestMethod.SHA256 -> SHA256_ID;
+            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384 -> SHA384_ID;
+            case DigestMethod.SHA512 -> SHA512_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA1 -> SHA1WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA256 -> SHA256WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA384 -> SHA384WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA512 -> SHA512WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA256_MGF1 -> SHA256WITHRSAANDMGF1_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA384_MGF1 -> SHA384WITHRSAANDMGF1_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA512_MGF1 -> SHA512WITHRSAANDMGF1_ID;
+            default -> throw new NoSuchAlgorithmException("Unknown algorithm URI: " + algoURI);
+        };
     }
 
     /**
@@ -281,34 +246,22 @@ public final class CryptoUtils {
      */
     public static String getSignatureAlgorithmId(String digestAlgorithmId, String signMechanismName)
             throws NoSuchAlgorithmException {
-        switch (signMechanismName) {
-            case CKM_RSA_PKCS_NAME:
-                switch (digestAlgorithmId) {
-                    case SHA1_ID:
-                        return SHA1WITHRSA_ID;
-                    case SHA256_ID:
-                        return SHA256WITHRSA_ID;
-                    case SHA384_ID:
-                        return SHA384WITHRSA_ID;
-                    case SHA512_ID:
-                        return SHA512WITHRSA_ID;
-                    default:
-                        throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
-                }
-            case CKM_RSA_PKCS_PSS_NAME:
-                switch (digestAlgorithmId) {
-                    case SHA256_ID:
-                        return SHA256WITHRSAANDMGF1_ID;
-                    case SHA384_ID:
-                        return SHA384WITHRSAANDMGF1_ID;
-                    case SHA512_ID:
-                        return SHA512WITHRSAANDMGF1_ID;
-                    default:
-                        throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
-                }
-            default:
-                throw new NoSuchAlgorithmException("Unknown signing mechanism: " + signMechanismName);
-        }
+        return switch (signMechanismName) {
+            case CKM_RSA_PKCS_NAME -> switch (digestAlgorithmId) {
+                case SHA1_ID -> SHA1WITHRSA_ID;
+                case SHA256_ID -> SHA256WITHRSA_ID;
+                case SHA384_ID -> SHA384WITHRSA_ID;
+                case SHA512_ID -> SHA512WITHRSA_ID;
+                default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+            };
+            case CKM_RSA_PKCS_PSS_NAME -> switch (digestAlgorithmId) {
+                case SHA256_ID -> SHA256WITHRSAANDMGF1_ID;
+                case SHA384_ID -> SHA384WITHRSAANDMGF1_ID;
+                case SHA512_ID -> SHA512WITHRSAANDMGF1_ID;
+                default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+            };
+            default -> throw new NoSuchAlgorithmException("Unknown signing mechanism: " + signMechanismName);
+        };
     }
 
     /**
@@ -367,7 +320,7 @@ public final class CryptoUtils {
      */
     public static ContentVerifierProvider createDefaultContentVerifier(
             PublicKey key) throws OperatorCreationException {
-        if ("RSA" == key.getAlgorithm()) {
+        if ("RSA".equals(key.getAlgorithm())) {
             // SunRsaSign supports only RSA signatures but it is (for some reason) about 2x faster
             // than the BC implementation
             return SUN_VERIFICATION_BUILDER.build(key);

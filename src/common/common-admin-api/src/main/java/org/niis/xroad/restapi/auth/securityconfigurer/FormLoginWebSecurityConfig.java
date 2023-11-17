@@ -27,32 +27,37 @@
 
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
-import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
+import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.csrfTokenRequestAttributeHandler;
+import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
 
 /**
@@ -62,49 +67,46 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
  * has order 100 (@Order(100))
  */
 @Configuration
-@Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
 @Slf4j
-public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+public class FormLoginWebSecurityConfig {
     public static final String LOGIN_URL = "/login";
-
-    @Autowired
-    @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
-    private AuthenticationProvider authenticationProvider;
-
-    @Autowired
-    private UsernameHelper usernameHelper;
 
     @Autowired
     private AuditEventLoggingFacade auditEventLoggingFacade;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-            .authorizeRequests()
-                    .antMatchers("/error").permitAll()
-                    .antMatchers(LOGIN_URL).permitAll()
-                    .antMatchers("/logout").fullyAuthenticated()
-                    .antMatchers("/api/**").denyAll()
-                    .anyRequest().denyAll()
-                .and()
-            .csrf()
-                    .ignoringAntMatchers(LOGIN_URL)
-                    .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
-                    .and()
-            .headers()
-                    .contentSecurityPolicy("default-src 'self' 'unsafe-inline'")
-                    .and()
-                .and()
-            .formLogin()
-                    .loginPage(LOGIN_URL)
-                    .successHandler(formLoginStatusCodeSuccessHandler())
-                    .failureHandler(statusCode401AuthenticationFailureHandler())
-                    .permitAll()
-                .and()
-            .logout()
-                    .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
-                    .addLogoutHandler(new AuditLoggingLogoutHandler())
-                .permitAll();
+    @Bean
+    @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
+    public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
+                                                            @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
+                                                            AuthenticationProvider authenticationProvider) throws Exception {
+
+        return http
+                .authenticationProvider(authenticationProvider)
+                .authorizeHttpRequests(customizer -> customizer
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(LOGIN_URL).permitAll()
+                        .requestMatchers("/logout").fullyAuthenticated()
+                        .requestMatchers("/api/**").denyAll()
+                        .anyRequest().denyAll()
+                )
+                .csrf(customizer -> customizer
+                        .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers(LOGIN_URL)
+                        .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
+                )
+                .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline'"))
+                .formLogin(customizer -> customizer
+                        .loginPage(LOGIN_URL)
+                        .successHandler(formLoginStatusCodeSuccessHandler())
+                        .failureHandler(statusCode401AuthenticationFailureHandler())
+                        .permitAll()
+                )
+                .logout(customizer -> customizer
+                        .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
+                        .addLogoutHandler(new AuditLoggingLogoutHandler())
+                        .permitAll())
+                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                .build();
     }
 
     class AuditLoggingLogoutHandler implements LogoutHandler {
@@ -116,12 +118,6 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 log.error("failed to audit log logout", e);
             }
         }
-    }
-
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder builder) {
-        builder.authenticationProvider(authenticationProvider);
     }
 
     /**
@@ -154,5 +150,19 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
                 response.getWriter().println("OK");
             }
         };
+    }
+
+
+    private static final class CsrfCookieFilter extends OncePerRequestFilter {
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+                throws ServletException, IOException {
+            CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+            // Render the token value to a cookie by causing the deferred token to be loaded
+            csrfToken.getToken();
+
+            filterChain.doFilter(request, response);
+        }
     }
 }

@@ -33,6 +33,8 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
@@ -47,9 +49,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
-
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

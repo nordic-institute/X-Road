@@ -25,8 +25,9 @@
  */
 package org.niis.xroad.restapi.dao;
 
-import org.hibernate.Query;
+
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 
 import java.util.List;

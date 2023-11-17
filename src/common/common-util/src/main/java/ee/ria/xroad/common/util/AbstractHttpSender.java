@@ -60,6 +60,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 /**
  * Base class for a closeable HTTP sender.
  */
+/*
+ TODO reimplement using Apache HttpClient 5, which is used by other libraries,
+ and then remove older apache http client lib if possible
+ */
 @Slf4j
 public abstract class AbstractHttpSender implements Closeable {
     public static final int CHUNKED_LENGTH = -1;

@@ -29,14 +29,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.github.bucket4j.Bucket;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -99,8 +98,7 @@ public class IpThrottlingFilter implements Filter {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             log.warn("Request rate limit exceeded for ip {}, responding with 429 TOO_MANY_REQUESTS", ip);
-            if (servletResponse instanceof HttpServletResponse) {
-                HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
+            if (servletResponse instanceof HttpServletResponse httpResponse) {
                 httpResponse.setContentType("application/json");
                 httpResponse.setCharacterEncoding("UTF-8");
                 httpResponse.addHeader("Connection", "close");

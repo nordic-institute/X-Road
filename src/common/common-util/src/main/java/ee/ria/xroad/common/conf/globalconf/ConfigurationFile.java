@@ -30,7 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpField;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -126,18 +126,18 @@ final class ConfigurationFile extends AbstractConfigurationPart {
         verifyFieldExists(h, HEADER_HASH_ALGORITHM_ID);
 
         return new ConfigurationFile(headers,
-                getContentIdentififer(h.get(HEADER_CONTENT_IDENTIFIER)),
+                getContentIdentifier(h.get(HEADER_CONTENT_IDENTIFIER)),
                 expirationDate, version, hash);
     }
 
-    private static ContentIdentifier getContentIdentififer(String value) {
+    private static ContentIdentifier getContentIdentifier(String value) {
         if (StringUtils.isBlank(value)) {
             return new ContentIdentifier("", "");
         }
 
         Map<String, String> p = new HashMap<>();
 
-        String id = HttpFields.valueParameters(value, p);
+        String id = HttpField.valueParameters(value, p);
         String instance = p.get(PARAM_INSTANCE);
 
         if ((ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS.equals(id)

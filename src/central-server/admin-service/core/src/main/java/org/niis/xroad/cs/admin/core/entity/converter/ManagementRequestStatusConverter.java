@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.cs.admin.core.entity.converter;
 
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
-
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 
 @Converter(autoApply = true)
 public class ManagementRequestStatusConverter implements AttributeConverter<ManagementRequestStatus, String> {

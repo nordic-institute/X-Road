@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.commonui.OptionalConfPart;
 import ee.ria.xroad.commonui.OptionalPartsConf;
 
+import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -56,8 +57,6 @@ import org.niis.xroad.cs.admin.core.repository.DistributedFileRepository;
 import org.niis.xroad.cs.admin.core.validation.ConfigurationPartValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
