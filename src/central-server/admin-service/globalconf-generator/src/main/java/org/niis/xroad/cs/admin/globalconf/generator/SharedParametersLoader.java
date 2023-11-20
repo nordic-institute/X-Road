@@ -34,6 +34,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.AuthCert;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
@@ -98,12 +99,22 @@ class SharedParametersLoader {
     ) {
         var source = new SharedParameters.ConfigurationSource();
         source.setAddress(addressWithConfigurationSigningKeys.getKey());
-        source.setVerificationCerts(
-                addressWithConfigurationSigningKeys.getValue().stream()
-                        .map(ConfigurationSigningKey::getCert)
-                        .collect(toList())
+        source.setInternalVerificationCerts(
+                getSigningKeysByType(addressWithConfigurationSigningKeys.getValue(), ConfigurationSourceType.INTERNAL)
+        );
+        source.setExternalVerificationCerts(
+                getSigningKeysByType(addressWithConfigurationSigningKeys.getValue(), ConfigurationSourceType.EXTERNAL)
         );
         return source;
+    }
+
+    private List<byte[]> getSigningKeysByType(
+            List<ConfigurationSigningKey> signingKeys, ConfigurationSourceType configurationSourceType
+    ) {
+        return signingKeys.stream()
+                .filter(key -> configurationSourceType.equals(key.getSourceType()))
+                .map(ConfigurationSigningKey::getCert)
+                .toList();
     }
 
     private List<SharedParameters.ApprovedCA> getApprovedCAs() {

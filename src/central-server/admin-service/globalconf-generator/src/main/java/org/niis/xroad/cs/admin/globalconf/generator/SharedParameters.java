@@ -47,7 +47,8 @@ class SharedParameters {
     @Data
     public static class ConfigurationSource {
         private String address;
-        private List<byte[]> verificationCerts;
+        private List<byte[]> internalVerificationCerts;
+        private List<byte[]> externalVerificationCerts;
     }
 
     @Data

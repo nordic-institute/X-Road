@@ -46,7 +46,8 @@ class SharedParametersV3MarshallerTest {
 
         var configurationSource = new SharedParameters.ConfigurationSource();
         configurationSource.setAddress("cs");
-        configurationSource.setVerificationCerts(List.of("conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
+        configurationSource.setInternalVerificationCerts(List.of("internal-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
+        configurationSource.setExternalVerificationCerts(List.of("external-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         sharedParams.setGlobalSettings(new SharedParameters.GlobalSettings(null, 60));
         sharedParams.setSources(List.of(configurationSource));
 

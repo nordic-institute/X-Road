@@ -75,7 +75,8 @@ abstract class SharedParametersV3Converter {
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
 
-    @Mapping(source = "verificationCerts", target = "verificationCert")
+    @Mapping(source = "internalVerificationCerts", target = "internalVerificationCert")
+    @Mapping(source = "externalVerificationCerts", target = "externalVerificationCert")
     abstract ConfigurationSourceType convert(SharedParameters.ConfigurationSource configurationSource);
 
     @Mapping(source = "intermediateCAs", target = "intermediateCA")

@@ -135,7 +135,8 @@ public class SharedParametersV3Converter {
     private SharedParameters.ConfigurationSource toConfigurationSource(ConfigurationSourceType source) {
         var target = new SharedParameters.ConfigurationSource();
         target.setAddress(source.getAddress());
-        target.setVerificationCerts(source.getVerificationCert());
+        target.setInternalVerificationCerts(source.getInternalVerificationCert());
+        target.setExternalVerificationCerts(source.getExternalVerificationCert());
         return target;
     }
 
