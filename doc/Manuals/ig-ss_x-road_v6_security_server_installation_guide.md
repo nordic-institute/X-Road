@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.45  
+Version: 2.46  
 Doc. ID: IG-SS
 
 ---
@@ -65,6 +65,7 @@ Doc. ID: IG-SS
 | 26.09.2022 | 2.43    | Remove Ubuntu 18.04 support                                                                                                                                                                                          | Andres Rosenthal |
 | 23.05.2023 | 2.44    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets    |
 | 01.06.2023 | 2.45    | Update references                                                                                                                                                                                                    | Petteri Kivimäki |
+| 20.11.2023 | 2.46    | Update firewall configuration documentation                                                                                                                                                                          | Taavi Meinberg   |
 
 ## License
 
@@ -494,11 +495,11 @@ Before operating the Security Server, it is strongly recommended to look over th
 
 #### 3.4.1 Accepting Connections
 
-The Security Server has a special [proxy] parameter [connector-host](https://x-tee.ee/docs/live/xroad/ug-syspar_x-road_v7_system_parameters.html#32-proxy-parameters-proxy) which determines the interfaces that the Security Server uses to listen for incoming connections.
+The Security Server has a special [proxy] parameter [connector-host](ug-syspar_x-road_v7_system_parameters.md#32-proxy-parameters-proxy) which determines the interfaces that the Security Server uses to listen for incoming connections.
 
 For the Estonian xroad-securityserver-ee package, this value is set to 127.0.0.1 by default. To allow incoming connections from external hosts, it must be changed to 0.0.0.0 or another suitable interface. **Doing so makes the Security Server accept incoming connections from other servers and as such, sensible firewall rules must be implemented before this change.**
 
-The parameter can be changed by the following the [System Parameters guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
+The parameter can be changed by the following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
 
 ### 3.5 Configuring configuration backup encryption
 

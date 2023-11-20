@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.82
+Version: 2.83
 Doc. ID: UG-SYSPAR
 
 
@@ -93,6 +93,7 @@ Doc. ID: UG-SYSPAR
 | 18.10.2023 | 2.80    | Add gRPC properties                                                                                                                                                                                                                                                                                                                                                                                            | Ričardas Bučiūnas          |
 | 23.10.2023 | 2.81    | Update supported command line arguments                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki           |
 | 09.11.2023 | 2.82    | Added new *global_conf_tls_cert_verification*, *global_conf_hostname_verification* parameters                                                                                                                                                                                                                                                                                                                  | Eneli Reimets              |
+| 20.11.2023 | 2.83    | Update information regarding connector-host parameter                                                                                                                                                                                                                                                                                                                                                          | Taavi Meinberg             |
 
 ## Table of Contents
 
