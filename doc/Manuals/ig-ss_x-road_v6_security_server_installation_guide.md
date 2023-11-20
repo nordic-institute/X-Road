@@ -495,7 +495,7 @@ Before operating the Security Server, it is strongly recommended to look over th
 
 #### 3.4.1 Accepting Connections
 
-The Security Server has a special [proxy] parameter [connector-host](ug-syspar_x-road_v7_system_parameters.md#32-proxy-parameters-proxy) which determines the interfaces that the Security Server uses to listen for incoming connections.
+The Security Server has a special [proxy] parameter [connector-host](ug-syspar_x-road_v6_system_parameters.md#32-proxy-parameters-proxy) which determines the interfaces that the Security Server uses to listen for incoming connections.
 
 For the Estonian xroad-securityserver-ee package, this value is set to 127.0.0.1 by default. To allow incoming connections from external hosts, it must be changed to 0.0.0.0 or another suitable interface. **Doing so makes the Security Server accept incoming connections from other servers and as such, sensible firewall rules must be implemented before this change.**
 
