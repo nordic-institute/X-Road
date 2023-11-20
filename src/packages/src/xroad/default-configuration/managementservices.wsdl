@@ -82,7 +82,7 @@
             <xsd:element name="serverCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies
-                        security server offered by a given X-Road member
+                        Security Server offered by a given X-Road member
                         or subsystem.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -152,14 +152,14 @@
                 <xsd:sequence>
                     <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
                         <xsd:annotation>
-                            <xsd:documentation>Identity of the security server the
+                            <xsd:documentation>Identity of the Security Server the
                                 authentication certificate will be associated with.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="address" type="string" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation>Address of the security server the
+                            <xsd:documentation>Address of the Security Server the
                                 authentication certificate will be associated with.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -170,7 +170,7 @@
                               Contents (in DER encoding) of
                               the authentication certificate that will
                               be added to the list of certificates
-                              authenticating the security server.
+                              authenticating the Security Server.
                           </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -181,7 +181,7 @@
                 <xsd:sequence>
                     <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
                         <xsd:annotation>
-                            <xsd:documentation>Identity of the security server the
+                            <xsd:documentation>Identity of the Security Server the
                                 authentication certificate will be deleted from.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -191,7 +191,7 @@
                             <xsd:documentation>Contents (in DER encoding) of
                                 the authentication certificate that will
                                 be deleted from the list of certificates
-                                authenticating the security server.
+                                authenticating the Security Server.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -211,11 +211,11 @@
                     <xsd:element name="client" type="id:XRoadClientIdentifierType">
                         <xsd:annotation>
                             <xsd:documentation>Identifier of the client
-                                associated with the security server. When the
+                                associated with the Security Server. When the
                                 request is for registering client, the client is
-                                added to the security server. When the request
+                                added to the Security Server. When the request
                                 is for deleting client, the client is removed
-                                from the clients' list of the security server.
+                                from the clients' list of the Security Server.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -226,14 +226,14 @@
               <xsd:sequence>
                 <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
                   <xsd:annotation>
-                    <xsd:documentation>Identifier of the security server the
+                    <xsd:documentation>Identifier of the Security Server the
                       authentication certificate will be associated with.
                     </xsd:documentation>
                   </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="address" type="string">
                   <xsd:annotation>
-                    <xsd:documentation>New address of the security server</xsd:documentation>
+                    <xsd:documentation>New address of the Security Server</xsd:documentation>
                   </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0" />
@@ -242,7 +242,7 @@
             <xsd:simpleType name="RequestIdType">
                 <xsd:annotation>
                     <xsd:documentation>For responses only, unique identifier
-                        of the request that is stored in the central server database.
+                        of the request that is stored in the Central Server database.
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:restriction base="integer"/>
