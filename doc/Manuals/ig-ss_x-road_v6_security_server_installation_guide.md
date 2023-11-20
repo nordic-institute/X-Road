@@ -97,7 +97,9 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
-  - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
+  - [3.4 Configuring firewall](#34-configuring-firewall)
+    - [3.4.1 Accepting Connections](#341-accepting-connections)
+  - [3.5 Configuring configuration backup encryption](#35-configuring-configuration-backup-encryption)
 - [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
   - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
@@ -194,8 +196,6 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.9  |                                                                                                                      | Security server public IP address, NAT address
  1.10 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate
  1.11 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate
-
-It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
 
 
 #### 2.2.1 Network Diagram
@@ -482,7 +482,25 @@ If the configuration is successfully downloaded, the system asks for the followi
 * Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
-### 3.4 Configuring configuration backup encryption
+### 3.4 Configuring firewall
+
+It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. 
+
+**Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.** This type of abuse could result in compromised access to the Security Server and the data that is exchanged through it.
+
+It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. Access for ports 80, 443 and 4000 should be especially defined, as these ports are used for making X-Road queries and accessing the user interface.
+
+Before operating the Security Server, it is strongly recommended to look over the list of ports at [2.2 Reference Data](#22-reference-data) and define firewall access rules for specific hosts based on their descriptions.
+
+#### 3.4.1 Accepting Connections
+
+The Security Server has a special [proxy] parameter [connector-host](https://x-tee.ee/docs/live/xroad/ug-syspar_x-road_v7_system_parameters.html#32-proxy-parameters-proxy) which determines the interfaces that the Security Server uses to listen for incoming connections.
+
+For the Estonian xroad-securityserver-ee package, this value is set to 127.0.0.1 by default. To allow incoming connections from external hosts, it must be changed to 0.0.0.0 or another suitable interface. **Doing so makes the Security Server accept incoming connections from other servers and as such, sensible firewall rules must be implemented before this change.**
+
+The parameter can be changed by the following the [System Parameters guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
+
+### 3.5 Configuring configuration backup encryption
 
 It is possible to automatically encrypt security server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
