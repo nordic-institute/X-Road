@@ -27,7 +27,7 @@
   <div class="mt-3" data-test="system-parameters-tab-view">
     <div class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</div>
 
-    <v-card flat class="xrd-card">
+    <v-card flat class="xrd-card" v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)">
       <v-card-text class="card-text">
         <v-row no-gutters class="px-4">
           <v-col>
@@ -46,15 +46,17 @@
               </thead>
               <tbody>
                 <tr>
-                  <td>{{ currentSecurityServer.server_address }}</td>
+                  <td>{{ serverAddress }}</td>
                   <td>
-                    <div class="status-wrapper">
+                    <div v-if="addressChangeInProgress" class="status-wrapper" >
                       <xrd-status-icon :status="'progress-register'"/>
-                      <div class="status-text">todo: status</div>
+                      <div class="status-text">{{ $t('systemParameters.securityServer.addressChangeInProgress') }}</div>
                     </div>
                   </td>
                   <td class="pr-4">
-                    <xrd-button v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)" :outlined="false" text
+                    <xrd-button :outlined="false"
+                        text
+                        :disabled="addressChangeInProgress"
                         @click="showEditServerAddressDialog = true">
                       {{ $t('action.edit') }}
                     </xrd-button>
@@ -123,17 +125,17 @@
               <tbody
                 data-test="system-parameters-configuration-anchor-table-body"
               >
-                <tr v-if="configuratonAnchor">
-                  <td>{{ $filters.colonize(configuratonAnchor.hash) }}</td>
+                <tr v-if="configurationAnchor">
+                  <td>{{ $filters.colonize(configurationAnchor.hash) }}</td>
                   <td class="pr-4">
-                    {{ $filters.formatDateTime(configuratonAnchor.created_at) }}
+                    {{ $filters.formatDateTime(configurationAnchor.created_at) }}
                   </td>
                 </tr>
 
                 <XrdEmptyPlaceholderRow
                   :colspan="2"
                   :loading="loadingAnchor"
-                  :data="configuratonAnchor"
+                  :data="configurationAnchor"
                   :no-items-text="$t('noData.noTimestampingServices')"
                 />
               </tbody>
@@ -309,9 +311,9 @@
 
   <edit-security-server-address-dialog
     v-if="showEditServerAddressDialog"
-    :address="currentSecurityServer.server_address"
+    :address="serverAddress!"
     @cancel="showEditServerAddressDialog = false"
-    @address-updated="showEditServerAddressDialog = false"
+    @address-updated="addressChangeSubmitted"
   />
 
 </template>
@@ -322,6 +324,7 @@ import {
   AddOnStatus,
   Anchor,
   CertificateAuthority,
+  SecurityServerAddressStatus,
   TimestampingService,
 } from '@/openapi-types';
 import * as api from '@/util/api';
@@ -347,7 +350,7 @@ export default defineComponent({
   },
   data() {
     return {
-      configuratonAnchor: undefined as Anchor | undefined,
+      configurationAnchor: undefined as Anchor | undefined,
       downloadingAnchor: false,
       configuredTimestampingServices: [] as TimestampingService[],
       certificateAuthorities: [] as CertificateAuthority[],
@@ -358,6 +361,8 @@ export default defineComponent({
       loadingMessageLogEnabled: false,
       messageLogEnabled: false,
       showEditServerAddressDialog: false,
+      addressChangeInProgress: false,
+      serverAddress: "",
     };
   },
   computed: {
@@ -383,6 +388,9 @@ export default defineComponent({
     if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
       this.fetchApprovedCertificateAuthorities();
     }
+    if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
+      this.fetchServerAddress();
+    }
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
@@ -391,7 +399,7 @@ export default defineComponent({
       this.loadingAnchor = true;
       return api
         .get<Anchor>('/system/anchor')
-        .then((resp) => (this.configuratonAnchor = resp.data))
+        .then((resp) => (this.configurationAnchor = resp.data))
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingAnchor = false));
     },
@@ -430,6 +438,22 @@ export default defineComponent({
           this.showError(error);
         })
         .finally(() => (this.downloadingAnchor = false));
+    },
+    fetchServerAddress(): boolean {
+      if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
+        api
+            .get<SecurityServerAddressStatus>('/system/server-address')
+            .then((resp) => {
+              this.serverAddress = resp.data.current_address?.address!;
+              this.addressChangeInProgress = resp.data.requested_change !== undefined;
+            })
+            .catch((error) => this.showError(error))
+      }
+      return false;
+    },
+    addressChangeSubmitted(): void {
+      this.showEditServerAddressDialog = false;
+      this.addressChangeInProgress = true;
     },
   },
 });

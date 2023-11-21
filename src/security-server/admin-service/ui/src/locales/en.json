@@ -970,6 +970,7 @@
       "editDialog": {
         "title": "Edit Security Server address"
       },
+      "addressChangeInProgress": "CHANGE IN PROGRESS",
       "updateSubmitted": "Security Server address change successfully submitted"
     },
     "title": "System parameters"

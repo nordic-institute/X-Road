@@ -45,8 +45,10 @@ import org.niis.xroad.common.exception.util.CommonDeviationMessage;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
@@ -85,6 +87,7 @@ public class SystemServiceTest {
     private ManagementRequestSenderService managementRequestSenderService;
     @Mock
     private AuditDataHelper auditDataHelper;
+    private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -103,7 +106,8 @@ public class SystemServiceTest {
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
         systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
-                configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper);
+                configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper,
+                addressChangeStatus);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
         systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }
@@ -207,11 +211,7 @@ public class SystemServiceTest {
     @Test
     public void replaceAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        try {
-            systemService.replaceAnchor(anchorBytes);
-        } catch (Exception e) {
-            fail("Should not fail");
-        }
+        systemService.replaceAnchor(anchorBytes);
     }
 
     @Test
@@ -239,11 +239,7 @@ public class SystemServiceTest {
     public void uploadInitialAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         when(anchorRepository.readAnchorFile()).thenThrow(new NoSuchFileException(""));
-        try {
-            systemService.uploadInitialAnchor(anchorBytes);
-        } catch (Exception e) {
-            fail("Should not fail");
-        }
+        systemService.uploadInitialAnchor(anchorBytes);
     }
 
     @Test(expected = SystemService.AnchorAlreadyExistsException.class)
@@ -257,9 +253,37 @@ public class SystemServiceTest {
 
     @Test
     public void changeSecurityServerAddress() throws Exception {
+        when(globalConfService.getSecurityServerAddress(any())).thenReturn("ss.address");
+
         systemService.changeSecurityServerAddress(SERVER_ADDRESS);
 
         verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, SERVER_ADDRESS);
         verify(managementRequestSenderService).sendAddressChangeRequest(SERVER_ADDRESS);
+    }
+
+    @Test
+    public void changeSecurityServerAddressAlreadySubmitted() throws Exception {
+        addressChangeStatus.setAddress(SERVER_ADDRESS);
+
+        try {
+            systemService.changeSecurityServerAddress("another address");
+            fail();
+        } catch (ConflictException e) {
+            assertEquals("Address change request already submitted.", e.getMessage());
+            // ok
+        }
+    }
+
+    @Test
+    public void changeSecurityServerAddressSameAddress() throws Exception {
+        when(globalConfService.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
+
+        try {
+            systemService.changeSecurityServerAddress(SERVER_ADDRESS);
+            fail();
+        } catch (ConflictException e) {
+            assertEquals("Can not change to the same address.", e.getMessage());
+            // ok
+        }
     }
 }
