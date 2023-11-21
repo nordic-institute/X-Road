@@ -149,7 +149,8 @@ class ConfigurationDownloader {
         return result.failure();
     }
 
-    private void supplementInternalVerificationCerts(ConfigurationLocation location) throws Exception {
+    private void supplementInternalVerificationCerts(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
         var sources = getAdditionalSources(location);
         var internalVerificationCerts = sources.stream()
                 .flatMap(src -> src.getInternalVerificationCerts().stream())
@@ -157,7 +158,8 @@ class ConfigurationDownloader {
         addSupplementaryVerificationCerts(location, internalVerificationCerts);
     }
 
-    private void supplementExternalVerificationCerts(ConfigurationLocation location) throws Exception {
+    private void supplementExternalVerificationCerts(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
         var sources = getAdditionalSources(location);
         var externalVerificationCerts = sources.stream()
                 .flatMap(src -> src.getExternalVerificationCerts().stream())
@@ -165,7 +167,8 @@ class ConfigurationDownloader {
         addSupplementaryVerificationCerts(location, externalVerificationCerts);
     }
 
-    private List<SharedParameters.ConfigurationSource> getAdditionalSources(ConfigurationLocation location) throws Exception {
+    private List<SharedParameters.ConfigurationSource> getAdditionalSources(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
         Path sharedParamsPath = fileNameProvider.getConfigurationDirectory(location.getInstanceIdentifier())
                 .resolve(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         if (sharedParamsPath.toFile().exists() && isCurrentVersion(sharedParamsPath)) {
