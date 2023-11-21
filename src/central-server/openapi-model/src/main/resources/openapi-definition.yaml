@@ -3925,7 +3925,11 @@ components:
         used_security_servers:
           items:
             $ref: '#/components/schemas/UsedSecurityServers'
+          type: array
       type: object
+      required:
+        - subsystem_id
+        - used_security_servers
     UsedSecurityServers:
       properties:
         server_code:

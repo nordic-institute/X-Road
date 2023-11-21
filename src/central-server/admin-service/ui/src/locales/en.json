@@ -631,6 +631,7 @@
     "registered": "Registered",
     "unregistered": "Unregistered",
     "pending": "Pending approval",
+    "disabled": "Temporarily disabled",
     "securityServer": {
       "certificationAuthority": "Certification Authority",
       "deleteServer": "Delete server",

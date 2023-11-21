@@ -67,9 +67,14 @@ public class ServerClientEntity {
     @Setter
     private SecurityServerEntity securityServer;
 
+    @Getter
+    @Setter
+    private boolean enabled;
+
     public ServerClientEntity(SecurityServerEntity server, SecurityServerClientEntity client) {
         securityServer = server;
         securityServerClient = client;
+        enabled = true;
     }
 
 }
