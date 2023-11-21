@@ -485,21 +485,25 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 ### 3.4 Configuring firewall
 
-It is strongly recommended to protect the Security Server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the Security Server is deployed. 
+It is strongly recommended to protect the Security Server from unwanted access using a firewall (hardware or software based). The firewall can be
+applied to both incoming and outgoing connections depending on the security requirements of the environment where the Security Server is deployed. 
 
-**Special attention should be paid with the firewall configuration since incorrect configuration may leave the Security Server vulnerable to exploits and attacks.** This type of abuse could result in compromised access to the Security Server and the data that is exchanged through it.
+**Special attention should be paid with the firewall configuration since incorrect configuration may leave the Security Server vulnerable to exploits and attacks.**
+This type of abuse could result in compromised access to the Security Server and the data that is exchanged through it.
 
-It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. Access for ports 80, 443 and 4000 should be especially defined, as these ports are used for making X-Road queries and accessing the user interface.
+It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. Access for ports `8080`, `8443` and `4000`
+should be especially defined, as these ports are used for making X-Road queries and accessing the user interface.
 
-Before operating the Security Server, it is strongly recommended to look over the list of ports at [2.2 Reference Data](#22-reference-data) and define firewall access rules for specific hosts based on their descriptions.
+When installing the Security Server, it is strongly recommended to look over the list of ports at [2.2 Reference Data](#22-reference-data) and define
+firewall access rules for specific hosts based on their descriptions.
 
 #### 3.4.1 Accepting Connections
 
-The Security Server has a special [proxy] parameter [connector-host](ug-syspar_x-road_v6_system_parameters.md#32-proxy-parameters-proxy) which determines the interfaces that the Security Server uses to listen for incoming connections.
+The Security Server has a special `[proxy]` parameter [connector-host](ug-syspar_x-road_v6_system_parameters.md#32-proxy-parameters-proxy) which determines
+the interfaces that the Security Server uses to listen for incoming connections. The default value for this parameter in the default X-Road packages is `0.0.0.0`,
+which makes the Security Server accept connections from any server. For country-specific defaults, please refer to the system parameters documentation. 
 
-For the Estonian xroad-securityserver-ee package, this value is set to 127.0.0.1 by default. To allow incoming connections from external hosts, it must be changed to 0.0.0.0 or another suitable interface. **Doing so makes the Security Server accept incoming connections from other servers and as such, sensible firewall rules must be implemented before this change.**
-
-The parameter can be changed by the following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
+The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
 
 ### 3.5 Configuring configuration backup encryption
 
