@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV2;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedTSAType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.CaInfoType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
@@ -71,7 +71,7 @@ public class SharedParametersV3Converter {
         return configurationSources;
     }
 
-    private List<SharedParameters.ApprovedCA> getApprovedCAs(List<ApprovedCATypeV2> approvedCATypes) {
+    private List<SharedParameters.ApprovedCA> getApprovedCAs(List<ApprovedCATypeV3> approvedCATypes) {
         List<SharedParameters.ApprovedCA> approvedCAs = new ArrayList<>();
         if (approvedCATypes != null) {
             approvedCAs.addAll(approvedCATypes.stream().map(this::toApprovedCa).toList());
@@ -139,7 +139,7 @@ public class SharedParametersV3Converter {
         return target;
     }
 
-    private SharedParameters.ApprovedCA toApprovedCa(ApprovedCATypeV2 source) {
+    private SharedParameters.ApprovedCA toApprovedCa(ApprovedCATypeV3 source) {
         var target = new SharedParameters.ApprovedCA();
         target.setName(source.getName());
         target.setAuthenticationOnly(source.isAuthenticationOnly());

@@ -174,6 +174,8 @@ class SharedParametersV3ConverterTest {
         approvedCA.setTopCA(getCaInfo());
         approvedCA.setCertificateProfileInfo("certificateProfileInfo");
         approvedCA.setIntermediateCAs(List.of(getCaInfo()));
+        approvedCA.setAcmeServerDirectoryURL("http://testca.com/acme");
+        approvedCA.setAcmeServerIPAddress("192.99.88.7");
         return approvedCA;
     }
 

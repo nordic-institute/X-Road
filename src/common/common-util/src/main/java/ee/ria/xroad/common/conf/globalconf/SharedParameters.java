@@ -222,6 +222,8 @@ public class SharedParameters {
         private CaInfo topCA;
         private List<CaInfo> intermediateCas;
         private String certificateProfileInfo;
+        private String acmeServerDirectoryURL;
+        private String acmeServerIPAddress;
     }
 
     @Data
