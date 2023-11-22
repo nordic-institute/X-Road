@@ -19,11 +19,11 @@
     name: "Adoptium"
     file: "adoptium"
     description: "Adoptium repository"
-    baseurl: "https://packages.adoptium.net/artifactory/rpm/rhel/7/x86_64"
+    baseurl: "https://artifactory.niis.org/artifactory/rpm-adoptium-remote/rhel/7/x86_64"
     enabled: yes
     gpgcheck: yes
     repo_gpgcheck: yes
-    gpgkey: "https://packages.adoptium.net/artifactory/api/gpg/key/public"
+    gpgkey: "https://artifactory.niis.org/api/gpg/key/public"
     state: present
   when: ansible_distribution_major_version == "7"
 
