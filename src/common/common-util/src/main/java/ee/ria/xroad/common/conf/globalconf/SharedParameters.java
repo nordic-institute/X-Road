@@ -222,14 +222,19 @@ public class SharedParameters {
         private CaInfo topCA;
         private List<CaInfo> intermediateCas;
         private String certificateProfileInfo;
-        private String acmeServerDirectoryURL;
-        private String acmeServerIPAddress;
+        private AcmeServer acmeServer;
     }
 
     @Data
     public static class CaInfo {
         private byte[] cert;
         private List<OcspInfo> ocsp;
+    }
+
+    @Data
+    public static class AcmeServer {
+        private String directoryURL;
+        private String ipAddress;
     }
 
     @Data

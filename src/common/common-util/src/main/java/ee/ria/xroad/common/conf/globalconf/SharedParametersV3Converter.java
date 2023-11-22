@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.AcmeServer;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedTSAType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.CaInfoType;
@@ -150,7 +151,19 @@ public class SharedParametersV3Converter {
             target.setIntermediateCas(source.getIntermediateCA().stream().map(this::toCaInfo).toList());
         }
         target.setCertificateProfileInfo(source.getCertificateProfileInfo());
+        if (source.getAcmeServer() != null) {
+          target.setAcmeServer(toAcmeServer(source.getAcmeServer()));
+        }
         return target;
+    }
+
+    private SharedParameters.AcmeServer toAcmeServer(AcmeServer source) {
+        var acmeServer = new SharedParameters.AcmeServer();
+        acmeServer.setDirectoryURL(source.getDirectoryURL());
+        if (source.getIpAddress() != null) {
+            acmeServer.setIpAddress(source.getIpAddress());
+        }
+        return acmeServer;
     }
 
     private SharedParameters.CaInfo toCaInfo(CaInfoType source) {
