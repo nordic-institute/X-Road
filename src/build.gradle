@@ -293,6 +293,7 @@ configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
     nodeVersion = frontendNodeVersion
     nodeInstallDirectory = file("${rootDir}/.gradle/yarn-node/${frontendNodeVersion}")
     cacheDirectory = file("${projectDir}/.gradle/yarn-cache")
+    nodeDistributionUrlRoot = 'https://artifactory.niis.org/artifactory/nodejs-dist-remote/'
     maxDownloadAttempts = 3
     if (System.getenv().containsKey("CI")) {
       installScript='install --immutable'
