@@ -44,7 +44,7 @@
                   <th></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody data-test="system-parameters-server-address-table-body">
                 <tr>
                   <td>{{ serverAddress }}</td>
                   <td>
@@ -55,6 +55,7 @@
                   </td>
                   <td class="pr-4">
                     <xrd-button :outlined="false"
+                        data-test="change-server-address-button"
                         text
                         :disabled="addressChangeInProgress"
                         @click="showEditServerAddressDialog = true">
