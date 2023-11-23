@@ -55,7 +55,7 @@ public class GlobalConfStepDefs {
         reverseProxyAuxiliaryContainer.getTestContainer().copyFileToContainer(newGlobalConfFiles, "/var/lib/xroad/public");
 
         // As Security server polls for global conf every 3 secs, ensure that SS has the new global conf loaded
-        Selenide.sleep(4000);
+        Selenide.sleep(5000);
     }
 
     @Step("Security Server's global conf expiration date is equal to {}")
