@@ -209,6 +209,7 @@ public class SystemServiceTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     public void replaceAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         systemService.replaceAnchor(anchorBytes);
@@ -236,6 +237,7 @@ public class SystemServiceTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     public void uploadInitialAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         when(anchorRepository.readAnchorFile()).thenThrow(new NoSuchFileException(""));

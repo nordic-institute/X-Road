@@ -91,32 +91,27 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                 self.setAuthenticationCertificate(req.getAuthCert());
             });
 
-        } else if (request instanceof AuthenticationCertificateDeletionRequest) {
-            AuthenticationCertificateDeletionRequest req = (AuthenticationCertificateDeletionRequest) request;
+        } else if (request instanceof AuthenticationCertificateDeletionRequest req) {
             result = self(new AuthenticationCertificateDeletionRequestDto(), self -> self.setAuthenticationCertificate(req.getAuthCert()));
 
-        } else if (request instanceof ClientRegistrationRequest) {
-            ClientRegistrationRequest req = (ClientRegistrationRequest) request;
+        } else if (request instanceof ClientRegistrationRequest req) {
             result = self(new ClientRegistrationRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
-        } else if (request instanceof ClientDeletionRequest) {
-            ClientDeletionRequest req = (ClientDeletionRequest) request;
+        } else if (request instanceof ClientDeletionRequest req) {
             result = self(new ClientDeletionRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
-        } else if (request instanceof OwnerChangeRequest) {
-            OwnerChangeRequest req = (OwnerChangeRequest) request;
+        } else if (request instanceof OwnerChangeRequest req) {
             result = self(new OwnerChangeRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
-        } else if (request instanceof AddressChangeRequest) {
-            AddressChangeRequest req = (AddressChangeRequest) request;
+        } else if (request instanceof AddressChangeRequest req) {
             result = self(new AddressChangeRequestDto(), self -> self.setServerAddress(req.getServerAddress()));
 
         } else {
             throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
         }
 
-        if (request instanceof RequestWithProcessing) {
-            result.status(statusMapper.convert(((RequestWithProcessing) request).getProcessingStatus()));
+        if (request instanceof RequestWithProcessing req) {
+            result.status(statusMapper.convert(req.getProcessingStatus()));
         }
 
         return result.id(request.getId())
@@ -128,9 +123,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
     }
 
     public Request fromDto(ManagementRequestDto request) {
-        if (request instanceof AuthenticationCertificateRegistrationRequestDto) {
-            AuthenticationCertificateRegistrationRequestDto req =
-                    (AuthenticationCertificateRegistrationRequestDto) request;
+        if (request instanceof AuthenticationCertificateRegistrationRequestDto req) {
             return new AuthenticationCertificateRegistrationRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()))
@@ -139,39 +132,32 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     .setAddress(req.getServerAddress());
 
 
-        } else if (request instanceof AuthenticationCertificateDeletionRequestDto) {
-            AuthenticationCertificateDeletionRequestDto req = (AuthenticationCertificateDeletionRequestDto) request;
+        } else if (request instanceof AuthenticationCertificateDeletionRequestDto req) {
             return new AuthenticationCertificateDeletionRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()))
                     .setAuthCert(req.getAuthenticationCertificate());
 
-
-        } else if (request instanceof ClientRegistrationRequestDto) {
-            ClientRegistrationRequestDto req = (ClientRegistrationRequestDto) request;
-
+        } else if (request instanceof ClientRegistrationRequestDto req) {
             return new ClientRegistrationRequest(
                     originMapper.convert(req.getOrigin()),
 
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
 
-        } else if (request instanceof ClientDeletionRequestDto) {
-            ClientDeletionRequestDto req = (ClientDeletionRequestDto) request;
+        } else if (request instanceof ClientDeletionRequestDto req) {
             return new ClientDeletionRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
 
-        } else if (request instanceof OwnerChangeRequestDto) {
-            OwnerChangeRequestDto req = (OwnerChangeRequestDto) request;
+        } else if (request instanceof OwnerChangeRequestDto req) {
             return new OwnerChangeRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
 
-        } else if (request instanceof AddressChangeRequestDto) {
-            AddressChangeRequestDto req = (AddressChangeRequestDto) request;
+        } else if (request instanceof AddressChangeRequestDto req) {
             return new AddressChangeRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),

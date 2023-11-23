@@ -85,7 +85,7 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DE
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
-public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
+class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
     private final byte[] authCertBytes = "authCertBytes".getBytes();
     private final Origin origin = Origin.SECURITY_SERVER;
     private final ManagementRequestOriginDto originDto = ManagementRequestOriginDto.SECURITY_SERVER;
@@ -119,7 +119,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
     @Nested
     @DisplayName("toDto(Request request)")
-    public class ToDtoMethod {
+    class ToDtoMethod {
 
         private static final int ID = 1;
         private ManagementRequestStatus managementRequestStatus = ManagementRequestStatus.APPROVED;
@@ -127,7 +127,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform  AuthenticationCertificateRegistrationRequest conversion")
-        public void testAuthenticationCertificateRegistrationRequestConversion() {
+        void testAuthenticationCertificateRegistrationRequestConversion() {
             AuthenticationCertificateRegistrationRequest request = mock(AuthenticationCertificateRegistrationRequest.class);
             doReturn(SERVER_ADDRESS).when(request).getAddress();
             doReturn(authCertBytes).when(request).getAuthCert();
@@ -149,7 +149,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform  AuthenticationCertificateDeletionRequest conversion")
-        public void testAuthenticationCertificateDeletionRequestConversion() {
+        void testAuthenticationCertificateDeletionRequestConversion() {
             AuthenticationCertificateDeletionRequest request = mock(AuthenticationCertificateDeletionRequest.class);
             doReturn(authCertBytes).when(request).getAuthCert();
             prepareCommonStubs(request, ManagementRequestType.AUTH_CERT_DELETION_REQUEST);
@@ -168,7 +168,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform  ClientRegistrationRequest conversion")
-        public void testClientRegistrationRequestConversion() {
+        void testClientRegistrationRequestConversion() {
             ClientRegistrationRequest request = mock(ClientRegistrationRequest.class);
             doReturn(clientId).when(request).getClientId();
             doReturn(encodedClientId).when(clientIdConverter).convertId(clientId);
@@ -189,7 +189,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform ClientDeletionRequest conversion")
-        public void testClientDeletionRequestConversion() {
+        void testClientDeletionRequestConversion() {
             ClientDeletionRequest request = mock(ClientDeletionRequest.class);
             doReturn(clientId).when(request).getClientId();
             doReturn(encodedClientId).when(clientIdConverter).convertId(clientId);
@@ -210,7 +210,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform AddressChange conversion")
-        public void testAddressChangeRequestConversion() {
+        void testAddressChangeRequestConversion() {
             AddressChangeRequest request = mock(AddressChangeRequest.class);
             doReturn(SERVER_ADDRESS).when(request).getServerAddress();
             prepareCommonStubs(request, ManagementRequestType.ADDRESS_CHANGE_REQUEST);
@@ -229,7 +229,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should fail for unknown request type")
-        public void shouldFailForUnknownRequest() {
+        void shouldFailForUnknownRequest() {
             Request illegalRequest = mock(Request.class);
 
             Executable testable = () -> converter.toDto(illegalRequest);
@@ -293,11 +293,11 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
     @Nested
     @DisplayName("fromDto(Request request)")
-    public class FromDtoMethod implements WithInOrder {
+    class FromDtoMethod implements WithInOrder {
 
         @Test
         @DisplayName("should successfully perform AuthenticationCertificateRegistrationRequestDto conversion")
-        public void shouldSuccessfullyPerformAuthenticationCertificateRegistrationRequestDtoConversion() {
+        void shouldSuccessfullyPerformAuthenticationCertificateRegistrationRequestDtoConversion() {
             AuthenticationCertificateRegistrationRequestDto requestDto = mock(AuthenticationCertificateRegistrationRequestDto.class);
             prepareCommonStubs(requestDto);
             doReturn(authCertBytes).when(requestDto).getAuthenticationCertificate();
@@ -319,7 +319,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform AuthenticationCertificateDeletionRequestDto conversion")
-        public void shouldSuccessfullyPerformAuthenticationCertificateDeletionRequestDtoConversion() {
+        void shouldSuccessfullyPerformAuthenticationCertificateDeletionRequestDtoConversion() {
             AuthenticationCertificateDeletionRequestDto requestDto = mock(AuthenticationCertificateDeletionRequestDto.class);
             prepareCommonStubs(requestDto);
             doReturn(authCertBytes).when(requestDto).getAuthenticationCertificate();
@@ -338,7 +338,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform ClientRegistrationRequestDto conversion")
-        public void shouldSuccessfullyPerformClientRegistrationRequestDtoConversion() {
+        void shouldSuccessfullyPerformClientRegistrationRequestDtoConversion() {
             ClientRegistrationRequestDto requestDto = mock(ClientRegistrationRequestDto.class);
             prepareCommonStubs(requestDto);
             doReturn(encodedClientId).when(requestDto).getClientId();
@@ -359,7 +359,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform ClientDeletionRequestDto conversion")
-        public void shouldSuccessfullyPerformClientDeletionRequestDtoConversion() {
+        void shouldSuccessfullyPerformClientDeletionRequestDtoConversion() {
             ClientDeletionRequestDto requestDto = mock(ClientDeletionRequestDto.class);
             prepareCommonStubs(requestDto);
             doReturn(encodedClientId).when(requestDto).getClientId();
@@ -380,7 +380,7 @@ public class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest 
 
         @Test
         @DisplayName("should successfully perform AddressChangeRequestDto conversion")
-        public void shouldSuccessfullyPerformAddressChangeRequestDtoConversion() {
+        void shouldSuccessfullyPerformAddressChangeRequestDtoConversion() {
             AddressChangeRequestDto requestDto = mock(AddressChangeRequestDto.class);
             prepareCommonStubs(requestDto);
             doReturn(SERVER_ADDRESS).when(requestDto).getServerAddress();
