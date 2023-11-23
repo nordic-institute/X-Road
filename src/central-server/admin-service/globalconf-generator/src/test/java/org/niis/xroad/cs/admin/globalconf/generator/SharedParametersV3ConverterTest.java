@@ -56,7 +56,8 @@ class SharedParametersV3ConverterTest {
     private static final Map<String, String> FIELD_NAME_MAP = Map.ofEntries(
             entry("securityServer", "securityServers"),
             entry("source", "sources"),
-            entry("verificationCert", "verificationCerts"),
+            entry("internalVerificationCert", "internalVerificationCerts"),
+            entry("externalVerificationCert", "externalVerificationCerts"),
             entry("approvedCA", "approvedCAs"),
             entry("approvedTSA", "approvedTSAs"),
             entry("member", "members"),
@@ -81,7 +82,8 @@ class SharedParametersV3ConverterTest {
                         "members.id",
                         "members.subsystems.id",
                         "centralService",
-                        "sources.verificationCerts"
+                        "sources.internalVerificationCerts",
+                        "sources.externalVerificationCerts"
                 )
                 .withEqualsForFields((a, b) ->
                                 new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
@@ -163,7 +165,8 @@ class SharedParametersV3ConverterTest {
     private static List<SharedParameters.ConfigurationSource> getConfigurationSources() {
         var configurationSource = new SharedParameters.ConfigurationSource();
         configurationSource.setAddress("cs");
-        configurationSource.setVerificationCerts(List.of("conf-singing-cert".getBytes(UTF_8)));
+        configurationSource.setInternalVerificationCerts(List.of("internal-conf-singing-cert".getBytes(UTF_8)));
+        configurationSource.setExternalVerificationCerts(List.of("external-conf-singing-cert".getBytes(UTF_8)));
         return List.of(configurationSource);
     }
 

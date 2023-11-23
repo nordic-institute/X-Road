@@ -66,6 +66,8 @@ import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
+import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 
 @ExtendWith(MockitoExtension.class)
 class SharedParametersLoaderTest {
@@ -212,13 +214,18 @@ class SharedParametersLoaderTest {
     private void assertNodeAddressesWithConfigurationSigningKeys(SharedParameters parameters) {
         assertThat(parameters.getSources()).singleElement().satisfies(src -> {
             assertThat(src.getAddress()).isEqualTo(CENTRAL_SERVICE);
-            assertThat(src.getVerificationCerts()).hasSize(1);
-            assertThat(src.getVerificationCerts().get(0)).isEqualTo(CONFIGURATION_SIGNING_CERT);
+            assertThat(src.getInternalVerificationCerts()).hasSize(1);
+            assertThat(src.getInternalVerificationCerts().get(0)).isEqualTo(CONFIGURATION_SIGNING_CERT);
+            assertThat(src.getExternalVerificationCerts()).hasSize(1);
+            assertThat(src.getExternalVerificationCerts().get(0)).isEqualTo(CONFIGURATION_SIGNING_CERT);
         });
     }
 
     private Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys() {
-        return Map.of(CENTRAL_SERVICE, List.of(new ConfigurationSigningKey().setCert(CONFIGURATION_SIGNING_CERT)));
+        return Map.of(CENTRAL_SERVICE, List.of(
+                new ConfigurationSigningKey().setSourceType(INTERNAL).setCert(CONFIGURATION_SIGNING_CERT),
+                new ConfigurationSigningKey().setSourceType(EXTERNAL).setCert(CONFIGURATION_SIGNING_CERT)
+        ));
     }
 
     private CertificationService getCertificationService() {

@@ -107,7 +107,7 @@ public class VersionedConfigurationDirectoryTest {
      */
     @Test
     public void readDirectoryContainingBothV3AndV2Configurations() throws Exception {
-        VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory("src/test/resources/globalconf_good_v3_and_v2");
+        VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory("src/test/resources/globalconf_good_v3");
 
         assertEquals("EE", dir.getInstanceIdentifier());
 
@@ -136,7 +136,7 @@ public class VersionedConfigurationDirectoryTest {
      */
     @Test
     public void readConfigurationFilesContainingBothV3AndV2() throws Exception {
-        String rootDir = "src/test/resources/globalconf_good_v3_and_v2";
+        String rootDir = "src/test/resources/globalconf_good_v3";
         VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory(rootDir);
 
         List<Path> configurationFiles = dir.getConfigurationFiles();

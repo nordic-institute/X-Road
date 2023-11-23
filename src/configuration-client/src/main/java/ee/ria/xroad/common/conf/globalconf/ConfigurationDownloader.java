@@ -48,6 +48,7 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.cert.CertificateEncodingException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,6 +63,7 @@ import java.util.stream.Stream;
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -122,6 +124,16 @@ class ConfigurationDownloader {
 
         for (ConfigurationLocation location : getLocations(source)) {
             try {
+                if (source instanceof ConfigurationAnchor) {
+                    supplementInternalVerificationCerts(location);
+                } else if (source instanceof PrivateParameters.ConfigurationAnchor) {
+                    supplementExternalVerificationCerts(location);
+                }
+            } catch (Exception e) {
+                log.error("Unable to acquire additional verification certificates for instance " + location.getInstanceIdentifier(), e);
+            }
+
+            try {
                 location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
                 rememberLastSuccessfulLocation(location);
@@ -135,6 +147,51 @@ class ConfigurationDownloader {
         }
 
         return result.failure();
+    }
+
+    private void supplementInternalVerificationCerts(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
+        var sources = getAdditionalSources(location);
+        var internalVerificationCerts = sources.stream()
+                .flatMap(src -> src.getInternalVerificationCerts().stream())
+                .toList();
+        addSupplementaryVerificationCerts(location, internalVerificationCerts);
+    }
+
+    private void supplementExternalVerificationCerts(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
+        var sources = getAdditionalSources(location);
+        var externalVerificationCerts = sources.stream()
+                .flatMap(src -> src.getExternalVerificationCerts().stream())
+                .toList();
+        addSupplementaryVerificationCerts(location, externalVerificationCerts);
+    }
+
+    private List<SharedParameters.ConfigurationSource> getAdditionalSources(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
+        Path sharedParamsPath = fileNameProvider.getConfigurationDirectory(location.getInstanceIdentifier())
+                .resolve(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
+        if (sharedParamsPath.toFile().exists() && isCurrentVersion(sharedParamsPath)) {
+            SharedParameters sharedParams = new SharedParametersV3(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
+            return sharedParams.getSources().stream()
+                    .filter(source -> location.getDownloadURL().contains(source.getAddress()))
+                    .toList();
+        }
+        return List.of();
+    }
+
+    private void addSupplementaryVerificationCerts(ConfigurationLocation location, List<byte[]> potentialCertsToBeAdded) {
+        List<byte[]> certsToBeAdded = new ArrayList<>();
+        potentialCertsToBeAdded.forEach(potentialCert -> {
+            if (location.getVerificationCerts().stream().noneMatch(cert -> Arrays.equals(cert, potentialCert))) {
+                certsToBeAdded.add(potentialCert);
+            }
+        });
+
+        if (!certsToBeAdded.isEmpty()) {
+            log.info("Adding supplementary verification certificates from shared parameters configuration file");
+            location.getVerificationCerts().addAll(certsToBeAdded);
+        }
     }
 
     private void rememberLastSuccessfulLocation(ConfigurationLocation location) {

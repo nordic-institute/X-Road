@@ -24,7 +24,14 @@
           </documentation>
         </annotation>
       </element>
-      <element name="verificationCert" type="base64Binary" maxOccurs="unbounded">
+      <element name="internalVerificationCert" type="base64Binary" maxOccurs="unbounded">
+        <annotation>
+          <documentation>
+            Public key that can be used to verify the signed configuration, presented as X.509 certificate.
+          </documentation>
+        </annotation>
+      </element>
+      <element name="externalVerificationCert" type="base64Binary" maxOccurs="unbounded">
         <annotation>
           <documentation>
             Public key that can be used to verify the signed configuration, presented as X.509 certificate.
