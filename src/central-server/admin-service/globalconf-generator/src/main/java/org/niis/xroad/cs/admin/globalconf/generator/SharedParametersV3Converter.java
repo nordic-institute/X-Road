@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV2;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalSettingsType;
@@ -80,7 +80,7 @@ abstract class SharedParametersV3Converter {
     abstract ConfigurationSourceType convert(SharedParameters.ConfigurationSource configurationSource);
 
     @Mapping(source = "intermediateCAs", target = "intermediateCA")
-    abstract ApprovedCATypeV2 convert(SharedParameters.ApprovedCA approvedCa);
+    abstract ApprovedCATypeV3 convert(SharedParameters.ApprovedCA approvedCa);
 
     @Mapping(source = "authCertHashes", target = "authCertHash")
     @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")

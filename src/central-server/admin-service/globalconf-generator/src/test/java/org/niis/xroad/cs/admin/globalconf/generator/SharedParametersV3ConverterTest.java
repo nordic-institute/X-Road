@@ -153,7 +153,9 @@ class SharedParametersV3ConverterTest {
         parameters.setInstanceIdentifier("INSTANCE");
         parameters.setSources(getConfigurationSources());
         parameters.setApprovedCAs(List.of(getApprovedCA()));
-        parameters.setApprovedTSAs(List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8))));
+        parameters.setApprovedTSAs(List.of(new SharedParameters.ApprovedTSA("tsa-name",
+                "tsa-url",
+                "tsa cert".getBytes(UTF_8))));
         parameters.setMembers(getMembers());
         parameters.setSecurityServers(List.of(getSecurityServer()));
         parameters.setGlobalGroups(List.of(new SharedParameters.GlobalGroup("group-code", "group-description",
@@ -177,6 +179,7 @@ class SharedParametersV3ConverterTest {
         approvedCA.setTopCA(getCaInfo());
         approvedCA.setCertificateProfileInfo("certificateProfileInfo");
         approvedCA.setIntermediateCAs(List.of(getCaInfo()));
+        approvedCA.setAcmeServer(new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7"));
         return approvedCA;
     }
 
@@ -219,7 +222,10 @@ class SharedParametersV3ConverterTest {
     }
 
     private static ClientId.Conf subsystemId(ClientId.Conf clientId, String subsystemCode) {
-        return ClientId.Conf.create(clientId.getXRoadInstance(), clientId.getXRoadInstance(), clientId.getMemberCode(), subsystemCode);
+        return ClientId.Conf.create(clientId.getXRoadInstance(),
+                clientId.getXRoadInstance(),
+                clientId.getMemberCode(),
+                subsystemCode);
     }
 
 }

@@ -80,49 +80,6 @@
     </sequence>
   </complexType>
 
-  <complexType name="ApprovedCATypeV2">
-    <sequence>
-      <element name="name" type="string">
-        <annotation>
-          <documentation>
-            Name of the CA, used in user interfaces.
-          </documentation>
-        </annotation>
-      </element>
-      <element name="authenticationOnly" type="boolean" minOccurs="0">
-        <annotation>
-          <documentation>
-            If present and true, indicates that certificates issued by this CA can only be used for TLS
-            authentication and not for creating and verifying digital signatures/seals.
-          </documentation>
-        </annotation>
-      </element>
-      <element name="topCA" type="tns:CaInfoType">
-        <annotation>
-          <documentation>
-            Topmost (usually self-signed) CA that is used as trust anchor.
-          </documentation>
-        </annotation>
-      </element>
-      <element name="intermediateCA" type="tns:CaInfoType" minOccurs="0" maxOccurs="unbounded">
-        <annotation>
-          <documentation>
-            Intermediate CA. This information can be used for certificate path building and finding OCSP
-            responders.
-          </documentation>
-        </annotation>
-      </element>
-      <element name="certificateProfileInfo" type="string">
-        <annotation>
-          <documentation>
-            Fully qualified class name implementing the
-            ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface.
-          </documentation>
-        </annotation>
-      </element>
-    </sequence>
-  </complexType>
-
   <complexType name="GlobalGroupType">
     <sequence>
       <element name="groupCode" type="string">

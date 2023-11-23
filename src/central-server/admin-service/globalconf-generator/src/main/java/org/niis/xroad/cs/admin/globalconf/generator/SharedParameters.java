@@ -58,6 +58,7 @@ class SharedParameters {
         private CaInfo topCA;
         private List<CaInfo> intermediateCAs;
         private String certificateProfileInfo;
+        private AcmeServer acmeServer;
     }
 
     @Data
@@ -65,6 +66,13 @@ class SharedParameters {
     public static class CaInfo {
         private List<OcspInfo> ocsp;
         private byte[] cert;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class AcmeServer {
+        private String directoryURL;
+        private String ipAddress;
     }
 
     @Data
