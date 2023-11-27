@@ -24,18 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.management.core.api;
 
+package org.niis.xroad.common.managementrequest.verify.decode;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
-import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
-import ee.ria.xroad.common.request.ClientRequestType;
 
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
-public interface ManagementRequestService {
-    Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
+import java.util.Objects;
 
-    Integer addManagementRequest(AuthCertDeletionRequestType request);
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.assertAddress;
+import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 
-    Integer addManagementRequest(AddressChangeRequestType request);
+public class AddressChangeRequestCallback extends BaseSignedRequestCallback<AddressChangeRequestType> {
+
+    public AddressChangeRequestCallback(ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(rootCallback, ManagementRequestType.ADDRESS_CHANGE_REQUEST);
+    }
+
+    @Override
+    protected void verifyMessage() {
+        final SecurityServerId serverId = getRequest().getServer();
+
+        validateServerId(serverId);
+
+        if (!Objects.equals(rootCallback.getSoapMessage().getClient(), serverId.getOwner())) {
+            throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
+        }
+
+        assertAddress(getRequest().getAddress());
+    }
+
 }

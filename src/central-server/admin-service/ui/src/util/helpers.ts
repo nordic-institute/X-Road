@@ -224,6 +224,8 @@ export function managementTypeToText(
       return t('managementRequests.addCertificate') as string;
     case ManagementRequestType.CLIENT_REGISTRATION_REQUEST:
       return t('managementRequests.addClient') as string;
+    case ManagementRequestType.ADDRESS_CHANGE_REQUEST:
+      return t('managementRequests.changeAddress') as string;
     default:
       return '';
   }

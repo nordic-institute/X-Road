@@ -538,6 +538,7 @@
     "memberClass": "Member Class",
     "memberCode": "Member Code",
     "securityServerCode": "Security Server Code",
+    "securityServerAddress": "Security Server address",
     "serialNumber": "Serial Number",
     "serviceCode": "Service Code",
     "serviceDescriptionAdd": {
@@ -962,6 +963,15 @@
         }
       },
       "title": "Timestamping Services"
+    },
+    "securityServer": {
+      "securityServer": "Security Server",
+      "serverAddress": "Server address",
+      "editDialog": {
+        "title": "Edit Security Server address"
+      },
+      "addressChangeInProgress": "CHANGE IN PROGRESS",
+      "updateSubmitted": "Security Server address change successfully submitted"
     },
     "title": "System parameters"
   },

@@ -22,13 +22,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
+      - name: Ensure required packages
+        run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Ensure required packages
-        run: sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Cache SonarCloud packages
         uses: actions/cache@v3
         with:

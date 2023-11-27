@@ -24,18 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.management.core.api;
 
-import ee.ria.xroad.common.request.AddressChangeRequestType;
-import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
-import ee.ria.xroad.common.request.ClientRequestType;
+package org.niis.xroad.cs.admin.api.domain;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
-public interface ManagementRequestService {
-    Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+public class AddressChangeRequest extends Request {
+    private String serverAddress;
 
-    Integer addManagementRequest(AuthCertDeletionRequestType request);
+    public AddressChangeRequest(Origin origin, SecurityServerId identifier, String address) {
+        super(origin, identifier);
+        this.serverAddress = address;
+    }
 
-    Integer addManagementRequest(AddressChangeRequestType request);
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.ADDRESS_CHANGE_REQUEST;
+    }
 }

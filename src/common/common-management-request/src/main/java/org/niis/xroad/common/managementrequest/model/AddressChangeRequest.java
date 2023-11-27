@@ -24,18 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.management.core.api;
 
-import ee.ria.xroad.common.request.AddressChangeRequestType;
-import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
-import ee.ria.xroad.common.request.ClientRequestType;
+package org.niis.xroad.common.managementrequest.model;
 
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-public interface ManagementRequestService {
-    Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
-
-    Integer addManagementRequest(AuthCertDeletionRequestType request);
-
-    Integer addManagementRequest(AddressChangeRequestType request);
+public class AddressChangeRequest extends GenericClientRequest {
+    public AddressChangeRequest(ClientId client, SoapMessageImpl request) {
+        super(client, request);
+    }
 }

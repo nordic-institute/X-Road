@@ -40,6 +40,7 @@
             <xrd-icon-add-certificate
               v-if="type === 'AUTH_CERT_REGISTRATION_REQUEST'"
             />
+            <xrd-icon-security-server v-if="type === 'ADDRESS_CHANGE_REQUEST'" />
           </xrd-icon-base>
         </div>
       </template>
@@ -50,7 +51,14 @@
 </template>
 
 <script lang="ts">
-import { XrdIconChangeOwner, XrdIconAddUser, XrdIconRemoveUser, XrdIconRemoveCertificate, XrdIconAddCertificate } from '@niis/shared-ui';
+import {
+    XrdIconChangeOwner,
+    XrdIconAddUser,
+    XrdIconRemoveUser,
+    XrdIconRemoveCertificate,
+    XrdIconAddCertificate,
+    XrdIconSecurityServer
+} from '@niis/shared-ui';
 import { defineComponent, PropType } from 'vue';
 import { ManagementRequestType } from '@/openapi-types';
 import { managementTypeToText } from '@/util/helpers';
@@ -62,6 +70,7 @@ export default defineComponent({
     XrdIconRemoveUser,
     XrdIconAddUser,
     XrdIconChangeOwner,
+    XrdIconSecurityServer,
   },
   props: {
     type: {

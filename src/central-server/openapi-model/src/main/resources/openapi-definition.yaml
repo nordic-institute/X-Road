@@ -3360,7 +3360,7 @@ components:
           type: integer
       required:
         - content_identifier
-        - filename
+        - file_name
         - file_updated_at
         - version
         - optional
@@ -3712,7 +3712,6 @@ components:
         - service_provider_name
         - services_address
         - wsdl_address
-        - service_provider_id
       type: object
     Client:
       allOf:
@@ -4457,6 +4456,7 @@ components:
           CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
           CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
           OWNER_CHANGE_REQUEST: "OwnerChangeRequest"
+          ADDRESS_CHANGE_REQUEST: "AddressChangeRequest"
       properties:
         id:
           type: integer
@@ -4480,8 +4480,8 @@ components:
           readOnly: true
       required:
         - type
-        - source
-        - securityserverId
+        - origin
+        - security_server_id
     ManagementRequestListView:
       type: object
       description: Management Request view
@@ -4511,7 +4511,7 @@ components:
           readOnly: true
       required:
         - type
-        - source
+        - origin
         - security_server_id
     ManagementRequestType:
       type: string
@@ -4521,6 +4521,7 @@ components:
         - OWNER_CHANGE_REQUEST
         - CLIENT_DELETION_REQUEST
         - AUTH_CERT_DELETION_REQUEST
+        - ADDRESS_CHANGE_REQUEST
     ManagementRequestStatus:
       type: string
       readOnly: true
@@ -4656,8 +4657,8 @@ components:
           type: string
           format: byte
       required:
-        - serverAddress
-        - authenticationCertificate
+        - server_address
+        - authentication_certificate
     AuthenticationCertificateDeletionRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4667,7 +4668,7 @@ components:
           type: string
           format: byte
       required:
-        - authenticationCertificate
+        - authentication_certificate
     ClientRegistrationRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4677,7 +4678,7 @@ components:
           type: string
           description: Encoded Client ID
       required:
-        - clientId
+        - client_id
     ClientDeletionRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4687,7 +4688,7 @@ components:
           type: string
           description: Encoded Client ID
       required:
-        - clientId
+        - client_id
     OwnerChangeRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4697,7 +4698,16 @@ components:
           type: string
           description: Encoded Client ID
       required:
-        - clientId
+        - client_id
+    AddressChangeRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        server_address:
+          type: string
+      required:
+        - server_address
   securitySchemes:
     ApiKeyAuth:
       description: X-Road-ApiKey token=<api key>

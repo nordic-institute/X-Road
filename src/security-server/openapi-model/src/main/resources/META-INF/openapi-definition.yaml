@@ -4375,6 +4375,91 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /system/server-address:
+    get:
+      tags:
+        - system
+      operationId: getServerAddress
+      summary: Get current Security Server address
+      description: <h3>Administrator views Security Server address and status</h3>
+      responses:
+        '200':
+          description: Security Server address status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityServerAddressStatus'
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+
+    put:
+      tags:
+        - system
+      operationId: addressChange
+      summary: Change Security Server address
+      description: <h3>Administrator changes Security Server address</h3>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityServerAddress'
+      responses:
+        '202':
+          description: address change request submitted
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /certificate-authorities:
     get:
       tags:
@@ -6465,6 +6550,14 @@ components:
           maxLength: 255
       example:
         address: 127.0.0.1
+    SecurityServerAddressStatus:
+      type: object
+      description: Security Server address with status
+      properties:
+        current_address:
+          $ref: '#/components/schemas/SecurityServerAddress'
+        requested_change:
+          $ref: '#/components/schemas/SecurityServerAddress'
     Service:
       type: object
       description: service for the service description
