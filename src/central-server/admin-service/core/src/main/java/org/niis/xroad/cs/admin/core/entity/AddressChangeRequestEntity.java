@@ -24,18 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.management.core.api;
 
-import ee.ria.xroad.common.request.AddressChangeRequestType;
-import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
-import ee.ria.xroad.common.request.ClientRequestType;
+package org.niis.xroad.cs.admin.core.entity;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 
-public interface ManagementRequestService {
-    Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
+import static org.niis.xroad.cs.admin.core.entity.AddressChangeRequestEntity.DISCRIMINATOR_VALUE;
 
-    Integer addManagementRequest(AuthCertDeletionRequestType request);
 
-    Integer addManagementRequest(AddressChangeRequestType request);
+@Entity
+@NoArgsConstructor
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
+public class AddressChangeRequestEntity extends RequestEntity {
+
+    public static final String DISCRIMINATOR_VALUE = "AddressChangeRequest";
+
+    @Column(name = "address")
+    @Getter
+    @Setter
+    private String address;
+
+    public AddressChangeRequestEntity(Origin origin, SecurityServerId identifier, String comments, String address) {
+        super(origin, identifier, comments);
+        this.address = address;
+    }
+
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.ADDRESS_CHANGE_REQUEST;
+    }
 }

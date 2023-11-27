@@ -59,11 +59,11 @@ abstract class GenericClientRequest implements ManagementRequest {
 
     private CertificateInfo clientCert;
 
-    private byte[] dataToSign;
+    private final byte[] dataToSign;
 
     private MultiPartOutputStream multipart;
 
-    GenericClientRequest(ClientId client, SoapMessageImpl request) throws Exception {
+    GenericClientRequest(ClientId client, SoapMessageImpl request) {
         this.client = client;
         this.requestMessage = request;
 
@@ -125,7 +125,7 @@ abstract class GenericClientRequest implements ManagementRequest {
         multipart.write(dataToSign);
     }
 
-    private MemberSigningInfoDto getMemberSigningInfo() throws Exception {
+    private MemberSigningInfoDto getMemberSigningInfo() {
         try {
             MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(client);
 
@@ -137,7 +137,7 @@ abstract class GenericClientRequest implements ManagementRequest {
         }
     }
 
-    private static byte[] createSignature(String keyId, String signAlgoId, byte[] digest) throws Exception {
+    private static byte[] createSignature(String keyId, String signAlgoId, byte[] digest) {
         try {
             return SignerProxy.sign(keyId, signAlgoId, digest);
         } catch (Exception e) {

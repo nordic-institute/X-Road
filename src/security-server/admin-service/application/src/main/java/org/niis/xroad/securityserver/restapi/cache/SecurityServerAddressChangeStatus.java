@@ -24,18 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.management.core.api;
 
-import ee.ria.xroad.common.request.AddressChangeRequestType;
-import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
-import ee.ria.xroad.common.request.ClientRequestType;
+package org.niis.xroad.securityserver.restapi.cache;
 
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import lombok.Setter;
+import org.springframework.stereotype.Component;
 
-public interface ManagementRequestService {
-    Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
+import java.util.Optional;
 
-    Integer addManagementRequest(AuthCertDeletionRequestType request);
+@Component
+public class SecurityServerAddressChangeStatus {
 
-    Integer addManagementRequest(AddressChangeRequestType request);
+    @Setter
+    private String address;
+
+    public Optional<String> getAddressChangeRequest() {
+        return Optional.ofNullable(address);
+    }
+
+    public void clear() {
+        this.address = null;
+    }
+
+
 }

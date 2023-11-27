@@ -44,10 +44,12 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,7 +92,9 @@ public class SystemService {
     private final AnchorRepository anchorRepository;
     private final ConfigurationVerifier configurationVerifier;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
+    private final SecurityServerAddressChangeStatus addressChangeStatus;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
@@ -340,6 +344,28 @@ public class SystemService {
             // global conf does not exist
         }
         return isGlobalConfInitialized;
+    }
+
+    /**
+     * Sends a management request to change Security Server address
+     * @param newAddress new address
+     * @return request ID in the central server database
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException
+     */
+    public Integer changeSecurityServerAddress(String newAddress) throws GlobalConfOutdatedException,
+            ManagementRequestSendingFailedException {
+        auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
+        if (addressChangeStatus.getAddressChangeRequest().isPresent()) {
+            throw new ConflictException("Address change request already submitted.");
+        }
+        if (globalConfService.getSecurityServerAddress(currentSecurityServerId.getServerId()).equals(newAddress)) {
+            throw new ConflictException("Can not change to the same address.");
+        }
+        Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);
+        addressChangeStatus.setAddress(newAddress);
+
+        return requestId;
     }
 
     /**

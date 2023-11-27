@@ -154,7 +154,8 @@ export enum Permissions {
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
   VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL', // not needed because roles can't access the view
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab
-  VIEW_TSPS = 'VIEW_TSPS', // settings > system paramters > timestamping services
+  VIEW_TSPS = 'VIEW_TSPS', // settings > system parameters > timestamping services
+  CHANGE_SS_ADDRESS = 'CHANGE_SS_ADDRESS', // settings > system parameters > server address
 }
 
 export enum UsageTypes {

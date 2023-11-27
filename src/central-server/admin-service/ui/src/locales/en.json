@@ -510,6 +510,7 @@
     "approved": "Approved",
     "submitted": "Submitted for approval",
     "changeOwner": "Change Owner",
+    "changeAddress": "Change address",
     "pending": "Pending",
     "rejected": "Rejected",
     "revoked": "Revoked",

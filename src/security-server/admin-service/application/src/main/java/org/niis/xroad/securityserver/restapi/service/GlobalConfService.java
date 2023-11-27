@@ -134,6 +134,10 @@ public class GlobalConfService {
         return globalConfFacade.getMemberClasses(globalConfFacade.getInstanceIdentifier());
     }
 
+    public String getSecurityServerAddress(SecurityServerId securityServerId) {
+        return globalConfFacade.getSecurityServerAddress(securityServerId);
+    }
+
     /**
      * Check the validity of the GlobalConf
      * @throws GlobalConfOutdatedException if conf is outdated

@@ -37,11 +37,12 @@ import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -54,28 +55,21 @@ import java.util.Optional;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Job that checks whether globalconf has changed.
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;
+    private volatile boolean restoreInProgress = false;
     private final GlobalConfCheckerHelper globalConfCheckerHelper;
     private final GlobalConfFacade globalConfFacade;
     private final SignerProxyFacade signerProxyFacade;
-    private volatile boolean restoreInProgress = false;
-
-    @Autowired
-    public GlobalConfChecker(GlobalConfCheckerHelper globalConfCheckerHelper, GlobalConfFacade globalConfFacade,
-                             SignerProxyFacade signerProxyFacade) {
-        this.globalConfCheckerHelper = globalConfCheckerHelper;
-        this.globalConfFacade = globalConfFacade;
-        this.signerProxyFacade = signerProxyFacade;
-    }
+    private final SecurityServerAddressChangeStatus addressChangeStatus;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -125,6 +119,15 @@ public class GlobalConfChecker {
         }
 
         ServerConfType serverConf = globalConfCheckerHelper.getServerConf();
+
+        addressChangeStatus.getAddressChangeRequest()
+                .ifPresent(requestedAddress -> {
+                    var currentAddress = globalConfFacade.getSecurityServerAddress(buildSecurityServerId(serverConf));
+                    if (requestedAddress.equals(currentAddress)) {
+                        addressChangeStatus.clear();
+                    }
+                });
+
         try {
             if (globalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
                 log.debug("Server owner not found in globalconf - owner may have changed");
@@ -157,7 +160,7 @@ public class GlobalConfChecker {
         for (TspType localTsp : localTsps) {
             List<SharedParameters.ApprovedTSA> globalTspMatches = globalTsps.stream()
                     .filter(g -> g.getName().equals(localTsp.getName()))
-                    .collect(toList());
+                    .toList();
             if (globalTspMatches.size() > 1) {
                 Optional<SharedParameters.ApprovedTSA> urlChanges =
                         globalTspMatches.stream().filter(t -> !t.getUrl().equals(localTsp.getUrl())).findAny();
