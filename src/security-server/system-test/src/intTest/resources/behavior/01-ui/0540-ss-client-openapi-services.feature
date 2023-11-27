@@ -132,3 +132,23 @@ Feature: 0540 - SS: Client OpenApi REST services
     And Services sub-tab is selected
     When Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi11.yaml)" is deleted
     Then Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi11.yaml)" is missing in the list
+
+  Scenario: Client service with openApi 3.1 json is added
+    Given Client "TestService" is opened
+    And Services sub-tab is selected
+    When Rest service dialog is opened and OpenApi spec is set to "http://mock-server:1080/test-services/testopenapi_v310.json" and service code "testOas31"
+    Then Dialog data is saved and success message "OpenApi3 service added" is shown
+    And  Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi_v310.json)" is present in the list
+    When Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi_v310.json)" is expanded
+    And Service with code "testOas31" is opened
+    Then Service URL is "https://example.org/api", timeout is 60 and tls certificate verification is checked
+    When Service endpoints view is opened
+    Then Service endpoint with HTTP request method "GET" and path "/test" is present in the list
+    Then Service endpoint with HTTP request method "POST" and path "/test" is present in the list
+    Then Service endpoint with HTTP request method "POST" and path "/file" is present in the list
+
+  Scenario: Adding service with invalid openApi version fails
+    Given Client "TestService" is opened
+    And Services sub-tab is selected
+    When Rest service dialog is opened and OpenApi spec is set to "http://mock-server:1080/test-services/testopenapi_invalid_version.yaml" and service code "testOas31x"
+    Then Dialog data is saved and error message "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported." is shown
