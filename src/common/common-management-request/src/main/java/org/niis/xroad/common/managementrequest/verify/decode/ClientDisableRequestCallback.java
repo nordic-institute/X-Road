@@ -24,19 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter.model;
+package org.niis.xroad.common.managementrequest.verify.decode;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.ValueMapping;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+@Slf4j
+public class ClientDisableRequestCallback extends BaseClientRequestCallback {
 
-@Mapper(componentModel = SPRING)
-public interface ManagementRequestDtoTypeConverter {
+    public ClientDisableRequestCallback(ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(rootCallback, ManagementRequestType.CLIENT_DISABLE_REQUEST);
+    }
 
-    ManagementRequestTypeDto convert(ManagementRequestType source);
-
-    ManagementRequestType convert(ManagementRequestTypeDto source);
 }

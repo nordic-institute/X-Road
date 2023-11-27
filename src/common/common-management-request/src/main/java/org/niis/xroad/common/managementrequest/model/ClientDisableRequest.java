@@ -1,6 +1,5 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,19 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter.model;
+package org.niis.xroad.common.managementrequest.model;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.ValueMapping;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+public class ClientDisableRequest extends GenericClientRequest {
 
-@Mapper(componentModel = SPRING)
-public interface ManagementRequestDtoTypeConverter {
+    public ClientDisableRequest(ClientId client, SoapMessageImpl request) throws Exception {
+        super(client, request);
+    }
 
-    ManagementRequestTypeDto convert(ManagementRequestType source);
-
-    ManagementRequestType convert(ManagementRequestTypeDto source);
 }

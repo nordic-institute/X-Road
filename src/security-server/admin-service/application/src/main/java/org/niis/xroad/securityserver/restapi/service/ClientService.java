@@ -569,7 +569,7 @@ public class ClientService {
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws CannotUnregisterOwnerException when trying to unregister the security server owner
-     * @throws ActionNotPossibleException when trying do unregister a client that cannot be unregistered
+     * @throws ActionNotPossibleException when trying to unregister a client that cannot be unregistered
      */
     public void disableClient(ClientId.Conf clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotUnregisterOwnerException, ActionNotPossibleException {
@@ -584,14 +584,14 @@ public class ClientService {
         if (clientId.equals(ownerId)) {
             throw new CannotUnregisterOwnerException(); // FIXME: exception
         }
-//        try {
-            // Integer requestId = managementRequestSenderService.sendDisableClientRequest(clientId);
+        try {
+            Integer requestId = managementRequestSenderService.sendDisableClientRequest(clientId);
             auditDataHelper.putClientStatus(client);
-            // auditDataHelper.putManagementRequestId(requestId);
+            auditDataHelper.putManagementRequestId(requestId);
             client.setClientStatus(STATUS_DISABLING_INPROG);
-//        } catch (ManagementRequestSendingFailedException e) {
-//            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-//        }
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
     }
 
     /**

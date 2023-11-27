@@ -4601,6 +4601,8 @@ components:
           AUTH_CERT_DELETION_REQUEST: "AuthenticationCertificateDeletionRequest"
           CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
           CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
+          CLIENT_DISABLE_REQUEST: "ClientDisableRequest"
+          CLIENT_ENABLE_REQUEST: "ClientEnableRequest"
           OWNER_CHANGE_REQUEST: "OwnerChangeRequest"
           ADDRESS_CHANGE_REQUEST: "AddressChangeRequest"
       properties:
@@ -4666,6 +4668,8 @@ components:
         - CLIENT_REGISTRATION_REQUEST
         - OWNER_CHANGE_REQUEST
         - CLIENT_DELETION_REQUEST
+        - CLIENT_DISABLE_REQUEST
+        - CLIENT_ENABLE_REQUEST
         - AUTH_CERT_DELETION_REQUEST
         - ADDRESS_CHANGE_REQUEST
     ManagementRequestStatus:
@@ -4826,6 +4830,26 @@ components:
       required:
         - client_id
     ClientDeletionRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Encoded Client ID
+      required:
+        - clientId
+    ClientDisableRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Encoded Client ID
+      required:
+        - clientId
+    ClientEnableRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
       type: object

@@ -167,7 +167,7 @@ public class ManagementRequestSenderService {
     }
 
     /**
-     * Sends an owner change request request as a normal X-Road message
+     * Sends an owner change request as a normal X-Road message
      *
      * @param clientId the client id that will be set as a new  owner
      * @return request ID in the central server database
@@ -179,6 +179,19 @@ public class ManagementRequestSenderService {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendOwnerChangeRequest(currentSecurityServerId.getServerId(), clientId);
+        } catch (CodedException ce) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
+            throw ce;
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    public Integer sendDisableClientRequest(ClientId.Conf clientId) throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendClientDisableRequest(currentSecurityServerId.getServerId(), clientId);
         } catch (CodedException ce) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
             throw ce;
