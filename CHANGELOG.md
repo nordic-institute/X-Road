@@ -1,6 +1,65 @@
 # Change Log
 
-## 7.4.0 - UNRELEASED
+## 7.4.0 - 2023-11-27
+- XRDDEV-851: As an Architect I want to study alternatives how to make global configuration more flexible so that it is easier to add new configuration items.
+- XRDDEV-1520: As an Architect I want to investigate how ACME could be supported in the X-Road ecosystem so that onboarding would be faster
+- XRDDEV-331: As an X-Road operator I want to rotate Central Server sign keys without having to send a new configuration anchor to all Security Server administrators so that rotating sign keys could be done regularly.
+- XRDDEV-332: As an X-Road Operator I want to be able add and remove nodes to/from Central Server cluster without having to send a new configuration anchor to all Security Server administrators so that changing the cluster setup would be easy.
+- XRDDEV-2372: As a Central Server Administrator I want the Central Server to be able to server global configuration over HTTPS so that security is improved
+- XRDDEV-2441: Security Server Local Group creation dialog is not closed on error
+- XRDDEV-1997: As an X-Road administrator I would like to be able to map LDAP groups to X-Road user groups so that I can better control access rights
+- XRDDEV-2446: As a Developer I want that the Test CA supports the basic certificate profile so that I can use it for in my dev environment.
+- XRDDEV-2445: Missing and incorrect translations on Security Server and Central Server
+- XRDDEV-2412: As an X-Road Developer I want to improve the test coverage for signer components interactions over Akka so that we can verify its correctness
+- XRDDEV-2419: As a Developer I would like to deprecate old rate limiting parameters on the Security Server so that we only allow ones that meet naming conventions
+- XRDDEV-1983: As a Frontend Developer I want to update Pinia store naming according to the "best practices"
+- XRDDEV-1999: As a Security Server owner I would like to be able to specify the minimum version my server will communicate with so that I can improve security
+- XRDDEV-2461: Security Server edit client service parameters is not validating url duplication
+- XRDDEV-2415: As a Developer I want to set in place and define what ACME support will look like in X-Road so that we have a clear path forward
+- XRDDEV-2000: As a Security Server owner I would like to be able to specify the minimum version my server will communicate with so that I can improve security
+- XRDDEV-2462: Security Server add client service access rights filter sends incorrect value
+- XRDDEV-2440: Security Server security officer sees 403 errors in UI
+- XRDDEV-2028: As a Developer I want to improve logging when connecting to internally balanced Security Servers so that connection errors don't cause confusion
+- XRDDEV-2474: Central Server backup file doesn't include registration service and management service Nginx configuration files.
+- XRDDEV-2472: As a Developer I want to have a safe way to introduce unique constraints into our datamodel so that we can improve our integrity checks
+- XRDDEV-2480: Security Server OpenAPI description file has a wrong filename when it's downloaded using the Security Server management REST API.
+- XRDDEV-2478: As a Developer I want to improve tests related to the proxymonitor addon so that we can feel confident migrating from Akka to gRPC
+- XRDDEV-2444: Central Server's init endpoint is vulnerable to replay attack
+- XRDDEV-2373: As a Central Server Administrator I want the Configuration Proxy to be able to serve global configuration over HTTPS so that security is improved
+- XRDDEV-2497: As a Community Member I want my pull request to be reviewed and merged so that my contribution can be accepted
+- XRDDEV-2263: As a Developer I would like to update our frontend framework to Vue 3 and Vuetify 3 for the Central Server
+- XRDDEV-2475: Automatically recreated anchor doesn't include the configuration signing key which was just added
+- XRDDEV-2476: As a Developer I want to improve tests related to the messagelog addon so that we can feel confident porting it from Akka to gRPC
+- XRDDEV-2479: As a Developer I want to improve tests related to the environmental monitoring module so that we can feel confident migrating from Akka to gRPC
+- XRDDEV-2398: Timestamping service does not recover on all nodes in a clustered Security Server setup with an external load balancer
+- XRDDEV-2477: As a Developer I want to improve tests related to the op-monitor addon so that we can feel confident migrating from Akka to gRPC
+- XRDDEV-2488: As a Developer I want to figure out how we can reliably update country specific metapackages before release so that we can support dynamic values
+- XRDDEV-2468: As an X-Road developer I would like to migrate the signer to gRPC from Akka so that we can migrate away from Akka
+- XRDDEV-2485: As an X-Road developer I would like to migrate the xroad-monitor and proxymonitor to gRPC so that we can migrate away from Akka
+- XRDDEV-2487: As an X-Road developer I would like to migrate the op-monitor addon to gRPC so that we can migrate away from Akka
+- XRDDEV-2470: It is possible to register two Security Servers with the same code under the same member in the new Central Server
+- XRDDEV-2498: As an X-Road developer I would like to migrate the messagelog addon to gRPC so that we can migrate away from Akka
+- XRDDEV-2483: Edit Security Server address field in the Security Server details view on the Central Server shows incorrect information.
+- XRDDEV-2486: As an X-Road developer I would like to migrate the environmental monitoring module to gRPC so that we can migrate away from Akka
+- XRDDEV-824: As a Security Manager I want the Security Server to not allow generating a new CSR for a key that has an existing certificate so that key rotation is enforfed when a certificate is renewed.
+- XRDDEV-2500: As a Developer I want the gRPC implementation to be comparable in performance and resource usage to the Akka implementation so that we don't have a regression
+- XRDDEV-2502: As a Security Expert I want the administrator to be able to specify only the roles they have when creating an API key in the Central Server or Security Server so that they can't create keys with more access than they have
+- XRDDEV-2455: As a Central Server Administrator I would like to be able to navigate from the member details view to the related security server details view by clicking on the owned security server so that navigation would be easier
+- XRDDEV-2490: As a Developer I want to choose which JAVA versions will be supported in X-Road 7.4.0 so that we can do the Spring Boot update
+- XRDDEV-2494: As a Developer I want to implement global configuration sharing over HTTPS to the configuration proxy so that a more secure connection can be used
+- XRDDEV-2403: As a Developer I want to find a replacement for the last piece of Ruby code we have in the repository so that we have less languages we need to maintain
+- XRDDEV-2493: As a Developer I want to switch the method we use to publish Global Configuration over HTTPS on the Central Server so that we follow our members wishes
+- XRDDEV-2463: As a Developer I would like to migrate the Security Server web interface to Vue 3 so that we continue to use a supported version of the framework
+- XRDDEV-2464: As a Developer I want to review the post Vue 3 upgrade Security Server views and fix the styling so that it looks correct
+- XRDDEV-1689: As a Developer I want the new global configuration to be designed so that we can start implementing it
+- XRDDEV-2469: As a Developer I want to disable printing Liquibase banner to the console when database migrations are run so that the console output would be more compact.
+- XRDDEV-2456: As a Central Server Administrator I want the member and security server search fields to accept criteria that are longer than 25 characters so that I can search members with longer names
+- XRDDEV-2518: Clicking Restore button in the Security Server Backup and Restore view causes the backup file to be downloaded.
+- XRDDEV-2495: As a Security Server Administrator I want the Security Server to be able to fetch global configuration over HTTPS so that security would be improved
+- XRDDEV-2491: As a Developer I want to update the Spring Boot version on the Security Server and the Central Server so that we are using the latest supported version
+- XRDDEV-2512: Management service API key creation fails silently during Central Server installation/upgrade
+- XRDDEV-2519: As a Security Server Administrator i want the configuration signing keys to rotate without manual intervention
+- XRDDEV-227: As a Security Server Administrator I want to be able to change my Security Server's address in the global configuration from the UI
 
 ## 7.3.2 - 2023-08-07
 - XRDDEV-2447: The securityServerType property value is stored in the operational monitoring database using capital letters.
