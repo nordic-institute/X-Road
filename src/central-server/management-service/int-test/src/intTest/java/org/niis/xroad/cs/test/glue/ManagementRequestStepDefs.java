@@ -221,7 +221,6 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(TestManagementRequestBuilder::buildOwnerChangeRegRequest)
                 .withSoapMessageBuilder(
                         (builder, serverId1, clientId1) -> builder.buildAddressChangeRequest(serverId1, address))
                 .build();
