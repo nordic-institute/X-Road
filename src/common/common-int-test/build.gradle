@@ -11,6 +11,9 @@ dependencies {
   api("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
   api("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
   api("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
+  api("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}") {
+    exclude group: "org.slf4j", module: "*"
+  }
   api("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
   api("org.awaitility:awaitility:${awaitilityVersion}")
 }

@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.ss.test.ui.utils;
+package org.niis.xroad.common.test.ui.utils;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;

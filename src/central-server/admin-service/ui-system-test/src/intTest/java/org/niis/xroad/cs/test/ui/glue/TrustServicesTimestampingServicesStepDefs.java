@@ -35,8 +35,8 @@ import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
 public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
 

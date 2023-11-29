@@ -29,7 +29,7 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.MemberSubsystemsPageObj;
 
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
     private final MemberSubsystemsPageObj memberSubsystemsPageObj = new MemberSubsystemsPageObj();
