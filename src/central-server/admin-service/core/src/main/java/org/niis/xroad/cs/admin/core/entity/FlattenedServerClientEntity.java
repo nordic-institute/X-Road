@@ -35,6 +35,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Immutable;
 
 /**
@@ -64,6 +65,10 @@ public class FlattenedServerClientEntity {
     @JoinColumn(name = "security_server_id", nullable = false)
     @Getter
     private SecurityServerEntity securityServer;
+
+    @Getter
+    @Setter
+    private boolean enabled;
 }
 
 

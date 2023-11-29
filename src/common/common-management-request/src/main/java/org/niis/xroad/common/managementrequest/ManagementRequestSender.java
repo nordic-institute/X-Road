@@ -187,7 +187,7 @@ public final class ManagementRequestSender {
                                           ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientDisableRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+                    new ClientDisableRequest(clientId, builder.buildClientDisableRequest(securityServer, clientId)));
         }
     }
 
@@ -195,7 +195,7 @@ public final class ManagementRequestSender {
                                             ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientEnableRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+                    new ClientEnableRequest(clientId, builder.buildClientEnableRequest(securityServer, clientId)));
         }
     }
 

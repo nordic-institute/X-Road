@@ -246,13 +246,11 @@ public class GlobalConfChecker {
                     case ClientType.STATUS_REGISTERED:
                         // do nothing
                         break;
-                    case ClientType.STATUS_SAVED: // FALL-THROUGH
-                    case ClientType.STATUS_REGINPROG: // FALL-THROUGH
-                    case ClientType.STATUS_GLOBALERR:
-                        client.setClientStatus(ClientType.STATUS_REGISTERED);
-                        log.debug("Setting client '{}' status to '{}'",
-                                client.getIdentifier(),
-                                client.getClientStatus());
+                    case ClientType.STATUS_SAVED,
+                         ClientType.STATUS_REGINPROG,
+                         ClientType.STATUS_GLOBALERR,
+                         ClientType.STATUS_ENABLING_INPROG:
+                        updateClientStatus(client, ClientType.STATUS_REGISTERED);
                         break;
                     default:
                         log.warn("Unexpected status {} for client '{}'",
@@ -261,14 +259,19 @@ public class GlobalConfChecker {
                 }
             }
 
-            if (!registered && ClientType.STATUS_REGISTERED.equals(
-                    client.getClientStatus())) {
-                client.setClientStatus(ClientType.STATUS_GLOBALERR);
+            if (!registered && ClientType.STATUS_REGISTERED.equals(client.getClientStatus())) {
+                updateClientStatus(client, ClientType.STATUS_GLOBALERR);
+            }
 
-                log.debug("Setting client '{}' status to '{}'",
-                        client.getIdentifier(), client.getClientStatus());
+            if (!registered && ClientType.STATUS_DISABLING_INPROG.equals(client.getClientStatus())) {
+                updateClientStatus(client, ClientType.STATUS_DISABLED);
             }
         }
+    }
+
+    private void updateClientStatus(ClientType client, String status) {
+        client.setClientStatus(status);
+        log.debug("Setting client '{}' status to '{}'", client.getIdentifier(), client.getClientStatus());
     }
 
     private void updateAuthCertStatuses(SecurityServerId securityServerId)

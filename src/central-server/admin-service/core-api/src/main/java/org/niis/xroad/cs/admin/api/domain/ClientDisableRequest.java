@@ -24,18 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter.model;
+package org.niis.xroad.cs.admin.api.domain;
 
-import org.mapstruct.Mapper;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class ClientDisableRequest extends Request {
+    private ClientId clientId;
 
-@Mapper(componentModel = SPRING)
-public interface ManagementRequestDtoTypeConverter {
 
-    ManagementRequestTypeDto convert(ManagementRequestType source);
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.CLIENT_DISABLE_REQUEST;
+    }
 
-    ManagementRequestType convert(ManagementRequestTypeDto source);
+    public ClientDisableRequest(Origin origin,
+                                ee.ria.xroad.common.identifier.SecurityServerId serverId,
+                                ee.ria.xroad.common.identifier.ClientId clientId) {
+        super(origin, serverId);
+        this.clientId = ClientId.ensure(clientId);
+    }
 }

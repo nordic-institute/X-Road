@@ -53,6 +53,8 @@ import static org.niis.xroad.common.managementrequest.model.ManagementRequestTyp
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DELETION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DISABLE_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
@@ -124,6 +126,28 @@ final class ManagementRequestBuilder {
         request.setClient(client);
 
         return buildMessage(element(OWNER_CHANGE_REQUEST, ClientRequestType.class, request));
+    }
+
+    SoapMessageImpl buildClientDisableRequest(SecurityServerId.Conf securityServer,
+                                            ClientId.Conf client) throws Exception {
+        log.debug("buildClientDisableRequest(server: {}, client: {})", securityServer, client);
+
+        ClientRequestType request = FACTORY.createClientRequestType();
+        request.setServer(securityServer);
+        request.setClient(client);
+
+        return buildMessage(element(CLIENT_DISABLE_REQUEST, ClientRequestType.class, request));
+    }
+
+    SoapMessageImpl buildClientEnableRequest(SecurityServerId.Conf securityServer,
+                                              ClientId.Conf client) throws Exception {
+        log.debug("buildClientEnableRequest(server: {}, client: {})", securityServer, client);
+
+        ClientRequestType request = FACTORY.createClientRequestType();
+        request.setServer(securityServer);
+        request.setClient(client);
+
+        return buildMessage(element(CLIENT_ENABLE_REQUEST, ClientRequestType.class, request));
     }
 
     SoapMessageImpl buildAddressChangeRequest(SecurityServerId.Conf securityServer, String address) throws Exception {

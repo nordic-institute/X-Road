@@ -71,7 +71,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLED;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
@@ -563,13 +565,12 @@ public class ClientService {
     }
 
     /**
-     * Unregister a client
+     * Disable a client
      *
-     * @param clientId client to unregister
+     * @param clientId client to disable
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
-     * @throws CannotUnregisterOwnerException when trying to unregister the security server owner
-     * @throws ActionNotPossibleException when trying to unregister a client that cannot be unregistered
+     * @throws ActionNotPossibleException when trying to unregister a client that cannot be disabled
      */
     public void disableClient(ClientId.Conf clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
             CannotUnregisterOwnerException, ActionNotPossibleException {
@@ -580,12 +581,8 @@ public class ClientService {
         if (!STATUS_REGISTERED.equals(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot disable client with status " + client.getClientStatus());
         }
-        ClientId.Conf ownerId = currentSecurityServerId.getServerId().getOwner();
-        if (clientId.equals(ownerId)) {
-            throw new CannotUnregisterOwnerException(); // FIXME: exception
-        }
         try {
-            Integer requestId = managementRequestSenderService.sendDisableClientRequest(clientId);
+            Integer requestId = managementRequestSenderService.sendClientDisableRequest(clientId);
             auditDataHelper.putClientStatus(client);
             auditDataHelper.putManagementRequestId(requestId);
             client.setClientStatus(STATUS_DISABLING_INPROG);
@@ -593,6 +590,35 @@ public class ClientService {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
     }
+
+    /**
+     * Enable a client
+     *
+     * @param clientId client to disable
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws ActionNotPossibleException when trying to unregister a client that cannot be enable
+     */
+    public void enableClient(ClientId.Conf clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotUnregisterOwnerException, ActionNotPossibleException {
+
+        auditDataHelper.put(clientId);
+
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        if (!STATUS_DISABLED.equals(client.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot enable client with status " + client.getClientStatus());
+        }
+        try {
+            Integer requestId = managementRequestSenderService.sendClientEnableRequest(clientId);
+            auditDataHelper.putClientStatus(client);
+            auditDataHelper.putManagementRequestId(requestId);
+            client.setClientStatus(STATUS_ENABLING_INPROG);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+
 
     /**
      * Merge two client lists into one with only unique clients. The distinct clients in the latter list

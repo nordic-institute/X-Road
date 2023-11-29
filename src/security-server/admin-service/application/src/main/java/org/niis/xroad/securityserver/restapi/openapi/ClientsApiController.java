@@ -163,7 +163,7 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceClientHelper serviceClientHelper;
     private final AuditDataHelper auditDataHelper;
 
-    private ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Finds clients matching search terms
@@ -605,9 +605,17 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('ENABLE_CLIENT')")
     @AuditEventMethod(event = ENABLE_CLIENT)
-    public ResponseEntity<Void> enableClient(String id) {
-        // TODO
-        return null;
+    public ResponseEntity<Void> enableClient(String encodedClientId) {
+        ClientId.Conf clientId = clientIdConverter.convertId(encodedClientId);
+        try {
+            clientService.enableClient(clientId);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException
+                 | ClientService.CannotUnregisterOwnerException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Override

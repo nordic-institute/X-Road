@@ -31,9 +31,11 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity_;
+import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity_;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity_;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
@@ -223,10 +225,12 @@ public interface JpaFlattenedSecurityServerClientRepository extends
     }
 
     static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
-        Join<FlattenedSecurityServerClientViewEntity, SecurityServerEntity> securityServer
-                = root.join(FlattenedSecurityServerClientViewEntity_.FLATTENED_SERVER_CLIENTS)
-                .join(FlattenedServerClientEntity_.SECURITY_SERVER);
-        return builder.equal(securityServer.get(FlattenedSecurityServerClientViewEntity_.ID), id);
+        var serverClients = root.join(FlattenedSecurityServerClientViewEntity_.FLATTENED_SERVER_CLIENTS);
+        var securityServer = serverClients.join(FlattenedServerClientEntity_.SECURITY_SERVER);
+
+
+        return builder.and(builder.equal(securityServer.get(FlattenedSecurityServerClientViewEntity_.ID), id),
+                builder.isTrue(serverClients.get(FlattenedServerClientEntity_.ENABLED)));
     }
 
     static Predicate clientNotPartOfGroupPredicate(Root root, CriteriaBuilder builder, String groupCode) {

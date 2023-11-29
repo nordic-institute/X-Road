@@ -188,10 +188,25 @@ public class ManagementRequestSenderService {
         }
     }
 
-    public Integer sendDisableClientRequest(ClientId.Conf clientId) throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+    public Integer sendClientDisableRequest(ClientId.Conf clientId)
+            throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendClientDisableRequest(currentSecurityServerId.getServerId(), clientId);
+        } catch (CodedException ce) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
+            throw ce;
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    public Integer sendClientEnableRequest(ClientId.Conf clientId)
+            throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendClientEnableRequest(currentSecurityServerId.getServerId(), clientId);
         } catch (CodedException ce) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
             throw ce;

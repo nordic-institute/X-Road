@@ -24,18 +24,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter.model;
+package org.niis.xroad.cs.admin.core.entity;
 
-import org.mapstruct.Mapper;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Transient;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+import static org.niis.xroad.cs.admin.core.entity.ClientEnableRequestEntity.DISCRIMINATOR_VALUE;
 
-@Mapper(componentModel = SPRING)
-public interface ManagementRequestDtoTypeConverter {
+@Entity
+@NoArgsConstructor
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
+public class ClientEnableRequestEntity extends RequestEntity {
+    public static final String DISCRIMINATOR_VALUE = "ClientEnableRequest";
 
-    ManagementRequestTypeDto convert(ManagementRequestType source);
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "sec_serv_user_id")
+    @Getter
+    @Setter
+    private ClientIdEntity clientId;
 
-    ManagementRequestType convert(ManagementRequestTypeDto source);
+    @Override
+    @Transient
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.CLIENT_ENABLE_REQUEST;
+    }
+
+    public ClientEnableRequestEntity(Origin origin,
+                                     SecurityServerId serverId,
+                                     ee.ria.xroad.common.identifier.ClientId clientId,
+                                     String comments) {
+        super(origin, serverId, comments);
+        this.clientId = ClientIdEntity.ensure(clientId);
+    }
 }

@@ -36,6 +36,8 @@ import org.niis.xroad.cs.admin.api.domain.AddressChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientEnableRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
@@ -44,6 +46,8 @@ import org.niis.xroad.cs.admin.core.entity.AddressChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.AuthenticationCertificateRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientDisableRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientEnableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
@@ -108,4 +112,7 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
     @Mapping(target = "serverAddress", source = "address")
     AddressChangeRequest toDto(AddressChangeRequestEntity source);
 
+    ClientDisableRequest toDto(ClientDisableRequestEntity source);
+
+    ClientEnableRequest toDto(ClientEnableRequestEntity source);
 }
