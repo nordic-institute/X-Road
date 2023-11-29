@@ -494,7 +494,7 @@
     "timestamping_service_not_found": "Timestamping service not found",
     "token_not_active": "Token is not active",
     "token_not_found": "Token not found",
-    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x are currently supported.",
+    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "validation_failure": "Validation failure",
     "warnings_detected": "Warnings detected",
