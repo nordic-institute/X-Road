@@ -38,7 +38,8 @@
     "searching": "Searching...",
     "submit": "Submit",
     "unregister": "Unregister",
-    "select": "Select"
+    "select": "Select",
+    "generateCsr": "Generate CSR"
   },
   "alert": {
     "count": "Amount of same errors:",
@@ -236,7 +237,13 @@
     "conf_verification.signature_invalid": "Configuration verification failed: signature_invalid",
     "conf_verification.unreachable": "Configuration verification failed: unreachable",
     "cannot_add_member_to_owners_group": "Cannot add members to server owner group",
-    "validation_failure": "Validation failure"
+    "validation_failure": "Validation failure",
+    "invalid_distinguished_name": "Invalid distinguished name",
+    "generate_key_cert_interrupted": "Key and certificate generation has been interrupted",
+    "invalid_cert": "Cannot convert bytes to certificate",
+    "key_not_found": "The imported certificate does not match the TLS key",
+    "certificate_already_exists": "The imported certificate already exists",
+    "certificate_import_failed": "Cannot import TLS certificate"
   },
   "fields": {
     "init": {
@@ -664,8 +671,38 @@
     "editCentralServerAddressSuccess": "Central Server address successfully updated",
     "editCentralServerAddressTitle": "Edit Central Server address",
     "instanceIdentifier": "Instance Identifier",
-    "managementServiceSecurityServer": "Management Services' Security Server",
-    "managementServices": "Management Services",
+    "managementServices": {
+      "title": "Management Services",
+      "securityServer": "Management Services' Security Server"
+    },
+    "tlsCertificates": {
+      "managementService": {
+        "title": "Management Service TLS certificate",
+        "key": "Management Service TLS key",
+        "downloadCertificate": "Download certificate",
+        "downloadSuccess": "Management service TLS certificate successfully downloaded",
+        "generateKey": {
+          "button": "Re-create key",
+          "title": "Management Service TLS key",
+          "confirmation": "Generate a new Management service TLS key and certificate?",
+          "explanation": "The system will generate a new Management service TLS key and a self-signed certificate, replacing the existing key and certificate.",
+          "success": "New Management service TLS key and certificate generated successfully"
+        },
+        "generateCsr": {
+          "button": "Generate CSR",
+          "title": "Generate TLS Certificate Signing Request",
+          "content": "First, provide a distinguished name. Then, generate a new CSR and save it into a safe place",
+          "distinguishedName": "Enter Distinguished name",
+          "example": "CN=mycentralserver.example.com, O=My Organization, C=EE"
+        },
+        "uploadCertificate": {
+          "button": "Upload certificate",
+          "title": "Upload Management Service TLS certificate",
+          "label": "Upload the certificate file from your computer",
+          "success": "Management service TLS certificate successfully uploaded"
+        }
+      }
+    },
     "selectSubsystem": {
       "title": "Select Subsystem",
       "search": "Search",
@@ -721,7 +758,8 @@
       "apiKeys": "API Keys",
       "backupAndRestore": "Backup And Restore",
       "globalResources": "Global Resources",
-      "systemSettings": "System Settings"
+      "systemSettings": "System Settings",
+      "tlsCertificates": "TLS Certificates"
     }
   },
   "trustServices": {

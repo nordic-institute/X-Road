@@ -169,7 +169,10 @@ public enum RestApiAuditEvent {
     DELETE_OCSP_RESPONDER("Delete OCSP responder"),
 
     REGISTER_MANAGEMENT_SERVICES_PROVIDER("Register management service provider as security server client"),
-    EDIT_MANAGEMENT_SERVICES_PROVIDER("Edit provider of management services");
+    EDIT_MANAGEMENT_SERVICES_PROVIDER("Edit provider of management services"),
+    GENERATE_MANAGEMENT_SERVICE_TLS_CSR("Generate management service TLS certificate signing request"),
+    GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT("Generate management service TLS key and self-sign certificate"),
+    UPLOAD_MANAGEMENT_SERVICE_TLS_CERT("Upload management service TLS certificate");
     private final String eventName;
 
     RestApiAuditEvent(String eventName) {

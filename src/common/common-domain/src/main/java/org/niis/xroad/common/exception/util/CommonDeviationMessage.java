@@ -43,6 +43,12 @@ public enum CommonDeviationMessage implements DeviationProvider {
     INVALID_FILE_EXTENSION("invalid_file_extension", "Invalid file extension"),
     DOUBLE_FILE_EXTENSION("double_file_extension", "Double file extension"),
     INVALID_BACKUP_FILE("invalid_backup_file", "Invalid backup file"),
+    INVALID_DISTINGUISHED_NAME("invalid_distinguished_name", "Invalid distinguished name"),
+    KEY_CERT_GENERATION_INTERRUPTED("generate_key_cert_interrupted", "Key and certificate generation has been interrupted"),
+    INVALID_CERT("invalid_cert", "Cannot convert bytes to certificate"),
+    IMPORTED_KEY_NOT_FOUND("key_not_found", "The imported certificate does not match the TLS key"),
+    IMPORTED_CERTIFICATE_ALREADY_EXISTS("certificate_already_exists", "The imported certificate already exists"),
+    CERTIFICATE_IMPORT_FAILED("certificate_import_failed", "Cannot import TLS certificate"),
 
     BACKUP_FILE_NOT_FOUND("backup_file_not_found", "Backup was not found"),
     BACKUP_GENERATION_FAILED("backup_generation_failed", "Failed to generate backup"),

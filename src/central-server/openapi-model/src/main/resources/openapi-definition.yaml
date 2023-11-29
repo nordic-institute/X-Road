@@ -2496,6 +2496,137 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       tags:
         - management-services
+  /management-services-configuration/download-certificate:
+    get:
+      tags:
+        - management-services
+      summary: download the management service certificate as gzip compressed tar archive
+      operationId: downloadCertificate
+      description: <h3>Administrator downloads the management service TLS certificate.</h3>
+      responses:
+        '200':
+          description: information fetched successfully
+          content:
+            application/gzip:
+              schema:
+                type: string
+                format: binary
+                description: certificate file
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /management-services-configuration/certificate:
+    get:
+      tags:
+        - management-services
+      summary: view the management service certificate information
+      operationId: getCertificate
+      description: <h3>Administrator views the management service TLS certificate information.</h3>
+      responses:
+        '200':
+          description: certificate information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - management-services
+      summary: generate a new management service TLS key and self-sign cert
+      operationId: generateKeyAndCertificate
+      description:
+        <h3>Administrator generates new management service TLS key and certificate.</h3>
+      responses:
+        '204':
+          description: tls key generated
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /management-services-configuration/generate-csr:
+    post:
+      tags:
+        - management-services
+      summary: generate new certificate request
+      operationId: generateCertificateRequest
+      description: <h3>Administrator generates a new certificate request.</h3>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistinguishedName'
+      responses:
+        '201':
+          description: created CSR
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: csr file
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /management-services-configuration/upload-certificate:
+    post:
+      tags:
+        - management-services
+      summary: upload new management service TLS certificate.
+      operationId: uploadCertificate
+      description: <h3>Administrator uploads a new management service TLS certificate</h3>
+      requestBody:
+        description: certificate file
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificateFile'
+      responses:
+        '200':
+          description: tls certificate imported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /system/server-address:
     put:
       operationId: updateCentralServerAddress
@@ -3306,6 +3437,16 @@ components:
           description: can the CA be used for TLS authentication
           type: string
       type: object
+    DistinguishedName:
+      type: object
+      properties:
+        name:
+          type: string
+          format: text
+          description: distinguished name
+          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
     CodeWithDetails:
       $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConfigurationAnchorContainer:

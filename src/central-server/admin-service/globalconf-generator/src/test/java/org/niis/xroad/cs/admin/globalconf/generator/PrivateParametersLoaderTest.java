@@ -37,7 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrl;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrlCert;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.api.service.InternalTlsCertificateService;
+import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 
@@ -64,7 +64,7 @@ class PrivateParametersLoaderTest {
     @Mock
     TrustedAnchorService trustedAnchorService;
     @Mock
-    InternalTlsCertificateService internalTlsCertificateService;
+    ManagementServiceTlsCertificateService managementServiceTlsCertificateService;
 
     @InjectMocks
     PrivateParametersLoader privateParametersLoader;
@@ -75,7 +75,7 @@ class PrivateParametersLoaderTest {
         when(systemParameterService.getAuthCertRegUrl()).thenReturn(AUTH_REG_CERT_URL);
         when(systemParameterService.getManagementServiceProviderId()).thenReturn(MANAGEMENT_REQUEST_SERVICE_PROVIDER_ID);
         when(systemParameterService.getTimeStampingIntervalSeconds()).thenReturn(TIMESTAMPING_INTERVAL_SECONDS);
-        when(internalTlsCertificateService.getInternalTlsCertificate()).thenReturn(AUTH_CERT_REG_SERVICE_CERT);
+        when(managementServiceTlsCertificateService.getTlsCertificate()).thenReturn(AUTH_CERT_REG_SERVICE_CERT);
         when(trustedAnchorService.findAll()).thenReturn(List.of(createTrustedAnchor()));
 
         var parameters = privateParametersLoader.load();
