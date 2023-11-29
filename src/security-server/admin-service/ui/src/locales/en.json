@@ -163,7 +163,7 @@
     "disableSuccess": "Certificate has been disabled",
     "disabled": "disabled",
     "expires": "Expires",
-    "hashInfo": "Hash (SHA-1)",
+    "hashInfo": "Hash (SHA-256)",
     "inUse": "in use",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",

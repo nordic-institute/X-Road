@@ -36,17 +36,17 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,6 +63,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.util.CryptoUtils.certHash;
+import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
@@ -97,21 +98,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public boolean isValid() {
         // it is important to get handle of confDir as this variable is volatile
         VersionedConfigurationDirectory checkDir = confDir;
-        String mainInstance = checkDir.getInstanceIdentifier();
-        OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         try {
-            if (now.isAfter(checkDir.getPrivateExpiresOn(mainInstance))) {
-                log.warn("Main privateParameters expired at {}", checkDir.getPrivateExpiresOn(mainInstance));
-                return false;
-            }
-            if (now.isAfter(checkDir.getSharedExpiresOn(mainInstance))) {
-                log.warn("Main sharedParameters expired at {}", checkDir.getSharedExpiresOn(mainInstance));
-                return false;
-            }
-            return true;
+            return !checkDir.isExpired();
         } catch (Exception e) {
             log.warn("Error checking global configuration validity", e);
-
             return false;
         }
     }
@@ -125,7 +115,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public List<String> getInstanceIdentifiers() {
         return getSharedParameters().stream()
                 .map(SharedParameters::getInstanceIdentifier)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -175,18 +165,18 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public String getMemberName(ClientId clientId) {
-        SharedParameters p;
+        Optional<SharedParameters> p;
         try {
-            p = confDir.getShared(clientId.getXRoadInstance());
+            p = confDir.findShared(clientId.getXRoadInstance());
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
 
-        return p == null ? null : p.getMembers().stream()
-                .filter(m -> createMemberId(p, m).memberEquals(clientId))
+        return p.flatMap(params -> params.getMembers().stream()
+                .filter(m -> createMemberId(p.get(), m).memberEquals(clientId))
                 .map(SharedParameters.Member::getName)
                 .findFirst()
-                .orElse(null);
+        ).orElse(null);
     }
 
     @Override
@@ -208,17 +198,18 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public String getGlobalGroupDescription(GlobalGroupId globalGroupId) {
-        SharedParameters p;
+        Optional<SharedParameters> p;
         try {
-            p = confDir.getShared(globalGroupId.getXRoadInstance());
+            p = confDir.findShared(globalGroupId.getXRoadInstance());
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
 
-        return p == null ? null : p.getGlobalGroups().stream()
+        return p.flatMap(params -> params.getGlobalGroups().stream()
                 .filter(g -> g.getGroupCode().equals(globalGroupId.getGroupCode()))
                 .map(SharedParameters.GlobalGroup::getDescription)
-                .findFirst().orElse(null);
+                .findFirst()
+        ).orElse(null);
     }
 
     @Override
@@ -232,7 +223,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public Collection<String> getProviderAddress(ClientId clientId) {
         if (clientId == null) {
-            return null;
+            return Collections.emptySet();
         }
 
         SharedParameters p = getSharedParameters(clientId.getXRoadInstance());
@@ -349,7 +340,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public List<X509Certificate> getAllCaCerts() {
         return getSharedParameters().stream()
                 .flatMap(p -> p.getSubjectsAndCaCerts().values().stream())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -415,11 +406,9 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public SecurityServerId.Conf getServerId(X509Certificate cert)
-            throws Exception {
-        String b64 = encodeBase64(certHash(cert));
-
+    public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
         for (SharedParameters p : getSharedParameters()) {
+            String b64 = encodeBase64(calculateCertHash(p, cert));
             SharedParameters.SecurityServer server = p.getServerByAuthCert().get(b64);
             if (server != null) {
                 return SecurityServerId.Conf.create(
@@ -432,27 +421,42 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return null;
     }
 
+    private byte[] calculateCertHash(SharedParameters p, X509Certificate cert)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
+        boolean isCurrentVersion = VersionedConfigurationDirectory.isCurrentVersion(
+                Path.of(confDir.getPath().toString(), p.getInstanceIdentifier(), ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS)
+        );
+        if (isCurrentVersion) {
+            return certHash(cert.getEncoded());
+        } else {
+            return certSha1Hash(cert.getEncoded());
+        }
+    }
+
     @Override
     public ClientId getServerOwner(SecurityServerId serverId) {
         for (SharedParameters p : getSharedParameters()) {
-            SharedParameters.SecurityServer server = p.getSecurityServersById()
-                    .get(serverId);
+            SharedParameters.SecurityServer server = p.getSecurityServersById().get(serverId);
             if (server != null) {
                 return server.getOwner();
             }
         }
-
         return null;
     }
 
     @Override
-    public boolean authCertMatchesMember(X509Certificate cert,
-            ClientId memberId) throws Exception {
-        byte[] inputCertHash = certHash(cert);
-        return getSharedParameters().stream()
-                .map(p -> p.getMemberAuthCerts().get(memberId))
-                .filter(Objects::nonNull).flatMap(Collection::stream)
-                .anyMatch(h -> Arrays.equals(inputCertHash, h));
+    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
+        for (SharedParameters p : getSharedParameters()) {
+            byte[] inputCertHash = calculateCertHash(p, cert);
+            boolean match = Optional.ofNullable(p.getMemberAuthCerts().get(memberId)).stream()
+                    .flatMap(Collection::stream)
+                    .anyMatch(h -> Arrays.equals(inputCertHash, h));
+            if (match) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -461,7 +465,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return getSharedParameters(instanceIdentifier).getApprovedCAs()
             .stream()
             .map(this::createApprovedCAInfo)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private ApprovedCAInfo createApprovedCAInfo(SharedParameters.ApprovedCA ca) {
@@ -504,7 +508,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public List<String> getApprovedTspUrls(String instanceIdentifier) {
         return getSharedParameters(instanceIdentifier).getApprovedTSAs()
                 .stream().map(SharedParameters.ApprovedTSA::getUrl)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -527,7 +531,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .map(SharedParameters.ApprovedTSA::getCert)
                 .filter(Objects::nonNull)
                 .map(CryptoUtils::readCertificate)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -545,7 +549,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
-        Optional<SharedParameters> sharedParameters = Optional.ofNullable(confDir.getShared(groupId.getXRoadInstance()));
+        Optional<SharedParameters> sharedParameters = confDir.findShared(groupId.getXRoadInstance());
         return sharedParameters.flatMap(params -> params.getGlobalGroups().stream()
                         .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
                         .findFirst());
@@ -573,7 +577,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public List<X509Certificate> getVerificationCaCerts() {
         return getSharedParameters().stream()
                 .flatMap(p -> p.getVerificationCaCerts().stream())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -610,33 +614,27 @@ public class GlobalConfImpl implements GlobalConfProvider {
     // ------------------------------------------------------------------------
 
     protected PrivateParameters getPrivateParameters() {
-        PrivateParameters p;
+        Optional<PrivateParameters> p;
         try {
-            p = confDir.getPrivate(getInstanceIdentifier());
+            p = confDir.findPrivate(getInstanceIdentifier());
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
 
-        if (p == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Private params for instance identifier %s not found", getInstanceIdentifier());
-        }
-
-        return p;
+        return p.orElseThrow(() ->
+                new CodedException(X_INTERNAL_ERROR, "Private params for instance identifier %s not found", getInstanceIdentifier()));
     }
 
     protected SharedParameters getSharedParameters(String instanceIdentifier) {
-        SharedParameters p;
+        Optional<SharedParameters> p;
         try {
-            p = confDir.getShared(instanceIdentifier);
+            p = confDir.findShared(instanceIdentifier);
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
 
-        if (p == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier);
-        }
-
-        return p;
+        return p.orElseThrow(() ->
+                new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier));
     }
 
     protected List<SharedParameters> getSharedParameters(
@@ -647,7 +645,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
         return Arrays.stream(instanceIdentifiers)
                 .map(this::getSharedParameters)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private CertificateProfileInfoProvider getCertProfile(

@@ -479,7 +479,7 @@
   },
   "cert": {
     "certificate": "Certificate",
-    "hashInfo": "Hash (SHA-1)",
+    "hashInfo": "Hash (SHA-256)",
     "rsaExp": "RSA Public Key Exponent",
     "rsaModulus": "RSA Public Key Modulus",
     "keyUsage": {

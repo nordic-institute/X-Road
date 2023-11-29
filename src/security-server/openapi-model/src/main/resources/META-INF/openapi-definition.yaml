@@ -399,13 +399,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '200':
           description: token certificate
@@ -436,13 +436,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: deletion was successful
@@ -475,13 +475,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: request was successful
@@ -507,13 +507,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: certificate was deactivated
@@ -541,13 +541,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '201':
           description: the imported certificate
@@ -588,13 +588,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '200':
           description: possible actions that can be done on the certificate
@@ -624,13 +624,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       requestBody:
         content:
           application/json:
@@ -663,13 +663,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: request was successful
@@ -713,13 +713,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: request was successful
@@ -1609,13 +1609,13 @@ paths:
             maxLength: 1023
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '200':
           description: certificate details
@@ -1653,13 +1653,13 @@ paths:
             maxLength: 1023
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: certificate deletion was successful
@@ -5574,10 +5574,10 @@ components:
         hash:
           type: string
           format: text
-          description: certificate SHA-1 hash
+          description: certificate SHA-256 hash
           example: 1234567890ABCDEF
           minLength: 1
-          maxLength: 40
+          maxLength: 64
         key_usages:
           type: array
           description: certificate key usage array

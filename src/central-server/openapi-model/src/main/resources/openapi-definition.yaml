@@ -3143,10 +3143,10 @@ components:
       description: certificate details for any kind of certificate (TLS, auth, sign) # potential-common-api
       properties:
         hash:
-          description: certificate SHA-1 hash
+          description: certificate SHA-256 hash
           example: 1234567890ABCDEF
           format: text
-          maxLength: 40
+          maxLength: 64
           minLength: 1
           type: string
         issuer_common_name:
