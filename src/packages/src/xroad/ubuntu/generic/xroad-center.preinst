@@ -125,8 +125,8 @@ create_global_configuration_certificate() {
         ERR=$(</tmp/cert.err)
         rm -f /tmp/cert.err
         handle_error "$ERR"
-        db_fset xroad-common/confproxy-subject seen false
-        db_fset xroad-common/confproxy-altsubject seen false
+        db_fset xroad-common/global-conf-subject seen false
+        db_fset xroad-common/global-conf-altsubject seen false
         continue
       fi
 
