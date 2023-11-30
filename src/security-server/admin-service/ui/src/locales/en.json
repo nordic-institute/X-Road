@@ -229,12 +229,12 @@
       "disable": {
         "confirmText": "Do you want to disable this client?",
         "confirmTitle": "Disable client",
-        "success": "Client disabled"
+        "success": "Client disabling in progress"
       },
       "enable": {
         "confirmText": "Do you want to enable this client?",
         "confirmTitle": "Enable client",
-        "success": "Client enabled"
+        "success": "Client enabling in progress"
       }
     },
     "id": "ID",

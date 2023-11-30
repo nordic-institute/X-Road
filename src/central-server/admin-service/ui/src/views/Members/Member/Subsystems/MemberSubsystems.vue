@@ -127,7 +127,8 @@
               <div>
                 <xrd-button
                   v-if="
-                    subitem.status === 'APPROVED' &&
+                    (subitem.status === 'APPROVED' ||
+                      subitem.status === 'DISABLED') &&
                     allowToUnregisterMemberSubsystem
                   "
                   text

@@ -161,12 +161,12 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
         } else if (request instanceof ClientDisableRequestDto req) {
-                return new ClientDisableRequest(
+            return new ClientDisableRequest(
                         originMapper.convert(req.getOrigin()),
                         securityServerIdMapper.convertId(req.getSecurityServerId()),
                         fromEncodedId(req.getClientId()));
         } else if (request instanceof ClientEnableRequestDto req) {
-                return new ClientEnableRequest(
+            return new ClientEnableRequest(
                         originMapper.convert(req.getOrigin()),
                         securityServerIdMapper.convertId(req.getSecurityServerId()),
                         fromEncodedId(req.getClientId()));

@@ -27,21 +27,17 @@
 package org.niis.xroad.cs.admin.jpa.repository;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.service.ClientService;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity;
 import org.niis.xroad.cs.admin.core.entity.FlattenedSecurityServerClientViewEntity_;
-import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.FlattenedServerClientEntity_;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity_;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity_;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity_;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadIdEntity_;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;

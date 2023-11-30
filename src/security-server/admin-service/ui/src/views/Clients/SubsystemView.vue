@@ -91,16 +91,17 @@ export default defineComponent({
       return (
         this.client &&
         this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
-        (this.client.status === 'REGISTERED' ||
-          this.client.status === 'REGISTRATION_IN_PROGRESS')
+        (this.client.status === ClientStatus.REGISTERED ||
+          this.client.status === ClientStatus.REGISTRATION_IN_PROGRESS)
       );
     },
 
     showDelete(): boolean {
       if (
         !this.client ||
-        this.client.status === 'REGISTERED' ||
-        this.client.status === 'REGISTRATION_IN_PROGRESS'
+        this.client.status === ClientStatus.REGISTERED ||
+        this.client.status === ClientStatus.REGISTRATION_IN_PROGRESS ||
+        this.client.status === ClientStatus.ENABLING_IN_PROGRESS
       ) {
         return false;
       }
