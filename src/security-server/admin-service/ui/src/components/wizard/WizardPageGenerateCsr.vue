@@ -82,14 +82,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, Ref } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { AxiosError } from 'axios';
 import { PublicPathState, useForm } from 'vee-validate';
 import { CsrSubjectFieldDescription } from '@/openapi-types';
-import { Ref } from 'vue/dist/vue';
 
 export default defineComponent({
   props: {

@@ -6224,6 +6224,7 @@ components:
         - is_server_code_initialized
         - is_server_owner_initialized
         - software_token_init_status
+        - enforce_token_pin_policy
       properties:
         is_anchor_imported:
           type: boolean
@@ -6236,6 +6237,9 @@ components:
           description: whether the server owner of the security server has been initialized or not
         software_token_init_status:
           $ref: '#/components/schemas/TokenInitStatus'
+        enforce_token_pin_policy:
+          type: boolean
+          description: whether the token pin policy is enforced or not
     KeyWithCertificateSigningRequestId:
       type: object
       description: Key and TokenCertificateSigningRequest id

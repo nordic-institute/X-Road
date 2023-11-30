@@ -26,7 +26,7 @@
 <template>
   <div class="xrd-tab-max-width detail-view-outer">
     <div class="detail-view-content">
-      <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
+      <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close"/>
       <v-row>
         <v-col>
           <h3>{{ $t('keys.tokenInfo') }}</h3>
@@ -76,6 +76,19 @@
                 </div>
               </template>
               <template #content>
+                <v-row no-gutters v-if="isEnforceTokenPolicyEnabled">
+                  <v-alert
+                    data-test="alert-token-policy-enabled"
+                    class="mb-6"
+                    variant="outlined"
+                    border="start"
+                    density="compact"
+                    type="info"
+                  >
+                    <h4>{{ $t('token.tokenPinPolicyHeader') }}</h4>
+                    <div>{{ $t('token.tokenPinPolicy') }}</div>
+                  </v-alert>
+                </v-row>
                 <v-row no-gutters>
                   <v-text-field
                     v-bind="oldPinRef"
@@ -127,7 +140,7 @@
         :disabled="isSaveDisabled"
         data-test="token-details-save"
         @click="save()"
-        >{{ $t('action.save') }}
+      >{{ $t('action.save') }}
       </xrd-button>
     </div>
   </div>
@@ -137,22 +150,17 @@
 /***
  * Component for showing the details of a token.
  */
-import { computed, defineComponent, ref } from 'vue';
+import {computed, defineComponent, ref} from 'vue';
 import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
-import { Permissions } from '@/global';
-import {
-  PossibleAction,
-  Token,
-  TokenPinUpdate,
-  TokenType,
-} from '@/openapi-types';
-import { mapActions, mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import { useNotifications } from '@/store/modules/notifications';
-import { AxiosError } from 'axios';
-import { PublicPathState, useForm } from 'vee-validate';
-import { useTokens } from '@/store/modules/tokens';
+import {encodePathParameter} from '@/util/api';
+import {Permissions} from '@/global';
+import {PossibleAction, Token, TokenPinUpdate, TokenType,} from '@/openapi-types';
+import {mapActions, mapState} from 'pinia';
+import {useUser} from '@/store/modules/user';
+import {useNotifications} from '@/store/modules/notifications';
+import {AxiosError} from 'axios';
+import {PublicPathState, useForm} from 'vee-validate';
+import {useTokens} from '@/store/modules/tokens';
 
 export default defineComponent({
   props: {
@@ -162,7 +170,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const { tokens } = useTokens();
+    const {tokens} = useTokens();
     const isChangePinOpen = ref(false);
     const token: Token = tokens.find((token) => token.id === props.id)!;
     const validationSchema = computed(() => {
@@ -234,8 +242,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useUser, ['hasPermission']),
-
+    ...mapState(useUser, ['hasPermission', 'isEnforceTokenPolicyEnabled']),
     hasEditPermission(): boolean {
       return this.hasPermission(Permissions.EDIT_TOKEN_FRIENDLY_NAME);
     },
@@ -253,8 +260,14 @@ export default defineComponent({
       }
     },
   },
+  created() {
+    this.fetchInitializationStatus().catch((error) => {
+      this.showError(error);
+    });
+  },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useUser, ['fetchInitializationStatus']),
     close(): void {
       this.$router.back();
     },
