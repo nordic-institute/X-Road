@@ -447,7 +447,7 @@
         "title": "Add key",
         "labelField": "Key friendly name",
         "confirmButton": "Add",
-        "success": "Sign Key '{label}' added successfully"
+        "success": "Sign Key '{label}' added successfully. Please do not activate the key immediately. Please see the Central Server user guide before activating the key."
       },
       "activate": {
         "title": "Activate key",
