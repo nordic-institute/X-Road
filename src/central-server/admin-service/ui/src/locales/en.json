@@ -447,7 +447,7 @@
         "title": "Add key",
         "labelField": "Key friendly name",
         "confirmButton": "Add",
-        "success": "Sign Key '{label}' added successfully"
+        "success": "Sign Key '{label}' added successfully. Remember not to activate it immediately, but rather after it has been distributed to all of the security servers."
       },
       "activate": {
         "title": "Activate key",
