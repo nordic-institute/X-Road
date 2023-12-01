@@ -29,7 +29,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.api.service.ManagementServicesService;
@@ -56,7 +55,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.format.DateTimeFormatter;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_CERT_GENERATION_INTERRUPTED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SERVICE_PROVIDER_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MANAGEMENT_SERVICES_PROVIDER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_MANAGEMENT_SERVICE_TLS_CSR;
@@ -104,11 +102,7 @@ public class ManagementServicesController implements ManagementServicesApi {
     @PreAuthorize("hasAuthority('GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT')")
     @AuditEventMethod(event = GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT)
     public ResponseEntity<Void> generateKeyAndCertificate() {
-        try {
-            managementServiceTlsCertificateService.generateTlsKeyAndCertificate();
-        } catch (InterruptedException e) {
-            throw new ServiceException(KEY_CERT_GENERATION_INTERRUPTED);
-        }
+        managementServiceTlsCertificateService.generateTlsKeyAndCertificate();
         return ControllerUtil.createCreatedResponse("/management-services-configuration/certificate", null);
     }
 

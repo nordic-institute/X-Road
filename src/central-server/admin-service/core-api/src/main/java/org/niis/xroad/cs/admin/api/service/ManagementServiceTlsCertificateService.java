@@ -42,6 +42,5 @@ public interface ManagementServiceTlsCertificateService {
 
     CertificateDetails importTlsCertificate(byte[] certificateBytes);
 
-    void generateTlsKeyAndCertificate() throws InterruptedException;
-
+    void generateTlsKeyAndCertificate();
 }
