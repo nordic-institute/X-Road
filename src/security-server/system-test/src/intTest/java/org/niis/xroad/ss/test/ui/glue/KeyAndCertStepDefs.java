@@ -113,6 +113,17 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.section(tokenKey).tokenLabel().shouldBe(visible).click();
     }
 
+    @Step("Token: {} edit page is opened")
+    public void tokenIsVisibleAndEdited(String tokenKey) {
+        keyAndCertPageObj.section(tokenKey).tokenEditButton().shouldBe(visible).click();
+    }
+
+    @Step("Token Alert about token policy being enforced is present")
+    public void tokenHasEnforceTokenPolicyAlert() {
+        keyAndCertPageObj.tokenEdit.btnChangeToken().shouldBe(visible).click();
+        keyAndCertPageObj.tokenEdit.alertTokenPolicyEnabled().shouldBe(visible);
+    }
+
     @Step("Token: {} - Add key wizard is opened")
     public void addKey(String tokenKey) {
         keyAndCertPageObj.section(tokenKey).addSigningKey().shouldBe(visible).click();

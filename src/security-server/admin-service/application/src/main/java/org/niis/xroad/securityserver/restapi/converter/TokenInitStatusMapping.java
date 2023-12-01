@@ -60,8 +60,10 @@ public enum TokenInitStatusMapping {
      *
      * @param tokenInitStatusInfo
      */
-    public static Optional<TokenInitStatus> map(TokenInitStatusInfo tokenInitStatusInfo) {
-        return getFor(tokenInitStatusInfo).map(TokenInitStatusMapping::getTokenInitStatus);
+    public static TokenInitStatus map(TokenInitStatusInfo tokenInitStatusInfo) {
+        return getFor(tokenInitStatusInfo)
+                .map(TokenInitStatusMapping::getTokenInitStatus)
+                .orElse(TokenInitStatus.UNKNOWN);
     }
 
     /**

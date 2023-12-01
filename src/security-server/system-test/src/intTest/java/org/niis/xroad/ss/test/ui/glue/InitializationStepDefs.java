@@ -85,6 +85,11 @@ public class InitializationStepDefs extends BaseUiStepDefs {
         initializationPageObj.wizardTokenPin.btnContinue().shouldNotBe(enabled);
     }
 
+    @Step("Alert about token policy being enforced is present")
+    public void alertTokenPolicyIsPresent() {
+        initializationPageObj.wizardTokenPin.alertTokenPolicyEnabled().shouldBe(visible);
+    }
+
     @Step("PIN is set to {string}")
     public void pinInputIsPresentAndNotVerified(String pin) {
         initializationPageObj.initializationView().shouldBe(visible);

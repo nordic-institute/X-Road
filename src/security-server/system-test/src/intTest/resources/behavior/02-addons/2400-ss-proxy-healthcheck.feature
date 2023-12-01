@@ -1,12 +1,20 @@
 @HealthCheck
 Feature: 2400 - SS Proxy: healthcheck
 
-  Scenario: Valid and registered AUTH key is forcibly enable
+  Scenario: Valid and registered AUTH key is forcibly enabled
   Goal of this scenario is to force "valid" AUTH key that is already registered against
   globalconf. With this key is considered ready to be used by SS.
 
-    Given healthcheck has errors and error message is "No certificate chain available in authentication key."
+    Given SecurityServer login page is open
+    And Page is prepared to be tested
+    And User xrd logs in to SecurityServer with password secret
+    And Keys and certificates tab is selected
+    When User logs out token: softToken-0
+    Then Token: softToken-0 is logged-out
+    And healthcheck has errors and error message is "No certificate chain available in authentication key."
     When predefined signer softtoken is uploaded
+    And User logs in token: softToken-0 with PIN: 1234
+    Then  Token: softToken-0 is logged-in
     And healthcheck has no errors
 
   Scenario: Healthcheck is fails HSM is not operational

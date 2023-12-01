@@ -16,8 +16,9 @@ Feature: 0100 - SS: Initialization
     Then Configuration anchor selection is submitted
     When Initial configuration of Owner member is set to class: GOV, code: 0245437-2 & Security Server Code: SS1
     Then Owner member configuration is submitted
-    When PIN is set to "1234"
-    And Confirmation PIN is set to "1234"
+    And Alert about token policy being enforced is present
+    When PIN is set to "T0ken1zer3"
+    And Confirmation PIN is set to "T0ken1zer3"
     And Initial Configuration is submitted
     And Server id exist warning is confirmed
     Then Clients Tab is present
@@ -26,9 +27,9 @@ Feature: 0100 - SS: Initialization
     Given Clients tab is selected
     And Soft token pin alert is clicked
     And Token: softToken-0 is present
-    When User logs in token: softToken-0 with PIN: 1234
+    When User logs in token: softToken-0 with PIN: T0ken1zer3
     Then  Token: softToken-0 is logged-in
     When User logs out token: softToken-0
     Then Token: softToken-0 is logged-out
-    When User logs in token: softToken-0 with PIN: 1234
+    When User logs in token: softToken-0 with PIN: T0ken1zer3
     Then  Token: softToken-0 is logged-in
