@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import com.google.common.collect.Iterables;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -78,6 +79,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_N
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTlsCertificateService {
 
     private static final String MANAGEMENT_SERVICE = "management-service";
@@ -91,7 +93,8 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
     private final CertificateConverter certificateConverter;
     private final ExternalProcessRunner externalProcessRunner;
     private final AuditDataHelper auditDataHelper;
-    @Value("${script.generate-sertificate.path}")
+
+    @Value("${script.generate-certificate.path}")
     private final String generateCertificateScriptPath;
     @Value("${certificates.path}")
     private final String certificatesPath;
