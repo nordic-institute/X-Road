@@ -182,7 +182,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             log.error("Failed to generate management service TLS key and certificate", e);
             throw new ServiceException(KEY_CERT_GENERATION_FAILED, e);
         } catch (InterruptedException e) {
-            throw new ServiceException(KEY_CERT_GENERATION_INTERRUPTED);
+            throw new ServiceException(KEY_CERT_GENERATION_INTERRUPTED, e);
         }
 
         // audit log hash of generated cert
