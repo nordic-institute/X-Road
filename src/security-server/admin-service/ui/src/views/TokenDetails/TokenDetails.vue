@@ -168,14 +168,14 @@ export default defineComponent({
     const validationSchema = computed(() => {
       if (isChangePinOpen.value) {
         return {
-          'token.friendlyName': 'required',
+          'token.friendlyName': 'required|max:255',
           'token.oldPin': 'required',
           'token.newPin': 'required|confirmed:@token.newPinConfirm',
           'token.newPinConfirm': 'required',
         };
       } else {
         return {
-          'token.friendlyName': 'required',
+          'token.friendlyName': 'required|max:255',
         };
       }
     });
