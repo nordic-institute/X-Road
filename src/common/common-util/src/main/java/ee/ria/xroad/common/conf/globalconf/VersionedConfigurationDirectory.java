@@ -49,12 +49,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
-import static java.lang.String.valueOf;
 
 /**
  * Class for reading global configuration directory. The directory must have subdirectory per instance identifier.
@@ -200,7 +200,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
     /**
      * Returns private parameters for a given instance identifier.
      * @param instanceId the instance identifier
-     * @return private parameters or null, if no private parameters exist for given instance identifier
+     * @return optional of private parameters or {@link Optional#empty()} if no private parameters exist for given instance identifier
      */
     public Optional<PrivateParameters> findPrivate(String instanceId) {
         String safeInstanceId = escapeInstanceIdentifier(instanceId);
@@ -210,6 +210,41 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         PrivateParametersProvider provider = privateParameters.get(safeInstanceId);
         return Optional.ofNullable(provider)
                 .map(PrivateParametersProvider::getPrivateParameters);
+    }
+
+    /**
+     * Returns shared parameters for a given instance identifier.
+     * @param instanceId the instance identifier
+     * @return optional of shared parameters or {@link Optional#empty()} if no shared parameters exist for given instance identifier
+     */
+    public Optional<SharedParameters> findShared(String instanceId) {
+        String safeInstanceId = escapeInstanceIdentifier(instanceId);
+
+        log.trace("findShared(instance = {}, directory = {})", instanceId, safeInstanceId);
+
+        Predicate<SharedParametersProvider> isMainInstance = params ->
+                params.getSharedParameters() != null && instanceIdentifier.equals(params.getSharedParameters().getInstanceIdentifier());
+        Predicate<SharedParametersProvider> notExpired = params ->
+                params.getExpiresOn().isAfter(TimeUtils.offsetDateTimeNow());
+
+        SharedParametersProvider provider = sharedParameters.get(safeInstanceId);
+        return Optional.ofNullable(provider)
+                .filter(isMainInstance.or(notExpired))
+                .map(SharedParametersProvider::getSharedParameters);
+    }
+
+    /**
+     * @return all known shared parameters
+     */
+    public List<SharedParameters> getShared() {
+        OffsetDateTime now = TimeUtils.offsetDateTimeNow();
+        return sharedParameters.values()
+                .stream()
+                .filter(p -> p.getSharedParameters() != null
+                        && p.getSharedParameters().getInstanceIdentifier().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now)
+                )
+                .map(SharedParametersProvider::getSharedParameters)
+                .toList();
     }
 
     public boolean isExpired() {
@@ -227,40 +262,6 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Returns shared parameters for a given instance identifier.
-     * @param instanceId the instance identifier
-     * @return shared parameters or null, if no shared parameters exist for given instance identifier
-     */
-    public Optional<SharedParameters> findShared(String instanceId) {
-        String safeInstanceId = escapeInstanceIdentifier(instanceId);
-
-        log.trace("findShared(instance = {}, directory = {})", instanceId, safeInstanceId);
-
-        SharedParametersProvider parameters = sharedParameters.get(safeInstanceId);
-        // ignore federated parameters that are expired
-        if (parameters != null && parameters.getSharedParameters() != null
-                && (parameters.getSharedParameters().getInstanceIdentifier().equals(instanceIdentifier)
-                || parameters.getExpiresOn().isAfter(TimeUtils.offsetDateTimeNow()))) {
-            return Optional.of(parameters.getSharedParameters());
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * @return all known shared parameters
-     */
-    public List<SharedParameters> getShared() {
-        OffsetDateTime now = TimeUtils.offsetDateTimeNow();
-        return sharedParameters.values()
-                .stream()
-                .filter(p -> p.getSharedParameters() != null
-                        && p.getSharedParameters().getInstanceIdentifier().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now)
-                )
-                .map(SharedParametersProvider::getSharedParameters)
-                .toList();
     }
 
     /**
@@ -331,12 +332,17 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
     }
 
     public static boolean isCurrentVersion(Path filePath) {
+            Integer confVersion = getVersion(filePath);
+            return confVersion != null && confVersion == CURRENT_GLOBAL_CONFIGURATION_VERSION;
+    }
+
+    public static Integer getVersion(Path filePath) {
         try {
-            String confVersion = getMetadata(filePath).getConfigurationVersion();
-            return valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(confVersion);
-        } catch (IOException e) {
+            String version = getMetadata(filePath).getConfigurationVersion();
+            return Integer.parseInt(version);
+        } catch (IOException | NumberFormatException e) {
             log.error("Unable to read configuration version", e);
-            return false;
+            return null;
         }
     }
 

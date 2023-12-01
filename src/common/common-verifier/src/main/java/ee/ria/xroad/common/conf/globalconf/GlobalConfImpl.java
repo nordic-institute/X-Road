@@ -423,10 +423,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     private byte[] calculateCertHash(SharedParameters p, X509Certificate cert)
             throws CertificateEncodingException, IOException, OperatorCreationException {
-        boolean isCurrentVersion = VersionedConfigurationDirectory.isCurrentVersion(
+        Integer version = VersionedConfigurationDirectory.getVersion(
                 Path.of(confDir.getPath().toString(), p.getInstanceIdentifier(), ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS)
         );
-        if (isCurrentVersion) {
+        if (version != null && version > 2) {
             return certHash(cert.getEncoded());
         } else {
             return certSha1Hash(cert.getEncoded());
