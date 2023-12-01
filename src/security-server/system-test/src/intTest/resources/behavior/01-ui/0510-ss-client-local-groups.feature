@@ -85,7 +85,7 @@ Feature: 0510 - SS: Client Local groups
     And Local groups sub-tab is selected
     And Local group "group-1" is selected
     And Local group description is set to ""
-    Then error: "Validation failure" was displayed
+    Then Form shows an error "The Description field is required"
     And Local group description is set to "edited"
     When Local group search dialog is opened and members for instance "CS" and member class "GOV" are filtered
     And Following members are added to local group:
