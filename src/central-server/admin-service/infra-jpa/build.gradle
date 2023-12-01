@@ -14,9 +14,9 @@ configurations {
     changelogJar
 }
 
-task changelogJar(type: Jar) {
-    classifier 'resources'
-    from sourceSets.main.resources
+tasks.register('changelogJar', Jar) {
+  archiveClassifier = 'resources'
+  from sourceSets.main.resources
 }
 
 artifacts {

@@ -24,7 +24,7 @@ jar {
 }
 
 shadowJar {
-  classifier = ''
+  archiveClassifier = ''
   exclude('**/module-info.class')
   from rootProject.file("LICENSE.txt")
   mergeServiceFiles()

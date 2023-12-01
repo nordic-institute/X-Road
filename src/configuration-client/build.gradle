@@ -24,7 +24,7 @@ jar {
 
 shadowJar {
   exclude('**/module-info.class')
-  classifier = ''
+  archiveClassifier = ''
   mergeServiceFiles()
 }
 

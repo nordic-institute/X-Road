@@ -10,7 +10,7 @@ configurations {
 }
 
 task changelogJar(type: Jar) {
-  classifier 'resources'
+  archiveClassifier = 'resources'
   from sourceSets.main.resources
 }
 

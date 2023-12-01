@@ -202,10 +202,10 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     useJUnitPlatform()
   }
 
-    task testJar(type: Jar) {
-        classifier 'test'
-        from sourceSets.test.output
-    }
+  tasks.register('testJar', Jar) {
+    archiveClassifier = 'test'
+    from sourceSets.test.output
+  }
 
     def javaCompiler = javaToolchains.compilerFor(java.toolchain)
     def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
@@ -216,7 +216,6 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
     tasks.withType(JavaExec) {
         systemProperty 'file.encoding', 'UTF-8'
-        javaLauncher = javaToolchains.launcherFor(java.toolchain)
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
