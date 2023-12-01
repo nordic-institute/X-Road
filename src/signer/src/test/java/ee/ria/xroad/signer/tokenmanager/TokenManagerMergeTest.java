@@ -198,7 +198,7 @@ public class TokenManagerMergeTest {
         KeyInfo beforeKeyInfo = TokenManager.getKeyInfo(testKeyId);
         assertNotNull("test setup failure", beforeKeyInfo);
 
-        final String testCertId = "e82e0b2b184d4387c2afd83708d4cfeaeb872cf7";
+        final String testCertId = "06700c12f395183c779884fcd49d4ca55fa485aa65617da5b75d84927bec2c91";
         CertificateInfo beforeCertInfo = TokenManager.getCertificateInfo(testCertId);
         assertNotNull("test setup failure", beforeCertInfo);
 

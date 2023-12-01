@@ -45,7 +45,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .cert-hash {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   letter-spacing: 0.5px;
   line-height: 30px;

@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -174,7 +173,7 @@ class SharedParametersLoaderTest {
             assertThat(ss.getServerCode()).isEqualTo(SECURITY_SERVER_CODE);
             assertThat(ss.getClients()).singleElement()
                     .isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1"));
-            assertThat(ss.getAuthCertHashes()).singleElement().isEqualTo(CryptoUtils.certHash(SECURITY_SERVER_AUTH_CERT));
+            assertThat(ss.getAuthCerts()).singleElement().isEqualTo(SECURITY_SERVER_AUTH_CERT);
         });
     }
 
