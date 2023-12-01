@@ -149,8 +149,8 @@ export default defineComponent({
       useForm({
         validationSchema: {
           'addClient.memberClass': 'required',
-          'addClient.memberCode': 'required|xrdIdentifier',
-          'addClient.subsystemCode': 'required|xrdIdentifier',
+          'addClient.memberCode': 'required|max:255|xrdIdentifier',
+          'addClient.subsystemCode': 'required|max:255|xrdIdentifier',
         },
         initialValues: {
           addClient: {

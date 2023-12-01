@@ -184,6 +184,7 @@ export default defineComponent({
       {
         required: true,
         xrdIdentifier: true,
+        max: 255,
       },
       { initialValue: '' },
     );

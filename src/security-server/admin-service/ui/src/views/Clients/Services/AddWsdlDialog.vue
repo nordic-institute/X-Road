@@ -66,6 +66,7 @@ export default defineComponent({
       {
         required: true,
         wsdlUrl: true,
+        max: 255,
       },
       { initialValue: '' },
     );
