@@ -2554,7 +2554,7 @@ paths:
       description:
         <h3>Administrator generates new management service TLS key and certificate.</h3>
       responses:
-        '204':
+        '201':
           description: tls key generated
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2578,6 +2578,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DistinguishedName'
+        required: true
       responses:
         '201':
           description: created CSR
