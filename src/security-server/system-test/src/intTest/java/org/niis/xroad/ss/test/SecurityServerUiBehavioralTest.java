@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.ui;
+package org.niis.xroad.ss.test;
 
 import com.nortal.test.TestRunner;
 import org.junit.platform.suite.api.SelectClasspathResource;

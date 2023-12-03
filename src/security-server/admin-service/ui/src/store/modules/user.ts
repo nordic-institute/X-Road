@@ -98,6 +98,10 @@ export const useUser = defineStore('user', {
       return state.initializationStatus?.is_server_code_initialized ?? false;
     },
 
+    isEnforceTokenPolicyEnabled(state): boolean {
+      return state.initializationStatus?.enforce_token_pin_policy ?? false;
+    },
+
     softwareTokenInitializationStatus(state): TokenInitStatus | undefined {
       return state.initializationStatus?.software_token_init_status;
     },

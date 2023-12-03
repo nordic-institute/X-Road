@@ -75,7 +75,7 @@ class ApprovedTsaMapperTest {
         assertThat(result.getValidFrom()).isEqualTo(VALID_FROM);
         assertThat(result.getValidTo()).isEqualTo(VALID_TO);
 
-        assertThat(result.getCertificate().getHash()).isEqualTo("05A10EEBDB0CD9679E4C85A78848145EF1F00BEA");
+        assertThat(result.getCertificate().getHash()).isEqualTo("094D62D75ECC25D6BD9EA83C7B34678016BB72BB80118FF6EC7E4D383A678CD1");
         assertThat(result.getCertificate().getIssuerCommonName()).isEqualTo("AdminCA1");
         assertThat(result.getCertificate().getIssuerDistinguishedName()).isEqualTo("C=SE, O=EJBCA Sample, CN=AdminCA1");
         assertThat(result.getCertificate().getKeyUsages()).isEqualTo(Set.of(NON_REPUDIATION));

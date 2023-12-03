@@ -163,7 +163,7 @@
     "disableSuccess": "Certificate has been disabled",
     "disabled": "disabled",
     "expires": "Expires",
-    "hashInfo": "Hash (SHA-1)",
+    "hashInfo": "Hash (SHA-256)",
     "inUse": "in use",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
@@ -1005,7 +1005,9 @@
   },
   "token": {
     "changePin": "Change the pin",
-    "pinChanged": "Token pin was changed – please log in the token with the new pin"
+    "pinChanged": "Token pin was changed – please log in the token with the new pin",
+    "tokenPinPolicyHeader": "Token PIN policy is enabled.",
+    "tokenPinPolicy": "Software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters)."
   },
   "toolbar": {
     "securityServerNodeType": {

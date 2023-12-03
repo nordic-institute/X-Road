@@ -27,10 +27,8 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.AuthCert;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
@@ -91,7 +89,7 @@ class SharedParametersLoader {
     private List<SharedParameters.ConfigurationSource> getSources() {
         return configurationService.getNodeAddressesWithConfigurationSigningKeys().entrySet().stream()
                 .map(this::toSource)
-                .collect(toList());
+                .toList();
     }
 
     private SharedParameters.ConfigurationSource toSource(
@@ -121,7 +119,7 @@ class SharedParametersLoader {
         var approvedCas = certificationServicesService.findAll();
         return approvedCas.stream()
                 .map(this::toApprovedCa)
-                .collect(toList());
+                .toList();
     }
 
     private SharedParameters.ApprovedCA toApprovedCa(CertificationService ca) {
@@ -137,13 +135,13 @@ class SharedParametersLoader {
     private List<SharedParameters.CaInfo> toCaInfos(List<CertificateAuthority> cas) {
         return cas.stream()
                 .map(ca -> new SharedParameters.CaInfo(toOcspInfos(ca.getOcspResponders()), ca.getCaCertificate().getEncoded()))
-                .collect(toList());
+                .toList();
     }
 
     private List<SharedParameters.OcspInfo> toOcspInfos(List<OcspResponder> ocspResponders) {
         return ocspResponders.stream()
                 .map(this::toOcspInfo)
-                .collect(toList());
+                .toList();
     }
 
     private SharedParameters.OcspInfo toOcspInfo(OcspResponder ocsp) {
@@ -153,7 +151,7 @@ class SharedParametersLoader {
     private List<SharedParameters.ApprovedTSA> getApprovedTSAs() {
         return timestampingServicesService.getTimestampingServices().stream()
                 .map(tsa -> new SharedParameters.ApprovedTSA(tsa.getName(), tsa.getUrl(), tsa.getCertificate().getEncoded()))
-                .collect(toList());
+                .toList();
     }
 
     private List<SharedParameters.Member> getMembers() {
@@ -164,7 +162,7 @@ class SharedParametersLoader {
     private List<SharedParameters.SecurityServer> getSecurityServers() {
         return securityServerService.findAll().stream()
                 .map(this::toSecurityServer)
-                .collect(toList());
+                .toList();
     }
 
     private SharedParameters.SecurityServer toSecurityServer(SecurityServer ss) {
@@ -173,22 +171,16 @@ class SharedParametersLoader {
         result.setAddress(ss.getAddress());
         result.setServerCode(ss.getServerCode());
         result.setClients(getSecurityServerClients(ss.getId()));
-        result.setAuthCertHashes(ss.getAuthCerts().stream()
+        result.setAuthCerts(ss.getAuthCerts().stream()
                 .map(AuthCert::getCert)
-                .map(SharedParametersLoader::certHash)
-                .collect(toList()));
+                .toList());
         return result;
     }
 
     private List<ClientId> getSecurityServerClients(int id) {
         return clientService.find(new ClientService.SearchParameters().setSecurityServerId(id))
-                .stream().map(SharedParametersLoader::toClientId).collect(toList());
+                .stream().map(SharedParametersLoader::toClientId).toList();
 
-    }
-
-    @SneakyThrows
-    private static byte[] certHash(byte[] cert) {
-        return CryptoUtils.certHash(cert);
     }
 
     private static ClientId toClientId(FlattenedSecurityServerClientView client) {
@@ -201,7 +193,7 @@ class SharedParametersLoader {
     private List<SharedParameters.GlobalGroup> getGlobalGroups() {
         return globalGroupService.findGlobalGroups().stream()
                 .map(this::getGlobalGroup)
-                .collect(toList());
+                .toList();
     }
 
     private SharedParameters.GlobalGroup getGlobalGroup(GlobalGroup globalGroup) {
@@ -220,7 +212,7 @@ class SharedParametersLoader {
     private SharedParameters.GlobalSettings getGlobalSettings() {
         var memberClasses = memberClassService.findAll().stream()
                 .map(memberClass -> new SharedParameters.MemberClass(memberClass.getCode(), memberClass.getDescription()))
-                .collect(toList());
+                .toList();
 
         return new SharedParameters.GlobalSettings(memberClasses, systemParameterService.getOcspFreshnessSeconds());
     }

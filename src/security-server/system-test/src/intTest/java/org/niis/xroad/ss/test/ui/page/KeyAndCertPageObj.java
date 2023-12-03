@@ -42,6 +42,7 @@ public class KeyAndCertPageObj {
 
     public final TokenLoginDialog tokenLoginDialog = new TokenLoginDialog();
     public final TokenLogoutDialog tokenLogoutDialog = new TokenLogoutDialog();
+    public final TokenEdit tokenEdit = new TokenEdit();
     public final TlsKey tlsKey = new TlsKey();
     public final AddKeyWizardDetails addKeyWizardDetails = new AddKeyWizardDetails();
     public final AddKeyWizardCsrDetails addKeyWizardCsrDetails = new AddKeyWizardCsrDetails();
@@ -54,6 +55,16 @@ public class KeyAndCertPageObj {
 
         public SelenideElement btnLogin() {
             return $x("//button[@data-test='dialog-save-button']");
+        }
+    }
+
+    public static class TokenEdit {
+        public SelenideElement alertTokenPolicyEnabled() {
+            return $x("//*[@data-test='alert-token-policy-enabled']");
+        }
+
+        public SelenideElement btnChangeToken() {
+            return $x("//*[@data-test='token-open-pin-change-link']");
         }
     }
 
@@ -84,6 +95,10 @@ public class KeyAndCertPageObj {
 
         public SelenideElement tokenLabel() {
             return $x(format(X_TOKEN_EXPANDABLE, token));
+        }
+
+        public SelenideElement tokenEditButton() {
+            return $x("//button[@data-test='token-icon-button'][1]");
         }
 
         public SelenideElement tokenLabeledKey(String label) {

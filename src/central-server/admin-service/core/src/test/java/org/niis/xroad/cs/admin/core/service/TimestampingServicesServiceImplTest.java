@@ -115,7 +115,8 @@ class TimestampingServicesServiceImplTest {
         verify(auditDataHelper).put(TSA_ID, ID);
         verify(auditDataHelper).put(TSA_NAME, NAME);
         verify(auditDataHelper).put(TSA_URL, URL);
-        verify(auditDataHelper).put(TSA_CERT_HASH, "05:A1:0E:EB:DB:0C:D9:67:9E:4C:85:A7:88:48:14:5E:F1:F0:0B:EA");
+        verify(auditDataHelper).put(TSA_CERT_HASH,
+                "09:4D:62:D7:5E:CC:25:D6:BD:9E:A8:3C:7B:34:67:80:16:BB:72:BB:80:11:8F:F6:EC:7E:4D:38:3A:67:8C:D1");
         verify(auditDataHelper).put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
@@ -139,7 +140,8 @@ class TimestampingServicesServiceImplTest {
         verify(auditDataHelper).put(TSA_ID, ID);
         verify(auditDataHelper).put(TSA_NAME, NAME);
         verify(auditDataHelper).put(TSA_URL, request.getUrl());
-        verify(auditDataHelper).put(TSA_CERT_HASH, "05:A1:0E:EB:DB:0C:D9:67:9E:4C:85:A7:88:48:14:5E:F1:F0:0B:EA");
+        verify(auditDataHelper).put(TSA_CERT_HASH,
+                "09:4D:62:D7:5E:CC:25:D6:BD:9E:A8:3C:7B:34:67:80:16:BB:72:BB:80:11:8F:F6:EC:7E:4D:38:3A:67:8C:D1");
         verify(auditDataHelper).put(TSA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 

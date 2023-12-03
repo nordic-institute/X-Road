@@ -26,6 +26,10 @@ Feature: 0300 - SS: Keys and certificates
       | softToken-0 | SIGNING        | test signing token | CS:GOV:0245437-2 |      | X-Road Test CA CN | Registered  |
       | softToken-0 | AUTHENTICATION | test auth token    |                  | ss1  | X-Road Test CA CN | Saved       |
 
+  Scenario: Token edit page is navigable
+    Given Keys and certificates tab is selected
+    When Token: softToken-0 edit page is opened
+    Then Token Alert about token policy being enforced is present
 
   Scenario Outline: New key with with empty label is created
     Given Keys and certificates tab is selected
