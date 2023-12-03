@@ -43,7 +43,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
-import static org.niis.xroad.cs.test.utils.CertificateUtils.generateAuthCert;
+import static java.lang.ClassLoader.getSystemResourceAsStream;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -130,7 +130,8 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
 
     @Step("Management service TLS certificate is uploaded")
     public void uploadCertificate() throws Exception {
-        MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, generateAuthCert("CN=cs"));
+        var keyInputStream = getSystemResourceAsStream("container-files/etc/xroad/ssl/management-service-new.crt");
+        MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, keyInputStream.readAllBytes());
         try {
             tlsCertificateResponse = managementServicesApi.uploadCertificate(certificate);
             putStepData(StepDataKey.RESPONSE_STATUS, tlsCertificateResponse.getStatusCodeValue());

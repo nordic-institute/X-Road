@@ -93,7 +93,7 @@ Feature: Management services API
     Then Response is of status code 200
 
   @Modifying
-  Scenario: Management service TLS certificate with wrong key is not uploaded for privileged user
+  Scenario: Management service TLS certificate is successfully uploaded for privileged user
     Given Authentication header is set to SECURITY_OFFICER
     When Management service TLS certificate is uploaded
-    Then Response is of status code 400
+    Then Response is of status code 200

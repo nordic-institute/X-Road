@@ -155,14 +155,12 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
         try {
             // the imported file can be a single certificate or a chain
             x509Certificates = CryptoUtils.readCertificates(certificateBytes);
-            if (x509Certificates == null || x509Certificates.isEmpty()) {
-                throw new ValidationFailureException(BYTES_TO_CERTIFICATE_FAILED);
-            }
         } catch (Exception e) {
             throw new ValidationFailureException(BYTES_TO_CERTIFICATE_FAILED, e);
         }
         auditDataHelper.putCertificateHash(Iterables.get(x509Certificates, 0));
         verifyCertificateImportability(x509Certificates);
+
         try {
             // create pkcs12 checks the certificate chain validity
             CertUtils.createPkcs12(getManagementServiceTlsKeyPath(), certificateBytes, getManagementServiceTlsP12Path());

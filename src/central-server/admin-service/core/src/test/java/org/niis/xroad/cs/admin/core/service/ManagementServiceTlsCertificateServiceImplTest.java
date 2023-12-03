@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,11 @@ import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.converter.KeyUsageConverter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.cert.CertificateEncodingException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -71,11 +77,6 @@ class ManagementServiceTlsCertificateServiceImplTest {
     }
 
     @Test
-    void getTlsCertificateTar() {
-        service.getTlsCertificateTar();
-    }
-
-    @Test
     void generateCsrShouldThrownValidationFailureException() {
         assertThatThrownBy(() -> service.generateCsr("TEST"))
                 .isInstanceOf(ValidationFailureException.class)
@@ -83,11 +84,28 @@ class ManagementServiceTlsCertificateServiceImplTest {
     }
 
     @Test
-    void importTlsCertificateShouldThrownValidationFailureException() {
-        var cert = service.getTlsCertificate();
-        assertThatThrownBy(() -> service.importTlsCertificate(cert.getEncoded()))
+    void importTlsCertificateShouldThrownValidationFailureException() throws CertificateEncodingException {
+        var certificateBytes = service.getTlsCertificate().getEncoded();
+        assertThatThrownBy(() -> service.importTlsCertificate(certificateBytes))
                 .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("The imported certificate already exists");
+    }
+
+    @Test
+    void importTlsCertificateShouldThrownValidationFailureException2() {
+        byte[] certificateBytes = new byte[]{1, 2, 3};
+        assertThatThrownBy(() -> service.importTlsCertificate(certificateBytes))
+                .isInstanceOf(ValidationFailureException.class)
+                .hasMessage("Cannot convert bytes to certificate");
+    }
+
+    @Test
+    void importTlsCertificateShouldThrownValidationFailureException3() throws IOException, CertificateEncodingException {
+        var certificate = CryptoUtils.readCertificate(Files.readAllBytes(Path.of("src/test/resources/ssl/invalid-chain.crt")));
+        var certificateBytes = certificate.getEncoded();
+        assertThatThrownBy(() -> service.importTlsCertificate(certificateBytes))
+                .isInstanceOf(ValidationFailureException.class)
+                .hasMessage("The imported certificate does not match the TLS key");
     }
 
     @Test

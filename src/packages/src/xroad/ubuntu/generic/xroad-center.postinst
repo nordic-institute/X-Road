@@ -252,7 +252,7 @@ create_certificates() {
             mv -f /etc/xroad/ssl/internal.key /etc/xroad/ssl/management-service.key
             rm -f /etc/xroad/ssl/internal.p12
             openssl pkcs12 -export -in /etc/xroad/ssl/management-service.crt -inkey /etc/xroad/ssl/management-service.key -name management-service -out /etc/xroad/ssl/management-service.p12 -passout pass:management-service
-            chmod -f 660 /etc/xroad/ssl/management-service.key /etc/xroad/ssl/management-service.crt /etc/xroad/ssl/management-service.p12
+            chmod -f 640 /etc/xroad/ssl/management-service.key /etc/xroad/ssl/management-service.crt /etc/xroad/ssl/management-service.p12
             chown -f xroad:xroad /etc/xroad/ssl/management-service.key /etc/xroad/ssl/management-service.crt /etc/xroad/ssl/management-service.p12
 
         else
