@@ -61,9 +61,6 @@ public class CertificateConverter {
     }
 
     public CertificateDetails toCertificateDetails(final X509Certificate certificate) {
-        if (certificate == null) {
-            return null;
-        }
         CertificateDetails certificateDetails = new CertificateDetails();
         populateCertificateDetails(certificateDetails, certificate);
         return certificateDetails;

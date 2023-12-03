@@ -81,6 +81,7 @@ Feature: Management services API
     When Management service TLS certificate is downloaded
     Then Response is of status code 200
 
+  @Modifying
   Scenario: Management service TLS key and certificate is successfully reCreated for privileged user
     Given Authentication header is set to SECURITY_OFFICER
     When Management service TLS key and certificate is created
@@ -91,6 +92,7 @@ Feature: Management services API
     When Management service certificate CSR is generated
     Then Response is of status code 200
 
+  @Modifying
   Scenario: Management service TLS certificate with wrong key is not uploaded for privileged user
     Given Authentication header is set to SECURITY_OFFICER
     When Management service TLS certificate is uploaded
