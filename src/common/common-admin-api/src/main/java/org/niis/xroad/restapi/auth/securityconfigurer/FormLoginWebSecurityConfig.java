@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -78,7 +79,9 @@ public class FormLoginWebSecurityConfig {
     @Order(MultiAuthWebSecurityConfig.FORM_LOGIN_SECURITY_ORDER)
     public SecurityFilterChain formLoginSecurityFilterChain(HttpSecurity http,
                                                             @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
-                                                            AuthenticationProvider authenticationProvider) throws Exception {
+                                                            AuthenticationProvider authenticationProvider,
+                                                            @Value("${xroad.proxy-ui-api.cookie.same-site:Lax}") String sameSite)
+            throws Exception {
 
         return http
                 .authenticationProvider(authenticationProvider)
@@ -92,7 +95,7 @@ public class FormLoginWebSecurityConfig {
                 .csrf(customizer -> customizer
                         .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
                         .ignoringRequestMatchers(LOGIN_URL)
-                        .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
+                        .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite))
                 )
                 .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline'"))
                 .formLogin(customizer -> customizer

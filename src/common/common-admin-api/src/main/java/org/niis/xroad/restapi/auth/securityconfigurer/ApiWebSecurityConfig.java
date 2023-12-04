@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.auth.securityconfigurer;
 import jakarta.servlet.http.HttpServletRequest;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.Http401AuthenticationEntryPoint;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -56,7 +57,9 @@ public class ApiWebSecurityConfig {
     @Order(MultiAuthWebSecurityConfig.API_SECURITY_ORDER)
     public SecurityFilterChain apiWebSecurityFilterChain(HttpSecurity http,
                                                          ApiKeyAuthenticationManager apiKeyAuthenticationManager,
-                                                         Http401AuthenticationEntryPoint http401AuthenticationEntryPoint) throws Exception {
+                                                         Http401AuthenticationEntryPoint http401AuthenticationEntryPoint,
+                                                         @Value("${xroad.proxy-ui-api.cookie.same-site:Lax}") String sameSite)
+            throws Exception {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
         filter.setAuthenticationManager(apiKeyAuthenticationManager);
@@ -74,7 +77,7 @@ public class ApiWebSecurityConfig {
                         // we require csrf protection only if there is a session alive
                         .requireCsrfProtectionMatcher(ApiWebSecurityConfig::sessionExists)
                         // CsrfFilter always generates a new token in the repo -> prevent with lazy
-                        .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
+                        .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite)))
                 )
                 .anonymous(AbstractHttpConfigurer::disable)
                 .headers(headerPolicyDirectives("default-src 'none'"))
