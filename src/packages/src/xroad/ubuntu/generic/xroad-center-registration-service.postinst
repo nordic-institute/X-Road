@@ -15,7 +15,7 @@ if [[ "$1" = configure ]]; then
       rm /etc/nginx/sites-enabled/registration-service.conf
     fi
   fi
-  invoke-rc.d --quiet nginx try-restart &>/dev/null || true
+  invoke-rc.d --quiet nginx reload ||:
 fi
 
 exit 0
