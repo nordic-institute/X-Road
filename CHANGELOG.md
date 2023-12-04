@@ -60,6 +60,7 @@
 - XRDDEV-2512: Management service API key creation fails silently during Central Server installation/upgrade
 - XRDDEV-2519: As a Security Server Administrator i want the configuration signing keys to rotate without manual intervention
 - XRDDEV-227: As a Security Server Administrator I want to be able to change my Security Server's address in the global configuration from the UI
+- XRDDEV-2521: As a Developer I want to update the Ubuntu packaging so that new installations use ports 8080 and 8443 by default similar to RHEL so that we open up port 80 and 443 to be used for ACME
 
 ## 7.3.2 - 2023-08-07
 - XRDDEV-2447: The securityServerType property value is stored in the operational monitoring database using capital letters.
