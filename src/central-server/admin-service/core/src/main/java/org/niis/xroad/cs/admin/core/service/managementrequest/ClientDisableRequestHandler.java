@@ -26,28 +26,28 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import io.vavr.control.Option;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
 import org.niis.xroad.cs.admin.core.entity.ClientDisableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
-import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_CLIENT_NOT_FOUND;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 class ClientDisableRequestHandler implements RequestHandler<ClientDisableRequest> {
-
-    private final SecurityServerClientRepository<SecurityServerClientEntity> clients;
     private final SecurityServerRepository servers;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final IdentifierRepository<ClientIdEntity> clientIds;
@@ -62,15 +62,13 @@ class ClientDisableRequestHandler implements RequestHandler<ClientDisableRequest
 
     @Override
     public ClientDisableRequest add(ClientDisableRequest request) {
-        // TODO validate
+        final var serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
+        final var clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
+        var serverClient = findServerClient(serverId, clientId)
+                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_CLIENT_NOT_FOUND,
+                        request.getSecurityServerId().toString(), request.getClientId().toString()));
 
-
-        final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
-        final ClientIdEntity clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
-
-        final Option<SecurityServerEntity> securityServerOpt = servers.findBy(serverId, clientId);
-
-        securityServerOpt.peek(server -> disableSecurityServerClient(server, clientId));
+        serverClient.setEnabled(false);
 
         final var requestEntity = new ClientDisableRequestEntity(request.getOrigin(), serverId, clientId, request.getComments());
         final var persistedRequest = disableRequests.save(requestEntity);
@@ -78,10 +76,11 @@ class ClientDisableRequestHandler implements RequestHandler<ClientDisableRequest
         return requestMapper.toDto(persistedRequest);
     }
 
-    private void disableSecurityServerClient(SecurityServerEntity server, ClientIdEntity clientId) {
-        server.getServerClients().stream()
-                .filter(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(clientId))
-                .forEach(serverClient -> serverClient.setEnabled(false));
+    private Optional<ServerClientEntity> findServerClient(SecurityServerIdEntity serverId, ClientIdEntity clientId) {
+        return servers.findBy(serverId, clientId).toJavaOptional()
+                .flatMap(securityServer -> securityServer.getServerClients().stream()
+                        .filter(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(clientId))
+                        .findFirst());
     }
 
     @Override
