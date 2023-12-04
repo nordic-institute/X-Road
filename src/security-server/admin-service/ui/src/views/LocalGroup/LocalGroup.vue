@@ -185,7 +185,6 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['backk'],
   data() {
     return {
       confirmGroup: false,

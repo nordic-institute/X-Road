@@ -81,7 +81,7 @@
         class="save-button"
         :loading="saving"
         :disabled="!meta.touched || !meta.valid"
-        @click="saveEndpoint()"
+        @click="save()"
         >{{ $t('action.save') }}
       </xrd-button>
     </div>
@@ -92,16 +92,14 @@
       title="endpoints.deleteTitle"
       text="endpoints.deleteEndpointText"
       @cancel="confirmDelete = false"
-      @accept="deleteEndpoint(id)"
+      @accept="remove(id)"
     />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import * as api from '@/util/api';
 import { Permissions } from '@/global';
-import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
@@ -163,15 +161,15 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useServices, ['deleteEndpoint', 'updateEndpoint']),
     close(): void {
       this.$router.back();
     },
     showDeletePopup(): void {
       this.confirmDelete = true;
     },
-    deleteEndpoint(id: string): void {
-      api
-        .remove(`/endpoints/${encodePathParameter(id)}`)
+    remove(id: string): void {
+      this.deleteEndpoint(id)
         .then(() => {
           this.showSuccess(this.$t('endpoints.deleteSuccess'));
           this.$router.back();
@@ -181,18 +179,13 @@ export default defineComponent({
           this.confirmDelete = false;
         });
     },
-    saveEndpoint(): void {
-      if (!this.endpoint.id) {
-        throw new Error('Unable to save endpoint: Endpoint id not defined!');
-      }
+    save(): void {
       this.saving = true;
-      this.endpoint.method = this.values.method;
-      this.endpoint.path = this.values.path;
-      api
-        .patch(
-          `/endpoints/${encodePathParameter(this.endpoint.id)}`,
-          this.endpoint,
-        )
+      this.updateEndpoint({
+        ...this.endpoint,
+        method: this.values.method,
+        path: this.values.path,
+      })
         .then(async () => {
           this.showSuccess(this.$t('endpoints.editSuccess'));
           this.$router.back();

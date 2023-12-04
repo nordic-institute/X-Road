@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-import { Key, Token, TokenCertificate } from '@/openapi-types';
+import { Key, Token, TokenCertificate, TokenPinUpdate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { deepClone } from '@/util/helpers';
 import { encodePathParameter } from '@/util/api';
@@ -55,6 +55,9 @@ export const useTokens = defineStore('tokens', {
       tokens: [] as Token[],
       selectedToken: undefined as Token | undefined,
     };
+  },
+  persist: {
+    paths: ['tokens', 'selectedToken'],
   },
   getters: {
     filteredTokens: (state) => (search: string) => {
@@ -183,6 +186,28 @@ export const useTokens = defineStore('tokens', {
           this.fetchTokens();
           const alerts = useAlerts();
           alerts.checkAlertStatus();
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    updatePin(tokenId: string, oldPin: string, newPin: string) {
+      const tokenPinUpdate: TokenPinUpdate = {
+        old_pin: oldPin,
+        new_pin: newPin,
+      };
+      return api
+        .put(`/tokens/${encodePathParameter(tokenId)}/pin`, tokenPinUpdate)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    updateToken(token: Token) {
+      return api
+        .patch<Token>(`/tokens/${encodePathParameter(token.id)}`, token)
+        .then((res) => {
+          const tokenIndex = this.tokens.findIndex((t) => t.id === token.id);
+          this.tokens[tokenIndex] = res.data;
         })
         .catch((error) => {
           throw error;
