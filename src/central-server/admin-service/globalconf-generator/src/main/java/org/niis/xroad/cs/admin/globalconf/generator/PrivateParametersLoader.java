@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrl;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrlCert;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
-import org.niis.xroad.cs.admin.api.service.InternalTlsCertificateService;
+import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
 import org.springframework.stereotype.Component;
@@ -44,7 +44,7 @@ import static java.util.stream.Collectors.toList;
 class PrivateParametersLoader {
     private final SystemParameterService systemParameterService;
     private final TrustedAnchorService trustedAnchorService;
-    private final InternalTlsCertificateService internalTlsCertificateService;
+    private final ManagementServiceTlsCertificateService managementServiceTlsCertificateService;
 
     PrivateParameters load() {
         var privateParameters = new PrivateParameters();
@@ -70,7 +70,7 @@ class PrivateParametersLoader {
         }
         managementService.setAuthCertRegServiceAddress(authCertRegUrl);
 
-        managementService.setAuthCertRegServiceCert(internalTlsCertificateService.getInternalTlsCertificate().getEncoded());
+        managementService.setAuthCertRegServiceCert(managementServiceTlsCertificateService.getTlsCertificate().getEncoded());
         managementService.setManagementRequestServiceProviderId(systemParameterService.getManagementServiceProviderId());
         return managementService;
     }

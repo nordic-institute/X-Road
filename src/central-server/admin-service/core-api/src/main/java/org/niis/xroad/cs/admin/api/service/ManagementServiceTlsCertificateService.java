@@ -24,30 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.core.service;
+package org.niis.xroad.cs.admin.api.service;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.service.InternalTlsCertificateService;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 
-@Service
-@Slf4j
-class InternalTlsCertificateServiceImpl implements InternalTlsCertificateService {
-    private static final String INTERNAL_TLS_CERT_PATH = "/etc/xroad/ssl/internal.crt";
+public interface ManagementServiceTlsCertificateService {
 
-    public X509Certificate getInternalTlsCertificate() {
-        try {
-            return CryptoUtils.readCertificate(Files.readAllBytes(Path.of(INTERNAL_TLS_CERT_PATH)));
-        } catch (IOException e) {
-            log.error("Cannot read internal TLS certificate", e);
-            throw new RuntimeException(e);
-        }
-    }
+    X509Certificate getTlsCertificate();
+
+    CertificateDetails getTlsCertificateDetails();
+
+    byte[] getTlsCertificateTar();
+
+    byte[] generateCsr(String distinguishedName);
+
+    CertificateDetails importTlsCertificate(byte[] certificateBytes);
+
+    void generateTlsKeyAndCertificate();
 }

@@ -55,6 +55,8 @@ script:
   generate-backup:
     path: /usr/share/xroad/scripts/backup_xroad_center_configuration.sh
     valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
+  generate-certificate:
+    path: /usr/share/xroad/scripts/generate_certificate.sh
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_center_configuration.sh
   external-configuration-verifier:
@@ -62,6 +64,9 @@ script:
 
 gpgkeys:
   gpghome: /etc/xroad/gpghome
+
+certificates:
+  path: /etc/xroad/ssl/
 
 file-upload-endpoints:
   endpoint-definitions:

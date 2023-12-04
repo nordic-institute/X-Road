@@ -232,7 +232,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/tables';
+@import '../../../assets/tables';
 
 .search-input {
   width: 300px;
