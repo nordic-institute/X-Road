@@ -4,6 +4,10 @@
 #DEBHELPER#
 
 if [[ "$1" = configure ]]; then
+  if [[ -d /etc/nginx/sites-enabled ]]; then
+    ln -sf /etc/xroad/nginx/registration-service.conf /etc/nginx/sites-enabled/xroad-registration-service
+  fi
+
   # upgrade from version $2
   if [ -n "$2" ]; then
     # 7.3.x created link with name that wasn't backed up. Link was renamed in 7.4.x.
