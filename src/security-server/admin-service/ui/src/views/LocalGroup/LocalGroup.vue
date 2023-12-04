@@ -44,16 +44,17 @@
     <div class="px-4 description-field">
       <template v-if="canEditDescription">
         <v-text-field
-          v-model="description"
+            v-model="value"
           variant="outlined"
           :label="$t('localGroup.description')"
-          hide-details
+
           data-test="local-group-edit-description-input"
+            :error-messages="errors"
           @change="saveDescription"
         ></v-text-field>
       </template>
       <template v-else>
-        <div>{{ description }}</div>
+        <div>{{ value }}</div>
       </template>
     </div>
 
@@ -164,10 +165,15 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
+import { useField } from "vee-validate";
 
 export default defineComponent({
   components: {
     AddMembersDialog,
+  },
+  setup() {
+    const { meta, setValue, value, errors } = useField<string>('description', 'required|max:255');
+    return { meta, setValue, value, errors };
   },
   props: {
     clientId: {
@@ -186,7 +192,6 @@ export default defineComponent({
       confirmMember: false,
       confirmAllMembers: false,
       selectedMember: undefined as GroupMember | undefined,
-      description: undefined as string | undefined,
       group: undefined as LocalGroup | undefined,
       groupCode: '',
       addMembersDialogVisible: false,
@@ -222,22 +227,24 @@ export default defineComponent({
     },
 
     saveDescription(): void {
+      if (this.meta.valid) {
       api
         .patch<LocalGroup>(
           `/local-groups/${encodePathParameter(this.groupId)}`,
           {
-            description: this.description,
+            description: this.value,
           },
         )
         .then((res) => {
           this.showSuccess(this.$t('localGroup.descSaved'));
           this.group = res.data;
           this.groupCode = res.data.code;
-          this.description = res.data.description;
+          this.setValue(res.data.description);
         })
         .catch((error) => {
           this.showError(error);
         });
+      }
     },
 
     fetchData(clientId: string, groupId: number | string): void {
@@ -246,7 +253,7 @@ export default defineComponent({
         .then((res) => {
           this.group = res.data;
           this.groupCode = res.data.code;
-          this.description = res.data.description;
+          this.setValue(res.data.description);
         })
         .catch((error) => {
           this.showError(error);

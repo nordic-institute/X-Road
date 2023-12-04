@@ -44,6 +44,7 @@
           type="text"
           variant="outlined"
           data-test="key-label-input"
+          maxlength="255"
           autofocus
         ></v-text-field>
       </div>
