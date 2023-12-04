@@ -1011,6 +1011,7 @@
   },
   "toolbar": {
     "securityServerNodeType": {
+      "undefined": "",
       "PRIMARY": "Primary node",
       "SECONDARY": "Secondary node"
     }
