@@ -11,7 +11,7 @@ if [[ "$1" = configure ]]; then
       rm /etc/nginx/sites-enabled/management-service.conf
     fi
   fi
-  invoke-rc.d --quiet nginx reload ||:
+  invoke-rc.d --quiet nginx try-restart &>/dev/null || true
 fi
 
 exit 0
