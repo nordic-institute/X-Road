@@ -47,8 +47,6 @@ xroad:
     strict-identifier-checks: true
     request-size-limit-regular: 50KB
     request-size-limit-binary-upload: 10MB
-    cookie:
-      same-site: ${server.servlet.session.cookie.same-site}
 
 file-upload-endpoints:
   endpoint-definitions:
