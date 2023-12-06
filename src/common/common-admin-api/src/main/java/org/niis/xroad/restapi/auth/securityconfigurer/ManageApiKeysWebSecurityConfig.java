@@ -59,7 +59,7 @@ public class ManageApiKeysWebSecurityConfig {
                                                             CommonModuleEndpointPaths commonModuleEndpointPaths,
                                                             @Qualifier(PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION)
                                                                 AuthenticationProvider authenticationProvider,
-                                                            @Value("${xroad.proxy-ui-api.cookie.same-site:Lax}") String sameSite)
+                                                            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {
 
         return http
