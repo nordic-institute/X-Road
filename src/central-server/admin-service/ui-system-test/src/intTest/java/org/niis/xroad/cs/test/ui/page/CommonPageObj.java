@@ -102,6 +102,10 @@ public class CommonPageObj {
         public SelenideElement apiKeysTab() {
             return $x("//*[@data-test='apikeys-tab-button']");
         }
+
+        public SelenideElement tlsCertificatesTab() {
+            return $x("//*[@data-test='tlscertificates-tab-button']");
+        }
     }
 
     public class Dialog {
