@@ -19,7 +19,7 @@ Feature: 0560 - CS: Trust Services -> CA Details -> OCSP Responders
   Scenario: OCSP responders list is correctly shown
     When OCSP responder table is visible
     And OCSP responder with URL http://e2e-test-ocsp-responder.com is added
-    And OCSP responder with URL http://e2e-test-ocsp-responder-cert.com with cert is added
+    And OCSP responder with URL http://e2e-test-ocsp-responder-cert.com and random cert is added
     Then User is able to sort OCSP responders by URL
     And OCSP responder with URL http://e2e-test-ocsp-responder.com is visible in the OCSP responders list
     And OCSP responder with URL http://e2e-test-ocsp-responder-cert.com is visible in the OCSP responders list
