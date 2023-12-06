@@ -29,7 +29,6 @@ package org.niis.xroad.cs.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.SettingsApiKeysPageObj;
-import org.niis.xroad.cs.test.ui.page.SettingsTlsCertificatesPageObj;
 
 public class NavigationStepDefs extends BaseUiStepDefs {
     private final SettingsApiKeysPageObj settingsApiKeysPageObj = new SettingsApiKeysPageObj();
