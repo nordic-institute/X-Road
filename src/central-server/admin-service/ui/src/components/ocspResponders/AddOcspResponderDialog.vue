@@ -26,7 +26,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    :disable-save="!meta.valid || !certFile || !certFileTitle"
+    :disable-save="!meta.valid"
     title="trustServices.trustService.ocspResponders.add.dialog.title"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
@@ -55,7 +55,7 @@
           <v-text-field
             v-model="certFileTitle"
             variant="outlined"
-            autofocus
+            :autofocus="true"
             :label="$t('trustServices.uploadCertificate')"
             append-inner-icon="icon-Upload"
             data-test="ocsp-responder-file-input"
@@ -116,8 +116,6 @@ export default defineComponent({
     },
     add(): void {
       this.loading = true;
-
-      if (!this.certFile) return;
 
       this.ocspResponderServiceStore
         .addOcspResponder(this.values.url, this.certFile)

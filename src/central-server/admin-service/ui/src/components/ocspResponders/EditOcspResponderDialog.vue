@@ -52,6 +52,7 @@
             outlined
             class="mr-3"
             data-test="view-ocsp-responder-certificate"
+            v-if="ocspResponder.has_certificate"
             @click="navigateToCertificateDetails()"
           >
             {{ $t('trustServices.viewCertificate') }}

@@ -49,7 +49,20 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     }
 
     @Step("OCSP responder with URL {} is added")
-    public void newOcspResponderIsAdded(String url) throws Exception {
+    public void newOcspResponderIsAdded(String url) {
+        ocspRespondersPageObj.btnAddOcspResponder().click();
+        commonPageObj.dialog.btnCancel().should(Condition.enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
+
+        vTextField(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl()).setValue(url);
+        commonPageObj.dialog.btnSave().click();
+
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("OCSP responder with URL {} and random cert is added")
+    public void newOcspResponderWithCertIsAdded(String url) throws Exception {
         ocspRespondersPageObj.btnAddOcspResponder().click();
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
@@ -100,6 +113,12 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     @Step("User is able to view the certificate of OCSP responder with URL {}")
     public void userIsAbleToViewTheCertificate(String url) {
         ocspRespondersPageObj.btnViewOcspResponder(url).click();
+        ocspRespondersPageObj.certificateView.certificateDetails().shouldBe(visible);
+    }
+
+    @Step("view certificate of OCSP responder with URL {} button is missing")
+    public void viewCertButtonMissing(String url) {
+        ocspRespondersPageObj.btnViewOcspResponder(url).shouldNotBe(visible);
         ocspRespondersPageObj.certificateView.certificateDetails().shouldBe(visible);
     }
 
