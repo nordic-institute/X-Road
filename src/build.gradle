@@ -1,3 +1,5 @@
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
+
 buildscript {
     repositories {
         mavenCentral()
@@ -106,7 +108,7 @@ allprojects {
         toolVersion = "0.8.7"
     }
 
-    task allDependencies(type: DependencyReportTask) {}
+  tasks.register('allDependencies', DependencyReportTask) {}
 
     task printDeps {
         doLast {
@@ -135,11 +137,7 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
         }
     }
 
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-    }
-
-    sourceSets {
+  sourceSets {
         intTest {
             compileClasspath += sourceSets.main.output
             runtimeClasspath += sourceSets.main.output
@@ -210,27 +208,27 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     def javaCompiler = javaToolchains.compilerFor(java.toolchain)
     def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
-    tasks.withType(JavaCompile) {
-        options.encoding = "UTF-8"
-    }
+  tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+  }
 
-    tasks.withType(JavaExec) {
-        systemProperty 'file.encoding', 'UTF-8'
-        if (project.hasProperty("args")) {
-            args = project.getProperty("args").tokenize()
-        }
+  tasks.withType(JavaExec).configureEach {
+    systemProperty 'file.encoding', 'UTF-8'
+    if (project.hasProperty("args")) {
+      args = project.getProperty("args").tokenize()
     }
+  }
 
-    tasks.withType(Test) {
-        systemProperty 'file.encoding', 'UTF-8'
-    }
+  tasks.withType(Test).configureEach {
+    systemProperty 'file.encoding', 'UTF-8'
+  }
 
-    tasks.withType(Exec) {
-        environment "JAVA_HOME", javaHome
-        environment "JAVA_TOOL_OPTIONS", '-Dfile.encoding=UTF-8'
-    }
+  tasks.withType(Exec).configureEach {
+    environment "JAVA_HOME", javaHome
+    environment "JAVA_TOOL_OPTIONS", '-Dfile.encoding=UTF-8'
+  }
 
-    testJar.enabled = false
+  testJar.enabled = false
 
     artifacts {
         testArtifacts testJar
@@ -281,10 +279,7 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 }
 
 //Configure frontend projects
-//apply from: "${rootDir}/build-frontend-subprojects.gradle"
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 // Gradle script that is applied on frontend subprojects (namely ui,shared-ui)
-
 configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
   apply plugin: 'org.siouan.frontend-jdk17'
 
