@@ -38,6 +38,7 @@ import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity_;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity_;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity_;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity_;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadIdEntity_;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -86,7 +87,7 @@ public interface JpaFlattenedSecurityServerClientRepository extends
             var predicates = new ArrayList<Predicate>();
             if (params.getSecurityServerId() != null) {
                 predicates.add(clientOfSecurityServerPredicate(root, builder,
-                        params.getSecurityServerId()));
+                        params.getSecurityServerId(), params.getSecurityServerEnabled()));
             }
             if (!StringUtils.isBlank(params.getMultifieldSearch())) {
                 predicates.add(multifieldTextSearchPredicate(root, builder,
@@ -179,7 +180,7 @@ public interface JpaFlattenedSecurityServerClientRepository extends
 
     static Specification<FlattenedSecurityServerClientViewEntity> securityServerId(int id) {
         return (root, query, builder) -> {
-            return clientOfSecurityServerPredicate(root, builder, id);
+            return clientOfSecurityServerPredicate(root, builder, id, null);
         };
     }
 
@@ -220,13 +221,18 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.XROAD_INSTANCE));
     }
 
-    static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
-        var serverClients = root.join(FlattenedSecurityServerClientViewEntity_.FLATTENED_SERVER_CLIENTS);
-        var securityServer = serverClients.join(FlattenedServerClientEntity_.SECURITY_SERVER);
+    static Predicate clientOfSecurityServerPredicate(
+            Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder, int id, Boolean enabled) {
+        var serverClients = root
+                .join(FlattenedSecurityServerClientViewEntity_.flattenedServerClients);
+        var securityServer = serverClients
+                .join(FlattenedServerClientEntity_.securityServer);
 
-
-        return builder.and(builder.equal(securityServer.get(FlattenedSecurityServerClientViewEntity_.ID), id),
-                builder.isTrue(serverClients.get(FlattenedServerClientEntity_.ENABLED)));
+        var securityServerIdEquals = builder.equal(securityServer.get(SecurityServerEntity_.id), id);
+        if (enabled != null) {
+            return builder.and(securityServerIdEquals, builder.equal(serverClients.get(FlattenedServerClientEntity_.enabled), enabled));
+        }
+        return securityServerIdEquals;
     }
 
     static Predicate clientNotPartOfGroupPredicate(Root root, CriteriaBuilder builder, String groupCode) {

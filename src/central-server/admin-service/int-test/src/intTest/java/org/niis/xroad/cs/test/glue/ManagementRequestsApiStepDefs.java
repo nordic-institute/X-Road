@@ -36,6 +36,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
@@ -73,6 +75,8 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto.fromVal
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DELETION_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
 import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
@@ -142,6 +146,38 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     public void clientIsDeletedAsSecurityServerClient(String clientId, String securityServerId) {
         final ClientDeletionRequestDto managementRequest = new ClientDeletionRequestDto();
         managementRequest.setType(CLIENT_DELETION_REQUEST);
+        managementRequest.setOrigin(SECURITY_SERVER);
+        managementRequest.setSecurityServerId(securityServerId);
+        managementRequest.setClientId(clientId);
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+        this.managementRequestId = response.getBody().getId();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                .execute();
+    }
+
+    @Step("security server {string} client {string} is disabled")
+    public void securityServerClientIsDisabled(String securityServerId, String clientId) {
+        final ClientDisableRequestDto managementRequest = new ClientDisableRequestDto();
+        managementRequest.setType(CLIENT_DISABLE_REQUEST);
+        managementRequest.setOrigin(SECURITY_SERVER);
+        managementRequest.setSecurityServerId(securityServerId);
+        managementRequest.setClientId(clientId);
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+        this.managementRequestId = response.getBody().getId();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                .execute();
+    }
+
+    @Step("security server {string} client {string} is enabled")
+    public void securityServerClientIsEnabled(String securityServerId, String clientId) {
+        final var managementRequest = new ClientEnableRequestDto();
+        managementRequest.setType(CLIENT_ENABLE_REQUEST);
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(clientId);

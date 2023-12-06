@@ -133,6 +133,22 @@ public class MembersApiStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("member {string} subsystem {string} status in server {string} is {string}")
+    public void memberSubsystemsStatusInServer(String memberId, String subsystemCode, String serverCode, String status) {
+        final ResponseEntity<List<SubsystemDto>> response = membersApi.getSubsystems(memberId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.?[subsystemId.subsystemCode == '%s'].size()".formatted(subsystemCode)))
+                .assertion(equalsAssertion(1,
+                        "body.^[subsystemId.subsystemCode == '%s'].usedSecurityServers.?[serverCode == '%s'].size()"
+                                .formatted(subsystemCode, serverCode)))
+                .assertion(equalsAssertion(status,
+                        "body.^[subsystemId.subsystemCode == '%s'].usedSecurityServers.^[serverCode == '%s'].status"
+                                .formatted(subsystemCode, serverCode)))
+                .execute();
+    }
+
     @Step("user can retrieve member {string} details")
     public void userCanRetrieveMemberDetails(String memberId) {
         final ResponseEntity<ClientDto> response = membersApi.getMember(memberId);
