@@ -48,7 +48,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.certServiceDetails.tabOcspResponders().scrollIntoView(false).click();
     }
 
-    @Step("OCSP responder with URL {} is added")
+    @Step("OCSP responder with URL {string} is added")
     public void newOcspResponderIsAdded(String url) {
         ocspRespondersPageObj.btnAddOcspResponder().click();
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
@@ -61,7 +61,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("OCSP responder with URL {} and random cert is added")
+    @Step("OCSP responder with URL {string} and random cert is added")
     public void newOcspResponderWithCertIsAdded(String url) throws Exception {
         ocspRespondersPageObj.btnAddOcspResponder().click();
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
