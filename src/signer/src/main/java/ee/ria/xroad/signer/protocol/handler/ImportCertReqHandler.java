@@ -135,10 +135,9 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
     private void importCertificateToKey(KeyInfo keyInfo, X509Certificate cert,
                                         String initialStatus, ClientId.Conf memberId) throws Exception {
-        String certHash = calculateCertHexHash(cert.getEncoded());
+        String certHash = calculateCertHexHash(cert);
 
-        CertificateInfo existingCert =
-                TokenManager.getCertificateInfoForCertHash(certHash);
+        CertificateInfo existingCert = TokenManager.getCertificateInfoForCertHash(certHash);
         if (existingCert != null && existingCert.isSavedToConfiguration()) {
             throw CodedException.tr(X_CERT_EXISTS,
                     "cert_exists_under_key",

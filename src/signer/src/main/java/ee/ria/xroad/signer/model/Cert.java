@@ -41,6 +41,7 @@ import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
@@ -76,10 +77,18 @@ public class Cert {
     private String status;
 
     /**
-     * Holds the precalculated hash of the certificate.
+     * Holds the precalculated sha1 hash of the certificate.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @Deprecated
+    @Setter(AccessLevel.PRIVATE)
+    private String sha1hash;
+
+    /**
+     * Holds the precalculated sha256 hash of the certificate.
      */
     @Setter(AccessLevel.PRIVATE)
-    private String hash;
+    private String sha256hash;
 
     /**
      * Holds the certificate instance.
@@ -98,7 +107,8 @@ public class Cert {
      */
     public void setCertificate(X509Certificate cert) {
         try {
-            hash = calculateCertHexHash(cert);
+            sha1hash = calculateCertSha1HexHash(cert);
+            sha256hash = calculateCertHexHash(cert);
             certificate = cert;
         } catch (Exception e) {
             throw translateException(e);
