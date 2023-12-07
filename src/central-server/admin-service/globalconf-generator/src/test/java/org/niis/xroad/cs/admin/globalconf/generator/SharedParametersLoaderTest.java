@@ -128,7 +128,8 @@ class SharedParametersLoaderTest {
         when(clientService.findAll()).thenReturn(getClients());
 
         when(securityServerService.findAll()).thenReturn(getSecurityServers());
-        when(clientService.find(new ClientService.SearchParameters().setSecurityServerId(SECURITY_SERVER_ID)))
+        when(clientService.find(new ClientService.SearchParameters()
+                .setSecurityServerId(SECURITY_SERVER_ID).setSecurityServerEnabled(true)))
                 .thenReturn(List.of(getFlattenedSecurityServerClientView("M2", "S1")));
 
         when(globalGroupService.findGlobalGroups()).thenReturn(List.of(getGlobalGroup()));
