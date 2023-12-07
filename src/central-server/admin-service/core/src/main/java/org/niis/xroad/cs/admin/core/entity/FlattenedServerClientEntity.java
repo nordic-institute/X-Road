@@ -67,7 +67,6 @@ public class FlattenedServerClientEntity {
     private SecurityServerEntity securityServer;
 
     @Getter
-    @Setter
     private boolean enabled;
 }
 
