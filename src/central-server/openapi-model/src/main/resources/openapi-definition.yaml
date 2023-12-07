@@ -1490,7 +1490,6 @@ paths:
                 - $ref: '#/components/schemas/CertificateFile'
               required:
                 - url
-                - certificate
         description: ocsp responder to add
       responses:
         '201':

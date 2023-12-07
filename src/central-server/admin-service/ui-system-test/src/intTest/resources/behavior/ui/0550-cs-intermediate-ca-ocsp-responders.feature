@@ -19,7 +19,9 @@ Feature: 0550 - CS: Trust Services -> CA Details -> Intermediate CAs -> Intermed
 
   Scenario: Intermediate CA OCSP responder can be added
     When OCSP responder with URL http://e2e-test-ocsp-responder.com is added
+    And  OCSP responder with URL http://e2e-test-ocsp-responder-cert.com and random cert is added
     Then OCSP responder with URL http://e2e-test-ocsp-responder.com is visible in the OCSP responders list
+    And OCSP responder with URL http://e2e-test-ocsp-responder-cert.com is visible in the OCSP responders list
 
   Scenario: Intermediate CA OCSP responders list is correctly shown
     When OCSP responder table is visible
