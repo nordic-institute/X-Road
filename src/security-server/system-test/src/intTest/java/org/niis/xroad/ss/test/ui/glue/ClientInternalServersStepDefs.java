@@ -36,7 +36,7 @@ import java.io.FileNotFoundException;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
 
 public class ClientInternalServersStepDefs extends BaseUiStepDefs {
     private final CertificatePageObj certificatePageObj = new CertificatePageObj();

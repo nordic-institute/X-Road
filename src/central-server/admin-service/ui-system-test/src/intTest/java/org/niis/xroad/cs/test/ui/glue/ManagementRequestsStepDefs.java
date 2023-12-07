@@ -42,12 +42,13 @@ import java.util.Date;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.getSecurityServerId;
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEMENT_REQUEST_ID;
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vCheckbox;
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class ManagementRequestsStepDefs extends BaseUiStepDefs {
@@ -94,6 +95,7 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     @Step("the user clicks on search icon")
     public void clickOnSearchIcon() {
         managementRequestsPageObj.search().click();
+        vTextField(managementRequestsPageObj.search()).shouldBe(focused);
     }
 
     @Step("the user enters {} in the search field")

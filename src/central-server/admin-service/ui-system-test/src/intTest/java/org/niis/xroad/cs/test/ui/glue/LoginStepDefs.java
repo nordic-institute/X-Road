@@ -31,7 +31,7 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.LoginPageObj;
 
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class LoginStepDefs extends BaseUiStepDefs {
     private final LoginPageObj loginPageObj = new LoginPageObj();
