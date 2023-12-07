@@ -135,10 +135,12 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath)
         .then((resp) => (this.currentOcspResponders = resp.data));
     },
-    addOcspResponder(url: string, certificate: File) {
+    addOcspResponder(url: string, certificate: File | null) {
       const formData = new FormData();
       formData.append('url', url);
-      formData.append('certificate', certificate);
+      if(certificate){
+        formData.append('certificate', certificate);
+      }
 
       return axios
         .post(this.getCurrentCaOcspRespondersPath, formData)

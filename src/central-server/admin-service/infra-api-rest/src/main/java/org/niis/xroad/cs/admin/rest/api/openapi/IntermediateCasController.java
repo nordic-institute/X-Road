@@ -48,7 +48,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_INTERMEDIATE_CA_OCSP_RESPONDER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERMEDIATE_CA;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_OCSP_RESPONDER;
@@ -74,12 +73,14 @@ public class IntermediateCasController implements IntermediateCasApi {
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     @AuditEventMethod(event = ADD_INTERMEDIATE_CA_OCSP_RESPONDER)
     public ResponseEntity<OcspResponderDto> addIntermediateCaOcspResponder(Integer id, String url, MultipartFile certificate) {
-        byte[] fileBytes = readBytes(certificate);
-        fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
         final OcspResponderRequest ocspResponderRequest = new OcspResponderAddRequest()
-                .setUrl(url)
-                .setCertificate(fileBytes);
+                .setUrl(url);
 
+        if (certificate != null && !certificate.isEmpty()) {
+            byte[] fileBytes = readBytes(certificate);
+            fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+            ocspResponderRequest.setCertificate(fileBytes);
+        }
         final OcspResponder ocspResponder = intermediateCasService.addOcspResponder(id, ocspResponderRequest);
 
         return status(CREATED).body(ocspResponderDtoConverter.toDto(ocspResponder));
@@ -112,6 +113,6 @@ public class IntermediateCasController implements IntermediateCasApi {
     public ResponseEntity<List<OcspResponderDto>> getIntermediateCaOcspResponders(Integer id) {
         return ok(intermediateCasService.getOcspResponders(id).stream()
                 .map(ocspResponderDtoConverter::toDto)
-                .collect(toList()));
+                .toList());
     }
 }
