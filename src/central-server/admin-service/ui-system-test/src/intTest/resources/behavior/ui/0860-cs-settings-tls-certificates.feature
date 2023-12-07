@@ -37,7 +37,7 @@ Feature: 0370 - CS: Settings -> TLS Certificates
     When dialog Generate CSR button is clicked
     Then generated sign request is downloaded
 
-  Scenario: Management Service TLS certificate can be uploaded
+  Scenario: Management Service TLS certificate with wrong key can't uploaded
     Given TLS Certificates sub-tab is selected
-    When Upload certificate button is clicked
-    Then Management Service new certificate management-service-new.crt is successfully uploaded
+    When wrong management service TLS certificate management-service-new.crt is uploaded
+    Then error: "The imported certificate does not match the TLS key" was displayed

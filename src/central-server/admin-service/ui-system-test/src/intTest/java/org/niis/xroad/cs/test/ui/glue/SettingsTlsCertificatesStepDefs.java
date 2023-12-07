@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.SettingsTlsCertificatesPageObj;
 
@@ -143,19 +142,13 @@ public class SettingsTlsCertificatesStepDefs extends BaseUiStepDefs {
         settingsTlsCertificatesPageObj.btnUploadCertificate().shouldBe(visible);
     }
 
-    @Step("Upload certificate button is clicked")
-    public void uploadCertificateButtonIsClicked() {
+    @Step("wrong management service TLS certificate {} is uploaded")
+    public void uploadCertificate(String fileName) {
         settingsTlsCertificatesPageObj.btnUploadCertificate().click();
-    }
 
-    @Step("Management Service new certificate {} is successfully uploaded")
-    public void certificateIsUploaded(String fileName) {
         commonPageObj.dialog.btnCancel().shouldBe(enabled);
         commonPageObj.dialog.btnSave().shouldBe(disabled);
         commonPageObj.inputFile().uploadFromClasspath("files/certificates/" + fileName);
         commonPageObj.dialog.btnSave().shouldBe(enabled).click();
-
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
-        commonPageObj.snackBar.btnClose().click();
     }
 }
