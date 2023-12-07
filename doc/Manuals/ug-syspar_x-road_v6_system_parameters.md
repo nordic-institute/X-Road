@@ -232,7 +232,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 |-----------------------------------|-------------------------------------------------|----------------------------------------------------------------------|
 | configuration-path                | /etc/xroad/globalconf/                          | Absolute path to the directory where global configuration is stored. |
 | temp-files-path                   | /var/tmp/xroad/                                 | Absolute path to the directory where temporary files are stored.     |
-| grpc-internal-host    127.0.0.1   |                                                 | Bind gRPC servers to a specific host.                                |
+| grpc-internal-host                | 127.0.0.1                                       | Bind gRPC servers to a specific host.                                |
 | grpc-internal-tls-enabled         | true                                            | Enables mTLS for gRPC services                                       |
 | grpc-internal-keystore            | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC keystore for mTLS configuration.                                |
 | grpc-internal-keystore-password   | <generated-value>                               | gRPC keystore password.                                              |
