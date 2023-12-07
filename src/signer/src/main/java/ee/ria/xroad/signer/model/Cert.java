@@ -78,7 +78,7 @@ public class Cert {
 
     /**
      * Holds the precalculated sha1 hash of the certificate.
-     * @deprecated Use {@link #forNumber(int)} instead.
+     * @deprecated Use {@link #getSha256hash()} instead.
      */
     @Deprecated
     @Setter(AccessLevel.PRIVATE)
