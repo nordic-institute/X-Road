@@ -86,8 +86,11 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
 
         auditDataHelper.put(OCSP_ID, savedOcspInfo.getId());
         auditDataHelper.put(OCSP_URL, savedOcspInfo.getUrl());
-        auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(savedOcspInfo.getCert()));
-        auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+
+        if (savedOcspInfo.getCert() != null) {
+            auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(savedOcspInfo.getCert()));
+            auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+        }
 
         return ocspResponderConverter.toModel(savedOcspInfo);
     }

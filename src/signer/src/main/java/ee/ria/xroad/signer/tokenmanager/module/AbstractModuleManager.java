@@ -211,7 +211,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
 
         return new GetOcspResponses(certs.stream().map(cert -> {
             try {
-                return CryptoUtils.calculateCertHexHash(cert.getCertificate());
+                return CryptoUtils.calculateCertSha1HexHash(cert.getCertificate());
             } catch (Exception e) {
                 log.error("Failed to calculate hash for new certificate {}", cert, e);
 

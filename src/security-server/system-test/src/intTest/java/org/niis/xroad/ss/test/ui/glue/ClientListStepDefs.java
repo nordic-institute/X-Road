@@ -34,9 +34,10 @@ import org.niis.xroad.ss.test.ui.page.ClientPageObj;
 
 import java.util.List;
 
+import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientListStepDefs extends BaseUiStepDefs {
     private final ClientPageObj clientPageObj = new ClientPageObj();
@@ -85,7 +86,7 @@ public class ClientListStepDefs extends BaseUiStepDefs {
     @Step("Client filter is set to {string}")
     public void setFilter(String query) {
         clientPageObj.btnSearch().shouldBe(visible).click();
-        vTextField(clientPageObj.inputSearch()).setValue(query);
+        vTextField(clientPageObj.inputSearch()).shouldBe(focused).setValue(query);
     }
 
     @Step("Client table is ordered as follows:")

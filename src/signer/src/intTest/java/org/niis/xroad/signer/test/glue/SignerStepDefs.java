@@ -32,7 +32,6 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -74,6 +73,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -274,7 +274,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
         scenarioCert = SignerProxy.generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
                 "CN=" + client, Date.from(now().minus(5, DAYS)), Date.from(now().plus(5, DAYS)));
-        this.certHash = CryptoUtils.calculateCertHexHash(scenarioCert);
+        this.certHash = calculateCertHexHash(scenarioCert);
     }
 
     private ClientId.Conf getClientId(String client) {
@@ -596,23 +596,23 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 TestCertUtil.getOcspSigner().certChain[0],
                 TestCertUtil.getOcspSigner().key, CertificateStatus.GOOD);
 
-        SignerProxy.setOcspResponses(new String[]{calculateCertHexHash(subject)},
+        SignerProxy.setOcspResponses(new String[]{calculateCertSha1HexHash(subject)},
                 new String[]{Base64.toBase64String(ocspResponse.getEncoded())});
     }
 
     @Step("ocsp responses can be retrieved")
     public void ocspResponsesCanBeRetrieved() throws Exception {
         X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
-        final String hash = calculateCertHexHash(subject);
+        final String hash = calculateCertSha1HexHash(subject);
 
         final String[] ocspResponses = SignerProxy.getOcspResponses(new String[]{hash});
-        assertThat(ocspResponses).isNotEmpty();
+        assertThat(ocspResponses[0]).isNotNull();
     }
 
     @Step("null ocsp response is returned for unknown certificate")
     public void emptyOcspResponseIsReturnedForUnknownCertificate() throws Exception {
         final String[] ocspResponses = SignerProxy
-                .getOcspResponses(new String[]{calculateCertHexHash("not a cert".getBytes())});
+                .getOcspResponses(new String[]{calculateCertSha1HexHash("not a cert".getBytes())});
         assertThat(ocspResponses).hasSize(1);
         assertThat(ocspResponses[0]).isNull();
     }
