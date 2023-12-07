@@ -597,10 +597,12 @@ public final class CryptoUtils {
      * Calculates digest of the certificate and encodes it as lowercase hex.
      * @param cert the certificate
      * @return calculated certificate hex hash String
-     * @throws Exception if any errors occur
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
     public static String calculateCertHexHash(X509Certificate cert)
-            throws Exception {
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         return calculateCertHexHash(cert.getEncoded());
     }
 
@@ -609,9 +611,12 @@ public final class CryptoUtils {
      * @param cert the certificate
      * @param delimiter the delimiter to use
      * @return calculated certificate hex hash String
-     * @throws Exception if any errors occur
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static String calculateDelimitedCertHexHash(X509Certificate cert, String delimiter) throws Exception {
+    public static String calculateDelimitedCertHexHash(X509Certificate cert, String delimiter)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         return String.join(delimiter, Splitter.fixedLength(2).split(calculateCertHexHash(cert).toUpperCase()));
     }
 
@@ -620,11 +625,43 @@ public final class CryptoUtils {
      * as lowercase hex.
      * @return calculated certificate hex hash String
      * @param bytes the bytes
-     * @throws Exception if any errors occur
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static String calculateCertHexHash(byte[] bytes)
-            throws Exception {
+    public static String calculateCertHexHash(byte[] bytes) throws IOException, OperatorCreationException {
         return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
+    }
+
+    /**
+     * Calculates a sha-1 digest of the given bytes and encodes it
+     * as lowercase hex.
+     * @deprecated This method should be applicable until 7.3.x is no longer supported
+     * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(X509Certificate)} instead.
+     * @return calculated certificate hex hash String
+     * @param cert the certificate
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws IOException if an I/O error occurred
+     */
+    @Deprecated
+    public static String calculateCertSha1HexHash(X509Certificate cert)
+            throws IOException, OperatorCreationException, CertificateEncodingException {
+        return calculateCertSha1HexHash(cert.getEncoded());
+    }
+
+    /**
+     * Calculates a sha-1 digest of the given bytes and encodes it
+     * as lowercase hex.
+     * @deprecated This method should be applicable until 7.3.x is no longer supported
+     * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(byte[])} instead.
+     * @return calculated certificate hex hash String
+     * @param bytes the bytes
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
+     */
+    @Deprecated
+    public static String calculateCertSha1HexHash(byte[] bytes) throws IOException, OperatorCreationException {
+        return hexDigest(SHA1_ID, bytes);
     }
 
     /**
@@ -663,7 +700,9 @@ public final class CryptoUtils {
      * Calculates a digest of the given certificate.
      * @param cert the certificate
      * @return digest byte array of the certificate
-     * @throws Exception if any errors occur
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
     public static byte[] certHash(X509Certificate cert) throws CertificateEncodingException, IOException, OperatorCreationException {
         return certHash(cert.getEncoded());
@@ -683,10 +722,13 @@ public final class CryptoUtils {
     /**
      * Calculates sha-1 digest of the given certificate bytes.
      * @param bytes the bytes
+     * @deprecated This method should be applicable until 7.3.x is no longer supported
+     * <p> From that point onward its usages should be replaced with {@link #certHash(byte[])} instead.
      * @return digest byte array of the certificate
      * @throws OperatorCreationException if digest calculator cannot be created
      * @throws IOException if an I/O error occurred
      */
+    @Deprecated
     public static byte[] certSha1Hash(byte[] bytes) throws IOException, OperatorCreationException {
         return calculateDigest(SHA1_ID, bytes);
     }

@@ -332,8 +332,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
     }
 
     public static boolean isCurrentVersion(Path filePath) {
-            Integer confVersion = getVersion(filePath);
-            return confVersion != null && confVersion == CURRENT_GLOBAL_CONFIGURATION_VERSION;
+        Integer confVersion = getVersion(filePath);
+        return confVersion != null && confVersion == CURRENT_GLOBAL_CONFIGURATION_VERSION;
     }
 
     public static Integer getVersion(Path filePath) {

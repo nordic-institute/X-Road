@@ -199,6 +199,7 @@ public class TokenManagerMergeTest {
         assertNotNull("test setup failure", beforeKeyInfo);
 
         final String testCertId = "06700c12f395183c779884fcd49d4ca55fa485aa65617da5b75d84927bec2c91";
+        final String testCertSha1Hash = "e82e0b2b184d4387c2afd83708d4cfeaeb872cf7";
         CertificateInfo beforeCertInfo = TokenManager.getCertificateInfo(testCertId);
         assertNotNull("test setup failure", beforeCertInfo);
 
@@ -208,7 +209,7 @@ public class TokenManagerMergeTest {
         OCSPResp shouldMatchResponse = mock(OCSPResp.class);
         final byte[] shouldMatchOcspResponseBytes = "some example string  11 2 34".getBytes();
         when(shouldMatchResponse.getEncoded()).thenReturn(shouldMatchOcspResponseBytes);
-        TokenManager.setOcspResponse(testCertId, shouldMatchResponse);
+        TokenManager.setOcspResponse(testCertSha1Hash, shouldMatchResponse);
 
         final int beforeCertCount = TokenManager.getAllCerts().size();
 

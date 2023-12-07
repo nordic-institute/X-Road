@@ -65,7 +65,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static java.util.Collections.emptyList;
@@ -175,7 +175,7 @@ public class OcspClientWorker {
                 OCSPResp status = queryCertStatus(subject, new OcspVerifierOptions(
                         GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
                 if (status != null) {
-                    String subjectHash = calculateCertHexHash(subject);
+                    String subjectHash = calculateCertSha1HexHash(subject);
                     statuses.put(subjectHash, status);
                 } else {
                     failed = true;
@@ -346,7 +346,7 @@ public class OcspClientWorker {
                 return false;
             }
 
-            String subjectHash = calculateCertHexHash(subject);
+            String subjectHash = calculateCertSha1HexHash(subject);
             try {
                 // todo this should be separated from isValid check.
                 //  This seems to be the only place where expired Ocsp response is cleared from TokenManager.

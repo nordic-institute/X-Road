@@ -30,7 +30,6 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
 import lombok.extern.slf4j.Slf4j;
@@ -160,29 +159,26 @@ public final class AuthTrustVerifier {
     /**
      * Sends the GET request with all cert hashes which need OCSP responses.
      */
-    private static List<OCSPResp> getAndCacheOcspResponses(
-            List<X509Certificate> hashes,
-            String address) throws Exception {
+    private static List<OCSPResp> getAndCacheOcspResponses(List<X509Certificate> certs, String address) throws Exception {
         List<OCSPResp> receivedResponses;
         try {
             log.trace("get ocsp responses from server {}", address);
-            receivedResponses = getOcspResponsesFromServer(address,
-                    CertUtils.getCertHashes(hashes));
+            receivedResponses = getOcspResponsesFromServer(address, certs);
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
 
-        // Did we get OCSP response for each cert hash?
-        if (receivedResponses.size() != hashes.size()) {
+        // Did we get OCSP response for each cert?
+        if (receivedResponses.size() != certs.size()) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not get all OCSP responses from server "
                             + "(expected %s, but got %s)",
-                    hashes.size(), receivedResponses.size());
+                    certs.size(), receivedResponses.size());
         }
 
         // Cache the responses locally
         log.trace("got ocsp responses, setting them to key conf");
-        KeyConf.setOcspResponses(hashes, receivedResponses);
+        KeyConf.setOcspResponses(certs, receivedResponses);
 
         return receivedResponses;
     }

@@ -125,7 +125,7 @@ public class CertificateAuthorityService {
 
         String[] base64EncodedOcspResponses;
         try {
-            String[] certHashes = CertUtils.getCertHashes(new ArrayList<>(filteredCerts));
+            String[] certHashes = CertUtils.getSha1Hashes(new ArrayList<>(filteredCerts));
             base64EncodedOcspResponses = signerProxyFacade.getOcspResponses(certHashes);
         } catch (Exception e) {
             throw new InconsistentCaDataException("failed to get read CA OCSP responses", e);
