@@ -18,3 +18,8 @@ Feature: 0520 - SS: Client Details
       | Issuer Distinguished Name  | CN=X-Road Test CA CN, OU=X-Road Test CA OU, O=X-Road Test, C=FI |
       | Subject Distinguished Name | SERIALNUMBER=CS/SS1/GOV, CN=0245437-2, O=ui-test, C=FI          |
     And Certificate is closed
+
+  Scenario: Client Disable button is clicked
+    Given Client "TestService" is opened
+    When Client Disable button is clicked
+    Then error: "Sending of management request failed" was displayed

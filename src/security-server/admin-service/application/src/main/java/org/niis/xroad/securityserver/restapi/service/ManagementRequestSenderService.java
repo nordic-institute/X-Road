@@ -193,9 +193,6 @@ public class ManagementRequestSenderService {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendClientDisableRequest(currentSecurityServerId.getServerId(), clientId);
-        } catch (CodedException ce) {
-            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
-            throw ce;
         } catch (Exception e) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
             throw new ManagementRequestSendingFailedException(e);
@@ -207,9 +204,6 @@ public class ManagementRequestSenderService {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendClientEnableRequest(currentSecurityServerId.getServerId(), clientId);
-        } catch (CodedException ce) {
-            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
-            throw ce;
         } catch (Exception e) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
             throw new ManagementRequestSendingFailedException(e);
