@@ -43,6 +43,8 @@ import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.AddressChangeRequest;
 import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
+import org.niis.xroad.common.managementrequest.model.ClientDisableRequest;
+import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
 import org.niis.xroad.common.managementrequest.model.ManagementRequest;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
@@ -178,6 +180,22 @@ public final class ManagementRequestSender {
         try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new OwnerChangeRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+        }
+    }
+
+    public Integer sendClientDisableRequest(SecurityServerId.Conf securityServer,
+                                          ClientId.Conf clientId) throws Exception {
+        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new ClientDisableRequest(clientId, builder.buildClientDisableRequest(securityServer, clientId)));
+        }
+    }
+
+    public Integer sendClientEnableRequest(SecurityServerId.Conf securityServer,
+                                            ClientId.Conf clientId) throws Exception {
+        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new ClientEnableRequest(clientId, builder.buildClientEnableRequest(securityServer, clientId)));
         }
     }
 

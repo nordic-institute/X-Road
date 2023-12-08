@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.core.entity;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import com.google.common.collect.ImmutableMap;
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
@@ -56,6 +55,8 @@ import static org.niis.xroad.common.managementrequest.model.ManagementRequestTyp
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DELETION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DISABLE_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
@@ -146,11 +147,13 @@ public class ManagementRequestViewEntity {
     }
 
     public static class ManagementRequestTypeDiscriminatorMapping {
-        private static final Map<ManagementRequestType, String> MAPPING = ImmutableMap.of(
+        private static final Map<ManagementRequestType, String> MAPPING = Map.of(
                 AUTH_CERT_REGISTRATION_REQUEST, AuthenticationCertificateRegistrationRequestEntity.DISCRIMINATOR_VALUE,
                 CLIENT_REGISTRATION_REQUEST, ClientRegistrationRequestEntity.DISCRIMINATOR_VALUE,
                 OWNER_CHANGE_REQUEST, OwnerChangeRequestEntity.DISCRIMINATOR_VALUE,
                 CLIENT_DELETION_REQUEST, ClientDeletionRequestEntity.DISCRIMINATOR_VALUE,
+                CLIENT_DISABLE_REQUEST, ClientDisableRequestEntity.DISCRIMINATOR_VALUE,
+                CLIENT_ENABLE_REQUEST, ClientEnableRequestEntity.DISCRIMINATOR_VALUE,
                 AUTH_CERT_DELETION_REQUEST, AuthenticationCertificateDeletionRequestEntity.DISCRIMINATOR_VALUE,
                 ADDRESS_CHANGE_REQUEST, AddressChangeRequestEntity.DISCRIMINATOR_VALUE
         );

@@ -62,6 +62,9 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLED;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
@@ -89,10 +92,10 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     private byte[] derBytes;
     private byte[] sqlFileBytes;
 
-    private ClientId.Conf existingSavedClientId = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
-    private ClientId.Conf existingRegisteredClientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
-    private ClientId.Conf ownerClientId = ClientId.Conf.create("FI", "GOV", "M1", null);
-    private ClientId.Conf newOwnerClientId = ClientId.Conf.create("FI", "GOV", "M2", null);
+    private final ClientId.Conf existingSavedClientId = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
+    private final ClientId.Conf existingRegisteredClientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
+    private final ClientId.Conf ownerClientId = ClientId.Conf.create("FI", "GOV", "M1", null);
+    private final ClientId.Conf newOwnerClientId = ClientId.Conf.create("FI", "GOV", "M2", null);
 
     private static final List<String> MEMBER_CLASSES = List.of(TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CLASS_PRO);
 
@@ -351,7 +354,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // iterate all client statuses and test create + delete
         List<String> allStatuses = Arrays.asList(STATUS_SAVED, STATUS_REGINPROG, STATUS_REGISTERED,
-                STATUS_DELINPROG, STATUS_GLOBALERR);
+                STATUS_DELINPROG, STATUS_GLOBALERR, STATUS_DISABLED, STATUS_DISABLING_INPROG, STATUS_ENABLING_INPROG);
         int created = 0;
         for (String status : allStatuses) {
             created++;
@@ -359,7 +362,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
             ClientId subsystemId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status
                     + ":NEW-SUBSYSTEM");
 
-            if (status.equals(STATUS_REGISTERED) || status.equals(STATUS_REGINPROG)) {
+            if (status.equals(STATUS_REGISTERED)
+                    || status.equals(STATUS_REGINPROG)
+                    || status.equals(STATUS_ENABLING_INPROG)) {
                 // delete is not possible
                 try {
                     addAndDeleteLocalClient(memberId, status);

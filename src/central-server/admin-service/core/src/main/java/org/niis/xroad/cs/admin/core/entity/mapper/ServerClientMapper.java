@@ -43,6 +43,7 @@ public interface ServerClientMapper extends GenericUniDirectionalMapper<ServerCl
         dto.setServerOwner(serverClientEntity.getSecurityServer().getOwner().getName());
         dto.setServerCode(serverClientEntity.getSecurityServer().getServerCode());
         dto.setId(serverClientEntity.getId());
+        dto.setEnabled(serverClientEntity.isEnabled());
         final SecurityServerIdMapper securityServerIdMapper = Mappers.getMapper(SecurityServerIdMapper.class);
         dto.setServerId(securityServerIdMapper.toTarget(serverClientEntity.getSecurityServer().getServerId()));
         return dto;

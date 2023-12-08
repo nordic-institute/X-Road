@@ -40,6 +40,8 @@ import org.niis.xroad.cs.management.core.api.ManagementRequestService;
 import org.niis.xroad.cs.openapi.model.AddressChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
@@ -111,6 +113,12 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestDto()
                     .clientId(clientIdConverter.convertId(request.getClient()))
                     .type(ManagementRequestTypeDto.CLIENT_DELETION_REQUEST);
+            case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestDto()
+                    .clientId(clientIdConverter.convertId(request.getClient()))
+                    .type(ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST);
+            case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestDto()
+                    .clientId(clientIdConverter.convertId(request.getClient()))
+                    .type(ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST);
             default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
         };
 

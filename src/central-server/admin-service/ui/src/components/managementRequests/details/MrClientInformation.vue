@@ -73,6 +73,10 @@ export default defineComponent({
     clientInfoTitle(): string {
       if (this.isOwnerChange) {
         return 'managementRequestDetails.ownerChangeInformation';
+      } else if (this.managementRequest.type === ManagementRequestType.CLIENT_DISABLE_REQUEST) {
+        return 'managementRequestDetails.clientDisableInformation';
+      } else if (this.managementRequest.type === ManagementRequestType.CLIENT_ENABLE_REQUEST) {
+        return 'managementRequestDetails.clientEnableInformation';
       }
       return 'managementRequestDetails.clientInformation';
     },

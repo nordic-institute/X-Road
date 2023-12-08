@@ -220,6 +220,10 @@ export function managementTypeToText(
       return t('managementRequests.removeCertificate') as string;
     case ManagementRequestType.CLIENT_DELETION_REQUEST:
       return t('managementRequests.removeClient') as string;
+    case ManagementRequestType.CLIENT_DISABLE_REQUEST:
+      return t('managementRequests.clientDisable') as string;
+    case ManagementRequestType.CLIENT_ENABLE_REQUEST:
+      return t('managementRequests.clientEnable') as string;
     case ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST:
       return t('managementRequests.addCertificate') as string;
     case ManagementRequestType.CLIENT_REGISTRATION_REQUEST:

@@ -97,6 +97,7 @@ export enum Permissions {
   DELETE_TSP = 'DELETE_TSP', // settings > system parameters
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
+  DISABLE_CLIENT = 'DISABLE_CLIENT',
   DIAGNOSTICS = 'DIAGNOSTICS', // diagnostics tab
   DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR', // settings > system parameters
   EDIT_ACL_SUBJECT_OPEN_SERVICES = 'EDIT_ACL_SUBJECT_OPEN_SERVICES', // client > service clients
@@ -112,6 +113,7 @@ export enum Permissions {
   EDIT_REST = 'EDIT_REST', // client > services > edit service description of type rest
   EDIT_OPENAPI3 = 'EDIT_OPENAPI3', // client > services > edit service description of type openapi3
   EDIT_OPENAPI3_ENDPOINT = 'EDIT_OPENAPI3_ENDPOINT', // client > services > service > endpoints > edit endpoint
+  ENABLE_CLIENT = 'ENABLE_CLIENT',
   ENABLE_DISABLE_WSDL = 'ENABLE_DISABLE_WSDL', // client > services > enable / disable WSDL switch
   EXPORT_INTERNAL_TLS_CERT = 'EXPORT_INTERNAL_TLS_CERT', // export SS TLS certificate in "internal servers" view & system parameters
   GENERATE_AUTH_CERT_REQ = 'GENERATE_AUTH_CERT_REQ',

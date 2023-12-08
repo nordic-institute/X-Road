@@ -178,7 +178,9 @@ class SharedParametersLoader {
     }
 
     private List<ClientId> getSecurityServerClients(int id) {
-        return clientService.find(new ClientService.SearchParameters().setSecurityServerId(id))
+        return clientService.find(new ClientService.SearchParameters()
+                        .setSecurityServerId(id)
+                        .setSecurityServerEnabled(true))
                 .stream().map(SharedParametersLoader::toClientId).toList();
 
     }

@@ -153,7 +153,7 @@ public class SharedParametersV3Converter {
         }
         target.setCertificateProfileInfo(source.getCertificateProfileInfo());
         if (source.getAcmeServer() != null) {
-          target.setAcmeServer(toAcmeServer(source.getAcmeServer()));
+            target.setAcmeServer(toAcmeServer(source.getAcmeServer()));
         }
         return target;
     }

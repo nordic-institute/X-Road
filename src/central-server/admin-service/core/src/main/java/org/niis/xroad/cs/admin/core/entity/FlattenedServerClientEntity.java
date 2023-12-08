@@ -64,6 +64,9 @@ public class FlattenedServerClientEntity {
     @JoinColumn(name = "security_server_id", nullable = false)
     @Getter
     private SecurityServerEntity securityServer;
+
+    @Getter
+    private boolean enabled;
 }
 
 

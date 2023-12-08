@@ -29,6 +29,7 @@ package org.niis.xroad.ss.test.ui.glue;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.ClientInfoPageObj;
 
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 
@@ -69,5 +70,15 @@ public class ClientInfoStepDefs extends BaseUiStepDefs {
     @Step("Service clients sub-tab is selected")
     public void navigateServiceClients() {
         clientInfoPageObj.navigation.serviceClientsTab().click();
+    }
+
+    @Step("Client Disable button is clicked")
+    public void clickDisableClientButton() {
+        clientInfoPageObj.details.btnDisable()
+                .should(visible)
+                .click();
+        commonPageObj.dialog.btnSave()
+                .shouldBe(enabled)
+                .click();
     }
 }

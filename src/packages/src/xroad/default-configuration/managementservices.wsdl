@@ -134,6 +134,10 @@
             <xsd:element name="clientRegResponse" type="tns:ClientRequestType"/>
             <xsd:element name="clientDeletion" type="tns:ClientRequestType"/>
             <xsd:element name="clientDeletionResponse" type="tns:ClientRequestType"/>
+            <xsd:element name="clientDisable" type="tns:ClientRequestType"/>
+            <xsd:element name="clientDisableResponse" type="tns:ClientRequestType"/>
+            <xsd:element name="clientEnable" type="tns:ClientRequestType"/>
+            <xsd:element name="clientEnableResponse" type="tns:ClientRequestType"/>
             <xsd:element name="authCertReg" type="tns:AuthCertRegRequestType"/>
             <xsd:element name="authCertRegResponse" type="tns:AuthCertRegRequestType"/>
             <xsd:element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
@@ -268,6 +272,18 @@
     <wsdl:message name="clientDeletionResponse">
         <wsdl:part element="xroad:clientDeletionResponse" name="parameters"/>
     </wsdl:message>
+    <wsdl:message name="clientDisable">
+        <wsdl:part element="xroad:clientDisable" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="clientDisableResponse">
+        <wsdl:part element="xroad:clientDisableResponse" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="clientEnable">
+        <wsdl:part element="xroad:clientEnable" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="clientEnableResponse">
+        <wsdl:part element="xroad:clientEnableResponse" name="parameters"/>
+    </wsdl:message>
     <wsdl:message name="authCertReg">
         <wsdl:part element="xroad:authCertReg" name="parameters"/>
     </wsdl:message>
@@ -300,6 +316,14 @@
         <wsdl:operation name="clientDeletion">
             <wsdl:input message="tns:clientDeletion"/>
             <wsdl:output message="tns:clientDeletionResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="clientDisable">
+            <wsdl:input message="tns:clientDisable"/>
+            <wsdl:output message="tns:clientDisableResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="clientEnable">
+            <wsdl:input message="tns:clientEnable"/>
+            <wsdl:output message="tns:clientEnableResponse"/>
         </wsdl:operation>
         <wsdl:operation name="authCertDeletion">
             <wsdl:input message="tns:authCertDeletion"/>
@@ -335,6 +359,42 @@
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="clientDeletion">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="clientDisable">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="clientEnable">
             <soap:operation soapAction=""/>
             <wsdl:input>
                 <soap:body use="literal"/>

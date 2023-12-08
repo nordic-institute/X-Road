@@ -159,6 +159,8 @@ export default defineComponent({
       return [
         ManagementRequestType.CLIENT_DELETION_REQUEST,
         ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
+        ManagementRequestType.CLIENT_DISABLE_REQUEST,
+        ManagementRequestType.CLIENT_ENABLE_REQUEST,
         ManagementRequestType.OWNER_CHANGE_REQUEST,
       ].includes(this.managementRequestsStore.currentManagementRequest.type);
     },
