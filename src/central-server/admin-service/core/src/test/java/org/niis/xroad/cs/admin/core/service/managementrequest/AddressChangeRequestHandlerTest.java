@@ -30,6 +30,8 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import io.vavr.control.Option;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -46,7 +48,6 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,6 +70,9 @@ class AddressChangeRequestHandlerTest {
 
     @InjectMocks
     private AddressChangeRequestHandler handler;
+
+    @Captor
+    private ArgumentCaptor<AddressChangeRequestEntity> argumentCaptor;
 
     @Test
     void canAutoApprove() {
@@ -96,11 +100,13 @@ class AddressChangeRequestHandlerTest {
         SecurityServerIdEntity securityServerIdEntity = mock(SecurityServerIdEntity.class);
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(securityServerIdEntity);
         when(securityServerRepository.findBy(securityServerIdEntity)).thenReturn(Option.of(securityServerEntity));
-        when(addressChangeRequests.save(isA(AddressChangeRequestEntity.class))).thenReturn(requestEntity);
+        when(securityServerEntity.getAddress()).thenReturn("ss.old");
+        when(addressChangeRequests.save(argumentCaptor.capture())).thenReturn(requestEntity);
 
         handler.add(request);
 
         verify(securityServerEntity).setAddress(ADDRESS);
+        assertThat(argumentCaptor.getValue().getComments()).isEqualTo("Changing from 'ss.old'.");
         verify(requestMapper).toDto(requestEntity);
     }
 
