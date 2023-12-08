@@ -53,7 +53,9 @@ export const useUser = defineStore('user', {
       bannedRoutes: [] as RouteRecordName[], // Array for routes the user doesn't have permission to access.
     };
   },
-  persist: true, // This store is saved into browser local storage (pinia-plugin-persistedstate)
+  persist: {
+    storage: localStorage,
+  },
   getters: {
     hasPermission: (state) => (perm: string) => {
       return state.permissions.includes(perm);
@@ -226,6 +228,8 @@ export const useUser = defineStore('user', {
       // Reset system data
       const system = useSystem();
       system.clearSystemStore();
+
+      sessionStorage.clear();
 
       // Call backend for logout
       return axiosAuth

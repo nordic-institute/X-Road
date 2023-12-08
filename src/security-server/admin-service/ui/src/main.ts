@@ -69,12 +69,16 @@ import '@fontsource/open-sans';
 import '@niis/shared-ui/dist/style.css';
 import i18n from './plugins/i18n';
 import { createPinia } from 'pinia';
-import piniaPluginPersistedState from 'pinia-plugin-persistedstate';
+import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createFilters } from '@/filters';
 import { createValidators } from '@/plugins/vee-validate';
 
 const pinia = createPinia();
-pinia.use(piniaPluginPersistedState);
+pinia.use(
+  createPersistedState({
+    storage: sessionStorage,
+  }),
+);
 
 axios.defaults.baseURL = import.meta.env.VITE_VUE_APP_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';
