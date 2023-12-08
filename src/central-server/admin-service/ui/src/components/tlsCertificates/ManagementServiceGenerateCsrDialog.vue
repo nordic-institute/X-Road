@@ -28,22 +28,23 @@
   <xrd-simple-dialog
     :disable-save="distinguishedName.length === 0"
     :loading="loading"
-    title="systemSettings.tlsCertificates.managementService.generateCsr.title"
+    title="tlsCertificates.managementService.generateCsr.title"
     save-button-text="action.generateCsr"
     cancel-button-text="action.cancel"
     @cancel="cancel"
     @save="generateCsr"
   >
     <template #text>
-      {{ $t('systemSettings.tlsCertificates.managementService.generateCsr.content') }}
+      {{ $t('tlsCertificates.managementService.generateCsr.content') }}
     </template>
     <template #content>
       <v-text-field
         v-model="distinguishedName"
         variant="outlined"
         autofocus
-        :placeholder="$t('systemSettings.tlsCertificates.managementService.generateCsr.example')"
-        :label="$t('systemSettings.tlsCertificates.managementService.generateCsr.distinguishedName')"
+        data-test="enter-distinguished-name"
+        :placeholder="$t('tlsCertificates.managementService.generateCsr.example')"
+        :label="$t('tlsCertificates.managementService.generateCsr.distinguishedName')"
       >
       </v-text-field>
     </template>

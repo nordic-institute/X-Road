@@ -26,7 +26,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    title="systemSettings.tlsCertificates.managementService.generateKey.title"
+    title="tlsCertificates.managementService.generateKey.title"
     save-button-text="action.confirm"
     :show-close="false"
     :loading="loading"
@@ -35,10 +35,10 @@
   >
     <template #content>
       <p data-test="generate-tls-and-certificate-dialog-explanation-text">
-        {{ $t('systemSettings.tlsCertificates.managementService.generateKey.explanation') }}
+        {{ $t('tlsCertificates.managementService.generateKey.explanation') }}
       </p>
       <p data-test="generate-tls-and-certificate-dialog-confirmation-text">
-        {{ $t('systemSettings.tlsCertificates.managementService.generateKey.confirmation') }}
+        {{ $t('tlsCertificates.managementService.generateKey.confirmation') }}
       </p>
     </template>
   </xrd-simple-dialog>
@@ -68,7 +68,7 @@ export default defineComponent({
         .generateKey()
         .then(() => {
           this.showSuccess(
-            this.$t('systemSettings.tlsCertificates.managementService.generateKey.success'),
+            this.$t('tlsCertificates.managementService.generateKey.success'),
           );
           this.$emit(Event.Confirm);
         })

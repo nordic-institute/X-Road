@@ -684,34 +684,6 @@
       "title": "Management Services",
       "securityServer": "Management Services' Security Server"
     },
-    "tlsCertificates": {
-      "managementService": {
-        "title": "Management Service TLS certificate",
-        "key": "Management Service TLS key",
-        "downloadCertificate": "Download certificate",
-        "downloadSuccess": "Management service TLS certificate successfully downloaded",
-        "generateKey": {
-          "button": "Re-create key",
-          "title": "Management Service TLS key",
-          "confirmation": "Generate a new Management service TLS key and certificate?",
-          "explanation": "The system will generate a new Management service TLS key and a self-signed certificate, replacing the existing key and certificate.",
-          "success": "New Management service TLS key and certificate generated successfully"
-        },
-        "generateCsr": {
-          "button": "Generate CSR",
-          "title": "Generate TLS Certificate Signing Request",
-          "content": "First, provide a distinguished name. Then, generate a new CSR and save it into a safe place",
-          "distinguishedName": "Enter Distinguished name",
-          "example": "CN=mycentralserver.example.com, O=My Organization, C=EE"
-        },
-        "uploadCertificate": {
-          "button": "Upload certificate",
-          "title": "Upload Management Service TLS certificate",
-          "label": "Upload the certificate file from your computer",
-          "success": "Management service TLS certificate successfully uploaded"
-        }
-      }
-    },
     "selectSubsystem": {
       "title": "Select Subsystem",
       "search": "Search",
@@ -748,6 +720,34 @@
     "deleteMemberClass": "Delete member class?",
     "memberClassSaved": "Member class saved.",
     "memberClassDeleted": "Member class deleted."
+  },
+  "tlsCertificates": {
+    "managementService": {
+      "title": "Management Service TLS certificate",
+      "key": "Management Service TLS key",
+      "downloadCertificate": "Download certificate",
+      "downloadSuccess": "Management service TLS certificate successfully downloaded",
+      "generateKey": {
+        "button": "Re-create key",
+        "title": "Management Service TLS key",
+        "confirmation": "Generate a new Management service TLS key and certificate?",
+        "explanation": "The system will generate a new Management service TLS key and a self-signed certificate, replacing the existing key and certificate.",
+        "success": "New Management service TLS key and certificate generated successfully"
+      },
+      "generateCsr": {
+        "button": "Generate CSR",
+        "title": "Generate TLS Certificate Signing Request",
+        "content": "First, provide a distinguished name. Then, generate a new CSR and save it into a safe place",
+        "distinguishedName": "Enter Distinguished name",
+        "example": "CN=mycentralserver.example.com, O=My Organization, C=EE"
+      },
+      "uploadCertificate": {
+        "button": "Upload certificate",
+        "title": "Upload Management Service TLS certificate",
+        "label": "Upload the certificate file from your computer",
+        "success": "Management service TLS certificate successfully uploaded"
+      }
+    }
   },
   "tab": {
     "globalConf": {

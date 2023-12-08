@@ -25,17 +25,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view title-key="systemSettings.tlsCertificates.managementService.title" data-test="tls-keys-view">
+  <titled-view title-key="tlsCertificates.managementService.title" data-test="tls-certificates-view">
     <template #header-buttons>
       <xrd-button
         v-if="hasPermissionToDownloadCertificate"
         :loading="loadingDownload"
+        data-test="download-management-service-certificate"
         @click="download"
       >
         <xrd-icon-base class="xrd-large-button-icon">
           <XrdIconDownload/>
         </xrd-icon-base>
-        {{ $t('systemSettings.tlsCertificates.managementService.downloadCertificate') }}
+        {{ $t('tlsCertificates.managementService.downloadCertificate') }}
       </xrd-button>
     </template>
 
@@ -48,7 +49,7 @@
               <div class="key-row">
                 <div class="key-wrap">
                   <i class="icon-Key icon"/>
-                  {{ $t('systemSettings.tlsCertificates.managementService.key') }}
+                  {{ $t('tlsCertificates.managementService.key') }}
                 </div>
               </div>
             </td>
@@ -58,17 +59,15 @@
           <tr>
             <td>
               <div class="cert-row">
-                <div>
-                  <xrd-button
-                    v-if="hasPermissionToViewCertificate"
-                    text
-                    @click="navigateToCertificateDetails"
-                  >
-                    <xrd-icon-base class="internal-conf-icon">
-                      <XrdIconCertificate/>
-                    </xrd-icon-base>
-                    {{ certificateDetails?.hash }}
-                  </xrd-button>
+                <div
+                  class="xrd-clickable"
+                  data-test="view-management-service-certificate"
+                  @click="navigateToCertificateDetails"
+                >
+                  <xrd-icon-base class="internal-conf-icon">
+                    <XrdIconCertificate/>
+                  </xrd-icon-base>
+                  <hash-value :value="hash" />
                 </div>
               </div>
             </td>
@@ -80,31 +79,34 @@
                   v-if="hasPermissionToGenerateKey"
                   class="button-spacing"
                   outlined
+                  data-test="management-service-certificate-generateKey"
                   @click="generateKey"
                 >
                   <xrd-icon-base class="xrd-large-button-icon">
                     <XrdIconAdd/>
                   </xrd-icon-base>
-                  {{ $t('systemSettings.tlsCertificates.managementService.generateKey.button') }}
+                  {{ $t('tlsCertificates.managementService.generateKey.button') }}
                 </xrd-button
                 >
                 <xrd-button
                   v-if="hasPermissionToGenerateCsr"
                   class="button-spacing"
                   outlined
+                  data-test="management-service-certificate-generateCsr"
                   @click="generateCsr"
-                >{{ $t('systemSettings.tlsCertificates.managementService.generateCsr.button') }}
+                >{{ $t('tlsCertificates.managementService.generateCsr.button') }}
                 </xrd-button>
                 <xrd-button
                   v-if="hasPermissionToUploadCertificate"
                   class="button-spacing"
                   outlined
+                  data-test="upload-management-service-certificate"
                   @click="uploadCertificate"
                 >
                   <xrd-icon-base class="xrd-large-button-icon">
                     <XrdIconUpload/>
                   </xrd-icon-base>
-                  {{ $t('systemSettings.tlsCertificates.managementService.uploadCertificate.button') }}
+                  {{ $t('tlsCertificates.managementService.uploadCertificate.button') }}
                 </xrd-button>
               </div>
             </td>
@@ -150,10 +152,11 @@ import {
 import TitledView from "@/components/ui/TitledView.vue";
 import { useManagementServices } from "@/store/modules/management-services";
 import ManagementServiceUploadCertificateDialog
-  from "@/components/systemSettings/tlsCertificates/ManagementServiceUploadCertificateDialog.vue";
-import ManagementServiceGenerateKeyDialog from "@/components/systemSettings/tlsCertificates/ManagementServiceGenerateKeyDialog.vue";
-import ManagementServiceGenerateCsrDialog from "@/components/systemSettings/tlsCertificates/ManagementServiceGenerateCsrDialog.vue";
+  from "@/components/tlsCertificates/ManagementServiceUploadCertificateDialog.vue";
+import ManagementServiceGenerateKeyDialog from "@/components/tlsCertificates/ManagementServiceGenerateKeyDialog.vue";
+import ManagementServiceGenerateCsrDialog from "@/components/tlsCertificates/ManagementServiceGenerateCsrDialog.vue";
 import { useUser } from "@/store/modules/user";
+import HashValue from "@/components/ui/HashValue.vue";
 
 export default defineComponent({
   components: {
@@ -164,12 +167,14 @@ export default defineComponent({
     XrdIconCertificate,
     ManagementServiceGenerateKeyDialog,
     ManagementServiceGenerateCsrDialog,
+    HashValue
   },
   data() {
     return {
       loading: false,
       loadingDownload: false,
       certificateDetails: null as CertificateDetailsType | null,
+      hash: "",
       showGenerateKeyDialog: false,
       showGenerateCsrDialog: false,
       showUploadtCertificateDialog: false,
@@ -204,6 +209,7 @@ export default defineComponent({
       this.managementServicesStore
         .getCertificate()
         .then((resp) => (this.certificateDetails = resp.data))
+        .then(() => this.hash = this.certificateDetails?.hash)
         .catch((error) => this.showError(error))
         .finally(() => (this.loading = false));
     },
@@ -247,5 +253,13 @@ export default defineComponent({
   width: 100%;
   display: flex;
   justify-content: flex-end;
+}
+
+.cert-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding-left: 56px;
+  height: 56px;
 }
 </style>

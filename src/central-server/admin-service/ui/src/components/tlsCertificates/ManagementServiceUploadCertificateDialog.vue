@@ -27,7 +27,7 @@
 <template>
   <xrd-simple-dialog
     :dialog="true"
-    title="systemSettings.tlsCertificates.managementService.uploadCertificate.title"
+    title="tlsCertificates.managementService.uploadCertificate.title"
     save-button-text="action.upload"
     cancel-button-text="action.cancel"
     :loading="loading"
@@ -45,7 +45,7 @@
           <v-text-field
             v-model="certFileTitle"
             variant="outlined"
-            :label="$t('systemSettings.tlsCertificates.managementService.uploadCertificate.label')"
+            :label="$t('tlsCertificates.managementService.uploadCertificate.label')"
             append-inner-icon="icon-Upload"
             @click="upload"
           ></v-text-field>
@@ -92,7 +92,7 @@ export default defineComponent({
         )
         .then(() => {
           this.showSuccess(
-            this.$t('systemSettings.tlsCertificates.managementService.uploadCertificate.success'),
+            this.$t('tlsCertificates.managementService.uploadCertificate.success'),
           );
           this.$emit(Event.Upload);
         })

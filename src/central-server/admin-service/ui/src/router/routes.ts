@@ -91,7 +91,7 @@ import TimestampingServiceCertificate from '@/components/timestampingServices/Ti
 import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
 import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
 import ManagementServiceTlsKey from "@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue";
-import ManagementServiceCertificate from "@/components/systemSettings/tlsCertificates/ManagementServiceCertificate.vue";
+import ManagementServiceCertificate from "@/components/tlsCertificates/ManagementServiceCertificate.vue";
 
 const routes: RouteRecordRaw[] = [
   {
