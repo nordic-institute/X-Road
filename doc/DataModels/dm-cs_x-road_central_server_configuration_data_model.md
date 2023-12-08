@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.12 
+Version: 1.13  
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                                                      | Author               |
@@ -26,6 +26,7 @@ Doc. ID: DM-CS
 | 17.04.2023 | 1.10    | Remove central services support                                                  | Justas Samuolis      | 
 | 30.05.2023 | 1.11    | Remove security_server_client_names table                                        | Ovidijus Narkevičius | 
 | 14.06.2023 | 1.12    | New Central Server updates                                                       | Eneli Reimets        |
+| 08.12.2023 | 1.13    | Added enabled field to server_clients table                                      | Madis Loitmaa        |
 
 ## Table of Contents
 
@@ -688,11 +689,12 @@ The record is created when a new client is added to the Security Server. It requ
 
 ### 2.22.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| security_server_id [FK] | integer | NOT NULL | ID of the Security Server. References id attribute of security_servers entity. |
-| security_server_client_id [FK] | integer | NOT NULL | ID of the client the Security Server has. References id attribute of security_server_clients entity. |
+| Name                           |  Type   | Modifiers | Description                                                                                          |
+|:-------------------------------|:-------:|:----------|:-----------------------------------------------------------------------------------------------------|
+| id [PK]                        | integer | NOT NULL  | Primary key                                                                                          |
+| security_server_id [FK]        | integer | NOT NULL  | ID of the Security Server. References id attribute of security_servers entity.                       |
+| security_server_client_id [FK] | integer | NOT NULL  | ID of the client the Security Server has. References id attribute of security_server_clients entity. |
+| enabled                        | boolean | NOT NULL  | Indicates whether client (subsystem) is enabled (true) or temporarily disabled (false)               |
 
 ## 2.23 SYSTEM_PARAMETERS
 
