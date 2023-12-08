@@ -1,5 +1,5 @@
 @CentralServer
-Feature: 0370 - CS: Settings -> TLS Certificates
+Feature: 0860 - CS: Settings -> TLS Certificates
 
   Background:
     Given CentralServer login page is open
@@ -33,11 +33,11 @@ Feature: 0370 - CS: Settings -> TLS Certificates
   Scenario: Management Service TLS certificate sign request can be generated
     Given TLS Certificates sub-tab is selected
     When Generate CSR button is clicked
-    Then Enter Distinguished name is asked and value CN=cs is entered
+    Then new dialog is opened and Enter Distinguished name is asked and value CN=cs is entered
     When dialog Generate CSR button is clicked
     Then generated sign request is downloaded
 
-  Scenario: Management Service TLS certificate with wrong key can't uploaded
+  Scenario: Management Service TLS certificate with different key can't be uploaded
     Given TLS Certificates sub-tab is selected
-    When wrong management service TLS certificate management-service-new.crt is uploaded
+    When different management service TLS certificate management-service-new.crt is uploaded
     Then error: "The imported certificate does not match the TLS key" was displayed

@@ -113,7 +113,7 @@ public class SettingsTlsCertificatesStepDefs extends BaseUiStepDefs {
         settingsTlsCertificatesPageObj.btnCreateCsr().click();
     }
 
-    @Step("Enter Distinguished name is asked and value {} is entered")
+    @Step("new dialog is opened and Enter Distinguished name is asked and value {} is entered")
     public void enterDistinguishedName(final String distinguishedName) {
         settingsTlsCertificatesPageObj.createCsrDialog.btnGenerateCsr().shouldBe(disabled);
         settingsTlsCertificatesPageObj.createCsrDialog.btnCancel().shouldBe(enabled);
@@ -142,7 +142,7 @@ public class SettingsTlsCertificatesStepDefs extends BaseUiStepDefs {
         settingsTlsCertificatesPageObj.btnUploadCertificate().shouldBe(visible);
     }
 
-    @Step("wrong management service TLS certificate {} is uploaded")
+    @Step("different management service TLS certificate {} is uploaded")
     public void uploadCertificate(String fileName) {
         settingsTlsCertificatesPageObj.btnUploadCertificate().click();
 
