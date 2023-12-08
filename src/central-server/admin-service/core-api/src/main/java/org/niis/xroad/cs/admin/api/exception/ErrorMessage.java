@@ -65,6 +65,7 @@ public enum ErrorMessage implements DeviationProvider {
     MR_CLIENT_ALREADY_OWNER("management_request_client_already_owner", "Client is already owner of the security server"),
     MR_SERVER_CODE_EXISTS("management_request_server_code_exists", "Member already owns a security server with server code"),
     MR_INVALID_SERVER_ADDRESS("management_request_invalid_server_address", "Invalid server address"),
+    MR_SERVER_CLIENT_NOT_FOUND("management_request_server_client_not_found", "Security server client not found"),
     MR_UNKNOWN_TYPE("management_request_unknown_type", "Unknown request type"),
 
     INVALID_SERVICE_PROVIDER_ID("invalid_service_provider_id", "Invalid service provider id"),

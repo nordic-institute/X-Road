@@ -103,6 +103,14 @@ public class TestManagementRequestBuilder {
         return buildGenericClientRequestType(ManagementRequestType.CLIENT_DELETION_REQUEST, securityServer, clientId);
     }
 
+    public SoapMessageImpl buildClientDisableRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
+        return buildGenericClientRequestType(ManagementRequestType.CLIENT_DISABLE_REQUEST, securityServer, clientId);
+    }
+
+    public SoapMessageImpl buildClientEnableRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
+        return buildGenericClientRequestType(ManagementRequestType.CLIENT_ENABLE_REQUEST, securityServer, clientId);
+    }
+
     private SoapMessageImpl buildGenericClientRequestType(ManagementRequestType type, SecurityServerId.Conf securityServer,
                                                           ClientId.Conf clientId) {
         log.debug("buildClientRegRequest(server: {}, clientId: {})", securityServer, clientId);

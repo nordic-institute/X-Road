@@ -60,6 +60,10 @@ public class ClientInfoPageObj {
         public SelenideElement certificateByName(String name) {
             return $x(format("//span[@data-test='cert-name' and text()='%s']", name));
         }
+
+        public SelenideElement btnDisable() {
+            return $x("//button[@data-test='disable-client-button']");
+        }
     }
 
     public static class InternalServers {

@@ -40,6 +40,7 @@ public class ServerClient {
     private String serverCode;
     private String serverOwner;
     private SecurityServerId serverId;
+    private boolean enabled = true;
 }
 
 
