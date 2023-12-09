@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.35
+Version: 2.36
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -61,6 +61,7 @@ Doc. ID: UG-CS
 | 11.07.2023 | 2.33    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
 | 20.11.2023 | 2.34    | Security server address change management request                                                                                                                                                                                                                                                                                                                                                                                       | Justas Samuolis     |
 | 09.12.2023 | 2.35    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
+| 09.12.2023 | 2.36    | Management service TLS certificate                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets       |
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
 
@@ -86,6 +87,9 @@ Doc. ID: UG-CS
   - [4.3 Configuring the Central Server Address](#43-configuring-the-central-server-address)
     - [4.3.1 Notes on HA Setup](#431-notes-on-ha-setup)
     - [4.3.2 Changing the Central Server Address](#432-changing-the-central-server-address)
+  - [4.4 Managing the TLS certificates](#44-managing-the-tls-certificates)
+    - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
+      - [4.4.1.1 Reloading nginx service](#4411-reloading-nginx-service) 
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -412,6 +416,59 @@ To change the Central Server address, follow these steps.
   - Download the internal configuration source anchor and distribute the anchor along with the anchor’s hash value to the Security Server administrators of the local X-Road infrastructure.
   - In case of federated X-Road systems, download the external configuration source anchor and distribute the anchor along with the anchor’s hash value to the federation partners.
   - Reconfigure the management services addresses in the management service Security Server.
+
+## 4.4 Managing the TLS certificates
+
+Access rights: Security Officer
+
+### 4.4.1 Registration and Management Service TLS certificate
+
+Registration and Management Service TLS certificate is used to secure the communication of management service provider (Security Server) and Central Server management services.
+
+To see Registration and Management Service TLS certificate info, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click certificate hash.
+
+To download Management Service TLS certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section.
+3. Click button Download certificate and save the prompted file.
+
+To re-create Management Service key and self-signed certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Re-create key.
+3. Confirm the re-creating by clicking Confirm.
+4. Reload the nginx service for the certificate change to take effect. See section 4.4.1.1 Reloading nginx service.
+
+To generate Management Service certificate signing request, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Generate CSR.
+3. Read the information and enter Distinguished name and click button Generate CSR.
+4. Save prompted file into a safe place.
+
+To upload Management Service certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Upload certificate.
+3. Find the proper certificate file and click Open, to finish certificate uploading click button Upload.
+4. Reload the nginx service for the certificate change to take effect. See section 4.4.1.1 Reloading nginx service.
+
+#### 4.4.1.1 Reloading nginx service
+
+Reload the nginx service for the certificate change to take effect.
+
+```bash
+systemctl reload nginx
+```
+
+**ATTENTION!** The changed management service certificate is added in `private-params.xml` what is part of global configuration. The global configuration fetching to the Security Server side depend on the system parameters. The system parameters are specified in the \[[UG-SYSPAR](#Ref_UG-SYSPAR)\] section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]".
+
+It is good to know when changed global configuration is fetched to the Security Server side to schedule nginx service reloading at the same time.
+- If the private parameter generation and global configuration fetching are doing with default parameter, then new management service TLS certificate is usable on the Security Server side after ~1.5 min.
 
 # 5. Configuration Management
 
