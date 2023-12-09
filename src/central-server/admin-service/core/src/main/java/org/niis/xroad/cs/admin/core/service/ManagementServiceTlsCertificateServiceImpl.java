@@ -63,17 +63,17 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BYTES_TO_CERTIFICATE_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CERTIFICATE_IMPORT_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CERTIFICATE_READ_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CERTIFICATE_WRITING_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CSR_GENERATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.IMPORTED_CERTIFICATE_ALREADY_EXISTS;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.IMPORTED_KEY_NOT_FOUND;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DISTINGUISHED_NAME;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_CERT_GENERATION_INTERRUPTED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.BYTES_TO_CERTIFICATE_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_IMPORT_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_READ_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_WRITING_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CSR_GENERATION_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_CERTIFICATE_ALREADY_EXISTS;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_KEY_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_DISTINGUISHED_NAME;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_CERT_GENERATION_FAILED;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_CERT_GENERATION_INTERRUPTED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
 
 @Service

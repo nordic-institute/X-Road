@@ -53,26 +53,6 @@
                 </div>
               </div>
             </td>
-            <td/>
-            <td/>
-          </tr>
-          <tr>
-            <td>
-              <div class="cert-row">
-                <div
-                  class="xrd-clickable"
-                  data-test="view-management-service-certificate"
-                  @click="navigateToCertificateDetails"
-                >
-                  <xrd-icon-base class="internal-conf-icon">
-                    <XrdIconCertificate/>
-                  </xrd-icon-base>
-                  <hash-value :value="hash" />
-                </div>
-              </div>
-            </td>
-            <td>
-            </td>
             <td class="action-cell">
               <div class="button-wrap">
                 <xrd-button
@@ -89,14 +69,6 @@
                 </xrd-button
                 >
                 <xrd-button
-                  v-if="hasPermissionToGenerateCsr"
-                  class="button-spacing"
-                  outlined
-                  data-test="management-service-certificate-generateCsr"
-                  @click="generateCsr"
-                >{{ $t('tlsCertificates.managementService.generateCsr.button') }}
-                </xrd-button>
-                <xrd-button
                   v-if="hasPermissionToUploadCertificate"
                   class="button-spacing"
                   outlined
@@ -107,6 +79,38 @@
                     <XrdIconUpload/>
                   </xrd-icon-base>
                   {{ $t('tlsCertificates.managementService.uploadCertificate.button') }}
+                </xrd-button>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <table class="xrd-table mt-0 pb-3">
+          <tbody>
+          <tr>
+            <td>
+              <div >
+                <div
+                  class="xrd-clickable"
+                  data-test="view-management-service-certificate"
+                  @click="navigateToCertificateDetails"
+                >
+                  <xrd-icon-base class="internal-conf-icon">
+                    <XrdIconCertificate/>
+                  </xrd-icon-base>
+                  <hash-value :value="hash" />
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="button-wrap">
+                <xrd-button
+                  v-if="hasPermissionToGenerateCsr"
+                  class="button-spacing"
+                  text
+                  data-test="management-service-certificate-generateCsr"
+                  @click="generateCsr"
+                >{{ $t('tlsCertificates.managementService.generateCsr.button') }}
                 </xrd-button>
               </div>
             </td>
@@ -261,5 +265,10 @@ export default defineComponent({
   align-items: center;
   padding-left: 56px;
   height: 56px;
+}
+
+.internal-conf-icon {
+  margin-right: 15px;
+  color: $XRoad-Purple100;
 }
 </style>
