@@ -102,7 +102,7 @@ Doc. ID: UG-CS
   - [6.1 Registration Requests](#61-registration-requests)
     - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
   - [6.2 Deletion Requests](#62-deletion-requests)
-  - [6.3 Address change request](#63-address-change-request)
+  - [6.3 Address Change Request](#63-address-change-request)
   - [6.4 Viewing the Management Request Details](#64-viewing-the-management-request-details)
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
   - [7.1 Adding a Member](#71-adding-a-member)
