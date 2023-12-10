@@ -89,7 +89,7 @@ Doc. ID: UG-CS
     - [4.3.2 Changing the Central Server Address](#432-changing-the-central-server-address)
   - [4.4 Managing the TLS certificates](#44-managing-the-tls-certificates)
     - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
-      - [4.4.1.1 Reloading nginx service](#4411-reloading-nginx-service) 
+      - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate) 
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -423,7 +423,9 @@ Access rights: Security Officer
 
 ### 4.4.1 Registration and Management Service TLS certificate
 
-Registration and Management Service TLS certificate is used to secure the communication of management service provider (Security Server) and Central Server management services.
+Registration and Management Service TLS certificate is used
+- to secure the communication of management service provider (Security Server) and Central Server management services;
+- to the authentication certificate registration request is submitted from the Security Server.
 
 To see Registration and Management Service TLS certificate info, follow these steps.
 
@@ -441,7 +443,7 @@ To re-create Management Service key and self-signed certificate, follow these st
 1. In the Navigation tabs, select Settings --> TLS certificates.
 2. Locate the Management service TLS certificate section and click button Re-create key.
 3. Confirm the re-creating by clicking Confirm.
-4. Reload the nginx service for the certificate change to take effect. See section 4.4.1.1 Reloading nginx service.
+4. Do after activities in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 
 To generate Management Service certificate signing request, follow these steps.
 
@@ -455,20 +457,22 @@ To upload Management Service certificate, follow these steps.
 1. In the Navigation tabs, select Settings --> TLS certificates.
 2. Locate the Management service TLS certificate section and click button Upload certificate.
 3. Find the proper certificate file and click Open, to finish certificate uploading click button Upload.
-4. Reload the nginx service for the certificate change to take effect. See section 4.4.1.1 Reloading nginx service.
+4. Do after activities in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 
-#### 4.4.1.1 Reloading nginx service
+#### 4.4.1.1 Necessary activities after changing certificate
 
-Reload the nginx service for the certificate change to take effect.
+1. When the key and certificate are rotated, and mTLS is enabled between the management Security Server and the management services, the new certificate must be updated to the management Security Server.
+
+2. Reload the nginx service for the certificate change to take effect.
 
 ```bash
 systemctl reload nginx
 ```
 
-**ATTENTION!** The changed management service certificate is added in `private-params.xml` what is part of global configuration. The global configuration fetching to the Security Server side depend on the system parameters. The system parameters are specified in the \[[UG-SYSPAR](#Ref_UG-SYSPAR)\] section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]".
+**ATTENTION!** The changed TLS certificate is added in `private-params.xml` what is part of global configuration. The global configuration fetching to the Security Server side depend on the system parameters. The system parameters are specified in the \[[UG-SYSPAR](#Ref_UG-SYSPAR)\] section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]".
 
-It is good to know when changed global configuration is fetched to the Security Server side to schedule nginx service reloading at the same time.
-- If the private parameter generation and global configuration fetching are doing with default parameter, then new management service TLS certificate is usable on the Security Server side after ~1.5 min.
+It is good to know when global configuration is fetched to the Security Server side to schedule nginx service reloading at the same time.
+- If the private parameter generation and global configuration fetching are doing with default parameter, then new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
 
 # 5. Configuration Management
 
