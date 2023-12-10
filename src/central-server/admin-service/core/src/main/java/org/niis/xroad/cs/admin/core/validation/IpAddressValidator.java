@@ -1,6 +1,6 @@
 /*
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,17 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.dto;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+package org.niis.xroad.cs.admin.core.validation;
 
-@Getter
-@RequiredArgsConstructor
-public class ApprovedCertificationService {
-    private final byte[] certificate;
-    private final String certificateProfileInfo;
-    private final Boolean tlsAuth;
-    private final String acmeServerDirectoryUrl;
-    private final String acmeServerIpAddress;
+import com.google.common.net.InetAddresses;
+import org.niis.xroad.common.exception.ValidationFailureException;
+import org.springframework.stereotype.Component;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_IP_ADDRESS;
+
+@Component
+public class IpAddressValidator {
+
+    public void validateIpAddress(String ipAddress) {
+        if (!InetAddresses.isInetAddress(ipAddress)) {
+            throw new ValidationFailureException(INVALID_IP_ADDRESS);
+        }
+    }
+
+
+    public void validateCommaSeparatedIpAddresses(String commaSeparatedIpAddresses) {
+        String[] ipAddresses = commaSeparatedIpAddresses.split(",");
+        for (String ipAddress : ipAddresses) {
+            validateIpAddress(ipAddress.trim());
+        }
+    }
+
 }

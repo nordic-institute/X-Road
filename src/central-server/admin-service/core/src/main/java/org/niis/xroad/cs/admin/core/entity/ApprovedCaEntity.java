@@ -89,6 +89,16 @@ public class ApprovedCaEntity extends AuditableEntity {
     @Setter
     private String certProfileInfo;
 
+    @Column(name = "acme_server_directory_url")
+    @Getter
+    @Setter
+    private String acmeServerDirectoryUrl;
+
+    @Column(name = "acme_server_ip_address")
+    @Getter
+    @Setter
+    private String acmeServerIpAddress;
+
     //this is the set of intermediate CAs
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "approvedCa")
     @Getter

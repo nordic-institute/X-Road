@@ -3211,6 +3211,14 @@ components:
         tls_auth:
           description: can the CA be used for TLS authentication
           type: boolean
+        acme_server_directory_url:
+          type: string
+          format: url
+          minLength: 1
+        acme_server_ip_address:
+          type: string
+          format: text
+          minLength: 1
       required:
         - id
         - tls_auth
@@ -3434,6 +3442,12 @@ components:
           type: string
         tls_auth:
           description: can the CA be used for TLS authentication
+          type: string
+        acme_server_directory_url:
+          format: url
+          type: string
+        acme_server_ip_address:
+          format: text
           type: string
       type: object
     DistinguishedName:

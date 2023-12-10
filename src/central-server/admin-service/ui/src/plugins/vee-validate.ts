@@ -27,6 +27,7 @@
 import { configure, defineRule } from 'vee-validate';
 import { between, is, max, min, required, url } from '@vee-validate/rules';
 import { App } from 'vue';
+import { isIP } from 'is-ip';
 import i18n from '@/plugins/i18n';
 import { FieldValidationMetaInfo } from "@vee-validate/i18n";
 
@@ -35,9 +36,7 @@ export function createValidators(i18nMessages = {}) {
   return {
     install(app: App) {
       configure({
-        // This should be ok, as it is the vee-validate contract
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        generateMessage: (ctx) => {
+        generateMessage: (ctx: FieldVlidationMetaInfo) => {
           // override the field name.
 
           const field =
@@ -59,7 +58,7 @@ export function createValidators(i18nMessages = {}) {
               break;
             }
           }
-          return t(`validation.messages.${ctx.rule.name}`, args) as string;
+          return t(`validation.messages.${ctx.rule?.name}`, args) as string;
         },
       });
 
@@ -79,6 +78,18 @@ export function createValidators(i18nMessages = {}) {
       defineRule('is', is);
 
       defineRule('url', url);
+
+      defineRule('ipAddresses', (value: string) => {
+        if (!value) {
+          return true;
+        }
+        for (const ipAddress of value.split(',')) {
+          if (!isIP(ipAddress.trim())) {
+            return i18n.global.t('customValidation.invalidIpAddress');
+          }
+        }
+        return true;
+      });
 
       defineRule(
         'address',

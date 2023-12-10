@@ -69,7 +69,9 @@ public class ApprovedCaConverter {
                         .map(caInfoConverter::toCertificateAuthority)
                         .collect(toList()))
                 .setCreatedAt(entity.getCreatedAt())
-                .setUpdatedAt(entity.getUpdatedAt());
+                .setUpdatedAt(entity.getUpdatedAt())
+                .setAcmeServerDirectoryUrl(entity.getAcmeServerDirectoryUrl())
+                .setAcmeServerIpAddress(entity.getAcmeServerIpAddress());
     }
 
     public List<CertificationServiceListItem> toListItems(Collection<ApprovedCaEntity> entities) {

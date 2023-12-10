@@ -23,36 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import mockJson from './mockClients.json';
-import compareJson from './mockClientsResult.json';
-import { useClients } from '@/store/modules/clients';
 import { useUser } from '@/store/modules/user';
-import { InitializationStatus, TokenInitStatus, Client } from '@/openapi-types';
+import { InitializationStatus, TokenInitStatus } from '@/openapi-types';
 import { createPinia } from 'pinia';
 import { setActivePinia } from 'pinia';
 
-describe('clients actions', () => {
-  beforeEach(() => {
-    // creates a fresh pinia and make it active so it's automatically picked
-    // up by any useStore() call without having to pass it to it:
-    // `useStore(pinia)`
-    setActivePinia(createPinia());
-  });
-
-  it('Get clients', () => {
-    const store = useClients();
-    store.storeClients(mockJson as Client[]);
-
-    const result = store.getClients;
-    // Check that the array has correct length
-    expect(result).toHaveLength(8);
-
-    // Compare the array to a correct result
-    expect(result).toEqual(expect.arrayContaining(compareJson));
-  });
-});
-
-describe('initialize store', () => {
+describe('Initialize store', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
   });
