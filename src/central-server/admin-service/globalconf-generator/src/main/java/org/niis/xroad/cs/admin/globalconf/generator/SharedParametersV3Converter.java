@@ -69,6 +69,7 @@ abstract class SharedParametersV3Converter {
     @Mapping(source = "securityServers", target = "securityServer")
     @Mapping(source = "globalGroups", target = "globalGroup")
     @Mapping(target = "centralService", ignore = true)
+    @Mapping(target = "any", ignore = true)
     abstract SharedParametersTypeV3 convert(SharedParameters sharedParameters,
                                             @Context Map<ClientId, Object> clientMap);
 

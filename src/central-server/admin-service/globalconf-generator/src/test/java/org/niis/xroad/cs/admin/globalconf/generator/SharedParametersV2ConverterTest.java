@@ -84,8 +84,7 @@ class SharedParametersV2ConverterTest {
                         "members.subsystems.id",
                         "centralService"
                 )
-                .withEqualsForFields((a, b) ->
-                                new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
+                .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
                 .build();
 

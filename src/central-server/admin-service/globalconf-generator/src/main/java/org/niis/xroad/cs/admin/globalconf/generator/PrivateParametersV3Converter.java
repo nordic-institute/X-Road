@@ -29,7 +29,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -43,7 +43,8 @@ interface PrivateParametersV3Converter {
     PrivateParametersV3Converter INSTANCE = Mappers.getMapper(PrivateParametersV3Converter.class);
 
     @Mapping(source = "configurationAnchors", target = "configurationAnchor")
-    PrivateParametersType convert(PrivateParameters parameters);
+    @Mapping(target = "any", ignore = true)
+    PrivateParametersTypeV3 convert(PrivateParameters parameters);
 
     @Mapping(source = "sources", target = "source")
     ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);

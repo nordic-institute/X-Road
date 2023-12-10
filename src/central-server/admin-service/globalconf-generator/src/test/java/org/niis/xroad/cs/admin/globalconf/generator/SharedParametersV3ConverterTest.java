@@ -86,11 +86,9 @@ class SharedParametersV3ConverterTest {
                         "members.id",
                         "members.subsystems.id",
                         "centralService",
-                        "sources.internalVerificationCerts",
-                        "sources.externalVerificationCerts"
+                        "any"
                 )
-                .withEqualsForFields((a, b) ->
-                                new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
+                .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
                 .build();
 

@@ -27,13 +27,13 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
 
 import static java.util.stream.Collectors.toList;
 
 public class PrivateParametersV3Converter {
 
-    PrivateParameters convert(PrivateParametersType source) {
+    PrivateParameters convert(PrivateParametersTypeV3 source) {
         var target = new PrivateParameters();
         target.setInstanceIdentifier(source.getInstanceIdentifier());
         target.setTimeStampingIntervalSeconds(source.getTimeStampingIntervalSeconds());
