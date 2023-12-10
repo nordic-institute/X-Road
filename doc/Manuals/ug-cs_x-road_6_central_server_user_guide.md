@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.34
+Version: 2.35
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -60,6 +60,7 @@ Doc. ID: UG-CS
 | 10.07.2023 | 2.32    | Update system services                                                                                                                                                                                                                                                                                                                                                                                                                  | Petteri Kivimäki    |
 | 11.07.2023 | 2.33    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
 | 20.11.2023 | 2.34    | Security server address change management request                                                                                                                                                                                                                                                                                                                                                                                       | Justas Samuolis     |
+| 09.12.2023 | 2.35    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
 
@@ -101,7 +102,7 @@ Doc. ID: UG-CS
   - [6.1 Registration Requests](#61-registration-requests)
     - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
   - [6.2 Deletion Requests](#62-deletion-requests)
-  - [6.3 Address change request](#63-address-change-request)
+  - [6.3 Address Change Request](#63-address-change-request)
   - [6.4 Viewing the Management Request Details](#64-viewing-the-management-request-details)
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
   - [7.1 Adding a Member](#71-adding-a-member)
@@ -600,9 +601,9 @@ Deletion requests are
 - authentication certificate deletion request (see Section 8.4);
 - Security Server client deletion request (see Section 7.6).
 
-## 6.3 Address change request
+## 6.3 Address Change Request
 
-Address change request is submitted from security to change its address. The request does not require any additional approvals on Central Server.
+Address change request is submitted through a Security Server to change its address. The request does not require any additional approvals on the Central Server.
 
 ## 6.4 Viewing the Management Request Details
 
