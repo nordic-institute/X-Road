@@ -111,7 +111,7 @@ Doc. ID: UG-CS
   - [6.2 Deletion Requests](#62-deletion-requests)
   - [6.3 Address Change Request](#63-address-change-request)
   - [6.4 Temporarily Disabling Client Requests](#64-temporarily-disabling-client-requests)
-  - [6.4 Viewing the Management Request Details](#64-viewing-the-management-request-details)
+  - [6.5 Viewing the Management Request Details](#65-viewing-the-management-request-details)
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
   - [7.1 Adding a Member](#71-adding-a-member)
   - [7.2 Viewing the Member Details](#72-viewing-the-member-details)
@@ -677,7 +677,7 @@ Address change request is submitted through a Security Server to change its addr
 Security Server can disable client subsystem temporarily by issuing "Disable client" request. Disabled client can be enabled again to with "Enable client" request.
 These requests do not require any additional approvals on Central Server.
 
-## 6.4 Viewing the Management Request Details
+## 6.5 Viewing the Management Request Details
 
 Access rights: Registration Officer
 
