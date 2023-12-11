@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ -n $(find /etc/xroad/ssl -type f -regextype posix-extended -regex '.*management-service.crt' -mmin -5) ]]
+if [[ -n $(find /etc/xroad/ssl/management-service.crt -type f -mmin -6) ]]
 then
     sudo service nginx reload
 fi
