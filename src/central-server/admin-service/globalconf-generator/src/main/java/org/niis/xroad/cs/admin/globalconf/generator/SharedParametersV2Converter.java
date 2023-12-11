@@ -35,8 +35,10 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerTyp
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.xml.bind.JAXBElement;
+import lombok.SneakyThrows;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -47,8 +49,6 @@ import org.mapstruct.factory.Mappers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toList;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 abstract class SharedParametersV2Converter {
@@ -73,7 +73,7 @@ abstract class SharedParametersV2Converter {
     @Mapping(source = "intermediateCAs", target = "intermediateCA")
     abstract ApprovedCATypeV2 convert(SharedParameters.ApprovedCA approvedCa);
 
-    @Mapping(source = "authCertHashes", target = "authCertHash")
+    @Mapping(source = "authCerts", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
     @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
     @Mapping(target = "owner", qualifiedByName = "clientById")
     abstract SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap);
@@ -104,7 +104,19 @@ abstract class SharedParametersV2Converter {
         }
         return clientIds.stream()
                 .map(clientId -> OBJECT_FACTORY.createSecurityServerTypeClient(xmlClientId(clientId, clientMap)))
-                .collect(toList());
+                .toList();
+    }
+
+    @Named("toAuthCertHashes")
+    protected List<byte[]> toAuthCertHashes(List<byte[]> authCerts) {
+        return authCerts.stream()
+                .map(this::toAuthCertHash)
+                .toList();
+    }
+
+    @SneakyThrows
+    private byte[] toAuthCertHash(byte[] authCert) {
+        return CryptoUtils.certSha1Hash(authCert);
     }
 
     private Map<ClientId, Object> createClientIdMap(SharedParameters sharedParameters) {

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,29 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.managementrequest.model;
 
-package org.niis.xroad.ss.test.ui.utils;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
+public class ClientDisableRequest extends GenericClientRequest {
 
-import static org.openqa.selenium.Keys.COMMAND;
-import static org.openqa.selenium.Keys.CONTROL;
-import static org.openqa.selenium.Keys.DELETE;
-
-public final class SeleniumUtils {
-
-    public static SelenideElement clearInput(SelenideElement element) {
-        element.sendKeys(isMacOsBrowser() ? COMMAND : CONTROL, "a");
-        element.sendKeys(DELETE);
-
-        return element;
+    public ClientDisableRequest(ClientId client, SoapMessageImpl request) throws Exception {
+        super(client, request);
     }
 
-    private static boolean isMacOsBrowser() {
-        return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
-    }
-
-    private SeleniumUtils() {
-    }
 }

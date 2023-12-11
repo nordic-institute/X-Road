@@ -57,6 +57,9 @@ export const useServices = defineStore('services', {
       serviceDescriptions: [],
     };
   },
+  persist: {
+    paths: ['service', 'serviceClients', 'serviceDescriptions'],
+  },
   getters: {
     descExpanded: (state) => (id: string) => {
       return state.expandedServiceDescriptions.includes(id);
@@ -94,16 +97,7 @@ export const useServices = defineStore('services', {
     },
 
     setService(service: Service) {
-      service.endpoints = service.endpoints?.sort(
-        (a: Endpoint, b: Endpoint) => {
-          const sortByGenerated =
-            a.generated === b.generated ? 0 : a.generated ? -1 : 1;
-          const sortByPathSlashCount =
-            a.path.split('/').length - b.path.split('/').length;
-          const sortByPathLength = a.path.length - b.path.length;
-          return sortByGenerated || sortByPathSlashCount || sortByPathLength;
-        },
-      );
+      service.endpoints = sortEndpoints(service.endpoints);
       this.service = service;
     },
 
@@ -126,5 +120,55 @@ export const useServices = defineStore('services', {
           throw error;
         });
     },
+    deleteEndpoint(id: string) {
+      return api
+        .remove(`/endpoints/${encodePathParameter(id)}`)
+        .then((res) => {
+          this.service.endpoints?.forEach((item, index) => {
+            if (item.id === id) {
+              this.service.endpoints?.splice(index, 1);
+            }
+          });
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    updateEndpoint(endpoint: Endpoint) {
+      if (!endpoint.id) {
+        throw new Error('Unable to save endpoint: Endpoint id not defined!');
+      }
+      return api
+        .patch<Endpoint>(
+          `/endpoints/${encodePathParameter(endpoint.id)}`,
+          endpoint,
+        )
+        .then((res) => {
+          if (this.service.endpoints) {
+            const endpointIndex = this.service.endpoints.findIndex(
+              (e) => e.id === endpoint.id,
+            );
+            if (endpointIndex) {
+              const endpoints = [...this.service.endpoints];
+              endpoints[endpointIndex] = res.data;
+              this.service.endpoints = sortEndpoints(endpoints);
+            }
+          }
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
   },
 });
+
+function sortEndpoints(endpoints: Endpoint[] | undefined) {
+  return endpoints?.sort((a: Endpoint, b: Endpoint) => {
+    const sortByGenerated =
+      a.generated === b.generated ? 0 : a.generated ? -1 : 1;
+    const sortByPathSlashCount =
+      a.path.split('/').length - b.path.split('/').length;
+    const sortByPathLength = a.path.length - b.path.length;
+    return sortByGenerated || sortByPathSlashCount || sortByPathLength;
+  });
+}

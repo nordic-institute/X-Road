@@ -55,9 +55,10 @@ public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository 
      * {@link HttpSessionCsrfTokenRepository} and {@link CookieCsrfTokenRepository} with <code>cookieHttpOnly</code>
      * set to <code>false</code>. Also sets the CSRF header name to ensure it does not change in future Spring updates
      */
-    public CookieAndSessionCsrfTokenRepository() {
+    public CookieAndSessionCsrfTokenRepository(final String sameSite) {
         cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         cookieCsrfTokenRepository.setHeaderName(CSRF_HEADER_NAME);
+        cookieCsrfTokenRepository.setCookieCustomizer(customizer -> customizer.sameSite(sameSite));
         httpSessionCsrfTokenRepository = new HttpSessionCsrfTokenRepository();
         httpSessionCsrfTokenRepository.setSessionAttributeName(SESSION_CSRF_TOKEN_ATTR_NAME);
     }

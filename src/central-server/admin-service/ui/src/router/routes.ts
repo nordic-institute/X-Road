@@ -90,6 +90,8 @@ import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationSer
 import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
 import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
 import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
+import ManagementServiceTlsKey from "@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue";
+import ManagementServiceCertificate from "@/components/tlsCertificates/ManagementServiceCertificate.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -161,6 +163,20 @@ const routes: RouteRecordRaw[] = [
             props: true,
             meta: { permissions: [Permissions.VIEW_API_KEYS] },
           },
+          {
+            name: RouteName.TlsCertificates,
+            path: 'tls-certificates',
+            component: ManagementServiceTlsKey,
+            props: true,
+            meta: { permissions: [Permissions.VIEW_MANAGEMENT_SERVICE_TLS_CERT] },
+          },
+          {
+            name: RouteName.ManagementServiceCertificateDetails,
+            path: '/tls-certificates-details',
+            component: ManagementServiceCertificate,
+            meta: { permissions: [Permissions.VIEW_TLS_CERTIFICATES] },
+          },
+
         ],
       },
 

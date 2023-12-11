@@ -31,8 +31,9 @@ import org.niis.xroad.cs.test.ui.page.MemberPageObj;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class MemberStepDefs extends BaseUiStepDefs {
     private final MemberPageObj memberPageObj = new MemberPageObj();
@@ -72,6 +73,7 @@ public class MemberStepDefs extends BaseUiStepDefs {
     public void userSearchesForMemberUsing(String query) throws InterruptedException {
         memberPageObj.searchIcon().click();
         memberPageObj.searchInput().shouldBe(visible);
+        memberPageObj.searchInput().shouldBe(focused);
         memberPageObj.searchInput().setValue(query);
         TimeUnit.SECONDS.sleep(2); // wait for query to execute
     }

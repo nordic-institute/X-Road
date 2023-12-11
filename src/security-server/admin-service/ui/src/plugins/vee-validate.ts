@@ -24,7 +24,14 @@
  * THE SOFTWARE.
  */
 import { configure, defineRule } from 'vee-validate';
-import { required, email, min, between, confirmed } from '@vee-validate/rules';
+import {
+  required,
+  email,
+  max,
+  min,
+  between,
+  confirmed,
+} from '@vee-validate/rules';
 import i18n from './i18n';
 import * as Helpers from '@/util/helpers';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
@@ -38,6 +45,12 @@ export function createValidators() {
           const args: Record<string, unknown> = { field };
           const ruleParams = ctx.rule?.params;
           switch (ctx.rule?.name) {
+            case 'max': {
+              args.length = Array.isArray(ruleParams)
+                ? ruleParams?.[0]
+                : ruleParams?.['max'];
+              break;
+            }
             case 'min': {
               args.length = Array.isArray(ruleParams)
                 ? ruleParams?.[0]
@@ -66,6 +79,9 @@ export function createValidators() {
 
       // Install min rule and message.
       defineRule('min', min);
+
+      // Install min rule and message.
+      defineRule('max', max);
 
       // Install between rule and message.
       defineRule('between', between);

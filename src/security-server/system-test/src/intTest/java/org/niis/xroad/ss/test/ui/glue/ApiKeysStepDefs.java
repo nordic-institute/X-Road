@@ -36,7 +36,7 @@ import org.niis.xroad.ss.test.ui.page.ApiKeysPageObj;
 import java.util.List;
 import java.util.Map;
 
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
 
 public class ApiKeysStepDefs extends BaseUiStepDefs {
 

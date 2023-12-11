@@ -39,10 +39,12 @@
     "copyId": "Copy ID",
     "deactivate": "Disable",
     "delete": "Delete",
+    "disable": "Disable",
     "done": "Done",
     "download": "Download",
     "edit": "Edit",
     "emptySearch": "Your search for {msg} found no results.",
+    "enable": "Enable",
     "export": "Export",
     "finish": "Finish",
     "goToFront": "Go to the front page",
@@ -124,20 +126,20 @@
     }
   },
   "backup": {
-      "deleteBackup": {
-        "dialog": {
-          "confirmation": "Are you sure you want to delete backup {file}?",
-          "title": "Are you sure?"
-        },
-        "success": "Backup {file} deleted"
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to delete backup {file}?",
+        "title": "Are you sure?"
       },
-      "restoreFromBackup": {
-        "dialog": {
-          "confirmation": "Are you sure you want to restore from {file}?",
-          "title": "Are you sure?"
-        },
-        "success": "Configuration restored from {file}"
+      "success": "Backup {file} deleted"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to restore from {file}?",
+        "title": "Are you sure?"
       },
+      "success": "Configuration restored from {file}"
+    },
     "createBackup": {
       "button": "Back up config.",
       "messages": {
@@ -163,7 +165,7 @@
     "disableSuccess": "Certificate has been disabled",
     "disabled": "disabled",
     "expires": "Expires",
-    "hashInfo": "Hash (SHA-1)",
+    "hashInfo": "Hash (SHA-256)",
     "inUse": "in use",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
@@ -223,6 +225,16 @@
         "confirmText": "Do you want to unregister this client?",
         "confirmTitle": "Unregister client",
         "success": "Client unregistered"
+      },
+      "disable": {
+        "confirmText": "Do you want to disable this client?",
+        "confirmTitle": "Disable client",
+        "success": "Client disabling in progress"
+      },
+      "enable": {
+        "confirmText": "Do you want to enable this client?",
+        "confirmTitle": "Enable client",
+        "success": "Client enabling in progress"
       }
     },
     "id": "ID",
@@ -238,7 +250,10 @@
       "globalError": "GLOBAL ERROR",
       "registered": "REGISTERED",
       "registrationInProgress": "REGISTRATION IN PROGRESS",
-      "saved": "SAVED"
+      "saved": "SAVED",
+      "disabled": "DISABLED",
+      "disablingInProgress": "DISABLING IN PROGRESS",
+      "enablingInProgress": "ENABLING IN PROGRESS"
     },
     "subsystemCode": "Subsystem Code",
     "unknownMember": "unknown member"
@@ -494,7 +509,7 @@
     "timestamping_service_not_found": "Timestamping service not found",
     "token_not_active": "Token is not active",
     "token_not_found": "Token not found",
-    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x are currently supported.",
+    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "validation_failure": "Validation failure",
     "warnings_detected": "Warnings detected",
@@ -1005,10 +1020,13 @@
   },
   "token": {
     "changePin": "Change the pin",
-    "pinChanged": "Token pin was changed – please log in the token with the new pin"
+    "pinChanged": "Token pin was changed – please log in the token with the new pin",
+    "tokenPinPolicyHeader": "Token PIN policy is enabled.",
+    "tokenPinPolicy": "Software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters)."
   },
   "toolbar": {
     "securityServerNodeType": {
+      "undefined": "",
       "PRIMARY": "Primary node",
       "SECONDARY": "Secondary node"
     }

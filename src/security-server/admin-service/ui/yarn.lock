@@ -762,7 +762,7 @@ __metadata:
 
 "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz::locator=frontend%40workspace%3A.":
   version: 3.0.0
-  resolution: "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz#../../../shared-ui/niis-shared-ui-3.0.0.tgz::hash=94638d&locator=frontend%40workspace%3A."
+  resolution: "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz#../../../shared-ui/niis-shared-ui-3.0.0.tgz::hash=bd2153&locator=frontend%40workspace%3A."
   dependencies:
     "@fontsource/open-sans": "npm:^5.0.12"
     "@mdi/font": "npm:^7.2.96"
@@ -771,7 +771,7 @@ __metadata:
     vue: ^3.3.4
     vue-i18n: ^9.4.0
     vuetify: ^3.3.19
-  checksum: efb5cbfa2bd2dd3fc7f385f23090d4d04f8752513ff64e7a1363a8f75b9666ebcae6f8f09cfcb67cfa8a2956b8fc66bfdaf1d7260e2238dcdacdf32399360ca1
+  checksum: f4a48b9c7621724e588b7f567a6d0ef6b019e5aff87b2edec18c895a79a56f1ee040735fe7db73bff16c1c8588b99862ec4fda18829e44b4c6222abb0ddd7153
   languageName: node
   linkType: hard
 
@@ -1154,10 +1154,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vee-validate/i18n@npm:~4.11.6":
-  version: 4.11.7
-  resolution: "@vee-validate/i18n@npm:4.11.7"
-  checksum: 38553503ced85f7a646a42133a1126e0695a2bd66d87036c2bf87f9ab7e665afbb5a7997008cae14fe0b8e8d765f6dd8fd3deb540df177bce66c26621612ed52
+"@vee-validate/i18n@npm:~4.12.2":
+  version: 4.12.2
+  resolution: "@vee-validate/i18n@npm:4.12.2"
+  checksum: 824230433d8c1c789f8bd3c489650d8cf16a7bf5654d7b95d1eee21833f5054c9fcc581290c72703b14a64fb38239c9d6909e38ded865e61125cc7b534866f01
   languageName: node
   linkType: hard
 
@@ -1310,6 +1310,13 @@ __metadata:
   version: 6.5.0
   resolution: "@vue/devtools-api@npm:6.5.0"
   checksum: 25ba62d18825a565a6c503c2ee17293569e42efc06aa11542cc872a822d1645ad83558f192cb25adc947882134f49e1b72789393af60e86ab810f192321bd18c
+  languageName: node
+  linkType: hard
+
+"@vue/devtools-api@npm:^6.5.1":
+  version: 6.5.1
+  resolution: "@vue/devtools-api@npm:6.5.1"
+  checksum: e94443ce376ebecd279bfddaff6d2756cf1725e9f6f94cc41ffba48bf0e2ee17f29f194b8b81eef1c4d3743608e3079b5aab940fcf10de7df7cc9dbad6d2942d
   languageName: node
   linkType: hard
 
@@ -2872,7 +2879,7 @@ __metadata:
     "@types/node": "npm:^18.16.17"
     "@typescript-eslint/eslint-plugin": "npm:~6.5.0"
     "@typescript-eslint/parser": "npm:~6.5.0"
-    "@vee-validate/i18n": "npm:~4.11.6"
+    "@vee-validate/i18n": "npm:~4.12.2"
     "@vee-validate/rules": "npm:~4.11.6"
     "@vitejs/plugin-basic-ssl": "npm:^1.0.1"
     "@vitejs/plugin-vue": "npm:^4.3.3"
@@ -2893,7 +2900,7 @@ __metadata:
     prettier: "npm:~3.0.3"
     sass: "npm:~1.33.0"
     typescript: "npm:~5.0.4"
-    vee-validate: "npm:^4.11.6"
+    vee-validate: "npm:^4.12.2"
     vite: "npm:^4.4.9"
     vite-plugin-vuetify: "npm:^1.0.2"
     vue: "npm:^3.3.4"
@@ -5611,6 +5618,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"type-fest@npm:^4.8.2":
+  version: 4.8.2
+  resolution: "type-fest@npm:4.8.2"
+  checksum: 86ea9b4c2a1784af7708b837948bd0b4c22d1b1bc15d95e0366213b983e802c09a76eccd56566e91ee5b7c961238b118fd256a7a323e7d79dc302773d40c99d2
+  languageName: node
+  linkType: hard
+
 "typed-array-buffer@npm:^1.0.0":
   version: 1.0.0
   resolution: "typed-array-buffer@npm:1.0.0"
@@ -5785,7 +5799,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vee-validate@npm:4.11.7, vee-validate@npm:^4.11.6":
+"vee-validate@npm:4.11.7":
   version: 4.11.7
   resolution: "vee-validate@npm:4.11.7"
   dependencies:
@@ -5794,6 +5808,18 @@ __metadata:
   peerDependencies:
     vue: ^3.3.4
   checksum: 2c179f5e0c388e040698e081558916b8f7431d33cddc1bcccb6ef6aef90abfb2ef15111496d9a9c8fdc75bd3e050a68abca536f78be153c75a046074e96d4ba9
+  languageName: node
+  linkType: hard
+
+"vee-validate@npm:^4.12.2":
+  version: 4.12.2
+  resolution: "vee-validate@npm:4.12.2"
+  dependencies:
+    "@vue/devtools-api": "npm:^6.5.1"
+    type-fest: "npm:^4.8.2"
+  peerDependencies:
+    vue: ^3.3.8
+  checksum: 2793c60ffe0a478502ab5c8a058422f72cc5d59aa4748269fb41f76568ecdd534592b8a9d4bf5207580072a3d296ed0499cf3e16967ffb5919cc2e513e4f6380
   languageName: node
   linkType: hard
 

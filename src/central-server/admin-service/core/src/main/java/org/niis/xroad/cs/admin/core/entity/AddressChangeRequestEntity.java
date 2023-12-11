@@ -53,8 +53,8 @@ public class AddressChangeRequestEntity extends RequestEntity {
     @Setter
     private String address;
 
-    public AddressChangeRequestEntity(Origin origin, SecurityServerId identifier, String comments, String address) {
-        super(origin, identifier, comments);
+    public AddressChangeRequestEntity(Origin origin, SecurityServerId identifier, String address) {
+        super(origin, identifier, null);
         this.address = address;
     }
 

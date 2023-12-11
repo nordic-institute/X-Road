@@ -84,6 +84,10 @@ public class InitializationPageObj {
     }
 
     public static class WizardTokenPin {
+        public SelenideElement alertTokenPolicyEnabled() {
+            return $x("//*[@data-test='alert-token-policy-enabled']");
+        }
+
         public SelenideElement inputPin() {
             return $x("//div[@data-test='pin-input']");
         }

@@ -36,10 +36,13 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,7 +56,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSAANDMGF1_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSAANDMGF1_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 
 /**
  * Collection of various utility methods.
@@ -198,18 +201,22 @@ public final class SignerUtil {
     }
 
     /**
+     * @param certSha1Hash the certificate SHA-1 hash in HEX
      * @return certificate matching certHash
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static X509Certificate getCertForCertHash(String certHash) throws Exception {
-        X509Certificate cert =
-                TokenManager.getCertificateForCertHash(certHash);
+    public static X509Certificate getCertForCertHash(String certSha1Hash)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
+        X509Certificate cert = TokenManager.getCertificateForCerHash(certSha1Hash);
         if (cert != null) {
             return cert;
         }
 
         // not in key conf, look elsewhere
         for (X509Certificate caCert : GlobalConf.getAllCaCerts()) {
-            if (certHash.equals(calculateCertHexHash(caCert))) {
+            if (certSha1Hash.equals(calculateCertSha1HexHash(caCert))) {
                 return caCert;
             }
         }

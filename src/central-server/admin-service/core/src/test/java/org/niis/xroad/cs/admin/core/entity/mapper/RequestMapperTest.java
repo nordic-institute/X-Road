@@ -142,7 +142,8 @@ class RequestMapperTest {
     @Test
     void shouldMapAddressChangeRequestEntity() {
         var source = new AddressChangeRequestEntity(Origin.SECURITY_SERVER, SECURITY_SERVER_ID_ENTITY,
-                "comments", "https://server.address");
+                "https://server.address");
+        source.setComments("comments");
 
         var result = mapper.toTarget(source);
 

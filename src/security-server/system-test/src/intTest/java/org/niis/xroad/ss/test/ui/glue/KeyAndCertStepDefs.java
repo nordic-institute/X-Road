@@ -45,8 +45,8 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.selectorOptionOf;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 @Slf4j
 public class KeyAndCertStepDefs extends BaseUiStepDefs {
@@ -111,6 +111,17 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
     @Step("Token: {} is present and expanded")
     public void tokenIsVisibleAndExpand(String tokenKey) {
         keyAndCertPageObj.section(tokenKey).tokenLabel().shouldBe(visible).click();
+    }
+
+    @Step("Token: {} edit page is opened")
+    public void tokenIsVisibleAndEdited(String tokenKey) {
+        keyAndCertPageObj.section(tokenKey).tokenEditButton().shouldBe(visible).click();
+    }
+
+    @Step("Token Alert about token policy being enforced is present")
+    public void tokenHasEnforceTokenPolicyAlert() {
+        keyAndCertPageObj.tokenEdit.btnChangeToken().shouldBe(visible).click();
+        keyAndCertPageObj.tokenEdit.alertTokenPolicyEnabled().shouldBe(visible);
     }
 
     @Step("Token: {} - Add key wizard is opened")

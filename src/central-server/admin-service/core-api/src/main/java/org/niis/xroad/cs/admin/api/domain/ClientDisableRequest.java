@@ -24,29 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.api.domain;
 
-package org.niis.xroad.cs.test.ui.utils;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class ClientDisableRequest extends Request {
+    private ClientId clientId;
 
-import static org.openqa.selenium.Keys.COMMAND;
-import static org.openqa.selenium.Keys.CONTROL;
-import static org.openqa.selenium.Keys.DELETE;
 
-public final class SeleniumUtils {
-
-    public static SelenideElement clearInput(SelenideElement element) {
-        element.sendKeys(isMacOsBrowser() ? COMMAND : CONTROL, "a");
-        element.sendKeys(DELETE);
-
-        return element;
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.CLIENT_DISABLE_REQUEST;
     }
 
-    private static boolean isMacOsBrowser() {
-        return Selenide.webdriver().driver().getUserAgent().toUpperCase().contains("MAC OS");
-    }
-
-    private SeleniumUtils() {
+    public ClientDisableRequest(Origin origin,
+                                ee.ria.xroad.common.identifier.SecurityServerId serverId,
+                                ee.ria.xroad.common.identifier.ClientId clientId) {
+        super(origin, serverId);
+        this.clientId = ClientId.ensure(clientId);
     }
 }

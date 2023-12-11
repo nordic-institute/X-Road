@@ -26,18 +26,31 @@
 <template>
   <div class="step-content-wrapper">
     <div class="wizard-step-form-content">
-      {{ $t('initialConfiguration.pin.info1') }}
+      <div>{{ $t('initialConfiguration.pin.info1') }}</div>
+
+      <v-alert
+        v-if="isEnforceTokenPolicyEnabled"
+        data-test="alert-token-policy-enabled"
+        class="mt-6"
+        variant="outlined"
+        border="start"
+        density="compact"
+        type="info"
+      >
+        <h4>{{ $t('token.tokenPinPolicyHeader') }}</h4>
+        <div>{{ $t('token.tokenPinPolicy') }}</div>
+      </v-alert>
+
       <div class="mt-6 mb-4">
         <v-text-field
           v-bind="pinRef"
           class="wizard-form-input"
-          autofocus
+          autofocus="true"
           :label="$t('initialConfiguration.pin.pin')"
           type="password"
           data-test="pin-input"
-        ></v-text-field>
+        />
       </div>
-
       <div class="mb-6">
         <v-text-field
           v-bind="confirmPinRef"
@@ -45,11 +58,12 @@
           :label="$t('initialConfiguration.pin.confirmPin')"
           type="password"
           data-test="confirm-pin-input"
-        ></v-text-field>
+        />
       </div>
+
       {{ $t('initialConfiguration.pin.info2') }}
-      <br />
-      <br />
+      <br/>
+      <br/>
       {{ $t('initialConfiguration.pin.info3') }}
     </div>
     <div class="button-footer">
@@ -60,14 +74,16 @@
           class="previous-button"
           data-test="previous-button"
           @click="previous"
-          >{{ $t('action.previous') }}</xrd-button
+        >{{ $t('action.previous') }}
+        </xrd-button
         >
         <xrd-button
           :disabled="!meta.valid"
           :loading="saveBusy"
           data-test="token-pin-save-button"
           @click="done"
-          >{{ $t('action.submit') }}</xrd-button
+        >{{ $t('action.submit') }}
+        </xrd-button
         >
       </div>
     </div>
@@ -75,8 +91,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { PublicPathState, useForm } from 'vee-validate';
+import {defineComponent} from 'vue';
+import {PublicPathState, useForm} from 'vee-validate';
+import {mapState} from "pinia";
+import {useUser} from "@/store/modules/user";
 
 export default defineComponent({
   props: {
@@ -86,7 +104,7 @@ export default defineComponent({
   },
   emits: ['done', 'previous'],
   setup() {
-    const { meta, values, defineComponentBinds } = useForm({
+    const {meta, values, defineComponentBinds} = useForm({
       validationSchema: {
         pin: 'required',
         confirmPin: 'required|confirmed:@pin',
@@ -99,9 +117,11 @@ export default defineComponent({
     });
     const pinRef = defineComponentBinds('pin', componentConfig);
     const confirmPinRef = defineComponentBinds('confirmPin', componentConfig);
-    return { meta, values, pinRef, confirmPinRef };
+    return {meta, values, pinRef, confirmPinRef};
   },
-
+  computed: {
+    ...mapState(useUser, ['isEnforceTokenPolicyEnabled',]),
+  },
   methods: {
     done(): void {
       this.$emit('done', this.values.pin);

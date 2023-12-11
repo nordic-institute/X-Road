@@ -29,9 +29,9 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.common.test.ui.utils.VuetifyHelper;
 import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers;
 import org.niis.xroad.ss.test.ui.page.ClientInfoPageObj;
-import org.niis.xroad.ss.test.ui.utils.VuetifyHelper;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.disabled;
@@ -39,12 +39,12 @@ import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static java.time.Duration.ofSeconds;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.Checkbox;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.TextField;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.selectorOptionOf;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vCheckbox;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vRadio;
-import static org.niis.xroad.ss.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.Checkbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.TextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientServicesStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj clientInfoPageObj = new ClientInfoPageObj();

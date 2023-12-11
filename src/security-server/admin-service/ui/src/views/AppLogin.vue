@@ -54,7 +54,8 @@
             <v-form>
               <v-text-field
                 id="username"
-                v-bind="usernameRef"
+                v-model="username"
+                v-bind="usernameAttrs"
                 variant="outlined"
                 :label="$t('fields.username')"
                 type="text"
@@ -65,7 +66,8 @@
 
               <v-text-field
                 id="password"
-                v-bind="passwordRef"
+                v-model="password"
+                v-bind="passwordAttrs"
                 variant="outlined"
                 :label="$t('fields.password')"
                 type="password"
@@ -83,7 +85,7 @@
               large
               :min_width="120"
               rounded
-              :disabled="isDisabled"
+              :disabled="loading || !meta.valid"
               :loading="loading"
               @click="submit"
               >{{ $t('login.logIn') }}
@@ -112,34 +114,30 @@ export default defineComponent({
     AlertsContainer,
   },
   setup() {
-    const {
-      meta,
-      defineComponentBinds,
-      resetForm,
-      setFieldError,
-      errors,
-      values,
-    } = useForm({
-      validationSchema: {
-        username: 'required',
-        password: 'required',
-      },
-      initialValues: {
-        username: '',
-        password: '',
-      },
-    });
+    const { meta, defineField, resetForm, setFieldError, errors, values } =
+      useForm({
+        validationSchema: {
+          username: 'required|max:255',
+          password: 'required|max:255',
+        },
+        initialValues: {
+          username: '',
+          password: '',
+        },
+      });
     const componentConfig = (state: PublicPathState) => ({
       props: {
         'error-messages': state.errors,
       },
     });
-    const usernameRef = defineComponentBinds('username', componentConfig);
-    const passwordRef = defineComponentBinds('password', componentConfig);
+    const [username, usernameAttrs] = defineField('username', componentConfig);
+    const [password, passwordAttrs] = defineField('password', componentConfig);
     return {
       meta,
-      usernameRef,
-      passwordRef,
+      username,
+      usernameAttrs,
+      password,
+      passwordAttrs,
       resetForm,
       setFieldError,
       errors,
@@ -159,16 +157,6 @@ export default defineComponent({
       'hasInitState',
       'needsInitialization',
     ]),
-    isDisabled() {
-      if (
-        this.values.username.length < 1 ||
-        this.values.password.length < 1 ||
-        this.loading
-      ) {
-        return true;
-      }
-      return false;
-    },
   },
   methods: {
     ...mapActions(useUser, [

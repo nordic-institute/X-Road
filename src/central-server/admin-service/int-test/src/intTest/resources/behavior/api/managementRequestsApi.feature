@@ -189,6 +189,17 @@ Feature: Management requests API
     Then details of management request can be retrieved for security server 'CS:E2E:member-1:SS-X'
 
   @Modifying
+  Scenario: Disabling/enabling subsystem
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And client 'CS:E2E:member-1:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is approved
+    When security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is disabled
+    Then member 'CS:E2E:member-1' subsystem 'subsystem-1' status in server 'SS-X' is 'DISABLED'
+    When security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is enabled
+    Then member 'CS:E2E:member-1' subsystem 'subsystem-1' status in server 'SS-X' is 'APPROVED'
+
+  @Modifying
   Scenario: Management requests list
     Given new member 'CS:E2E:member-2' is added
     And new member 'CS:E2E:member-3' is added

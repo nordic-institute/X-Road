@@ -24,19 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.cs.admin.api.domain;
 
-package org.niis.xroad.cs.admin.core.config;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
-import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class ClientEnableRequest extends Request {
+    private ClientId clientId;
 
-@Configuration
-public class CookieSameSiteConfig {
 
-    @Bean
-    CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
-        return CookieSameSiteSupplier.ofStrict();
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.CLIENT_ENABLE_REQUEST;
     }
 
+    public ClientEnableRequest(Origin origin,
+                               ee.ria.xroad.common.identifier.SecurityServerId serverId,
+                               ee.ria.xroad.common.identifier.ClientId clientId) {
+        super(origin, serverId);
+        this.clientId = ClientId.ensure(clientId);
+    }
 }

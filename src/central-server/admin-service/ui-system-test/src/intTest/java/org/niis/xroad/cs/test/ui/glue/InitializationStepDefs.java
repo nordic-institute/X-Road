@@ -30,7 +30,7 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.InitializationPageObj;
 
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class InitializationStepDefs extends BaseUiStepDefs {
     private final InitializationPageObj initializationPageObj = new InitializationPageObj();

@@ -73,9 +73,7 @@ export default defineComponent({
   setup() {
     const { value, meta, errors, setErrors, resetField } = useField(
       'tokenPin',
-      {
-        required: true,
-      },
+      'required',
       { initialValue: '' },
     );
     return { tokenPin: value, meta, errors, setErrors, resetField };

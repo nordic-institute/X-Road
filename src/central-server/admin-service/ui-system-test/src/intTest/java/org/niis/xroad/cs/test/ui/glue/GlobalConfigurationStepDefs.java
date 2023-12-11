@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.ClassLoader.getSystemResource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.given;
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
     private static final DocumentBuilderFactory DBF = DocumentBuilderFactory.newInstance();

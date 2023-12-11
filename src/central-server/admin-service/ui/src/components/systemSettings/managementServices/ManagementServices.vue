@@ -29,7 +29,7 @@
     <v-card class="pb-4" flat>
       <div class="card-top">
         <div class="card-main-title">
-          {{ $t('systemSettings.managementServices') }}
+          {{ $t('systemSettings.managementServices.title') }}
         </div>
       </div>
 
@@ -73,7 +73,7 @@
 
           <tr>
             <td>
-              {{ $t('systemSettings.managementServiceSecurityServer') }}
+              {{ $t('systemSettings.managementServices.securityServer') }}
             </td>
             <td data-test="management-security-server-field">
               {{ managementServicesConfiguration.security_server_id }}
@@ -179,9 +179,9 @@ import { useManagementServices } from '@/store/modules/management-services';
 import { useNotifications } from '@/store/modules/notifications';
 import { Permissions } from '@/global';
 import { useUser } from '@/store/modules/user';
-import SelectSubsystemDialog from '@/components/systemSettings/SelectSubsystemDialog.vue';
-import SelectSecurityServerDialog from '@/components/systemSettings/SelectSecurityServerDialog.vue';
 import { XrdEmptyPlaceholderRow } from '@niis/shared-ui';
+import SelectSubsystemDialog from "@/components/systemSettings/managementServices/SelectSubsystemDialog.vue";
+import SelectSecurityServerDialog from "@/components/systemSettings/managementServices/SelectSecurityServerDialog.vue";
 
 export default defineComponent({
   components: {

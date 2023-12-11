@@ -35,7 +35,7 @@ import org.niis.xroad.cs.test.ui.page.SettingsApiKeysPageObj;
 import java.util.List;
 import java.util.Map;
 
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
 
 public class SettingsApiKeysStepDefs extends BaseUiStepDefs {
     private final SettingsApiKeysPageObj apiKeysPage = new SettingsApiKeysPageObj();

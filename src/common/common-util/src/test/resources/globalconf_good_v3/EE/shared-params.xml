@@ -412,8 +412,8 @@
         <owner>producerId</owner>
         <serverCode>producerServerCode</serverCode>
         <address>127.0.0.1</address>
-        <!-- Extracted using command 'openssl sha512 producer.pem' -->
-        <authCertHash>BnAMEvOVGDx3mIT81J1MpV+khaplYX2lt12EknvsLJE=</authCertHash>
+        <!-- Extracted using command 'openssl sha256 producer.pem' -->
+        <authCertHash>xcuWTrx4uFeP5mNBXIhYITy+gUM72CJfL63MsWXffXM=</authCertHash>
         <client>consumerId</client>
         <client>fooId</client>
         <client>foosubsystemId</client>
@@ -423,13 +423,14 @@
         <owner>consumerId</owner>
         <serverCode>consumerServerCode</serverCode>
         <address>https://www.foo.com/bar</address>
-        <authCertHash>mxwUY66bn81Nkvbmbgif0agWZgM=</authCertHash>
+        <!-- Extracted using command 'openssl sha256 consumer.pem' -->
+        <authCertHash>XhdxNaWNz7XBuakTRDyz+5Ald53DCy3DwxUacFe/VX8=</authCertHash>
     </securityServer>
 
     <securityServer>
         <owner>fooId</owner>
         <serverCode>fooServerCode</serverCode>
-        <authCertHash>GLx/0DiFv3V1I1Nbd04r3z0oUno=</authCertHash>
+        <authCertHash>enRxKzBGb0q7sUJa8Hx0A5aHmQwCa1HzWNFrN3ZDDJw=</authCertHash>
         <client>producerId</client>
     </securityServer>
 
@@ -437,7 +438,7 @@
         <owner>fooId</owner>
         <serverCode>FooBarServerCode</serverCode>
         <address>https://foo.bar.baz</address>
-        <authCertHash>S6j8iYRoUfcZEtUu/MPtToSYxLI=</authCertHash>
+        <authCertHash>Q/wASEqban646kxZ0/uveKBv4h7U3FWnlKzsSJZU1f8=</authCertHash>
         <client>fooId</client>
     </securityServer>
 

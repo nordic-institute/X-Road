@@ -96,7 +96,7 @@
 <script lang="ts">
 import { useManagementServices } from '@/store/modules/management-services';
 import { useSystem } from '@/store/modules/system';
-import ManagementServices from '@/components/systemSettings/ManagementServices.vue';
+import ManagementServices from '@/components/systemSettings/managementServices/ManagementServices.vue';
 import MemberClasses from '@/components/systemSettings/MemberClasses.vue';
 import EditServerAddressDialog from '@/components/systemSettings/EditServerAddressDialog.vue';
 import { mapActions, mapState } from 'pinia';

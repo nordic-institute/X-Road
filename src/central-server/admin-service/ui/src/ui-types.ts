@@ -103,5 +103,8 @@ export enum Event {
   Delete = 'delete',
   Cancel = 'cancel',
   Select = 'select',
+  Generate = 'generate',
+  Confirm = 'confirm',
+  Upload = 'upload',
   ModelValue = 'update:model-value',
 }

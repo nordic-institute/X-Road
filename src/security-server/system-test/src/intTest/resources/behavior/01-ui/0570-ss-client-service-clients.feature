@@ -20,11 +20,11 @@ Feature: 0570 - SS: Client Service clients
     When Service clients add subject wizard is opened
     And Service clients wizard is filtered to "Test" with 5 results and subject "CS:ORG:2908758-4:Management" is selected
     And Service clients subject "CS:GOV:0245437-2:test-consumer" is not selectable
-    And Service clients wizard services step is filtered to "" with 4 results and service "s3c2" is selected
+    And Service clients wizard services step is filtered to "" with 5 results and service "s3c2" is selected
 
     And Service clients add subject wizard is opened
     And Service clients wizard is filtered to "own" with 1 results and subject "CS:security-server-owners" is selected
-    And Service clients wizard services step is filtered to "" with 4 results and service "testOp1" is selected
+    And Service clients wizard services step is filtered to "" with 5 results and service "testOp1" is selected
     Then Service clients list is as follows
       | $memberName            | $id                            |
       | Security Server owners | CS:security-server-owners      |

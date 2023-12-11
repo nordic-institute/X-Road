@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
 import org.niis.xroad.restapi.controller.CommonModuleEndpointPaths;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -57,7 +58,9 @@ public class ManageApiKeysWebSecurityConfig {
     public SecurityFilterChain manageApiSecurityFilterChain(HttpSecurity http,
                                                             CommonModuleEndpointPaths commonModuleEndpointPaths,
                                                             @Qualifier(PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION)
-                                                            AuthenticationProvider authenticationProvider) throws Exception {
+                                                                AuthenticationProvider authenticationProvider,
+                                                            @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
+            throws Exception {
 
         return http
                 .securityMatcher(commonModuleEndpointPaths.getApiKeysPath() + "/**")
@@ -75,7 +78,7 @@ public class ManageApiKeysWebSecurityConfig {
                 .csrf(customizer -> customizer
                         .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler())
                         .requireCsrfProtectionMatcher(ManageApiKeysWebSecurityConfig::sessionExists)
-                        .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
+                        .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository(sameSite)))
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .build();

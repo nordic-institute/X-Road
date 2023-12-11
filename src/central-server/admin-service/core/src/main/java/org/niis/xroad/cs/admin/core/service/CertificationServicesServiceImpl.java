@@ -221,8 +221,11 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         auditDataHelper.put(CA_ID, ocspInfo.getCaInfo().getId());
         auditDataHelper.put(OCSP_ID, ocspInfo.getId());
         auditDataHelper.put(OCSP_URL, ocspInfo.getUrl());
-        auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(ocspInfo.getCert()));
-        auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+
+        if (ocspInfo.getCert() != null) {
+            auditDataHelper.put(OCSP_CERT_HASH, calculateCertHexHashDelimited(ocspInfo.getCert()));
+            auditDataHelper.put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
+        }
     }
 
 }
