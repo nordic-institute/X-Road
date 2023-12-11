@@ -199,6 +199,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 9. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 10. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 11. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Central Server Admin API OpenAPI Specification: <https://github.com/nordic-institute/X-Road/blob/develop/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml>.
+12. [UG-SS] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 # 2. User and Role Management
 
@@ -423,9 +424,9 @@ Access rights: Security Officer
 
 ### 4.4.1 Registration and Management Service TLS certificate
 
-Registration and Management Service TLS certificate is used
-- to secure the communication of management service provider (Security Server) and Central Server management services;
-- to the authentication certificate registration request is submitted from the Security Server.
+Registration and Management Service TLS certificate is used to secure the communication between:
+- the management Security Server and the member management web service;
+- a Security Server and the registration web service.
 
 To see Registration and Management Service TLS certificate info, follow these steps.
 
@@ -443,7 +444,7 @@ To re-create Management Service key and self-signed certificate, follow these st
 1. In the Navigation tabs, select Settings --> TLS certificates.
 2. Locate the Management service TLS certificate section and click button Re-create key.
 3. Confirm the re-creating by clicking Confirm.
-4. Do after activities in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
+4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 
 To generate Management Service certificate signing request, follow these steps.
 
@@ -451,28 +452,20 @@ To generate Management Service certificate signing request, follow these steps.
 2. Locate the Management service TLS certificate section and click button Generate CSR.
 3. Read the information and enter Distinguished name and click button Generate CSR.
 4. Save prompted file into a safe place.
+5. Apply for a certificate TSL/SSL certificate from a trusted Certificate Authority (CA) using the CSR file.
 
 To upload Management Service certificate, follow these steps.
 
 1. In the Navigation tabs, select Settings --> TLS certificates.
 2. Locate the Management service TLS certificate section and click button Upload certificate.
 3. Find the proper certificate file and click Open, to finish certificate uploading click button Upload.
-4. Do after activities in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
+4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 
 #### 4.4.1.1 Necessary activities after changing certificate
 
-1. When the key and certificate are rotated, and mTLS is enabled between the management Security Server and the management services, the new certificate must be updated to the management Security Server.
+When the key and certificate are rotated, and mTLS is enabled between the management Security Server and the management services, the new certificate must be updated to the management Security Server. To add new certificate follow Security Server User Guide [UG-SS](#13-references) instruction in section "Managing Information System TLS Certificates".
 
-2. Reload the nginx service for the certificate change to take effect.
-
-```bash
-systemctl reload nginx
-```
-
-**ATTENTION!** The changed TLS certificate is added in `private-params.xml` what is part of global configuration. The global configuration fetching to the Security Server side depend on the system parameters. The system parameters are specified in the \[[UG-SYSPAR](#Ref_UG-SYSPAR)\] section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]".
-
-It is good to know when global configuration is fetched to the Security Server side to schedule nginx service reloading at the same time.
-- If the private parameter generation and global configuration fetching are doing with default parameter, then new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
+**ATTENTION!** The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
 
 # 5. Configuration Management
 
