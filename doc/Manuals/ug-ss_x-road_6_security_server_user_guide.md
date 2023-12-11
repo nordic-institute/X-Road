@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.8ą
+Version: 2.81
 Doc. ID: UG-SS
 
 ---
