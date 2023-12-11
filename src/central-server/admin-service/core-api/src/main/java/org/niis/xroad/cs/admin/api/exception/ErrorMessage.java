@@ -90,6 +90,16 @@ public enum ErrorMessage implements DeviationProvider {
     CONFIGURATION_PART_VALIDATOR_NOT_FOUND("configuration_part_validator_not_found", "Configuration part validator not found"),
     UNKNOWN_CONFIGURATION_PART("unknown_configuration_part", "Unknown configuration part"),
     CONFIGURATION_PART_VALIDATION_FAILED("configuration_part_validation_failed", "Configuration part validation failed"),
+    INVALID_DISTINGUISHED_NAME("invalid_distinguished_name", "Invalid distinguished name"),
+    KEY_CERT_GENERATION_INTERRUPTED("generate_key_cert_interrupted", "Key and certificate generation has been interrupted"),
+    KEY_CERT_GENERATION_FAILED("key_and_cert_generation_failed", "Failed to generate TLS key and certificate"),
+    CSR_GENERATION_FAILED("csr_generation_failed", "CSR generation failed"),
+    BYTES_TO_CERTIFICATE_FAILED("cannot_convert_bytes_to_certificate", "Cannot convert bytes to certificate"),
+    CERTIFICATE_WRITING_FAILED("certificate_writing_failed", "Writing certificate to file failed"),
+    CERTIFICATE_READ_FAILED("cannot_read_certificate", "Cannot read TLS certificate"),
+    IMPORTED_KEY_NOT_FOUND("key_not_found", "The imported certificate does not match the TLS key"),
+    IMPORTED_CERTIFICATE_ALREADY_EXISTS("certificate_already_exists", "The imported certificate already exists"),
+    CERTIFICATE_IMPORT_FAILED("certificate_import_failed", "Cannot import TLS certificate"),
 
 
     SIGNER_PROXY_ERROR("signer_proxy_error", "Signer proxy exception"),

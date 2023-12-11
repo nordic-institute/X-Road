@@ -120,9 +120,9 @@ export const useManagementServices = defineStore('managementServices', {
           throw error;
         });
     },
-    generateCsr(distinguishedName: String) {
+    async generateCsr(distinguishedName: String) {
       return axios
-        .post(`/management-services-configuration/generate-csr`, {name: distinguishedName}, {responseType: 'blob'})
+        .post(`/management-services-configuration/generate-csr`, {name: distinguishedName}, {responseType: 'json'})
         .then((res) => {
           saveResponseAsFile(res, 'request.csr');
         })
