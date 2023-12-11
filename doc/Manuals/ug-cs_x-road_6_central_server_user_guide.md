@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.37
+Version: 2.38  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -63,6 +63,7 @@ Doc. ID: UG-CS
 | 09.12.2023 | 2.35    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
 | 09.12.2023 | 2.36    | Management service TLS certificate                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets       |
 | 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
+| 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa       | 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
 
@@ -109,6 +110,7 @@ Doc. ID: UG-CS
     - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
   - [6.2 Deletion Requests](#62-deletion-requests)
   - [6.3 Address Change Request](#63-address-change-request)
+  - [6.4 Temporarily Disabling Client Requests](#64-temporarily-disabling-client-requests)
   - [6.4 Viewing the Management Request Details](#64-viewing-the-management-request-details)
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
   - [7.1 Adding a Member](#71-adding-a-member)
@@ -156,18 +158,18 @@ Doc. ID: UG-CS
   - [15.1 Verify next update](#151-verify-next-update)
   - [15.2 OCSP fetch interval](#152-ocsp-fetch-interval)
 - [16. Logs and System Services](#16-logs-and-system-services)
-- [17. Management REST API](#17-management-rest-api)
-  - [17.1 API keys Management operations](#171-api-key-management-operations)
-    - [17.1.1 Creating API keys](#1711-creating-new-api-keys)
+- [17 Management REST API](#17-management-rest-api)
+  - [17.1 API key management operations](#171-api-key-management-operations)
+    - [17.1.1 Creating new API keys](#1711-creating-new-api-keys)
     - [17.1.2 Listing API keys](#1712-listing-api-keys)
     - [17.1.3 Updating API keys](#1713-updating-api-keys)
     - [17.1.4 Revoking API keys](#1714-revoking-api-keys)
   - [17.2 Executing REST calls](#172-executing-rest-calls)
-  - [17.3 Correlation id HTTP header](#173-correlation-id-http-header)
+  - [17.3 Correlation ID HTTP header](#173-correlation-id-http-header)
   - [17.4 Data Integrity errors](#174-data-integrity-errors)
   - [17.5 Warning responses](#175-warning-responses)
 - [18. Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
-- [19. Additional Security Hardening](#19-additional-security-hardening)
+  - [19 Additional Security Hardening](#19-additional-security-hardening)
 
 <!-- tocstop -->
 
@@ -669,6 +671,11 @@ Deletion requests are
 ## 6.3 Address Change Request
 
 Address change request is submitted through a Security Server to change its address. The request does not require any additional approvals on the Central Server.
+
+## 6.4 Temporarily Disabling Client Requests
+
+Security Server can disable client subsystem temporarily by issuing "Disable client" request. Disabled client can be enabled again to with "Enable client" request.
+These requests do not require any additional approvals on Central Server.
 
 ## 6.4 Viewing the Management Request Details
 

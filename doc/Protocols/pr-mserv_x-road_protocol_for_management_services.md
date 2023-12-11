@@ -1,8 +1,8 @@
-# X-Road: Protocol for Management Services
+# X-Road: Protocol for Management Services <!-- omit in toc -->
 
 **Technical Specification**
 
-Version: 1.16
+Version: 1.17  
 Doc. ID: PR-MSERV
 
 | Date       | Version | Description                                                                 | Author             |
@@ -31,27 +31,33 @@ Doc. ID: PR-MSERV
 | 29.06.2019 | 1.14    | Rename *newOwner* element to *client* in ownerChange management service     | Petteri Kivimäki   |
 | 10.05.2023 | 1.15    | Security Categories removed.                                                | Justas Samuolis    |
 | 20.11.2023 | 1.16    | Add *addressChange* management service                                      | Justas Samuolis    |
-## Table of Contents
+| 11.12.2023 | 1.17    | *clientDisable* and *clientEnable* services                                 | Madis Loitmaa      |
 
-  - [License](#license)
-  - [1 Introduction](#1-introduction)
-    - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
-    - [1.2 References](#12-references)
-  - [2 Format of the Messages](#2-format-of-the-messages)
-    - [2.1 *clientReg* - Security Server Client Registration](#21-clientreg---security-server-client-registration)
-    - [2.2 *clientDeletion* - Security Server Client Deletion](#22-clientdeletion---security-server-client-deletion)
-    - [2.3 *authCertReg* - Security Server Authentication Certificate Registration](#23-authcertreg---security-server-authentication-certificate-registration)
-    - [2.4 *authCertDeletion* - Security Server Authentication Certificate Deletion](#24-authcertdeletion---security-server-authentication-certificate-deletion)
-    - [2.5 *ownerChange* - Security Server Owner Change](#25-ownerchange---security-server-owner-change)
-    - [2.6 *addressChange* - Security Server address change](#26-addressChange---security-server-address-change)
-  - [Annex A. Example messages](#annex-a-example-messages)
-    - [A.1 clientReg](#a1-clientreg)
-    - [A.2 clientDeletion](#a2-clientdeletion)
-    - [A.3 authCertReg](#a3-authcertreg)
-    - [A.4 authCertDeletion](#a4-authcertdeletion)
-    - [A.5 ownerChange](#a5-ownerchange)
-    - [A.6 addressChange](#a6-addressChange)
-  - [Annex B WSDL File for Management Services](#annex-b-wsdl-file-for-management-services)
+## Table of Contents <!-- omit in toc -->
+
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  - [1.2 References](#12-references)
+- [2 Format of the Messages](#2-format-of-the-messages)
+  - [2.1 *clientReg* - Security Server Client Registration](#21-clientreg---security-server-client-registration)
+  - [2.2 *clientDeletion* - Security Server Client Deletion](#22-clientdeletion---security-server-client-deletion)
+  - [2.3 *authCertReg* - Security Server Authentication Certificate Registration](#23-authcertreg---security-server-authentication-certificate-registration)
+  - [2.4 *authCertDeletion* - Security Server Authentication Certificate Deletion](#24-authcertdeletion---security-server-authentication-certificate-deletion)
+  - [2.5 *ownerChange* - Security Server Owner Change](#25-ownerchange---security-server-owner-change)
+  - [2.6 *addressChange* - Security Server address change](#26-addresschange---security-server-address-change)
+  - [2.7 *clientDisable* - Disable Security Server Client Subsystem Temporarily](#27-clientdisable---disable-security-server-client-subsystem-temporarily)
+  - [2.8 *clientEnable* - Enable Security Server Client Subsystem](#28-clientenable---enable-security-server-client-subsystem)
+- [Annex A. Example messages](#annex-a-example-messages)
+  - [A.1 clientReg](#a1-clientreg)
+  - [A.2 clientDeletion](#a2-clientdeletion)
+  - [A.3 authCertReg](#a3-authcertreg)
+  - [A.4 authCertDeletion](#a4-authcertdeletion)
+  - [A.5 ownerChange](#a5-ownerchange)
+  - [A.6 addressChange](#a6-addresschange)
+  - [A.7 clientDisable](#a7-clientdisable)
+  - [A.8 clientEnable](#a8-clientenable)
+- [Annex B WSDL File for Management Services](#annex-b-wsdl-file-for-management-services)
 
 ## License
 
@@ -70,6 +76,13 @@ Management services are services provided by the X-Road governing organization t
 * *authCertDeletion* – removing an authentication certificate from the Security Server.
   
 * *ownerChange* - changing the owner member of the Security Server.
+  
+* *addressChange* - changing Security Server's address.
+
+* *clientDisable* - disabling Security Server's client subsystem temporarily.
+
+* *clientEnable* - enabling disabled Security Server's client subsystem.
+
 
 The management services are implemented as standard X-Road services (see \[[PR-MESS](#Ref_PR-MESS)\] for detailed description of the protocol) that are offered by the X-Road governing authority. The exception is the *authCertReg* service that, for technical reasons, is implemented as HTTPS POST (see below for details).
 
@@ -313,7 +326,62 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 The response echoes back the server and the client fields of the request and adds the field *requestId*.
 
-An example of the address change request and response is given in [Annex A.6](#a6-addressChange)).
+An example of the address change request and response is given in [Annex A.6](#a6-addresschange)).
+
+### 2.7 *clientDisable* - Disable Security Server Client Subsystem Temporarily
+
+The *clientDisable* service is used to disable Security Server client subsystem temporarily.
+
+The body of the client disabling message (request or response) contains following fields:
+
+* **client** – identifier of the subsystem to be disabled;
+* **server** – identifier of the Security Server where the client is disabled;
+* **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
+
+The XML Schema fragment of the client deletion request body shown below.
+
+```xml
+<xsd:complexType name="ClientRequestType">
+    <xsd:sequence>
+        <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
+        <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
+        <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+    </xsd:sequence>
+</xsd:complexType>
+```
+
+The response echoes back the client and the server fields of the request and adds the field *requestId*.
+
+An example of the client disabling request and response is given in [Annex A.7](#a7-clientdisable).
+
+
+### 2.8 *clientEnable* - Enable Security Server Client Subsystem
+
+The *clientEnable* service is used to enable disabled Security Server client subsystem.
+
+The body of the client enabling message (request or response) contains following fields:
+
+* **client** – identifier of the subsystem to be enabled;
+* **server** – identifier of the Security Server where the client is enabled;
+* **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
+
+The XML Schema fragment of the client deletion request body shown below.
+
+```xml
+<xsd:complexType name="ClientRequestType">
+    <xsd:sequence>
+        <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
+        <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
+        <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+    </xsd:sequence>
+</xsd:complexType>
+```
+
+The response echoes back the client and the server fields of the request and adds the field *requestId*.
+
+An example of the client enabling request and response is given in [Annex A.8](#a8-clientenable).
+
+
 
 ## Annex A. Example messages
 
@@ -979,6 +1047,202 @@ Response message
             <xroad:address>security-server.address</xroad:address>
             <xroad:requestId>1133</xroad:requestId>
         </xroad:addressChangeResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+```
+
+### A.7 clientDisable
+
+Request message
+
+```xml
+--jetty1580127502lpv3owhr
+Content-Type: text/xml; charset=UTF-8
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>CLASS</id:memberClass>
+            <id:memberCode>MEMBER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>servicemember2</id:memberCode>
+            <id:serviceCode>clientDisable</id:serviceCode>
+        </xroad:service>
+        <xroad:id>4df02e1f-fc9b-4ae4-b61b-0dc1f7d28d1c</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:clientDisable>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+                <id:serverCode>SS1</id:serverCode>
+            </xroad:server>
+            <xroad:client id:objectType="MEMBER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+            </xroad:client>
+        </xroad:clientDisable>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--jetty1580127502lpv3owhr
+Content-Type: application/octet-stream
+signature-algorithm-id: SHA512withRSA
+
+[OWNER SIGNATURE BYTES]
+--jetty1580127502lpv3owhr
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE BYTES]
+--jetty1580127502lpv3owhr
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE OCSP RESPONSE BYTES]
+--jetty1580127502lpv3owhr--
+```
+Response message
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>CLASS</id:memberClass>
+            <id:memberCode>MEMBER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>servicemember2</id:memberCode>
+            <id:serviceCode>clientDisable</id:serviceCode>
+        </xroad:service>
+        <xroad:id>4df02e1f-fc9b-4ae4-b61b-0dc1f7d28d1c</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:clientDisableResponse>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+                <id:serverCode>SS1</id:serverCode>
+            </xroad:server>
+            <xroad:client id:objectType="MEMBER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+            </xroad:client>
+            <xroad:requestId>1122</xroad:requestId>
+        </xroad:clientDisableResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+```
+
+### A.8 clientEnable
+
+Request message
+
+```xml
+--jetty2041213627lpv3ox3x
+Content-Type: text/xml; charset=UTF-8
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>CLASS</id:memberClass>
+            <id:memberCode>MEMBER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>servicemember2</id:memberCode>
+            <id:serviceCode>clientEnable</id:serviceCode>
+        </xroad:service>
+        <xroad:id>0655793f-9adb-4e57-a0ec-6ea5bf69ce8a</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:clientEnable>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+                <id:serverCode>SS1</id:serverCode>
+            </xroad:server>
+            <xroad:client id:objectType="MEMBER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+            </xroad:client>
+        </xroad:clientEnable>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--jetty2041213627lpv3ox3x
+Content-Type: application/octet-stream
+signature-algorithm-id: SHA512withRSA
+
+[OWNER SIGNATURE BYTES]
+--jetty2041213627lpv3ox3x
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE BYTES]
+--jetty2041213627lpv3ox3x
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE OCSP RESPONSE BYTES]
+--jetty2041213627lpv3ox3x--
+
+```
+
+Response message
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>CLASS</id:memberClass>
+            <id:memberCode>MEMBER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>servicemember2</id:memberCode>
+            <id:serviceCode>clientEnable</id:serviceCode>
+        </xroad:service>
+        <xroad:id>0655793f-9adb-4e57-a0ec-6ea5bf69ce8a</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:clientEnableResponse>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+                <id:serverCode>SS1</id:serverCode>
+            </xroad:server>
+            <xroad:client id:objectType="MEMBER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+            </xroad:client>
+            <xroad:requestId>1122</xroad:requestId>
+        </xroad:clientEnableResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
 ```
