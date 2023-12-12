@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import lombok.Getter;
 import lombok.Value;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -56,8 +58,6 @@ public class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
     private static final String LOCATION_URL_SUCCESS = "http://www.example.com";
     private static final String LOCATION_HTTPS_URL_SUCCESS = "https://www.example.com";
-    private static final String HOSTNAME_VERIFICATION_ENABLED = "xroad.configuration-client.global_conf_hostname_verification";
-
 
     /**
      * For better HA, the order of sources to be tried to download configuration
@@ -177,7 +177,7 @@ public class ConfigurationDownloaderTest {
 
     @Test
     public void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
-        System.setProperty(HOSTNAME_VERIFICATION_ENABLED, "false");
+        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "false");
         HttpsURLConnection connection =
                 (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
         assertThat(connection.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
@@ -185,7 +185,7 @@ public class ConfigurationDownloaderTest {
 
     @Test
     public void downloaderWithDefaultHostnameVerifier() throws IOException {
-        System.setProperty(HOSTNAME_VERIFICATION_ENABLED, "true");
+        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true");
         HttpsURLConnection connection =
                 (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
         assertThat(connection.getHostnameVerifier()).isInstanceOf(HostnameVerifier.class);
