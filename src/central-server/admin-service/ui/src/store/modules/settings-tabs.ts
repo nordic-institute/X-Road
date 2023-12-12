@@ -75,6 +75,14 @@ export const useSettingsTabs = defineStore('settingsTabs', {
           Permissions.REVOKE_API_KEY,
         ],
       },
+      {
+        key: 'tlscertificates-tab-button',
+        name: 'tab.settings.tlsCertificates',
+        to: {
+          name: RouteName.TlsCertificates,
+        },
+        permissions: [Permissions.VIEW_TLS_CERTIFICATES],
+      },
     ],
   }),
   persist: false,

@@ -45,6 +45,8 @@ import org.niis.xroad.common.managementrequest.verify.decode.AddressChangeReques
 import org.niis.xroad.common.managementrequest.verify.decode.AuthCertDeletionRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.AuthCertRegRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientDeletionRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.ClientDisableRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.ClientEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientRegRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
@@ -198,6 +200,8 @@ public final class ManagementRequestVerifier {
                 case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestCallback(this);
                 case AUTH_CERT_DELETION_REQUEST -> new AuthCertDeletionRequestDecoderCallback(this);
                 case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(this);
+                case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(this);
+                case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(this);
                 default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
             };
         }

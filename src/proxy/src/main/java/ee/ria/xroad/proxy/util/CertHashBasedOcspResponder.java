@@ -148,7 +148,7 @@ public class CertHashBasedOcspResponder implements StartStop {
     }
 
     private void doHandleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String[] hashes = getCertHashes(request);
+        String[] hashes = getCertSha1Hashes(request);
         List<OCSPResp> ocspResponses = getOcspResponses(hashes);
 
         log.debug("Returning OCSP responses for cert hashes: " + Arrays.toString(hashes));
@@ -196,10 +196,10 @@ public class CertHashBasedOcspResponder implements StartStop {
         }
     }
 
-    private static List<OCSPResp> getOcspResponses(String[] hashes) throws Exception {
-        List<OCSPResp> ocspResponses = new ArrayList<>(hashes.length);
+    private static List<OCSPResp> getOcspResponses(String[] certHashes) throws Exception {
+        List<OCSPResp> ocspResponses = new ArrayList<>(certHashes.length);
 
-        for (String certHash : hashes) {
+        for (String certHash : certHashes) {
             ocspResponses.add(getOcspResponse(certHash));
         }
 
@@ -216,7 +216,8 @@ public class CertHashBasedOcspResponder implements StartStop {
         return ocsp;
     }
 
-    private static String[] getCertHashes(HttpServletRequest request) throws Exception {
+    private static String[] getCertSha1Hashes(HttpServletRequest request) throws Exception {
+        // TODO sha256 cert hashes should be read from "cert_hash" param instead once 7.3.x is no longer supported
         String[] paramValues = request.getParameterValues(CERT_PARAM);
 
         if (paramValues.length < 1) {

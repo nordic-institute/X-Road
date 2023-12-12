@@ -24,19 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.managementrequest.verify.decode;
 
-package org.niis.xroad.cs.admin.core.config;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 
-import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+@Slf4j
+public class ClientEnableRequestCallback extends BaseClientRequestCallback {
 
-@Configuration
-public class CookieSameSiteConfig {
-
-    @Bean
-    CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
-        return CookieSameSiteSupplier.ofStrict();
+    public ClientEnableRequestCallback(ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(rootCallback, ManagementRequestType.CLIENT_ENABLE_REQUEST);
     }
 
 }

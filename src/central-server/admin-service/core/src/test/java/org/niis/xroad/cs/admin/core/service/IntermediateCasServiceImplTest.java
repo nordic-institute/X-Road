@@ -172,7 +172,8 @@ class IntermediateCasServiceImplTest {
         verify(auditDataHelper).put(INTERMEDIATE_CA_ID, ID);
         verify(auditDataHelper).put(OCSP_ID, NEW_ID);
         verify(auditDataHelper).put(OCSP_URL, URL);
-        verify(auditDataHelper).put(OCSP_CERT_HASH, "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF");
+        verify(auditDataHelper).put(OCSP_CERT_HASH,
+                "B9:CF:6E:A1:BC:98:24:6B:16:68:24:E3:9A:9F:CD:8E:51:B7:05:37:44:68:D4:96:50:D2:22:85:A7:FA:54:2B");
         verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 

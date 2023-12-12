@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -37,8 +38,10 @@ import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.List;
@@ -52,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 @Slf4j
 class SharedParametersV2ConverterTest {
+
     private static final Map<String, String> FIELD_NAME_MAP = Map.ofEntries(
             entry("securityServer", "securityServers"),
             entry("approvedCA", "approvedCAs"),
@@ -62,12 +66,12 @@ class SharedParametersV2ConverterTest {
             entry("subsystem", "subsystems"),
             entry("client", "clients"),
             entry("memberClass", "memberClasses"),
-            entry("authCertHash", "authCertHashes"),
+            entry("authCertHash", "authCerts"),
             entry("groupMember", "groupMembers")
     );
 
     @Test
-    void shouldConvertAllFields() {
+    void shouldConvertAllFields() throws IOException, OperatorCreationException {
         var sharedParameters = getSharedParameters();
         var xmlType = SharedParametersV2Converter.INSTANCE.convert(sharedParameters);
 
@@ -75,12 +79,12 @@ class SharedParametersV2ConverterTest {
                 .withIntrospectionStrategy(compareRenamedFields())
                 .withIgnoredFields("securityServers.owner",
                         "securityServers.clients",
+                        "securityServers.authCerts",
                         "members.id",
                         "members.subsystems.id",
                         "centralService"
                 )
-                .withEqualsForFields((a, b) ->
-                                new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
+                .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
                 .build();
 
@@ -95,6 +99,8 @@ class SharedParametersV2ConverterTest {
                 .allFieldsSatisfy(Objects::nonNull);
 
         assertIdReferences(xmlType);
+        assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
+                .isEqualTo(CryptoUtils.certSha1Hash(sharedParameters.getSecurityServers().get(0).getAuthCerts().get(0)));
     }
 
     @Test
@@ -191,7 +197,7 @@ class SharedParametersV2ConverterTest {
         securityServer.setServerCode("security-server-code");
         securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
-        securityServer.setAuthCertHashes(List.of("ss-auth-cert".getBytes(UTF_8)));
+        securityServer.setAuthCerts(List.of("ss-auth-cert".getBytes(UTF_8)));
         return securityServer;
     }
 

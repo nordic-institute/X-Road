@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.34
+Version: 2.37
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -60,6 +60,9 @@ Doc. ID: UG-CS
 | 10.07.2023 | 2.32    | Update system services                                                                                                                                                                                                                                                                                                                                                                                                                  | Petteri Kivimäki    |
 | 11.07.2023 | 2.33    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
 | 20.11.2023 | 2.34    | Security server address change management request                                                                                                                                                                                                                                                                                                                                                                                       | Justas Samuolis     |
+| 09.12.2023 | 2.35    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
+| 09.12.2023 | 2.36    | Management service TLS certificate                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets       |
+| 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
 
@@ -71,7 +74,8 @@ Doc. ID: UG-CS
 - [2. User and Role Management](#2-user-and-role-management)
   - [2.1 User Roles](#21-user-roles)
   - [2.2 Managing the Users](#22-managing-the-users)
-  - [2.3 Managing API Keys](#23-managing-api-keys)
+  - [2.3 LDAP User Authentication](#23-ldap-user-authentication)
+  - [2.4 Managing API Keys](#24-managing-api-keys)
 - [3. Standalone and High-Availability Systems](#3-standalone-and-high-availability-systems)
   - [3.1 Detecting the Type of Deployment in the User Interface](#31-detecting-the-type-of-deployment-in-the-user-interface)
   - [3.2 Checking the Status of the Nodes of the Cluster](#32-checking-the-status-of-the-nodes-of-the-cluster)
@@ -85,6 +89,9 @@ Doc. ID: UG-CS
   - [4.3 Configuring the Central Server Address](#43-configuring-the-central-server-address)
     - [4.3.1 Notes on HA Setup](#431-notes-on-ha-setup)
     - [4.3.2 Changing the Central Server Address](#432-changing-the-central-server-address)
+  - [4.4 Managing the TLS certificates](#44-managing-the-tls-certificates)
+    - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
+      - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate) 
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -101,7 +108,7 @@ Doc. ID: UG-CS
   - [6.1 Registration Requests](#61-registration-requests)
     - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
   - [6.2 Deletion Requests](#62-deletion-requests)
-  - [6.3 Address change request](#63-address-change-request)
+  - [6.3 Address Change Request](#63-address-change-request)
   - [6.4 Viewing the Management Request Details](#64-viewing-the-management-request-details)
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
   - [7.1 Adding a Member](#71-adding-a-member)
@@ -194,6 +201,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 9. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 10. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 11. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Central Server Admin API OpenAPI Specification: <https://github.com/nordic-institute/X-Road/blob/develop/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml>.
+12. [UG-SS] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 # 2. User and Role Management
 
@@ -235,7 +243,14 @@ To remove a user, enter:
 
 `deluser username`
 
-## 2.3 Managing API Keys
+## 2.3 LDAP user authentication
+
+X-Road leverages PAM (Pluggable Authentication Modules) for user authentication, which facilitates LDAP integration.
+
+A detailed setup guide can be found under security server user guide [2.3 LDAP user authentication](ug-ss_x-road_6_security_server_user_guide.md#23-ldap-user-authentication).
+Please note that x-road property path will be different in case of Central Server. Refer to [ug-syspar_x-road_v6_system_parameters.md](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) for relevant properties.
+
+## 2.4 Managing API Keys
 
 API keys are used to authenticate API calls to Central Server's management REST API. API keys are associated with roles that define the permissions granted to the API key. If an API key is lost, it can be revoked.
 
@@ -411,6 +426,57 @@ To change the Central Server address, follow these steps.
   - Download the internal configuration source anchor and distribute the anchor along with the anchor’s hash value to the Security Server administrators of the local X-Road infrastructure.
   - In case of federated X-Road systems, download the external configuration source anchor and distribute the anchor along with the anchor’s hash value to the federation partners.
   - Reconfigure the management services addresses in the management service Security Server.
+
+## 4.4 Managing the TLS certificates
+
+Access rights: Security Officer
+
+### 4.4.1 Registration and Management Service TLS certificate
+
+Registration and Management Service TLS certificate is used to secure the communication between:
+- the management Security Server and the member management web service;
+- a Security Server and the registration web service.
+
+To see Registration and Management Service TLS certificate info, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click certificate hash.
+
+To download Management Service TLS certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section.
+3. Click button Download certificate and save the prompted file.
+
+To re-create Management Service key and self-signed certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Re-create key.
+3. Confirm the re-creating by clicking Confirm.
+4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
+
+To generate Management Service certificate signing request, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Generate CSR.
+3. Read the information and enter Distinguished name and click button Generate CSR.
+4. Save prompted file into a safe place.
+5. Apply for a TSL/SSL certificate from a trusted Certificate Authority (CA) using the CSR file.
+
+To upload Management Service certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Upload certificate.
+3. Find the proper certificate file and click Open, to finish certificate uploading click button Upload.
+4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
+
+#### 4.4.1.1 Necessary activities after changing certificate
+
+When the key and certificate are rotated, and mTLS is enabled between the management Security Server and the management services, the new certificate must be updated to the management Security Server. To add new certificate follow Security Server User Guide [UG-SS](#13-references) instruction in section "Managing Information System TLS Certificates".
+
+**ATTENTION!** 
+- The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
+- The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
 
 # 5. Configuration Management
 
@@ -600,9 +666,9 @@ Deletion requests are
 - authentication certificate deletion request (see Section 8.4);
 - Security Server client deletion request (see Section 7.6).
 
-## 6.3 Address change request
+## 6.3 Address Change Request
 
-Address change request is submitted from security to change its address. The request does not require any additional approvals on Central Server.
+Address change request is submitted through a Security Server to change its address. The request does not require any additional approvals on the Central Server.
 
 ## 6.4 Viewing the Management Request Details
 

@@ -95,6 +95,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
+import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.WIDGITS_CERTIFICATE_HASH;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getResource;
 import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
@@ -281,7 +283,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(Integer.valueOf(3), onlyCertificate.getCertificateDetails().getVersion());
         assertEquals("SHA512withRSA", onlyCertificate.getCertificateDetails().getSignatureAlgorithm());
         assertEquals("RSA", onlyCertificate.getCertificateDetails().getPublicKeyAlgorithm());
-        assertEquals("A2293825AA82A5429EC32803847E2152A303969C", onlyCertificate.getCertificateDetails().getHash());
+        assertEquals(MOCK_CERTIFICATE_HASH, onlyCertificate.getCertificateDetails().getHash());
         assertTrue(onlyCertificate.getCertificateDetails().getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(onlyCertificate.getCertificateDetails().getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
         assertEquals(Integer.valueOf(65537), onlyCertificate.getCertificateDetails().getRsaPublicKeyExponent());
@@ -403,9 +405,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
         assertEquals(CertificateTestUtils.getWidgitsCertificateHash(), findResponse.getBody().getHash());
         // case insensitive
-        findResponse =
-                clientsApiController.getClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                        "63a104b2bac14667873c5dbd54be25bc687b3702");
+        findResponse = clientsApiController.getClientTlsCertificate(TestUtils.CLIENT_ID_SS1, WIDGITS_CERTIFICATE_HASH);
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
         assertEquals(CertificateTestUtils.getWidgitsCertificateHash(), findResponse.getBody().getHash());
         // not found

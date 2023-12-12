@@ -64,6 +64,7 @@
             text
             :outlined="false"
             data-test="view-ocsp-responder-certificate"
+            v-if="item.has_certificate"
             @click="navigateToCertificateDetails(item)"
           >
             {{ $t('trustServices.viewCertificate') }}

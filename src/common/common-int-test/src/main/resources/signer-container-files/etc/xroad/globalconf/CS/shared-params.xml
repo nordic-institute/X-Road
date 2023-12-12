@@ -67,7 +67,7 @@
         <owner>id0</owner>
         <serverCode>SS0</serverCode>
         <address>ss0</address>
-        <authCertHash>5+C5Gr24Dh912x5haKGOyZuK2KI=</authCertHash>
+        <authCertHash>enRxKzBGb0q7sUJa8Hx0A5aHmQwCa1HzWNFrN3ZDDJw=</authCertHash>
         <client>id1</client>
         <client>id7</client>
     </securityServer>
@@ -75,7 +75,7 @@
         <owner>id4</owner>
         <serverCode>SS1</serverCode>
         <address>ss1</address>
-        <authCertHash>03SfHhv+L5OJrJaod/sOZn6vp1c=</authCertHash>
+        <authCertHash>Q/wASEqban646kxZ0/uveKBv4h7U3FWnlKzsSJZU1f8=</authCertHash>
         <client>id5</client>
         <client>id6</client>
         <client>id3</client>

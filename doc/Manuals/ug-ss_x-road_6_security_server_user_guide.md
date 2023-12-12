@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.79
+Version: 2.81
 Doc. ID: UG-SS
 
 ---
@@ -108,6 +108,8 @@ Doc. ID: UG-SS
 | 11.07.2023 | 2.77    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki  |
 | 12.07.2023 | 2.78    | Removed deprecated request.sizelimit.* and ratelimit.requests.* parameters                                                                                                                                                                                                                                                                                                                                  | Justas Samuolis   |
 | 20.11.2023 | 2.79    | Added Security Server address change chapter                                                                                                                                                                                                                                                                                                                                                                | Justas Samuolis   | 
+| 08.12.2023 | 2.80    | Add a chapter about configuring a minimum required client Security Server version                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki  |
+| 11.12.2023 | 2.81    | Add a chapter about LDAP over PAM configuration                                                                                                                                                                                                                                                                                                                                                             | Ričardas Bučiūnas |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -123,10 +125,12 @@ Doc. ID: UG-SS
   * [2.1 User Roles](#21-user-roles)
   * [2.2 Managing the Users](#22-managing-the-users)
     * [2.2.1 Adding and Removing Users](#221-adding-and-removing-users)
-  * [2.3 Managing API Keys](#23-managing-api-keys)
-    * [2.3.1 Creating a new API key](#231-creating-a-new-api-key)
-    * [2.3.2 Editing the roles of an API key](#232-editing-the-roles-of-an-api-key)
-    * [2.3.3 Revoking an API key](#233-revoking-an-api-key)
+  * [2.3 LDAP User Authentication](#23-ldap-user-authentication)
+    * [2.3.1 Setting up LDAP User Authentication for X-Road Security Server using SSSD](#231-setting-up-ldap-user-authentication-for-x-road-security-server-using-sssd)    
+  * [2.4 Managing API Keys](#24-managing-api-keys)
+    * [2.4.1 Creating a new API key](#241-creating-a-new-api-key)
+    * [2.4.2 Editing the roles of an API key](#242-editing-the-roles-of-an-api-key)
+    * [2.4.3 Revoking an API key](#243-revoking-an-api-key)
 * [3 Security Server Registration](#3-security-server-registration)
   * [3.1 Configuring the Signing Key and Certificate for the Security Server Owner](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
     * [3.1.1 Generating a Signing Key and Certificate Signing Request](#311-generating-a-signing-key-and-certificate-signing-request)
@@ -171,6 +175,7 @@ Doc. ID: UG-SS
   * [6.5 Deleting a service description](#65-deleting-a-service-description)
   * [6.6 Changing the Parameters of a Service](#66-changing-the-parameters-of-a-service)
   * [6.7 Managing REST Endpoints](#67-managing-rest-endpoints)
+  * [6.8 Configuring a Minimum Required Client Security Server Version](#68-configuring-a-minimum-required-client-security-server-version)
 * [7 Access Rights](#7-access-rights)
   * [7.1 Changing the Access Rights of a Service](#71-changing-the-access-rights-of-a-service)
   * [7.2 Adding a Service Client](#72-adding-a-service-client)
@@ -408,11 +413,84 @@ To remove a user, enter:
 
     deluser username
 
-### 2.3 Managing API Keys
+### 2.3 LDAP user authentication
+
+X-Road leverages PAM (Pluggable Authentication Modules) for user authentication, which facilitates LDAP integration.
+
+**Prerequisites:**
+- The LDAP server is properly configured and operational.
+- The LDAP server is reachable from the Security Server.
+
+#### 2.3.1 Setting up LDAP User Authentication for X-Road Security Server using SSSD
+
+To configure LDAP user authentication on the X-Road Security Server using SSSD, follow these steps:
+
+1. **Install the SSSD Package**:
+   - On Ubuntu systems, use the following command:
+      ```shell
+      sudo apt-get -y install sssd sssd-ldap
+      ```
+    - On RHEL systems, use the following command:
+      ```shell
+      sudo yum install -y sssd sssd-ldap
+      ```
+
+2. **Configure SSSD**:
+    - Create and edit the `/etc/sssd/sssd.conf` file to set up the connection to your LDAP server with the following configurations:
+        - `[sssd]`
+        - `services = nss, pam`
+        - `domains = LDAP`
+        - `[domain/LDAP]`
+        - `id_provider = ldap`
+        - `auth_provider = ldap`
+        - `chpass_provider = ldap`
+        - `ldap_uri = ldap://<LDAP_SERVER_IP_OR_DNS>/`
+        - `ldap_search_base = dc=example,dc=com`
+        - `ldap_default_bind_dn = cn=admin,dc=example,dc=com`
+        - `ldap_default_authtok_type = password` 
+        - `ldap_default_authtok = <BIND_PASSWORD>`
+        - Ensure that the file permissions are secure:
+          ```shell
+          sudo chmod 600 /etc/sssd/sssd.conf
+          ```
+    - Replace placeholders like `<LDAP_SERVER_IP_OR_DNS>`, `<BIND_PASSWORD>`, authentication parameters, etc., with actual values specific to your LDAP setup.
+
+3. **Modify NSS Configuration**:
+    - Update the `/etc/nsswitch.conf` file to include SSSD as a source for user and group information:
+      ```conf
+      passwd:         sss files
+      group:          sss files
+      shadow:         sss files
+      ```
+   Note: This step is typically automated by the installation process.
+
+4. **Map LDAP Groups to X-Road Roles** (Optional):
+    - If LDAP groups do not align with X-Road's requirements, you can map them accordingly in the `/etc/xroad/conf.d/local.ini` file:
+      ```ini
+      [proxy-ui-api.complementary-user-role-mappings]
+      XROAD_SECURITY_OFFICER=ldap_group1,ldap_group2
+      XROAD_SERVICE_ADMINISTRATOR=ldap_group3,ldap_group4
+      ```
+    - Replace `ldap_group1`, `ldap_group2`, etc., with actual LDAP group names that correspond to X-Road roles.
+
+5. **Enable and Start SSSD Service**:
+    - Enable and start the SSSD service to apply the changes:
+      ```shell
+      sudo systemctl enable sssd
+      sudo systemctl start sssd
+      ```
+
+6. **Restart X-Road Services**:
+    - Restart the `xroad-proxy-ui` service to apply the changes:
+      ```shell
+      sudo systemctl restart xroad-proxy-ui
+      ```
+
+### 2.4 Managing API Keys
 
 API keys are used to authenticate API calls to Security Server's management REST API. API keys are associated with roles that define the permissions granted to the API key. If the API key is lost, it can be revoked.
 
-#### 2.3.1 Creating a new API key
+#### 2.4.1 Creating a new API key
 
 **Access rights**
 
@@ -430,7 +508,7 @@ API keys are used to authenticate API calls to Security Server's management REST
     
     3. Click **FINISH**.
 
-#### 2.3.2 Editing the roles of an API key
+#### 2.4.2 Editing the roles of an API key
 
 **Access rights**
 
@@ -444,7 +522,7 @@ API keys are used to authenticate API calls to Security Server's management REST
 
     1. Select the roles you want to be associated with the API key. Click **SAVE**.
     
-#### 2.3.3 Revoking an API key
+#### 2.4.3 Revoking an API key
 
 **Access rights**
 
@@ -1233,6 +1311,18 @@ To create API endpoint manually, follow these steps
 
 4.  In the dialog that opens fill in the HTTP Request method and path for the endpoint and click **ADD**
 
+### 6.8 Configuring a Minimum Required Client Security Server Version
+
+Service providers can configure a minimum required X-Road software version for client Security Servers. It means that client Security Servers older than the configured version cannot access the services.
+
+Service providers can configure the required minimum version in the `/etc/xroad/conf.d/local.ini` configuration file using the `proxy.server-min-supported-client-version` system property. For example:
+
+```
+[proxy]
+server-min-supported-client-version=7.0.0
+```
+
+The property has no value by default, meaning a minimum version hasn't been set. Instead, when the value is set, all the minor and patch versions starting from the configured version are approved.
 
 ## 7 Access Rights
 

@@ -198,15 +198,13 @@ Description: Meta-package for X-Road remote database dependencies
 Package: xroad-center-registration-service
 Architecture: all
 Depends: ${misc:Depends}, xroad-confclient (=${binary:Version})
-Pre-depends: xroad-base (=${binary:Version})
-Recommends: xroad-center (=${binary:Version})
+Pre-depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
 Description: X-Road Central Server Registration Service
  X-Road Central Server registration service component
 
 Package: xroad-center-management-service
 Architecture: all
 Depends: ${misc:Depends}, xroad-confclient (=${binary:Version})
-Pre-depends: xroad-base (=${binary:Version})
-Recommends: xroad-center (=${binary:Version})
+Pre-depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
 Description: X-Road Central Server Management Service
  X-Road Central Server management service component

@@ -63,13 +63,23 @@ public class AddressChangeRequestHandler implements RequestHandler<AddressChange
 
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final var requestEntity = new AddressChangeRequestEntity(request.getOrigin(), serverId,
-                request.getComments(), request.getServerAddress());
-        final AddressChangeRequestEntity savedRequest = addressChangeRequests.save(requestEntity);
+                request.getServerAddress());
 
         securityServerRepository.findBy(serverId)
-                .peek(server -> server.setAddress(request.getServerAddress()));
-
+                .peek(server -> {
+                    requestEntity.setComments(formatComment(server.getAddress(), request.getComments()));
+                    server.setAddress(request.getServerAddress());
+                });
+        final AddressChangeRequestEntity savedRequest = addressChangeRequests.save(requestEntity);
         return requestMapper.toDto(savedRequest);
+    }
+
+    private String formatComment(String oldAddress, String comment) {
+        String newComment = "Changing from '%s'.".formatted(oldAddress);
+        if (StringUtils.isNotBlank(comment)) {
+            newComment += " " + comment;
+        }
+        return newComment;
     }
 
     private void validate(AddressChangeRequest request) {

@@ -272,7 +272,7 @@ export default defineComponent({
     const { service } = useServices();
     const { meta, values, setValues, defineComponentBinds } = useForm({
       validationSchema: {
-        serviceUrl: 'required|wsdlUrl',
+        serviceUrl: 'required|max:255|wsdlUrl',
         serviceTimeout: 'required|between:0,1000',
       },
       initialValues: {

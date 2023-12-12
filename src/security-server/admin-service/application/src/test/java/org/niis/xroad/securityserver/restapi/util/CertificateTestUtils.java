@@ -56,8 +56,8 @@ public final class CertificateTestUtils {
 
     // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
 
-    public static final String MOCK_CERTIFICATE_HASH = "A2293825AA82A5429EC32803847E2152A303969C";
-    public static final String MOCK_AUTH_CERTIFICATE_HASH = "BA6CCC3B13E23BB1D40FD17631B7D93CF8334C0E";
+    public static final String MOCK_CERTIFICATE_HASH = "FAAFA4860332289F3083DE6BF955D4DF9AEEFB2B33CBCC66BD0EF27AB05C708D";
+    public static final String MOCK_AUTH_CERTIFICATE_HASH = "54E2586715084EBF37FE5CA8B761A208CD0D710699FC866A49684D8F62DA28D2";
 
     /**
      * Version: V3
@@ -88,7 +88,7 @@ public final class CertificateTestUtils {
                             + "lbEK6otefyJPn5vVwjz/+ywyqzx8YJM0vPkD/PghmJxunsJObbvif9FNZaxOaEzI9QDw"
                             + "0nWzbgvsCAqdcHqRjMEQwtU75fzfg==");
 
-    public static final String WIDGITS_CERTIFICATE_HASH = "63A104B2BAC14667873C5DBD54BE25BC687B3702";
+    public static final String WIDGITS_CERTIFICATE_HASH = "397E0AB871F42C48FCD718F4AC78B86DDCFE67CD80C75B31CEC910C64226485D";
 
     /**
      * Version: V3

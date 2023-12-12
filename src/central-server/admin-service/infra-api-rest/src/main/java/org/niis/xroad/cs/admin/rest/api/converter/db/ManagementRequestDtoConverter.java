@@ -34,6 +34,8 @@ import org.niis.xroad.cs.admin.api.domain.AddressChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientEnableRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
@@ -49,6 +51,8 @@ import org.niis.xroad.cs.openapi.model.AddressChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
@@ -100,6 +104,12 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
         } else if (request instanceof ClientDeletionRequest req) {
             result = self(new ClientDeletionRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
+        } else if (request instanceof ClientDisableRequest req) {
+            result = self(new ClientDisableRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
+
+        } else if (request instanceof ClientEnableRequest req) {
+            result = self(new ClientEnableRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
+
         } else if (request instanceof OwnerChangeRequest req) {
             result = self(new OwnerChangeRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
 
@@ -150,7 +160,16 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
-
+        } else if (request instanceof ClientDisableRequestDto req) {
+            return new ClientDisableRequest(
+                        originMapper.convert(req.getOrigin()),
+                        securityServerIdMapper.convertId(req.getSecurityServerId()),
+                        fromEncodedId(req.getClientId()));
+        } else if (request instanceof ClientEnableRequestDto req) {
+            return new ClientEnableRequest(
+                        originMapper.convert(req.getOrigin()),
+                        securityServerIdMapper.convertId(req.getSecurityServerId()),
+                        fromEncodedId(req.getClientId()));
         } else if (request instanceof OwnerChangeRequestDto req) {
             return new OwnerChangeRequest(
                     originMapper.convert(req.getOrigin()),

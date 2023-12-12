@@ -96,8 +96,8 @@ export default defineComponent({
     const { meta, resetForm, values, defineComponentBinds } = useForm({
       validationSchema: {
         serviceType: 'required',
-        serviceUrl: 'required|restUrl',
-        serviceCode: 'required|xrdIdentifier',
+        serviceUrl: 'required|max:255|restUrl',
+        serviceCode: 'required|max:255|xrdIdentifier',
       },
     });
     const componentConfig = (state: PublicPathState) => ({

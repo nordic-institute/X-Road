@@ -128,7 +128,8 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         if (managementRequestStatus == null) {
             final boolean containsAsServerClient =
                     subsystemService.findByIdentifier(clientId).stream()
-                            .flatMap(subsystem -> subsystem.getServerClients().stream())
+                            .flatMap(subsystem -> subsystem.getServerClients().stream()
+                                    .filter(ServerClient::isEnabled))
                             .map(ServerClient::getServerId)
                             .anyMatch(server -> server.equals(serverId));
 

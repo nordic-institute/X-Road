@@ -30,7 +30,7 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.MemberDetailsPageObj;
 
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class MemberDetailsStepDefs extends BaseUiStepDefs {
     private final MemberDetailsPageObj memberDetailsPageObj = new MemberDetailsPageObj();

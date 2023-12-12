@@ -24,6 +24,7 @@ server:
     session:
       cookie:
         secure: true
+        same-site: Strict
   tomcat:
     accesslog:
       enabled: true

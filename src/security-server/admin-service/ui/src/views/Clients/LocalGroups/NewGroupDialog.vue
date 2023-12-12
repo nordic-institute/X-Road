@@ -27,7 +27,7 @@
   <xrd-simple-dialog
     v-if="dialog"
     title="localGroup.addLocalGroup"
-    :disable-save="!formReady"
+    :disable-save="!meta.valid"
     width="620"
     @save="save"
     @cancel="cancel"
@@ -36,6 +36,7 @@
       <div class="dlg-input-width">
         <v-text-field
           v-model="code"
+          v-bind="codeAttrs"
           variant="outlined"
           :label="$t('localGroup.code')"
           autofocus
@@ -46,6 +47,7 @@
       <div class="dlg-input-width">
         <v-text-field
           v-model="description"
+          v-bind="descriptionAttrs"
           :label="$t('localGroup.description')"
           variant="outlined"
           data-test="add-local-group-description-input"
@@ -61,8 +63,29 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
+import { PublicPathState, useForm } from "vee-validate";
 
 export default defineComponent({
+  setup() {
+    const { meta, defineField, resetForm } = useForm({
+      validationSchema: {
+        code: 'required|max:255',
+        description: 'required|max:255',
+      },
+      initialValues: {
+        code: '',
+        description: '',
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const [code, codeAttrs] = defineField('code', componentConfig);
+    const [description, descriptionAttrs] = defineField('description', componentConfig);
+    return { meta, code, codeAttrs, description, descriptionAttrs, resetForm };
+  },
   props: {
     id: {
       type: String,
@@ -74,25 +97,10 @@ export default defineComponent({
     },
   },
   emits: ['cancel', 'group-added'],
-  data() {
-    return {
-      code: '',
-      description: '',
-    };
-  },
-  computed: {
-    formReady(): boolean {
-      if (this.code && this.code.length > 0 && this.description.length > 0) {
-        return true;
-      }
-      return false;
-    },
-  },
-
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
-      this.clearForm();
+      this.resetForm();
       this.$emit('cancel');
     },
     save(): void {
@@ -109,12 +117,7 @@ export default defineComponent({
           this.showError(error);
           this.$emit('cancel');
         })
-        .finally(() => this.clearForm());
-    },
-
-    clearForm(): void {
-      this.code = '';
-      this.description = '';
+        .finally(() => this.resetForm());
     },
   },
 });

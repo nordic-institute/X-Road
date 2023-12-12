@@ -26,7 +26,7 @@
 <template>
   <div class="xrd-tab-max-width detail-view-outer">
     <div class="detail-view-content">
-      <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close"/>
+      <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
       <v-row>
         <v-col>
           <h3>{{ $t('keys.tokenInfo') }}</h3>
@@ -140,7 +140,7 @@
         :disabled="isSaveDisabled"
         data-test="token-details-save"
         @click="save()"
-      >{{ $t('action.save') }}
+        >{{ $t('action.save') }}
       </xrd-button>
     </div>
   </div>
@@ -150,17 +150,15 @@
 /***
  * Component for showing the details of a token.
  */
-import {computed, defineComponent, ref} from 'vue';
-import * as api from '@/util/api';
-import {encodePathParameter} from '@/util/api';
-import {Permissions} from '@/global';
-import {PossibleAction, Token, TokenPinUpdate, TokenType,} from '@/openapi-types';
-import {mapActions, mapState} from 'pinia';
-import {useUser} from '@/store/modules/user';
-import {useNotifications} from '@/store/modules/notifications';
-import {AxiosError} from 'axios';
-import {PublicPathState, useForm} from 'vee-validate';
-import {useTokens} from '@/store/modules/tokens';
+import { computed, defineComponent, ref } from 'vue';
+import { Permissions } from '@/global';
+import { PossibleAction, Token, TokenType } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { AxiosError } from 'axios';
+import { PublicPathState, useForm } from 'vee-validate';
+import { useTokens } from '@/store/modules/tokens';
 
 export default defineComponent({
   props: {
@@ -170,20 +168,20 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const {tokens} = useTokens();
+    const { tokens } = useTokens();
     const isChangePinOpen = ref(false);
     const token: Token = tokens.find((token) => token.id === props.id)!;
     const validationSchema = computed(() => {
       if (isChangePinOpen.value) {
         return {
-          'token.friendlyName': 'required',
+          'token.friendlyName': 'required|max:255',
           'token.oldPin': 'required',
           'token.newPin': 'required|confirmed:@token.newPinConfirm',
           'token.newPinConfirm': 'required',
         };
       } else {
         return {
-          'token.friendlyName': 'required',
+          'token.friendlyName': 'required|max:255',
         };
       }
     });
@@ -268,6 +266,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     ...mapActions(useUser, ['fetchInitializationStatus']),
+    ...mapActions(useTokens, ['updatePin', 'updateToken']),
     close(): void {
       this.$router.back();
     },
@@ -278,22 +277,18 @@ export default defineComponent({
       try {
         let successMsg = this.$t('keys.tokenSaved') as string;
         if (this.isChangePinOpen) {
-          const tokenPinUpdate: TokenPinUpdate = {
-            old_pin: this.values.token.oldPin,
-            new_pin: this.values.token.newPin,
-          };
-          await api.put(
-            `/tokens/${encodePathParameter(this.id)}/pin`,
-            tokenPinUpdate,
+          this.updatePin(
+            this.id,
+            this.values.token.oldPin,
+            this.values.token.newPin,
           );
           successMsg = this.$t('token.pinChanged') as string;
         }
         if (this.isFieldDirty('token.friendlyName')) {
-          this.token.name = this.values.token.friendlyName;
-          await api.patch(
-            `/tokens/${encodePathParameter(this.id)}`,
-            this.token,
-          );
+          this.updateToken({
+            ...this.token,
+            name: this.values.token.friendlyName,
+          });
         }
         this.showSuccess(successMsg);
         this.$router.back();

@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ManagementServiceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
@@ -73,7 +73,7 @@ class PrivateParametersV3ConverterTest {
         return privateParameters;
     }
 
-    private static void assertPrivateParameters(PrivateParametersType privateParameters) {
+    private static void assertPrivateParameters(PrivateParametersTypeV3 privateParameters) {
         assertAll(
                 () -> assertThat(privateParameters).isNotNull(),
                 () -> assertThat(privateParameters.getInstanceIdentifier()).isEqualTo(INSTANCE),

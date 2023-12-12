@@ -25,36 +25,38 @@
  -->
 
 <template>
-  <router-view name="top" />
-  <transition name="fade" mode="out-in">
-    <div class="base-full-width">
-      <router-view name="subTabs" />
+  <div>
+    <router-view name="top" />
+    <transition name="fade" mode="out-in">
+      <div class="base-full-width">
+        <router-view name="subTabs" />
 
-      <div class="sticky">
-        <router-view name="alerts" />
+        <div class="sticky">
+          <router-view name="alerts" />
+        </div>
+        <v-row align="center" class="base-full-width" no-gutters>
+          <v-col class="d-flex justify-center align-center">
+            <router-view />
+          </v-col>
+        </v-row>
       </div>
-      <v-row align="center" class="base-full-width" no-gutters>
-        <v-col class="d-flex justify-center align-center">
-          <router-view />
-        </v-col>
-      </v-row>
-    </div>
-  </transition>
+    </transition>
 
-  <v-dialog v-model="showDialog" width="500" persistent>
-    <v-card class="xrd-card">
-      <v-card-title>
-        <span class="text-h5">{{ $t('logout.sessionExpired') }}</span>
-      </v-card-title>
-      <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-        <xrd-button data-test="session-expired-ok-button" @click="logout()"
-          >{{ $t('action.ok') }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <v-dialog v-model="showDialog" width="500" persistent>
+      <v-card class="xrd-card">
+        <v-card-title>
+          <span class="text-h5">{{ $t('logout.sessionExpired') }}</span>
+        </v-card-title>
+        <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
+        <v-card-actions class="xrd-card-actions">
+          <v-spacer></v-spacer>
+          <xrd-button data-test="session-expired-ok-button" @click="logout()">
+            {{ $t('action.ok') }}
+          </xrd-button>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">

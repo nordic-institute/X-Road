@@ -28,7 +28,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
@@ -40,7 +40,7 @@ import java.time.OffsetDateTime;
 /**
  * Contains private parameters of a configuration instance.
  */
-public class PrivateParametersV3 extends AbstractXmlConf<PrivateParametersType> implements PrivateParametersProvider {
+public class PrivateParametersV3 extends AbstractXmlConf<PrivateParametersTypeV3> implements PrivateParametersProvider {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
     private final PrivateParametersV3Converter converter = new PrivateParametersV3Converter();
@@ -57,14 +57,14 @@ public class PrivateParametersV3 extends AbstractXmlConf<PrivateParametersType> 
 
 
     PrivateParametersV3(byte[] content) {
-        super(content, PrivateParametersSchemaValidatorV2.class);
+        super(content, PrivateParametersSchemaValidatorV3.class);
         expiresOn = OffsetDateTime.MAX;
         privateParameters = converter.convert(confType);
         initCompleted = true;
     }
 
     PrivateParametersV3(Path privateParametersPath, OffsetDateTime expiresOn) {
-        super(privateParametersPath.toString(), PrivateParametersSchemaValidatorV2.class);
+        super(privateParametersPath.toString(), PrivateParametersSchemaValidatorV3.class);
         this.expiresOn = expiresOn;
         privateParameters = converter.convert(confType);
         initCompleted = true;

@@ -45,6 +45,10 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css,image/jpeg
+  servlet:
+    session:
+      cookie:
+        same-site: Strict
 
 logging:
   config: file:/etc/xroad/conf.d/centralserver-admin-service-logback.xml
@@ -55,6 +59,8 @@ script:
   generate-backup:
     path: /usr/share/xroad/scripts/backup_xroad_center_configuration.sh
     valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
+  generate-certificate:
+    path: /usr/share/xroad/scripts/generate_certificate.sh
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_center_configuration.sh
   external-configuration-verifier:
@@ -62,6 +68,9 @@ script:
 
 gpgkeys:
   gpghome: /etc/xroad/gpghome
+
+certificates:
+  path: /etc/xroad/ssl/
 
 file-upload-endpoints:
   endpoint-definitions:

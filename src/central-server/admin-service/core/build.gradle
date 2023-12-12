@@ -25,6 +25,7 @@ dependencies {
     api("jakarta.persistence:jakarta.persistence-api")
 
     implementation("io.vavr:vavr:$vavrVersion")
+    implementation("org.apache.commons:commons-compress:1.21")
 
     testImplementation project(':common:common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')

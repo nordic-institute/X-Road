@@ -32,8 +32,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -52,21 +50,17 @@ public class VersionedConfigurationDirectoryTest {
 
         assertEquals("EE", dir.getInstanceIdentifier());
 
-        PrivateParameters p = dir.getPrivate("foo");
+        PrivateParameters p = dir.findPrivate("foo").orElseThrow();
 
-        assertNotNull(p);
         assertEquals("foo", p.getInstanceIdentifier());
 
-        SharedParameters s = dir.getShared("foo");
+        SharedParameters s = dir.findShared("foo").orElseThrow();
 
-        assertNotNull(s);
         assertEquals("foo", s.getInstanceIdentifier());
 
-        dir.getShared("foo"); // intentional
-
-        assertNull(dir.getPrivate("bar"));
-        assertNotNull(dir.getShared("bar"));
-        assertNull(dir.getShared("xxx"));
+        assertTrue(dir.findPrivate("bar").isEmpty());
+        assertTrue(dir.findShared("bar").isPresent());
+        assertTrue(dir.findShared("xxx").isEmpty());
     }
 
     /**
@@ -111,21 +105,17 @@ public class VersionedConfigurationDirectoryTest {
 
         assertEquals("EE", dir.getInstanceIdentifier());
 
-        PrivateParameters p = dir.getPrivate("foo_v2");
+        PrivateParameters p = dir.findPrivate("foo_v2").orElseThrow();
 
-        assertNotNull(p);
         assertEquals("foo_v2", p.getInstanceIdentifier());
 
-        SharedParameters s = dir.getShared("foo_v2");
+        SharedParameters s = dir.findShared("foo_v2").orElseThrow();
 
-        assertNotNull(s);
         assertEquals("foo_v2", s.getInstanceIdentifier());
 
-        dir.getShared("foo_v2"); // intentional
-
-        assertNull(dir.getPrivate("bar"));
-        assertNotNull(dir.getShared("bar"));
-        assertNull(dir.getShared("xxx"));
+        assertTrue(dir.findPrivate("bar").isEmpty());
+        assertTrue(dir.findShared("bar").isPresent());
+        assertTrue(dir.findShared("xxx").isEmpty());
     }
 
     /**
@@ -168,8 +158,8 @@ public class VersionedConfigurationDirectoryTest {
     public void readEmptyDirectory() throws Exception {
         VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory("src/test/resources/globalconf_empty");
 
-        assertNull(dir.getPrivate("foo"));
-        assertNull(dir.getShared("foo"));
+        assertTrue(dir.findPrivate("foo").isEmpty());
+        assertTrue(dir.findShared("foo").isEmpty());
     }
 
     /**
@@ -181,8 +171,8 @@ public class VersionedConfigurationDirectoryTest {
     public void readMalformedDirectory() throws Exception {
         VersionedConfigurationDirectory dir = new VersionedConfigurationDirectory("src/test/resources/globalconf_malformed");
 
-        assertNull(dir.getPrivate("foo"));
-        assertNull(dir.getShared("foo"));
+        assertTrue(dir.findPrivate("foo").isEmpty());
+        assertTrue(dir.findShared("foo").isEmpty());
     }
 
     private boolean pathExists(List<Path> paths, String path) {
