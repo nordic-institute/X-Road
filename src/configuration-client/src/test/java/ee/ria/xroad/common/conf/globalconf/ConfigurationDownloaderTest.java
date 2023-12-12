@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import lombok.Getter;
 import lombok.Value;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -43,6 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -180,8 +182,8 @@ public class ConfigurationDownloaderTest {
     @Test
     public void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
         HttpsURLConnection connection =
-                (HttpsURLConnection) ConfigurationLocation.getDownloadURLConnection("https://ConfigurationDownloaderTest.com");
-        assertEquals("NO_OP", connection.getHostnameVerifier().toString());
+                (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
+        assertThat(connection.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
     }
 
     private void resetParser(ConfigurationDownloader downloader) {
