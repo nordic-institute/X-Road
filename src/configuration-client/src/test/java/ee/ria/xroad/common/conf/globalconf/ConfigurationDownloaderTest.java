@@ -30,7 +30,10 @@ import lombok.Value;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import java.io.IOException;
 import java.net.URL;
@@ -51,6 +54,12 @@ public class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
     private static final String LOCATION_URL_SUCCESS = "http://www.example.com";
     private static final String LOCATION_HTTPS_URL_SUCCESS = "https://www.example.com";
+    private static final String HOSTNAME_VERIFICATION_ENABLED = "xroad.configuration-client.global_conf_hostname_verification";
+
+    @BeforeClass
+    public static void beforeTests() {
+        System.setProperty(HOSTNAME_VERIFICATION_ENABLED, "false");
+    }
 
     /**
      * For better HA, the order of sources to be tried to download configuration
@@ -166,6 +175,13 @@ public class ConfigurationDownloaderTest {
                 new URL("http://test.download.com"));
         assertEquals(connection.getReadTimeout(), ConfigurationDownloader.READ_TIMEOUT);
         assertTrue(connection.getReadTimeout() > 0);
+    }
+
+    @Test
+    public void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
+        HttpsURLConnection connection =
+                (HttpsURLConnection) ConfigurationLocation.getDownloadURLConnection("https://ConfigurationDownloaderTest.com");
+        assertEquals("NO_OP", connection.getHostnameVerifier().toString());
     }
 
     private void resetParser(ConfigurationDownloader downloader) {
