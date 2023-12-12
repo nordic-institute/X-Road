@@ -32,6 +32,16 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { mapStores } from 'pinia';
+import { useSettingsTabs } from '@/store/modules/settings-tabs';
 
-export default defineComponent({});
+export default defineComponent({
+  computed: {
+    ...mapStores(useSettingsTabs),
+  },
+  created() {
+    let firstTab = this.settingsTabsStore.getAvailableTabs()[0].to;
+    this.$router.replace(firstTab);
+  },
+});
 </script>

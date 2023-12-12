@@ -104,7 +104,13 @@ const routes: RouteRecordRaw[] = [
         name: RouteName.Settings,
         path: '/settings',
         meta: {
-          permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+          permissions: [
+            Permissions.VIEW_SYSTEM_SETTINGS,
+            Permissions.VIEW_GLOBAL_GROUPS,
+            Permissions.VIEW_SECURITY_SERVERS,
+            Permissions.BACKUP_CONFIGURATION,
+            Permissions.VIEW_API_KEYS,
+          ],
         },
         components: {
           default: SettingsView,
