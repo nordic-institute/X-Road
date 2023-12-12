@@ -31,9 +31,9 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 
 import java.io.IOException;
@@ -58,10 +58,6 @@ public class ConfigurationDownloaderTest {
     private static final String LOCATION_HTTPS_URL_SUCCESS = "https://www.example.com";
     private static final String HOSTNAME_VERIFICATION_ENABLED = "xroad.configuration-client.global_conf_hostname_verification";
 
-    @BeforeClass
-    public static void beforeTests() {
-        System.setProperty(HOSTNAME_VERIFICATION_ENABLED, "false");
-    }
 
     /**
      * For better HA, the order of sources to be tried to download configuration
@@ -181,9 +177,19 @@ public class ConfigurationDownloaderTest {
 
     @Test
     public void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
+        System.setProperty(HOSTNAME_VERIFICATION_ENABLED, "false");
         HttpsURLConnection connection =
                 (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
         assertThat(connection.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
+    }
+
+    @Test
+    public void downloaderWithDefaultHostnameVerifier() throws IOException {
+        System.setProperty(HOSTNAME_VERIFICATION_ENABLED, "true");
+        HttpsURLConnection connection =
+                (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
+        assertThat(connection.getHostnameVerifier()).isInstanceOf(HostnameVerifier.class);
+        assertThat(connection.getHostnameVerifier()).isNotInstanceOf(NoopHostnameVerifier.class);
     }
 
     private void resetParser(ConfigurationDownloader downloader) {

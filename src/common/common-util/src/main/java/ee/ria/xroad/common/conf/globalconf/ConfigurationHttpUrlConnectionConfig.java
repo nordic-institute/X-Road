@@ -49,10 +49,6 @@ public final class ConfigurationHttpUrlConnectionConfig {
 
     private static final String TLS = "TLS";
     private static final SSLSocketFactory SSL_SOCKET_FACTORY;
-    private static final boolean TLS_CERTIFICATION_VERIFICATION_ENABLED =
-            SystemProperties.isConfigurationClientGlobalConfTlsCertVerificationEnabled();
-    private static final boolean HOSTNAME_VERIFICATION_ENABLED =
-            SystemProperties.isConfigurationClientGlobalConfHostnameVerificationEnabled();
 
     static {
         try {
@@ -71,18 +67,26 @@ public final class ConfigurationHttpUrlConnectionConfig {
         if (conn instanceof HttpsURLConnection httpsConn) {
             logSystemPropertiesInfo();
 
-            if (!HOSTNAME_VERIFICATION_ENABLED) {
+            if (!isHostNameVerificationEnabled()) {
                 httpsConn.setHostnameVerifier(new NoopHostnameVerifier());
             }
-            if (!TLS_CERTIFICATION_VERIFICATION_ENABLED) {
+            if (!isTlsCertificationVerificationEnabled()) {
                 httpsConn.setSSLSocketFactory(SSL_SOCKET_FACTORY);
             }
         }
     }
 
+    private static boolean isHostNameVerificationEnabled() {
+        return SystemProperties.isConfigurationClientGlobalConfHostnameVerificationEnabled();
+    }
+
+    private static boolean isTlsCertificationVerificationEnabled() {
+        return SystemProperties.isConfigurationClientGlobalConfTlsCertVerificationEnabled();
+    }
+
     private static void logSystemPropertiesInfo() {
-        log.info("Global conf download TLS certificate verification is " + isEnabled(TLS_CERTIFICATION_VERIFICATION_ENABLED)
-                + ", hostname verification is " + isEnabled(HOSTNAME_VERIFICATION_ENABLED));
+        log.info("Global conf download TLS certificate verification is " + isEnabled(isTlsCertificationVerificationEnabled())
+                + ", hostname verification is " + isEnabled(isHostNameVerificationEnabled()));
     }
 
     private static String isEnabled(boolean paramValue) {
