@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.35
+Version: 2.36
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -61,6 +61,7 @@ Doc. ID: UG-CS
 | 11.07.2023 | 2.33    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
 | 20.11.2023 | 2.34    | Security server address change management request                                                                                                                                                                                                                                                                                                                                                                                       | Justas Samuolis     |
 | 09.12.2023 | 2.35    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
+| 12.12.2023 | 2.36    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
 
