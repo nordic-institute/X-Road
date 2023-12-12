@@ -478,6 +478,7 @@ class ConfigurationDownloader {
 
     public static URLConnection getDownloadURLConnection(URL url) throws IOException {
         URLConnection connection = url.openConnection();
+        ConfigurationHttpUrlConnectionConfig.apply((HttpURLConnection) connection);
         connection.setReadTimeout(READ_TIMEOUT);
         return connection;
     }

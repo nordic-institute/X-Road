@@ -25,12 +25,18 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import lombok.Getter;
 import lombok.Value;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 
 import java.io.IOException;
 import java.net.URL;
@@ -40,6 +46,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -166,6 +173,23 @@ public class ConfigurationDownloaderTest {
                 new URL("http://test.download.com"));
         assertEquals(connection.getReadTimeout(), ConfigurationDownloader.READ_TIMEOUT);
         assertTrue(connection.getReadTimeout() > 0);
+    }
+
+    @Test
+    public void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
+        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "false");
+        HttpsURLConnection connection =
+                (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
+        assertThat(connection.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
+    }
+
+    @Test
+    public void downloaderWithDefaultHostnameVerifier() throws IOException {
+        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true");
+        HttpsURLConnection connection =
+                (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
+        assertThat(connection.getHostnameVerifier()).isInstanceOf(HostnameVerifier.class);
+        assertThat(connection.getHostnameVerifier()).isNotInstanceOf(NoopHostnameVerifier.class);
     }
 
     private void resetParser(ConfigurationDownloader downloader) {
