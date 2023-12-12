@@ -8,7 +8,7 @@ Feature: Security Server API
     And new member 'CS:TEST:member-1' is added
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
-    And Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Authentication header is set to REGISTRATION_OFFICER
     Then security servers list contains 'CS:TEST:member-1:SS-X'
     And security servers list sorting by unknown field fails
 
@@ -23,7 +23,7 @@ Feature: Security Server API
     And management request is approved
     And new security server 'CS:ANOTHER:member-2:SS-A' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
-    And Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Authentication header is set to REGISTRATION_OFFICER
     When user requests security servers list sorted by '<$sortField>' '<$sortDirection>'
     Then the list is sorted by '<$responseFieldExpression>' '<$sortDirection>'
     Examples:
