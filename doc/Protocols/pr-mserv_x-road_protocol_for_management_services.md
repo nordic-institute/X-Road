@@ -350,6 +350,16 @@ The XML Schema fragment of the client deletion request body shown below.
 </xsd:complexType>
 ```
 
+The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
+
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
+ 
+2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+ 
+3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+ 
+4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+
 The response echoes back the client and the server fields of the request and adds the field *requestId*.
 
 An example of the client disabling request and response is given in [Annex A.7](#a7-clientdisable).
@@ -377,10 +387,19 @@ The XML Schema fragment of the client deletion request body shown below.
 </xsd:complexType>
 ```
 
+The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
+
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
+ 
+2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+ 
+3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+ 
+4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+
 The response echoes back the client and the server fields of the request and adds the field *requestId*.
 
 An example of the client enabling request and response is given in [Annex A.8](#a8-clientenable).
-
 
 
 ## Annex A. Example messages
@@ -1085,10 +1104,11 @@ Content-Type: text/xml; charset=UTF-8
                 <id:memberCode>MEMBER</id:memberCode>
                 <id:serverCode>SS1</id:serverCode>
             </xroad:server>
-            <xroad:client id:objectType="MEMBER">
+            <xroad:client id:objectType="SUBSYSTEM">
                 <id:xRoadInstance>EE</id:xRoadInstance>
                 <id:memberClass>CLASS</id:memberClass>
                 <id:memberCode>MEMBER</id:memberCode>
+                <id:subsystemCode>SUBSYSTEM</id:subsystemCode>
             </xroad:client>
         </xroad:clientDisable>
     </SOAP-ENV:Body>
@@ -1182,10 +1202,11 @@ Content-Type: text/xml; charset=UTF-8
                 <id:memberCode>MEMBER</id:memberCode>
                 <id:serverCode>SS1</id:serverCode>
             </xroad:server>
-            <xroad:client id:objectType="MEMBER">
+            <xroad:client id:objectType="SUBSYSTEM">
                 <id:xRoadInstance>EE</id:xRoadInstance>
                 <id:memberClass>CLASS</id:memberClass>
                 <id:memberCode>MEMBER</id:memberCode>
+                <id:subsystemCode>SUBSYSTEM</id:subsystemCode>
             </xroad:client>
         </xroad:clientEnable>
     </SOAP-ENV:Body>

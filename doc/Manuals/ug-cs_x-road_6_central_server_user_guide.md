@@ -65,9 +65,9 @@ Doc. ID: UG-CS
 | 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
 | 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa       | 
 ## Table of Contents <!-- omit in toc --> 
-<!-- toc -->
 
-  * [License](#license)
+<!-- toc -->
+- [License](#license)
 - [1. Introduction](#1-introduction)
   - [1.1 Target Audience](#11-target-audience)
   - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
@@ -170,11 +170,9 @@ Doc. ID: UG-CS
   - [17.5 Warning responses](#175-warning-responses)
 - [18. Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
   - [19 Additional Security Hardening](#19-additional-security-hardening)
-
 <!-- tocstop -->
 
-
-## License
+# License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
