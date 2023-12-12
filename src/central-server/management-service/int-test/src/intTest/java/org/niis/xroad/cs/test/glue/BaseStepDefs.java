@@ -146,6 +146,9 @@ public abstract class BaseStepDefs {
 
     protected ClientId.Conf resolveClientIdFromEncodedStr(String clientIdStr) {
         String[] clientIdSplit = clientIdStr.split(":");
+        if (clientIdSplit.length == 4) {
+            return ClientId.Conf.create(clientIdSplit[0], clientIdSplit[1], clientIdSplit[2], clientIdSplit[3]);
+        }
         return ClientId.Conf.create(clientIdSplit[0], clientIdSplit[1], clientIdSplit[2]);
     }
 
