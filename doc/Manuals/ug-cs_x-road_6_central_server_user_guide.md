@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.36
+Version: 2.37
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -62,6 +62,7 @@ Doc. ID: UG-CS
 | 20.11.2023 | 2.34    | Security server address change management request                                                                                                                                                                                                                                                                                                                                                                                       | Justas Samuolis     |
 | 09.12.2023 | 2.35    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
 | 09.12.2023 | 2.36    | Management service TLS certificate                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets       |
+| 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
 
@@ -73,7 +74,8 @@ Doc. ID: UG-CS
 - [2. User and Role Management](#2-user-and-role-management)
   - [2.1 User Roles](#21-user-roles)
   - [2.2 Managing the Users](#22-managing-the-users)
-  - [2.3 Managing API Keys](#23-managing-api-keys)
+  - [2.3 LDAP User Authentication](#23-ldap-user-authentication)
+  - [2.4 Managing API Keys](#24-managing-api-keys)
 - [3. Standalone and High-Availability Systems](#3-standalone-and-high-availability-systems)
   - [3.1 Detecting the Type of Deployment in the User Interface](#31-detecting-the-type-of-deployment-in-the-user-interface)
   - [3.2 Checking the Status of the Nodes of the Cluster](#32-checking-the-status-of-the-nodes-of-the-cluster)
@@ -241,7 +243,14 @@ To remove a user, enter:
 
 `deluser username`
 
-## 2.3 Managing API Keys
+## 2.3 LDAP user authentication
+
+X-Road leverages PAM (Pluggable Authentication Modules) for user authentication, which facilitates LDAP integration.
+
+A detailed setup guide can be found under security server user guide [2.3 LDAP user authentication](ug-ss_x-road_6_security_server_user_guide.md#23-ldap-user-authentication).
+Please note that x-road property path will be different in case of Central Server. Refer to [ug-syspar_x-road_v6_system_parameters.md](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) for relevant properties.
+
+## 2.4 Managing API Keys
 
 API keys are used to authenticate API calls to Central Server's management REST API. API keys are associated with roles that define the permissions granted to the API key. If an API key is lost, it can be revoked.
 
