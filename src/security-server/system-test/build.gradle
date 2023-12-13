@@ -43,6 +43,4 @@ tasks.register('systemTest', Test) {
         showCauses(true)
         showStandardStreams(true)
     }
-
-    shouldRunAfter test
 }

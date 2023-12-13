@@ -46,6 +46,4 @@ task systemTest(type: Test) {
         showCauses(true)
         showStandardStreams(true)
     }
-
-    shouldRunAfter test
 }

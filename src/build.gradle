@@ -315,13 +315,23 @@ clean.delete << "${rootDir}/packages/build"
 
 jacocoTestReport {
     def javaProjects = subprojects.findAll { it.plugins.hasPlugin(JavaPlugin) }
-    dependsOn javaProjects.check
+    def buildTasks = javaProjects.collect { it.tasks.matching { ["build"].contains(it.name) } }.flatten()
+
+    dependsOn buildTasks
+
     reports {
         xml.required = true
     }
-    classDirectories.setFrom files(javaProjects.sourceSets.main.java.classesDirectory)
-    sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
-    executionData.setFrom fileTree(dir: '.', include: "**/build/jacoco/*.exec")
+
+    classDirectories.setFrom(files(javaProjects.collect {
+        it.extensions.getByType(JavaPluginExtension).sourceSets.main.output.classesDirs
+    }))
+    sourceDirectories.setFrom(files(javaProjects.collect {
+        it.extensions.getByType(JavaPluginExtension).sourceSets.main.allSource.srcDirs
+    }))
+
+    executionData.setFrom(fileTree(dir: '.', includes: ['**/build/jacoco/*.exec', '**/build/jacoco/*.jacoco']))
+
 }
 
 tasks.withType(Jar).configureEach {
