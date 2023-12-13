@@ -36,7 +36,7 @@ bootRun {
 }
 
 tasks.register('copyUi', ProcessResources) {
-    dependsOn[configurations.dist as String]
+    dependsOn(configurations.dist)
     from configurations.dist
     into "${buildDir}/admin-service/ui/public"
 }
@@ -62,7 +62,7 @@ bootJar {
     }
 }
 
-tasks.register('downloadLiquibaseLibs', Copy) {
+tasks.register('moveLiquibaseLibs', Copy) {
     mkdir "${buildDir}/libs/"
 
     from configurations.liquibaseLibs
@@ -70,5 +70,5 @@ tasks.register('downloadLiquibaseLibs', Copy) {
 }
 
 build {
-    dependsOn downloadLiquibaseLibs
+    dependsOn moveLiquibaseLibs
 }
