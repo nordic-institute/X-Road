@@ -119,6 +119,11 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
+mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+if systemctl is-active %{name} &> /dev/null; then
+  touch "%{_localstatedir}/lib/rpm-state/%{name}/active"
+fi
+
 if [ $1 -gt 1 ] ; then
     # upgrade
     # remove the previous port forwarding rules (if any)
@@ -126,7 +131,6 @@ if [ $1 -gt 1 ] ; then
         source /etc/sysconfig/xroad-proxy
     fi
 
-    mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
     rpm -q xroad-proxy --queryformat="%%{version}" &> %{_localstatedir}/lib/rpm-state/%{name}/prev-version
 
 fi
