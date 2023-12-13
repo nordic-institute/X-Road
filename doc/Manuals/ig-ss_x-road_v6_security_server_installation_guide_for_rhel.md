@@ -60,7 +60,6 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
     - [2.3.1 Installing Java 17](#231-installing-java-17)
       - [2.3.1.1 Installing Java 17 on RHEL 7](#2311-installing-java-17-on-rhel-7)
-      - [2.3.1.2 Installing Java 17 on RHEL 8](#2312-installing-java-17-on-rhel-8)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
@@ -205,14 +204,14 @@ Requirements to software and settings:
 
 #### 2.3.1 Installing Java 17
 
-Java 17 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server. For RHEL 8 it is available in default repository, however it is not included in RHEL 7.
-Sample installation steps are provided for both versions.
+Java 17 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server, however it is not included in default repositories for RHEL 7.
+Sample installation steps are provided below.
 
 * Check the current java version:
 
         java -version
 
-If the current Java version is 17, following steps should be skipped. If not, follow the instructions depending on RHEL version.
+If the current Java version is 17, following steps should be skipped. If not, follow the instructions to install Java 17.
 
 ##### 2.3.1.1 Installing Java 17 on RHEL 7
 
@@ -236,20 +235,6 @@ Follow these steps to install Temurin JDK 17 on RHEL 7:
 
 * Verify the installation:
     
-        java -version
-
-The output should contain Java version 17. If it does not, set the default Java version to 17 using *alternatives*:
-
-        sudo alternatives --config java
-
-##### 2.3.1.2 Installing Java 17 on RHEL 8
-
-Install Java 17 from default repository:
-
-        sudo yum install jre-17-openjdk-headless
-
-* Verify the installation:
-
         java -version
 
 The output should contain Java version 17. If it does not, set the default Java version to 17 using *alternatives*:
