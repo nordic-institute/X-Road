@@ -160,7 +160,7 @@ fi
   services_to_restart=$(find %{_localstatedir}/lib/rpm-state -type f -name "active" -exec dirname {} \\; | xargs -I {} basename {} | grep xroad- | tr '\\n' ' ')  \
   if [ -n "$services_to_restart" ]; then                                                                                                                         \
     echo "Restarting services: $services_to_restart"                                                                                                             \
-    systemctl --quiet restart "$services_to_restart" >/dev/null 2>&1 || :                                                                                        \                                                                                         \
+    systemctl --quiet restart "$services_to_restart" >/dev/null 2>&1 || :                                                                                        \
     for service_name in $services_to_restart; do                                                                                                                 \
       rm -f "%{_localstatedir}/lib/rpm-state/$service_name/active" >/dev/null 2>&1 || :                                                                          \
     done                                                                                                                                                         \
