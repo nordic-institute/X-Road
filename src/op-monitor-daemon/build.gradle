@@ -60,12 +60,12 @@ tasks.register('xjc') {
 }
 
 shadowJar {
-  archiveClassifier = ''
-  exclude('**/module-info.class')
-  manifest {
-    attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
-  }
-  mergeServiceFiles()
+    archiveClassifier = ''
+    exclude('**/module-info.class')
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
+    }
+    mergeServiceFiles()
 }
 
 tasks.register('testsJar', Jar) {

@@ -13,7 +13,7 @@ configurations {
 }
 
 configurations.configureEach {
-  exclude(module: 'jetty-jakarta-servlet-api')
+    exclude(module: 'jetty-jakarta-servlet-api')
 }
 
 dependencyManagement {
@@ -97,6 +97,6 @@ tasks.register('copyDeps', Copy) {
 assemble.dependsOn copyDeps
 
 test {
-  useJUnitPlatform()
-  maxHeapSize = "1g"
+    useJUnitPlatform()
+    maxHeapSize = "1g"
 }

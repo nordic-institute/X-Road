@@ -5,11 +5,11 @@ plugins {
 }
 
 sourceSets {
-  intTest {
-    resources {
-      srcDir '../common/common-int-test/src/main/resources/'
+    intTest {
+        resources {
+            srcDir '../common/common-int-test/src/main/resources/'
+        }
     }
-  }
 }
 
 dependencies {
@@ -47,10 +47,10 @@ jar {
 }
 
 shadowJar {
-  archiveClassifier = ''
-  exclude('**/module-info.class')
-  from rootProject.file("LICENSE.txt")
-  mergeServiceFiles()
+    archiveClassifier = ''
+    exclude('**/module-info.class')
+    from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
 }
 
 testJar.enabled = true
@@ -131,28 +131,28 @@ tasks.register('runBatchSigner', JavaExec) {
 check.dependsOn integrationTest
 
 tasks.register('intTest', Test) {
-  useJUnitPlatform()
+    useJUnitPlatform()
 
-  setDescription("Runs integration tests.")
-  group = 'verification'
+    setDescription("Runs integration tests.")
+    group = 'verification'
 
-  testClassesDirs = sourceSets.intTest.output.classesDirs
-  classpath = sourceSets.intTest.runtimeClasspath
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
 
-  def intTestArgs = []
-  if (project.hasProperty('intTestProfilesInclude')) {
-    intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
-  }
+    def intTestArgs = []
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
 
-  jvmArgs intTestArgs
-  testLogging {
-    showStackTraces(true)
-    showExceptions(true)
-    showCauses(true)
-    showStandardStreams(true)
-  }
+    jvmArgs intTestArgs
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
 }
 
 tasks.named('check') {
-  dependsOn tasks.named('intTest')
+    dependsOn tasks.named('intTest')
 }
