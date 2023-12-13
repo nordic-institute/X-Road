@@ -9,7 +9,6 @@ dependencies {
     implementation "commons-cli:commons-cli:$commonsCliVersion"
 
     testImplementation project(':common:common-test')
-    testImplementation('org.xmlunit:xmlunit-assertj3:2.9.0')
 }
 
 ext {

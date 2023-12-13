@@ -31,6 +31,7 @@ import lombok.Getter;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 
@@ -45,8 +46,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -198,13 +199,13 @@ public class ConfigurationDownloaderTest {
     private void verifySuccessfulLocation(ConfigurationDownloader downloader, String expectedUrl, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(expectedUrl, expectedLocationVersion));
+        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(expectedUrl, expectedLocationVersion));
     }
 
     private void verifySuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
+        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
     }
 
     private Matcher<List<String>> hasOnlyOneSuccessfulUrl(String url, int version) {
@@ -244,8 +245,8 @@ public class ConfigurationDownloaderTest {
 
         assertTrue(locationUrls.get(0).startsWith("http:"));
         assertTrue(urlsParsedInOrder.get(0).startsWith("https"));
-        assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
-        assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
+        MatcherAssert.assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
+        MatcherAssert.assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
     }
 
     private TestConfigurationParser getParser(ConfigurationDownloader downloader) {
