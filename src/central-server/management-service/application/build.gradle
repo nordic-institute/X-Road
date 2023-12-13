@@ -1,4 +1,4 @@
- plugins {
+plugins {
     id 'org.springframework.boot'
 }
 
@@ -20,13 +20,13 @@ bootJar {
 
 dependencies {
     implementation(project(":central-server:management-service:core")) {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
     implementation(project(":central-server:management-service:infra-api-soap")) {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
     implementation('org.springframework.boot:spring-boot-starter-web') {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
     implementation('org.springframework.boot:spring-boot-starter-jetty')
 

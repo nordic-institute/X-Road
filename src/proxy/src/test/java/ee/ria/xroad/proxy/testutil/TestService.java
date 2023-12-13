@@ -132,7 +132,7 @@ public class TestService implements StartStop {
         }
     }
 
-    private class ServiceHandler extends AbstractHandler {
+    private final class ServiceHandler extends AbstractHandler {
         @Override
         public void handle(String target, Request baseRequest, HttpServletRequest request,
                 HttpServletResponse response) throws IOException, ServletException {

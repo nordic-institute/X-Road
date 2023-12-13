@@ -342,7 +342,7 @@ public class OcspClientTest {
         }
     }
 
-    private static class TestOCSPResponder extends AbstractHandler {
+    private static final class TestOCSPResponder extends AbstractHandler {
 
         private final String responseContentType = "application/ocsp-response";
 

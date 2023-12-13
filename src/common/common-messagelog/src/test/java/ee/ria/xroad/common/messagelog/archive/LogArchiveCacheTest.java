@@ -102,7 +102,7 @@ public class LogArchiveCacheTest {
 
     @Parameters(name = "encrypted = {0}")
     public static Object[] params() {
-        return new Object[] {Boolean.FALSE, Boolean.TRUE};
+        return new Object[]{Boolean.FALSE, Boolean.TRUE};
     }
 
     @Before
@@ -125,6 +125,7 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure one entry of normal size can be added successfully.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -146,6 +147,7 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure log archive is rotated if an entry is too large.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -163,6 +165,7 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure null message records are not allowed.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = IllegalArgumentException.class)
@@ -172,6 +175,7 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure the log archive is rotated inbetween log entry additions.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -201,6 +205,7 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure name clash is avoided when fileName already exists in ZIP.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -366,7 +371,7 @@ public class LogArchiveCacheTest {
     }
 
     private void assertZip(List<String> expectedEntryNames,
-            byte[] archiveBytes) throws IOException {
+                           byte[] archiveBytes) throws IOException {
         if (archiveBytes == null || archiveBytes.length == 0) {
             fail("Bytes of zip archive must not be empty");
         }
@@ -444,7 +449,7 @@ public class LogArchiveCacheTest {
     }
 
     @RequiredArgsConstructor
-    private static class StringInListMatcher extends TypeSafeMatcher<String> {
+    private static final class StringInListMatcher extends TypeSafeMatcher<String> {
 
         private final List<String> listOfElements;
 

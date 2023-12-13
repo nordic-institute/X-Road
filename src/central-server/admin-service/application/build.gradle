@@ -27,10 +27,6 @@ dependencies {
     testImplementation("org.liquibase:liquibase-core")
 }
 
-test {
-    useJUnitPlatform()
-}
-
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
     if (project.hasProperty('args')) {
@@ -39,7 +35,8 @@ bootRun {
     }
 }
 
-task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
+tasks.register('copyUi', ProcessResources) {
+    dependsOn[configurations.dist as String]
     from configurations.dist
     into "${buildDir}/admin-service/ui/public"
 }
@@ -47,6 +44,7 @@ task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
 jar {
     enabled = false
 }
+
 bootJar {
     enabled = true
 
@@ -64,11 +62,13 @@ bootJar {
     }
 }
 
-task downloadLiquibaseLibs(type: Copy) {
+tasks.register('downloadLiquibaseLibs', Copy) {
     mkdir "${buildDir}/libs/"
 
     from configurations.liquibaseLibs
     into "${buildDir}/libs"
 }
 
-build.dependsOn downloadLiquibaseLibs
+build {
+    dependsOn downloadLiquibaseLibs
+}

@@ -64,7 +64,7 @@ class DummyServerProxy extends Server implements StartStop {
         setHandler(new ServiceHandler());
     }
 
-    private class ServiceHandler extends AbstractHandler {
+    private static final class ServiceHandler extends AbstractHandler {
         @Override
         public void handle(String target, Request baseRequest,
                 HttpServletRequest request, HttpServletResponse response)

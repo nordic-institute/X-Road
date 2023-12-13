@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import lombok.Getter;
-import lombok.Value;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -158,6 +157,7 @@ public class ConfigurationDownloaderTest {
     /**
      * Checks that ConfigurationDownloader uses connections that timeout
      * after a period of time.
+     *
      * @throws IOException
      */
     @Test
@@ -238,7 +238,7 @@ public class ConfigurationDownloaderTest {
         return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(List<String> parsedUrls) {
-                return  locationUrls.size() == parsedUrls.size()
+                return locationUrls.size() == parsedUrls.size()
                         && locationUrls.containsAll(parsedUrls);
             }
 
@@ -317,10 +317,8 @@ public class ConfigurationDownloaderTest {
         };
     }
 
-    @Value
-    private static class TestConfigurationSource implements ConfigurationSource {
 
-        private final List<String> locationUrls;
+    private record TestConfigurationSource(List<String> locationUrls) implements ConfigurationSource {
 
         @Override
         public String getInstanceIdentifier() {
@@ -359,7 +357,7 @@ public class ConfigurationDownloaderTest {
 
         @Override
         public Configuration parse(ConfigurationLocation location,
-                               String... contentIdentifiersToBeHandled) {
+                                   String... contentIdentifiersToBeHandled) {
             // For checking the order later.
             String downloadUrl = location.getDownloadURL();
             configurationUrls.add(downloadUrl);

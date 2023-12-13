@@ -219,7 +219,7 @@ public class ProxyMessageDecoder {
         OCSP, SOAP, REST, RESTBODY, ATTACHMENT, HASH_CHAIN_RESULT, HASH_CHAIN, SIGNATURE, NONE
     }
 
-    private class ContentHandler extends AbstractContentHandler {
+    private final class ContentHandler extends AbstractContentHandler {
         private NextPart nextPart = NextPart.OCSP;
         private boolean rest = false;
         private Map<String, String> headers;

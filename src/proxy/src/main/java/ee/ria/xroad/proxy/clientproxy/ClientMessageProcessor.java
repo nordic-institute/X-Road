@@ -439,7 +439,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     }
 
 
-    private class SoapMessageHandler implements SoapMessageDecoder.Callback {
+    private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
 
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {

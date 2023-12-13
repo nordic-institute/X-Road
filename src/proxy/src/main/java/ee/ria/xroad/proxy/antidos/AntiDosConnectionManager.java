@@ -46,7 +46,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 class AntiDosConnectionManager<T extends SocketChannelWrapper> {
 
     // Tiny wrapper class for active connections of a partner
-    private class HostData {
+    final class HostData {
         final Deque<T> connections = new LinkedBlockingDeque<>();
     }
 

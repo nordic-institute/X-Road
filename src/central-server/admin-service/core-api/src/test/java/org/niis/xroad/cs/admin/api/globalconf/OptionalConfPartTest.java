@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.commonui;
+package org.niis.xroad.cs.admin.api.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
@@ -34,6 +34,7 @@ import org.hamcrest.core.AnyOf;
 import org.hamcrest.core.StringContains;
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,8 +51,8 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests to verify correct optional configuration parts behavior.
  */
-public class OptionalPartsConfBehavior {
-    private static final String CONF_DIR = "src/test/resources/configuration-parts";
+public class OptionalConfPartTest {
+    private static final String CONF_DIR = "src/test/resources/configuration-parts-OPT";
     private static final String MESSAGE_CONVERTER_FILE = CONF_DIR + File.separator + "message-converter.ini";
 
     @Rule
@@ -59,13 +60,13 @@ public class OptionalPartsConfBehavior {
 
     /**
      * Test to ensure test configuration part content identifier can be read.
+     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
     public void shouldGetContentIdentifier() throws IOException {
         // Given
-        String confDir = "src/test/resources/configuration-parts";
-        OptionalPartsConf conf = new OptionalPartsConf(confDir);
+        OptionalPartsConf conf = new OptionalPartsConf(CONF_DIR);
         String partFile = "test-configuration-part.xml";
 
         // When
@@ -79,8 +80,7 @@ public class OptionalPartsConfBehavior {
 
     @Test
     public void shouldGetPartFileName() throws IOException {
-        String confDir = "src/test/resources/configuration-parts";
-        OptionalPartsConf conf = new OptionalPartsConf(confDir);
+        OptionalPartsConf conf = new OptionalPartsConf(CONF_DIR);
 
         assertEquals("messageconverter.xml", conf.getPartFileName("MESSAGECONVERTER"));
         assertEquals("test-configuration-part.xml", conf.getPartFileName("TEST-CONFIGURATION-PART"));
@@ -96,6 +96,7 @@ public class OptionalPartsConfBehavior {
 
     /**
      * Test to ensure all configuration parts in the directory can be read.
+     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -120,6 +121,7 @@ public class OptionalPartsConfBehavior {
     /**
      * Test to ensure errors are added when cannot read the configuration parts
      * file.
+     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -143,6 +145,7 @@ public class OptionalPartsConfBehavior {
 
     /**
      * Test to ensure the optional parts list is empty if directory does not exist.
+     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -160,6 +163,7 @@ public class OptionalPartsConfBehavior {
 
     /**
      * Test to ensure malformed files are skipped.
+     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -177,6 +181,7 @@ public class OptionalPartsConfBehavior {
 
     /**
      * Test to ensure reserved filenames are not allowed in configuration parts.
+     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -186,6 +191,7 @@ public class OptionalPartsConfBehavior {
 
     /**
      * Test to ensure reserved content IDs are not allowed in configuration parts.
+     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -195,6 +201,7 @@ public class OptionalPartsConfBehavior {
 
     /**
      * Test to ensure duplicate filenames are not allowed in configuration parts.
+     *
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test

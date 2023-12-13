@@ -7,39 +7,39 @@ configurations {
 var archive = 'niis-shared-ui-3.0.0.tgz'
 
 tasks.register('yarnBuild', RunYarn) {
-  dependsOn installFrontend
-  inputs.files(
-    'src/',
-    'public/',
-    'svg-icons/',
-    'package.json',
-    'yarn.lock',
-    'vite.config.js',
-    'tsconfig.json',
-    fileTree('node_modules') {
-      exclude '.cache'
-    }
-  )
-  outputs.dir('dist')
-  script = 'run build'
+    dependsOn installFrontend
+    inputs.files(
+        'src/',
+        'public/',
+        'svg-icons/',
+        'package.json',
+        'yarn.lock',
+        'vite.config.js',
+        'tsconfig.json',
+        fileTree('node_modules') {
+            exclude '.cache'
+        }
+    )
+    outputs.dir('dist')
+    script = 'run build'
 }
 
 tasks.register('yarnPack', RunYarn) {
-  dependsOn yarnBuild
-  inputs.files("dist")
-  outputs.file(archive)
-  script = "pack --out ${archive}"
+    dependsOn yarnBuild
+    inputs.files("dist")
+    outputs.file(archive)
+    script = "pack --out ${archive}"
 }
 
 clean {
-  delete file(archive)
-  delete file('dist')
+    delete file(archive)
+    delete file('dist')
 }
 
 assembleFrontend.dependsOn yarnPack
 
 artifacts {
-  yarn(file(archive)) {
-    builtBy(yarnPack)
-  }
+    yarn(file(archive)) {
+        builtBy(yarnPack)
+    }
 }

@@ -64,10 +64,14 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
  */
 public class SignatureVerifierTest {
 
-    /** The date when the OCSP responses etc are valid. */
+    /**
+     * The date when the OCSP responses etc are valid.
+     */
     private static final Date CORRECT_VALIDATION_DATE = createDate(30, 9, 2014);
 
-    /** The correct member name used in the test data. */
+    /**
+     * The correct member name used in the test data.
+     */
     private static final ClientId TEST_ORG_ID = createClientId("Test Org");
     private static final ClientId CONSUMER_ID = createClientId("consumer");
 
@@ -97,6 +101,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that verifying a valid signature succeeds.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -106,6 +111,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that verifying a valid signature succeeds.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -131,6 +137,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that verifying backward compatible (not conforming to specification) valid signature succeeds.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -153,6 +160,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that reading an empty signature fails.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -164,6 +172,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that verifying a signature without ds:Signature element fails.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -175,6 +184,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that verifying a signature without ObjectContainer element fails.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -186,6 +196,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that reading a malformed XML fails.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -198,6 +209,7 @@ public class SignatureVerifierTest {
     /**
      * Tests that validating against the schema fails if the XML does not satisfy the schema.
      * Just changed the name of one element for now.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -210,6 +222,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that verification fails if signing certificate is not in the signature.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -222,6 +235,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that verifying the signer name fails if provided with an invalid signer name.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -234,6 +248,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that verifying the signature value fails if the value is incorrect.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -246,6 +261,7 @@ public class SignatureVerifierTest {
 
     /**
      * Test that reading encapsulated certificates works as expected.
+     *
      * @throws Exception if error occurs
      */
     //@Test
@@ -257,6 +273,7 @@ public class SignatureVerifierTest {
     /**
      * Test that when an encapsulated certificate element has missing
      * id attribute, exception is thrown.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -269,6 +286,7 @@ public class SignatureVerifierTest {
 
     /**
      * Test that when an encapsulated certificate element is missing, exception is thrown.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -281,6 +299,7 @@ public class SignatureVerifierTest {
 
     /**
      * Test that when an encapsulated certificate has its digest mangled, exception is thrown.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -293,6 +312,7 @@ public class SignatureVerifierTest {
 
     /**
      * Tests that if the signature contains no OCSP responses, exception is thrown.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -306,6 +326,7 @@ public class SignatureVerifierTest {
     /**
      * Tests that if the hashes of the attachments do not match,
      * verification fails.
+     *
      * @throws Exception if error occurs
      */
     @Test
@@ -328,7 +349,7 @@ public class SignatureVerifierTest {
     }
 
     private static SignatureVerifier createSignatureVerifier(String signatureFileName, String hashChainResultFileName,
-            HashChainReferenceResolver resolver) throws Exception {
+                                                             HashChainReferenceResolver resolver) throws Exception {
         Signature signature = signature(signatureFileName);
 
         SignatureVerifier verifier = new SignatureVerifier(signature, loadFile(hashChainResultFileName), null);
@@ -374,6 +395,7 @@ public class SignatureVerifierTest {
         return ClientId.Conf.create("EE", "BUSINESS", memberCode);
     }
 
+    @SuppressWarnings("checkstyle:FinalClass")
     private static class Resolver implements HashChainReferenceResolver {
 
         private final Map<String, String> resources = new HashMap<>();

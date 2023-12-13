@@ -1,6 +1,6 @@
 subprojects {
     def standaloneModules = ["int-test"]
-    if(!standaloneModules.contains(it.name)) {
+    if (!standaloneModules.contains(it.name)) {
         apply {
             plugin 'io.spring.dependency-management'
             plugin 'org.springframework.boot'

@@ -12,19 +12,15 @@ buildscript {
 }
 
 plugins {
-  id 'org.sonarqube' version '4.2.1.3168'
-  id 'org.owasp.dependencycheck' version '8.4.0'
-  id 'jacoco'
-  id 'java'
-  id 'idea'
-  id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
-  id 'org.springframework.boot' version "${springBootVersion}" apply false
-  id 'com.google.protobuf' version "$protobufGradleVersion" apply false
-  id 'org.siouan.frontend-jdk17' version "$frontendPluginVersion" apply false
-}
-
-repositories {
-    mavenCentral()
+    id 'org.sonarqube' version '4.4.1.3373'
+    id 'org.owasp.dependencycheck' version '9.0.4'
+    id 'jacoco'
+    id 'java'
+    id 'idea'
+    id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
+    id 'com.google.protobuf' version "$protobufGradleVersion" apply false
+    id 'org.siouan.frontend-jdk17' version "$frontendPluginVersion" apply false
 }
 
 sonarqube {
@@ -87,7 +83,7 @@ dependencyCheck {
 
 group = 'ee.ria.xroad'
 subprojects {
-    group = "${parent.group}.${name.replace(/\W/,"_")}"
+    group = "${parent.group}.${name.replace(/\W/, "_")}"
 }
 
 allprojects {
@@ -105,20 +101,10 @@ allprojects {
     version = '1.0'
 
     jacoco {
-        toolVersion = "0.8.7"
+        toolVersion = "0.8.11"
     }
 
-  tasks.register('allDependencies', DependencyReportTask) {}
-
-    task printDeps {
-        doLast {
-            if (configurations.hasProperty("runtime")) {
-                configurations.runtime.resolvedConfiguration.firstLevelModuleDependencies.each { dep ->
-                    println "${project.name}:${dep.module.id.group}:${dep.module.id.name}:${dep.module.id.version}"
-                }
-            }
-        }
-    }
+    tasks.register('allDependencies', DependencyReportTask) {}
 }
 
 //Configure java projects
@@ -137,7 +123,7 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
         }
     }
 
-  sourceSets {
+    sourceSets {
         intTest {
             compileClasspath += sourceSets.main.output
             runtimeClasspath += sourceSets.main.output
@@ -167,10 +153,10 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
                 }
             }
             add('implementation', 'org.apache.commons:commons-text') {
-              because("Vulnerability fix regarding CVE-2022-42889")
-              version {
-                require("$commonsTextVersion")
-              }
+                because("Vulnerability fix regarding CVE-2022-42889")
+                version {
+                    require("$commonsTextVersion")
+                }
             }
             add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
                 because("Vulnerability fix regarding CVE-2022-40152")
@@ -179,9 +165,6 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
                 }
             }
         }
-
-        testImplementation 'org.hamcrest:hamcrest:2.2'
-        testImplementation 'org.hamcrest:hamcrest-library:2.2'
 
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
         testImplementation("org.junit.vintage:junit-vintage-engine:$junitVersion")
@@ -196,46 +179,46 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
         intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     }
 
-  test {
-    useJUnitPlatform()
-  }
+    test {
+        useJUnitPlatform()
+    }
 
-  tasks.register('testJar', Jar) {
-    archiveClassifier = 'test'
-    from sourceSets.test.output
-  }
+    tasks.register('testJar', Jar) {
+        archiveClassifier = 'test'
+        from sourceSets.test.output
+    }
 
     def javaCompiler = javaToolchains.compilerFor(java.toolchain)
     def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
-  tasks.withType(JavaCompile).configureEach {
-    options.encoding = "UTF-8"
-  }
-
-  tasks.withType(JavaExec).configureEach {
-    systemProperty 'file.encoding', 'UTF-8'
-    if (project.hasProperty("args")) {
-      args = project.getProperty("args").tokenize()
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = "UTF-8"
     }
-  }
 
-  tasks.withType(Test).configureEach {
-    systemProperty 'file.encoding', 'UTF-8'
-  }
+    tasks.withType(JavaExec).configureEach {
+        systemProperty 'file.encoding', 'UTF-8'
+        if (project.hasProperty("args")) {
+            args = project.getProperty("args").tokenize()
+        }
+    }
 
-  tasks.withType(Exec).configureEach {
-    environment "JAVA_HOME", javaHome
-    environment "JAVA_TOOL_OPTIONS", '-Dfile.encoding=UTF-8'
-  }
+    tasks.withType(Test).configureEach {
+        systemProperty 'file.encoding', 'UTF-8'
+    }
 
-  testJar.enabled = false
+    tasks.withType(Exec).configureEach {
+        environment "JAVA_HOME", javaHome
+        environment "JAVA_TOOL_OPTIONS", '-Dfile.encoding=UTF-8'
+    }
+
+    testJar.enabled = false
 
     artifacts {
         testArtifacts testJar
     }
 
     checkstyle {
-        toolVersion = "10.7.0"
+        toolVersion = "10.12.6"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         ignoreFailures = false
         showViolations = false
@@ -252,6 +235,12 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
         configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
     }
 
+    configurations.checkstyle {
+        resolutionStrategy.capabilitiesResolution.withCapability("com.google.collections:google-collections") {
+            select("com.google.guava:guava:0")
+        }
+    }
+
     jacocoTestReport {
         enabled = false
     }
@@ -262,9 +251,9 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
         header rootProject.file('LICENSE.txt')
         include '**/*.java'
         skipExistingHeaders = true
-      mapping {
-        java = 'SLASHSTAR_STYLE'
-      }
+        mapping {
+            java = 'SLASHSTAR_STYLE'
+        }
     }
 
     licenseMain.source = fileTree('src/main')
@@ -281,44 +270,44 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 //Configure frontend projects
 // Gradle script that is applied on frontend subprojects (namely ui,shared-ui)
 configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
-  apply plugin: 'org.siouan.frontend-jdk17'
+    apply plugin: 'org.siouan.frontend-jdk17'
 
-  frontend {
-    nodeVersion = frontendNodeVersion
-    nodeInstallDirectory = file("${rootDir}/.gradle/yarn-node/${frontendNodeVersion}")
-    cacheDirectory = file("${projectDir}/.gradle/yarn-cache")
-    nodeDistributionUrlRoot = 'https://artifactory.niis.org/artifactory/nodejs-dist-remote/'
-    maxDownloadAttempts = 3
-    if (System.getenv().containsKey("CI")) {
-      installScript='install --immutable'
+    frontend {
+        nodeVersion = frontendNodeVersion
+        nodeInstallDirectory = file("${rootDir}/.gradle/yarn-node/${frontendNodeVersion}")
+        cacheDirectory = file("${projectDir}/.gradle/yarn-cache")
+        nodeDistributionUrlRoot = 'https://artifactory.niis.org/artifactory/nodejs-dist-remote/'
+        maxDownloadAttempts = 3
+        if (System.getenv().containsKey("CI")) {
+            installScript = 'install --immutable'
+        }
     }
-  }
 
-  tasks.register('checkFrontAudit', RunYarn) {
-    dependsOn assembleFrontend
-    inputs.files(
-      'package.json',
-      'yarn.lock'
-    )
-    outputs.files("${buildDir}/reports/audit-ci.txt")
-    script = 'run npx-check-audit'
-  }
+    tasks.register('checkFrontAudit', RunYarn) {
+        dependsOn assembleFrontend
+        inputs.files(
+            'package.json',
+            'yarn.lock'
+        )
+        outputs.files("${buildDir}/reports/audit-ci.txt")
+        script = 'run npx-check-audit'
+    }
 
-  // check that yarn run license-check passes
-  tasks.register('checkFrontLicense', RunYarn) {
-    dependsOn assembleFrontend
-    inputs.files("LICENSE.txt", "test/", "public/",fileTree('src/') {
-      exclude 'openapi-types'
-    })
-    outputs.upToDateWhen { true }
-    script = 'run license-check'
-  }
+    // check that yarn run license-check passes
+    tasks.register('checkFrontLicense', RunYarn) {
+        dependsOn assembleFrontend
+        inputs.files("LICENSE.txt", "test/", "public/", fileTree('src/') {
+            exclude 'openapi-types'
+        })
+        outputs.upToDateWhen { true }
+        script = 'run license-check'
+    }
 
-  if (project.hasProperty('frontend-npm-audit')) {
-    assemble.dependsOn checkFrontAudit
-  }
+    if (project.hasProperty('frontend-npm-audit')) {
+        assemble.dependsOn checkFrontAudit
+    }
 
-  checkFrontend.dependsOn checkFrontLicense
+    checkFrontend.dependsOn checkFrontLicense
 }
 
 

@@ -28,20 +28,19 @@ dependencies {
     implementation(project(":central-server:admin-service:api-client"))
     implementation(project(':central-server:openapi-model'))
     implementation(project(':common:common-util')) {
-      exclude group: 'org.eclipse.jetty'
-      exclude group: 'org.quartz-scheduler'
+        exclude group: 'org.eclipse.jetty'
+        exclude group: 'org.quartz-scheduler'
     }
 
-    implementation project(':common:common-ui')
     implementation(project(':common:common-management-request')) {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
     implementation(project(':common:common-verifier')) {
-      transitive = false
+        transitive = false
     }
 
     implementation('org.springframework.boot:spring-boot-starter-web') {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
 
     implementation('org.springframework.boot:spring-boot-starter-jetty')
@@ -51,7 +50,7 @@ dependencies {
 
     testImplementation project(':common:common-test')
     testImplementation(testFixtures(project(":common:common-management-request"))) {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')

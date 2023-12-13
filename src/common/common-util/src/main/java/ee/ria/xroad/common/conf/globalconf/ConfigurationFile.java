@@ -27,7 +27,6 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 
-import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpField;
@@ -59,9 +58,9 @@ final class ConfigurationFile extends AbstractConfigurationPart {
     private final String hash;
 
     private ConfigurationFile(Map<String, String> parameters,
-            ContentIdentifier contentIdentifier, OffsetDateTime expirationDate,
-            String configurationVersion,
-            String hash) {
+                              ContentIdentifier contentIdentifier, OffsetDateTime expirationDate,
+                              String configurationVersion,
+                              String hash) {
         super(parameters);
 
         this.contentIdentifier = contentIdentifier;
@@ -83,11 +82,11 @@ final class ConfigurationFile extends AbstractConfigurationPart {
     }
 
     String getContentIdentifier() {
-        return contentIdentifier.getIdentifier();
+        return contentIdentifier.identifier();
     }
 
     String getInstanceIdentifier() {
-        return contentIdentifier.getInstance();
+        return contentIdentifier.instance();
     }
 
     @Override
@@ -108,7 +107,7 @@ final class ConfigurationFile extends AbstractConfigurationPart {
     }
 
     static ConfigurationFile of(Map<String, String> headers,
-            OffsetDateTime expirationDate, String version, String hash) {
+                                OffsetDateTime expirationDate, String version, String hash) {
         if (headers == null) {
             throw new IllegalArgumentException("headers must not be null");
         }
@@ -145,15 +144,13 @@ final class ConfigurationFile extends AbstractConfigurationPart {
                 && StringUtils.isBlank(instance)) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Field " + HEADER_CONTENT_IDENTIFIER
-                        + " is missing parameter " + PARAM_INSTANCE);
+                            + " is missing parameter " + PARAM_INSTANCE);
         }
 
         return new ContentIdentifier(id, instance);
     }
 
-    @Data
-    private static class ContentIdentifier {
-        private final String identifier;
-        private final String instance;
+
+    private record ContentIdentifier(String identifier, String instance) {
     }
 }
