@@ -13,7 +13,7 @@ configurations {
 }
 
 configurations.all {
-  exclude(module: 'jetty-jakarta-servlet-api')
+    exclude(module: 'jetty-jakarta-servlet-api')
 }
 
 dependencyManagement {
@@ -113,6 +113,6 @@ licenseTest.dependsOn licenseTestJava
 assemble.dependsOn copyDeps
 
 test {
-  useJUnitPlatform()
-  maxHeapSize = "1g"
+    useJUnitPlatform()
+    maxHeapSize = "1g"
 }

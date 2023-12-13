@@ -26,31 +26,31 @@ task createDirs() {
 }
 
 task xjc(dependsOn: ':common:common-util:xjc') {
-    inputs.files fileTree(dir:'src/main/resources', include: '*.xsd')
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
     doLast {
         ant.taskdef(name: 'xjc',
-                classname: 'com.sun.tools.xjc.XJCTask',
-                classpath: configurations.xjc.asPath)
+            classname: 'com.sun.tools.xjc.XJCTask',
+            classpath: configurations.xjc.asPath)
         ant.xjc(
-                destdir: project.ext.schemaTargetDir,
-                package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
-                schema: 'src/main/resources/ocsp-nextupdate-conf.xsd'
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
+            schema: 'src/main/resources/ocsp-nextupdate-conf.xsd'
         )
         ant.xjc(
-                destdir: project.ext.schemaTargetDir,
-                package: 'ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters',
-                schema: 'src/main/resources/ocsp-fetchinterval-conf.xsd'
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters',
+            schema: 'src/main/resources/ocsp-fetchinterval-conf.xsd'
         )
     }
 }
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }

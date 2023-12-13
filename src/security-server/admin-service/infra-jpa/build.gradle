@@ -1,19 +1,19 @@
 plugins {
-  id 'java-library'
+    id 'java-library'
 }
 
 dependencies {
 }
 
 configurations {
-  changelogJar
+    changelogJar
 }
 
 task changelogJar(type: Jar) {
-  classifier 'resources'
-  from sourceSets.main.resources
+    classifier 'resources'
+    from sourceSets.main.resources
 }
 
 artifacts {
-  changelogJar changelogJar
+    changelogJar changelogJar
 }

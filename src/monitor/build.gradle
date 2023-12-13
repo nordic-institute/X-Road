@@ -1,44 +1,44 @@
 plugins {
-  id 'com.github.johnrengelman.shadow'
+    id 'com.github.johnrengelman.shadow'
 }
 
 ext {
-  mainClassName = "ee.ria.xroad.monitor.MonitorMain"
+    mainClassName = "ee.ria.xroad.monitor.MonitorMain"
 }
 
 jar {
-  manifest {
-    attributes  'Main-Class': mainClassName
-  }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
 }
 
 dependencies {
-  implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-  implementation project(':common:common-util')
-  implementation project(':monitor-common')
-  implementation project(':signer-protocol')
-  implementation project(':serverconf')
+    implementation project(':common:common-util')
+    implementation project(':monitor-common')
+    implementation project(':signer-protocol')
+    implementation project(':serverconf')
 
-  implementation('org.springframework:spring-context')
-  implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-  implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
-  implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
+    implementation('org.springframework:spring-context')
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
+    implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
+    implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
-  testImplementation project(':common:common-test')
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
-  testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation project(':common:common-test')
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
 shadowJar {
-  exclude('**/module-info.class')
-  archiveBaseName = "monitor"
-  archiveClassifier = ''
-  mergeServiceFiles()
+    exclude('**/module-info.class')
+    archiveBaseName = "monitor"
+    archiveClassifier = ''
+    mergeServiceFiles()
 }
 
 jar.finalizedBy shadowJar
 
 test {
-  useJUnitPlatform()
+    useJUnitPlatform()
 }

@@ -1,6 +1,6 @@
 task copyGpg(type: Copy) {
-  from 'src/test/gpg'
-  into "build/gpg"
+    from 'src/test/gpg'
+    into "build/gpg"
 }
 
 test.dependsOn copyGpg

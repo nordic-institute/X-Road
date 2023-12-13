@@ -47,12 +47,12 @@ openApiGenerate {
         generatedConstructorWithRequiredArgs: false
     ])
     configOptions.set([
-        useJakartaEe: "true",
-        interfaceOnly       : "true",
-        useTags             : "true",
-        documentationProvider  : "none",
-        skipDefaultInterface   : "true",
-        openApiNullable: "false"
+        useJakartaEe         : "true",
+        interfaceOnly        : "true",
+        useTags              : "true",
+        documentationProvider: "none",
+        skipDefaultInterface : "true",
+        openApiNullable      : "false"
     ])
 }
 

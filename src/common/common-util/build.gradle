@@ -43,11 +43,11 @@ dependencies {
     api "io.vavr:vavr:$vavrVersion"
 
     api('org.quartz-scheduler:quartz:2.3.2') {
-      exclude module: 'c3p0'
+        exclude module: 'c3p0'
     }
 
     api('org.apache.commons:commons-configuration2:2.8.0') {
-      exclude group: 'org.apache.commons', module: 'commons-text'
+        exclude group: 'org.apache.commons', module: 'commons-text'
     }
     api 'org.apache.commons:commons-text:1.10.0'
 
@@ -106,18 +106,18 @@ task xjc() {
 
         // Generate classes for federateable global external conf v3
         ant.xjc(
-          destdir: project.ext.schemaTargetDir,
-          package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v3',
-          schema: 'src/main/resources/globalconf/v3/shared-parameters.xsd',
-          binding: 'src/main/resources/identifiers-bindings.xml'
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v3',
+            schema: 'src/main/resources/globalconf/v3/shared-parameters.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
         )
 
         // Generate classes for federateable global internal conf v3
         ant.xjc(
-          destdir: project.ext.schemaTargetDir,
-          package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v3',
-          schema: 'src/main/resources/globalconf/v3/private-parameters.xsd',
-          binding: 'src/main/resources/identifiers-bindings.xml'
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v3',
+            schema: 'src/main/resources/globalconf/v3/private-parameters.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
         )
 
         // Generate classes for request, using identifier classes
@@ -173,11 +173,11 @@ licenseFormatTest {
 
 compileJava.dependsOn xjc
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }
@@ -192,11 +192,11 @@ def gitCommitHash() {
     def cmd = "git show -s --format=git%h --abbrev=7"
     def hash = null
     try {
-      def proc = cmd.execute()
-      hash = proc.text.trim()
+        def proc = cmd.execute()
+        hash = proc.text.trim()
     } catch (Exception e) {
-      println("Could not execute git command: " + e.message)
-      hash = null
+        println("Could not execute git command: " + e.message)
+        hash = null
     }
     return hash
 }

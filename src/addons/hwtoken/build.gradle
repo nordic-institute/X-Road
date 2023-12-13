@@ -1,10 +1,10 @@
 dependencies {
-  implementation(project(':signer')) {
-    exclude group: 'org.springframework', module: 'spring-context'
-  }
-  implementation(project(':signer-protocol'))
-  implementation(project(':common:common-util'))
+    implementation(project(':signer')) {
+        exclude group: 'org.springframework', module: 'spring-context'
+    }
+    implementation(project(':signer-protocol'))
+    implementation(project(':common:common-util'))
 
-  // Necessary since there are jars with no adequate Maven dependencies
-  implementation fileTree(dir: '../../libs', include: '*.jar')
+    // Necessary since there are jars with no adequate Maven dependencies
+    implementation fileTree(dir: '../../libs', include: '*.jar')
 }

@@ -14,19 +14,19 @@ dependencies {
 }
 
 ext {
-  mainClassName = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
+    mainClassName = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
 }
 
 jar {
-  manifest {
-    attributes  'Main-Class': mainClassName
-  }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
 }
 
 shadowJar {
-  exclude('**/module-info.class')
-  classifier = ''
-  mergeServiceFiles()
+    exclude('**/module-info.class')
+    classifier = ''
+    mergeServiceFiles()
 }
 
 jar.enabled = false
@@ -34,7 +34,7 @@ build.dependsOn shadowJar
 
 task runConfigurationClient(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=build/',
-            '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
+        '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
     mainClass = mainClassName
     classpath = sourceSets.main.runtimeClasspath
 }

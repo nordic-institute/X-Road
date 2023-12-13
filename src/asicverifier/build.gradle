@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation  project(':common:common-verifier'),
-                    project(':asic-util')
+    implementation project(':common:common-verifier'),
+        project(':asic-util')
 
     implementation(project(':common:common-util'))
 

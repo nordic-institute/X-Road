@@ -1,4 +1,3 @@
-
 dependencies {
     implementation project(':central-server:admin-service:core-api')
     implementation project(':central-server:openapi-model')

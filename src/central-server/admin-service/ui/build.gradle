@@ -1,73 +1,73 @@
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 configurations {
-  yarn
+    yarn
     dist
 }
 
 dependencies {
-  yarn project(path: ":shared-ui", configuration: "yarn")
+    yarn project(path: ":shared-ui", configuration: "yarn")
 }
 
 tasks.register('yarnUpdateDeps', RunYarn) {
-  var currentDir = java.nio.file.Path.of("${projectDir}")
-  inputs.files('package.json')
-  outputs.files('yarn.lock')
+    var currentDir = java.nio.file.Path.of("${projectDir}")
+    inputs.files('package.json')
+    outputs.files('yarn.lock')
 
-  var packages = configurations.yarn.files
-    .collect { it.toPath() }
-    .collect { currentDir.relativize(it) }
-    .collect { '@niis/shared-ui@file:' + it }
-    .join(' ')
+    var packages = configurations.yarn.files
+        .collect { it.toPath() }
+        .collect { currentDir.relativize(it) }
+        .collect { '@niis/shared-ui@file:' + it }
+        .join(' ')
 
-  script = 'add --mode=update-lockfile ' + packages
+    script = 'add --mode=update-lockfile ' + packages
 }
 
 installFrontend.dependsOn("yarnUpdateDeps")
 
 tasks.register('yarnGenerateTypes', RunYarn) {
-  dependsOn installFrontend
-  inputs.files('./package.json',
-    '../infra-api-rest/src/main/resources/openapi-definition.yaml')
-  outputs.dir('src/openapi-types')
-  outputs.dir("${buildDir}/openapi")
-  script = 'run generate-types'
+    dependsOn installFrontend
+    inputs.files('./package.json',
+        '../infra-api-rest/src/main/resources/openapi-definition.yaml')
+    outputs.dir('src/openapi-types')
+    outputs.dir("${buildDir}/openapi")
+    script = 'run generate-types'
 
-  doFirst {
-    project.delete('src/openapi')
-  }
+    doFirst {
+        project.delete('src/openapi')
+    }
 }
 
 tasks.register('yarnBuild', RunYarn) {
-  dependsOn yarnGenerateTypes
-  inputs.files(
-    'src/',
-    'public/',
-    'package.json',
-    'yarn.lock',
-    'vite.config.js',
-    'tsconfig.js',
-    fileTree('node_modules') {
-      exclude '.cache'
-      exclude 'webpack-dev-server/ssl'
-    }
-  )
-  outputs.dir('dist')
-  script = 'run build:gradle'
+    dependsOn yarnGenerateTypes
+    inputs.files(
+        'src/',
+        'public/',
+        'package.json',
+        'yarn.lock',
+        'vite.config.js',
+        'tsconfig.js',
+        fileTree('node_modules') {
+            exclude '.cache'
+            exclude 'webpack-dev-server/ssl'
+        }
+    )
+    outputs.dir('dist')
+    script = 'run build:gradle'
 }
 
 clean {
-  delete file('dist')
+    delete file('dist')
 }
 
 assemble.dependsOn yarnBuild
 
 tasks.named("installFrontend") {
-  dependsOn(":shared-ui:yarnPack")
+    dependsOn(":shared-ui:yarnPack")
 }
 
 artifacts {
-  dist(file("dist/")) {
-    builtBy(yarnBuild)
-  }
+    dist(file("dist/")) {
+        builtBy(yarnBuild)
+    }
 }

@@ -58,14 +58,14 @@ jar {
 }
 
 shadowJar {
-  archiveClassifier = ''
-  exclude('**/module-info.class')
-  dependencies {
-    include(project(':addons:proxymonitor-common'))
-    include(project(':monitor-common'))
-    include(project(':monitoring-conf'))
-  }
-  mergeServiceFiles()
+    archiveClassifier = ''
+    exclude('**/module-info.class')
+    dependencies {
+        include(project(':addons:proxymonitor-common'))
+        include(project(':monitor-common'))
+        include(project(':monitoring-conf'))
+    }
+    mergeServiceFiles()
 }
 
 build.dependsOn shadowJar

@@ -14,20 +14,20 @@ dependencies {
 }
 
 ext {
-  mainClassName = 'ee.ria.xroad.confproxy.ConfProxyMain'
+    mainClassName = 'ee.ria.xroad.confproxy.ConfProxyMain'
 }
 
 jar {
-  manifest {
-    attributes  'Main-Class': mainClassName
-  }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
 }
 
 shadowJar {
-  classifier = ''
-  exclude('**/module-info.class')
-  from rootProject.file("LICENSE.txt")
-  mergeServiceFiles()
+    classifier = ''
+    exclude('**/module-info.class')
+    from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
 }
 
 jar.enabled = false
@@ -35,8 +35,8 @@ build.dependsOn shadowJar
 
 task runConfigurationProxyMain(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=src/test/resources/',
-            '-Dxroad.common.configuration-path=build/',
-            '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+        '-Dxroad.common.configuration-path=build/',
+        '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
 
     mainClass = 'ee.ria.xroad.confproxy.ConfProxyMain'
     classpath = sourceSets.test.runtimeClasspath
@@ -46,7 +46,7 @@ task runConfigurationProxyMain(type: JavaExec) {
 
 task runConfigurationProxyUtilTest(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=src/test/resources/',
-            '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+        '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
 
     mainClass = 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain'
     classpath = sourceSets.test.runtimeClasspath

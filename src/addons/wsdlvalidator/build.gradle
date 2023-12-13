@@ -4,13 +4,13 @@ plugins {
 }
 
 ext {
-  mainClassName = 'ee.ria.xroad.wsdlvalidator.WSDLValidator'
+    mainClassName = 'ee.ria.xroad.wsdlvalidator.WSDLValidator'
 }
 
 jar {
-  manifest {
-    attributes  'Main-Class': mainClassName
-  }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
 }
 
 repositories {

@@ -46,26 +46,26 @@ task xjc() {
 
     doLast {
         ant.taskdef(name: 'xjc',
-                classname: 'com.sun.tools.xjc.XJCTask',
-                classpath: configurations.xjc.asPath)
+            classname: 'com.sun.tools.xjc.XJCTask',
+            classpath: configurations.xjc.asPath)
 
         // Generate classes for query operational data and health data messages.
         ant.xjc(
-                destdir: project.ext.schemaTargetDir,
-                package: 'ee.ria.xroad.opmonitordaemon.message',
-                schema: "${buildDir}/resources/main/op-monitoring.xsd",
-                binding: "${buildDir}/resources/main/identifiers-bindings.xml"
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.opmonitordaemon.message',
+            schema: "${buildDir}/resources/main/op-monitoring.xsd",
+            binding: "${buildDir}/resources/main/identifiers-bindings.xml"
         )
     }
 }
 
 shadowJar {
-  archiveClassifier = ''
-  exclude('**/module-info.class')
-  manifest {
-    attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
-  }
-  mergeServiceFiles()
+    archiveClassifier = ''
+    exclude('**/module-info.class')
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
+    }
+    mergeServiceFiles()
 }
 
 task testsJar(type: Jar, dependsOn: testClasses) {
@@ -82,11 +82,11 @@ jar.enabled = false
 assemble.dependsOn shadowJar
 assemble.dependsOn testsJar
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }
