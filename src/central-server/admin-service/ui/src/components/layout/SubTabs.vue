@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { Colors } from '@/global';
 
 export default defineComponent({

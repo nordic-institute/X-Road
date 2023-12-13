@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapStores } from 'pinia';

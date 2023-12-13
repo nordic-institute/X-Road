@@ -92,6 +92,7 @@ import ManagementRequestDetails from '@/views/ManagementRequests/ManagementReque
 import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
 import ManagementServiceTlsKey from "@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue";
 import ManagementServiceCertificate from "@/components/tlsCertificates/ManagementServiceCertificate.vue";
+import { useSettingsTabs } from "@/store/modules/settings-tabs";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -118,6 +119,7 @@ const routes: RouteRecordRaw[] = [
           subTabs: SettingsTabs,
           alerts: AlertsContainer,
         },
+        redirect: () => useSettingsTabs().getAvailableTabs()[0].to,
         props: {
           subTabs: true,
         },
