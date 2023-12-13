@@ -236,7 +236,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
     public void executeRequestClientDisableWithCustomServerId(String clientIdStr, String serverId) throws Exception {
         var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var req = TestGenericClientRequestBuilder.newBuilder()
-                .withSenderClientId(clientId)
+                .withSenderClientId(resolveClientIdFromEncodedStr("EE:CLASS:MEMBER"))
                 .withReceiverClientId(DEFAULT_RECEIVER)
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
@@ -255,7 +255,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
     public void executeRequestClientEnableWithCustomServerId(String clientIdStr, String serverId) throws Exception {
         var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var req = TestGenericClientRequestBuilder.newBuilder()
-                .withSenderClientId(clientId)
+                .withSenderClientId(resolveClientIdFromEncodedStr("EE:CLASS:MEMBER"))
                 .withReceiverClientId(DEFAULT_RECEIVER)
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
