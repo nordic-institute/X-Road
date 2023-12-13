@@ -4,7 +4,7 @@ logging:
   level:
     ROOT: INFO
     cucumber: TRACE
-    liquibase: WARN
+    liquibase: ERROR
     org.springframework: INFO
     com.nortal.test: INFO # TRACE is helpful for development
 

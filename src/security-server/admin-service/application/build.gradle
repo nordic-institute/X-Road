@@ -47,6 +47,7 @@ dependencies {
     implementation("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("jakarta.validation:jakarta.validation-api")
+    implementation 'ch.qos.logback:logback-access:1.4.14'
 
     testImplementation project(":common:common-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
