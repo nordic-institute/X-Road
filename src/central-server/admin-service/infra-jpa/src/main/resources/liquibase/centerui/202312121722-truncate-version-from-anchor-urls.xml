@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202312121722-truncate-query-string-from-anchor-urls.xml">
+
+    <changeSet author="niis" id="202312121722-truncate-version-from-anchor-urls">
+        <comment>Truncate fixated version from download url of federated instances' configuration</comment>
+        <sql>
+            UPDATE anchor_urls SET url = regexp_replace(url, '\?version=2$', '');
+        </sql>
+    </changeSet>
+</databaseChangeLog>
