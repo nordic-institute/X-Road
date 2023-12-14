@@ -1,5 +1,3 @@
-import nl.javadude.gradle.plugins.license.License
-
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow'

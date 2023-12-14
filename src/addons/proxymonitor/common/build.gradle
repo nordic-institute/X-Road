@@ -1,5 +1,3 @@
-import nl.javadude.gradle.plugins.license.License
-
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
