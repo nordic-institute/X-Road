@@ -617,11 +617,11 @@ To delete an anchor file, follow these steps.
 
 ## 5.9 Publishing global configuration over HTTPS
 
-To publish global configuration over HTTPS it is necessary that configuration anchor XML file contain download url over HTTPS as well. When X-road is installed before 7.4 then internal/external configuration anchor should re-create manually. After recreating configuration anchor:
+To publish global configuration over HTTPS it is necessary that configuration anchor XML file contains download url over HTTPS as well. When X-road is installed before 7.4 then internal/external configuration anchor should re-create manually. After recreating configuration anchor:
 - internal configuration anchor file must be distributed to the Security Server administrators and uploaded to the Security Servers;
 - external configuration anchor file must be distributed to the federation partner’s Central Server (or configuration proxy) administrators and uploaded to the Central Server (or configuration proxy).
 
-Example, recreated internal configuration anchor XML file looks like:
+For example, recreated internal configuration anchor XML file looks like:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
