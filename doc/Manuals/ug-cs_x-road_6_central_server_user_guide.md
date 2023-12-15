@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.38  
+Version: 2.39  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -64,6 +64,7 @@ Doc. ID: UG-CS
 | 09.12.2023 | 2.36    | Management service TLS certificate                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets       |
 | 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
 | 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa       | 
+| 15.12.2023 | 2.39    | Publishing global configuration over HTTPS                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets       |
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
@@ -105,6 +106,7 @@ Doc. ID: UG-CS
   - [5.6 Uploading a Trusted Anchor](#56-uploading-a-trusted-anchor)
   - [5.7 Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
   - [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
+  - [5.9 Publishing global configuration over HTTPS](#59-publishing-global-configuration-over-https)
 - [6. The Management Requests System](#6-the-management-requests-system)
   - [6.1 Registration Requests](#61-registration-requests)
     - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
@@ -502,7 +504,7 @@ To download a configuration anchor, follow these steps.
 
 Access rights: Security Officer
 
-Normally, the configuration anchors are generated (and in an HA setup, distributed to every node) automatically by the system upon changes in the data included in the anchor (one or more Central Server addresses, signing keys). The re-creation of an anchor is necessary only for recovering from error situations.
+Normally, the configuration anchors are generated (and in an HA setup, distributed to every node) automatically by the system upon changes in the data included in the anchor (one or more Central Server addresses, signing keys). The re-creation of an anchor is necessary mostly for recovering from error situations.
 
 To re-create an anchor, follow these steps.
 
@@ -612,6 +614,16 @@ To delete an anchor file, follow these steps.
 1. In the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
 2. In the anchor section, click Delete.
 3. Confirm the deletion by clicking Yes.
+
+## 5.9 Publishing global configuration over HTTPS
+
+Starting from version 7.4.0, the Central Server supports publishing global configuration over HTTP and HTTPS. Instead, before version 7.4.0, only HTTP was supported.
+
+Starting from version 7.4.0, a new private key and a self-signed TLS certificate are created automatically when installing a new Central Server or upgrading an existing installation from an older version. After the installation or upgrade, the Central Server Administrator must manually apply for a TLS certificate from a trusted Certificate Authority (CA) and then configure the certificate. The CA must be trusted by the Security Server's Java installation. More information about configuring the TLS certificate on the Central Server is available in the Central Server Installation Guide [CSI](#13-references).
+
+Applying for a TLS certificate issued by a trusted CA is required, because the Security Server does not trust the new automatically generated self-signed certificate by default. The Security Server supports disabling certificate verification, but disabling it in production environments is not recommended. More information is available in the `[configuration-client]` section of the System Parameters User Guide [UG-SYSPAR](#13-references).
+
+When upgrading from a version < 7.4.0 to a version >= 7.4.0, the configuration anchor must be re-generated and imported to all the Security Servers to enable downloading global configuration over HTTPS.
 
 # 6. The Management Requests System
 ## 6.1 Registration Requests
