@@ -161,8 +161,9 @@ fi
   if [ -n "$services_to_restart" ]; then                                                                                                                         \
     echo "Restarting services: $services_to_restart"                                                                                                             \
     for service_name in $services_to_restart; do                                                                                                                 \
-      systemctl --quiet restart "$service_name" >/dev/null 2>&1 || :                                                                                             \
-      rm -f "%{_localstatedir}/lib/rpm-state/$service_name/active" >/dev/null 2>&1 || :                                                                          \
+      systemctl reset-failed "$service_name" > /dev/null 2>&1 || :                                                                                               \
+      systemctl --quiet restart "$service_name" > /dev/null 2>&1 || :                                                                                            \
+      rm -f "%{_localstatedir}/lib/rpm-state/$service_name/active" > /dev/null 2>&1 || :                                                                         \
     done                                                                                                                                                         \
   fi
 
