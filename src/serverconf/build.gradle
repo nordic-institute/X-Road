@@ -35,6 +35,8 @@ dependencies {
 }
 
 task schemaExport() {
+    dependsOn configurations.schema
+
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
