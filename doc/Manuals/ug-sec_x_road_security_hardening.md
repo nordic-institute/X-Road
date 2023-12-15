@@ -186,7 +186,7 @@ For example, setting the value `server-min-supported-client-version = 7.3.1` mea
 
 ## 5. Publish global configuration over HTTPS
 
-Starting from X-Road version 7.4, it is possible to publish global configuration over HTTPS using a TLS certificate issued by a trusted CA. The CA must be trusted by the Security Server's Java installation.
+Starting from X-Road version 7.4, it is possible to publish global configuration over HTTPS using a TLS certificate issued by a trusted CA. The CA must be trusted by the Security Server's Java installation. Also, the configuration anchor XML file should contain download URL over HTTPS, in detail see "Central Server user Guide" [UG-CS](#Ref_UG-CS) section "Publishing global configuration over HTTPS".
 
 ### 5.1 Central Server TLS configuration
 

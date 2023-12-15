@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.38  
+Version: 2.39  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -64,6 +64,7 @@ Doc. ID: UG-CS
 | 09.12.2023 | 2.36    | Management service TLS certificate                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets       |
 | 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
 | 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa       | 
+| 15.12.2023 | 2.39    | Publishing global configuration over HTTPS                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets       |
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
@@ -105,6 +106,7 @@ Doc. ID: UG-CS
   - [5.6 Uploading a Trusted Anchor](#56-uploading-a-trusted-anchor)
   - [5.7 Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
   - [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
+  - [5.9 Publishing global configuration over HTTPS](#59-publishing-global-configuration-over-https)
 - [6. The Management Requests System](#6-the-management-requests-system)
   - [6.1 Registration Requests](#61-registration-requests)
     - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
@@ -502,7 +504,7 @@ To download a configuration anchor, follow these steps.
 
 Access rights: Security Officer
 
-Normally, the configuration anchors are generated (and in an HA setup, distributed to every node) automatically by the system upon changes in the data included in the anchor (one or more Central Server addresses, signing keys). The re-creation of an anchor is necessary only for recovering from error situations.
+Normally, the configuration anchors are generated (and in an HA setup, distributed to every node) automatically by the system upon changes in the data included in the anchor (one or more Central Server addresses, signing keys). The re-creation of an anchor is necessary mostly for recovering from error situations.
 
 To re-create an anchor, follow these steps.
 
@@ -612,6 +614,30 @@ To delete an anchor file, follow these steps.
 1. In the Navigation tabs, select Global Configuration and select the Trusted Anchors sub-tab.
 2. In the anchor section, click Delete.
 3. Confirm the deletion by clicking Yes.
+
+## 5.9 Publishing global configuration over HTTPS
+
+To publish global configuration over HTTPS it is necessary that configuration anchor XML file contain download url over HTTPS as well. When X-road is installed before 7.4 then internal/external configuration anchor should re-create manually. After recreating configuration anchor:
+- internal configuration anchor file must be distributed to the Security Server administrators and uploaded to the Security Servers;
+- external configuration anchor file must be distributed to the federation partner’s Central Server (or configuration proxy) administrators and uploaded to the Central Server (or configuration proxy).
+
+Example, recreated internal configuration anchor XML file looks like:
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:configurationAnchor xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <generatedAt>2023-12-14T17:08:56.183Z</generatedAt>
+    <instanceIdentifier>TEST</instanceIdentifier>
+    <source>
+        <downloadURL>http://test/internalconf</downloadURL>
+        <verificationCert>cert</verificationCert>
+    </source>
+    <source>
+        <downloadURL>https://test/internalconf</downloadURL>
+        <verificationCert>cert</verificationCert>
+    </source>
+</ns3:configurationAnchor>
+```
 
 # 6. The Management Requests System
 ## 6.1 Registration Requests
