@@ -211,14 +211,12 @@ echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 
 %if 0%{?el7}
 %set_default_java_version
-sleep 3
 %restart_xroad_services
 %endif
 
 %posttrans -p /bin/bash
 %if 0%{?el8}
 %set_default_java_version
-sleep 3
 %restart_xroad_services
 %endif
 
