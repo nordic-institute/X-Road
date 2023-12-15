@@ -157,11 +157,11 @@ fi
   fi
 
 %define restart_xroad_services()                                                                                                                                 \
-  services_to_restart=$(find %{_localstatedir}/lib/rpm-state -type f -name "active" -exec dirname {} \\; | xargs -I {} basename {} | grep xroad- | tr '\\n' ' ')  \
+  services_to_restart=$(find %{_localstatedir}/lib/rpm-state -type f -name "active" -exec dirname {} \\; | xargs -I {} basename {} | grep xroad- | tr '\\n' ' ') \
   if [ -n "$services_to_restart" ]; then                                                                                                                         \
     echo "Restarting services: $services_to_restart"                                                                                                             \
-    systemctl --quiet restart "$services_to_restart" >/dev/null 2>&1 || :                                                                                        \
     for service_name in $services_to_restart; do                                                                                                                 \
+      systemctl --quiet restart "$service_name" >/dev/null 2>&1 || :                                                                                             \
       rm -f "%{_localstatedir}/lib/rpm-state/$service_name/active" >/dev/null 2>&1 || :                                                                          \
     done                                                                                                                                                         \
   fi
@@ -210,12 +210,14 @@ echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 
 %if 0%{?el7}
 %set_default_java_version
+sleep 3
 %restart_xroad_services
 %endif
 
 %posttrans -p /bin/bash
 %if 0%{?el8}
 %set_default_java_version
+sleep 3
 %restart_xroad_services
 %endif
 
