@@ -57,7 +57,7 @@ dependencyCheck {
     ]
     nvd {
         apiKey = "${nvdApiKey}"
-        delay = "6000"
+        delay = 6000
     }
     analyzers {
         experimentalEnabled = false
