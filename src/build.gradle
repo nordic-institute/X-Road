@@ -13,7 +13,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '4.4.1.3373'
-    id 'org.owasp.dependencycheck' version '9.0.4'
+    id 'org.owasp.dependencycheck' version '9.0.5'
     id 'jacoco'
     id 'java'
     id 'idea'
@@ -53,6 +53,10 @@ dependencyCheck {
         ":central-server:admin-service:int-test",
         ":central-server:management-service:int-test"
     ]
+    nvd {
+        apiKey = "${nvdApiKey}"
+        delay = 6000
+    }
     analyzers {
         experimentalEnabled = false
         archiveEnabled = false
@@ -87,11 +91,6 @@ subprojects {
 }
 
 allprojects {
-    buildscript {
-        repositories {
-            mavenCentral()
-        }
-    }
 
     repositories {
         mavenLocal()
