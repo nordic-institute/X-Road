@@ -1,6 +1,6 @@
 # X-Road: Security hardening guidelines <!-- omit in toc -->
 
-Version: 0.3  
+Version: 0.4  
 Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
@@ -10,6 +10,7 @@ Doc. ID: UG-SEC
 | 02.06.2023 | 0.1     | Initial version                                  | Ričardas Bučiūnas |
 | 24.08.2023 | 0.2     | Minimum supported client Security Server version | Eneli Reimets     |
 | 14.11.2023 | 0.3     | Publish global configuration over HTTPS          | Eneli Reimets     |
+| 15.12.2023 | 0.4     | Minor updates                                    | Eneli Reimets     |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -186,7 +187,7 @@ For example, setting the value `server-min-supported-client-version = 7.3.1` mea
 
 ## 5. Publish global configuration over HTTPS
 
-Starting from X-Road version 7.4, it is possible to publish global configuration over HTTPS using a TLS certificate issued by a trusted CA. The CA must be trusted by the Security Server's Java installation. Also, the configuration anchor XML file should contain download URL over HTTPS, in detail see "Central Server user Guide" [UG-CS](#Ref_UG-CS) section "Publishing global configuration over HTTPS".
+Starting from X-Road version 7.4, it is possible to publish global configuration over HTTPS using a TLS certificate issued by a trusted CA. The CA must be trusted by the Security Server's Java installation. See the Central Server User Guide [UG-CS](#Ref_UG-CS) for details.
 
 ### 5.1 Central Server TLS configuration
 

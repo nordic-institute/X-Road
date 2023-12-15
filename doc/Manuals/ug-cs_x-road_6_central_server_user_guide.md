@@ -617,27 +617,13 @@ To delete an anchor file, follow these steps.
 
 ## 5.9 Publishing global configuration over HTTPS
 
-To publish global configuration over HTTPS it is necessary that configuration anchor XML file contains download url over HTTPS as well. When X-road is installed before 7.4 then internal/external configuration anchor should re-create manually. After recreating configuration anchor:
-- internal configuration anchor file must be distributed to the Security Server administrators and uploaded to the Security Servers;
-- external configuration anchor file must be distributed to the federation partner’s Central Server (or configuration proxy) administrators and uploaded to the Central Server (or configuration proxy).
+Starting from version 7.4.0, the Central Server supports publishing global configuration over HTTP and HTTPS. Instead, before version 7.4.0, only HTTP was supported.
 
-For example, recreated internal configuration anchor XML file looks like:
+Starting from version 7.4.0, a new private key and a self-signed TLS certificate are created automatically when installing a new Central Server or upgrading an existing installation from an older version. After the installation or upgrade, the Central Server Administrator must manually apply for a TLS certificate from a trusted Certificate Authority (CA) and then configure the certificate. The CA must be trusted by the Security Server's Java installation. More information about configuring the TLS certificate on the Central Server is available in the Central Server Installation Guide [CSI](#13-references).
 
-```xml
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns3:configurationAnchor xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
-    <generatedAt>2023-12-14T17:08:56.183Z</generatedAt>
-    <instanceIdentifier>TEST</instanceIdentifier>
-    <source>
-        <downloadURL>http://test/internalconf</downloadURL>
-        <verificationCert>cert</verificationCert>
-    </source>
-    <source>
-        <downloadURL>https://test/internalconf</downloadURL>
-        <verificationCert>cert</verificationCert>
-    </source>
-</ns3:configurationAnchor>
-```
+Applying for a TLS certificate issued by a trusted CA is required, because the Security Server does not trust the new automatically generated self-signed certificate by default. The Security Server supports disabling certificate verification, but disabling it in production environments is not recommended. More information is available in the `[configuration-client]` section of the System Parameters User Guide [UG-SYSPAR](#13-references).
+
+When upgrading from a version < 7.4.0 to a version >= 7.4.0, the configuration anchor must be re-generated and imported to all the Security Servers to enable downloading global configuration over HTTPS.
 
 # 6. The Management Requests System
 ## 6.1 Registration Requests
