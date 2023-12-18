@@ -133,8 +133,8 @@ fi
 %systemd_postun_with_restart xroad-proxy.service xroad-addon-messagelog.service
 
 %posttrans -p /bin/bash
-# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8}
+# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8} || 0%{?el9}
 %manage_messagelog_activation
 %endif
 
