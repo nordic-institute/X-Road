@@ -58,6 +58,7 @@ if [ -n "$HAS_DOCKER" ]; then
     docker build -q -t xroad-deb-jammy "$XROAD/packages/docker/deb-jammy" || errorExit "Error building deb-jammy image."
     docker build -q -t xroad-rpm "$XROAD/packages/docker/rpm" || errorExit "Error building rpm image."
     docker build -q -t xroad-rpm-el8 "$XROAD/packages/docker/rpm-el8" || errorExit "Error building rpm-el8 image."
+    docker build -q -t xroad-rpm-el9 "$XROAD/packages/docker/rpm-el9" || errorExit "Error building rpm-el9 image."
 
     OPTS=("--rm" "-v" "$XROAD/..:/workspace" "-u" "$(id -u):$(id -g)" "-e" "HOME=/workspace/src/packages")
     # check if running attached to terminal
@@ -72,6 +73,7 @@ if [ -n "$HAS_DOCKER" ]; then
     docker run "${OPTS[@]}" xroad-deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
     docker run "${OPTS[@]}" xroad-rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm packages."
     docker run "${OPTS[@]}" xroad-rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
+    docker run "${OPTS[@]}" xroad-rpm-el9 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el9 packages."
 else
     echo "Docker not installed, building only .deb packages for this distribution"
     cd "$XROAD/packages"
