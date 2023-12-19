@@ -198,7 +198,7 @@ export const mainTabs: Tab[] = [
   },
   {
     // Settings tab
-    to: { name: RouteName.GlobalResources }, // name of the first child tab
+    to: { name: RouteName.Settings },
     key: 'settings',
     name: 'tab.main.settings',
     permissions: [
