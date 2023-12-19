@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.5.0",
-    "@niis/shared-ui": "file:../../../shared-ui/niis-shared-ui-3.0.0.tgz",
+    "@niis/shared-ui": "../../../shared-ui",
     "@vee-validate/i18n": "~4.12.2",
     "@vee-validate/rules": "~4.11.6",
     "axios": "~1.4.0",
