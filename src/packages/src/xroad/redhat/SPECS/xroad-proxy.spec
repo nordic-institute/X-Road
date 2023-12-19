@@ -233,7 +233,7 @@ function migrate_conf_value {
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
-# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+# RHEL7 java-17-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %execute_init_or_update_resources
 %endif
