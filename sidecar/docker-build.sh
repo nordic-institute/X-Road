@@ -28,8 +28,18 @@ build() {
   docker build -f "$1" "${build_args[@]}" -t "$tag:$version$2" "$dir"
 }
 
+copy_variant_conf() {
+  local variant=$1
+  local build_conf_dir="$dir/build/etc/xroad/conf.d"
+  rm -rf build
+  mkdir -p "$build_conf_dir"
+  cp "$dir/../src/packages/src/xroad/default-configuration/override-securityserver-$variant.ini" "$build_conf_dir"
+}
+
+
 build_variant() {
   echo "BUILDING variant $tag:$version$1-$2"
+  copy_variant_conf "$2"
   docker build -f "$dir/Dockerfile-variant" \
     --build-arg "VERSION=$version" \
     --build-arg "FROM=$tag:$version$1" \
