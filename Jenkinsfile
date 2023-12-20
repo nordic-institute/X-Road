@@ -137,5 +137,25 @@ pipeline {
                 }
             }
         }
+        stage('RHEL 9 packaging') {
+            when {
+                anyOf {
+                    changeset "src/**"
+                    changeset "Jenkinsfile"
+                }
+            }
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/rpm-el9'
+                    args '-e HOME=/workspace/src/packages'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-rpm.sh'
+                }
+            }
+        }
     }
 }
