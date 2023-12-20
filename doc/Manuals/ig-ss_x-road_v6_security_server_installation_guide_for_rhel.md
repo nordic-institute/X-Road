@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.25  
+Version: 1.26  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -38,6 +38,7 @@ Doc. ID: IG-SS-RHEL
 | 23.05.2023 | 1.23    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets     |
 | 09.10.2023 | 1.24    | Java 17 installation instructions for RHEL 7                                                                                                                                                                         | Justas Samuolis   |
 | 13.12.2023 | 1.25    | Remove Java 17 manual installation instructions for RHEL 8                                                                                                                                                           | Justas Samuolis   |
+| 19.12.2023 | 1.26    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis   |
 
 ## License
 
@@ -123,7 +124,7 @@ There are multiple alternatives how the security server can be deployed. The opt
 
 The security server runs on the following platforms:
 
-* Red Hat Enterprise Linux (RHEL) versions 7 and 8 on a x86-64 platform.
+* Red Hat Enterprise Linux (RHEL) versions 7, 8 and 9 on a x86-64 platform.
 * Ubuntu Server 20.04 and 22.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
@@ -136,29 +137,29 @@ The software can be installed both on physical and virtualized hardware (of the 
 **Caution**: Data necessary for the functioning of the operating system is not included.
 
 
-| Ref     |                           | Explanation |
-| ------- | --------------------------| ---------------------------------------------------------- |
-| 1.0     | RHEL (7.3 or newer; 8.0 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
-| 1.1     | https://artifactory.niis.org/xroad-release-rpm  | X-Road package repository
-| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
-| 1.3     |                                         | Account name in the user interface
-| 1.4     | **Inbound ports from external network** | Ports for inbound connections from the external network to the security server
-|         | TCP 5500                                | Message exchange between security servers
-|         | TCP 5577                                | Querying of OCSP responses between security servers
-| 1.5     | **Outbound ports to external network**  | Ports for outbound connections from the security server to the external network
-|         | TCP 5500                                | Message exchange between security servers
-|         | TCP 5577                                | Querying of OCSP responses between security servers
-|         | TCP 4001                                | Communication with the central server
-|         | TCP 80                                  | Downloading global configuration from the central server
-|         | TCP 80,443                              | Most common OCSP and time-stamping services
-| 1.6     | **Inbound ports from internal network** | Ports for inbound connections from the internal network to the security server
-|         | TCP 4000                                | User interface and management REST API (local network). **Must not be accessible from the internet!**
-|         | TCP 8080 (or TCP 80), 8443 (or TCP 443) | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**
-| 1.7     | **Outbound ports to internal network**  | Ports for inbound connections from the internal network to the security server
-|         | TCP 80, 443, *other*                    | Producer information system endpoints
-|         | TCP 2080                                | Message exchange between security server and operational data monitoring daemon (by default on localhost)
-| 1.8     |                                         | Security server internal IP address(es) and hostname(s)
-| 1.9     |                                         | Security server public IP address, NAT address
+| Ref |                                                                                              | Explanation                                                                                                                                                                                                                                                                                |
+|-----|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0 | RHEL (7.3 or newer; 8.0 or newer; 9.3 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements                                                                                                                                                                                                                                                                       |
+| 1.1 | https://artifactory.niis.org/xroad-release-rpm                                               | X-Road package repository                                                                                                                                                                                                                                                                  |
+| 1.2 | https://artifactory.niis.org/api/gpg/key/public                                              | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.3 |                                                                                              | Account name in the user interface                                                                                                                                                                                                                                                         |
+| 1.4 | **Inbound ports from external network**                                                      | Ports for inbound connections from the external network to the security server                                                                                                                                                                                                             |
+|     | TCP 5500                                                                                     | Message exchange between security servers                                                                                                                                                                                                                                                  |
+|     | TCP 5577                                                                                     | Querying of OCSP responses between security servers                                                                                                                                                                                                                                        |
+| 1.5 | **Outbound ports to external network**                                                       | Ports for outbound connections from the security server to the external network                                                                                                                                                                                                            |
+|     | TCP 5500                                                                                     | Message exchange between security servers                                                                                                                                                                                                                                                  |
+|     | TCP 5577                                                                                     | Querying of OCSP responses between security servers                                                                                                                                                                                                                                        |
+|     | TCP 4001                                                                                     | Communication with the central server                                                                                                                                                                                                                                                      |
+|     | TCP 80                                                                                       | Downloading global configuration from the central server                                                                                                                                                                                                                                   |
+|     | TCP 80,443                                                                                   | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
+| 1.6 | **Inbound ports from internal network**                                                      | Ports for inbound connections from the internal network to the security server                                                                                                                                                                                                             |
+|     | TCP 4000                                                                                     | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
+|     | TCP 8080 (or TCP 80), 8443 (or TCP 443)                                                      | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
+| 1.7 | **Outbound ports to internal network**                                                       | Ports for inbound connections from the internal network to the security server                                                                                                                                                                                                             |
+|     | TCP 80, 443, *other*                                                                         | Producer information system endpoints                                                                                                                                                                                                                                                      |
+|     | TCP 2080                                                                                     | Message exchange between security server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
+| 1.8 |                                                                                              | Security server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
+| 1.9 |                                                                                              | Security server public IP address, NAT address                                                                                                                                                                                                                                             |
 
 It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
 
@@ -198,7 +199,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured RHEL (v7.3 or newer; 8.0 or newer;) x86-64 operating system;
+* an installed and configured RHEL (v7.3 or newer; 8.0 or newer; 9.3 or newer) x86-64 operating system;
 * Java 17 should be installed;
 * if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).

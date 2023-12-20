@@ -209,7 +209,7 @@ Copy the `.crt` file (PEM) into the `/usr/local/share/ca-certificates` folder.
 
 Run `sudo update-ca-certificates`.
 
-**Example on RHEL 7 / 8**
+**Example on RHEL 7 / 8 / 9**
 
 Copy the `.crt` file (PEM or DER) into the `/etc/pki/ca-trust/source/anchors` folder.
 
