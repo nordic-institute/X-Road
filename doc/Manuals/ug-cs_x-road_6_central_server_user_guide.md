@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.39  
+Version: 2.40  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -65,6 +65,7 @@ Doc. ID: UG-CS
 | 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
 | 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa       | 
 | 15.12.2023 | 2.39    | Publishing global configuration over HTTPS                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets       |
+| 20.12.2023 | 2.40    | Automatic configuration signing key rotation                                                                                                                                                                                                                                                                                                                                                                                            | Andres Rosenthal    |
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
