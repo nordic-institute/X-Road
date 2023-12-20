@@ -526,14 +526,15 @@ Note that in an HA setup, each node has its own set of configuration signing key
 The steps of key change are as follows:
 
 - First, a new key is generated (on each node in HA setups) and the configuration anchor containing the public key part(s) of the key(s) is distributed to X-Road participants. Until all participants have received the public key(s), the old (i.e. current) key(s) is/are used for signing configuration.
-- Then, after all participants have received and uploaded the new public key(s), the old key(s) is/are removed and the new key(s) is/are used to sign configuration.
+- Then, after all participants have received & applied the new public key(s), the old key(s) is/are removed and the new key(s) is/are used to sign configuration.
 
 To perform a regular key change, follow these steps.
 
 1. Generate, but do not activate a new configuration signing key (see 5.4.1) (in an HA setup, for each node). The system uses the old (active) key(s) to sign the configuration. Upon the generation of a new key, the system generates a new anchor for the corresponding configuration sources.
-2. Download the anchor (see 5.2) containing the public key part(s) of the new signing key(s) and distribute the anchor along with the anchor file hash value either to the Security Server administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor).
+2. If there are pre 7.4.0 Security Servers within the ecosystem (including federations) then download the anchor (see 5.2) containing the public key part(s) of the new signing key(s) and distribute the anchor along with the anchor file hash value either to these Security Servers' administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor).
+   > **NOTE**: Starting from version 7.4.0 new configuration signing keys are automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles.
 3. Activate the new signing key(s) (see 5.4.2).
-The new signing key(s) should only be activated after all the affected server administrators have received and uploaded the distributed anchor. The Central Servers use the active key to sign configuration. If a server administrator has not uploaded the configuration anchor containing the public key part of the new key before the new key is activated, the verification of the downloaded configuration in the Security Servers will fail and the services exchange with the X-Road participants described in the configuration will be discontinued.
+The new signing key(s) should only be activated after all the affected Security Servers have received & applied the new public key (either through automatic configuration signing key rotation or uploading the distributed anchor manually). The Central Servers use the active key to sign configuration. If a server administrator has not applied the new public key before the key is activated, the verification of the downloaded configuration in the Security Servers will fail and the services exchange with the X-Road participants described in the configuration will be discontinued.
 4. Delete the old signing key (in an HA setup, delete the old keys on all the nodes) (see 5.4.3). Upon the deletion of a key, the system generates a new configuration anchor.
 5. Download the generated anchor (it does not contain the public key part(s) of the old signing key(s)) and distribute the anchor along with the anchor file hash value either to the Security Server administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor).
 
