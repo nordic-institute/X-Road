@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,9 @@
 package ee.ria.xroad.signer.protocol.dto;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
 import lombok.Value;
 
@@ -36,7 +38,7 @@ import java.io.Serializable;
  * Certificate info DTO.
  */
 @Value
-@ToString(exclude = { "certificateBytes", "ocspBytes" })
+@ToString(onlyExplicitlyIncluded = true)
 public class CertificateInfo implements Serializable {
 
     public static final String STATUS_SAVED = "saved";
@@ -50,23 +52,48 @@ public class CertificateInfo implements Serializable {
     public static final String OCSP_RESPONSE_UNKNOWN = "unknown";
     public static final String OCSP_RESPONSE_SUSPENDED = "suspended";
 
-    private final ClientId.Conf memberId;
+    @JsonIgnore
+    CertificateInfoProto message;
 
-    private final boolean active;
+    @ToString.Include
+    public ClientId.Conf getMemberId() {
+        if (message.hasMemberId()) {
+            return ClientIdMapper.fromDto(message.getMemberId());
+        }
+        return null;
+    }
 
-    private final boolean savedToConfiguration;
+    @ToString.Include
+    public boolean isActive() {
+        return message.getActive();
+    }
 
-    private final String status;
+    @ToString.Include
+    public boolean isSavedToConfiguration() {
+        return message.getSavedToConfiguration();
+    }
 
-    private final String id;
+    @ToString.Include
+    public String getStatus() {
+        return message.getStatus();
+    }
 
-    private final byte[] certificateBytes;
-    private final byte[] ocspBytes;
+    @ToString.Include
+    public String getId() {
+        return message.getId();
+    }
 
-    /**
-     * @return returns the certificate as byte array
-     */
+    @JsonIgnore
     public byte[] getCertificateBytes() {
-        return certificateBytes;
+        return message.getCertificateBytes().toByteArray();
+    }
+
+    @JsonIgnore
+    public byte[] getOcspBytes() {
+        return message.getOcspBytes().toByteArray();
+    }
+
+    public CertificateInfoProto asMessage() {
+        return message;
     }
 }

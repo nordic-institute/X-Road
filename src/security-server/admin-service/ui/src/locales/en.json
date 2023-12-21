@@ -39,10 +39,12 @@
     "copyId": "Copy ID",
     "deactivate": "Disable",
     "delete": "Delete",
+    "disable": "Disable",
     "done": "Done",
     "download": "Download",
     "edit": "Edit",
     "emptySearch": "Your search for {msg} found no results.",
+    "enable": "Enable",
     "export": "Export",
     "finish": "Finish",
     "goToFront": "Go to the front page",
@@ -95,6 +97,9 @@
       "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
       "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
     },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
+    },
     "table": {
       "action": {
         "edit": {
@@ -121,20 +126,20 @@
     }
   },
   "backup": {
-      "deleteBackup": {
-        "dialog": {
-          "confirmation": "Are you sure you want to delete backup {file}?",
-          "title": "Are you sure?"
-        },
-        "success": "Backup {file} deleted"
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to delete backup {file}?",
+        "title": "Are you sure?"
       },
-      "restoreFromBackup": {
-        "dialog": {
-          "confirmation": "Are you sure you want to restore from {file}?",
-          "title": "Are you sure?"
-        },
-        "success": "Configuration restored from {file}"
+      "success": "Backup {file} deleted"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to restore from {file}?",
+        "title": "Are you sure?"
       },
+      "success": "Configuration restored from {file}"
+    },
     "createBackup": {
       "button": "Back up config.",
       "messages": {
@@ -160,7 +165,7 @@
     "disableSuccess": "Certificate has been disabled",
     "disabled": "disabled",
     "expires": "Expires",
-    "hashInfo": "Hash (SHA-1)",
+    "hashInfo": "Hash (SHA-256)",
     "inUse": "in use",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
@@ -194,7 +199,7 @@
     "SERIAL_NUMBER": "Serial Number",
     "SERIAL_NUMBER_SN": "Serial Number (SN)",
     "SERVER_CODE": "Server Code (CN)",
-    "SERVER_DNS_NAME": "Server DNS name (CN)"
+    "SERVER_DNS_NAME": "Server DNS Name (CN)"
   },
   "client": {
     "action": {
@@ -220,6 +225,16 @@
         "confirmText": "Do you want to unregister this client?",
         "confirmTitle": "Unregister client",
         "success": "Client unregistered"
+      },
+      "disable": {
+        "confirmText": "Do you want to disable this client?",
+        "confirmTitle": "Disable client",
+        "success": "Client disabling in progress"
+      },
+      "enable": {
+        "confirmText": "Do you want to enable this client?",
+        "confirmTitle": "Enable client",
+        "success": "Client enabling in progress"
       }
     },
     "id": "ID",
@@ -235,7 +250,10 @@
       "globalError": "GLOBAL ERROR",
       "registered": "REGISTERED",
       "registrationInProgress": "REGISTRATION IN PROGRESS",
-      "saved": "SAVED"
+      "saved": "SAVED",
+      "disabled": "DISABLED",
+      "disablingInProgress": "DISABLING IN PROGRESS",
+      "enablingInProgress": "ENABLING IN PROGRESS"
     },
     "subsystemCode": "Subsystem Code",
     "unknownMember": "unknown member"
@@ -268,7 +286,8 @@
   "customValidation": {
     "invalidEndpoint": "Endpoint contains illegal characters",
     "invalidUrl": "URL is not valid",
-    "invalidXrdIdentifier": "Identifier value contains illegal characters"
+    "invalidXrdIdentifier": "Identifier value contains illegal characters",
+    "requiredIf": "The {fieldName} field is required"
   },
   "diagnostics": {
     "addOnStatus": {
@@ -490,7 +509,7 @@
     "timestamping_service_not_found": "Timestamping service not found",
     "token_not_active": "Token is not active",
     "token_not_found": "Token not found",
-    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x are currently supported.",
+    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "validation_failure": "Validation failure",
     "warnings_detected": "Warnings detected",
@@ -504,16 +523,18 @@
   },
   "fields": {
     "addClient": {
-      "memberClass": "Member class",
+      "memberClass": "Member Class",
       "memberCode": "Member Code",
       "subsystemCode": "Subsystem Code"
     },
+    "C": "Country Code",
     "clientAdd": {
       "client": {
         "memberCode": "Member Code",
         "subsystemCode": "Subsystem Code"
       }
     },
+    "CN": "Server DNS Name",
     "confirmPin": "Confirm PIN",
     "csr": {
       "certService": "Certification Service",
@@ -525,10 +546,15 @@
     "keys": {
       "name": "Name"
     },
+    "O": "Organization Name",
     "password": "Password",
     "path": "path",
     "pin": "PIN",
+    "memberClass": "Member Class",
+    "memberCode": "Member Code",
     "securityServerCode": "Security Server Code",
+    "securityServerAddress": "Security Server address",
+    "serialNumber": "Serial Number",
     "serviceCode": "Service Code",
     "serviceDescriptionAdd": {
       "restServiceCode": "Service code"
@@ -562,7 +588,8 @@
     }
   },
   "global": {
-    "name": "Name"
+    "name": "Name",
+    "appTitle": "X-Road Security Server"
   },
   "general": {
     "instance": "Instance",
@@ -952,6 +979,15 @@
       },
       "title": "Timestamping Services"
     },
+    "securityServer": {
+      "securityServer": "Security Server",
+      "serverAddress": "Server address",
+      "editDialog": {
+        "title": "Edit Security Server address"
+      },
+      "addressChangeInProgress": "CHANGE IN PROGRESS",
+      "updateSubmitted": "Security Server address change successfully submitted"
+    },
     "title": "System parameters"
   },
   "tab": {
@@ -984,10 +1020,13 @@
   },
   "token": {
     "changePin": "Change the pin",
-    "pinChanged": "Token pin was changed – please log in the token with the new pin"
+    "pinChanged": "Token pin was changed – please log in the token with the new pin",
+    "tokenPinPolicyHeader": "Token PIN policy is enabled.",
+    "tokenPinPolicy": "Software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters)."
   },
   "toolbar": {
     "securityServerNodeType": {
+      "undefined": "",
       "PRIMARY": "Primary node",
       "SECONDARY": "Secondary node"
     }
@@ -996,7 +1035,7 @@
     "AssertFalse": "value should be 'false'",
     "AssertTrue": "value should be 'true'",
     "DecimalMax": "numeric value exceeds the maximum allowed",
-    "DecimalMin": "numeric value is under the miminum allowed",
+    "DecimalMin": "numeric value is under the minimum allowed",
     "Digits": "value should contain only digits",
     "Email": "value does not meet the email format",
     "Future": "datetime value should be in the future",

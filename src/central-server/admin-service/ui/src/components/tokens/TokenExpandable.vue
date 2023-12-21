@@ -30,14 +30,13 @@
     :data-test="`token-${token.name}-expandable`"
     :is-open="isExpanded(token.id)"
     :color="tokenStatusColor"
-    @open="descOpen(token.id)"
-    @close="descClose(token.id)"
+    @open="toggleToken"
   >
-    <template #link>
+    <template #link="{ toggle }">
       <div
         class="clickable-link identifier-wrap"
         data-test="token-name"
-        @click="tokenNameClick()"
+        @click="toggle"
       >
         <span
           class="token-status-indicator token-name"
@@ -101,12 +100,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
-import { tokenStore } from '@/store/modules/tokens';
-import { userStore } from '@/store/modules/user';
+import { useToken } from '@/store/modules/tokens';
+import { useUser } from '@/store/modules/user';
 import {
   ConfigurationSigningKey,
   ConfigurationType,
@@ -116,20 +114,22 @@ import {
 import KeysTable from '@/components/tokens/KeysTable.vue';
 import TokenLoggingButton from '@/components/tokens/TokenLoggingButton.vue';
 import SigningKeyAddDialog from '@/components/signingKeys/SigningKeyAddDialog.vue';
+import {XrdExpandable} from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     SigningKeyAddDialog,
     KeysTable,
     TokenLoggingButton,
+    XrdExpandable,
   },
   props: {
     token: {
-      type: Object as Prop<Token>,
+      type: Object as PropType<Token>,
       required: true,
     },
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     loadingKeys: {
@@ -137,6 +137,7 @@ export default Vue.extend({
       default: false,
     },
   },
+  emits: ['update-keys', 'token-login', 'token-logout'],
   data() {
     return {
       colors: Colors,
@@ -144,8 +145,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapState(tokenStore, {
+    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useToken, {
       isExpanded: 'tokenExpanded',
     }),
     showAddKey(): boolean {
@@ -175,7 +176,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(tokenStore, [
+    ...mapActions(useToken, [
       'setSelectedToken',
       'setTokenHidden',
       'setTokenExpanded',
@@ -184,24 +185,20 @@ export default Vue.extend({
       this.showAddKeyDialog = false;
       this.$emit('update-keys', 'add');
     },
-    tokenNameClick(): void {
-      this.isExpanded(this.token.id)
-        ? this.descClose(this.token.id)
-        : this.descOpen(this.token.id);
-    },
-    descClose(tokenId: string) {
-      this.setTokenHidden(tokenId);
-    },
-    descOpen(tokenId: string) {
-      this.setTokenExpanded(tokenId);
+    toggleToken(opened: boolean): void {
+      if (opened) {
+        this.setTokenExpanded(this.token.id);
+      } else {
+        this.setTokenHidden(this.token.id);
+      }
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .token-logging-button {
   display: inline-flex;

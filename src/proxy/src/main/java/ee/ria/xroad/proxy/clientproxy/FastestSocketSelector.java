@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -89,6 +89,7 @@ final class FastestSocketSelector {
             case 1:
                 return connect(timeout);
             default:
+                log.info("Selecting the fastest connection from following addresses: {}", addresses);
                 return doSelect(timeout);
         }
     }
@@ -104,7 +105,6 @@ final class FastestSocketSelector {
             return new SocketInfo(uri, socket);
         } catch (Exception e) {
             addresses.remove(uri);
-            log.error("Could not connect to '{}'", uri, e);
             closeQuietly(socket);
             throw e;
         }

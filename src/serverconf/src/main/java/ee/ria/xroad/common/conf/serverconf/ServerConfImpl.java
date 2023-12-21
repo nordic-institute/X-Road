@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -56,15 +56,15 @@ import ee.ria.xroad.common.metadata.RestServiceType;
 import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 import ee.ria.xroad.common.util.UriUtils;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Root;
+import org.hibernate.SharedSessionContract;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -186,14 +186,11 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     private RestServiceType getRestServiceType(DescriptionType descriptionType) {
-        switch (descriptionType) {
-            case REST:
-                return RestServiceType.REST;
-            case OPENAPI3:
-                return RestServiceType.OPENAPI;
-            default:
-                throw new IllegalArgumentException("The given parameter is not a REST service type!");
-        }
+        return switch (descriptionType) {
+            case REST -> RestServiceType.REST;
+            case OPENAPI3 -> RestServiceType.OPENAPI;
+            default -> throw new IllegalArgumentException("The given parameter is not a REST service type!");
+        };
     }
 
     @Override
@@ -363,7 +360,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public boolean isAvailable() {
         try {
-            return doInTransaction(session -> session.isConnected());
+            return doInTransaction(SharedSessionContract::isConnected);
         } catch (Exception e) {
             log.warn("Unable to check Serverconf availability", e);
             return false;
@@ -419,7 +416,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     /**
      * Returns the endpoints the client has access to.
-     *
+     * <p>
      * Includes only endpoints the client has a direct acl entry for, does not check for implicitly allowed endpoints.
      */
     protected List<EndpointType> getAclEndpoints(Session session, ClientId client, ServiceId service) {

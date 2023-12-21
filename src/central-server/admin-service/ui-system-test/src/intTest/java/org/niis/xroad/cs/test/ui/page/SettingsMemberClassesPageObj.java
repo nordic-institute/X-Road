@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -72,11 +72,15 @@ public class SettingsMemberClassesPageObj {
     }
 
     public SelenideElement listSizeSelector() {
-        return $x("//div[@data-test='member-classes-list']//div[@class='v-data-footer__select']//div[@class='v-select__slot']");
+        return $x("//div[@data-test='member-classes-list']"
+                + "//div[contains(@class, 'v-data-table-footer__items-per-page')]"
+                + "/div[contains(@class, 'v-select')]");
     }
 
     public SelenideElement listSizeSelectorText() {
-        return $x("//div[@data-test='member-classes-list']//div[@class='v-select__selection v-select__selection--comma']");
+        return $x("//div[@data-test='member-classes-list']"
+                + "//div[contains(@class, 'v-data-table-footer__items-per-page')]"
+                + "//span[@class='v-select__selection-text']");
     }
 
     public SelenideElement listSizeSelectorOptionOf(String value) {
@@ -85,11 +89,11 @@ public class SettingsMemberClassesPageObj {
 
     public class AddEditDialog {
         public SelenideElement inputMemberClassCode() {
-            return $x("//*[@data-test='system-settings-member-class-code-edit-field']");
+            return $x("//div[@data-test='system-settings-member-class-code-edit-field']");
         }
 
         public SelenideElement inputMemberClassDescription() {
-            return $x("//*[@data-test='system-settings-member-class-description-edit-field']");
+            return $x("//div[@data-test='system-settings-member-class-description-edit-field']");
         }
     }
 }

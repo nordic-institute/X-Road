@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" scanPeriod="60 seconds">
+
+    <contextName>X-Road Proxy Admin REST API</contextName>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} [%thread] correlation-id:[%X{X-B3-TraceId:-}] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+<!--    <logger name="ee.ria.xroad" level="DEBUG"/>-->
+    <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF"/>
+<!--    <logger name="org.niis.xroad" level="DEBUG"/>-->
+<!--    <logger name="org.hibernate.sql" level="DEBUG" />-->
+<!--    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />-->
+    <logger name="org.springframework.boot.autoconfigure" level="INFO" />
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

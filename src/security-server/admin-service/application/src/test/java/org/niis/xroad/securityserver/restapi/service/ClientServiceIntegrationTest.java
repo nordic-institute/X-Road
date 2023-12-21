@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -62,6 +62,9 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLED;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
@@ -89,53 +92,38 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     private byte[] derBytes;
     private byte[] sqlFileBytes;
 
-    private ClientId.Conf existingSavedClientId = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
-    private ClientId.Conf existingRegisteredClientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
-    private ClientId.Conf ownerClientId = ClientId.Conf.create("FI", "GOV", "M1", null);
-    private ClientId.Conf newOwnerClientId = ClientId.Conf.create("FI", "GOV", "M2", null);
+    private final ClientId.Conf existingSavedClientId = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
+    private final ClientId.Conf existingRegisteredClientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
+    private final ClientId.Conf ownerClientId = ClientId.Conf.create("FI", "GOV", "M1", null);
+    private final ClientId.Conf newOwnerClientId = ClientId.Conf.create("FI", "GOV", "M2", null);
 
-    private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
-            TestUtils.MEMBER_CLASS_PRO);
+    private static final List<String> MEMBER_CLASSES = List.of(TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CLASS_PRO);
 
     @Before
     public void setup() throws Exception {
-        List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
+        List<MemberInfo> globalMemberInfos = new ArrayList<>(List.of(
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM2),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM2),
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3,
-                        TestUtils.SUBSYSTEM1),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
-                        TestUtils.SUBSYSTEM3),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM1),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3,
-                        null)));
-        when(globalConfFacade.getMembers(any())).thenReturn(globalMemberInfos);
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3, TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, TestUtils.SUBSYSTEM3),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null)));
+        when(globalConfFacade.getMembers()).thenReturn(globalMemberInfos);
         when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
-            Optional<MemberInfo> m = globalMemberInfos.stream()
+            return globalMemberInfos.stream()
                     .filter(g -> g.getId().equals(clientId))
-                    .findFirst();
-            if (m.isPresent()) {
-                return m.get().getName();
-            } else {
-                return null;
-            }
+                    .findFirst()
+                    .map(MemberInfo::getName)
+                    .orElse(null);
         });
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
@@ -366,7 +354,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // iterate all client statuses and test create + delete
         List<String> allStatuses = Arrays.asList(STATUS_SAVED, STATUS_REGINPROG, STATUS_REGISTERED,
-                STATUS_DELINPROG, STATUS_GLOBALERR);
+                STATUS_DELINPROG, STATUS_GLOBALERR, STATUS_DISABLED, STATUS_DISABLING_INPROG, STATUS_ENABLING_INPROG);
         int created = 0;
         for (String status : allStatuses) {
             created++;
@@ -374,7 +362,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
             ClientId subsystemId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status
                     + ":NEW-SUBSYSTEM");
 
-            if (status.equals(STATUS_REGISTERED) || status.equals(STATUS_REGINPROG)) {
+            if (status.equals(STATUS_REGISTERED)
+                    || status.equals(STATUS_REGINPROG)
+                    || status.equals(STATUS_ENABLING_INPROG)) {
                 // delete is not possible
                 try {
                     addAndDeleteLocalClient(memberId, status);

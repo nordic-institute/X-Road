@@ -24,105 +24,97 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver ref="form" v-slot="{ valid }">
-    <xrd-simple-dialog
-      :dialog="dialog"
-      :width="620"
-      title="services.addRest"
-      :disable-save="!valid"
-      @save="save"
-      @cancel="cancel"
-    >
-      <div slot="content">
-        <div class="dlg-edit-row">
-          <div class="dlg-row-title">{{ $t('services.serviceType') }}</div>
-
-          <ValidationProvider
-            v-slot="{ errors }"
-            rules="required"
-            name="serviceType"
-            class="validation-provider dlg-row-input"
-          >
-            <v-radio-group
-              v-model="serviceType"
-              name="serviceType"
-              :error-messages="errors"
-              row
-            >
-              <v-radio
-                name="REST"
-                :label="$t('services.restApiBasePath')"
-                value="REST"
-              ></v-radio>
-              <v-radio
-                name="OPENAPI3"
-                :label="$t('services.OpenApi3Description')"
-                value="OPENAPI3"
-              ></v-radio>
-            </v-radio-group>
-          </ValidationProvider>
-        </div>
-
-        <div class="pt-3 dlg-input-width">
-          <ValidationProvider
-            v-slot="{ errors }"
-            rules="required|restUrl"
-            name="serviceUrl"
-            class="validation-provider"
-          >
-            <v-text-field
-              v-model="url"
-              :placeholder="$t('services.urlPlaceholder')"
-              :label="$t('services.url')"
-              name="serviceUrl"
-              outlined
-              autofocus
-              :error-messages="errors"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-
-        <div class="pt-3 dlg-input-width">
-          <ValidationProvider
-            v-slot="{ errors }"
-            rules="required|xrdIdentifier"
-            name="serviceCode"
-            class="validation-provider"
-          >
-            <v-text-field
-              v-model="serviceCode"
-              outlined
-              name="serviceCode"
-              :label="$t('services.serviceCode')"
-              type="text"
-              :placeholder="$t('services.serviceCodePlaceholder')"
-              :maxlength="255"
-              :error-messages="errors"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
+  <xrd-simple-dialog
+    v-if="dialog"
+    :width="620"
+    title="services.addRest"
+    :disable-save="!meta.valid"
+    @save="save"
+    @cancel="cancel"
+  >
+    <template #content>
+      <div class="dlg-edit-row">
+        <div class="dlg-row-title pb-8">{{ $t('services.serviceType') }}</div>
+        <v-radio-group
+          v-bind="serviceTypeRef"
+          name="serviceType"
+          inline
+          class="dlg-row-input"
+        >
+          <v-radio
+            data-test="rest-radio-button"
+            :label="$t('services.restApiBasePath')"
+            value="REST"
+          ></v-radio>
+          <v-radio
+            data-test="openapi3-radio-button"
+            :label="$t('services.OpenApi3Description')"
+            value="OPENAPI3"
+          ></v-radio>
+        </v-radio-group>
       </div>
-    </xrd-simple-dialog>
-  </ValidationObserver>
+
+      <div class="pt-3 dlg-input-width">
+        <v-text-field
+          v-bind="serviceUrlRef"
+          :placeholder="$t('services.urlPlaceholder')"
+          :label="$t('services.url')"
+          data-test="service-url-text-field"
+          variant="outlined"
+          autofocus
+        ></v-text-field>
+      </div>
+
+      <div class="pt-3 dlg-input-width">
+        <v-text-field
+          v-bind="serviceCodeRef"
+          variant="outlined"
+          data-test="service-code-text-field"
+          :label="$t('services.serviceCode')"
+          type="text"
+          :placeholder="$t('services.serviceCodePlaceholder')"
+          :maxlength="255"
+        ></v-text-field>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { defineComponent } from 'vue';
+import { PublicPathState, useForm } from 'vee-validate';
 
-export default Vue.extend({
-  components: { ValidationProvider, ValidationObserver },
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
   },
-  data() {
+  emits: ['cancel', 'save'],
+  setup() {
+    const { meta, resetForm, values, defineComponentBinds } = useForm({
+      validationSchema: {
+        serviceType: 'required',
+        serviceUrl: 'required|max:255|restUrl',
+        serviceCode: 'required|max:255|xrdIdentifier',
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const serviceTypeRef = defineComponentBinds('serviceType', componentConfig);
+    const serviceUrlRef = defineComponentBinds('serviceUrl', componentConfig);
+    const serviceCodeRef = defineComponentBinds('serviceCode', componentConfig);
     return {
-      serviceType: '',
-      url: '',
-      serviceCode: '',
+      meta,
+      resetForm,
+      values,
+      serviceTypeRef,
+      serviceUrlRef,
+      serviceCodeRef,
     };
   },
   methods: {
@@ -131,15 +123,17 @@ export default Vue.extend({
       this.clear();
     },
     save(): void {
-      this.$emit('save', this.serviceType, this.url, this.serviceCode);
+      this.$emit(
+        'save',
+        this.values.serviceType,
+        this.values.serviceUrl,
+        this.values.serviceCode,
+      );
       this.clear();
     },
     clear(): void {
-      this.url = '';
-      this.serviceCode = '';
-      this.serviceType = '';
       requestAnimationFrame(() => {
-        (this.$refs.form as InstanceType<typeof ValidationObserver>).reset();
+        this.resetForm();
       });
     },
   },

@@ -25,105 +25,91 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver v-slot="{ invalid }">
-    <xrd-simple-dialog
-      v-if="dialog"
-      title="globalGroup.dialog.deleteMember.title"
-      save-button-text="action.delete"
-      cancel-button-text="action.cancel"
-      :dialog="dialog"
-      :loading="deleting"
-      :disable-save="invalid"
-      @cancel="close"
-      @save="deleteGroupMember"
-    >
-      <template #content>
-        <p>
-          <i18n path="globalGroup.dialog.deleteMember.confirmation">
-            <template #identifier>
-              <b class="no-break">{{ identifier }}</b>
-            </template>
-          </i18n>
-        </p>
-        <ValidationProvider
-          v-slot="{ errors }"
-          :rules="`required|is:${member.client_id.member_code}`"
-          name="memberCode"
-        >
-          <v-text-field
-            v-model="memberCode"
-            data-test="verify-member-code"
-            outlined
-            autofocus
-            :placeholder="$t('globalGroup.dialog.deleteMember.placeholder')"
-            :label="$t('fields.memberCode')"
-            :error-messages="errors"
-          >
-          </v-text-field>
-        </ValidationProvider>
-      </template>
-    </xrd-simple-dialog>
-  </ValidationObserver>
+  <xrd-simple-dialog
+    title="globalGroup.dialog.deleteMember.title"
+    save-button-text="action.delete"
+    cancel-button-text="action.cancel"
+    :loading="deleting"
+    :disable-save="!meta.valid"
+    @cancel="$emit('cancel')"
+    @save="deleteGroupMember"
+  >
+    <template #text>
+      <i18n-t
+        scope="global"
+        keypath="globalGroup.dialog.deleteMember.confirmation"
+      >
+        <template #identifier>
+          <b class="no-break">{{ identifier }}</b>
+        </template>
+      </i18n-t>
+    </template>
+    <template #content>
+      <v-text-field
+        v-bind="memberCode"
+        data-test="verify-member-code"
+        variant="outlined"
+        autofocus
+        :placeholder="$t('globalGroup.dialog.deleteMember.placeholder')"
+        :label="$t('fields.memberCode')"
+        :error-messages="errors.memberCode"
+      >
+      </v-text-field>
+    </template>
+  </xrd-simple-dialog>
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { useNotifications } from '@/store/modules/notifications';
+import { useGlobalGroups } from '@/store/modules/global-groups';
 import { GroupMemberListView } from '@/openapi-types';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { toIdentifier } from '@/util/helpers';
+import { useForm } from 'vee-validate';
+import { Event } from '@/ui-types';
 
-export default Vue.extend({
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+export default defineComponent({
   props: {
     groupCode: {
       type: String,
       required: true,
     },
+    groupMember: {
+      type: Object as PropType<GroupMemberListView>,
+      required: true,
+    },
+  },
+  emits: [Event.Cancel, Event.Delete],
+  setup(props) {
+    const { meta, errors, defineComponentBinds } = useForm({
+      validationSchema: {
+        memberCode: `required|is:${props.groupMember.client_id.member_code}`,
+      },
+    });
+    const memberCode = defineComponentBinds('memberCode');
+    return { meta, errors, memberCode };
   },
   data() {
     return {
-      memberCode: '',
       deleting: false,
-      member: null as GroupMemberListView | null,
     };
   },
   computed: {
-    ...mapStores(useGlobalGroupsStore),
-    dialog(): boolean {
-      return this.member != null;
-    },
+    ...mapStores(useGlobalGroups),
     identifier(): string {
-      if (this.member == null || this.member.client_id === undefined) {
-        return '';
-      }
-      return toIdentifier(this.member.client_id);
+      return toIdentifier(this.groupMember.client_id);
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    open(member: GroupMemberListView) {
-      this.member = member;
-    },
-    close() {
-      this.member = null;
-      this.memberCode = '';
-    },
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     deleteGroupMember() {
-      if (this.member == null) {
-        return;
-      }
       this.deleting = true;
       this.globalGroupStore
         .deleteGroupMember(
           this.groupCode,
-          this.member.client_id.encoded_id || '',
+          this.groupMember.client_id.encoded_id || '',
         )
-        .then(() => this.$emit('deleted'))
+        .then(() => this.$emit(Event.Delete))
         .then(() =>
           this.showSuccess(
             this.$t('globalGroup.dialog.deleteMember.success', {
@@ -131,7 +117,6 @@ export default Vue.extend({
             }),
           ),
         )
-        .then(() => this.close())
         .catch((error) => this.showError(error))
         .finally(() => (this.deleting = false));
     },

@@ -6,7 +6,7 @@
  * subject type
  */
 export enum ServiceClientType {
-    GLOBALGROUP = 'GLOBALGROUP',
-    LOCALGROUP = 'LOCALGROUP',
-    SUBSYSTEM = 'SUBSYSTEM',
+  GLOBALGROUP = 'GLOBALGROUP',
+  LOCALGROUP = 'LOCALGROUP',
+  SUBSYSTEM = 'SUBSYSTEM',
 }

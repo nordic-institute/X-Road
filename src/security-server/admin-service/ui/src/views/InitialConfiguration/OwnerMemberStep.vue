@@ -25,132 +25,97 @@
  -->
 <template>
   <div class="step-content-wrapper">
-    <ValidationObserver ref="form1" v-slot="{ invalid }">
-      <div class="wizard-step-form-content">
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('wizard.memberName')"
-            :help-text="$t('wizard.client.memberNameTooltip')"
-          />
-          <div
-            v-if="memberName"
-            class="readonly-info-field"
-            data-test="selected-member-name"
-          >
-            {{ memberName }}
-          </div>
-          <div v-else class="readonly-info-field"></div>
+    <div class="wizard-step-form-content">
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.memberName')"
+          :help-text="$t('wizard.client.memberNameTooltip')"
+        />
+        <div
+          v-if="memberName"
+          class="readonly-info-field"
+          data-test="selected-member-name"
+        >
+          {{ memberName }}
         </div>
-
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('wizard.memberClass')"
-            :help-text="$t('wizard.client.memberClassTooltip')"
-          />
-
-          <ValidationProvider name="addClient.memberClass" rules="required">
-            <v-select
-              v-model="memberClass"
-              :items="memberClassesCurrentInstance"
-              :disabled="isServerOwnerInitialized"
-              data-test="member-class-input"
-              class="wizard-form-input"
-            ></v-select>
-          </ValidationProvider>
-        </div>
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('wizard.memberCode')"
-            :help-text="$t('wizard.client.memberCodeTooltip')"
-          />
-
-          <ValidationProvider
-            v-slot="{ errors }"
-            ref="memberCodeVP"
-            name="addClient.memberCode"
-            rules="required|xrdIdentifier"
-          >
-            <v-text-field
-              v-model="memberCode"
-              class="wizard-form-input"
-              type="text"
-              :error-messages="errors"
-              :disabled="isServerOwnerInitialized"
-              autofocus
-              data-test="member-code-input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('fields.securityServerCode')"
-            :help-text="$t('initialConfiguration.member.serverCodeHelp')"
-          />
-
-          <ValidationProvider
-            v-slot="{ errors }"
-            name="securityServerCode"
-            rules="required|xrdIdentifier"
-          >
-            <v-text-field
-              v-model="securityServerCode"
-              class="wizard-form-input"
-              type="text"
-              :error-messages="errors"
-              :disabled="isServerCodeInitialized"
-              data-test="security-server-code-input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
+        <div v-else class="readonly-info-field"></div>
       </div>
-      <div class="button-footer">
-        <v-spacer></v-spacer>
-        <div>
-          <xrd-button
-            v-if="showPreviousButton"
-            outlined
-            class="previous-button"
-            data-test="previous-button"
-            @click="previous"
-            >{{ $t('action.previous') }}</xrd-button
-          >
-          <xrd-button
-            :disabled="invalid"
-            data-test="save-button"
-            @click="done"
-            >{{ $t(saveButtonText) }}</xrd-button
-          >
-        </div>
+
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.memberClass')"
+          :help-text="$t('wizard.client.memberClassTooltip')"
+        />
+        <v-select
+          v-bind="memberClassRef"
+          :items="memberClassItems"
+          :disabled="isServerOwnerInitialized"
+          data-test="member-class-input"
+          class="wizard-form-input"
+        ></v-select>
       </div>
-    </ValidationObserver>
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.memberCode')"
+          :help-text="$t('wizard.client.memberCodeTooltip')"
+        />
+        <v-text-field
+          v-bind="memberCodeRef"
+          class="wizard-form-input"
+          type="text"
+          :disabled="isServerOwnerInitialized"
+          autofocus
+          data-test="member-code-input"
+        ></v-text-field>
+      </div>
+
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('fields.securityServerCode')"
+          :help-text="$t('initialConfiguration.member.serverCodeHelp')"
+        />
+        <v-text-field
+          v-bind="securityServerCodeRef"
+          class="wizard-form-input"
+          type="text"
+          :disabled="isServerCodeInitialized"
+          data-test="security-server-code-input"
+        ></v-text-field>
+      </div>
+    </div>
+    <div class="button-footer">
+      <v-spacer></v-spacer>
+      <div>
+        <xrd-button
+          v-if="showPreviousButton"
+          outlined
+          class="previous-button"
+          data-test="previous-button"
+          @click="previous"
+          >{{ $t('action.previous') }}
+        </xrd-button>
+        <xrd-button
+          :disabled="!meta.valid"
+          data-test="owner-member-save-button"
+          @click="done"
+          >{{ $t(saveButtonText) }}
+        </xrd-button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
-
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { defineComponent } from 'vue';
 
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
 import { useUser } from '@/store/modules/user';
 import { useInitializeServer } from '@/store/modules/initializeServer';
+import { PublicPathState, useForm } from 'vee-validate';
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        memberCodeVP: InstanceType<typeof ValidationProvider>;
-      };
-    }
-  >
-).extend({
-  components: {
-    ValidationObserver,
-    ValidationProvider,
-  },
+export default defineComponent({
   props: {
     saveButtonText: {
       type: String,
@@ -161,14 +126,45 @@ export default (
       default: true,
     },
   },
-  data() {
+  emits: ['done', 'previous'],
+  setup() {
+    const { currentSecurityServer } = useUser();
+    const { meta, values, validateField, setFieldValue, defineComponentBinds } =
+      useForm({
+        validationSchema: {
+          memberClass: 'required',
+          memberCode: 'required|xrdIdentifier',
+          securityServerCode: 'required|xrdIdentifier',
+        },
+        initialValues: {
+          memberClass: currentSecurityServer.member_class,
+          memberCode: currentSecurityServer.member_code,
+          securityServerCode: currentSecurityServer.server_code,
+        },
+      });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const memberClassRef = defineComponentBinds('memberClass', componentConfig);
+    const memberCodeRef = defineComponentBinds('memberCode', componentConfig);
+    const securityServerCodeRef = defineComponentBinds(
+      'securityServerCode',
+      componentConfig,
+    );
     return {
-      isMemberCodeValid: true,
+      meta,
+      values,
+      validateField,
+      setFieldValue,
+      memberClassRef,
+      memberCodeRef,
+      securityServerCodeRef,
     };
   },
   computed: {
     ...mapState(useGeneral, ['memberClassesCurrentInstance', 'memberName']),
-
     ...mapState(useUser, [
       'currentSecurityServer',
       'isServerCodeInitialized',
@@ -179,39 +175,11 @@ export default (
       'initServerMemberCode',
       'initServerSSCode',
     ]),
-
-    memberClass: {
-      get(): string | undefined {
-        if (this.currentSecurityServer?.member_class) {
-          return this.currentSecurityServer.member_class;
-        }
-        return this.initServerMemberClass;
-      },
-      set(value: string) {
-        this.storeInitServerMemberClass(value);
-      },
-    },
-    memberCode: {
-      get(): string | undefined {
-        if (this.currentSecurityServer?.member_code) {
-          return this.currentSecurityServer.member_code;
-        }
-        return this.initServerMemberCode;
-      },
-      set(value: string) {
-        this.storeInitServerMemberCode(value);
-      },
-    },
-    securityServerCode: {
-      get(): string | undefined {
-        if (this.currentSecurityServer?.server_code) {
-          return this.currentSecurityServer.server_code;
-        }
-        return this.initServerSSCode;
-      },
-      set(value: string) {
-        this.storeInitServerSSCode(value);
-      },
+    memberClassItems() {
+      return this.memberClassesCurrentInstance.map((memberClass) => ({
+        title: memberClass,
+        value: memberClass,
+      }));
     },
   },
 
@@ -219,21 +187,17 @@ export default (
     memberClassesCurrentInstance(val: string[]) {
       // Set first member class selected if there is only one
       if (val?.length === 1) {
-        this.storeInitServerMemberClass(val[0]);
+        this.setFieldValue('memberClass', val[0]);
       }
     },
-    memberClass(val) {
+    'values.memberClass'(val) {
       if (val) {
-        // Update member name when info changes
-        this.checkMember();
+        this.updateMemberName();
       }
     },
-    async memberCode(val) {
-      // Needs to be done here, because the watcher runs before the setter
-      this.isMemberCodeValid = (await this.$refs.memberCodeVP.validate()).valid;
+    'values.memberCode'(val) {
       if (val) {
-        // Update member name when info changes
-        this.checkMember();
+        this.updateMemberName();
       }
     },
   },
@@ -246,10 +210,7 @@ export default (
       this.showError(error);
     });
 
-    this.checkMember();
-  },
-  mounted() {
-    this.$refs.memberCodeVP;
+    this.updateMemberName();
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
@@ -265,29 +226,30 @@ export default (
     ]),
 
     done(): void {
+      this.storeInitServerMemberClass(this.values.memberClass);
+      this.storeInitServerMemberCode(this.values.memberCode);
+      this.storeInitServerSSCode(this.values.securityServerCode);
       this.$emit('done');
     },
     previous(): void {
       this.$emit('previous');
     },
 
-    checkMember(): void {
+    async updateMemberName(): Promise<void> {
       if (
-        this.memberClass &&
-        this.memberCode &&
-        this.memberClass.length > 0 &&
-        this.memberCode.length > 0 &&
-        this.isMemberCodeValid
+        (await this.validateField('memberClass')).valid &&
+        (await this.validateField('memberCode')).valid
       ) {
-        this.fetchMemberName(this.memberClass, this.memberCode).catch(
-          (error) => {
-            if (error.response.status === 404) {
-              // no match found
-              return;
-            }
-            this.showError(error);
-          },
-        );
+        this.fetchMemberName(
+          this.values.memberClass!,
+          this.values.memberCode!,
+        ).catch((error) => {
+          if (error.response.status === 404) {
+            // no match found
+            return;
+          }
+          this.showError(error);
+        });
       }
     },
   },
@@ -295,7 +257,7 @@ export default (
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 
 .readonly-info-field {
   max-width: 405px;

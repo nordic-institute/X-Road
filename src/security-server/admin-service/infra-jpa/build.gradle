@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+}
+
+configurations {
+    changelogJar
+}
+
+task changelogJar(type: Jar) {
+    classifier 'resources'
+    from sourceSets.main.resources
+}
+
+artifacts {
+    changelogJar changelogJar
+}

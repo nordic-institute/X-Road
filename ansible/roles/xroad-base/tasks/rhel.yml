@@ -14,6 +14,25 @@
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_distribution_major_version}}.noarch.rpm"
   when: not epel.stat.exists
 
+- name: Setup the Adoptium repo (RHEL 7 only)
+  yum_repository:
+    name: "Adoptium"
+    file: "adoptium"
+    description: "Adoptium repository"
+    baseurl: "https://artifactory.niis.org/artifactory/rpm-adoptium-remote/rhel/7/x86_64"
+    enabled: yes
+    gpgcheck: no
+    repo_gpgcheck: no
+    state: present
+  when: ansible_distribution_major_version == "7"
+
+- name: Install Temurin JDK 17 (RHEL 7 only)
+  become: yes
+  yum:
+    name: "temurin-17-jdk"
+    state: present
+  when: ansible_distribution_major_version == "7"
+
 - name: X-Road repo key
   rpm_key:
     state: present
@@ -49,3 +68,4 @@
       - cronie
       - tar
       - acl
+      - tzdata-java

@@ -27,52 +27,39 @@
 
 <template>
   <xrd-simple-dialog
-    :dialog="true"
     title="keys.dialog.add.title"
     save-button-text="keys.dialog.add.confirmButton"
     :loading="loading"
-    :disable-save="!isValid"
+    :disable-save="!meta.valid"
     @save="addKey"
     @cancel="cancel"
   >
-    <div slot="content">
-      <div class="pt-5 dlg-input-width">
-        <ValidationProvider
-          ref="keyLabel"
-          v-slot="{ errors }"
-          rules="required|min:1|max:255"
-          name="keyLabel"
-          class="validation-provider"
-        >
-          <v-text-field
-            v-model="label"
-            :label="$t('keys.dialog.add.labelField')"
-            :error-messages="errors"
-            name="keyLabel"
-            data-test="signing-key-label-input"
-            outlined
-            autofocus
-          />
-        </ValidationProvider>
-      </div>
-    </div>
+    <template #content>
+      <v-text-field
+        v-bind="keyLabel"
+        :label="$t('keys.dialog.add.labelField')"
+        :error-messages="errors.keyLabel"
+        name="keyLabel"
+        data-test="signing-key-label-input"
+        variant="outlined"
+        autofocus
+      />
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useSigningKeyStore } from '@/store/modules/signing-keys';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSigningKey } from '@/store/modules/signing-keys';
 import { ConfigurationSigningKey, ConfigurationType } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
-import { ValidationProvider } from 'vee-validate';
+import { useForm } from 'vee-validate';
 
-export default Vue.extend({
-  components: { ValidationProvider },
+export default defineComponent({
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     tokenId: {
@@ -80,29 +67,32 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['cancel', 'key-add'],
+  setup() {
+    const { defineComponentBinds, errors, values, meta } = useForm({
+      validationSchema: { keyLabel: 'required|min:1|max:255' },
+    });
+    const keyLabel = defineComponentBinds('keyLabel');
+    return { errors, values, meta, keyLabel };
+  },
   data() {
     return {
       loading: false,
-      label: '',
     };
   },
   computed: {
-    ...mapStores(useSigningKeyStore),
-    isValid(): boolean {
-      return this.label?.length > 0 && this.label?.length < 256;
-    },
+    ...mapStores(useSigningKey),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
-      this.label = '';
       this.$emit('cancel');
     },
     addKey(): void {
       this.loading = true;
       this.signingKeyStore
         .addSigningKey(this.configurationType, {
-          key_label: this.label,
+          key_label: this.values.keyLabel,
           token_id: this.tokenId,
         })
         .then((res) => {

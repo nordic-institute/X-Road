@@ -27,13 +27,13 @@
 import { defineStore } from 'pinia';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
 export interface State {
   allSettingsTabs: Tab[];
 }
 
-export const availableSettingsTabsStore = defineStore('settingsTabService', {
+export const useSettingsTabs = defineStore('settingsTabs', {
   state: (): State => ({
     allSettingsTabs: [
       {
@@ -75,12 +75,20 @@ export const availableSettingsTabsStore = defineStore('settingsTabService', {
           Permissions.REVOKE_API_KEY,
         ],
       },
+      {
+        key: 'tlscertificates-tab-button',
+        name: 'tab.settings.tlsCertificates',
+        to: {
+          name: RouteName.TlsCertificates,
+        },
+        permissions: [Permissions.VIEW_TLS_CERTIFICATES],
+      },
     ],
   }),
   persist: false,
   actions: {
     getAvailableTabs() {
-      return userStore().getAllowedTabs(this.allSettingsTabs);
+      return useUser().getAllowedTabs(this.allSettingsTabs);
     },
   },
 });

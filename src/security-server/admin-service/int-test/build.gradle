@@ -1,0 +1,60 @@
+configurations {
+    dist {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+    liquibaseLibs {
+        apply plugin: 'base'
+    }
+}
+
+dependencies {
+    intTestImplementation project(path: ":security-server:admin-service:infra-jpa", configuration: "changelogJar")
+    intTestImplementation project(":security-server:openapi-model")
+
+    intTestImplementation("com.nortal.test:test-automation-core:$testAutomationFrameworkVersion")
+    intTestImplementation("com.nortal.test:test-automation-assert:$testAutomationFrameworkVersion")
+    intTestImplementation("com.nortal.test:test-automation-containers:$testAutomationFrameworkVersion")
+    intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
+    intTestImplementation("com.nortal.test:test-automation-allure:$testAutomationFrameworkVersion")
+    intTestImplementation("org.liquibase:liquibase-core:$liquibaseVersion")
+    intTestImplementation("org.postgresql:postgresql:$postgresqlVersion")
+    intTestImplementation("org.projectlombok:lombok:${lombokVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task intTest(type: Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def intTestArgs = []
+    if (project.hasProperty('intTestTags')) {
+        intTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('intTestTags')
+    }
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
+
+    jvmArgs intTestArgs
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+
+    shouldRunAfter test
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('intTest')
+}

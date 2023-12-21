@@ -27,13 +27,18 @@ package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import io.cucumber.java.en.Then;
 import org.niis.xroad.cs.test.ui.page.MemberPageObj;
+
+import java.util.concurrent.TimeUnit;
+
+import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class MemberStepDefs extends BaseUiStepDefs {
     private final MemberPageObj memberPageObj = new MemberPageObj();
 
-    @Then("Member {} is selected")
+    @Step("Member {} is selected")
     public void memberIsSelected(String memberName) {
         memberPageObj.listRowOf(memberName).click();
     }
@@ -42,21 +47,34 @@ public class MemberStepDefs extends BaseUiStepDefs {
     public void memberIsAdded(String memberName, String memberCode, String memberClass) {
         memberPageObj.btnAddMember().click();
 
-        memberPageObj.addDialog().inputMemberCode().setValue(memberCode);
-        memberPageObj.addDialog().inputMemberName().setValue(memberName);
+        vTextField(memberPageObj.addDialog().inputMemberCode()).setValue(memberCode);
+        vTextField(memberPageObj.addDialog().inputMemberName()).setValue(memberName);
 
         memberPageObj.addDialog().selectMemberClass().click();
         memberPageObj.addDialog().selectMemberClassOption(memberClass).click();
 
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("A member with name: {}, code: {} & member class: {} is listed")
     public void newMemberIsListed(String memberName, String memberCode, String memberClass) {
-        memberPageObj.listRowOf(memberName, memberCode, memberClass).shouldBe(Condition.visible);
+        memberPageObj.listRowOf(memberName, memberCode, memberClass).shouldBe(visible);
     }
 
+    @Step("A member with name: {}, code: {} & member class: {} is not listed")
+    public void memberIsNotListed(String memberName, String memberCode, String memberClass) {
+        memberPageObj.listRowOf(memberName, memberCode, memberClass).shouldNotBe(visible);
+    }
+
+    @Step("user searches for member using {string}")
+    public void userSearchesForMemberUsing(String query) throws InterruptedException {
+        memberPageObj.searchIcon().click();
+        memberPageObj.searchInput().shouldBe(visible);
+        memberPageObj.searchInput().shouldBe(focused);
+        memberPageObj.searchInput().setValue(query);
+        TimeUnit.SECONDS.sleep(2); // wait for query to execute
+    }
 }

@@ -1,4 +1,4 @@
-/**\
+/*\
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,14 +30,14 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.ExpectedCodedException;
 import ee.ria.xroad.common.util.MimeTypes;
 
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPException;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.util.Arrays;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPException;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;

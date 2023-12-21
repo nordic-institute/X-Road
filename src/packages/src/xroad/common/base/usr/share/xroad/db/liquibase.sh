@@ -27,6 +27,6 @@ CLASSPATH=/usr/share/xroad/db/liquibase-core.jar
 JAVA_OPTS="${JAVA_OPTS-}"
 
 echo "Liquibase Home: $LIQUIBASE_HOME"
-java -cp "$CLASSPATH" $JAVA_OPTS liquibase.integration.commandline.Main ${1+"$@"}
+LIQUIBASE_SHOW_BANNER=false java -cp "$CLASSPATH" $JAVA_OPTS liquibase.integration.commandline.Main ${1+"$@"}
 
 

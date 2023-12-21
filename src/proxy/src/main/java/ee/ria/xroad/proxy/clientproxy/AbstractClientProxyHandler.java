@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,26 +29,22 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.security.cert.X509Certificate;
-import java.util.Date;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
@@ -153,21 +149,12 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static void success(MessageProcessorBase processor, long start, OpMonitoringData opMonitoringData) {
         final boolean success = processor.verifyMessageExchangeSucceeded();
-        final MessageInfo messageInfo = processor.createRequestMessageInfo();
 
         updateOpMonitoringSucceeded(opMonitoringData, success);
-        if (success) {
-            MonitorAgent.success(messageInfo, new Date(start), new Date());
-        } else {
-            MonitorAgent.failure(messageInfo, null, null);
-        }
     }
 
     protected void failure(MessageProcessorBase processor, HttpServletRequest request, HttpServletResponse response,
                            CodedException e, OpMonitoringData opMonitoringData) throws IOException {
-        MessageInfo info = processor != null ? processor.createRequestMessageInfo() : null;
-
-        MonitorAgent.failure(info, e.getFaultCode(), e.getFaultString());
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
@@ -176,7 +163,6 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     protected void failure(HttpServletResponse response, CodedExceptionWithHttpStatus e,
             OpMonitoringData opMonitoringData) throws IOException {
-        MonitorAgent.failure(null, e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(), e.getFaultString());
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
@@ -192,7 +178,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     static IsAuthenticationData getIsAuthenticationData(HttpServletRequest request) {
-        X509Certificate[] certs = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
+        X509Certificate[] certs = (X509Certificate[]) request.getAttribute("jakarta.servlet.request.X509Certificate");
 
         return new IsAuthenticationData(certs != null && certs.length != 0 ? certs[0] : null,
                 !"https".equals(request.getScheme())); // if not HTTPS, it's plaintext

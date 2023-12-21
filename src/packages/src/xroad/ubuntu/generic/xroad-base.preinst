@@ -18,12 +18,12 @@ if [ "$1" = "upgrade" ]; then
       fi
     fi
 
-    # 7.3.0 remove JAVA_HOME from local.conf if it points to java < 11
+    # 7.4.0 remove JAVA_HOME from local.conf if it points to java < 17
     if [ -f /etc/xroad/services/local.conf ]; then
       java_home=$(grep -oP '^\s*JAVA_HOME=\K(.*)' /etc/xroad/services/local.conf | tail -n 1)
       if [ -n "$java_home" ]; then
         java_version=$("$java_home"/bin/java -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)
-        if [[ $java_version -lt 11 ]]; then
+        if [[ $java_version -lt 17 ]]; then
           sed -E -i 's/^(\s*JAVA_HOME=)/# \1/g' /etc/xroad/services/local.conf \
                   && echo "Removed JAVA_HOME from /etc/xroad/services/local.conf" >&2 \
                   || echo "Failed to remove JAVA_HOME from /etc/xroad/services/local.conf" >&2
@@ -32,10 +32,21 @@ if [ "$1" = "upgrade" ]; then
     fi
 fi
 
-if [[ $LC_ALL =~ "UTF-8"$ ]]
- then
-   echo "system locale set to UTF-8 compatible."
- else
-   echo "setting system locale to LC_ALL=en_US.UTF-8 in /etc/environment"
-   echo "LC_ALL=en_US.UTF-8" >> /etc/environment
+if grep -q '^LC_ALL=.*UTF-8$' /etc/environment ; then
+  echo "system locale in /etc/environment already UTF-8 compatible"
+else
+  if grep -q '^LC_ALL=.*$' /etc/environment ; then
+    echo "setting system locale in /etc/environment to LC_ALL=en_US.UTF-8"
+    sed -i -r 's/^(LC_ALL=).*/\1en_US.UTF-8/' /etc/environment
+  else
+    echo "adding system locale LC_ALL=en_US.UTF-8 to /etc/environment"
+    echo "LC_ALL=en_US.UTF-8" >> /etc/environment
+  fi
+fi
+
+if [[ $LC_ALL =~ "UTF-8"$ ]]; then
+  echo "session locale already UTF-8 compatible."
+else
+  echo "setting session locale to LC_ALL=en_US.UTF-8"
+  export LC_ALL="en_US.UTF-8"
 fi

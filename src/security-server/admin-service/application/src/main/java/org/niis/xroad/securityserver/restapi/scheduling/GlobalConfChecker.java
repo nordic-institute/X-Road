@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
@@ -36,13 +36,13 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -55,28 +55,21 @@ import java.util.Optional;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Job that checks whether globalconf has changed.
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class GlobalConfChecker {
     public static final int JOB_REPEAT_INTERVAL_MS = 30000;
     public static final int INITIAL_DELAY_MS = 30000;
+    private volatile boolean restoreInProgress = false;
     private final GlobalConfCheckerHelper globalConfCheckerHelper;
     private final GlobalConfFacade globalConfFacade;
     private final SignerProxyFacade signerProxyFacade;
-    private volatile boolean restoreInProgress = false;
-
-    @Autowired
-    public GlobalConfChecker(GlobalConfCheckerHelper globalConfCheckerHelper, GlobalConfFacade globalConfFacade,
-            SignerProxyFacade signerProxyFacade) {
-        this.globalConfCheckerHelper = globalConfCheckerHelper;
-        this.globalConfFacade = globalConfFacade;
-        this.signerProxyFacade = signerProxyFacade;
-    }
+    private final SecurityServerAddressChangeStatus addressChangeStatus;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -86,6 +79,7 @@ public class GlobalConfChecker {
      * next task won't be invoked until the previous one is done. Set an initial delay before running the task
      * for the first time after a startup to be sure that all required components are available, e.g.
      * SignerClient may not be available immediately.
+     *
      * @throws Exception
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
@@ -102,7 +96,6 @@ public class GlobalConfChecker {
             updateServerConf();
         } catch (Exception e) {
             log.error("Checking globalconf for updates failed", e);
-            throw e;
         }
     }
 
@@ -126,6 +119,15 @@ public class GlobalConfChecker {
         }
 
         ServerConfType serverConf = globalConfCheckerHelper.getServerConf();
+
+        addressChangeStatus.getAddressChangeRequest()
+                .ifPresent(requestedAddress -> {
+                    var currentAddress = globalConfFacade.getSecurityServerAddress(buildSecurityServerId(serverConf));
+                    if (requestedAddress.equals(currentAddress)) {
+                        addressChangeStatus.clear();
+                    }
+                });
+
         try {
             if (globalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
                 log.debug("Server owner not found in globalconf - owner may have changed");
@@ -136,8 +138,8 @@ public class GlobalConfChecker {
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);
             if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
-                updateTimestampServiceUrls(globalConfFacade.getApprovedTspTypes(
-                        globalConfFacade.getInstanceIdentifier()),
+                updateTimestampServiceUrls(globalConfFacade.getApprovedTsps(
+                                globalConfFacade.getInstanceIdentifier()),
                         serverConf.getTsp()
                 );
             }
@@ -149,27 +151,28 @@ public class GlobalConfChecker {
     /**
      * Matches timestamping services in globalTsps with localTsps by name and checks if the URLs have changed.
      * If the change is unambiguous, it's performed on localTsps. Otherwise a warning is logged.
+     *
      * @param globalTsps timestamping services from global configuration
-     * @param localTsps timestamping services from local database
+     * @param localTsps  timestamping services from local database
      */
-    void updateTimestampServiceUrls(List<ApprovedTSAType> globalTsps, List<TspType> localTsps) {
+    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps, List<TspType> localTsps) {
 
         for (TspType localTsp : localTsps) {
-            List<ApprovedTSAType> globalTspMatches = globalTsps.stream()
+            List<SharedParameters.ApprovedTSA> globalTspMatches = globalTsps.stream()
                     .filter(g -> g.getName().equals(localTsp.getName()))
-                    .collect(toList());
+                    .toList();
             if (globalTspMatches.size() > 1) {
-                Optional<ApprovedTSAType> urlChanges =
+                Optional<SharedParameters.ApprovedTSA> urlChanges =
                         globalTspMatches.stream().filter(t -> !t.getUrl().equals(localTsp.getUrl())).findAny();
                 if (urlChanges.isPresent()) {
                     log.warn("Skipping timestamping service URL update due to multiple services with the same name: {}",
                             globalTspMatches.get(0).getName());
                 }
             } else if (globalTspMatches.size() == 1) {
-                ApprovedTSAType globalTspMatch = globalTspMatches.get(0);
+                SharedParameters.ApprovedTSA globalTspMatch = globalTspMatches.get(0);
                 if (!globalTspMatch.getUrl().equals(localTsp.getUrl())) {
                     log.info("Timestamping service URL has changed in the global configuration. "
-                            + "Updating the changes to the local configuration, Name: {}, Old URL: {}, New URL: {}",
+                                    + "Updating the changes to the local configuration, Name: {}, Old URL: {}, New URL: {}",
                             localTsp.getName(), localTsp.getUrl(), globalTspMatch.getUrl());
                     localTsp.setUrl(globalTspMatch.getUrl());
                 }
@@ -220,7 +223,7 @@ public class GlobalConfChecker {
     private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
         log.debug("Get auth cert for security server '{}'", serverId);
 
-        AuthKeyInfo keyInfo = signerProxyFacade.execute(new GetAuthKey(serverId));
+        AuthKeyInfo keyInfo = signerProxyFacade.getAuthKey(serverId);
         if (keyInfo != null && keyInfo.getCert() != null) {
             return readCertificate(keyInfo.getCert().getCertificateBytes());
         }
@@ -228,8 +231,7 @@ public class GlobalConfChecker {
         return null;
     }
 
-    private void updateClientStatuses(ServerConfType serverConf,
-            SecurityServerId securityServerId) throws Exception {
+    private void updateClientStatuses(ServerConfType serverConf, SecurityServerId securityServerId) {
         log.debug("Updating client statuses");
 
         for (ClientType client : serverConf.getClient()) {
@@ -244,13 +246,11 @@ public class GlobalConfChecker {
                     case ClientType.STATUS_REGISTERED:
                         // do nothing
                         break;
-                    case ClientType.STATUS_SAVED: // FALL-THROUGH
-                    case ClientType.STATUS_REGINPROG: // FALL-THROUGH
-                    case ClientType.STATUS_GLOBALERR:
-                        client.setClientStatus(ClientType.STATUS_REGISTERED);
-                        log.debug("Setting client '{}' status to '{}'",
-                                client.getIdentifier(),
-                                client.getClientStatus());
+                    case ClientType.STATUS_SAVED,
+                         ClientType.STATUS_REGINPROG,
+                         ClientType.STATUS_GLOBALERR,
+                         ClientType.STATUS_ENABLING_INPROG:
+                        updateClientStatus(client, ClientType.STATUS_REGISTERED);
                         break;
                     default:
                         log.warn("Unexpected status {} for client '{}'",
@@ -259,14 +259,19 @@ public class GlobalConfChecker {
                 }
             }
 
-            if (!registered && ClientType.STATUS_REGISTERED.equals(
-                    client.getClientStatus())) {
-                client.setClientStatus(ClientType.STATUS_GLOBALERR);
+            if (!registered && ClientType.STATUS_REGISTERED.equals(client.getClientStatus())) {
+                updateClientStatus(client, ClientType.STATUS_GLOBALERR);
+            }
 
-                log.debug("Setting client '{}' status to '{}'",
-                        client.getIdentifier(), client.getClientStatus());
+            if (!registered && ClientType.STATUS_DISABLING_INPROG.equals(client.getClientStatus())) {
+                updateClientStatus(client, ClientType.STATUS_DISABLED);
             }
         }
+    }
+
+    private void updateClientStatus(ClientType client, String status) {
+        client.setClientStatus(status);
+        log.debug("Setting client '{}' status to '{}'", client.getIdentifier(), client.getClientStatus());
     }
 
     private void updateAuthCertStatuses(SecurityServerId securityServerId)
@@ -285,7 +290,7 @@ public class GlobalConfChecker {
     }
 
     private void updateCertStatus(SecurityServerId securityServerId,
-            CertificateInfo certInfo) throws Exception {
+                                  CertificateInfo certInfo) throws Exception {
         X509Certificate cert =
                 readCertificate(certInfo.getCertificateBytes());
 

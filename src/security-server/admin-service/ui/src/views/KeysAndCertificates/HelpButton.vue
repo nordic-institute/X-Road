@@ -25,10 +25,13 @@
  -->
 <template>
   <div class="help-wrap" @click="helpClick()">
-    <v-hover v-slot="{ hover }">
-      <v-icon :color="hover ? '#663cdc' : '#575169'" dark class="help-icon"
-        >icon-Tooltip</v-icon
+    <v-hover v-slot="{ isHovering }">
+      <xrd-icon-base
+        :color="isHovering ? '#663cdc' : '#575169'"
+        class="help-icon"
       >
+        <xrd-icon-tooltip />
+      </xrd-icon-base>
     </v-hover>
 
     <xrd-help-dialog
@@ -37,15 +40,20 @@
       :text="helpText"
       @cancel="closeHelp"
     >
-      <v-img :src="require('./../../assets/' + helpImage)"></v-img>
+      <v-img :src="helpImage"></v-img>
     </xrd-help-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
+import { XrdHelpDialog, XrdIconTooltip } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
+  components: {
+    XrdIconTooltip,
+    XrdHelpDialog,
+  },
   props: {
     helpImage: {
       type: String,
@@ -60,11 +68,9 @@ export default Vue.extend({
       required: true,
     },
   },
-
   data: () => ({
     showHelp: false,
   }),
-
   methods: {
     helpClick(): void {
       this.showHelp = true;

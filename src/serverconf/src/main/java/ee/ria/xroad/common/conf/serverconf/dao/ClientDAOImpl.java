@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,14 +31,13 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import java.util.List;
 
@@ -78,7 +77,7 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
         }
 
         query.select(cb.literal(Boolean.TRUE)).where(pred);
-        return session.createQuery(query).list().size() > 0;
+        return !session.createQuery(query).list().isEmpty();
 
     }
 
@@ -130,9 +129,9 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
      * @return the client, or null if matching client was not found for the endpoint id
      */
     public ClientType getClientByEndpointId(Session session, EndpointType endpointType) {
-        StringBuilder qb = new StringBuilder();
-        qb.append("select c from ClientType as c where :endpoint member of c.endpoint");
-        Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
+        Query<ClientType> query = session.createQuery(
+                "select c from ClientType as c where :endpoint member of c.endpoint",
+                ClientType.class);
         query.setParameter("endpoint", endpointType);
         return findOne(query);
     }
@@ -145,9 +144,9 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
      * @return the client, or null if matching client was not found for the localGroupType
      */
     public ClientType getClientByLocalGroup(Session session, LocalGroupType localGroupType) {
-        StringBuilder qb = new StringBuilder();
-        qb.append("select c from ClientType as c where :localGroup member of c.localGroup");
-        Query<ClientType> query = session.createQuery(qb.toString(), ClientType.class);
+        Query<ClientType> query = session.createQuery(
+                "select c from ClientType as c where :localGroup member of c.localGroup",
+                ClientType.class);
         query.setParameter("localGroup", localGroupType);
         return findOne(query);
     }

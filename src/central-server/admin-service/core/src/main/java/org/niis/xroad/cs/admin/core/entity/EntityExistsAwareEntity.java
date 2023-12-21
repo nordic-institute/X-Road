@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -29,8 +29,7 @@ package org.niis.xroad.cs.admin.core.entity;
 import ee.ria.xroad.common.util.NoCoverage;
 
 import io.vavr.control.Option;
-
-import javax.persistence.Transient;
+import jakarta.persistence.Transient;
 
 import java.util.function.Consumer;
 import java.util.function.Function;

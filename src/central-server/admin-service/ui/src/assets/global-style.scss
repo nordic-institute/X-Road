@@ -25,7 +25,12 @@
  * THE SOFTWARE.
  */
 
-@import "./colors";
+@import './colors';
+body,
+.v-application {
+  font-family: 'Open Sans', sans-serif;
+  letter-spacing: normal;
+}
 
 // Use this to set up font etc. common things for normal views
 .xrd-view-common {
@@ -81,17 +86,6 @@
   }
 }
 
-.xrd-title-search {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-end;
-
-  .xrd-view-title {
-    margin-right: 20px;
-  }
-}
-
 .header-row {
   display: flex;
   flex-direction: row;
@@ -141,17 +135,33 @@
 // Vuetify overrides
 
 // Override Vuetify default table cell height
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-data-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-data-table__wrapper > table > tfoot > tr > td {
+.v-data-table > .v-table__wrapper > table > tbody > tr > td,
+.v-data-table > .v-table__wrapper > table > thead > tr > td,
+.v-data-table > .v-table__wrapper > table > tfoot > tr > td {
   height: 56px;
   color: $XRoad-Black100;
 }
 
 // Override Vuetify table row hover color
-.v-data-table > .v-data-table__wrapper > table > tbody:hover td[rowspan],
-.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover td {
+.v-data-table > .v-table__wrapper > table > tbody:hover td[rowspan],
+.v-data-table > .v-table__wrapper > table > tbody > tr:hover td {
   background: $XRoad-Purple10 !important;
+}
+
+.v-data-table > .v-table__wrapper > table > thead .v-data-table__th {
+  font-weight: 700;
+  font-size: 12px;
+  &.v-data-table__th--sorted {
+    color: $XRoad-Black100;
+  }
+}
+
+.v-data-table > .v-data-table-footer {
+  font-size: 12px;
+
+  .v-field {
+    font-size: 12px !important;
+  }
 }
 
 // Override for Vuetify tab style
@@ -162,6 +172,10 @@
 // Override for Vuetify text input style
 .v-text-field {
   font-weight: 600 !important;
+
+  .v-input__details {
+    font-weight: 600 !important;
+  }
 }
 
 .no-break {

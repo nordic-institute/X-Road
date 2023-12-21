@@ -1,5 +1,15 @@
+import nl.javadude.gradle.plugins.license.License
+
 plugins {
     id 'com.github.johnrengelman.shadow'
+}
+
+sourceSets {
+    intTest {
+        resources {
+            srcDir '../common/common-int-test/src/main/resources/'
+        }
+    }
 }
 
 dependencies {
@@ -15,14 +25,18 @@ dependencies {
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
+    implementation 'org.semver4j:semver4j:5.0.0'
+
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
 
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testImplementation 'io.rest-assured:rest-assured:4.4.0'
+    testImplementation 'io.rest-assured:rest-assured:5.3.1'
     testImplementation 'wsdl4j:wsdl4j:1.6.3'
-    testImplementation "org.mockito:mockito-inline:$mockitoVersion"
+
+    intTestRuntimeOnly project(':signer')
+    intTestImplementation project(":common:common-test")
+    intTestImplementation project(":common:common-int-test")
 }
 
 jar {
@@ -34,19 +48,19 @@ jar {
 
 shadowJar {
     archiveClassifier = ''
-    append('reference.conf')
     exclude('**/module-info.class')
     from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
 }
 
 testJar.enabled = true
 assemble.finalizedBy shadowJar
 
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: License) {
     source = fileTree('src/main/java')
     check = true
 }
@@ -111,8 +125,7 @@ task runProxyTest(type: JavaExec) {
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
-        '-Dproxy.akka.loglevel=DEBUG',
-        '-Dproxy.akka.remote.artery.canonical.port=0'
+        '-Dxroad.common.grpc-internal-tls-enabled=false'
 //      '-Djava.security.properties==src/main/resources/java.security'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
@@ -131,3 +144,30 @@ task runBatchSigner(type: JavaExec) {
 }
 
 check.dependsOn integrationTest
+
+tasks.register('intTest', Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def intTestArgs = []
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
+
+    jvmArgs intTestArgs
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('intTest')
+}

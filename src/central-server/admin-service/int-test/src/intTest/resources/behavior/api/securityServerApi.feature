@@ -3,27 +3,31 @@ Feature: Security Server API
 
   @Modifying
   Scenario: Get list of security servers
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-1' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
-    And Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Authentication header is set to REGISTRATION_OFFICER
     Then security servers list contains 'CS:TEST:member-1:SS-X'
     And security servers list sorting by unknown field fails
 
   @Modifying
   Scenario Outline: Security servers list sorting
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
     And member class 'ANOTHER' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-1' is added
     And new member 'CS:ANOTHER:member-2' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new security server 'CS:ANOTHER:member-2:SS-A' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
-    And Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Authentication header is set to REGISTRATION_OFFICER
     When user requests security servers list sorted by '<$sortField>' '<$sortDirection>'
     Then the list is sorted by '<$responseFieldExpression>' '<$sortDirection>'
     Examples:
@@ -39,10 +43,12 @@ Feature: Security Server API
 
   @Modifying
   Scenario: Security server list paging and query
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member' is added with name 'name first'
     And new member 'CS:TEST:another' is added with name 'name second'
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member:SS-1' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new security server 'CS:TEST:member:SS-3' authentication certificate registered with origin 'SECURITY_SERVER'
@@ -66,9 +72,11 @@ Feature: Security Server API
 
   @Modifying
   Scenario: Get security server details
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-1' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
@@ -77,9 +85,11 @@ Feature: Security Server API
 
   @Modifying
   Scenario: Get security server clients
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-2' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-2:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     Then security server 'CS:TEST:member-2:SS-2' has no clients
@@ -91,9 +101,11 @@ Feature: Security Server API
 
   @Modifying
   Scenario: Modify security server address
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-1' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
@@ -102,9 +114,11 @@ Feature: Security Server API
 
   @Modifying
   Scenario: Get security server authentication certificates
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-1' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
@@ -112,9 +126,11 @@ Feature: Security Server API
 
   @Modifying
   Scenario: Delete security server
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-1' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And new member 'CS:TEST:member-2' is added
@@ -134,9 +150,11 @@ Feature: Security Server API
 
   @Modifying
   Scenario: Deleting security server authentication certificate
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-1' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER

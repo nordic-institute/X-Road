@@ -53,7 +53,7 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 3;
 
     /** Minimum supported version number of the global configuration **/
     static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
@@ -95,6 +95,10 @@ public final class SystemProperties {
     /** Property name of the flag for enabling automatic time-stamping service URL updates */
     public static final String PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL =
             PREFIX + "proxy-ui-api.auto-update-timestamp-service-url";
+
+    /** property name of the flag to allow generating csr for key with certificates */
+    public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
+            PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
 
     // Proxy ------------------------------------------------------------------
 
@@ -213,6 +217,10 @@ public final class SystemProperties {
     private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
             PREFIX + "proxy.server-connector-so-linger";
 
+    /** Property name of the server's minimum supported client version */
+    private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
+            PREFIX + "proxy.server-min-supported-client-version";
+
     private static final String SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS =
             PREFIX + "proxy.server-support-clients-pooled-connections";
 
@@ -273,8 +281,6 @@ public final class SystemProperties {
 
     private static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
 
-    private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
-
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
 
@@ -295,6 +301,8 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = "false";
 
     private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = "false";
+
+    private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = "false";
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -450,6 +458,12 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON =
             PREFIX + "configuration-client.proxy-configuration-backup-cron";
+
+    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION =
+            PREFIX + "configuration-client.global_conf_tls_cert_verification";
+
+    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
+            PREFIX + "configuration-client.global_conf_hostname_verification";
 
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
@@ -614,6 +628,57 @@ public final class SystemProperties {
 
     public static final String ONE_DAY_AS_SECONDS = String.valueOf(24 * 60 * 60);
 
+    // gRPC internal cross-component transport configuration  -------------------------- //
+
+    /**
+     * Property name for gRPC host.
+     */
+    public static final String GRPC_INTERNAL_HOST =
+            PREFIX + "common.grpc-internal-host";
+
+    /**
+     * Property name for gRPC host.
+     */
+    public static final String GRPC_INTERNAL_TLS_ENABLED =
+            PREFIX + "common.grpc-internal-tls-enabled";
+
+    /**
+     * Property name for gRPC signer port.
+     */
+    public static final String GRPC_SIGNER_PORT = PREFIX + "signer.grpc-port";
+
+    /**
+     * Property name for gRPC proxy port.
+     */
+    public static final String PROXY_GRPC_PORT = PREFIX + "proxy.grpc-port";
+
+    /**
+     * Property name for gRPC internal keystore location.
+     */
+    public static final String GRPC_INTERNAL_KEYSTORE =
+            PREFIX + "common.grpc-internal-keystore";
+
+    /**
+     * Property name for gRPC internal keystore password.
+     */
+    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
+            PREFIX + "common.grpc-internal-keystore-password";
+    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV =
+            GRPC_INTERNAL_KEYSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
+
+    /**
+     * Property name for gRPC internal truststore location.
+     */
+    public static final String GRPC_INTERNAL_TRUSTSTORE =
+            PREFIX + "common.grpc-internal-truststore";
+
+    /**
+     * Property name for gRPC internal truststore password.
+     */
+    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
+            PREFIX + "common.grpc-internal-truststore-password";
+    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
+            GRPC_INTERNAL_TRUSTSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -687,7 +752,7 @@ public final class SystemProperties {
 
     // --------------------------------------------------------------------- //
 
-    private static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
+    public static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
 
     /**
      * @return path to the directory where configuration files are located, '/etc/xroad/' by default.
@@ -749,6 +814,14 @@ public final class SystemProperties {
     public static boolean geUpdateTimestampServiceUrlsAutomatically() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL,
                 DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL));
+    }
+
+    /**
+     * @return whether generating CSR is allowed for with existing certificate, 'false' by default
+     */
+    public static boolean getAllowCsrForKeyWithCertificate() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE,
+                DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE));
     }
 
     /**
@@ -1019,6 +1092,14 @@ public final class SystemProperties {
         return System.getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "0 15 3 * * ?");
     }
 
+    public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, "true"));
+    }
+
+    public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true"));
+    }
+
     public static String getConfigurationClientAllowedFederations() {
         return System.getProperty(CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS, AllowedFederationMode.NONE.name());
     }
@@ -1212,10 +1293,10 @@ public final class SystemProperties {
     }
 
     /**
-     * @return proxy actorsystem port, {@link PortNumbers#PROXY_ACTORSYSTEM_PORT} by default.
+     * @return proxy grpc port, {@link PortNumbers#PROXY_GRPC_PORT} by default.
      */
-    public static int getProxyActorSystemPort() {
-        return Integer.getInteger(PROXY_ACTORSYSTEM_PORT, PortNumbers.PROXY_ACTORSYSTEM_PORT);
+    public static int getProxyGrpcPort() {
+        return Integer.getInteger(PROXY_GRPC_PORT, PortNumbers.PROXY_GRPC_PORT);
     }
 
     /**
@@ -1376,7 +1457,7 @@ public final class SystemProperties {
      * @return true if PIN policy should be enforced.
      */
     public static boolean shouldEnforceTokenPinPolicy() {
-        return Boolean.valueOf(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
+        return Boolean.parseBoolean(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
                 DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY));
     }
 
@@ -1411,7 +1492,6 @@ public final class SystemProperties {
     public static int getServerProxyConnectorMaxIdleTime() {
         return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_MAX_IDLE_TIME,
                 DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME));
-
     }
 
     /**
@@ -1424,6 +1504,10 @@ public final class SystemProperties {
                 DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
         if (linger >= 0) return linger * 1000;
         return -1;
+    }
+
+    public static String getServerProxyMinSupportedClientVersion() {
+        return System.getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION);
     }
 
     /**
@@ -1563,16 +1647,16 @@ public final class SystemProperties {
      */
     public static int getMinimumCentralServerGlobalConfigurationVersion() {
         // read the setting
-        int version = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
+        int minVersion = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
-        checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
+        checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION);
         // ignore the versions that are no longer supported
-        if (version < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
-            version = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        if (minVersion < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
+            minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
-        return version;
+        return minVersion;
     }
 
     /**
@@ -1580,17 +1664,17 @@ public final class SystemProperties {
      */
     public static int getMinimumConfigurationProxyGlobalConfigurationVersion() {
         // read the setting
-        int version = Integer.parseInt(System.getProperty(
+        int minVersion = Integer.parseInt(System.getProperty(
                 MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
-        checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
+        checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
         // ignore the versions that are no longer supported
-        if (version < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
-            version = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        if (minVersion < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
+            minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
-        return version;
+        return minVersion;
     }
 
     /**
@@ -1616,8 +1700,8 @@ public final class SystemProperties {
         return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
     }
 
-    private static void checkVersionValidity(int version, int current, String defaultVersion) {
-        if (version > current || version < 1) {
+    private static void checkVersionValidity(int min, int current, String defaultVersion) {
+        if (min > current || min < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
     }
@@ -1652,5 +1736,54 @@ public final class SystemProperties {
      */
     public static boolean isHSMHealthCheckEnabled() {
         return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static String getGrpcInternalHost() {
+        return System.getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static boolean isGrpcInternalTlsEnabled() {
+        return Boolean.parseBoolean(System.getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
+    }
+
+    /**
+     * @return gRPC signer host.
+     */
+    public static int getGrpcSignerPort() {
+        return Integer.parseInt(System.getProperty(GRPC_SIGNER_PORT, String.valueOf(PortNumbers.SIGNER_GRPC_PORT)));
+    }
+
+    /**
+     * @return gRPC internal key store path. Uses JKS format.
+     */
+    public static String getGrpcInternalKeyStore() {
+        return System.getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
+    }
+
+    /**
+     * @return gRPC internal key store password.
+     */
+    public static String getGrpcInternalKeyStorePassword() {
+        return System.getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV));
+    }
+
+    /**
+     * @return gRPC internal trust store path. Uses JKS format.
+     */
+    public static String getGrpcInternalTrustStore() {
+        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
+    }
+
+    /**
+     * @return gRPC internal trust store path password.
+     */
+    public static String getGrpcInternalTruststorePassword() {
+        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
     }
 }

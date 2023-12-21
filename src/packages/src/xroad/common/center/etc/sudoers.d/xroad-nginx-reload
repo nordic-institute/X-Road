@@ -1,0 +1,2 @@
+# For xroad cron job that reloads nginx so that new certificates would be loaded
+xroad	ALL=(root) NOPASSWD: /usr/sbin/service nginx reload

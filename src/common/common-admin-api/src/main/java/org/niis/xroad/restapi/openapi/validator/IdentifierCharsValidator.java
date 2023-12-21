@@ -28,10 +28,9 @@ package org.niis.xroad.restapi.openapi.validator;
 
 import ee.ria.xroad.common.validation.IdentifierValidator;
 
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.RequiredArgsConstructor;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 @RequiredArgsConstructor
 public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {

@@ -25,100 +25,84 @@
  -->
 <template>
   <div>
-    <ValidationObserver ref="form1" v-slot="{ invalid }">
-      <div class="wizard-step-form-content">
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('csr.usage')"
-            :help-text="$t('csr.helpUsage')"
-          />
+    <div class="wizard-step-form-content">
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('csr.usage')"
+          :help-text="$t('csr.helpUsage')"
+        />
 
-          <div class="readonly-info-field">{{ usage }}</div>
-        </div>
-
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('csr.client')"
-            :help-text="$t('csr.helpClient')"
-          />
-
-          <div class="readonly-info-field">{{ selectedMemberId }}</div>
-        </div>
-
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('csr.certificationService')"
-            :help-text="$t('csr.helpCertificationService')"
-          />
-
-          <ValidationProvider
-            v-slot="{}"
-            name="csr.certService"
-            rules="required"
-          >
-            <v-select
-              v-model="certificationService"
-              :items="filteredServiceList"
-              item-text="name"
-              item-value="name"
-              class="wizard-form-input"
-              data-test="csr-certification-service-select"
-              outlined
-            ></v-select>
-          </ValidationProvider>
-        </div>
-
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('csr.csrFormat')"
-            :help-text="$t('csr.helpCsrFormat')"
-          />
-
-          <ValidationProvider v-slot="{}" name="csr.csrFormat" rules="required">
-            <v-select
-              v-model="csrFormat"
-              :items="csrFormatList"
-              class="wizard-form-input"
-              data-test="csr-format-select"
-              outlined
-            ></v-select>
-          </ValidationProvider>
-        </div>
+        <div class="readonly-info-field">{{ usage }}</div>
       </div>
-      <div class="button-footer">
-        <xrd-button outlined data-test="cancel-button" @click="cancel">{{
-          $t('action.cancel')
-        }}</xrd-button>
 
-        <xrd-button
-          v-if="showPreviousButton"
-          outlined
-          class="previous-button"
-          data-test="previous-button"
-          @click="previous"
-          >{{ $t('action.previous') }}</xrd-button
-        >
-        <xrd-button :disabled="invalid" data-test="save-button" @click="done">{{
-          $t(saveButtonText)
-        }}</xrd-button>
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('csr.client')"
+          :help-text="$t('csr.helpClient')"
+        />
+
+        <div class="readonly-info-field">{{ selectedMemberId }}</div>
       </div>
-    </ValidationObserver>
+
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('csr.certificationService')"
+          :help-text="$t('csr.helpCertificationService')"
+        />
+        <v-select
+          v-bind="certServiceRef"
+          :items="filteredServiceList"
+          item-title="name"
+          item-value="name"
+          class="wizard-form-input"
+          data-test="csr-certification-service-select"
+          variant="outlined"
+        ></v-select>
+      </div>
+
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('csr.csrFormat')"
+          :help-text="$t('csr.helpCsrFormat')"
+        />
+        <v-select
+          v-bind="csrFormatRef"
+          :items="csrFormatList"
+          class="wizard-form-input"
+          data-test="csr-format-select"
+          variant="outlined"
+        ></v-select>
+      </div>
+    </div>
+    <div class="button-footer">
+      <xrd-button outlined data-test="cancel-button" @click="cancel"
+        >{{ $t('action.cancel') }}
+      </xrd-button>
+
+      <xrd-button
+        v-if="showPreviousButton"
+        outlined
+        class="previous-button"
+        data-test="previous-button"
+        @click="previous"
+        >{{ $t('action.previous') }}
+      </xrd-button>
+      <xrd-button :disabled="!meta.valid" data-test="save-button" @click="done">
+        {{ $t(saveButtonText) }}
+      </xrd-button>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { defineComponent } from 'vue';
 import { CsrFormat } from '@/openapi-types';
 import { mapState, mapWritableState } from 'pinia';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useAddClient } from '@/store/modules/addClient';
+import { PublicPathState, useForm } from 'vee-validate';
 
-export default Vue.extend({
-  components: {
-    ValidationObserver,
-    ValidationProvider,
-  },
+export default defineComponent({
   props: {
     saveButtonText: {
       type: String,
@@ -129,14 +113,42 @@ export default Vue.extend({
       default: true,
     },
   },
+  emits: ['done', 'previous', 'cancel'],
+  setup() {
+    const { certificationService, csrFormat } = useCsr();
+    const { meta, values, setFieldValue, defineComponentBinds } = useForm({
+      validationSchema: {
+        certificationService: 'required',
+        csrFormat: 'required',
+      },
+      initialValues: {
+        certificationService: certificationService,
+        csrFormat: csrFormat,
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const certServiceRef = defineComponentBinds(
+      'certificationService',
+      componentConfig,
+    );
+    const csrFormatRef = defineComponentBinds('csrFormat', componentConfig);
+    return { meta, values, setFieldValue, certServiceRef, csrFormatRef };
+  },
   data() {
     return {
-      csrFormatList: Object.values(CsrFormat) as string[],
+      csrFormatList: Object.values(CsrFormat).map((format) => ({
+        title: format,
+        value: format,
+      })),
     };
   },
   computed: {
-    ...mapState(useCsrStore, ['filteredServiceList', 'usage']),
-    ...mapWritableState(useCsrStore, ['csrFormat', 'certificationService']),
+    ...mapState(useCsr, ['filteredServiceList', 'usage']),
+    ...mapWritableState(useCsr, ['csrFormat', 'certificationService']),
     ...mapState(useAddClient, ['selectedMemberId']),
   },
 
@@ -144,12 +156,14 @@ export default Vue.extend({
     filteredServiceList(val) {
       // Set first certification service selected as default when the list is updated
       if (val?.length === 1) {
-        this.certificationService = val[0].name;
+        this.setFieldValue('certificationService', val[0].name);
       }
     },
   },
   methods: {
     done(): void {
+      this.csrFormat = this.values.csrFormat;
+      this.certificationService = this.values.certificationService;
       this.$emit('done');
     },
     previous(): void {

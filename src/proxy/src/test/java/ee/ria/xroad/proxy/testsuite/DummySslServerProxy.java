@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,7 +31,12 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -43,9 +48,6 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -54,6 +56,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 
 /**
  * This server proxy dummy is currently only used by one SSL test case.
@@ -82,6 +85,15 @@ public class DummySslServerProxy extends Server implements StartStop {
         cf.setSslContext(ctx);
 
         ServerConnector connector = new ServerConnector(this, cf);
+
+        connector.getConnectionFactories().stream()
+                .filter(HttpConnectionFactory.class::isInstance)
+                .map(HttpConnectionFactory.class::cast)
+                .forEach(httpCf -> {
+                    httpCf.getHttpConfiguration().setSendServerVersion(false);
+                    Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
+                            .ifPresent(customizer -> customizer.setSniHostCheck(false));
+                });
 
         connector.setName("ClientSslConnector");
         connector.setHost("127.0.0.5");

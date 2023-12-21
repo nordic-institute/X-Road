@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,8 +27,6 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
-import akka.actor.ActorRef;
-import akka.actor.UntypedAbstractActor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,39 +38,29 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TimestamperWorker extends UntypedAbstractActor {
+public class TimestamperWorker {
 
     private final List<String> tspUrls;
 
-    @Override
-    public void onReceive(Object message) throws Exception {
-        log.trace("onReceive({})", message.getClass());
-
-        if (message instanceof TimestampTask) {
-            try {
-                handleTimestampTask((TimestampTask) message);
-            } catch (Exception e) {
-                handleFailure((TimestampTask) message, e);
-            } finally {
-                getContext().stop(getSelf());
-            }
-        } else {
-            unhandled(message);
+    public Timestamper.TimestampResult timestamp(TimestampTask message) {
+        log.trace("timestamp({})", message.getClass());
+        try {
+            return handleTimestampTask(message);
+        } catch (Exception e) {
+            return handleFailure(message, e);
         }
     }
 
-    private void handleFailure(TimestampTask message, Exception e) {
+    private Timestamper.TimestampResult handleFailure(TimestampTask message, Exception e) {
         log.error("Timestamper failed for message records {}: {}",
                 Arrays.toString(message.getMessageRecords()), e.getMessage());
 
-        getSender().tell(new Timestamper.TimestampFailed(
-                message.getMessageRecords(), e), ActorRef.noSender());
+        return new Timestamper.TimestampFailed(message.getMessageRecords(), e);
     }
 
-    private void handleTimestampTask(TimestampTask message) throws Exception {
+    private Timestamper.TimestampResult handleTimestampTask(TimestampTask message) throws Exception {
         if (tspUrls.isEmpty()) {
-            throw new RuntimeException(
-                    "Cannot time-stamp, no TSP URLs configured");
+            throw new RuntimeException("Cannot time-stamp, no TSP URLs configured");
         }
 
         Long[] logRecords = message.getMessageRecords();
@@ -99,7 +87,7 @@ public class TimestamperWorker extends UntypedAbstractActor {
                 message.getMessageRecords().length,
                 (System.currentTimeMillis() - start));
 
-        getSender().tell(result, ActorRef.noSender());
+        return result;
     }
 
     private AbstractTimestampRequest createTimestampRequest(Long[] logRecords,

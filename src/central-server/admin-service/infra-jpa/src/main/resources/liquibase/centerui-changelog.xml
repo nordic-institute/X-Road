@@ -23,6 +23,11 @@
     <include file="centerui/202305301100-drop-security-server-client-names.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202306151639-drop-schema-migrations.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202306161128-requests-remove-unused-columns.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202308181600-system-param-unique-keys.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202310031700-security-server-unique.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202311161426-server-clients-enabled.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202311161611-server-clients-unique.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202312121722-truncate-version-from-anchor-urls.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

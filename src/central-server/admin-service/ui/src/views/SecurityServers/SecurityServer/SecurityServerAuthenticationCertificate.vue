@@ -36,11 +36,11 @@
 <script lang="ts">
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
-import { securityServerAuthCertStore } from '@/store/modules/security-servers-authentication-certificates';
+import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { mapStores } from 'pinia';
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'SecurityServerAuthenticationCertificate',
   components: { CertificateDetails },
   props: {
@@ -50,7 +50,7 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapStores(securityServerAuthCertStore),
+    ...mapStores(useSecurityServerAuthCert),
     securityServerAuthenticationCertificate():
       | SecurityServerAuthenticationCertificateDetails
       | undefined {

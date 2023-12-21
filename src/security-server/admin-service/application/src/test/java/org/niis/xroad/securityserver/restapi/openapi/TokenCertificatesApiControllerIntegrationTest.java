@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -123,10 +124,11 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 return signCertificateInfo;
             }
         }).when(signerProxyFacade).getCertForHash(any());
-        doAnswer(answer -> "key-id").when(signerProxyFacade).getKeyIdForCertHash(any());
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().build();
+        doAnswer(answer -> new SignerProxy.KeyIdInfo("key-id", null)).when(signerProxyFacade).getKeyIdForCertHash(any());
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id("key-id").build();
-        tokenInfo.getKeyInfo().add(keyInfo);
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .key(keyInfo)
+                .build();
         doAnswer(answer -> Collections.singletonList(tokenInfo)).when(signerProxyFacade).getTokens();
         TokenInfoAndKeyId tokenInfoAndKeyId = new TokenInfoAndKeyId(tokenInfo, keyInfo.getId());
         doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertRequestId(any());
@@ -433,13 +435,13 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00:00Z"),
                 certificateDetails.getNotAfter());
         assertEquals("1", certificateDetails.getSerial());
-        assertEquals(new Integer(3), certificateDetails.getVersion());
+        assertEquals(Integer.valueOf(3), certificateDetails.getVersion());
         assertEquals("SHA512withRSA", certificateDetails.getSignatureAlgorithm());
         assertEquals("RSA", certificateDetails.getPublicKeyAlgorithm());
-        assertEquals("A2293825AA82A5429EC32803847E2152A303969C", certificateDetails.getHash());
+        assertEquals("FAAFA4860332289F3083DE6BF955D4DF9AEEFB2B33CBCC66BD0EF27AB05C708D", certificateDetails.getHash());
         assertTrue(certificateDetails.getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(certificateDetails.getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
-        assertEquals(new Integer(65537), certificateDetails.getRsaPublicKeyExponent());
+        assertEquals(Integer.valueOf(65537), certificateDetails.getRsaPublicKeyExponent());
         assertEquals(new ArrayList<>(Collections.singletonList(KeyUsage.NON_REPUDIATION)),
                 new ArrayList<>(certificateDetails.getKeyUsages()));
     }
@@ -452,13 +454,13 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"),
                 certificateDetails.getNotAfter());
         assertEquals("8", certificateDetails.getSerial());
-        assertEquals(new Integer(3), certificateDetails.getVersion());
+        assertEquals(Integer.valueOf(3), certificateDetails.getVersion());
         assertEquals("SHA256withRSA", certificateDetails.getSignatureAlgorithm());
         assertEquals("RSA", certificateDetails.getPublicKeyAlgorithm());
-        assertEquals("BA6CCC3B13E23BB1D40FD17631B7D93CF8334C0E", certificateDetails.getHash());
+        assertEquals("54E2586715084EBF37FE5CA8B761A208CD0D710699FC866A49684D8F62DA28D2", certificateDetails.getHash());
         assertTrue(certificateDetails.getSignature().startsWith("a11c4675cf4e2fa1664464"));
         assertTrue(certificateDetails.getRsaPublicKeyModulus().startsWith("92e952dfc1d84648c2873"));
-        assertEquals(new Integer(65537), certificateDetails.getRsaPublicKeyExponent());
+        assertEquals(Integer.valueOf(65537), certificateDetails.getRsaPublicKeyExponent());
         assertTrue(new HashSet<>(certificateDetails.getKeyUsages()).contains(KeyUsage.DIGITAL_SIGNATURE));
         assertTrue(new HashSet<>(certificateDetails.getKeyUsages()).contains(KeyUsage.KEY_ENCIPHERMENT));
         assertTrue(new HashSet<>(certificateDetails.getKeyUsages()).contains(KeyUsage.DATA_ENCIPHERMENT));

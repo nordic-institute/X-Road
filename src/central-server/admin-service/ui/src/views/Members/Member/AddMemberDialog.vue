@@ -27,108 +27,102 @@
 <template>
   <xrd-simple-dialog
     :disable-save="!formReady"
-    :dialog="showDialog"
     :loading="loading"
     cancel-button-text="action.cancel"
     title="members.addMember"
+    z-index="1999"
     @cancel="cancel"
     @save="add"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="memberName"
-          :label="$t('global.memberName')"
-          outlined
-          autofocus
-          data-test="add-member-name-input"
-        ></v-text-field>
-      </div>
-
+      <v-text-field
+        v-model="memberName"
+        :label="$t('global.memberName')"
+        variant="outlined"
+        autofocus
+        data-test="add-member-name-input"
+      />
       <v-select
         v-model="memberClass"
         :items="memberClasses"
         :label="$t('global.memberClass')"
-        item-text="code"
-        outlined
+        item-title="code"
+        item-value="code"
+        variant="outlined"
         data-test="add-member-class-input"
-      ></v-select>
-
-      <div class="dlg-input-width">
-        <ValidationProvider
-          ref="memberCodeVP"
-          v-slot="{ errors }"
-          rules="required"
-          name="memberCode"
-          class="validation-provider"
-        >
-          <v-text-field
-            v-model="memberCode"
-            :label="$t('global.memberCode')"
-            outlined
-            data-test="add-member-code-input"
-            :error-messages="errors"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
+        z-index="2410"
+      />
+      <v-text-field
+        v-bind="memberCode"
+        :label="$t('global.memberCode')"
+        :error-messages="errors.memberCode"
+        variant="outlined"
+        data-test="add-member-code-input"
+      />
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue, {VueConstructor} from 'vue';
-import {mapActions, mapState, mapStores} from 'pinia';
-import {ErrorInfo, MemberClass} from '@/openapi-types';
-import {clientStore} from '@/store/modules/clients';
-import {memberStore} from '@/store/modules/members';
-import {systemStore} from '@/store/modules/system';
-import {notificationsStore} from '@/store/modules/notifications';
-import {useMemberClassStore} from '@/store/modules/member-class';
-import {getErrorInfo, getTranslatedFieldErrors, isFieldError,} from '@/util/helpers';
-import {AxiosError} from 'axios';
-import {ValidationProvider} from 'vee-validate';
+import { defineComponent } from 'vue';
+import { mapActions, mapState, mapStores } from 'pinia';
+import { ErrorInfo, MemberClass } from '@/openapi-types';
+import { useClient } from '@/store/modules/clients';
+import { useMember } from '@/store/modules/members';
+import { useSystem } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useMemberClass } from '@/store/modules/member-class';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
+import { AxiosError } from 'axios';
+import { useForm } from 'vee-validate';
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        memberCodeVP: InstanceType<typeof ValidationProvider>;
-      };
-    }
-  >
-).extend({
-  name: 'AddMemberDialog',
-  components: { ValidationProvider },
-  props: {
-    showDialog: {
-      type: Boolean,
-      required: true,
-    },
+export default defineComponent({
+  emits: ['save', 'cancel'],
+  setup() {
+    const {
+      defineComponentBinds,
+      values,
+      meta,
+      errors,
+      setFieldError,
+      resetForm,
+    } = useForm({ validationSchema: { memberCode: 'required' } });
+    const memberCode = defineComponentBinds('memberCode');
+    return {
+      values,
+      meta,
+      errors,
+      setFieldError,
+      memberCode,
+      resetForm,
+    };
   },
-
   data() {
     return {
       loading: false,
       memberName: '',
       memberClass: '',
-      memberCode: '',
     };
   },
   computed: {
-    ...mapStores(clientStore, memberStore, useMemberClassStore),
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapStores(useClient, useMember, useMemberClass),
+    ...mapState(useSystem, ['getSystemStatus']),
     memberClasses(): MemberClass[] {
       return this.memberClassStore.memberClasses;
     },
     formReady(): boolean {
-      return !!(this.memberName && this.memberClass && this.memberCode);
+      return !!(this.memberName && this.memberClass && this.meta.valid);
     },
   },
   created() {
     this.memberClassStore.fetchAll();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
       this.clearForm();
@@ -136,18 +130,16 @@ export default (
     clearForm(): void {
       this.memberName = '';
       this.memberClass = '';
-      this.memberCode = '';
+      this.resetForm();
     },
     add(): void {
       this.loading = true;
-      const instanceId: string = this.getSystemStatus?.initialization_status
-        ?.instance_identifier as string;
       this.memberStore
         .add({
           member_name: this.memberName,
           member_id: {
             member_class: this.memberClass,
-            member_code: this.memberCode,
+            member_code: this.values.memberCode,
           },
         })
         .then(() => {
@@ -163,8 +155,9 @@ export default (
           const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
           if (isFieldError(errorInfo)) {
             let fieldErrors = errorInfo.error?.validation_errors;
-            if (fieldErrors && this.$refs?.memberCodeVP) {
-              this.$refs.memberCodeVP.setErrors(
+            if (fieldErrors) {
+              this.setFieldError(
+                'memberCode',
                 getTranslatedFieldErrors(
                   'memberAddDto.memberId.memberCode',
                   fieldErrors,

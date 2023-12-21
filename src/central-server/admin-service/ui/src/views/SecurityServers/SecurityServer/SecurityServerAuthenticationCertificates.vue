@@ -39,10 +39,12 @@
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
     >
       <template #[`item.issuer_common_name`]="{ item }">
-        <div class="icon-cell" @click="navigateToCertificateDetails(item.id)">
+        <div
+          class="icon-cell"
+          @click="navigateToCertificateDetails(item.id)"
+        >
           <xrd-icon-base icon-name="certificate" class="mr-4"
             ><XrdIconCertificate
           /></xrd-icon-base>
@@ -50,7 +52,7 @@
         </div>
       </template>
       <template #[`item.not_after`]="{ item }">
-        {{ item.not_after | formatDateTime }}
+        <date-time :value="item.not_after" />
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -67,33 +69,50 @@
         </div>
       </template>
 
-      <template #footer>
+      <template #bottom>
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
 
-    <DeleteAuthenticationCertificateDialog
-      v-if="showDeleteConfirmationDialog"
-      :authentication-certificate-id="authCertIdForDeletion"
+    <delete-authentication-certificate-dialog
+      v-if="
+        securityServerId &&
+        authCertIdForDeletion &&
+        showDeleteConfirmationDialog
+      "
+      :authentication-certificate-id="authCertIdForDeletion.toString()"
+      :security-server-id="securityServerId"
       @cancel="cancelDeletion"
       @delete="finishDeletion"
     >
-    </DeleteAuthenticationCertificateDialog>
+    </delete-authentication-certificate-dialog>
   </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
 import { Permissions, RouteName } from '@/global';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { mapState, mapStores } from 'pinia';
-import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
-import { securityServerAuthCertStore } from '@/store/modules/security-servers-authentication-certificates';
+import {
+  SecurityServerAuthenticationCertificateDetails,
+  SecurityServerId,
+} from '@/openapi-types';
+import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import DateTime from '@/components/ui/DateTime.vue';
+import { DataTableHeader } from '@/ui-types';
 
-export default Vue.extend({
-  components: { DeleteAuthenticationCertificateDialog },
+export default defineComponent({
+  components: { DateTime, DeleteAuthenticationCertificateDialog, VDataTable },
+  props: {
+    serverId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       loading: false,
@@ -102,48 +121,47 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(securityServerAuthCertStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useSecurityServerAuthCert),
+    ...mapStores(useSecurityServer),
+    ...mapState(useUser, ['hasPermission']),
     authenticationCertificates(): SecurityServerAuthenticationCertificateDetails[] {
       return this.securityServerAuthCertStore.authenticationCertificates;
     },
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t(
+          title: this.$t(
             'securityServers.securityServer.certificationAuthority',
           ) as string,
           align: 'start',
-          value: 'issuer_common_name',
-          class: 'xrd-table-header',
+          key: 'issuer_common_name',
         },
         {
-          text: this.$t(
+          title: this.$t(
             'securityServers.securityServer.serialNumber',
           ) as string,
           align: 'start',
-          value: 'serial',
-          class: 'xrd-table-header',
+          key: 'serial',
         },
         {
-          text: this.$t('securityServers.securityServer.subject') as string,
+          title: this.$t('securityServers.securityServer.subject') as string,
           align: 'start',
-          value: 'subject_distinguished_name',
-          class: 'xrd-table-header',
+          key: 'subject_distinguished_name',
         },
         {
-          text: this.$t('securityServers.securityServer.expires') as string,
+          title: this.$t('securityServers.securityServer.expires') as string,
           align: 'start',
-          value: 'not_after',
-          class: 'xrd-table-header',
+          key: 'not_after',
         },
         {
-          text: '',
-          value: 'button',
+          title: '',
+          key: 'button',
           sortable: false,
-          class: 'xrd-table-header',
         },
       ];
+    },
+    securityServerId(): SecurityServerId | undefined {
+      return this.securityServerStore.currentSecurityServer?.server_id;
     },
   },
   created() {
@@ -153,7 +171,7 @@ export default Vue.extend({
     fetchSecurityServerAuthenticationCertificates(): void {
       this.loading = true;
       this.securityServerAuthCertStore
-        .fetch(this.$route.params.serverId)
+        .fetch(this.serverId)
         .finally(() => (this.loading = false));
     },
     hasDeletePermission(): boolean {
@@ -182,7 +200,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .icon-cell {
   color: $XRoad-Purple100;

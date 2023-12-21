@@ -33,9 +33,11 @@
         hide-details
         data-test="search-service-client"
         class="search-input"
+        variant="underlined"
+        density="compact"
         autofocus
+        append-inner-icon="mdi-magnify"
       >
-        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
       <xrd-button
         v-if="showAddSubjects"
@@ -43,8 +45,11 @@
         data-test="add-service-client"
         class="ma-0 elevation-0"
         @click="addServiceClient"
-        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-        >{{ $t('serviceClients.addServiceClient') }}
+      >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add />
+        </xrd-icon-base>
+        {{ $t('serviceClients.addServiceClient') }}
       </xrd-button>
     </div>
 
@@ -78,7 +83,7 @@
         </div>
       </template>
 
-      <template #footer>
+      <template #bottom>
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
@@ -86,8 +91,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 
 import * as api from '@/util/api';
 import { ServiceClient } from '@/openapi-types';
@@ -96,10 +100,14 @@ import { Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import { useClient } from '@/store/modules/client';
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 
-import { useClientStore } from '@/store/modules/client';
-
-export default Vue.extend({
+export default defineComponent({
+  components: {
+    VDataTable,
+  },
   props: {
     id: {
       type: String,
@@ -114,7 +122,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useClientStore, ['client']),
+    ...mapState(useClient, ['client']),
     ...mapState(useUser, ['hasPermission']),
     showAddSubjects(): boolean {
       return this.hasPermission(Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES);
@@ -122,16 +130,14 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('serviceClients.name') as string,
+          title: this.$t('serviceClients.name') as string,
           align: 'start',
-          value: 'name',
-          class: 'xrd-table-header sc-table-name',
+          key: 'name',
         },
         {
-          text: this.$t('serviceClients.id') as string,
+          title: this.$t('serviceClients.id') as string,
           align: 'start',
-          value: 'id',
-          class: 'xrd-table-header sc-table-id',
+          key: 'id',
         },
       ];
     },
@@ -174,8 +180,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .search-input {
   max-width: 300px;

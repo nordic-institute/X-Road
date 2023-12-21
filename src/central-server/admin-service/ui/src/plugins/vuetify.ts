@@ -24,23 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
-import Vue from 'vue';
-import Vuetify from 'vuetify/lib';
+import { createVuetify } from 'vuetify';
+import { aliases, mdi } from 'vuetify/iconsets/mdi';
 import { Colors } from '@/global';
 
-Vue.use(Vuetify);
-
-export default new Vuetify({
+export default createVuetify({
+  defaults: {
+    VProgressLinear: {
+      color: 'primary',
+    },
+    VCheckbox: {
+      color: 'primary',
+    },
+    VTextField: {
+      color: 'primary',
+    },
+    VTabs: {
+      color: 'primary',
+    },
+  },
   icons: {
-    iconfont: 'mdi',
+    defaultSet: 'mdi',
+    aliases,
+    sets: {
+      mdi,
+    },
   },
   theme: {
     themes: {
       light: {
-        primary: Colors.Purple100,
-        accent: Colors.Purple70,
-        grey: Colors.Black50,
+        dark: false,
+        colors: {
+          primary: Colors.Purple100,
+          secondary: Colors.Purple70,
+          error: Colors.Error,
+        },
       },
     },
   },

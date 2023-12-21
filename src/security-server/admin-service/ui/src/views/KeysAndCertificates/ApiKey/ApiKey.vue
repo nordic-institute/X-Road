@@ -30,7 +30,7 @@
         <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
 
         <help-button
-          help-image="api_keys.png"
+          :help-image="helpImg"
           help-title="keys.helpTitleApi"
           help-text="keys.helpTextApi"
         ></help-button>
@@ -68,7 +68,9 @@
       </template>
 
       <template #[`item.roles`]="{ item }">
-        {{ translateRoles(item.roles) | commaSeparate }}
+        <span :data-test="`api-key-row-${item.id}-roles`">
+          {{ $filters.commaSeparate(translateRoles(item.roles)) }}
+        </span>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -93,7 +95,7 @@
         </div>
       </template>
 
-      <template #footer>
+      <template #bottom>
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
@@ -107,45 +109,52 @@
       @save="save"
       @cancel="showEditDialog = false"
     >
-      <span
-        slot="title"
-        class="headline"
-        :data-test="`api-key-row-${selectedKey.id}-edit-dialog-title`"
-      >
-        {{
-          $t('apiKey.table.action.edit.dialog.title', { id: selectedKey.id })
-        }}
-      </span>
-      <div
-        slot="content"
-        :data-test="`api-key-row-${selectedKey.id}-edit-dialog-content`"
-      >
-        <v-row class="mt-12">
-          <v-col>
-            {{ $t('apiKey.table.action.edit.dialog.message') }}
-          </v-col>
-        </v-row>
-        <v-row v-for="role in roles" :key="role" no-gutters>
-          <v-col class="checkbox-wrapper">
-            <v-checkbox
-              v-model="selectedRoles"
-              height="10px"
-              :value="role"
-              :label="$t(`apiKey.role.${role}`)"
-            />
-          </v-col>
-        </v-row>
-      </div>
+      <template #title>
+        <span
+          class="text-h5"
+          :data-test="`api-key-row-${selectedKey?.id}-edit-dialog-title`"
+        >
+          {{
+            $t('apiKey.table.action.edit.dialog.title', { id: selectedKey?.id })
+          }}
+        </span>
+      </template>
+      <template #content>
+        <div :data-test="`api-key-row-${selectedKey?.id}-edit-dialog-content`">
+          <v-row class="mt-12">
+            <v-col>
+              {{ $t('apiKey.table.action.edit.dialog.message') }}
+            </v-col>
+          </v-row>
+          <v-row v-for="role in rolesToEdit" :key="role" no-gutters>
+            <v-col class="checkbox-wrapper">
+              <v-checkbox
+                v-model="selectedRoles"
+                height="10px"
+                :value="role"
+                :data-test="`role-${role}-checkbox`"
+              >
+                <template #label>
+                  <span>{{ $t(`apiKey.role.${role}`) }}</span>
+                  <span v-if="!hasRole(role)" class="remove-only-role">
+                    &nbsp;{{ $t('apiKey.edit.roleRemoveOnly') }}
+                  </span>
+                </template>
+              </v-checkbox>
+            </v-col>
+          </v-row>
+        </div>
+      </template>
     </xrd-simple-dialog>
 
     <!-- Confirm revoke dialog -->
     <xrd-confirm-dialog
       v-if="confirmRevoke"
-      :data-test="`api-key-row-${selectedKey.id}-revoke-confirmation`"
+      :data-test="`api-key-row-${selectedKey?.id}-revoke-confirmation`"
       :dialog="confirmRevoke"
       title="apiKey.table.action.revoke.confirmationDialog.title"
       text="apiKey.table.action.revoke.confirmationDialog.message"
-      :data="{ id: selectedKey.id }"
+      :data="{ id: selectedKey?.id }"
       :loading="removingApiKey"
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
@@ -157,9 +166,8 @@
 /**
  * View for 'API keys' tab
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-import { DataTableHeader } from 'vuetify';
 import { ApiKey } from '@/global-types';
 import HelpButton from '../HelpButton.vue';
 import { RouteName, Roles, Permissions } from '@/global';
@@ -167,9 +175,13 @@ import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import helpImg from '@/assets/api_keys.png';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    VDataTable,
     HelpButton,
   },
   data() {
@@ -184,11 +196,14 @@ export default Vue.extend({
       confirmRevoke: false,
       savingChanges: false,
       removingApiKey: false,
-      roles: Roles,
+      rolesToEdit: [] as string[],
     };
   },
   computed: {
-    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission', 'hasRole']),
+    helpImg(): string {
+      return helpImg;
+    },
     canCreateApiKey(): boolean {
       return this.hasPermission(Permissions.CREATE_API_KEY);
     },
@@ -201,23 +216,20 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('apiKey.table.header.id') as string,
+          title: this.$t('apiKey.table.header.id') as string,
           align: 'start',
-          value: 'id',
-          class: 'xrd-table-header ts-table-header-server-code',
+          key: 'id',
         },
         {
-          text: this.$t('apiKey.table.header.roles') as string,
+          title: this.$t('apiKey.table.header.roles') as string,
           align: 'start',
-          value: 'roles',
-          class: 'xrd-table-header ts-table-header-valid-from',
+          key: 'roles',
         },
 
         {
-          text: '',
-          value: 'button',
+          title: '',
+          key: 'button',
           sortable: false,
-          class: 'xrd-table-header mr-table-header-buttons',
         },
       ];
     },
@@ -241,6 +253,9 @@ export default Vue.extend({
     editKey(apiKey: ApiKey): void {
       this.selectedKey = apiKey;
       this.selectedRoles = [...this.selectedKey.roles];
+      this.rolesToEdit = Roles.filter(
+        (role) => this.selectedRoles.includes(role) || this.hasRole(role),
+      );
       this.showEditDialog = true;
     },
     showRevokeDialog(apiKey: ApiKey): void {
@@ -308,7 +323,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .button-wrap {
   width: 100%;
@@ -319,5 +334,9 @@ export default Vue.extend({
 .server-code {
   font-weight: 600;
   font-size: 14px;
+}
+
+.remove-only-role {
+  font-style: italic;
 }
 </style>

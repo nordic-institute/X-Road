@@ -34,6 +34,7 @@ import org.niis.xroad.cs.test.ui.page.SettingsManagementServicesPageObj;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
 
@@ -80,9 +81,9 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
         settingsManagementServicesPageObj.wsdlAddress().shouldHave(text(wsdlAddress));
     }
 
-    @Step("central server address field should have value {}")
-    public void centralServerAddressFieldHasText(String centralServerAddress) {
-        settingsManagementServicesPageObj.centralServerAddress().shouldHave(text(centralServerAddress));
+    @Step("management services address field should have value {}")
+    public void managementServicesAddressFieldHasText(String centralServerAddress) {
+        settingsManagementServicesPageObj.managementServicesAddress().shouldHave(text(centralServerAddress));
     }
 
     @Step("security server owner group code field should have value {}")
@@ -91,13 +92,13 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
     }
 
     @Step("wsdl address copy button is clicked")
-    public void centralServerAddressCopyButtonIsClicked() {
+    public void wsdlAddressCopyButtonIsClicked() {
         settingsManagementServicesPageObj.wsdlAddressCopyButton().click();
     }
 
-    @Step("central server address copy button is clicked")
-    public void wsdlAddressCopyButtonIsClicked() {
-        settingsManagementServicesPageObj.centralServerAddressCopyButton().click();
+    @Step("management services address copy button is clicked")
+    public void managementServicesAddressCopyButtonIsClicked() {
+        settingsManagementServicesPageObj.managementServicesAddressCopyButton().click();
     }
 
     @Step("{} should be on clipboard")
@@ -128,12 +129,14 @@ public class SystemSettingsManagementServicesStepDefs extends BaseUiStepDefs {
 
     @Step("{} is written in search field")
     public void isWrittenInSearchField(String searchTerm) {
-        settingsManagementServicesPageObj.editManagementSubsystemDialog.search().setValue(searchTerm);
+        vTextField(settingsManagementServicesPageObj.editManagementSubsystemDialog.search())
+                .setValue(searchTerm);
     }
 
     @Step("{} is written in security server search field")
     public void isWrittenInSecurityServerSearchField(String searchTerm) {
-        settingsManagementServicesPageObj.editManagementSecurityServerDialog.search().setValue(searchTerm);
+        vTextField(settingsManagementServicesPageObj.editManagementSecurityServerDialog.search())
+                .setValue(searchTerm);
     }
 
     @Step("{} dialog should be open")

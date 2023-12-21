@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -29,11 +29,10 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.util.JobManager;
 
-import akka.actor.Props;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -71,13 +70,13 @@ class TestLogManager extends LogManager {
      *         To avoid this problem, tests have "long enough" initial delay for TimestamperJob.
      */
     @Override
-    protected FiniteDuration getTimestamperJobInitialDelay() {
-        return Duration.create(1, TimeUnit.MINUTES);
+    protected Duration getTimestamperJobInitialDelay() {
+        return Duration.of(1,  ChronoUnit.MINUTES);
     }
 
     @Override
-    protected Props getTaskQueueImpl() {
-        return Props.create(TestTaskQueue.class);
+    protected TestTaskQueue getTaskQueueImpl(Timestamper timestamper) {
+        return new TestTaskQueue(timestamper, this);
     }
 
     /**
@@ -89,8 +88,8 @@ class TestLogManager extends LogManager {
     }
 
     @Override
-    protected Props getTimestamperImpl() {
-        return Props.create(TestTimestamper.class);
+    protected TestTimestamper getTimestamperImpl() {
+        return new TestTimestamper();
     }
 
     @Override

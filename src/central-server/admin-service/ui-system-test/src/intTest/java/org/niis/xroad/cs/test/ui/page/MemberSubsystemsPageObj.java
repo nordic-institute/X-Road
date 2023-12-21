@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -36,7 +36,7 @@ public class MemberSubsystemsPageObj {
     private final AddDialog addDialog = new AddDialog();
 
     public SelenideElement tabSubsystems() {
-        return $x("//a[contains(text(), 'Subsystems') and contains(@class, 'v-tab')]");
+        return $x("//a[@data-test='member-subsystems-tab-button']");
     }
 
     public SelenideElement listSubsystems() {
@@ -65,7 +65,7 @@ public class MemberSubsystemsPageObj {
 
     public class AddDialog {
         public SelenideElement subsystemCode() {
-            return $x("//input[@data-test='add-subsystem-input']");
+            return $x("//div[@data-test='add-subsystem-input']");
         }
     }
 }

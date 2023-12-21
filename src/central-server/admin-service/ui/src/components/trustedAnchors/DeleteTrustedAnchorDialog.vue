@@ -26,22 +26,21 @@
  -->
 <template>
   <xrd-confirm-dialog
-    :dialog="opened"
     title="globalConf.trustedAnchor.dialog.delete.title"
     text="globalConf.trustedAnchor.dialog.delete.confirmation"
     :data="{ hash, identifier }"
     :loading="deleting"
-    @cancel="opened = false"
+    @cancel="$emit('cancel')"
     @accept="deleteAnchor"
   />
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { trustedAnchorStore } from '@/store/modules/trusted-anchors';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
+import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     hash: {
       type: String,
@@ -52,26 +51,22 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['cancel', 'deleted'],
   data() {
     return {
-      opened: false,
       deleting: false,
     };
   },
   computed: {
-    ...mapStores(trustedAnchorStore),
+    ...mapStores(useTrustedAnchor),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    open() {
-      this.opened = true;
-    },
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     deleteAnchor() {
       this.deleting = true;
       this.trustedAnchorStore
         .deleteTrustedAnchor(this.hash)
         .then(() => this.$emit('deleted'))
-        .then(() => (this.opened = false))
         .then(() =>
           this.showSuccess(
             this.$t('globalConf.trustedAnchor.dialog.delete.success'),

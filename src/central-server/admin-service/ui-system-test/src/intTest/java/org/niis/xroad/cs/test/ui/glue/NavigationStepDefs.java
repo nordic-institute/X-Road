@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -88,5 +88,10 @@ public class NavigationStepDefs extends BaseUiStepDefs {
     @Step("user clicks back")
     public void userClicksBack() {
         commonPageObj.backLink().click();
+    }
+
+    @Step("user scrolls to \"{}\"")
+    public void userScrollsTo(String viewTitle) {
+        commonPageObj.viewTitle(viewTitle).click();
     }
 }

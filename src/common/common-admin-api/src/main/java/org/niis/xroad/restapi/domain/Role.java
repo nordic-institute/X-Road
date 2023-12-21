@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,13 +25,10 @@
  */
 package org.niis.xroad.restapi.domain;
 
-import com.google.common.collect.MoreCollectors;
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -39,58 +36,12 @@ import java.util.Set;
  */
 @Getter
 public enum Role {
-    XROAD_SECURITY_OFFICER(1, "xroad-security-officer"),
-    XROAD_REGISTRATION_OFFICER(2, "xroad-registration-officer"),
-    XROAD_SERVICE_ADMINISTRATOR(3, "xroad-service-administrator"),
-    XROAD_SYSTEM_ADMINISTRATOR(4, "xroad-system-administrator"),
-    XROAD_SECURITYSERVER_OBSERVER(5, "xroad-securityserver-observer"),
-    //management service does not exist as a linux group
-    XROAD_MANAGEMENT_SERVICE(6, null);
-
-    /**
-     * Some unfortunate extra boilerplate, since role names in e.g. @RolesAllowed
-     * annotations need to be constants. Keep this in sync with the actual
-     * enum values.
-     * Alternative is to use approach like https://stackoverflow.com/a/54289956/1469083
-     * and non-standard annotations
-     */
-    public final class Names {
-        public static final String XROAD_SECURITY_OFFICER = "XROAD_SECURITY_OFFICER";
-        public static final String XROAD_REGISTRATION_OFFICER = "XROAD_REGISTRATION_OFFICER";
-        public static final String XROAD_SERVICE_ADMINISTRATOR = "XROAD_SERVICE_ADMINISTRATOR";
-        public static final String XROAD_SYSTEM_ADMINISTRATOR = "XROAD_SYSTEM_ADMINISTRATOR";
-        public static final String XROAD_SECURITYSERVER_OBSERVER = "XROAD_SECURITYSERVER_OBSERVER";
-        private Names() {
-        }
-    }
-
-    private final String linuxGroupName;
-    // primary key in db
-    private final int key;
-
-    Role(int key, String linuxGroupName) {
-        this.key = key;
-        this.linuxGroupName = linuxGroupName;
-    }
-
-    /**
-     * get key
-     * @return
-     */
-    public int getKey() {
-        return key;
-    }
-
-    /**
-     * return Role matching given key
-     * @param key
-     * @return
-     */
-    public static Role getForKey(int key) {
-        return Arrays.stream(values())
-                .filter(role -> role.getKey() == key)
-                .collect(MoreCollectors.onlyElement());
-    }
+    XROAD_SECURITY_OFFICER,
+    XROAD_REGISTRATION_OFFICER,
+    XROAD_SERVICE_ADMINISTRATOR,
+    XROAD_SYSTEM_ADMINISTRATOR,
+    XROAD_SECURITYSERVER_OBSERVER,
+    XROAD_MANAGEMENT_SERVICE;
 
     /**
      * @return name which follows the "ROLE_" + name convention
@@ -100,44 +51,21 @@ public enum Role {
     }
 
     /**
-     * return Role matching given linuxGroupName, if any
-     * @param linuxGroupName
-     * @return
-     */
-    public static Optional<Role> getForGroupName(String linuxGroupName) {
-        return Arrays.stream(values())
-                .filter(role -> role.linuxGroupName.equals(linuxGroupName))
-                .findFirst();
-    }
-
-    /**
      * Return Roles matching the given role names. Throws InvalidRoleNameException
      * if matching Role for some name does not exist.
      * @param names
-     * @return
+     * @return set of matching roles
      */
     public static Set<Role> getForNames(Collection<String> names) throws InvalidRoleNameException {
         Set<Role> roles = EnumSet.noneOf(Role.class);
         for (String name: names) {
-            if (!Role.contains(name)) {
-                throw new InvalidRoleNameException("invalid role " + name);
+            try {
+                Role.valueOf(name);
+            } catch (IllegalArgumentException e) {
+                throw new InvalidRoleNameException("Invalid role: " + name, e);
             }
             roles.add(Role.valueOf(name));
         }
         return roles;
-    }
-
-    /**
-     * Tells if parameter string is one of Role names
-     * @param name
-     * @return
-     */
-    public static boolean contains(String name) {
-        for (Role role: Role.values()) {
-            if (role.name().equals(name)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

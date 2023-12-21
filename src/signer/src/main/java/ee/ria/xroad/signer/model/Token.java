@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,20 +25,24 @@
  */
 package ee.ria.xroad.signer.model;
 
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 
 import lombok.Data;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Optional.ofNullable;
 
 /**
  * Model object representing a token.
@@ -46,53 +50,84 @@ import java.util.stream.Collectors;
 @Data
 public final class Token {
 
-    /** The module type as configured in Signer's module configuration. */
+    /**
+     * The module type as configured in Signer's module configuration.
+     */
     private final String type;
 
-    /** The token id. */
+    /**
+     * The token id.
+     */
     private final String id;
 
-    /** The module id. */
+    /**
+     * The module id.
+     */
     private String moduleId;
 
-    /** The name to display in UI. */
+    /**
+     * The name to display in UI.
+     */
     private String friendlyName;
 
-    /** True, if token is read-only */
+    /**
+     * True, if token is read-only
+     */
     private boolean readOnly;
 
-    /** True, if token is available (in module) */
+    /**
+     * True, if token is available (in module)
+     */
     private boolean available;
 
-    /** True, if password is inserted */
+    /**
+     * True, if password is inserted
+     */
     private boolean active;
 
-    /** The token serial number (optional). */
+    /**
+     * The token serial number (optional).
+     */
     private String serialNumber;
 
-    /** The token label (optional). */
+    /**
+     * The token label (optional).
+     */
     private String label;
 
-    /** The pin index to further specify the token (optional). */
+    /**
+     * The pin index to further specify the token (optional).
+     */
     private int slotIndex;
 
-    /** Whether batch signing should be enabled for this token. */
+    /**
+     * Whether batch signing should be enabled for this token.
+     */
     private boolean batchSigningEnabled = true;
 
-    /** Holds the currect status of the token. */
+    /**
+     * Holds the current status of the token.
+     */
     private TokenStatusInfo status = TokenStatusInfo.OK;
 
-    /** Contains the the keys of this token. */
+    /**
+     * Contains the keys of this token.
+     */
     private final List<Key> keys = new ArrayList<>();
 
-    /** Contains label-value pairs of information about token. */
+    /**
+     * Contains label-value pairs of information about token.
+     */
     private final Map<String, String> tokenInfo = new LinkedHashMap<>();
 
-    /** Signing (PKCS#11) mechanism name. */
+    /**
+     * Signing (PKCS#11) mechanism name.
+     */
     private final String signMechanismName;
 
     /**
      * Adds a key to this token.
+     *
      * @param key the key to add
      */
     public void addKey(Key key) {
@@ -101,6 +136,7 @@ public final class Token {
 
     /**
      * Sets the token info.
+     *
      * @param info the token info
      */
     public void setInfo(Map<String, String> info) {
@@ -110,13 +146,26 @@ public final class Token {
 
     /**
      * Converts this object to value object.
+     *
      * @return the value object
      */
     public TokenInfo toDTO() {
-        return new TokenInfo(type, friendlyName, id, readOnly, available,
-                active, serialNumber, label, slotIndex, status,
-                Collections.unmodifiableList(getKeysAsDTOs()),
-                Collections.unmodifiableMap(tokenInfo));
+        var messageBuilder = TokenInfoProto.newBuilder()
+                .setType(type)
+                .setId(id)
+                .setReadOnly(readOnly)
+                .setAvailable(available)
+                .setActive(active)
+                .setSlotIndex(slotIndex)
+                .setStatus(status)
+                .addAllKeyInfo(Collections.unmodifiableList(getKeysAsDTOs()))
+                .putAllTokenInfo(unmodifiableMap(tokenInfo));
+
+        ofNullable(friendlyName).ifPresent(messageBuilder::setFriendlyName);
+        ofNullable(serialNumber).ifPresent(messageBuilder::setSerialNumber);
+        ofNullable(label).ifPresent(messageBuilder::setLabel);
+
+        return new TokenInfo(messageBuilder.build());
     }
 
     /**
@@ -134,9 +183,9 @@ public final class Token {
 
         return token.getModuleType() != null
                 && token.getModuleType().equals(type)
-                && ObjectUtils.equals(token.getSerialNumber(), serialNumber)
-                && ObjectUtils.equals(token.getLabel(), label)
-                && ObjectUtils.equals(token.getSlotIndex(), slotIndex);
+                && Objects.equals(token.getSerialNumber(), serialNumber)
+                && Objects.equals(token.getLabel(), label)
+                && Objects.equals(token.getSlotIndex(), slotIndex);
     }
 
     /**
@@ -146,8 +195,10 @@ public final class Token {
         return !isActive() || !isAvailable();
     }
 
-    private List<KeyInfo> getKeysAsDTOs() {
-        return keys.stream().map(k -> k.toDTO()).collect(Collectors.toList());
+    private List<KeyInfoProto> getKeysAsDTOs() {
+        return keys.stream()
+                .map(Key::toProtoDTO)
+                .collect(Collectors.toList());
     }
 
 }

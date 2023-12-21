@@ -47,7 +47,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import {
   ManagementRequestDetailedView,
   ManagementRequestType,
@@ -55,7 +55,7 @@ import {
 import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { DataBlock, DataLine },
   props: {
     managementRequest: {
@@ -73,6 +73,10 @@ export default Vue.extend({
     clientInfoTitle(): string {
       if (this.isOwnerChange) {
         return 'managementRequestDetails.ownerChangeInformation';
+      } else if (this.managementRequest.type === ManagementRequestType.CLIENT_DISABLE_REQUEST) {
+        return 'managementRequestDetails.clientDisableInformation';
+      } else if (this.managementRequest.type === ManagementRequestType.CLIENT_ENABLE_REQUEST) {
+        return 'managementRequestDetails.clientEnableInformation';
       }
       return 'managementRequestDetails.clientInformation';
     },

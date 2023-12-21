@@ -25,142 +25,114 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog
-    v-if="opened"
-    :value="opened"
+  <xrd-simple-dialog
     width="824"
+    title="globalGroup.dialog.addMembers.title"
+    save-button-text="action.add"
+    :loading="adding"
+    :disable-save="anyClientsSelected"
+    z-index="1999"
     scrollable
-    persistent
-    @keydown.esc="cancel"
+    @save="addMembers"
+    @cancel="cancel"
   >
-    <v-card class="xrd-card">
-      <v-card-title>
-        <slot name="title">
-          <span class="dialog-title-text">
-            {{ $t('globalGroup.dialog.addMembers.title') }}
-          </span>
-        </slot>
-        <v-spacer />
-        <xrd-close-button id="dlg-close-x" @click="cancel()" />
-      </v-card-title>
-
-      <v-card-text style="height: 500px" class="elevation-0">
-        <v-text-field
-          v-model="search"
-          data-test="member-subsystem-search-field"
-          class="search-input"
-          append-icon="icon-Search"
-          single-line
-          hide-details
-          autofocus
-          :label="$t('systemSettings.selectSubsystem.search')"
-        />
-
+    <template #content>
+      <div style="height: 500px">
         <!-- Table -->
-        <v-data-table
+        <v-data-table-server
           v-model="selectedClients"
-          class="elevation-0 data-table"
+          class="xrd-table elevation-0"
           data-test="select-members-list"
-          item-key="client_id.encoded_id"
+          item-value="client_id.encoded_id"
           show-select
           :loading="loading"
           :headers="headers"
           :items="selectableClients"
-          :server-items-length="totalItems"
-          :options.sync="pagingSortingOptions"
+          :items-length="totalItems"
+          :page="pagingOptions.page"
           :loader-height="2"
-          :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
+          :items-per-page-options="itemsPerPageOptions"
           @update:options="changeOptions"
         >
-          <template #[`item.data-table-select`]="{ isSelected, select }">
-            <v-simple-checkbox
-              data-test="members-checkbox"
-              :ripple="false"
-              :value="isSelected"
-              @input="select($event)"
-            ></v-simple-checkbox>
-          </template>
-          <template #[`item.member_name`]="{ item }">
-            <div>{{ item.member_name }}</div>
+          <template #top>
+            <v-text-field
+              v-model="search"
+              variant="underlined"
+              data-test="member-subsystem-search-field"
+              class="search-input"
+              append-inner-icon="icon-Search"
+              single-line
+              hide-details
+              autofocus
+              :label="$t('systemSettings.selectSubsystem.search')"
+              @update:model-value="debouncedFetchItems"
+            />
           </template>
           <template #[`item.client_id.member_code`]="{ item }">
-            <div data-test="code">{{ item.client_id.member_code }}</div>
+            <span data-test="code">
+              {{ item.client_id.member_code }}
+            </span>
           </template>
           <template #[`item.client_id.member_class`]="{ item }">
-            <div data-test="class">{{ item.client_id.member_class }}</div>
+            <span data-test="class">
+              {{ item.client_id.member_class }}
+            </span>
           </template>
           <template #[`item.client_id.subsystem_code`]="{ item }">
-            <div data-test="subsystem">{{ item.client_id.subsystem_code }}</div>
+            <span data-test="subsystem">
+              {{ item.client_id.subsystem_code }}
+            </span>
           </template>
           <template #[`item.client_id.instance_id`]="{ item }">
-            <div data-test="instance">{{ item.client_id.instance_id }}</div>
+            <span data-test="instance">
+              {{ item.client_id.instance_id }}
+            </span>
           </template>
-          <template #[`item.client_id.type`]="{ item }">
-            <div>{{ item.client_id.type }}</div>
-          </template>
-        </v-data-table>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-
-        <xrd-button
-          data-test="cancel-button"
-          class="button-margin"
-          outlined
-          :disabled="adding"
-          @click="cancel()"
-        >
-          {{ $t('action.cancel') }}
-        </xrd-button>
-
-        <xrd-button
-          data-test="member-subsystem-add-button"
-          :loading="adding"
-          :disabled="anyClientsSelected"
-          @click="addMembers"
-        >
-          {{ $t('action.add') }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        </v-data-table-server>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Client, PagedClients } from '@/openapi-types';
 import { mapActions, mapStores } from 'pinia';
-import { clientStore } from '@/store/modules/clients';
-import { notificationsStore } from '@/store/modules/notifications';
-import { DataOptions, DataTableHeader } from 'vuetify';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
-import { debounce, toIdentifier } from '@/util/helpers';
+import { useClient } from '@/store/modules/clients';
+import { useNotifications } from '@/store/modules/notifications';
+import { DataTableHeader, Event, PagingOptions } from '@/ui-types';
+import { useGlobalGroups } from '@/store/modules/global-groups';
+import { debounce } from '@/util/helpers';
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
+import { defaultItemsPerPageOptions } from '@/util/defaults';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default Vue.extend({
+export default defineComponent({
+  components: { VDataTableServer },
   props: {
     groupCode: {
       type: String,
       required: true,
     },
   },
+  emits: [Event.Add, Event.Cancel],
   data() {
     return {
-      opened: false,
       loading: false,
       adding: false,
-      pagingSortingOptions: {} as DataOptions,
+      pagingOptions: { itemsPerPage: 10, page: 1 } as PagingOptions,
+      itemsPerPageOptions: defaultItemsPerPageOptions(50),
       clients: {} as PagedClients,
       search: '',
-      selectedClients: [] as Client[],
+      selectedClients: [],
     };
   },
   computed: {
-    ...mapStores(clientStore),
-    ...mapStores(useGlobalGroupsStore),
+    ...mapStores(useClient),
+    ...mapStores(useGlobalGroups),
     anyClientsSelected(): boolean {
       return !this.selectedClients || this.selectedClients.length === 0;
     },
@@ -173,111 +145,87 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('systemSettings.selectSubsystem.name') as string,
+          title: this.$t('systemSettings.selectSubsystem.name') as string,
           align: 'start',
-          value: 'member_name',
-          class: 'xrd-table-header text-uppercase',
+          key: 'member_name',
           sortable: false,
         },
         {
-          text: this.$t('systemSettings.selectSubsystem.memberCode') as string,
+          title: this.$t('systemSettings.selectSubsystem.memberCode') as string,
           align: 'start',
-          value: 'client_id.member_code',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.member_code',
           sortable: false,
         },
         {
-          text: this.$t('systemSettings.selectSubsystem.memberClass') as string,
+          title: this.$t(
+            'systemSettings.selectSubsystem.memberClass',
+          ) as string,
           align: 'start',
-          value: 'client_id.member_class',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.member_class',
           sortable: false,
         },
         {
-          text: this.$t(
+          title: this.$t(
             'systemSettings.selectSubsystem.subsystemCode',
           ) as string,
           align: 'start',
-          value: 'client_id.subsystem_code',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.subsystem_code',
           sortable: false,
         },
         {
-          text: this.$t(
+          title: this.$t(
             'systemSettings.selectSubsystem.xroadInstance',
           ) as string,
           align: 'start',
-          value: 'client_id.instance_id',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.instance_id',
           sortable: false,
         },
         {
-          text: this.$t('systemSettings.selectSubsystem.type') as string,
+          title: this.$t('systemSettings.selectSubsystem.type') as string,
           align: 'start',
-          value: 'client_id.type',
-          class: 'xrd-table-header text-uppercase',
+          key: 'client_id.type',
           sortable: false,
         },
       ];
-    },
-  },
-  watch: {
-    search: {
-      handler() {
-        this.pagingSortingOptions.page = 1;
-        this.debouncedFetchItems();
-      },
-      deep: true,
     },
   },
   created() {
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
+      that.pagingOptions.page = 1;
       that.fetchClients();
     }, 600),
     async fetchClients() {
       this.loading = true;
       return this.clientStore
-        .getByExcludingGroup(
-          this.groupCode,
-          this.search,
-          this.pagingSortingOptions,
-        )
+        .getByExcludingGroup(this.groupCode, this.search, this.pagingOptions)
         .then((resp) => {
           this.clients = resp;
         })
         .catch((error) => this.showError(error))
         .finally(() => (this.loading = false));
     },
-    open() {
-      this.opened = true;
-    },
-    changeOptions() {
+    changeOptions(options: PagingOptions) {
+      this.pagingOptions = options;
       this.fetchClients();
     },
     cancel(): void {
       if (this.adding) {
         return;
       }
-      this.$emit('cancel');
-      this.clearForm();
-      this.opened = false;
+      this.$emit(Event.Cancel);
     },
     addMembers(): void {
       this.adding = true;
-      const clientIds = this.selectedClients.map((client) =>
-        toIdentifier(client.client_id),
-      );
+
       this.globalGroupStore
-        .addGroupMembers(this.groupCode, clientIds)
-        .then((resp) => this.$emit('added', resp.data.items))
-        .then(() => (this.opened = false))
-        .then(() => this.showSuccessMessage(clientIds))
-        .then(() => this.clearForm())
+        .addGroupMembers(this.groupCode, this.selectedClients)
+        .then((resp) => this.$emit(Event.Add, resp.data.items))
+        .then(() => this.showSuccessMessage(this.selectedClients))
         .catch((error) => this.showError(error))
         .finally(() => (this.adding = false));
     },
@@ -288,17 +236,12 @@ export default Vue.extend({
         }),
       );
     },
-    clearForm(): void {
-      this.selectedClients = [];
-      this.pagingSortingOptions.page = 1;
-      this.search = '';
-    },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/tables';
+@import '@/assets/tables';
 
 .checkbox-column {
   width: 50px;
@@ -308,10 +251,13 @@ export default Vue.extend({
   width: 300px;
 }
 
-.dialog-title-text {
-  color: $XRoad-WarmGrey100;
-  font-weight: bold;
-  font-size: 24px;
-  line-height: 32px;
+.xrd-table {
+  :deep(th span) {
+    text-transform: uppercase;
+  }
+
+  :deep(td) {
+    font-size: 14px;
+  }
 }
 </style>

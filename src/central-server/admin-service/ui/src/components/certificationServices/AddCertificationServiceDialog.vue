@@ -27,7 +27,7 @@
 <template>
   <main>
     <xrd-simple-dialog
-      :dialog="showUploadCertificateDialog"
+      v-if="showUploadCertificateDialog"
       cancel-button-text="action.cancel"
       save-button-text="action.upload"
       title="trustServices.addCertificationService"
@@ -38,19 +38,18 @@
       <template #content>
         <div class="dlg-input-width">
           <xrd-file-upload
-            v-if="showUploadCertificateDialog"
             v-slot="{ upload }"
             accepts=".der, .crt, .pem, .cer"
             @file-changed="onFileUploaded"
           >
             <v-text-field
               v-model="certFileTitle"
-              outlined
+              variant="outlined"
               autofocus
               :label="$t('trustServices.uploadCertificate')"
-              append-icon="icon-Upload"
+              append-inner-icon="icon-Upload"
               @click="upload"
-            ></v-text-field>
+            />
           </xrd-file-upload>
         </div>
       </template>
@@ -58,7 +57,6 @@
 
     <xrd-simple-dialog
       v-if="showCASettingsDialog"
-      :dialog="showCASettingsDialog"
       cancel-button-text="action.cancel"
       save-button-text="action.save"
       title="trustServices.caSettings"
@@ -75,12 +73,12 @@
           />
           <v-text-field
             v-model="certProfile"
-            outlined
+            variant="outlined"
             :label="$t('trustServices.certProfileInput')"
             :hint="$t('trustServices.certProfileInputExplanation')"
             persistent-hint
             data-test="cert-profile-input"
-          ></v-text-field>
+          />
         </div>
       </template>
     </xrd-simple-dialog>
@@ -88,18 +86,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { FileUploadResult } from '@niis/shared-ui';
-import { Prop } from 'vue/types/options';
+import { defineComponent } from 'vue';
+import { FileUploadResult,XrdFileUpload } from '@niis/shared-ui';
+import { Event } from '@/ui-types';
 
-export default Vue.extend({
-  name: 'AddCertificationServiceDialog',
-  props: {
-    showDialog: {
-      type: Boolean as Prop<boolean>,
-      required: true,
-    },
-  },
+export default defineComponent({
+  components: { XrdFileUpload },
+  emits: [Event.Cancel, Event.Add],
   data() {
     return {
       showCASettingsDialog: false,
@@ -107,7 +100,7 @@ export default Vue.extend({
       certFileTitle: '',
       certProfile: '',
       tlsAuthOnly: false,
-      showUploadCertificateDialog: this.showDialog,
+      showUploadCertificateDialog: true,
       loading: false,
     };
   },
@@ -128,7 +121,7 @@ export default Vue.extend({
           tls_auth: this.tlsAuthOnly.toString(),
           certificate_profile_info: this.certProfile,
         };
-        this.$emit('save', certService, {
+        this.$emit(Event.Add, certService, {
           done: () => {
             this.loading = false;
             this.clearForm();
@@ -137,7 +130,7 @@ export default Vue.extend({
       }
     },
     cancel(): void {
-      this.$emit('cancel');
+      this.$emit(Event.Cancel);
       this.clearForm();
     },
     clearForm(): void {
@@ -151,5 +144,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

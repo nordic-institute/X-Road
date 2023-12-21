@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,28 +26,26 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MonitorAgentMessageTestCase;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
 
 /**
- * Client sends request with faulty SOAP header (missing field).
+ * Client sends request with faulty SOAP header (duplicate field).
  * Result: Client.* error.
  */
-public class FaultyHeader extends MonitorAgentMessageTestCase {
+public class FaultyHeader extends MessageTestCase {
 
     /**
      * Constructs the test case.
      */
     public FaultyHeader() {
-        requestFileName = "faulty-header.query";
-
-        monitorAgent.expectFailure();
+        requestFileName = "faulty-header2.query";
     }
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(CLIENT_X, X_MISSING_HEADER_FIELD);
+        assertErrorCode(CLIENT_X, X_DUPLICATE_HEADER_FIELD);
     }
 }

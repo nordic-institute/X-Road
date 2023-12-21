@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
@@ -33,6 +34,7 @@ import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -40,8 +42,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-
-import javax.validation.ConstraintViolationException;
 
 /**
  * Application exception handler.
@@ -141,6 +141,14 @@ public class ApplicationExceptionHandler {
         auditEventLoggingFacade.auditLogFail(constraintViolationException);
         log.error(EXCEPTION_CAUGHT, constraintViolationException);
         return exceptionTranslator.toResponseEntity(constraintViolationException, HttpStatus.BAD_REQUEST);
+
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorInfo> exception(DataIntegrityViolationException dataIntegrityViolationException) {
+        auditEventLoggingFacade.auditLogFail(dataIntegrityViolationException);
+        log.error(EXCEPTION_CAUGHT, dataIntegrityViolationException);
+        return exceptionTranslator.toResponseEntity(dataIntegrityViolationException, HttpStatus.CONFLICT);
 
     }
 

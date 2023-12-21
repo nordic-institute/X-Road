@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,9 +29,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.io.InputStream;
 

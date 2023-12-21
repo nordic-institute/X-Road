@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
@@ -34,30 +33,25 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.TimeUtils;
 
-import akka.actor.ActorRef;
-import akka.actor.Cancellable;
-import akka.actor.Props;
-import akka.actor.UntypedAbstractActor;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
@@ -67,9 +61,8 @@ import static ee.ria.xroad.common.messagelog.MessageLogProperties.getTimestampRe
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.shouldTimestampImmediately;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING;
-import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING_RETRY_MODE;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Message log manager. Sets up the whole logging system components.
@@ -78,67 +71,58 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Slf4j
 public class LogManager extends AbstractLogManager {
 
-    private static final Timeout TIMESTAMP_TIMEOUT = new Timeout(Duration.create(30, TimeUnit.SECONDS));
-    public static final String FAILED = "Failed";
-    public static final String SUCCESS = "Success";
-
-    // Actor names of message log components
-    static final String TASK_QUEUE_NAME = "RequestLogTaskQueue";
-    static final String TIMESTAMPER_NAME = "RequestLogTimestamper";
-
     static final long MAX_LOGGABLE_BODY_SIZE = MessageLogProperties.getMaxLoggableBodySize();
     static final boolean TRUNCATED_BODY_ALLOWED = MessageLogProperties.isTruncatedBodyAllowed();
 
     // Date at which a time-stamping first failed.
     private Instant timestampFailed;
 
-    private final ActorRef timestamper;
-    private final ActorRef timestamperJob;
+    private final Timestamper timestamper;
+    private final TimestamperJob timestamperJob;
 
     // package private for testing
-    final ActorRef taskQueueRef;
+    final TaskQueue taskQueue;
 
     LogManager(JobManager jobManager) {
         super(jobManager);
 
-        taskQueueRef = createTaskQueue();
-        timestamper = createTimestamper();
-        timestamperJob = createTimestamperJob();
+        timestamper = getTimestamperImpl();
+        taskQueue = getTaskQueueImpl(timestamper);
+        timestamperJob = createTimestamperJob(taskQueue);
     }
 
-    private ActorRef createTaskQueue() {
-        return getContext().actorOf(getTaskQueueImpl(), TASK_QUEUE_NAME);
+    @Override
+    public void shutdown() {
+        timestamperJob.shutdown();
+        super.shutdown();
     }
 
-    private ActorRef createTimestamper() {
-        return getContext().actorOf(getTimestamperImpl(), TIMESTAMPER_NAME);
-    }
-
-    private ActorRef createTimestamperJob() {
-        return getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
+    private TimestamperJob createTimestamperJob(TaskQueue taskQueueParam) {
+        return new TimestamperJob(getTimestamperJobInitialDelay(), taskQueueParam);
     }
 
     /**
      * Can be overwritten in test classes if we want to make sure that timestamping does not start prematurely.
+     *
      * @return timestamper job initial delay.
      */
-    protected FiniteDuration getTimestamperJobInitialDelay() {
-        return Duration.create(1, TimeUnit.SECONDS);
+    protected Duration getTimestamperJobInitialDelay() {
+        return Duration.of(1, ChronoUnit.SECONDS);
     }
 
     // ------------------------------------------------------------------------
 
     @Override
-    protected void log(LogMessage message) throws Exception {
+    public void log(LogMessage message) throws Exception {
         boolean shouldTimestampImmediately = shouldTimestampImmediately();
 
         verifyCanLogMessage(shouldTimestampImmediately);
 
         MessageRecord logRecord;
         if (message instanceof SoapLogMessage) {
-            logRecord = createMessageRecord((SoapLogMessage)message);
+            logRecord = createMessageRecord((SoapLogMessage) message);
         } else {
-            logRecord = createMessageRecord((RestLogMessage)message);
+            logRecord = createMessageRecord((RestLogMessage) message);
         }
         logRecord = saveMessageRecord(logRecord);
 
@@ -148,10 +132,10 @@ public class LogManager extends AbstractLogManager {
     }
 
     @Override
-    protected TimestampRecord timestamp(Long messageRecordId) throws Exception {
+    public TimestampRecord timestamp(Long messageRecordId) throws Exception {
         log.trace("timestamp({})", messageRecordId);
 
-        MessageRecord record = (MessageRecord)LogRecordManager.get(messageRecordId);
+        MessageRecord record = (MessageRecord) LogRecordManager.get(messageRecordId);
 
         if (record.getTimestampRecord() != null) {
             return record.getTimestampRecord();
@@ -167,49 +151,29 @@ public class LogManager extends AbstractLogManager {
     }
 
     @Override
-    protected LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
-        log.trace("findByQueryId({}, {}, {})", queryId, startTime, endTime);
-
-        return LogRecordManager.getByQueryId(queryId, startTime, endTime);
-    }
-
-    @Override
-    public void onReceive(Object message) throws Exception {
-        log.trace("onReceive({})", message);
-
-        try {
-            if (CommonMessages.TIMESTAMP_STATUS.equals(message)) {
-                getSender().tell(statusMap, getSelf());
-            } else if (message instanceof SetTimestampingStatusMessage) {
-                setTimestampingStatus((SetTimestampingStatusMessage)message);
-            } else {
-                super.onReceive(message);
-            }
-        } catch (Exception e) {
-            getSender().tell(e, getSelf());
-        }
+    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
+        return statusMap;
     }
 
     // ------------------------------------------------------------------------
 
-    protected Props getTaskQueueImpl() {
-        return Props.create(TaskQueue.class);
+    protected TaskQueue getTaskQueueImpl(Timestamper timestamperParam) {
+        return new TaskQueue(timestamperParam, this);
     }
 
-    protected Props getTimestamperImpl() {
-        return Props.create(Timestamper.class);
+    protected Timestamper getTimestamperImpl() {
+        return new Timestamper();
     }
 
     private TimestampRecord timestampImmediately(MessageRecord logRecord) throws Exception {
         log.trace("timestampImmediately({})", logRecord);
 
-        Object result = Await.result(Patterns.ask(timestamper, new Timestamper.TimestampTask(logRecord),
-                TIMESTAMP_TIMEOUT), TIMESTAMP_TIMEOUT.duration());
+        Timestamper.TimestampResult result = timestamper.handleTimestampTask(new Timestamper.TimestampTask(logRecord));
 
         if (result instanceof Timestamper.TimestampSucceeded) {
-            return saveTimestampRecord((Timestamper.TimestampSucceeded)result);
+            return saveTimestampRecord((Timestamper.TimestampSucceeded) result);
         } else if (result instanceof Timestamper.TimestampFailed) {
-            Exception e = ((Timestamper.TimestampFailed)result).getCause();
+            Exception e = ((Timestamper.TimestampFailed) result).getCause();
 
             log.error("Timestamping failed", e);
 
@@ -298,23 +262,25 @@ public class LogManager extends AbstractLogManager {
 
     /**
      * Put success state into statusMap (used for diagnostics) for a given TSA url
+     *
      * @param url url of timestamper which stamped successfully
      */
     static void putStatusMapSuccess(String url) {
-        statusMap.put(url, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now()));
+        statusMap.put(url, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow()));
     }
 
     /**
      * Put failure state into statusMap (used for diagnostics).
      * Timestamping ({@link AbstractTimestampRequest} attempts to use all TSAs, and failure means that
      * all were tried and failed, so all TSAs will be marked with failed status
+     *
      * @param e exception which is used to determine diagnostics error code
      */
     static void putStatusMapFailures(Exception e) {
         int errorCode = DiagnosticsUtils.getErrorCode(e);
         for (String tspUrl : ServerConf.getTspUrl()) {
             statusMap.put(tspUrl,
-                    new DiagnosticsStatus(errorCode, OffsetDateTime.now(), tspUrl));
+                    new DiagnosticsStatus(errorCode, TimeUtils.offsetDateTimeNow(), tspUrl));
         }
     }
 
@@ -346,14 +312,14 @@ public class LogManager extends AbstractLogManager {
     void setTimestampSucceeded() {
         if (timestampFailed != null) {
             timestampFailed = null;
-            this.timestamperJob.tell(SUCCESS, ActorRef.noSender());
+            this.timestamperJob.onSuccess();
         }
     }
 
     void setTimestampFailed(Instant atTime) {
         if (timestampFailed == null) {
             timestampFailed = atTime;
-            this.timestamperJob.tell(FAILED, ActorRef.noSender());
+            this.timestamperJob.onFailure();
         }
     }
 
@@ -371,7 +337,7 @@ public class LogManager extends AbstractLogManager {
             }
 
             if (isTimestampFailed()) {
-                if (Instant.now().minusSeconds(period).isAfter(timestampFailed)) {
+                if (TimeUtils.now().minusSeconds(period).isAfter(timestampFailed)) {
                     throw new CodedException(X_MLOG_TIMESTAMPER_FAILED, "Cannot time-stamp messages");
                 }
             }
@@ -389,75 +355,79 @@ public class LogManager extends AbstractLogManager {
     /**
      * Timestamper job is responsible for firing up the timestamping periodically.
      */
-    public static class TimestamperJob extends UntypedAbstractActor {
+    public static class TimestamperJob {
         private static final int MIN_INTERVAL_SECONDS = 60;
         private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
         private static final int TIMESTAMP_RETRY_DELAY_SECONDS = getTimestampRetryDelay();
 
-        private final FiniteDuration initialDelay;
-        private Cancellable tick;
         // Flag for indicating backoff retry state
         private boolean retryMode = false;
 
-        public TimestamperJob(FiniteDuration initialDelay) {
-            this.initialDelay = initialDelay;
+        private final ScheduledExecutorService taskScheduler;
+        private final TaskQueue taskQueue;
+        private ScheduledFuture<?> scheduledTask;
+
+        public TimestamperJob(Duration initialDelay, TaskQueue taskQueue) {
+            log.trace("Initializing TimestamperJob");
+            this.taskQueue = taskQueue;
+            this.taskScheduler = Executors.newSingleThreadScheduledExecutor();
+            schedule(initialDelay, this::handleStartTimestamping);
         }
 
-        @Override
-        public void onReceive(Object message) {
-            log.trace("onReceive({})", message);
+        void onSuccess() {
+            log.info("Batch time-stamping refresh cycle successfully completed, continuing with normal scheduling");
+            // Move back into normal state.
+            // Cancel next tick, run a batch immediately and schedule next one.
+            retryMode = false;
+            this.taskQueue.handleStartTimestamping();
+        }
 
-            if (START_TIMESTAMPING.equals(message)) {
-                handle(message);
-                schedule(getNextDelay());
-            } else if (START_TIMESTAMPING_RETRY_MODE.equals(message)) {
-                handle(message);
-                schedule(getNextDelay(), message);
-            } else if (SUCCESS.equals(message)) {
-                log.info("Batch time-stamping refresh cycle successfully completed, continuing with normal scheduling");
-                // Move back into normal state.
-                // Cancel next tick, run a batch immediately and schedule next one.
-                cancelNextTick();
-                retryMode = false;
-                handle(START_TIMESTAMPING);
-                schedule(getNextDelay());
-            } else if (FAILED.equals(message)) {
-                log.info("Batch time-stamping failed, switching to retry backoff schedule");
-                log.info("Time-stamping retry delay value is: {}s", TIMESTAMP_RETRY_DELAY_SECONDS);
-                // Move into recover-from-failed state.
-                // Cancel next tick and start backoff schedule.
-                cancelNextTick();
-                retryMode = true;
-                schedule(getNextDelay(), START_TIMESTAMPING_RETRY_MODE);
-            } else {
-                unhandled(message);
+        void onFailure() {
+            log.info("Batch time-stamping failed, switching to retry backoff schedule");
+            log.info("Time-stamping retry delay value is: {}s", TIMESTAMP_RETRY_DELAY_SECONDS);
+            // Move into recover-from-failed state.
+            // Cancel next tick and start backoff schedule.
+            retryMode = true;
+        }
+
+        private void handleStartTimestamping() {
+            log.trace("handleStartTimestamping()");
+            try {
+                this.taskQueue.handleStartTimestamping();
+            } finally {
+                scheduleNext();
             }
         }
 
-        private void handle(Object message) {
-            getContext().actorSelection("../" + TASK_QUEUE_NAME).tell(message, getSelf());
+        private void handleStartTimestampingRetryMode() {
+            log.trace("handleStartTimestamping()");
+            try {
+                this.taskQueue.handleStartTimestampingRetryMode();
+            } finally {
+                scheduleNext();
+            }
         }
 
-        @Override
-        public void preStart() {
-            schedule(initialDelay);
+        private void scheduleNext() {
+            if (retryMode) {
+                schedule(getNextDelay(), this::handleStartTimestampingRetryMode);
+            } else {
+                schedule(getNextDelay(), this::handleStartTimestamping);
+            }
         }
 
-        @Override
-        public void postStop() {
-            cancelNextTick();
+        public void shutdown() {
+            log.trace("shutdown()");
+            cancelNext();
+            taskScheduler.shutdown();
         }
 
-        private void schedule(FiniteDuration delay) {
-            schedule(delay, START_TIMESTAMPING);
+        private void schedule(Duration delay, Runnable runnable) {
+            cancelNext();
+            this.scheduledTask = taskScheduler.schedule(runnable, delay.getSeconds(), SECONDS);
         }
 
-        private void schedule(FiniteDuration delay, Object message) {
-            tick = getContext().system().scheduler().scheduleOnce(delay, getSelf(), message,
-                    getContext().dispatcher(), ActorRef.noSender());
-        }
-
-        private FiniteDuration getNextDelay() {
+        private Duration getNextDelay() {
             int actualInterval = MIN_INTERVAL_SECONDS;
             log.debug("Use batch time-stamping retry backoff schedule: {}", retryMode);
 
@@ -475,14 +445,14 @@ public class LogManager extends AbstractLogManager {
             int intervalSeconds = Math.min(Math.max(actualInterval, MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);
             log.debug("Time-stamping interval is: {}s", intervalSeconds);
 
-            return Duration.create(intervalSeconds, TimeUnit.SECONDS);
+            return Duration.of(intervalSeconds, ChronoUnit.SECONDS);
         }
 
-        protected void cancelNextTick() {
-            if (tick != null) {
-                if (!tick.isCancelled()) {
-                    boolean result = tick.cancel();
-                    log.info("cancelNextTick called, cancel() return value: {}", result);
+        protected void cancelNext() {
+            if (scheduledTask != null) {
+                if (!scheduledTask.isCancelled()) {
+                    boolean result = scheduledTask.cancel(false);
+                    log.trace("cancelNext called, cancel() return value: {}", result);
                 }
             }
         }

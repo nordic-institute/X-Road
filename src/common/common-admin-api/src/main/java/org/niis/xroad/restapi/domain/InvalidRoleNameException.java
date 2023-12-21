@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,5 +31,9 @@ package org.niis.xroad.restapi.domain;
 public class InvalidRoleNameException extends Exception {
     public InvalidRoleNameException(String s) {
         super(s);
+    }
+
+    public InvalidRoleNameException(String s, Throwable cause) {
+        super(s, cause);
     }
 }

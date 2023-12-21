@@ -38,7 +38,7 @@
       "
       :info-text="
         certificationServiceStore.currentCertificationService
-          .subject_distinguished_name || ''
+          ?.subject_distinguished_name || ''
       "
       data-test="subject-distinguished-name-card"
     />
@@ -50,7 +50,7 @@
       "
       :info-text="
         certificationServiceStore.currentCertificationService
-          .issuer_distinguished_name || ''
+          ?.issuer_distinguished_name || ''
       "
       data-test="issuer-distinguished-name-card"
     />
@@ -58,20 +58,24 @@
     <div class="certification-service-info-card-group">
       <info-card
         :title-text="$t('trustServices.validFrom')"
-        :info-text="
-          certificationServiceStore.currentCertificationService.not_before
-            | formatDateTime
-        "
         data-test="valid-from-card"
-      />
+      >
+        <date-time
+          :value="
+            certificationServiceStore.currentCertificationService?.not_before
+          "
+        />
+      </info-card>
       <info-card
         :title-text="$t('trustServices.validTo')"
-        :info-text="
-          certificationServiceStore.currentCertificationService.not_after
-            | formatDateTime
-        "
         data-test="valid-to-card"
-      />
+      >
+        <date-time
+          :value="
+            certificationServiceStore.currentCertificationService?.not_after
+          "
+        />
+      </info-card>
     </div>
 
     <div
@@ -81,20 +85,26 @@
       @click="showDeleteDialog = true"
     >
       <div>
-        <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-          >mdi-close-circle
-        </v-icon>
+        <v-icon
+          class="xrd-large-button-icon"
+          :color="colors.Purple100"
+          icon="mdi-close-circle"
+        />
       </div>
       <div class="action-text">
-        {{ $t('trustServices.trustService.delete.action') }} "{{
-          certificationServiceStore.currentCertificationService.name
-        }}"
+        {{
+          `${$t('trustServices.trustService.delete.action')} "${
+            certificationServiceStore.currentCertificationService?.name
+          }"`
+        }}
       </div>
     </div>
     <xrd-confirm-dialog
-      v-if="certificationServiceStore.currentCertificationService"
+      v-if="
+        certificationServiceStore.currentCertificationService &&
+        showDeleteDialog
+      "
       data-test="delete-trust-service-confirm-dialog"
-      :dialog="showDeleteDialog"
       :loading="deleting"
       :data="{
         name: certificationServiceStore.currentCertificationService.name,
@@ -108,20 +118,22 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import { Colors, Permissions, RouteName } from '@/global';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import DateTime from '@/components/ui/DateTime.vue';
 
 /**
  * Component for a Certification Service details view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificationServiceDetails',
   components: {
+    DateTime,
     InfoCard,
   },
   data() {
@@ -132,14 +144,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useCertificationService),
+    ...mapState(useUser, ['hasPermission']),
     showDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_APPROVED_CA);
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     confirmDelete(): void {
       if (!this.certificationServiceStore.currentCertificationService) return;
       this.deleting = true;
@@ -150,10 +162,11 @@ export default Vue.extend({
         .then(() => {
           this.showDeleteDialog = false;
           this.deleting = false;
-          this.$router.replace({ name: RouteName.TrustServices });
           this.showSuccess(
             this.$t('trustServices.trustService.delete.success'),
+            true,
           );
+          this.$router.replace({ name: RouteName.TrustServices });
         })
         .catch((error) => {
           this.showDeleteDialog = false;
@@ -166,8 +179,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .card-title {
   font-size: 12px;

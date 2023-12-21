@@ -1,0 +1,22 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Instance ID", name: "INSTANCE_ID", defaultValue: "${params?.INSTANCE_ID}")
+        string(description: "User", name: "USER", defaultValue: "${params?.USER}")
+        string(description: "Public key", name: "PUBLIC_KEY", defaultValue: "${params?.PUBLIC_KEY}")
+        string(description: "Region code", name: "REGION_CODE", defaultValue: "${params?.REGION_CODE}")
+    }
+    stages {
+      stage('Add SSH public key to AWS instance') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws ec2-instance-connect send-ssh-public-key \
+                       --instance-id ${INSTANCE_ID} \
+                       --instance-os-user ${USER} \
+                       --ssh-public-key "${PUBLIC_KEY}" \
+                       --availability-zone ${REGION_CODE}'
+                }
+            }
+        }
+    }
+}

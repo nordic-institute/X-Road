@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,8 +30,8 @@ import ee.ria.xroad.common.conf.globalconf.monitoringparameters.MonitoringClient
 import ee.ria.xroad.common.conf.globalconf.monitoringparameters.MonitoringParametersType;
 import ee.ria.xroad.common.conf.globalconf.monitoringparameters.ObjectFactory;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 
 /**
  * Monitoring parameters

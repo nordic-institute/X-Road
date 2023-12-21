@@ -48,14 +48,6 @@
       "decision": "ignore",
       "madeAt": 1633604147733
     },
-    "1002373|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>lodash": {
-      "decision": "ignore",
-      "madeAt": 1633604183504
-    },
-    "1002373|@vue/cli-plugin-e2e-nightwatch>nightwatch>request-promise>request-promise-core>lodash": {
-      "decision": "ignore",
-      "madeAt": 1633604183504
-    },
     "1002373|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request-promise-native>request-promise-core>lodash": {
       "decision": "ignore",
       "madeAt": 1633604183504
@@ -92,10 +84,6 @@
       "decision": "ignore",
       "madeAt": 1633974679245
     },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>@vue/cli-shared-utils>ora>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633674110089
-    },
     "1002401|@vue/cli-plugin-eslint>@vue/cli-shared-utils>ora>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1633674110089
@@ -116,19 +104,7 @@
       "decision": "ignore",
       "madeAt": 1633674110089
     },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>wide-align>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633974679245
-    },
     "1002401|@vue/cli-service>@soda/friendly-errors-webpack-plugin>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633974679245
-    },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>cliui>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633974679245
-    },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>cliui>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1633974679245
     },
@@ -164,14 +140,6 @@
       "decision": "ignore",
       "madeAt": 1633674110090
     },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633974679245
-    },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633974679245
-    },
     "1002401|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1633974679245
@@ -203,14 +171,6 @@
     "1002401|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>@jest/test-sequencer>jest-runner>jest-runtime>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1633604206783
-    },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633974679245
-    },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633974679245
     },
     "1002401|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>yargs>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
@@ -628,22 +588,6 @@
       "decision": "ignore",
       "madeAt": 1633604780252
     },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>cliui>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633674110089
-    },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>cliui>wrap-ansi>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633674110089
-    },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>cliui>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633674110089
-    },
-    "1002401|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>cliui>wrap-ansi>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1633674110089
-    },
     "1002401|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>@jest/test-sequencer>jest-runner>jest-runtime>yargs>cliui>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1633674110090
@@ -852,10 +796,6 @@
       "decision": "ignore",
       "madeAt": 1642150251638
     },
-    "1004946|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>wide-align>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1642150251638
-    },
     "1004946|license-check-and-add>yargs>cliui>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1637253301461
@@ -865,14 +805,6 @@
       "madeAt": 1642150251638
     },
     "1004946|@vue/cli-service>webpack-dev-server>yargs>cliui>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1642150251638
-    },
-    "1004946|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>cliui>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1642150251638
-    },
-    "1004946|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>cliui>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1642150251638
     },
@@ -908,14 +840,6 @@
       "decision": "ignore",
       "madeAt": 1642150251638
     },
-    "1004946|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1642150251638
-    },
-    "1004946|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1642150251638
-    },
     "1004946|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>yargs>cliui>wrap-ansi>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1637253301461
@@ -941,14 +865,6 @@
       "madeAt": 1642150251638
     },
     "1004946|@vue/cli-service>webpack-dev-server>yargs>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1642150251638
-    },
-    "1004946|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs>string-width>strip-ansi>ansi-regex": {
-      "decision": "ignore",
-      "madeAt": 1642150251638
-    },
-    "1004946|@vue/cli-plugin-e2e-nightwatch>nightwatch>mocha>yargs-unparser>yargs>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
       "madeAt": 1642150251638
     },

@@ -1,7 +1,7 @@
 <jxb:bindings
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-    version="2.1">
+    xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
+    version="3.0">
 
     <jxb:bindings schemaLocation="identifiers.xsd">
         <jxb:bindings node="//xs:complexType[@name='XRoadClientIdentifierType']">

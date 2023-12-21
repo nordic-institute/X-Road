@@ -26,7 +26,7 @@
  -->
 <template>
   <v-img
-    :src="require('../../assets/xroad7_logo.svg')"
+    :src="xrdLogo"
     height="35"
     width="132"
     max-height="35"
@@ -37,13 +37,19 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import xrdLogo from '@/assets/xroad7_logo.svg';
+import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
+  data() {
+    return {
+      xrdLogo,
+    };
+  },
   computed: {
-    ...mapState(userStore, ['getFirstAllowedTab']),
+    ...mapState(useUser, ['getFirstAllowedTab']),
   },
   methods: {
     home(): void {

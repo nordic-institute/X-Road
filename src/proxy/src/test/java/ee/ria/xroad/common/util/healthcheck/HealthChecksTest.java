@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -34,9 +34,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.signer.protocol.SignerClient;
-import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfo;
-import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
+import ee.ria.xroad.signer.SignerProxy;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Test;
@@ -57,7 +55,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -162,9 +159,8 @@ public class HealthChecksTest {
     public void checkHSMOperationalShouldReturnOkStatusWhenValid() {
 
         // prepare
-        try (MockedStatic<SignerClient> client = mockStatic(SignerClient.class)) {
-            client.when(() -> SignerClient.execute(any(GetHSMOperationalInfo.class)))
-                    .thenReturn(new GetHSMOperationalInfoResponse(true));
+        try (MockedStatic<SignerProxy> client = mockStatic(SignerProxy.class)) {
+            client.when(SignerProxy::isHSMOperational).thenReturn(true);
 
             // execute
             HealthCheckProvider testedProvider = HealthChecks.checkHSMOperationStatus();
@@ -178,9 +174,8 @@ public class HealthChecksTest {
     public void checkHSMOperationalShouldFailWhenNotValid() {
 
         // prepare
-        try (MockedStatic<SignerClient> client = mockStatic(SignerClient.class)) {
-            client.when(() -> SignerClient.execute(any(GetHSMOperationalInfo.class)))
-                    .thenReturn(new GetHSMOperationalInfoResponse(false));
+        try (MockedStatic<SignerProxy> client = mockStatic(SignerProxy.class)) {
+            client.when(SignerProxy::isHSMOperational).thenReturn(false);
 
             // execute
             HealthCheckProvider testedProvider = HealthChecks.checkHSMOperationStatus();

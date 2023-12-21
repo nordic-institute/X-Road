@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.securityserver.restapi.openapi;
+
+import ee.ria.xroad.common.SystemProperties;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,15 +67,14 @@ public class InitializationApiController implements InitializationApi {
     @Override
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<InitializationStatus> getInitializationStatus() {
-        InitializationStatusDto initializationStatusDto =
-                initializationService.getSecurityServerInitializationStatus();
-        InitializationStatus initializationStatus = new InitializationStatus();
-        initializationStatus.setIsAnchorImported(initializationStatusDto.isAnchorImported());
-        initializationStatus.setIsServerCodeInitialized(initializationStatusDto.isServerCodeInitialized());
-        initializationStatus.setIsServerOwnerInitialized(initializationStatusDto.isServerOwnerInitialized());
-        initializationStatus.setSoftwareTokenInitStatus(TokenInitStatusMapping
-                .map(initializationStatusDto.getSoftwareTokenInitStatusInfo()).get());
-        return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
+        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        var status = new InitializationStatus();
+        status.setIsAnchorImported(initStatus.isAnchorImported());
+        status.setIsServerCodeInitialized(initStatus.isServerCodeInitialized());
+        status.setIsServerOwnerInitialized(initStatus.isServerOwnerInitialized());
+        status.setSoftwareTokenInitStatus(TokenInitStatusMapping.map(initStatus.getSoftwareTokenInitStatusInfo()));
+        status.setEnforceTokenPinPolicy(SystemProperties.shouldEnforceTokenPinPolicy());
+        return new ResponseEntity<>(status, HttpStatus.OK);
     }
 
     @Override
@@ -91,7 +92,7 @@ public class InitializationApiController implements InitializationApi {
         } catch (AnchorNotFoundException | InitializationService.ServerAlreadyFullyInitializedException e) {
             throw new ConflictException(e);
         } catch (UnhandledWarningsException | InvalidCharactersException
-                | WeakPinException | InitializationService.InvalidInitParamsException e) {
+                 | WeakPinException | InitializationService.InvalidInitParamsException e) {
             throw new BadRequestException(e);
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);

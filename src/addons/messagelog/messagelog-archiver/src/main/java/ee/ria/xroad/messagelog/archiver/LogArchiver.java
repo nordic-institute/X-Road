@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,6 +28,7 @@ package ee.ria.xroad.messagelog.archiver;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.archive.ArchiveDigest;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
@@ -35,16 +36,15 @@ import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
-import akka.actor.UntypedAbstractActor;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,34 +68,26 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * to archive file and marks the records as archived.
  */
 @Slf4j
-@RequiredArgsConstructor
-public class LogArchiver extends UntypedAbstractActor {
+public class LogArchiver implements Job {
 
     private static final String PROPERTY_NAME_ARCHIVED = "archived";
 
-    public static final String START_ARCHIVING = "doArchive";
     public static final int FETCH_SIZE = 10;
 
-    private final Path archivePath;
+    private final Path archivePath = Paths.get(MessageLogProperties.getArchivePath());
 
     @Override
-    public void onReceive(Object message) {
-        log.trace("onReceive({})", message);
-
-        if (START_ARCHIVING.equals(message)) {
-            try {
-                Long maxRecordId = doInTransaction(this::getMaxRecordId);
-                if (maxRecordId != null) {
-                    while (handleArchive(maxRecordId)) {
-                        // body intentionally empty
-                    }
+    public void execute(JobExecutionContext context) {
+        try {
+            Long maxRecordId = doInTransaction(this::getMaxRecordId);
+            if (maxRecordId != null) {
+                while (handleArchive(maxRecordId)) {
+                    // body intentionally empty
                 }
-                onArchivingDone();
-            } catch (Exception ex) {
-                log.error("Failed to archive log records", ex);
             }
-        } else {
-            unhandled(message);
+            onArchivingDone();
+        } catch (Exception ex) {
+            log.error("Failed to archive log records", ex);
         }
     }
 
@@ -118,7 +110,7 @@ public class LogArchiver extends UntypedAbstractActor {
             try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
                 List<Long> recordIds = new ArrayList<>(100);
                 try (Stream<MessageRecord> records = getNonArchivedMessageRecords(session, maxRecordId, limit)) {
-                    for (Iterator<MessageRecord> it = records.iterator(); it.hasNext();) {
+                    for (Iterator<MessageRecord> it = records.iterator(); it.hasNext(); ) {
                         MessageRecord messageRecord = it.next();
                         recordIds.add(messageRecord.getId());
                         messageRecordEncryption.prepareDecryption(messageRecord);
@@ -181,7 +173,7 @@ public class LogArchiver extends UntypedAbstractActor {
                         + "UPDATE TimestampRecord t SET t.archived = true "
                         + "WHERE t.archived = false AND NOT EXISTS ("
                         + "SELECT 0 FROM MessageRecord m "
-                        + "WHERE m.archived = false and t.id = m.timestampRecord)"
+                        + "WHERE m.archived = false and t.id = m.timestampRecord.id)"
                 ).executeUpdate();
     }
 
@@ -236,7 +228,7 @@ public class LogArchiver extends UntypedAbstractActor {
         log.info("Transferring archives with shell command: \t{}", transferCommand);
         Process process = null;
         try {
-            String[] command = new String[] {"/bin/bash", "-c", transferCommand};
+            String[] command = new String[]{"/bin/bash", "-c", transferCommand};
             String standardError = null;
 
             process = new ProcessBuilder(command).redirectOutput(Paths.get("/dev/null").toFile()).start();

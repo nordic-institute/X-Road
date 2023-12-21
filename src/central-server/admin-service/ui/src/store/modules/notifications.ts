@@ -89,7 +89,7 @@ function createEmptyNotification(timeout: number): Notification {
   };
 }
 
-export const notificationsStore = defineStore('notificationsStore', {
+export const useNotifications = defineStore('notifications', {
   state: () => {
     return {
       errorNotifications: [] as Notification[],
@@ -112,8 +112,16 @@ export const notificationsStore = defineStore('notificationsStore', {
     },
 
     resetNotifications() {
+      const preserved: Notification[] = [];
+      this.successNotifications
+        .filter((not) => not.preserve)
+        .forEach((not) => {
+          not.preserve = false;
+          preserved.push(not);
+        });
       // Clear the store state
       this.$reset();
+      this.successNotifications.push(...preserved);
     },
 
     // Show error notification with axios error object
@@ -160,10 +168,11 @@ export const notificationsStore = defineStore('notificationsStore', {
       );
     },
 
-    showSuccess(messageText: string | TranslateResult): void {
+    showSuccess(messageText: string | TranslateResult, preserve = false): void {
       // Show success snackbar with text string
       const notification = createEmptyNotification(3000);
       notification.successMessage = messageText as string;
+      notification.preserve = preserve;
       this.successNotifications.push(notification);
     },
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,20 +25,22 @@
  */
 package org.niis.xroad.restapi.config;
 
-import brave.Tracer;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.sleuth.autoconfig.instrument.web.SleuthWebProperties;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Adds correlation id (sleuth trace id) to response header
@@ -47,17 +49,17 @@ import java.io.IOException;
 @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER)
 @RequiredArgsConstructor
 public class AddCorrelationIdFilter implements Filter {
-    public static final int CORRELATION_ID_FILTER_ORDER = SleuthWebProperties.TRACING_FILTER_ORDER + 1;
+    public static final int CORRELATION_ID_FILTER_ORDER = Ordered.HIGHEST_PRECEDENCE + 2;
     public static final String CORRELATION_ID_HEADER_NAME = "x-road-ui-correlation-id";
 
     private final Tracer tracer;
 
     public String getCorrelationId() {
-        if (tracer != null && tracer.currentSpan() != null && tracer.currentSpan().context() != null) {
-            return tracer.currentSpan().context().traceIdString();
-        } else {
-            return null;
-        }
+        return Optional.ofNullable(tracer)
+                .map(Tracer::currentSpan)
+                .map(Span::context)
+                .map(TraceContext::traceId)
+                .orElse(null);
     }
 
     @Override

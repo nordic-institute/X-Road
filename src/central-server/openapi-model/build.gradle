@@ -8,6 +8,7 @@ dependencies {
     compileOnly("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
 
     api("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
+    api("jakarta.validation:jakarta.validation-api:$jakartaValidationApiVersion")
 }
 
 sourceSets {
@@ -26,12 +27,12 @@ openApiGenerate {
     apiPackage = "org.niis.xroad.cs.openapi"
     modelPackage = "org.niis.xroad.cs.openapi.model"
     modelNameSuffix = "Dto"
-    importMappings = [
+    importMappings.set([
         User           : "org.niis.xroad.restapi.openapi.model.User",
         ErrorInfo      : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
         CodeWithDetails: "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
-    ]
-    globalProperties = [
+    ])
+    globalProperties.set([
         modelDocs              : "false",
         apis                   : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
@@ -39,14 +40,20 @@ openApiGenerate {
         generateSupportingFiles: "false",
         skipDefaultInterface   : "true",
         supportingFiles        : 'ApiUtil.java'
-    ]
-    configOptions = [
-        interfaceOnly       : "true",
-        useTags             : "true",
-        documentationProvider  : "none",
-        skipDefaultInterface   : "true",
-        openApiNullable: "false"
-    ]
+    ])
+
+    additionalProperties.set([
+        // workaround for buggy generator for constructors with required args
+        generatedConstructorWithRequiredArgs: false
+    ])
+    configOptions.set([
+        useJakartaEe         : "true",
+        interfaceOnly        : "true",
+        useTags              : "true",
+        documentationProvider: "none",
+        skipDefaultInterface : "true",
+        openApiNullable      : "false"
+    ])
 }
 
 // Fix up to date check

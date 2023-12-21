@@ -87,6 +87,40 @@ case "$1" in
     [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
   fi
 
+  # keep previous default client http(s) ports when upgrading  from <7.4.0
+  if [ -n "$2" ];
+    then
+      if dpkg --compare-versions "$2" lt "7.4.0";
+        then
+          echo "client-http-port and client-https-port default values were changed in ver 7.4.0"
+          echo "updating local.ini to keep the old default values if not already overridden"
+          local_ini=/etc/xroad/conf.d/local.ini
+
+          if test -f /etc/xroad/conf.d/override-securityserver-ee.ini;
+            then
+              echo "this is EE meta-package which already has its own values in override-securityserver-ee.ini, do not update client http(s) ports in local.ini"
+            else
+              present_in_local_ini=$(crudini --get ${local_ini} proxy client-http-port 2>/dev/null)
+              if [[ -n "$present_in_local_ini" ]];
+                then
+                  echo "client-http-port already present in local.ini, do not update local.ini"
+                else
+                  echo "client-http-port not present in local.ini, update local.ini"
+                  crudini --set ${local_ini} proxy client-http-port 80
+              fi
+
+              present_in_local_ini=$(crudini --get ${local_ini} proxy client-https-port 2>/dev/null)
+              if [[ -n "$present_in_local_ini" ]];
+                then
+                  echo "client-https-port already present in local.ini, do not update local.ini"
+                else
+                  echo "client-https-port not present in local.ini, update local.ini"
+                  crudini --set ${local_ini} proxy client-https-port 443
+              fi
+          fi
+      fi
+  fi
+
   RET=""
   db_get xroad-common/database-host || RET=""
   db_stop

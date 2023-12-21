@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.auth;
 
 import ee.ria.xroad.common.util.JsonUtils;
 
+import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,8 +55,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import javax.servlet.http.Cookie;
 
 import java.util.Collections;
 import java.util.Set;
@@ -101,9 +100,9 @@ public class CsrfWebMvcTest {
         Set<GrantedAuthority> authorities = grantedAuthorityMapper
                 .getAuthorities(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER));
         userPermissions = authorities.stream()
-                .filter(grantedAuthority -> !grantedAuthority.getAuthority()
-                        .equals(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .map(GrantedAuthority::getAuthority)
+                .filter(authority -> !authority
+                        .equals(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .collect(Collectors.toSet());
         Authentication mockAuth = new UsernamePasswordAuthenticationToken(username, "pass", authorities);
         SecurityContext securityContext = SecurityContextHolder.getContext();

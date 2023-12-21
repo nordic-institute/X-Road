@@ -27,6 +27,48 @@
   <div class="mt-3" data-test="system-parameters-tab-view">
     <div class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</div>
 
+    <v-card flat class="xrd-card" v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)">
+      <v-card-text class="card-text">
+        <v-row no-gutters class="px-4">
+          <v-col>
+            <h3>{{ $t('systemParameters.securityServer.securityServer') }}</h3>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <table class="xrd-table">
+              <thead>
+                <tr>
+                  <th>{{ $t('systemParameters.securityServer.serverAddress') }}</th>
+                  <th></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody data-test="system-parameters-server-address-table-body">
+                <tr>
+                  <td>{{ serverAddress }}</td>
+                  <td>
+                    <div v-if="addressChangeInProgress" class="status-wrapper" >
+                      <xrd-status-icon :status="'progress-register'"/>
+                      <div class="status-text">{{ $t('systemParameters.securityServer.addressChangeInProgress') }}</div>
+                    </div>
+                  </td>
+                  <td class="pr-4">
+                    <xrd-button :outlined="false"
+                        data-test="change-server-address-button"
+                        text
+                        :disabled="addressChangeInProgress"
+                        @click="showEditServerAddressDialog = true">
+                      {{ $t('action.edit') }}
+                    </xrd-button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
     <v-card flat class="xrd-card">
       <v-card-text class="card-text">
         <v-row
@@ -48,7 +90,9 @@
                 outlined
                 @click="downloadAnchor"
               >
-                <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
+                <xrd-icon-base class="xrd-large-button-icon">
+                  <xrd-icon-download />
+                </xrd-icon-base>
                 {{ $t('systemParameters.configurationAnchor.action.download') }}
               </xrd-button>
 
@@ -82,17 +126,17 @@
               <tbody
                 data-test="system-parameters-configuration-anchor-table-body"
               >
-                <tr v-if="configuratonAnchor">
-                  <td>{{ configuratonAnchor.hash | colonize }}</td>
+                <tr v-if="configurationAnchor">
+                  <td>{{ $filters.colonize(configurationAnchor.hash) }}</td>
                   <td class="pr-4">
-                    {{ configuratonAnchor.created_at | formatDateTime }}
+                    {{ $filters.formatDateTime(configurationAnchor.created_at) }}
                   </td>
                 </tr>
 
                 <XrdEmptyPlaceholderRow
                   :colspan="2"
                   :loading="loadingAnchor"
-                  :data="configuratonAnchor"
+                  :data="configurationAnchor"
                   :no-items-text="$t('noData.noTimestampingServices')"
                 />
               </tbody>
@@ -102,7 +146,7 @@
       </v-card-text>
     </v-card>
     <v-card flat class="xrd-card" :class="{ disabled: !messageLogEnabled }">
-      <v-card-text class="card-text ">
+      <v-card-text class="card-text">
         <v-row
           v-if="hasPermission(permissions.VIEW_TSPS)"
           no-gutters
@@ -247,7 +291,9 @@
                       )
                     }}
                   </td>
-                  <td class="pr-4">{{ approvedCA.not_after | formatDate }}</td>
+                  <td class="pr-4">
+                    {{ $filters.formatDate(approvedCA.not_after) }}
+                  </td>
                 </tr>
 
                 <XrdEmptyPlaceholderRow
@@ -263,14 +309,23 @@
       </v-card-text>
     </v-card>
   </div>
+
+  <edit-security-server-address-dialog
+    v-if="showEditServerAddressDialog"
+    :address="serverAddress!"
+    @cancel="showEditServerAddressDialog = false"
+    @address-updated="addressChangeSubmitted"
+  />
+
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import {
   AddOnStatus,
   Anchor,
   CertificateAuthority,
+  SecurityServerAddressStatus,
   TimestampingService,
 } from '@/openapi-types';
 import * as api from '@/util/api';
@@ -282,16 +337,21 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import { XrdButton, XrdIconDownload } from '@niis/shared-ui';
+import EditSecurityServerAddressDialog from "@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue";
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    EditSecurityServerAddressDialog,
+    XrdButton,
+    XrdIconDownload,
     TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
     AddTimestampingServiceDialog,
   },
   data() {
     return {
-      configuratonAnchor: undefined as Anchor | unknown,
+      configurationAnchor: undefined as Anchor | undefined,
       downloadingAnchor: false,
       configuredTimestampingServices: [] as TimestampingService[],
       certificateAuthorities: [] as CertificateAuthority[],
@@ -301,10 +361,13 @@ export default Vue.extend({
       loadingCAs: false,
       loadingMessageLogEnabled: false,
       messageLogEnabled: false,
+      showEditServerAddressDialog: false,
+      addressChangeInProgress: false,
+      serverAddress: "",
     };
   },
   computed: {
-    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission', 'currentSecurityServer']),
     orderedCertificateAuthorities(): CertificateAuthority[] {
       const temp = this.certificateAuthorities;
 
@@ -326,6 +389,9 @@ export default Vue.extend({
     if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
       this.fetchApprovedCertificateAuthorities();
     }
+    if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
+      this.fetchServerAddress();
+    }
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
@@ -334,7 +400,7 @@ export default Vue.extend({
       this.loadingAnchor = true;
       return api
         .get<Anchor>('/system/anchor')
-        .then((resp) => (this.configuratonAnchor = resp.data))
+        .then((resp) => (this.configurationAnchor = resp.data))
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingAnchor = false));
     },
@@ -374,13 +440,29 @@ export default Vue.extend({
         })
         .finally(() => (this.downloadingAnchor = false));
     },
+    fetchServerAddress(): boolean {
+      if (this.hasPermission(Permissions.CHANGE_SS_ADDRESS)) {
+        api
+            .get<SecurityServerAddressStatus>('/system/server-address')
+            .then((resp) => {
+              this.serverAddress = resp.data.current_address?.address!;
+              this.addressChangeInProgress = resp.data.requested_change !== undefined;
+            })
+            .catch((error) => this.showError(error))
+      }
+      return false;
+    },
+    addressChangeSubmitted(): void {
+      this.showEditServerAddressDialog = false;
+      this.addressChangeInProgress = true;
+    },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 h3 {
   color: $XRoad-Black100;
@@ -427,5 +509,18 @@ tr td:last-child {
 .anchor-buttons {
   display: flex;
   justify-content: flex-end;
+}
+.status-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.status-text {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+  color: $XRoad-WarmGrey100;
+  margin-left: 2px;
 }
 </style>

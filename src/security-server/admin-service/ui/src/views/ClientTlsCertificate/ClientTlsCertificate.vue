@@ -24,36 +24,38 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common" data-test="certificate-details-dialog">
-    <div class="new-content">
-      <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
-      <template v-if="certificate">
-        <div class="dtlv-cert-hash">
-          <certificateHash :hash="certificate.hash" />
-          <xrd-button
-            v-if="showDeleteButton"
-            outlined
-            @click="deleteCertificate()"
-            >{{ $t('action.delete') }}</xrd-button
-          >
-        </div>
-        <certificateInfo :certificate="certificate" />
-      </template>
-    </div>
+  <v-sheet
+    class="wrapper xrd-view-common pa-4 mt-4 rounded"
+    data-test="certificate-details-dialog"
+  >
+    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
+    <template v-if="certificate">
+      <div class="detail-view-cert-hash">
+        <certificateHash :hash="certificate.hash" />
+        <xrd-button
+          v-if="showDeleteButton"
+          outlined
+          data-test="tls-certificate-delete-button"
+          @click="deleteCertificate()"
+          >{{ $t('action.delete') }}
+        </xrd-button>
+      </div>
+      <certificateInfo :certificate="certificate" />
+    </template>
 
     <!-- Confirm dialog for delete -->
     <xrd-confirm-dialog
-      :dialog="confirm"
+      v-if="confirm"
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
       @cancel="confirm = false"
       @accept="doDeleteCertificate()"
     />
-  </div>
+  </v-sheet>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 import { Permissions } from '@/global';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
@@ -64,9 +66,9 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     CertificateInfo,
     CertificateHash,
@@ -89,7 +91,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useClientStore, ['tlsCertificates']),
+    ...mapState(useClient, ['tlsCertificates']),
     showDeleteButton(): boolean {
       return this.hasPermission(Permissions.DELETE_CLIENT_INTERNAL_CERT);
     },
@@ -100,7 +102,7 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
     fetchData(clientId: string, hash: string): void {
       api
@@ -145,7 +147,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/detail-views';
+@import '@/assets/detail-views';
 
 .wrapper {
   display: flex;

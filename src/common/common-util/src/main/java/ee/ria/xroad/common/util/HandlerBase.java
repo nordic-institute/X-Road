@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,10 +28,9 @@ package ee.ria.xroad.common.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.SoapFault;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -86,7 +85,7 @@ public abstract class HandlerBase extends AbstractHandler {
      * Returns the client certificate from the SSL context.
      */
     protected List<X509Certificate> getClientCertificates(HttpServletRequest request) {
-        Object attribute = request.getAttribute("javax.servlet.request.X509Certificate");
+        Object attribute = request.getAttribute("jakarta.servlet.request.X509Certificate");
 
         if (attribute != null) {
             return Arrays.asList((X509Certificate[]) attribute);

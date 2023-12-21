@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,6 +26,8 @@
  */
 
 package org.niis.xroad.cs.test.glue;
+
+import ee.ria.xroad.common.util.TimeUtils;
 
 import com.nortal.test.asserts.Assertion;
 import io.cucumber.java.en.Step;
@@ -43,7 +45,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 
@@ -196,7 +197,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withReceiverClientId(DEFAULT_RECEIVER)
                 .withServerId(DEFAULT_SERVER_ID)
                 .withClientId(clientId)
-                .withClientOcsp(new RevokedStatus(Date.from(Instant.now().minusSeconds(3600)), CRLReason.unspecified))
+                .withClientOcsp(new RevokedStatus(Date.from(TimeUtils.now().minusSeconds(3600)), CRLReason.unspecified))
                 .build();
         executeRequest(request.createPayload());
     }
@@ -204,6 +205,64 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
     @Step("Client Registration request with empty request was sent")
     public void executeRequestWithEmptyRequest() {
         executeRequest(TestManagementRequestPayload.empty());
+    }
+
+    @Step("Address change request with new address {string} was sent")
+    public void addressChangeRequestWithNewAddressWasSent(String address) throws Exception {
+        addressChangeRequestWasSent("EE:CLASS:MEMBER", DEFAULT_SERVER_ID.asEncodedId(), address);
+    }
+
+    @Step("Address change request with clientId {string} and serverId {string} and address {string} was sent")
+    public void addressChangeRequestWasSent(String clientIdString, String serverId, String address) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdString);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(clientId)
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(
+                        (builder, serverId1, clientId1) -> builder.buildAddressChangeRequest(serverId1, address))
+                .build();
+        executeRequest(req.createPayload());
+    }
+
+    @Step("Client disable request with clientId {string} was sent")
+    public void executeRequestClientDisable(String clientIdStr) throws Exception {
+        executeRequestClientDisableWithCustomServerId(clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
+    }
+
+    @Step("Client disable request with clientId {string} and serverId {string} was sent")
+    public void executeRequestClientDisableWithCustomServerId(String clientIdStr, String serverId) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(resolveClientIdFromEncodedStr("EE:CLASS:MEMBER"))
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientDisableRequest)
+                .build();
+        executeRequest(req.createPayload());
+    }
+
+    @Step("Client enable request with clientId {string} was sent")
+    public void executeRequestClientEnable(String clientIdStr) throws Exception {
+        executeRequestClientEnableWithCustomServerId(clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
+    }
+
+    @Step("Client enable request with clientId {string} and serverId {string} was sent")
+    public void executeRequestClientEnableWithCustomServerId(String clientIdStr, String serverId) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(resolveClientIdFromEncodedStr("EE:CLASS:MEMBER"))
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientEnableRequest)
+                .build();
+        executeRequest(req.createPayload());
     }
 
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,8 +25,9 @@
  */
 package org.niis.xroad.restapi.dao;
 
-import org.hibernate.Query;
+
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 
 import java.util.List;

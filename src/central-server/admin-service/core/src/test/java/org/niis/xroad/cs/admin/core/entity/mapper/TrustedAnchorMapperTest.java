@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.core.entity.AnchorUrlCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
@@ -33,7 +35,6 @@ import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
 
@@ -66,7 +67,7 @@ class TrustedAnchorMapperTest {
         source.setInstanceIdentifier("INSTANCE");
         source.setTrustedAnchorHash("trusted anchor hash");
         source.setTrustedAnchorFile("trusted anchor file".getBytes(UTF_8));
-        source.setGeneratedAt(Instant.now());
+        source.setGeneratedAt(TimeUtils.now());
         return source;
     }
 

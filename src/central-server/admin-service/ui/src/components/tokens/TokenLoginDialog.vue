@@ -27,74 +27,61 @@
 
 <template>
   <xrd-simple-dialog
-    :dialog="true"
     title="tokens.loginDialog.title"
     save-button-text="tokens.logIn"
-    :disable-save="!isValid"
+    :disable-save="!meta.valid"
     :loading="loading"
     @save="login"
     @cancel="cancel"
   >
-    <div slot="content">
-      <div class="pt-5 dlg-input-width">
-        <ValidationProvider
-          ref="tokenPin"
-          v-slot="{ errors }"
-          rules="required"
-          name="tokenPin"
-          class="validation-provider"
-        >
-          <v-text-field
-            v-model="pin"
-            :label="$t('tokens.pin')"
-            :error-messages="errors"
-            type="password"
-            name="tokenPin"
-            data-test="token-pin-input"
-            outlined
-            autofocus
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
-    </div>
+    <template #content>
+      <v-text-field
+        v-bind="tokenPin"
+        :label="$t('tokens.pin')"
+        :error-messages="errors.tokenPin"
+        type="password"
+        name="tokenPin"
+        data-test="token-pin-input"
+        variant="outlined"
+        autofocus
+      />
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider } from 'vee-validate';
+import { defineComponent, PropType } from 'vue';
 import { mapActions } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { tokenStore } from '@/store/modules/tokens';
-import { Prop } from 'vue/types/options';
+import { useNotifications } from '@/store/modules/notifications';
+import { useToken } from '@/store/modules/tokens';
 import { Token } from '@/openapi-types';
+import { useForm } from 'vee-validate';
 
-export default Vue.extend({
-  name: 'TokenLoginDialog',
-  components: { ValidationProvider },
+export default defineComponent({
   props: {
     token: {
-      type: Object as Prop<Token>,
+      type: Object as PropType<Token>,
       required: true,
     },
   },
+  emits: ['token-login', 'cancel'],
+  setup() {
+    const { errors, values, meta, defineComponentBinds, setFieldError } =
+      useForm({ validationSchema: { tokenPin: 'required' } });
+    const tokenPin = defineComponentBinds('tokenPin');
+    return { errors, values, meta, tokenPin, setFieldError };
+  },
   data() {
     return {
-      pin: '',
       loading: false,
     };
   },
-  computed: {
-    isValid(): boolean {
-      return this.pin?.length > 0;
-    },
-  },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    ...mapActions(tokenStore, ['loginToken']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useToken, ['loginToken']),
     login(): void {
       this.loading = true;
-      this.loginToken(this.token.id, { password: this.pin })
+      this.loginToken(this.token.id, { password: this.values.tokenPin })
         .then(() => {
           this.showSuccess(this.$t('tokens.loginDialog.success'));
           this.$emit('token-login');
@@ -102,9 +89,8 @@ export default Vue.extend({
         .catch((error) => {
           const metadata: string[] = error.response?.data?.error?.metadata;
           if (metadata && metadata.length > 0) {
-            (
-              this.$refs.tokenPin as InstanceType<typeof ValidationProvider>
-            ).setErrors(
+            this.setFieldError(
+              'tokenPin',
               metadata.map(
                 (code) => this.$t('tokens.errors.' + code) as string,
               ),
@@ -118,7 +104,6 @@ export default Vue.extend({
     },
     cancel(): void {
       this.loading = false;
-      this.pin = '';
       this.$emit('cancel');
     },
   },

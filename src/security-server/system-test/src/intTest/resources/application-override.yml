@@ -1,0 +1,56 @@
+#Logging configuration
+logging:
+  level:
+    ROOT: INFO
+    cucumber: TRACE
+    com:
+      codeborne:
+        selenide:
+          proxy: ERROR
+    org.springframework: INFO
+
+test-automation:
+  report-name: xroad-ss-ui-test-suite
+  environment: disposable
+  spring-component-scan: "org.niis.xroad.common.test,org.niis.xroad.ss.test"
+  cucumber:
+    execution:
+      parallel:
+        enabled: false # Tests are executed in sequential order
+    glue-append: "org.niis.xroad.ss.test.ui.glue,org.niis.xroad.common.test.glue,org.niis.xroad.ss.test.addons.glue,org.niis.xroad.ss.test.globalconf.glue"
+    filter:
+      tags: "not @Skip"
+  containers:
+    testable-container:
+      reuse-between-runs: ${reuse-between-runs}
+      directory-mounts:
+        - "/var/log/xroad/:build/ss-container-logs/" # useful for debugging. This will attach logs
+    context-containers:
+      reverse-proxy:
+        enabled: true
+        reuse-between-runs: ${reuse-between-runs}
+      ca-server:
+        enabled: true
+        reuse-between-runs: ${reuse-between-runs}
+  selenide:
+    browser: CHROME # Options: CHROME, EDGE, FIREFOX, OPERA, SAFARI (works only with Mac)
+    browser-size: "1920x1080"
+    driver-manager-enabled: true
+    headless: true
+    timeout: 15000
+    page-load-timeout: 25000
+    screenshots: true
+    proxy-enabled: true # Proxy is required for file downloads.
+    proxy-host: 127.0.0.1
+    file-download: proxy
+  custom:
+    docker-root: "../../../Docker/securityserver/"
+    package-host: "replace-me"
+    package-source: develop
+    package-repo: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/debian"
+    package-repo-key: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/jenkins@niis.org.gpg"
+
+# toggle for reusable containers. This allows quicker test development as containers are not destroyed between runs.
+# WARNING: this leaves containers running indefinitely. They have to be stopped manually.
+# Note: this required testcontainers.reuse.enable=true property to be defined in your ~/.testcontainers.properties file
+reuse-between-runs: false

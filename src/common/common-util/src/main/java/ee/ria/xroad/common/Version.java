@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -46,8 +46,8 @@ public final class Version {
     public static final String JAVA_RUNTIME_VERSION_PROPERTY = "java.runtime.version";
     public static final String JAVA_VENDOR_PROPERTY = "java.vendor";
 
-    public static final int MIN_SUPPORTED_JAVA_VERSION = 11;
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 11;
+    public static final int MIN_SUPPORTED_JAVA_VERSION = 17;
+    public static final int MAX_SUPPORTED_JAVA_VERSION = 17;
 
     public static final String XROAD_VERSION;
     public static final String BUILD_IDENTIFIER;

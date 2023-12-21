@@ -6,6 +6,6 @@
  * intended usage for the key (signing or authentication)
  */
 export enum KeyUsageType {
-    AUTHENTICATION = 'AUTHENTICATION',
-    SIGNING = 'SIGNING',
+  AUTHENTICATION = 'AUTHENTICATION',
+  SIGNING = 'SIGNING',
 }

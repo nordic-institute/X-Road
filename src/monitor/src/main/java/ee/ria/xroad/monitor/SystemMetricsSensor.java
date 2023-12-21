@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -24,17 +24,21 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.monitor;
+
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.monitor.common.StatsRequest;
-import ee.ria.xroad.monitor.common.StatsResponse;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
-import akka.actor.ActorSelection;
+import io.grpc.Channel;
+import io.grpc.stub.StreamObserver;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
+import org.niis.xroad.common.rpc.client.RpcClient;
+import org.niis.xroad.monitor.common.MonitorServiceGrpc;
+import org.niis.xroad.monitor.common.StatsReq;
+import org.niis.xroad.monitor.common.StatsResp;
+import org.springframework.scheduling.TaskScheduler;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 /**
  * System metrics sensor collects information such as
@@ -42,44 +46,31 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class SystemMetricsSensor extends AbstractSensor {
-
     private static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
-    private static final Object MEASURE_MESSAGE = new Object();
-    private static final StatsRequest STATS_REQUEST = new StatsRequest();
 
-    private final FiniteDuration interval
-            = Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
+    private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
 
-    private static final String DEFAULT_AGENT_PATH =
-            "akka://Proxy@127.0.0.1:" + SystemProperties.getProxyActorSystemPort() + "/user/ProxyMonitorAgent";
+    private final Duration interval = Duration.ofSeconds(SystemProperties.getEnvMonitorSystemMetricsSensorInterval());
 
-    private final ActorSelection agent;
 
-    /**
-     * Create new Sensor with a default agent path.
-     */
-    public SystemMetricsSensor() {
-        this(DEFAULT_AGENT_PATH);
-    }
-
-    /**
-     * Create new Sensor with a custom agent path
-     * @param agentPath
-     */
-    public SystemMetricsSensor(String agentPath) {
+    public SystemMetricsSensor(TaskScheduler taskScheduler) throws Exception {
+        super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
-        this.agent = context().actorSelection(agentPath);
-        scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
+
+        this.proxyRpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
+                SystemProperties.getProxyGrpcPort(), ProxyRpcExecutionContext::new);
+
+        scheduleSingleMeasurement(getInterval());
     }
 
     /**
      * Update sensor metrics
      */
-    private void updateMetrics(StatsResponse stats) {
+    private void updateMetrics(StatsResp stats) {
         MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
         registryHolder
                 .getOrCreateHistogram(SystemMetricNames.SYSTEM_CPU_LOAD)
-                .update((long)(stats.getSystemCpuLoad() * SYSTEM_CPU_LOAD_MULTIPLIER));
+                .update((long) (stats.getSystemCpuLoad() * SYSTEM_CPU_LOAD_MULTIPLIER));
         registryHolder
                 .getOrCreateHistogram(SystemMetricNames.FREE_PHYSICAL_MEMORY)
                 .update(stats.getFreePhysicalMemorySize());
@@ -104,20 +95,40 @@ public class SystemMetricsSensor extends AbstractSensor {
     }
 
     @Override
-    public void onReceive(final Object message) {
-        log.trace("onReceive({})", message);
-        if (MEASURE_MESSAGE == message) {
-            agent.tell(STATS_REQUEST, self());
-            scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
-        } else if (message instanceof StatsResponse) {
-            updateMetrics((StatsResponse) message);
-        } else {
-            unhandled(message);
+    public void measure() {
+        proxyRpcClient.executeAsync(ctx -> ctx.getMonitorServiceStub().getStats(StatsReq.getDefaultInstance(), new StreamObserver<>() {
+
+            @Override
+            public void onNext(StatsResp value) {
+                updateMetrics(value);
+                scheduleSingleMeasurement(getInterval());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.error("Failed to update system metrics stats. Rescheduling..", t);
+            }
+
+            @Override
+            public void onCompleted() {
+                //NO-OP
+            }
+        }));
+    }
+
+
+    @Override
+    protected Duration getInterval() {
+        return interval;
+    }
+
+    @Getter
+    private static class ProxyRpcExecutionContext implements RpcClient.ExecutionContext {
+        private final MonitorServiceGrpc.MonitorServiceStub monitorServiceStub;
+
+        ProxyRpcExecutionContext(Channel channel) {
+            monitorServiceStub = MonitorServiceGrpc.newStub(channel).withWaitForReady();
         }
     }
 
-    @Override
-    protected FiniteDuration getInterval() {
-        return interval;
-    }
 }

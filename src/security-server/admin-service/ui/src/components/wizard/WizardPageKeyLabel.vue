@@ -42,8 +42,9 @@
           v-model="keyLabel"
           class="wizard-form-input"
           type="text"
-          outlined
-          data-test="key-label-button"
+          variant="outlined"
+          data-test="key-label-input"
+          maxlength="255"
           autofocus
         ></v-text-field>
       </div>
@@ -65,11 +66,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapWritableState } from 'pinia';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     tokenType: {
       type: String,
@@ -77,13 +78,14 @@ export default Vue.extend({
       default: undefined,
     },
   },
+  emits: ['cancel', 'done'],
   data() {
     return {
       disableDone: true,
     };
   },
   computed: {
-    ...mapWritableState(useCsrStore, ['keyLabel']),
+    ...mapWritableState(useCsr, ['keyLabel']),
     keyLabelText(): string {
       if (this.$props.tokenType === 'HARDWARE') {
         return 'wizard.signKey.keyLabel';

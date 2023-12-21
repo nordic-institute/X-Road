@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,8 +25,13 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import akka.actor.Props;
+import ee.ria.xroad.common.CodedException;
+
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Default module manager supporting only software modules.
@@ -35,22 +40,21 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultModuleManagerImpl extends AbstractModuleManager {
 
     @Override
-    protected void initializeModule(ModuleType module) {
+    protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
         if (module instanceof SoftwareModuleType) {
-            initializeSoftwareModule((SoftwareModuleType) module);
+            return createSoftwareModule((SoftwareModuleType) module);
         }
+
+        throw new CodedException(X_INTERNAL_ERROR, "unrecognized module type found!");
     }
 
-    void initializeSoftwareModule(SoftwareModuleType softwareModule) {
-        if (getContext().findChild(softwareModule.getType()).isPresent()) {
-            // already initialized
-            return;
-        }
-
+    AbstractModuleWorker createSoftwareModule(SoftwareModuleType softwareModule) {
         log.debug("Initializing software module");
-
-        Props props = Props.create(SoftwareModuleWorker.class);
-        initializeModuleWorker(softwareModule.getType(), props);
+        return new SoftwareModuleWorker(softwareModule);
     }
 
+    @Override
+    public Optional<Boolean> isHSMModuleOperational() {
+        return Optional.empty();
+    }
 }

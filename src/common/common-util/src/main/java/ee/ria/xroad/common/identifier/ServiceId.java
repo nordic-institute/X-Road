@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,9 +27,8 @@ package ee.ria.xroad.common.identifier;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.vavr.control.Option;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import java.util.Objects;
 
@@ -247,15 +246,13 @@ public interface ServiceId extends XRoadId {
 
     static boolean equals(ServiceId self, Object other) {
         if (self == other) return true;
-        if (!(other instanceof ServiceId)) return false;
+        if (!(other instanceof ServiceId identifier)) return false;
         if (!XRoadId.equals(self, other)) return false;
-        ServiceId identifier = (ServiceId) other;
         if (!Objects.equals(self.getMemberClass(), identifier.getMemberClass())) return false;
         if (!Objects.equals(self.getMemberCode(), identifier.getMemberCode())) return false;
         if (!Objects.equals(self.getSubsystemCode(), identifier.getSubsystemCode())) return false;
         if (!Objects.equals(self.getServiceCode(), identifier.getServiceCode())) return false;
-        if (!Objects.equals(self.getServiceVersion(), identifier.getServiceVersion())) return false;
-        return true;
+        return Objects.equals(self.getServiceVersion(), identifier.getServiceVersion());
     }
 
     static int hashCode(ServiceId self) {

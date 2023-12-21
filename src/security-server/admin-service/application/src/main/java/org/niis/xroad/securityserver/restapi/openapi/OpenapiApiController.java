@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -52,6 +52,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FIL
 public class OpenapiApiController implements OpenapiApi {
 
     static final String OPENAPI_DEFINITION_PATH = "classpath:META-INF/openapi-definition.yaml";
+    static final String OPENAPI_DOWNLOAD_FILENAME = "openapi.yaml";
 
     private final ResourceLoader resourceLoader;
 
@@ -59,7 +60,7 @@ public class OpenapiApiController implements OpenapiApi {
     public ResponseEntity<Resource> downloadOpenApi() {
         try {
             byte[] bytes = IOUtils.toByteArray(resourceLoader.getResource(OPENAPI_DEFINITION_PATH).getInputStream());
-            return ControllerUtil.createAttachmentResourceResponse(bytes, OPENAPI_DEFINITION_PATH);
+            return ControllerUtil.createAttachmentResourceResponse(bytes, OPENAPI_DOWNLOAD_FILENAME);
         } catch (IOException e) {
             log.error("Error reading OpenAPI definition file", e);
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_OPENAPI_FILE_NOT_FOUND));

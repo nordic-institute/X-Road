@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -69,8 +69,6 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
         try {
             timestampAsynchronously();
             //timestampSynchronously();
-
-            awaitTermination();
         } finally {
             testTearDown();
         }

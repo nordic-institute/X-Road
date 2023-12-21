@@ -33,19 +33,19 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import {
-  useCertificationServiceStore,
-  useIntermediateCaStore,
+  useCertificationService,
+  useIntermediateCasService,
 } from '@/store/modules/trust-services';
 import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'IntermediateCaOcspResponders',
   components: { OcspRespondersList },
   computed: {
-    ...mapStores(useCertificationServiceStore, useIntermediateCaStore),
+    ...mapStores(useCertificationService, useIntermediateCasService),
   },
 });
 </script>

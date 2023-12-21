@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -59,6 +59,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 
 /**
  * Base class for a closeable HTTP sender.
+ */
+/*
+ TODO reimplement using Apache HttpClient 5, which is used by other libraries,
+ and then remove older apache http client lib if possible
  */
 @Slf4j
 public abstract class AbstractHttpSender implements Closeable {

@@ -35,6 +35,7 @@ import java.util.Map;
 
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
     private final SettingsGlobalResourcesPageObj globalResourcesPage = new SettingsGlobalResourcesPageObj();
@@ -62,8 +63,8 @@ public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
 
     @Step("Add Global Group dialog is submitted with code {string} and description {string}")
     public void clickCreateGlobalGroup(String code, String desc) {
-        globalResourcesPage.globalGroupForm.inputGroupCode().setValue(code);
-        globalResourcesPage.globalGroupForm.inputGroupDescription().setValue(desc);
+        vTextField(globalResourcesPage.globalGroupForm.inputGroupCode()).setValue(code);
+        vTextField(globalResourcesPage.globalGroupForm.inputGroupDescription()).setValue(desc);
         globalResourcesPage.globalGroupForm.btnConfirm().click();
     }
 

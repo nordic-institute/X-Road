@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,11 @@
  */
 package ee.ria.xroad.proxy.addon;
 
-import akka.actor.ActorSystem;
+import com.google.common.collect.ImmutableList;
+import io.grpc.BindableService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Interface for proxy addons
@@ -35,8 +39,26 @@ public interface AddOn {
     /**
      * Initialization hook called during proxy startup
      *
-     * @param system    proxy actorsystem
+     * @param bindableServiceRegistry proxy gRPC service registry
      */
-    void init(ActorSystem system);
+    void init(BindableServiceRegistry bindableServiceRegistry);
 
+    void shutdown();
+
+    class BindableServiceRegistry {
+        private final List<BindableService> bindableServices = new ArrayList<>();
+
+        /**
+         * Register gRPC bindable service to already present server.
+         *
+         * @param bindableService
+         */
+        public void register(BindableService bindableService) {
+            bindableServices.add(bindableService);
+        }
+
+        public List<BindableService> getRegisteredServices() {
+            return ImmutableList.copyOf(bindableServices);
+        }
+    }
 }

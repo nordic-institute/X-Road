@@ -9,7 +9,10 @@
     <element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
     <element name="clientReg" type="tns:ClientRequestType"/>
     <element name="clientDeletion" type="tns:ClientRequestType"/>
+    <element name="clientDisable" type="tns:ClientRequestType"/>
+    <element name="clientEnable" type="tns:ClientRequestType"/>
     <element name="ownerChange" type="tns:ClientRequestType"/>
+    <element name="addressChange" type="tns:AddressChangeRequestType"/>
 
     <complexType name="AuthCertRegRequestType">
         <sequence>
@@ -84,6 +87,23 @@
             </element>
             <element name="requestId" type="tns:RequestIdType" minOccurs="0" />
         </sequence>
+    </complexType>
+    <complexType name="AddressChangeRequestType">
+      <sequence>
+        <element name="server" type="id:XRoadSecurityServerIdentifierType">
+          <annotation>
+            <documentation>Identifier of the security server the
+              authentication certificate will be associated with.
+            </documentation>
+          </annotation>
+        </element>
+        <element name="address" type="string">
+          <annotation>
+            <documentation>New address of the security server</documentation>
+          </annotation>
+        </element>
+        <element name="requestId" type="tns:RequestIdType" minOccurs="0" />
+      </sequence>
     </complexType>
     <simpleType name="RequestIdType">
         <annotation>

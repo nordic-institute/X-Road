@@ -28,7 +28,7 @@ import axios from 'axios';
 import { Subsystem, SubsystemAdd } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
-export const subsystemStore = defineStore('subsystem', {
+export const useSubsystem = defineStore('subsystem', {
   actions: {
     async addSubsystem(subsystem: SubsystemAdd) {
       return axios.post('/subsystems', subsystem);

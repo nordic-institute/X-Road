@@ -25,12 +25,19 @@
  * THE SOFTWARE.
  */
 
-@import "./colors";
-
+@import './colors';
+th {
+  height: 48px;
+  background: red;
+  font-weight: 800;
+}
 .xrd-table {
   width: 100%;
-  margin-top: 10px;
   border-collapse: collapse;
+
+  :deep(th.v-data-table__th) {
+    height: 48px;
+  }
 
   td {
     height: 56px;
@@ -38,7 +45,6 @@
     padding-left: 16px;
   }
   th {
-    height: 56px;
     border-bottom: $XRoad-WarmGrey30 solid 1px;
     padding-left: 16px;
     text-align: left;
@@ -83,6 +89,13 @@
   height: 72px;
 }
 
+.data-table {
+  border-radius: 4px;
+}
+
+:deep(.v-data-table-footer) {
+  border-top: thin solid rgba(0, 0, 0, 0.12) !important; /* Matches the color of the Vuetify table line */
+}
 // Wrapper for actions at the end of a row
 .cs-table-actions-wrap {
   width: 100%;

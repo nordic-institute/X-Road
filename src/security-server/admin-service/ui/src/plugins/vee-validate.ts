@@ -23,77 +23,101 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { extend, configure } from 'vee-validate';
+import { configure, defineRule } from 'vee-validate';
 import {
   required,
   email,
+  max,
   min,
   between,
   confirmed,
-} from 'vee-validate/dist/rules';
-import i18n from '../i18n';
+} from '@vee-validate/rules';
+import i18n from './i18n';
 import * as Helpers from '@/util/helpers';
+import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 
-configure({
-  // This should be ok, as it is the vee-validate contract
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultMessage: (field, values: any): string => {
-    // override the field name.
-    values._field_ = i18n.t(`fields.${field}`);
+export function createValidators() {
+  return {
+    install() {
+      configure({
+        generateMessage: (ctx: FieldValidationMetaInfo): string => {
+          const field = ctx.label || i18n.global.t(`fields.${ctx.field}`);
+          const args: Record<string, unknown> = { field };
+          const ruleParams = ctx.rule?.params;
+          switch (ctx.rule?.name) {
+            case 'max': {
+              args.length = Array.isArray(ruleParams)
+                ? ruleParams?.[0]
+                : ruleParams?.['max'];
+              break;
+            }
+            case 'min': {
+              args.length = Array.isArray(ruleParams)
+                ? ruleParams?.[0]
+                : ruleParams?.['min'];
+              break;
+            }
+            case 'between': {
+              args.min = Array.isArray(ruleParams)
+                ? ruleParams?.[0]
+                : ruleParams?.['min'];
+              args.max = Array.isArray(ruleParams)
+                ? ruleParams?.[1]
+                : ruleParams?.['max'];
+              break;
+            }
+          }
+          return i18n.global.t(`validation.messages.${ctx.rule?.name}`, args);
+        },
+      });
 
-    return i18n.t(`validation.${values._rule_}`, values) as string;
-  },
-});
+      // Install required rule and message.
+      defineRule('required', required);
 
-// Install required rule and message.
-extend('required', required);
+      // Install email rule and message.
+      defineRule('email', email);
 
-// Install email rule and message.
-extend('email', email);
+      // Install min rule and message.
+      defineRule('min', min);
 
-// Install min rule and message.
-extend('min', min);
+      // Install min rule and message.
+      defineRule('max', max);
 
-// Install between rule and message.
-extend('between', between);
+      // Install between rule and message.
+      defineRule('between', between);
 
-// Install the confirmed rule for cross-field validation (password confirm)
-extend('confirmed', confirmed);
+      // Install the confirmed rule for cross-field validation (password confirm)
+      defineRule('confirmed', confirmed);
 
-extend('restUrl', {
-  validate: (value) => {
-    if (Helpers.isValidRestURL(value)) {
-      return true;
-    }
-    return false;
-  },
-  message() {
-    // You might want to generate a more complex message with this function.
-    return i18n.t('customValidation.invalidUrl') as string;
-  },
-});
+      defineRule('restUrl', (value: string) => {
+        if (Helpers.isValidRestURL(value)) {
+          return true;
+        }
+        return i18n.global.t('customValidation.invalidUrl');
+      });
 
-extend('wsdlUrl', {
-  validate: (value) => {
-    if (Helpers.isValidWsdlURL(value)) {
-      return true;
-    }
-    return false;
-  },
-  message() {
-    return i18n.t('customValidation.invalidUrl') as string;
-  },
-});
+      defineRule('wsdlUrl', (value: string) => {
+        if (Helpers.isValidWsdlURL(value)) {
+          return true;
+        }
+        return i18n.global.t('customValidation.invalidUrl');
+      });
 
-const allowedIdentifierPattern = new RegExp('^((?![:/;%\\\\]).)*$');
-extend('xrdIdentifier', {
-  validate: (value) => allowedIdentifierPattern.test(value),
-  message: () => i18n.t('customValidation.invalidXrdIdentifier') as string,
-});
+      const allowedIdentifierPattern = new RegExp('^((?![:/;%\\\\]).)*$');
+      defineRule('xrdIdentifier', (value: string) => {
+        if (allowedIdentifierPattern.test(value)) {
+          return true;
+        }
+        return i18n.global.t('customValidation.invalidXrdIdentifier');
+      });
 
-const allowedEndpointPattern = new RegExp('^\\S*$'); // No spaces
-
-extend('xrdEndpoint', {
-  validate: (value) => allowedEndpointPattern.test(value),
-  message: () => i18n.t('customValidation.invalidEndpoint') as string,
-});
+      const allowedEndpointPattern = new RegExp('^\\S*$'); // No spaces
+      defineRule('xrdEndpoint', (value: string) => {
+        if (allowedEndpointPattern.test(value)) {
+          return true;
+        }
+        return i18n.global.t('customValidation.invalidEndpoint');
+      });
+    },
+  };
+}

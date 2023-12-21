@@ -25,15 +25,24 @@
  */
 
 import { defineStore } from 'pinia';
-import { Endpoint, Service, ServiceClient } from '@/openapi-types';
+import {
+  Endpoint,
+  Service,
+  ServiceClient,
+  ServiceDescription,
+} from '@/openapi-types';
+import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
+import { sortServiceDescriptionServices } from '@/util/sorting';
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
   service: Service;
   serviceClients: ServiceClient[];
+  serviceDescriptions: ServiceDescription[];
 }
 
-export const useServicesStore = defineStore('servicesStore', {
+export const useServices = defineStore('services', {
   state: (): ServicesState => {
     return {
       expandedServiceDescriptions: [],
@@ -45,11 +54,24 @@ export const useServicesStore = defineStore('servicesStore', {
         url: '',
       },
       serviceClients: [],
+      serviceDescriptions: [],
     };
+  },
+  persist: {
+    paths: ['service', 'serviceClients', 'serviceDescriptions'],
   },
   getters: {
     descExpanded: (state) => (id: string) => {
       return state.expandedServiceDescriptions.includes(id);
+    },
+    endpoints: (state) => {
+      if (!state.service.endpoints) {
+        return [];
+      }
+      return state.service.endpoints.filter(
+        (endpoint: Endpoint) =>
+          !(endpoint.method === '*' && endpoint.path === '**'),
+      );
     },
   },
 
@@ -75,21 +97,78 @@ export const useServicesStore = defineStore('servicesStore', {
     },
 
     setService(service: Service) {
-      service.endpoints = service.endpoints?.sort(
-        (a: Endpoint, b: Endpoint) => {
-          const sortByGenerated =
-            a.generated === b.generated ? 0 : a.generated ? -1 : 1;
-          const sortByPathSlashCount =
-            a.path.split('/').length - b.path.split('/').length;
-          const sortByPathLength = a.path.length - b.path.length;
-          return sortByGenerated || sortByPathSlashCount || sortByPathLength;
-        },
-      );
+      service.endpoints = sortEndpoints(service.endpoints);
       this.service = service;
     },
 
     setServiceClients(serviceClients: ServiceClient[]) {
       this.serviceClients = serviceClients;
     },
+
+    fetchServiceDescriptions(clientId: string, sort = true) {
+      return api
+        .get<ServiceDescription[]>(
+          `/clients/${encodePathParameter(clientId)}/service-descriptions`,
+        )
+        .then((res) => {
+          const serviceDescriptions: ServiceDescription[] = res.data;
+          this.serviceDescriptions = sort
+            ? serviceDescriptions.map(sortServiceDescriptionServices)
+            : serviceDescriptions;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    deleteEndpoint(id: string) {
+      return api
+        .remove(`/endpoints/${encodePathParameter(id)}`)
+        .then((res) => {
+          this.service.endpoints?.forEach((item, index) => {
+            if (item.id === id) {
+              this.service.endpoints?.splice(index, 1);
+            }
+          });
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    updateEndpoint(endpoint: Endpoint) {
+      if (!endpoint.id) {
+        throw new Error('Unable to save endpoint: Endpoint id not defined!');
+      }
+      return api
+        .patch<Endpoint>(
+          `/endpoints/${encodePathParameter(endpoint.id)}`,
+          endpoint,
+        )
+        .then((res) => {
+          if (this.service.endpoints) {
+            const endpointIndex = this.service.endpoints.findIndex(
+              (e) => e.id === endpoint.id,
+            );
+            if (endpointIndex) {
+              const endpoints = [...this.service.endpoints];
+              endpoints[endpointIndex] = res.data;
+              this.service.endpoints = sortEndpoints(endpoints);
+            }
+          }
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
   },
 });
+
+function sortEndpoints(endpoints: Endpoint[] | undefined) {
+  return endpoints?.sort((a: Endpoint, b: Endpoint) => {
+    const sortByGenerated =
+      a.generated === b.generated ? 0 : a.generated ? -1 : 1;
+    const sortByPathSlashCount =
+      a.path.split('/').length - b.path.split('/').length;
+    const sortByPathLength = a.path.length - b.path.length;
+    return sortByGenerated || sortByPathSlashCount || sortByPathLength;
+  });
+}

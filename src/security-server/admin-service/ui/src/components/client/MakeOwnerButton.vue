@@ -34,14 +34,14 @@
 
     <!-- Confirm dialog for make owner -->
     <xrd-simple-dialog
-      :dialog="confirmMakeOwner"
+      v-if="confirmMakeOwner"
       :loading="makeOwnerLoading"
       save-button-text="client.action.makeOwner.button"
       title="client.action.makeOwner.confirmTitle"
       @cancel="confirmMakeOwner = false"
       @save="makeOwner()"
     >
-      <div slot="content">
+      <template #content>
         {{ $t('client.action.makeOwner.confirmText1') }}
         <br />
         <br />
@@ -49,32 +49,32 @@
         <br />
         <br />
         {{ $t('client.action.makeOwner.confirmText2') }}
-      </div>
+      </template>
     </xrd-simple-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     id: {
       type: String,
       required: true,
     },
   },
+  emits: ['done'],
   data() {
     return {
       confirmMakeOwner: false as boolean,
       makeOwnerLoading: false as boolean,
     };
   },
-
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     makeOwner(): void {

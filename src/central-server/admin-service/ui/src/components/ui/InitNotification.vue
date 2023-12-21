@@ -52,25 +52,25 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'InitNotification',
   computed: {
-    ...mapState(notificationsStore, {
+    ...mapState(useNotifications, {
       showNotification: 'continueInitialisation',
     }),
   },
   methods: {
-    ...mapActions(notificationsStore, ['setContinueInit']),
+    ...mapActions(useNotifications, ['setContinueInit']),
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .notification-icon {
   color: $XRoad-Success100;

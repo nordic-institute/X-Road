@@ -34,7 +34,7 @@
         <v-card-text>
           <div class="content-wrap">
             <v-img
-              :src="require('../assets/404.png')"
+              :src="image404"
               width="100%"
               height="auto"
               max-height="259"
@@ -65,32 +65,34 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import image404 from '@/assets/404.png';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     TabsBase,
     AlertsContainer,
   },
   computed: {
     ...mapState(useUser, ['firstAllowedTab']),
+    image404(): string {
+      return image404;
+    },
   },
   methods: {
     home(): void {
-      this.$router.replace({
-        name: this.firstAllowedTab.to.name,
-      });
+      this.$router.replace(this.firstAllowedTab.to);
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .xrd-view-common {
   width: 100%;

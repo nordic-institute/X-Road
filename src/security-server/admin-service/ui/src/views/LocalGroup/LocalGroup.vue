@@ -44,16 +44,17 @@
     <div class="px-4 description-field">
       <template v-if="canEditDescription">
         <v-text-field
-          v-model="description"
-          outlined
+            v-model="value"
+          variant="outlined"
           :label="$t('localGroup.description')"
-          hide-details
+
           data-test="local-group-edit-description-input"
+            :error-messages="errors"
           @change="saveDescription"
         ></v-text-field>
       </template>
       <template v-else>
-        <div>{{ description }}</div>
+        <div>{{ value }}</div>
       </template>
     </div>
 
@@ -118,7 +119,7 @@
 
     <!-- Confirm dialog delete group -->
     <xrd-confirm-dialog
-      :dialog="confirmGroup"
+      v-if="confirmGroup"
       title="localGroup.deleteTitle"
       text="localGroup.deleteText"
       @cancel="confirmGroup = false"
@@ -127,7 +128,7 @@
 
     <!-- Confirm dialog remove member -->
     <xrd-confirm-dialog
-      :dialog="confirmMember"
+      v-if="confirmMember"
       title="localGroup.removeTitle"
       text="localGroup.removeText"
       @cancel="confirmMember = false"
@@ -136,7 +137,7 @@
 
     <!-- Confirm dialog remove all members -->
     <xrd-confirm-dialog
-      :dialog="confirmAllMembers"
+      v-if="confirmAllMembers"
       title="localGroup.removeAllTitle"
       text="localGroup.removeAllText"
       @cancel="confirmAllMembers = false"
@@ -155,7 +156,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
 import { GroupMember, LocalGroup } from '@/openapi-types';
 import AddMembersDialog from './AddMembersDialog.vue';
@@ -164,10 +165,15 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
+import { useField } from "vee-validate";
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     AddMembersDialog,
+  },
+  setup() {
+    const { meta, setValue, value, errors } = useField<string>('description', 'required|max:255');
+    return { meta, setValue, value, errors };
   },
   props: {
     clientId: {
@@ -185,7 +191,6 @@ export default Vue.extend({
       confirmMember: false,
       confirmAllMembers: false,
       selectedMember: undefined as GroupMember | undefined,
-      description: undefined as string | undefined,
       group: undefined as LocalGroup | undefined,
       groupCode: '',
       addMembersDialogVisible: false,
@@ -217,26 +222,28 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
 
     saveDescription(): void {
+      if (this.meta.valid) {
       api
         .patch<LocalGroup>(
           `/local-groups/${encodePathParameter(this.groupId)}`,
           {
-            description: this.description,
+            description: this.value,
           },
         )
         .then((res) => {
           this.showSuccess(this.$t('localGroup.descSaved'));
           this.group = res.data;
           this.groupCode = res.data.code;
-          this.description = res.data.description;
+          this.setValue(res.data.description);
         })
         .catch((error) => {
           this.showError(error);
         });
+      }
     },
 
     fetchData(clientId: string, groupId: number | string): void {
@@ -245,7 +252,7 @@ export default Vue.extend({
         .then((res) => {
           this.group = res.data;
           this.groupCode = res.data.code;
-          this.description = res.data.description;
+          this.setValue(res.data.description);
         })
         .catch((error) => {
           this.showError(error);
@@ -337,7 +344,7 @@ export default Vue.extend({
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
           this.showSuccess(this.$t('localGroup.groupDeleted'));
-          this.$router.go(-1);
+          this.$router.back();
         })
         .catch((error) => {
           this.showError(error);
@@ -348,7 +355,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .group-members-row {
   width: 100%;

@@ -34,7 +34,7 @@ dependencies {
     schema "org.hsqldb:hsqldb:$hsqldbVersion"
 }
 
-task schemaExport () {
+task schemaExport() {
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
@@ -42,7 +42,7 @@ task schemaExport () {
             configuration(
                 configurationfile: 'src/main/resources/serverconf.hibernate.cfg.xml',
                 propertyFile: 'src/test/resources/hibernate-schema.properties'
-                )
+            )
             hbm2ddl(
                 export: false,
                 outputfilename: 'schema-export.sql',
@@ -58,7 +58,7 @@ task schemaExport () {
     }
 }
 
-task runServerConfCRUDTest (type: JavaExec) {
+task runServerConfCRUDTest(type: JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/resources/logback-crudtest.xml'
     mainClass = 'ee.ria.xroad.proxy.conf.ServerConfCRUDTest'
     classpath = sourceSets.test.runtimeClasspath
@@ -67,11 +67,11 @@ task runServerConfCRUDTest (type: JavaExec) {
 
 schemaExport.dependsOn compileJava
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }

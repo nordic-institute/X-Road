@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -29,16 +29,23 @@ package org.niis.xroad.cs.test.container.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import liquibase.Liquibase;
+import liquibase.Scope;
 import liquibase.exception.DatabaseException;
 import liquibase.integration.spring.SpringLiquibase;
+import liquibase.logging.core.AbstractLogService;
+import liquibase.ui.LoggerUIService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -47,6 +54,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 public class LiquibaseExecutor extends SpringLiquibase {
+    private static final Logger LIQUIBASE_LOGGER = LoggerFactory.getLogger("liquibase");
     private final PostgresContextualContainer postgresContextualContainer;
 
     public LiquibaseExecutor(PostgresContextualContainer postgresContextualContainer) {
@@ -64,15 +72,18 @@ public class LiquibaseExecutor extends SpringLiquibase {
      * Executes changesets.
      * Will drop any existing data in database.
      */
+    @SneakyThrows
     public void executeChangesets() {
         var stopWatch = StopWatch.createStarted();
 
         if (getDataSource() == null) {
             setDataSource(createDataSource());
         }
-        executeUpdate();
 
-        log.info("Liquibase schema initialized in {} ms.", stopWatch.getTime(TimeUnit.MILLISECONDS));
+        Scope.child(createLiquibaseLoggableScope(), () -> {
+            executeUpdate();
+            log.info("Liquibase schema initialized in {} ms.", stopWatch.getTime(TimeUnit.MILLISECONDS));
+        });
     }
 
     @SneakyThrows
@@ -94,4 +105,22 @@ public class LiquibaseExecutor extends SpringLiquibase {
         return new HikariDataSource(config);
     }
 
+    private Map<String, Object> createLiquibaseLoggableScope() {
+        final Map<String, Object> scopeValues = new HashMap<>();
+        scopeValues.put(Scope.Attr.ui.name(), new LoggerUIService());
+        scopeValues.put(Scope.Attr.logService.name(), new AbstractLogService() {
+            private final LiquibaseSlf4jLogger logger = new LiquibaseSlf4jLogger(LIQUIBASE_LOGGER);
+
+            @Override
+            public int getPriority() {
+                return 1;
+            }
+
+            @Override
+            public liquibase.logging.Logger getLog(Class clazz) {
+                return logger;
+            }
+        });
+        return scopeValues;
+    }
 }

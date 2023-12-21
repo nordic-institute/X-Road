@@ -9,8 +9,9 @@ configurations {
 }
 
 dependencies {
-    intTestImplementation project(path:":central-server:admin-service:infra-jpa", configuration:"changelogJar")
+    intTestImplementation project(path: ":central-server:admin-service:infra-jpa", configuration: "changelogJar")
     intTestImplementation project(":central-server:openapi-model")
+    intTestImplementation project(":common:common-util")
 
     intTestImplementation("com.nortal.test:test-automation-core:$testAutomationFrameworkVersion")
     intTestImplementation("com.nortal.test:test-automation-assert:$testAutomationFrameworkVersion")

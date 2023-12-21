@@ -76,16 +76,12 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
     @Autowired
     EndpointService endpointService;
 
-    private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
+    private List<MemberInfo> memberInfos = new ArrayList<>(List.of(
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
-            TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    TestUtils.SUBSYSTEM1),
-            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    TestUtils.SUBSYSTEM1),
-            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    TestUtils.SUBSYSTEM2),
-            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    "SS5")
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM2),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, "SS5")
     ));
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE),
@@ -100,7 +96,8 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         when(globalConfFacade.getMembers()).thenReturn(memberInfos);
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
-        when(globalConfFacade.getGlobalGroups(any())).thenAnswer(invocation -> {
+        when(globalConfFacade.getGlobalGroups()).thenReturn(globalGroupInfos);
+        when(globalConfFacade.getGlobalGroups(any(String[].class))).thenAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             if (args.length == 0) {
                 return globalGroupInfos;

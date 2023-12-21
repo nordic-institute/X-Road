@@ -29,25 +29,26 @@
     v-if="canDelete"
     data-test="delete-anchor-button"
     outlined
-    @click="$refs.dialog.open()"
+    @click="showDialog = true"
   >
     {{ $t('action.delete') }}
-    <delete-trusted-anchor-dialog
-      ref="dialog"
-      :hash="hash"
-      :identifier="identifier"
-      @deleted="$emit('deleted')"
-    />
   </xrd-button>
+  <delete-trusted-anchor-dialog
+    v-if="showDialog"
+    :hash="hash"
+    :identifier="identifier"
+    @deleted="$emit('deleted')"
+    @cancel="showDialog = false"
+  />
 </template>
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import DeleteTrustedAnchorDialog from './DeleteTrustedAnchorDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { DeleteTrustedAnchorDialog },
   props: {
     hash: {
@@ -59,10 +60,22 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['deleted'],
+  data() {
+    return {
+      showDialog: false,
+    };
+  },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
     canDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_TRUSTED_ANCHOR);
+    },
+  },
+  methods: {
+    onDelete() {
+      this.$emit('deleted');
+      this.showDialog = false;
     },
   },
 });

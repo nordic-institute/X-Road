@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -50,7 +50,7 @@ public class ServiceClientIdentifierConverterTest {
     public void convertLocalGroup() throws Exception {
         ServiceClientIdentifierDto dto = converter.convertId("1234");
         assertEquals(true, dto.isLocalGroup());
-        assertEquals(new Long("1234"), dto.getLocalGroupId());
+        assertEquals(Long.valueOf("1234"), dto.getLocalGroupId());
         assertEquals(null, dto.getXRoadId());
     }
 

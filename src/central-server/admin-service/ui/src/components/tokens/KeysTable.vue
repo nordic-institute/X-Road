@@ -33,22 +33,20 @@
       :items-per-page="-1"
       :loading="loadingKeys"
       item-key="id"
-      hide-default-footer
       class="keys-table"
     >
       <template #[`item.id`]="{ item }">
         <xrd-icon-base class="key-icon">
-          <XrdIconKey />
+          <xrd-icon-key />
         </xrd-icon-base>
         <span :data-test="`key-label-text`">{{ keyLabel(item) }}</span>
       </template>
       <template #[`item.createdAt`]="{ item }">
-        {{ item.created_at | formatDateTime }}
+        <date-time :value="item.created_at" />
       </template>
       <template #[`item.actions`]="{ item }">
         <xrd-button
           v-if="canActivateKey(item)"
-          :outlined="false"
           :data-test="`key-${keyLabel(item)}-activate-button`"
           text
           @click="openActivateKeyDialog(item)"
@@ -57,7 +55,6 @@
         </xrd-button>
         <xrd-button
           v-if="canDeleteKey(item)"
-          :outlined="false"
           :data-test="`key-${keyLabel(item)}-delete-button`"
           text
           @click="openDeleteKeyDialog(item)"
@@ -65,15 +62,16 @@
           {{ $t('action.delete') }}
         </xrd-button>
       </template>
+      <template #bottom />
     </v-data-table>
     <signing-key-delete-dialog
-      v-if="showDeleteKeyDialog"
+      v-if="selectedKey && showDeleteKeyDialog"
       :signing-key="selectedKey"
       @cancel="closeDialogs"
       @key-delete="updateKeys('delete')"
     />
     <signing-key-activate-dialog
-      v-if="showActivateKeyDialog"
+      v-if="selectedKey && showActivateKeyDialog"
       :signing-key="selectedKey"
       @cancel="closeDialogs"
       @key-activate="updateKeys('activate')"
@@ -85,21 +83,29 @@
 /**
  * Table component for an array of keys
  */
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
 import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
-import { DataTableHeader } from 'vuetify';
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDialog.vue';
 import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
+import DateTime from '@/components/ui/DateTime.vue';
+import { XrdIconKey } from '@niis/shared-ui';
 
-export default Vue.extend({
-  components: { SigningKeyActivateDialog, SigningKeyDeleteDialog },
+export default defineComponent({
+  components: {
+    DateTime,
+    SigningKeyActivateDialog,
+    SigningKeyDeleteDialog,
+    VDataTable,
+    XrdIconKey,
+  },
   props: {
     keys: {
-      type: Array as Prop<ConfigurationSigningKey[]>,
+      type: Array as PropType<ConfigurationSigningKey[]>,
       required: true,
     },
     loadingKeys: {
@@ -107,15 +113,16 @@ export default Vue.extend({
       default: false,
     },
   },
+  emits: ['update-keys'],
   data() {
     return {
-      selectedKey: {},
+      selectedKey: null as ConfigurationSigningKey | null,
       showDeleteKeyDialog: false,
       showActivateKeyDialog: false,
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
     canDeleteKeys(): boolean {
       return this.hasPermission(Permissions.DELETE_SIGNING_KEY);
     },
@@ -125,22 +132,19 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('keys.signKey') as string,
+          title: this.$t('keys.signKey') as string,
           align: 'start',
-          value: 'id',
-          class: 'xrd-table-header text-uppercase',
+          key: 'id',
         },
         {
-          text: this.$t('keys.created') as string,
+          title: this.$t('keys.created') as string,
           align: 'start',
-          value: 'createdAt',
-          class: 'xrd-table-header text-uppercase',
+          key: 'createdAt',
         },
         {
-          text: '',
+          title: '',
           align: 'end',
-          value: 'actions',
-          class: 'xrd-table-header text-uppercase',
+          key: 'actions',
         },
       ];
     },
@@ -176,14 +180,14 @@ export default Vue.extend({
     closeDialogs() {
       this.showDeleteKeyDialog = false;
       this.showActivateKeyDialog = false;
-      this.selectedKey = {};
+      this.selectedKey = null;
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .key-icon {
   margin-right: 18px;

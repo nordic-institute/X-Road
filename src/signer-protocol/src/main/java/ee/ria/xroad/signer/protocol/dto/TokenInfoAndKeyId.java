@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -33,22 +35,30 @@ import java.io.Serializable;
  * DTO for holding a TokenInfo and key id..
  */
 @Value
-public final class TokenInfoAndKeyId implements Serializable {
+@ToString
+public class TokenInfoAndKeyId implements Serializable {
+    @JsonIgnore
+    TokenInfo tokenInfo;
 
-    private final TokenInfo tokenInfo;
-
-    private final String keyId;
+    String keyId;
 
     /**
      * Return the KeyInfo object which is part of this TokenInfo and has correct id,
      * or null if no match
      */
     public KeyInfo getKeyInfo() {
-        for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
+        for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
             if (keyId.equals(keyInfo.getId())) {
                 return keyInfo;
             }
         }
         return null;
+    }
+
+    public TokenInfoAndKeyIdProto asMessage() {
+        return TokenInfoAndKeyIdProto.newBuilder()
+                .setTokenInfo(tokenInfo.asMessage())
+                .setKeyId(keyId)
+                .build();
     }
 }

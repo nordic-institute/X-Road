@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,9 +27,8 @@ package ee.ria.xroad.common.identifier;
 
 import ee.ria.xroad.common.util.NoCoverage;
 
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import java.util.Objects;
 
@@ -158,13 +157,11 @@ public interface SecurityServerId extends XRoadId {
 
     static boolean equals(SecurityServerId self, Object other) {
         if (self == other) return true;
-        if (!(other instanceof SecurityServerId)) return false;
+        if (!(other instanceof SecurityServerId identifier)) return false;
         if (!XRoadId.equals(self, other)) return false;
-        SecurityServerId identifier = (SecurityServerId) other;
         if (!Objects.equals(self.getMemberClass(), identifier.getMemberClass())) return false;
         if (!Objects.equals(self.getMemberCode(), identifier.getMemberCode())) return false;
-        if (!Objects.equals(self.getServerCode(), identifier.getServerCode())) return false;
-        return true;
+        return Objects.equals(self.getServerCode(), identifier.getServerCode());
     }
 
     static int hashCode(SecurityServerId self) {

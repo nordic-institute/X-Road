@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,14 +28,11 @@ package ee.ria.xroad.monitor;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
+import org.springframework.scheduling.TaskScheduler;
 
 import java.io.File;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 /**
  * Collects disk space information
@@ -46,17 +43,18 @@ public class DiskSpaceSensor extends AbstractSensor {
     /**
      * Constructor
      */
-    public DiskSpaceSensor() {
+    public DiskSpaceSensor(TaskScheduler taskScheduler) {
+        super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
         updateMetrics();
-        scheduleSingleMeasurement(getInterval(), new DiskSpaceMeasure());
+        scheduleSingleMeasurement(getInterval());
     }
 
     private void updateMetrics() {
         File[] roots = File.listRoots();
         if (roots != null && roots.length > 0) {
             final MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
-            for (File drive: roots) {
+            for (File drive : roots) {
                 SimpleSensor<Long> total = registryHolder.getOrCreateSimpleSensor(
                         String.format("%s_%s", SystemMetricNames.DISK_SPACE_TOTAL, drive));
 
@@ -70,25 +68,15 @@ public class DiskSpaceSensor extends AbstractSensor {
     }
 
     @Override
-    public void onReceive(Object o) throws Exception {
-        if (o instanceof DiskSpaceMeasure) {
-            log.debug("Updating metrics");
-            updateMetrics();
-            scheduleSingleMeasurement(getInterval(), new DiskSpaceMeasure());
-        }
+    protected void measure() {
+        log.debug("Updating metrics");
+        updateMetrics();
+        scheduleSingleMeasurement(getInterval());
     }
 
     @Override
-    protected FiniteDuration getInterval() {
-        return Duration.create(SystemProperties.getEnvMonitorDiskSpaceSensorInterval(), TimeUnit.SECONDS);
+    protected Duration getInterval() {
+        return Duration.ofSeconds(SystemProperties.getEnvMonitorDiskSpaceSensorInterval());
     }
 
-    private static class DiskSpaceMeasure { }
-
-    @AllArgsConstructor
-    @Getter
-    private static class SensorPair {
-        private final SimpleSensor<Long> total;
-        private final SimpleSensor<Long> free;
-    }
 }

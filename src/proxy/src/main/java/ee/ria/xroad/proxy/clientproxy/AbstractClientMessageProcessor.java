@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -41,13 +41,12 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -142,7 +141,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         return addresses;
     }
 
-    private void updateOpMonitoringServiceSecurityServerAddress(URI addresses[], HttpSender httpSender) {
+    private void updateOpMonitoringServiceSecurityServerAddress(URI[] addresses, HttpSender httpSender) {
         if (addresses.length == 1) {
             opMonitoringData.setServiceSecurityServerAddress(addresses[0].getHost());
         } else {

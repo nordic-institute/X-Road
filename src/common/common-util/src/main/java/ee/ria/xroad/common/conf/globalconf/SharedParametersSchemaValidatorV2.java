@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -38,7 +38,7 @@ import java.io.StringReader;
  * Schema validator of shared parameters.
  */
 public class SharedParametersSchemaValidatorV2 extends SchemaValidator {
-    private static final Schema SCHEMA = createSchema("globalconf/shared-parameters.xsd");
+    private static final Schema SCHEMA = createSchema("globalconf/v2/shared-parameters.xsd");
 
     public static Schema getSchema() {
         return SCHEMA;

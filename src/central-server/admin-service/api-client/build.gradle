@@ -9,5 +9,5 @@ dependencies {
     implementation project(':common:common-verifier')
 
     api("org.springframework.cloud:spring-cloud-starter-openfeign")
-    api ("io.github.openfeign:feign-hc5:$openFeignVersion")
+    api("io.github.openfeign:feign-hc5:$openFeignVersion")
 }

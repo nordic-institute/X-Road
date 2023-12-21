@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,34 +27,30 @@ package ee.ria.xroad.proxymonitor.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.monitor.common.SystemMetricsRequest;
-import ee.ria.xroad.monitor.common.SystemMetricsResponse;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
 
-import akka.actor.ActorSelection;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
+import io.grpc.Channel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-import scala.concurrent.Future;
-import scala.concurrent.duration.Duration;
+import org.niis.xroad.common.rpc.client.RpcClient;
+import org.niis.xroad.monitor.common.MetricsServiceGrpc;
+import org.niis.xroad.monitor.common.SystemMetricsReq;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by hyoty on 25.9.2015.
  */
 @Slf4j
 public class MonitorClient {
+    private static final int TIMEOUT_AWAIT = 10 * 1000;
 
-    public static final int TIMEOUT_AWAIT = 10;
-    public static final int TIMEOUT_REQUEST = 5;
+    private final RpcClient<MetricsRpcExecutionContext> metricsRpcClient;
 
-    private final ActorSelection metricsProvider;
-
-    public MonitorClient(ActorSelection metricsProvider) {
-        this.metricsProvider = metricsProvider;
+    public MonitorClient() throws Exception {
+        this.metricsRpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
+                SystemProperties.getEnvMonitorPort(), TIMEOUT_AWAIT, MetricsRpcExecutionContext::new);
     }
 
     /**
@@ -62,19 +58,28 @@ public class MonitorClient {
      */
     public MetricSetType getMetrics(List<String> metricNames, boolean isOwner) {
         try {
-            final Future<Object> response = Patterns.ask(metricsProvider,
-                    new SystemMetricsRequest(metricNames, isOwner),
-                    Timeout.apply(TIMEOUT_REQUEST, TimeUnit.SECONDS));
-            Object obj = Await.result(response, Duration.apply(TIMEOUT_AWAIT, TimeUnit.SECONDS));
-            if (obj instanceof SystemMetricsResponse) {
-                final SystemMetricsResponse result = (SystemMetricsResponse) obj;
-                return MetricTypes.of(result.getMetrics());
-            } else {
-                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Unexpected response");
-            }
+            var response = metricsRpcClient.execute(ctx -> ctx.getMetricsServiceBlockingStub().getMetrics(SystemMetricsReq.newBuilder()
+                    .setIsClientOwner(isOwner)
+                    .addAllMetricNames(metricNames)
+                    .build()));
+
+            return MetricTypes.of(response.getMetrics());
         } catch (Exception e) {
             log.warn("Unable to read metrics", e);
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Unable to read metrics");
+        }
+    }
+
+    public void shutdown() {
+        metricsRpcClient.shutdown();
+    }
+
+    @Getter
+    private static class MetricsRpcExecutionContext implements RpcClient.ExecutionContext {
+        private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
+
+        MetricsRpcExecutionContext(Channel channel) {
+            metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 

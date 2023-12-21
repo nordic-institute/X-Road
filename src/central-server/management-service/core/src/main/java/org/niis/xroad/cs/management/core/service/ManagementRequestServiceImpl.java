@@ -1,21 +1,21 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,6 +28,7 @@ package org.niis.xroad.cs.management.core.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 
@@ -36,8 +37,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
 import org.niis.xroad.cs.management.core.api.ManagementRequestService;
+import org.niis.xroad.cs.openapi.model.AddressChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
@@ -63,14 +67,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     public Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType) {
         var managementRequest = createRequestDto(request, requestType);
 
-        var result = managementRequestsApi.addManagementRequest(managementRequest);
-        if (!result.hasBody()) {
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
-        } else {
-            return Optional.ofNullable(result.getBody())
-                    .map(ManagementRequestDto::getId)
-                    .orElse(null);
-        }
+        return addManagementRequestInternal(managementRequest);
     }
 
     @Override
@@ -81,6 +78,20 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
                 .origin(ManagementRequestOriginDto.SECURITY_SERVER)
                 .securityServerId(securityServerIdConverter.convertId(request.getServer()));
 
+        return addManagementRequestInternal(managementRequest);
+    }
+
+    @Override
+    public Integer addManagementRequest(AddressChangeRequestType request) {
+        var managementRequest = new AddressChangeRequestDto()
+                .serverAddress(request.getAddress())
+                .type(ManagementRequestTypeDto.ADDRESS_CHANGE_REQUEST)
+                .origin(ManagementRequestOriginDto.SECURITY_SERVER)
+                .securityServerId(securityServerIdConverter.convertId(request.getServer()));
+        return addManagementRequestInternal(managementRequest);
+    }
+
+    private Integer addManagementRequestInternal(ManagementRequestDto managementRequest) {
         var result = managementRequestsApi.addManagementRequest(managementRequest);
         if (!result.hasBody()) {
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Empty response");
@@ -92,26 +103,24 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     }
 
     private ManagementRequestDto createRequestDto(ClientRequestType request, ManagementRequestType requestType) {
-        ManagementRequestDto managementRequest;
-        switch (requestType) {
-            case CLIENT_REGISTRATION_REQUEST:
-                managementRequest = new ClientRegistrationRequestDto()
-                        .clientId(clientIdConverter.convertId(request.getClient()))
-                        .type(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
-                break;
-            case OWNER_CHANGE_REQUEST:
-                managementRequest = new OwnerChangeRequestDto()
-                        .clientId(clientIdConverter.convertId(request.getClient()))
-                        .type(ManagementRequestTypeDto.OWNER_CHANGE_REQUEST);
-                break;
-            case CLIENT_DELETION_REQUEST:
-                managementRequest = new ClientDeletionRequestDto()
-                        .clientId(clientIdConverter.convertId(request.getClient()))
-                        .type(ManagementRequestTypeDto.CLIENT_DELETION_REQUEST);
-                break;
-            default:
-                throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
-        }
+        ManagementRequestDto managementRequest = switch (requestType) {
+            case CLIENT_REGISTRATION_REQUEST -> new ClientRegistrationRequestDto()
+                    .clientId(clientIdConverter.convertId(request.getClient()))
+                    .type(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
+            case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestDto()
+                    .clientId(clientIdConverter.convertId(request.getClient()))
+                    .type(ManagementRequestTypeDto.OWNER_CHANGE_REQUEST);
+            case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestDto()
+                    .clientId(clientIdConverter.convertId(request.getClient()))
+                    .type(ManagementRequestTypeDto.CLIENT_DELETION_REQUEST);
+            case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestDto()
+                    .clientId(clientIdConverter.convertId(request.getClient()))
+                    .type(ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST);
+            case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestDto()
+                    .clientId(clientIdConverter.convertId(request.getClient()))
+                    .type(ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST);
+            default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
+        };
 
         managementRequest.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerIdConverter.convertId(request.getServer()));

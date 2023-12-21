@@ -1,20 +1,20 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,6 +66,7 @@ public class ApiKeyService {
     private final ApiKeyRepository apiKeyRepository;
     private final CacheManager cacheManager;
     private final AuditDataHelper auditDataHelper;
+    private final SecurityHelper securityHelper;
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,
@@ -97,6 +99,7 @@ public class ApiKeyService {
             throw new InvalidRoleNameException("missing roles");
         }
         Set<Role> roles = Role.getForNames(roleNames);
+        verifyUserCanCreateApiKeyForRoles(roles);
         String plainKey = createApiKey();
         String encodedKey = encode(plainKey);
         PersistentApiKeyType apiKey = new PersistentApiKeyType(encodedKey,
@@ -106,6 +109,28 @@ public class ApiKeyService {
         auditLog(apiKey);
 
         return new PlaintextApiKeyDto(apiKey.getId(), plainKey, encodedKey, roles);
+    }
+
+    private void verifyUserCanUpdateApiKeyRoles(PersistentApiKeyType apiKey, Set<Role> roles) {
+        final Set<Role> currentKeyRoles = apiKey.getRoles();
+        for (Role role : roles) {
+            // if the role assigned to api key, it is allowed to leave it
+            if (!currentKeyRoles.contains(role)) {
+                verifyUserCanAssignRole(role);
+            }
+        }
+    }
+
+    private void verifyUserCanAssignRole(Role role) {
+        if (role != Role.XROAD_MANAGEMENT_SERVICE) {
+            securityHelper.verifyAuthority(role.getGrantedAuthorityName());
+        } else {
+            securityHelper.verifyAuthority(Role.XROAD_SYSTEM_ADMINISTRATOR.getGrantedAuthorityName());
+        }
+    }
+
+    private void verifyUserCanCreateApiKeyForRoles(Set<Role> roles) {
+        roles.forEach(this::verifyUserCanAssignRole);
     }
 
     private void auditLog(PersistentApiKeyType apiKey) {
@@ -149,6 +174,7 @@ public class ApiKeyService {
             throw new InvalidRoleNameException("missing roles");
         }
         Set<Role> roles = Role.getForNames(roleNames);
+        verifyUserCanUpdateApiKeyRoles(apiKeyType, roles);
         apiKeyType.setRoles(roles);
         apiKeyRepository.saveOrUpdate(apiKeyType);
         return apiKeyType;

@@ -29,14 +29,14 @@
       <div class="xrd-view-title">{{ $t('tab.keys.ssTlsCertificate') }}</div>
       <div>
         <help-button
-          help-image="tls_certificate.png"
+          :help-image="helpImg"
           help-title="keys.helpTitleSS"
           help-text="keys.helpTextSS"
         ></help-button>
       </div>
     </div>
 
-    <div class="dtlv-tools">
+    <div class="detail-view-tools">
       <xrd-button
         v-if="generateKeyVisible"
         class="button-spacing"
@@ -112,7 +112,7 @@
           class="clickable-link"
           @click="certificateClick()"
         >
-          {{ certificate.hash | colonize }}
+          {{ $filters.colonize(certificate.hash) }}
         </div>
       </div>
       <XrdEmptyPlaceholder
@@ -127,19 +127,20 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { CertificateDetails } from '@/openapi-types';
 import * as api from '@/util/api';
 import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
-import { FileUploadResult } from '@niis/shared-ui';
 import HelpButton from '../HelpButton.vue';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
+import { FileUploadResult } from '@/ui-types';
+import helpImg from '@/assets/tls_certificate.png';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     GenerateTlsAndCertificateDialog,
     HelpButton,
@@ -154,6 +155,9 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
+    helpImg(): string {
+      return helpImg;
+    },
     generateKeyVisible(): boolean {
       return this.hasPermission(Permissions.GENERATE_INTERNAL_TLS_KEY_CERT);
     },

@@ -42,7 +42,7 @@
           : 'False'
       "
       data-test="tls-auth-card"
-      @actionClicked="showEditTlsAuthDialog = true"
+      @action-clicked="showEditTlsAuthDialog = true"
     />
 
     <info-card
@@ -55,7 +55,7 @@
           .certificate_profile_info || ''
       "
       data-test="cert-profile-card"
-      @actionClicked="showEditCertProfileDialog = true"
+      @action-clicked="showEditCertProfileDialog = true"
     />
 
     <!-- Edit TLS auth dialog -->
@@ -65,7 +65,7 @@
         certificationServiceStore.currentCertificationService
       "
       @cancel="hideEditTlsAuthDialog"
-      @tlsAuthChanged="hideEditTlsAuthDialog"
+      @tls-auth-changed="hideEditTlsAuthDialog"
     ></EditTlsAuthDialog>
 
     <!-- Edit cert profile dialog -->
@@ -75,7 +75,7 @@
         certificationServiceStore.currentCertificationService
       "
       @cancel="hideEditCertProfileDialog"
-      @tlsAuthChanged="hideEditCertProfileDialog"
+      @tls-auth-changed="hideEditCertProfileDialog"
     ></EditCertProfileDialog>
   </main>
 </template>
@@ -84,16 +84,16 @@
 /**
  * Component for a Certification Service details view
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapState, mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import { Permissions } from '@/global';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import EditCertProfileDialog from '@/components/certificationServices/EditCertProfileDialog.vue';
 import EditTlsAuthDialog from '@/components/certificationServices/EditTlsAuthDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificationServiceSettings',
   components: {
     EditTlsAuthDialog,
@@ -107,8 +107,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useCertificationService),
+    ...mapState(useUser, ['hasPermission']),
     allowEditSettings(): boolean {
       return this.hasPermission(Permissions.EDIT_APPROVED_CA);
     },

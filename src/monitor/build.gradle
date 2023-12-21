@@ -1,49 +1,44 @@
 plugins {
-    id 'java'
     id 'com.github.johnrengelman.shadow'
 }
 
 ext {
-  mainClassName = "ee.ria.xroad.monitor.MonitorMain"
+    mainClassName = "ee.ria.xroad.monitor.MonitorMain"
 }
 
 jar {
-  manifest {
-    attributes  'Main-Class': mainClassName
-  }
-}
-
-repositories {
-    mavenCentral()
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
 }
 
 dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
     implementation project(':common:common-util')
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
     implementation project(':serverconf')
 
+    implementation('org.springframework:spring-context')
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
     implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
     testImplementation project(':common:common-test')
-    testImplementation "junit:junit:$junitVersion"
-    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
-jar {
-    enabled = false
-}
-
 shadowJar {
-    append('reference.conf')
     exclude('**/module-info.class')
     archiveBaseName = "monitor"
     archiveClassifier = ''
+    mergeServiceFiles()
 }
 
-build.dependsOn shadowJar
+jar.finalizedBy shadowJar
+
+test {
+    useJUnitPlatform()
+}

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.management.core.api;
 
+import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 
@@ -35,4 +36,6 @@ public interface ManagementRequestService {
     Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
 
     Integer addManagementRequest(AuthCertDeletionRequestType request);
+
+    Integer addManagementRequest(AddressChangeRequestType request);
 }

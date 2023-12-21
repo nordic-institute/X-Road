@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,36 +25,26 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.FindByQueryId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
-import ee.ria.xroad.common.messagelog.TimestampMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.JobManager;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
 
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.LogRecord;
+import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_TIMESTAMPING_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 
 /**
@@ -62,15 +52,8 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
  */
 @Slf4j
 public final class MessageLog {
-
-    private static final int ASK_TIMEOUT = 120;
-
-    public static final String LOG_MANAGER = "LogManager";
-
     private static final String LOG_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "proxy.messageLogManagerImpl";
-    public static final String CONTROL_AWARE_DISPATCHER = "akka.control-aware-dispatcher";
-
-    private static ActorRef logManager;
+    private static AbstractLogManager logManager;
 
     private MessageLog() {
     }
@@ -78,21 +61,27 @@ public final class MessageLog {
     /**
      * Initializes the message log using the provided actor system. Use control aware mailbox.
      *
-     * @param actorSystem the actor system
-     * @param jobManager  the job manager
+     * @param jobManager the job manager
      * @return false if NullLogManager was initialized, true otherwise
-     * @throws Exception if initialization fails
      */
-    public static boolean init(ActorSystem actorSystem, JobManager jobManager) {
+    public static boolean init(JobManager jobManager) {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
 
-        logManager = actorSystem.actorOf(Props.create(clazz, jobManager).withDispatcher(CONTROL_AWARE_DISPATCHER),
-                LOG_MANAGER);
+        try {
+            logManager = clazz.getDeclaredConstructor(JobManager.class).newInstance(jobManager);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize LogManager", e);
+        }
 
         return NullLogManager.class != clazz;
     }
+
+    public static void shutdown() {
+        logManager.shutdown();
+    }
+
 
     /**
      * Save the message and signature to message log. Attachments are not logged.
@@ -103,9 +92,10 @@ public final class MessageLog {
      * @param xRequestId (optional) additional request if to distinguish request/response pairs
      */
     public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide,
-            String xRequestId) {
+                           String xRequestId) {
         try {
-            ask(new SoapLogMessage(message, signature, clientSide, xRequestId));
+            assertInitialized();
+            logManager.log(new SoapLogMessage(message, signature, clientSide, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }
@@ -115,9 +105,10 @@ public final class MessageLog {
      * Save the message and signature to message log. The message body is saved from an input stream.
      */
     public static void log(RestRequest message, SignatureData signature, CacheInputStream body, boolean clientside,
-            String xRequestId) {
+                           String xRequestId) {
         try {
-            ask(new RestLogMessage(message.getQueryId(), message.getClientId(), message.getServiceId(),
+            assertInitialized();
+            logManager.log(new RestLogMessage(message.getQueryId(), message.getClientId(), message.getServiceId(),
                     message, signature, body, clientside, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
@@ -128,9 +119,10 @@ public final class MessageLog {
      * Save the message and signature to message log. The message body is saved from an input stream.
      */
     public static void log(RestRequest request, RestResponse message,
-            SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
+                           SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
         try {
-            ask(new RestLogMessage(request.getQueryId(), request.getClientId(), request.getServiceId(),
+            assertInitialized();
+            logManager.log(new RestLogMessage(request.getQueryId(), request.getClientId(), request.getServiceId(),
                     message, signature, body, clientside, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
@@ -150,23 +142,11 @@ public final class MessageLog {
         log(request, message, signature, body, clientside, null);
     }
 
-    /**
-     * Returns a log record for a given message Query Id, start and end time.
-     *
-     * @param queryId   the message query id
-     * @param startTime the start time
-     * @param endTime   the end time
-     * @return the log record or null, if log record is not found in database.
-     */
-    public static LogRecord findByQueryId(String queryId, Date startTime, Date endTime) {
-        try {
-            assertInitialized();
-            log.trace("findByQueryId({}, {}, {})", queryId, startTime, endTime);
-            return (LogRecord) ask(new FindByQueryId(queryId, startTime, endTime));
-        } catch (Exception e) {
-            throw translateException(e);
-        }
+    public static Map<String, DiagnosticsStatus> getDiagnosticStatus() {
+        assertInitialized();
+        return logManager.getDiagnosticStatus();
     }
+
 
     /**
      * Returns a time-stamp record for a given message record.
@@ -177,7 +157,8 @@ public final class MessageLog {
     public static TimestampRecord timestamp(MessageRecord record) {
         try {
             log.trace("timestamp()");
-            return (TimestampRecord) ask(new TimestampMessage(record.getId()));
+            assertInitialized();
+            return logManager.timestamp(record.getId());
         } catch (Exception e) {
             throw translateWithPrefix(X_TIMESTAMPING_FAILED_X, e);
         }
@@ -202,16 +183,4 @@ public final class MessageLog {
         }
     }
 
-    private static Object ask(Object message) throws Exception {
-        assertInitialized();
-
-        Timeout timeout = new Timeout(ASK_TIMEOUT, TimeUnit.SECONDS);
-        Object result = Await.result(Patterns.ask(logManager, message, timeout), timeout.duration());
-
-        if (result instanceof Exception) {
-            throw (Exception) result;
-        } else {
-            return result;
-        }
-    }
 }

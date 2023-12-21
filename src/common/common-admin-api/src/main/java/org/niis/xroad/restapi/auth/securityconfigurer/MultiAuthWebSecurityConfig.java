@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,11 +27,12 @@ package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 
 /**
  * Security configuration follows https://spring.io/guides/gs/securing-web/
@@ -59,11 +60,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
  * - and finally, this configurer defines global constants for configuration order and
  * sets up shared configuration such as web security debugging
  */
+@Configuration
 @EnableWebSecurity
+//TODO #SpringBoot3 @EnableMethodSecurity(proxyTargetClass = true) https://github.com/spring-projects/spring-security/issues/13625
 @EnableGlobalMethodSecurity(proxyTargetClass = true, prePostEnabled = true)
 @Slf4j
-@Order(MultiAuthWebSecurityConfig.GLOBAL_CONFIGURATION_SECURITY_ORDER)
-public class MultiAuthWebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class MultiAuthWebSecurityConfig {
     public static final int API_KEY_MANAGEMENT_SECURITY_ORDER = 1;
     public static final int API_SECURITY_ORDER = 2;
     public static final int STATIC_ASSETS_SECURITY_ORDER = 3;
@@ -75,10 +77,10 @@ public class MultiAuthWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * Toggle debugging based on property value
-     * @param web
-     * @throws Exception
      */
-    public void configure(WebSecurity web) throws Exception {
-        web.debug(isWebSecurityDebugEnabled);
+    @Bean
+    @Order(MultiAuthWebSecurityConfig.GLOBAL_CONFIGURATION_SECURITY_ORDER)
+    public WebSecurityCustomizer multiAuthSecurityCustomizer() {
+        return customizer -> customizer.debug(isWebSecurityDebugEnabled);
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,19 +29,19 @@ import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import jakarta.xml.bind.DatatypeConverter;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.signature.ObjectContainer;
 import org.apache.xml.security.signature.SignedInfo;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
-import org.apache.xml.security.utils.Base64;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.crypto.dsig.DigestMethod;
 
 import java.io.IOException;
@@ -174,7 +174,7 @@ final class SignatureXmlBuilder {
             signatureValueElement.removeChild(signatureValueElement.getFirstChild());
         }
 
-        String base64codedValue = Base64.encode(signatureValue);
+        String base64codedValue = Base64.encodeBase64String(signatureValue);
 
         if (base64codedValue.length() > MAX_LINE_LENGTH && !org.apache.xml.security.utils.XMLUtils.ignoreLineBreaks()) {
             base64codedValue = "\n" + base64codedValue + "\n";
@@ -205,7 +205,7 @@ final class SignatureXmlBuilder {
 
             return si.getCanonicalizedOctetStream();
         } catch (XMLSecurityException ex) {
-            throw new XMLSignatureException("empty", ex);
+            throw new XMLSignatureException(ex, "empty");
         }
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 import org.niis.xroad.cs.admin.core.entity.CaInfoEntity;
@@ -41,8 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = {ApprovedCaMapperImpl.class})
 class ApprovedCaMapperTest {
     private static final String URL = "https://github.com";
-    private static final Instant DATE_FROM = Instant.now().minusSeconds(60);
-    private static final Instant DATE_TO = Instant.now();
+    private static final Instant DATE_FROM = TimeUtils.now().minusSeconds(60);
+    private static final Instant DATE_TO = TimeUtils.now();
 
     @Autowired
     private ApprovedCaMapper approvedCaMapper;

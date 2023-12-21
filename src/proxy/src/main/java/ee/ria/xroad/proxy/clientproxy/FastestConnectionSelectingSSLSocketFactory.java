@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier.verify;
 
 /**
@@ -105,7 +106,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     public Socket connectSocket(int timeout, Socket socket, HttpHost host, InetSocketAddress remoteAddress,
-            InetSocketAddress localAddress, HttpContext context) throws IOException {
+            InetSocketAddress localAddress, HttpContext context) {
         // Discard dummy socket.
         closeQuietly(socket);
 
@@ -128,7 +129,7 @@ class FastestConnectionSelectingSSLSocketFactory
             cachedURI = selectedHosts.getIfPresent(cacheKey);
 
             if (cachedURI != null) {
-                log.trace("Use cached URI {}", cachedURI);
+                log.info("Using provider URI '{}' from cache", cachedURI);
                 selector.add(cachedURI);
             }
         }
@@ -153,7 +154,7 @@ class FastestConnectionSelectingSSLSocketFactory
                 updateOpMonitoringData(context, selectedSocket);
 
                 if (useCache && cachedURI == null) {
-                    log.trace("Store the fastest provider URI to cache {}", selectedSocket.getUri());
+                    log.info("Storing the fastest provider URI '{}' to cache", selectedSocket.getUri());
                     selectedHosts.put(cacheKey, selectedSocket.getUri());
                 }
                 return sslSocket;
@@ -161,10 +162,10 @@ class FastestConnectionSelectingSSLSocketFactory
                 deferredException = e;
                 closeQuietly(sslSocket);
                 if (selectedSocket != null) {
-                    log.trace("Failed to connect to {}", selectedSocket.getUri(), e);
+                    log.warn("Failed to connect to {}", selectedSocket.getUri(), e);
                     closeQuietly(selectedSocket.getSocket());
                 } else {
-                    log.debug("Failed to connect", e);
+                    log.warn("Failed to connect", e);
                 }
                 if (cachedURI != null) {
                     selectedHosts.asMap().remove(cacheKey, cachedURI);
@@ -241,6 +242,15 @@ class FastestConnectionSelectingSSLSocketFactory
     private void prepareAndVerify(SSLSocket sslSocket, URI selectedAddress,
             HttpContext context) throws IOException {
         prepareSocket(sslSocket);
+
+        // Called explicitly to catch TLS handshake errors
+        // Otherwise TLS handshake is initiated by SSLSocketImpl.getSession() which swallows any potential errors
+        try {
+            sslSocket.startHandshake();
+        } catch (IOException e) {
+            throw new CodedException(X_SSL_AUTH_FAILED, e, "TLS handshake failed");
+        }
+
         verify(context, sslSocket.getSession(), selectedAddress);
     }
 
@@ -248,6 +258,7 @@ class FastestConnectionSelectingSSLSocketFactory
         if (socket instanceof SSLSocket) {
             return (SSLSocket)socket;
         }
+        log.trace("Existing connection not over TLS, negotiating the use of TLS.");
         //XRDDEV-248: use connection timeout as read timeout during SSL handshake
         socket.setSoTimeout(connectTimeout);
         socket.setSoLinger(false, 0);

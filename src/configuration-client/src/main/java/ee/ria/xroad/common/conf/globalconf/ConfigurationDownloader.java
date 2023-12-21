@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,19 +27,28 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.operator.DigestCalculator;
+
+import javax.net.ssl.SSLHandshakeException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.cert.CertificateEncodingException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,10 +62,13 @@ import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static java.lang.String.valueOf;
 
 /**
  * Downloads configuration directory from a configuration location defined
@@ -74,12 +86,25 @@ class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
 
+    private static final String VERSION_QUERY_PARAMETER = "version";
+
+    private static final String HTTPS = "https";
+
     protected final FileNameProvider fileNameProvider;
 
     private final Map<ConfigurationSource, ConfigurationLocation> lastSuccessfulLocation = new HashMap<>();
 
+    @Getter
+    private final Integer configurationVersion;
+
+    ConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
+        fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+        this.configurationVersion = configurationVersion;
+    }
+
     ConfigurationDownloader(String globalConfigurationDir) {
         fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+        this.configurationVersion = null;
     }
 
     ConfigurationParser getParser() {
@@ -99,15 +124,74 @@ class ConfigurationDownloader {
 
         for (ConfigurationLocation location : getLocations(source)) {
             try {
+                if (source instanceof ConfigurationAnchor) {
+                    supplementInternalVerificationCerts(location);
+                } else if (source instanceof PrivateParameters.ConfigurationAnchor) {
+                    supplementExternalVerificationCerts(location);
+                }
+            } catch (Exception e) {
+                log.error("Unable to acquire additional verification certificates for instance " + location.getInstanceIdentifier(), e);
+            }
+
+            try {
+                location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
                 rememberLastSuccessfulLocation(location);
                 return result.success(config);
+            } catch (SSLHandshakeException e) {
+                log.warn("The Security Server can't download Global Configuration over HTTPS. Because " + e);
+                result.addFailure(location, e);
             } catch (Exception e) {
                 result.addFailure(location, e);
             }
         }
 
         return result.failure();
+    }
+
+    private void supplementInternalVerificationCerts(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
+        var sources = getAdditionalSources(location);
+        var internalVerificationCerts = sources.stream()
+                .flatMap(src -> src.getInternalVerificationCerts().stream())
+                .toList();
+        addSupplementaryVerificationCerts(location, internalVerificationCerts);
+    }
+
+    private void supplementExternalVerificationCerts(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
+        var sources = getAdditionalSources(location);
+        var externalVerificationCerts = sources.stream()
+                .flatMap(src -> src.getExternalVerificationCerts().stream())
+                .toList();
+        addSupplementaryVerificationCerts(location, externalVerificationCerts);
+    }
+
+    private List<SharedParameters.ConfigurationSource> getAdditionalSources(ConfigurationLocation location)
+            throws CertificateEncodingException, IOException {
+        Path sharedParamsPath = fileNameProvider.getConfigurationDirectory(location.getInstanceIdentifier())
+                .resolve(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
+        if (sharedParamsPath.toFile().exists() && isCurrentVersion(sharedParamsPath)) {
+            SharedParameters sharedParams = new SharedParametersV3(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
+            return sharedParams.getSources().stream()
+                    .filter(source -> location.getDownloadURL().contains(source.getAddress()))
+                    .toList();
+        }
+        return List.of();
+    }
+
+    private void addSupplementaryVerificationCerts(ConfigurationLocation location, List<byte[]> potentialCertsToBeAdded) {
+        List<byte[]> certsToBeAdded = new ArrayList<>();
+        potentialCertsToBeAdded.forEach(potentialCert -> {
+            if (location.getVerificationCerts().stream().noneMatch(cert -> Arrays.equals(cert, potentialCert))) {
+                certsToBeAdded.add(potentialCert);
+            }
+        });
+
+        if (!certsToBeAdded.isEmpty()) {
+            log.info("Adding supplementary verification certificates from shared parameters configuration file");
+            location.getVerificationCerts().addAll(certsToBeAdded);
+        }
     }
 
     private void rememberLastSuccessfulLocation(ConfigurationLocation location) {
@@ -120,13 +204,31 @@ class ConfigurationDownloader {
 
         preferLastSuccessLocation(source, result);
 
-        List<ConfigurationLocation> randomized = new ArrayList<>(source.getLocations());
-        Collections.shuffle(randomized);
+        List<ConfigurationLocation> randomized = new ArrayList<>(getLocationsPreferHttps(source));
         result.addAll(randomized);
 
         result.removeIf(Objects::isNull);
 
         return result;
+    }
+
+    private List<ConfigurationLocation> getLocationsPreferHttps(ConfigurationSource source) {
+        List<ConfigurationLocation> result = new ArrayList<>();
+        result.addAll(getRandomizedLocations(source, true));
+        result.addAll(getRandomizedLocations(source, false));
+        return result;
+    }
+
+    private List<ConfigurationLocation> getRandomizedLocations(ConfigurationSource source, boolean startWithHttps) {
+        List<ConfigurationLocation> randomized = new ArrayList<>(source.getLocations().stream()
+                .filter(location -> assertStartWithHttps(location.getDownloadURL(), startWithHttps))
+                .toList());
+        Collections.shuffle(randomized);
+        return randomized;
+    }
+
+    private boolean assertStartWithHttps(String url, boolean expectedResult) {
+        return url.startsWith(HTTPS) == expectedResult;
     }
 
     private void preferLastSuccessLocation(ConfigurationSource source, List<ConfigurationLocation> result) {
@@ -260,6 +362,41 @@ class ConfigurationDownloader {
         return true;
     }
 
+    private ConfigurationLocation toVersionedLocation(ConfigurationLocation location) throws IOException, URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder(location.getDownloadURL());
+        if (configurationVersion == null) {
+            log.trace("Determining suitable global conf version");
+            chooseVersion(uriBuilder);
+        } else {
+            log.trace("Global conf version {} is enforced", configurationVersion);
+            // Force a.k.a. add "version" query parameter to the URI or replace if already exists
+            uriBuilder.setParameter(VERSION_QUERY_PARAMETER, configurationVersion.toString());
+        }
+        return new ConfigurationLocation(location.getSource(), uriBuilder.build().toString(), location.getVerificationCerts());
+
+    }
+
+    private void chooseVersion(URIBuilder uriBuilder) throws IOException {
+        if (uriBuilder.getQueryParams().stream().anyMatch(param -> VERSION_QUERY_PARAMETER.equals(param.getName()))) {
+            log.trace("Respecting the already existing global conf \"version\" query parameter in the URL.");
+            return;
+        }
+        log.info("Determining whether global conf version {} is available for {}", CURRENT_GLOBAL_CONFIGURATION_VERSION, uriBuilder);
+        uriBuilder.addParameter(VERSION_QUERY_PARAMETER, String.valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION));
+        URL url = new URL(uriBuilder.toString());
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        ConfigurationHttpUrlConnectionConfig.apply(connection);
+        if (connection.getResponseCode() == HttpStatus.SC_NOT_FOUND) {
+            int fallBackVersion = CURRENT_GLOBAL_CONFIGURATION_VERSION - 1;
+            log.info("Global conf version {} query resulted in HTTP {}, defaulting back to version {}.",
+                    CURRENT_GLOBAL_CONFIGURATION_VERSION, HttpStatus.SC_NOT_FOUND, fallBackVersion);
+            uriBuilder.setParameter(VERSION_QUERY_PARAMETER, String.valueOf(fallBackVersion));
+        } else {
+            log.info("Using Global conf version {}", CURRENT_GLOBAL_CONFIGURATION_VERSION);
+        }
+        connection.disconnect();
+    }
+
     byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {
         URLConnection connection = getDownloadURLConnection(getDownloadURL(location, file));
         log.info("Downloading content from {}", connection.getURL());
@@ -286,26 +423,27 @@ class ConfigurationDownloader {
         //make possible with current structure to be overridden and validations called
     }
 
-    void handleContent(byte[] content, ConfigurationFile file) throws Exception {
+    void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
+        boolean isVersion3 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(file.getMetadata().getConfigurationVersion());
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                PrivateParametersV2 privateParameters = new PrivateParametersV2(content);
-                handlePrivateParameters(privateParameters, file);
+                PrivateParametersProvider pp = isVersion3 ? new PrivateParametersV3(content) : new PrivateParametersV2(content);
+                handlePrivateParameters(pp.getPrivateParameters(), file);
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                SharedParametersV2 sharedParameters = new SharedParametersV2(content);
-                handleSharedParameters(sharedParameters, file);
+                SharedParametersProvider sp = isVersion3 ? new SharedParametersV3(content) : new SharedParametersV2(content);
+                handleSharedParameters(sp.getSharedParameters(), file);
                 break;
             default:
                 break;
         }
     }
 
-    void handlePrivateParameters(PrivateParametersV2 privateParameters, ConfigurationFile file) {
+    void handlePrivateParameters(PrivateParameters privateParameters, ConfigurationFile file) {
         verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(), file);
     }
 
-    void handleSharedParameters(SharedParametersV2 sharedParameters, ConfigurationFile file) {
+    void handleSharedParameters(SharedParameters sharedParameters, ConfigurationFile file) {
         verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(), file);
     }
 
@@ -340,6 +478,7 @@ class ConfigurationDownloader {
 
     public static URLConnection getDownloadURLConnection(URL url) throws IOException {
         URLConnection connection = url.openConnection();
+        ConfigurationHttpUrlConnectionConfig.apply((HttpURLConnection) connection);
         connection.setReadTimeout(READ_TIMEOUT);
         return connection;
     }

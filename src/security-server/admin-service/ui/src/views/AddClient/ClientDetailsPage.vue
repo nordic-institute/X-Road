@@ -37,105 +37,79 @@
           outlined
           data-test="select-client-button"
           @click="showSelectClient = true"
-          >{{ $t('wizard.selectClient') }}</xrd-button
-        >
+          >{{ $t('wizard.selectClient') }}
+        </xrd-button>
       </div>
     </div>
 
-    <ValidationObserver ref="form2" v-slot="{ invalid }">
-      <div class="wizard-step-form-content">
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('wizard.memberName')"
-            :help-text="$t('wizard.client.memberNameTooltip')"
-          />
-          <div data-test="selected-member-name">{{ selectedMemberName }}</div>
-        </div>
-
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('wizard.memberClass')"
-            :help-text="$t('wizard.client.memberClassTooltip')"
-          />
-
-          <ValidationProvider
-            v-slot="{ errors }"
-            name="addClient.memberClass"
-            rules="required"
-          >
-            <v-select
-              v-model="memberClass"
-              :items="memberClassesCurrentInstance"
-              :error-messages="errors"
-              class="wizard-form-input"
-              data-test="member-class-input"
-              :placeholder="$t('wizard.selectMemberClass')"
-              outlined
-            ></v-select>
-          </ValidationProvider>
-        </div>
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('wizard.memberCode')"
-            :help-text="$t('wizard.client.memberCodeTooltip')"
-          />
-
-          <ValidationProvider
-            v-slot="{ errors }"
-            name="addClient.memberCode"
-            rules="required|xrdIdentifier"
-          >
-            <v-text-field
-              v-model="memberCode"
-              class="wizard-form-input"
-              type="text"
-              :error-messages="errors"
-              autofocus
-              :placeholder="$t('wizard.memberCode')"
-              outlined
-              data-test="member-code-input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-
-        <div class="wizard-row-wrap">
-          <xrd-form-label
-            :label-text="$t('wizard.subsystemCode')"
-            :help-text="$t('wizard.client.subsystemCodeTooltip')"
-          />
-
-          <ValidationProvider
-            v-slot="{ errors }"
-            name="addClient.subsystemCode"
-            rules="required|xrdIdentifier"
-          >
-            <v-text-field
-              v-model="subsystemCode"
-              class="wizard-form-input"
-              type="text"
-              outlined
-              :placeholder="$t('wizard.subsystemCode')"
-              :error-messages="errors"
-              data-test="subsystem-code-input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-        <div v-if="duplicateClient" class="wizard-duplicate-warning">
-          {{ $t('wizard.client.clientExists') }}
-        </div>
+    <div class="wizard-step-form-content">
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.memberName')"
+          :help-text="$t('wizard.client.memberNameTooltip')"
+        />
+        <div data-test="selected-member-name">{{ selectedMemberName }}</div>
       </div>
-      <div class="button-footer">
-        <xrd-button outlined data-test="cancel-button" @click="cancel">{{
-          $t('action.cancel')
-        }}</xrd-button>
-        <xrd-button
-          :disabled="invalid || duplicateClient"
-          data-test="next-button"
-          @click="done"
-          >{{ $t('action.next') }}</xrd-button
-        >
+
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.memberClass')"
+          :help-text="$t('wizard.client.memberClassTooltip')"
+        />
+        <v-select
+          v-bind="memberClassRef"
+          :items="memberClassItems"
+          class="wizard-form-input"
+          data-test="member-class-input"
+          :placeholder="$t('wizard.selectMemberClass')"
+          variant="outlined"
+        ></v-select>
       </div>
-    </ValidationObserver>
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.memberCode')"
+          :help-text="$t('wizard.client.memberCodeTooltip')"
+        />
+        <v-text-field
+          v-bind="memberCodeRef"
+          class="wizard-form-input"
+          type="text"
+          autofocus
+          :placeholder="$t('wizard.memberCode')"
+          variant="outlined"
+          data-test="member-code-input"
+        ></v-text-field>
+      </div>
+
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.subsystemCode')"
+          :help-text="$t('wizard.client.subsystemCodeTooltip')"
+        />
+        <v-text-field
+          v-bind="subsystemCodeRef"
+          class="wizard-form-input"
+          type="text"
+          variant="outlined"
+          :placeholder="$t('wizard.subsystemCode')"
+          data-test="subsystem-code-input"
+        ></v-text-field>
+      </div>
+      <div v-if="duplicateClient" class="wizard-duplicate-warning">
+        {{ $t('wizard.client.clientExists') }}
+      </div>
+    </div>
+    <div class="button-footer">
+      <xrd-button outlined data-test="cancel-button" @click="cancel"
+        >{{ $t('action.cancel') }}
+      </xrd-button>
+      <xrd-button
+        :disabled="!meta.valid || duplicateClient"
+        data-test="next-button"
+        @click="done"
+        >{{ $t('action.next') }}
+      </xrd-button>
+    </div>
 
     <SelectClientDialog
       :title="$t('wizard.addClientTitle')"
@@ -149,13 +123,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { debounce, isEmpty, containsClient } from '@/util/helpers';
 import { Client } from '@/openapi-types';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { AddMemberWizardModes } from '@/global';
-import { validate } from 'vee-validate';
+import { PublicPathState, useForm } from 'vee-validate';
 import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
@@ -166,11 +139,53 @@ import { useUser } from '@/store/modules/user';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default Vue.extend({
+export default defineComponent({
   components: {
-    ValidationObserver,
-    ValidationProvider,
     SelectClientDialog,
+  },
+  emits: ['cancel', 'done'],
+  setup() {
+    const { meta, values, validateField, setFieldValue, defineComponentBinds } =
+      useForm({
+        validationSchema: {
+          'addClient.memberClass': 'required',
+          'addClient.memberCode': 'required|max:255|xrdIdentifier',
+          'addClient.subsystemCode': 'required|max:255|xrdIdentifier',
+        },
+        initialValues: {
+          addClient: {
+            memberClass: '',
+            memberCode: '',
+            subsystemCode: '',
+          },
+        },
+      });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const memberClassRef = defineComponentBinds(
+      'addClient.memberClass',
+      componentConfig,
+    );
+    const memberCodeRef = defineComponentBinds(
+      'addClient.memberCode',
+      componentConfig,
+    );
+    const subsystemCodeRef = defineComponentBinds(
+      'addClient.subsystemCode',
+      componentConfig,
+    );
+    return {
+      meta,
+      values,
+      validateField,
+      setFieldValue,
+      memberClassRef,
+      memberCodeRef,
+      subsystemCodeRef,
+    };
   },
   data() {
     return {
@@ -192,30 +207,32 @@ export default Vue.extend({
     ]),
     ...mapState(useGeneral, ['memberClassesCurrentInstance']),
     ...mapState(useUser, ['currentSecurityServer']),
-
+    memberClassItems() {
+      return this.memberClassesCurrentInstance.map((memberClass) => ({
+        title: memberClass,
+        value: memberClass,
+      }));
+    },
     duplicateClient(): boolean {
       return containsClient(
         this.reservedClients,
-        this.memberClass,
-        this.memberCode,
-        this.subsystemCode,
+        this.values.addClient.memberClass,
+        this.values.addClient.memberCode,
+        this.values.addClient.subsystemCode,
       );
     },
   },
   watch: {
-    async memberCode(val) {
+    async 'values.addClient.memberCode'(val) {
       // Set wizard mode to default (full)
       this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
 
       // Needs to be done here, because the watcher runs before the setter
-      validate(this.memberCode, 'required|xrdIdentifier', {
-        // name is not used, but if it's undefined there is a warning in browser console
-        name: 'addClient.memberCode',
-      }).then((result) => {
+      this.validateField('addClient.memberCode').then((result) => {
         if (result.valid) {
           this.isMemberCodeValid = true;
 
-          if (isEmpty(val) || isEmpty(this.memberClass)) {
+          if (isEmpty(val) || isEmpty(this.values.addClient.memberClass)) {
             return;
           }
           this.checkClient();
@@ -224,10 +241,10 @@ export default Vue.extend({
         }
       });
     },
-    memberClass(val): void {
+    'values.addClient.memberClass'(val): void {
       // Set wizard mode to default (full)
       this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
-      if (isEmpty(val) || isEmpty(this.memberCode)) {
+      if (isEmpty(val) || isEmpty(this.values.addClient.memberCode)) {
         return;
       }
       this.checkClient();
@@ -236,7 +253,7 @@ export default Vue.extend({
     memberClassesCurrentInstance(val): void {
       // Set first member class selected as default when the list is updated
       if (val?.length === 1) {
-        this.memberClass = val[0];
+        this.setFieldValue('addClient.memberClass', val[0]);
       }
     },
   },
@@ -245,9 +262,6 @@ export default Vue.extend({
     this.setAddMemberWizardMode(AddMemberWizardModes.FULL);
     this.fetchSelectableClients(that.currentSecurityServer.instance_id);
     this.fetchMemberClassesForCurrentInstance();
-  },
-  mounted() {
-    this.$refs.memberCodeVP;
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
@@ -258,17 +272,26 @@ export default Vue.extend({
       'setSelectedMember',
       'fetchReservedClients',
       'setSelectedMemberName',
-      'searchTokens',
+      'updateAddMemberWizardModeIfNeeded',
     ]),
 
     cancel(): void {
       this.$emit('cancel');
     },
     done(): void {
+      this.memberClass = this.values.addClient.memberClass;
+      this.memberCode = this.values.addClient.memberCode;
+      this.subsystemCode = this.values.addClient.subsystemCode;
       this.$emit('done');
     },
     saveSelectedClient(selectedMember: Client): void {
       this.setSelectedMember(selectedMember);
+      this.setFieldValue('addClient.memberClass', selectedMember.member_class);
+      this.setFieldValue('addClient.memberCode', selectedMember.member_code);
+      this.setFieldValue(
+        'addClient.subsystemCode',
+        selectedMember.subsystem_code ?? '',
+      );
       this.fetchReservedClients(selectedMember).catch((error) => {
         this.showError(error);
       });
@@ -285,8 +308,8 @@ export default Vue.extend({
       // Find if the selectable clients array has a match
       const tempClient = this.selectableClients.find((client: Client) => {
         return (
-          client.member_code === this.memberCode &&
-          client.member_class === this.memberClass
+          client.member_code === this.values.addClient.memberCode &&
+          client.member_class === this.values.addClient.memberClass
         );
       });
 
@@ -294,13 +317,16 @@ export default Vue.extend({
       this.setSelectedMemberName(tempClient?.member_name);
 
       // Pass the arguments so that we use the validated information instead of the state at that time
-      this.checkClientDebounce(this.memberClass, this.memberCode);
+      this.checkClientDebounce(
+        this.values.addClient.memberClass,
+        this.values.addClient.memberCode,
+      );
     },
     checkClientDebounce: debounce((memberClass: string, memberCode: string) => {
       // Debounce is used to reduce unnecessary api calls
       // Search tokens for suitable CSR:s and certificates
       that
-        .searchTokens({
+        .updateAddMemberWizardModeIfNeeded({
           instanceId: that.currentSecurityServer.instance_id,
           memberClass: memberClass,
           memberCode: memberCode,
@@ -320,5 +346,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 </style>

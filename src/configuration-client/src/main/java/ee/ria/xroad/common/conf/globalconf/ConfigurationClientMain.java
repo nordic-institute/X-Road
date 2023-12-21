@@ -1,20 +1,20 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,7 +33,10 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -46,11 +49,9 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import java.io.IOException;
 import java.nio.file.Path;
-import java.time.OffsetDateTime;
+import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -111,8 +112,9 @@ public final class ConfigurationClientMain {
         CommandLine cmd = getCommandLine(args);
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
+
             // Run configuration client in one-shot mode downloading the specified global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1]));
+            System.exit(download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2])));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
             // Run configuration client in one-shot mode downloading the current global configuration version.
             System.exit(download(actualArgs[0], actualArgs[1]));
@@ -137,6 +139,24 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
+    private static int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
+        log.debug("Downloading configuration using anchor {} path = {})",
+                configurationAnchorFile, configurationPath);
+
+        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
+
+        client = new ConfigurationClient(configurationPath, configurationVersion) {
+            @Override
+            protected void deleteExtraConfigurationDirectories(
+                    List<ConfigurationSource> configurationSources,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
+            }
+        };
+
+        return execute();
+    }
+
     private static int download(String configurationAnchorFile, String configurationPath) {
         log.debug("Downloading configuration using anchor {} path = {})",
                 configurationAnchorFile, configurationPath);
@@ -146,7 +166,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    PrivateParametersV2 privateParameters,
+                    List<ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -155,15 +175,16 @@ public final class ConfigurationClientMain {
         return execute();
     }
 
-    private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator) {
+    private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator)
+            throws Exception {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
 
         // Create configuration that does not persist files to disk.
         final String configurationPath = SystemProperties.getConfigurationPath();
 
-        ConfigurationDownloader configurationDownloader = new ConfigurationDownloader(configurationPath) {
+        var configurationDownloader = new ConfigurationDownloader(configurationPath) {
             @Override
-            void handleContent(byte[] content, ConfigurationFile file) throws Exception {
+            void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
                 validateContent(file);
                 super.handleContent(content, file);
             }
@@ -188,10 +209,10 @@ public final class ConfigurationClientMain {
 
         };
 
-        ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
+        ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
         client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
+            protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
@@ -331,8 +352,8 @@ public final class ConfigurationClientMain {
         private static DiagnosticsStatus status;
 
         static {
-            status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, OffsetDateTime.now(),
-                    OffsetDateTime.now().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+            status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, TimeUtils.offsetDateTimeNow(),
+                    TimeUtils.offsetDateTimeNow().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
         }
 
         private static synchronized void setStatus(DiagnosticsStatus newStatus) {

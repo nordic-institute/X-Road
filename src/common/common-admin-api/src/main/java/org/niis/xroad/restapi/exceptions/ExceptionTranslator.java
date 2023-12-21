@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,17 +27,17 @@ package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
 
+import jakarta.validation.ConstraintViolationException;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-
-import javax.validation.ConstraintViolationException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +71,7 @@ public class ExceptionTranslator {
      * @return ResponseEntity with properly filled ErrorInfo
      */
     public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
-        HttpStatus status = resolveHttpStatus(e, defaultStatus);
+        HttpStatusCode status = resolveHttpStatus(e, defaultStatus);
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
         if (e instanceof DeviationAware) {
@@ -116,7 +116,7 @@ public class ExceptionTranslator {
         return result;
     }
 
-    public HttpStatus resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
+    public HttpStatusCode resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
         if (e instanceof ServiceException) {
             return HttpStatus.resolve(((ServiceException) e).getHttpStatus());
         }

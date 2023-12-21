@@ -32,6 +32,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,6 +44,11 @@ public interface JpaConfigurationSigningKeyRepository
             + "WHERE cs.sourceType = :sourceType "
             + "AND (:haNodeName is null OR cs.haNodeName = :haNodeName)")
     Optional<ConfigurationSigningKeyEntity> findActiveForSource(String sourceType, String haNodeName);
+
+    @Override
+    @Query("SELECT cs.configurationSigningKey FROM ConfigurationSourceEntity cs "
+            + "WHERE cs.sourceType in :sourceTypes")
+    List<ConfigurationSigningKeyEntity> findForSourceIn(List<String> sourceTypes);
 
     @Override
     @Query("SELECT count(sk.id) FROM ConfigurationSigningKeyEntity sk "

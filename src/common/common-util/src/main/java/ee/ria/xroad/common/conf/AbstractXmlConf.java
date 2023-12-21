@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,13 +30,14 @@ import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.common.util.SchemaValidator;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
@@ -70,6 +71,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     protected JAXBElement<T> root;
 
+    @Getter
     protected T confType;
 
     private FileContentChangeChecker confFileChecker;
@@ -211,7 +213,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     @Override
     public void save() throws Exception {
-        AtomicSave.execute(confFileName, "tmpconf", out -> AbstractXmlConf.this.save(out),
+        AtomicSave.execute(confFileName, "tmpconf", AbstractXmlConf.this::save,
                 StandardCopyOption.ATOMIC_MOVE);
     }
 

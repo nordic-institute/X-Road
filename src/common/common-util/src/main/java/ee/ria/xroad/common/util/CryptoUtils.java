@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.util;
 
 import com.google.common.base.Splitter;
+import jakarta.xml.bind.DatatypeConverter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
@@ -35,7 +36,7 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMWriter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
@@ -47,7 +48,6 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.util.encoders.Hex;
 
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.crypto.dsig.DigestMethod;
 
 import java.io.ByteArrayInputStream;
@@ -65,6 +65,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -106,7 +107,7 @@ public final class CryptoUtils {
     public static final String DEFAULT_DIGEST_ALGORITHM_URI = DigestMethod.SHA512;
 
     /** Default digest algorithm id used for calculating certificate hashes. */
-    public static final String DEFAULT_CERT_HASH_ALGORITHM_ID = CryptoUtils.SHA1_ID;
+    public static final String DEFAULT_CERT_HASH_ALGORITHM_ID = CryptoUtils.SHA256_ID;
 
     /** Default digest algorithm id used for calculating configuration anchor hashes. */
     public static final String DEFAULT_ANCHOR_HASH_ALGORITHM_ID = CryptoUtils.SHA224_ID;
@@ -168,21 +169,13 @@ public final class CryptoUtils {
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
     public static String getDigestAlgorithmId(String signatureAlgorithm) throws NoSuchAlgorithmException {
-        switch (signatureAlgorithm) {
-            case SHA1WITHRSA_ID:
-                return SHA1_ID;
-            case SHA256WITHRSA_ID: // fall through
-            case SHA256WITHRSAANDMGF1_ID:
-                return SHA256_ID;
-            case SHA384WITHRSA_ID: // fall through
-            case SHA384WITHRSAANDMGF1_ID:
-                return SHA384_ID;
-            case SHA512WITHRSA_ID: // fall through
-            case SHA512WITHRSAANDMGF1_ID:
-                return SHA512_ID;
-            default:
-                throw new NoSuchAlgorithmException("Unkown signature algorithm id: " + signatureAlgorithm);
-        }
+        return switch (signatureAlgorithm) {
+            case SHA1WITHRSA_ID -> SHA1_ID; // fall through
+            case SHA256WITHRSA_ID, SHA256WITHRSAANDMGF1_ID -> SHA256_ID; // fall through
+            case SHA384WITHRSA_ID, SHA384WITHRSAANDMGF1_ID -> SHA384_ID; // fall through
+            case SHA512WITHRSA_ID, SHA512WITHRSAANDMGF1_ID -> SHA512_ID;
+            default -> throw new NoSuchAlgorithmException("Unknown signature algorithm id: " + signatureAlgorithm);
+        };
     }
 
     /**
@@ -192,20 +185,14 @@ public final class CryptoUtils {
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
     public static String getDigestAlgorithmURI(String algoId) throws NoSuchAlgorithmException {
-        switch (algoId) {
-            case SHA1_ID:
-                return DigestMethod.SHA1;
-            case SHA224_ID:
-                return MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224;
-            case SHA256_ID:
-                return DigestMethod.SHA256;
-            case SHA384_ID:
-                return MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384;
-            case SHA512_ID:
-                return DigestMethod.SHA512;
-            default:
-                throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
-        }
+        return switch (algoId) {
+            case SHA1_ID -> DigestMethod.SHA1;
+            case SHA224_ID -> MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224;
+            case SHA256_ID -> DigestMethod.SHA256;
+            case SHA384_ID -> MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384;
+            case SHA512_ID -> DigestMethod.SHA512;
+            default -> throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
+        };
     }
 
     /**
@@ -215,24 +202,16 @@ public final class CryptoUtils {
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
     public static String getSignatureAlgorithmURI(String algoId) throws NoSuchAlgorithmException {
-        switch (algoId) {
-            case SHA1WITHRSA_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA1;
-            case SHA256WITHRSA_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA256;
-            case SHA384WITHRSA_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA384;
-            case SHA512WITHRSA_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA512;
-            case SHA256WITHRSAANDMGF1_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA256_MGF1;
-            case SHA384WITHRSAANDMGF1_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA384_MGF1;
-            case SHA512WITHRSAANDMGF1_ID:
-                return ALGO_ID_SIGNATURE_RSA_SHA512_MGF1;
-            default:
-                throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
-        }
+        return switch (algoId) {
+            case SHA1WITHRSA_ID -> ALGO_ID_SIGNATURE_RSA_SHA1;
+            case SHA256WITHRSA_ID -> ALGO_ID_SIGNATURE_RSA_SHA256;
+            case SHA384WITHRSA_ID -> ALGO_ID_SIGNATURE_RSA_SHA384;
+            case SHA512WITHRSA_ID -> ALGO_ID_SIGNATURE_RSA_SHA512;
+            case SHA256WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA256_MGF1;
+            case SHA384WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA384_MGF1;
+            case SHA512WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA512_MGF1;
+            default -> throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
+        };
     }
 
     /**
@@ -242,34 +221,21 @@ public final class CryptoUtils {
      * @throws NoSuchAlgorithmException if the algorithm URI is unknown
      */
     public static String getAlgorithmId(String algoURI) throws NoSuchAlgorithmException {
-        switch (algoURI) {
-            case DigestMethod.SHA1:
-                return SHA1_ID;
-            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224:
-                return SHA224_ID;
-            case DigestMethod.SHA256:
-                return SHA256_ID;
-            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384:
-                return SHA384_ID;
-            case DigestMethod.SHA512:
-                return SHA512_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA1:
-                return SHA1WITHRSA_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA256:
-                return SHA256WITHRSA_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA384:
-                return SHA384WITHRSA_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA512:
-                return SHA512WITHRSA_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA256_MGF1:
-                return SHA256WITHRSAANDMGF1_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA384_MGF1:
-                return SHA384WITHRSAANDMGF1_ID;
-            case ALGO_ID_SIGNATURE_RSA_SHA512_MGF1:
-                return SHA512WITHRSAANDMGF1_ID;
-            default:
-                throw new NoSuchAlgorithmException("Unknown algorithm URI: " + algoURI);
-        }
+        return switch (algoURI) {
+            case DigestMethod.SHA1 -> SHA1_ID;
+            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224 -> SHA224_ID;
+            case DigestMethod.SHA256 -> SHA256_ID;
+            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384 -> SHA384_ID;
+            case DigestMethod.SHA512 -> SHA512_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA1 -> SHA1WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA256 -> SHA256WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA384 -> SHA384WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA512 -> SHA512WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA256_MGF1 -> SHA256WITHRSAANDMGF1_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA384_MGF1 -> SHA384WITHRSAANDMGF1_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA512_MGF1 -> SHA512WITHRSAANDMGF1_ID;
+            default -> throw new NoSuchAlgorithmException("Unknown algorithm URI: " + algoURI);
+        };
     }
 
     /**
@@ -281,34 +247,22 @@ public final class CryptoUtils {
      */
     public static String getSignatureAlgorithmId(String digestAlgorithmId, String signMechanismName)
             throws NoSuchAlgorithmException {
-        switch (signMechanismName) {
-            case CKM_RSA_PKCS_NAME:
-                switch (digestAlgorithmId) {
-                    case SHA1_ID:
-                        return SHA1WITHRSA_ID;
-                    case SHA256_ID:
-                        return SHA256WITHRSA_ID;
-                    case SHA384_ID:
-                        return SHA384WITHRSA_ID;
-                    case SHA512_ID:
-                        return SHA512WITHRSA_ID;
-                    default:
-                        throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
-                }
-            case CKM_RSA_PKCS_PSS_NAME:
-                switch (digestAlgorithmId) {
-                    case SHA256_ID:
-                        return SHA256WITHRSAANDMGF1_ID;
-                    case SHA384_ID:
-                        return SHA384WITHRSAANDMGF1_ID;
-                    case SHA512_ID:
-                        return SHA512WITHRSAANDMGF1_ID;
-                    default:
-                        throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
-                }
-            default:
-                throw new NoSuchAlgorithmException("Unknown signing mechanism: " + signMechanismName);
-        }
+        return switch (signMechanismName) {
+            case CKM_RSA_PKCS_NAME -> switch (digestAlgorithmId) {
+                case SHA1_ID -> SHA1WITHRSA_ID;
+                case SHA256_ID -> SHA256WITHRSA_ID;
+                case SHA384_ID -> SHA384WITHRSA_ID;
+                case SHA512_ID -> SHA512WITHRSA_ID;
+                default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+            };
+            case CKM_RSA_PKCS_PSS_NAME -> switch (digestAlgorithmId) {
+                case SHA256_ID -> SHA256WITHRSAANDMGF1_ID;
+                case SHA384_ID -> SHA384WITHRSAANDMGF1_ID;
+                case SHA512_ID -> SHA512WITHRSAANDMGF1_ID;
+                default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+            };
+            default -> throw new NoSuchAlgorithmException("Unknown signing mechanism: " + signMechanismName);
+        };
     }
 
     /**
@@ -367,7 +321,7 @@ public final class CryptoUtils {
      */
     public static ContentVerifierProvider createDefaultContentVerifier(
             PublicKey key) throws OperatorCreationException {
-        if ("RSA" == key.getAlgorithm()) {
+        if ("RSA".equals(key.getAlgorithm())) {
             // SunRsaSign supports only RSA signatures but it is (for some reason) about 2x faster
             // than the BC implementation
             return SUN_VERIFICATION_BUILDER.build(key);
@@ -643,10 +597,12 @@ public final class CryptoUtils {
      * Calculates digest of the certificate and encodes it as lowercase hex.
      * @param cert the certificate
      * @return calculated certificate hex hash String
-     * @throws Exception if any errors occur
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
     public static String calculateCertHexHash(X509Certificate cert)
-            throws Exception {
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         return calculateCertHexHash(cert.getEncoded());
     }
 
@@ -655,26 +611,61 @@ public final class CryptoUtils {
      * @param cert the certificate
      * @param delimiter the delimiter to use
      * @return calculated certificate hex hash String
-     * @throws Exception if any errors occur
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static String calculateDelimitedCertHexHash(X509Certificate cert, String delimiter) throws Exception {
+    public static String calculateDelimitedCertHexHash(X509Certificate cert, String delimiter)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         return String.join(delimiter, Splitter.fixedLength(2).split(calculateCertHexHash(cert).toUpperCase()));
+    }
+
+    /**
+     * Calculates a sha-256 digest of the given bytes and encodes it
+     * as lowercase hex.
+     * @return calculated certificate hex hash String
+     * @param bytes the bytes
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
+     */
+    public static String calculateCertHexHash(byte[] bytes) throws IOException, OperatorCreationException {
+        return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
     }
 
     /**
      * Calculates a sha-1 digest of the given bytes and encodes it
      * as lowercase hex.
+     * @deprecated This method should be applicable until 7.3.x is no longer supported
+     * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(X509Certificate)} instead.
      * @return calculated certificate hex hash String
-     * @param bytes the bytes
-     * @throws Exception if any errors occur
+     * @param cert the certificate
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws IOException if an I/O error occurred
      */
-    public static String calculateCertHexHash(byte[] bytes)
-            throws Exception {
-        return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
+    @Deprecated
+    public static String calculateCertSha1HexHash(X509Certificate cert)
+            throws IOException, OperatorCreationException, CertificateEncodingException {
+        return calculateCertSha1HexHash(cert.getEncoded());
     }
 
     /**
-     * Calculates a sha-1 digest of the given bytes and encodes it in
+     * Calculates a sha-1 digest of the given bytes and encodes it
+     * as lowercase hex.
+     * @deprecated This method should be applicable until 7.3.x is no longer supported
+     * <p> From that point onward its usages should be replaced with {@link #calculateCertHexHash(byte[])} instead.
+     * @return calculated certificate hex hash String
+     * @param bytes the bytes
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
+     */
+    @Deprecated
+    public static String calculateCertSha1HexHash(byte[] bytes) throws IOException, OperatorCreationException {
+        return hexDigest(SHA1_ID, bytes);
+    }
+
+    /**
+     * Calculates a sha-256 digest of the given bytes and encodes it in
      * format 92:62:34:C5:39:1B:95:1F:BF:AF:8D:D6:23:24:AE:56:83:DC...
      * @return calculated certificate hex hash uppercase and separated by semicolons String
      * @param bytes the bytes
@@ -709,9 +700,11 @@ public final class CryptoUtils {
      * Calculates a digest of the given certificate.
      * @param cert the certificate
      * @return digest byte array of the certificate
-     * @throws Exception if any errors occur
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static byte[] certHash(X509Certificate cert) throws Exception {
+    public static byte[] certHash(X509Certificate cert) throws CertificateEncodingException, IOException, OperatorCreationException {
         return certHash(cert.getEncoded());
     }
 
@@ -719,10 +712,25 @@ public final class CryptoUtils {
      * Calculates a digest of the given certificate bytes.
      * @param bytes the bytes
      * @return digest byte array of the certificate
-     * @throws Exception if any errors occur
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static byte[] certHash(byte[] bytes) throws Exception {
+    public static byte[] certHash(byte[] bytes) throws IOException, OperatorCreationException {
         return calculateDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
+    }
+
+    /**
+     * Calculates sha-1 digest of the given certificate bytes.
+     * @param bytes the bytes
+     * @deprecated This method should be applicable until 7.3.x is no longer supported
+     * <p> From that point onward its usages should be replaced with {@link #certHash(byte[])} instead.
+     * @return digest byte array of the certificate
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
+     */
+    @Deprecated
+    public static byte[] certSha1Hash(byte[] bytes) throws IOException, OperatorCreationException {
+        return calculateDigest(SHA1_ID, bytes);
     }
 
     /**
@@ -730,10 +738,10 @@ public final class CryptoUtils {
      * @param hashAlg Name of the hash algorithm
      * @param data Data to be hashed
      * @return hex encoded String of the input data digest
-     * @throws Exception if any errors occur
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static String hexDigest(String hashAlg, byte[] data)
-            throws Exception {
+    public static String hexDigest(String hashAlg, byte[] data) throws IOException, OperatorCreationException {
         return encodeHex(calculateDigest(hashAlg, data));
     }
 
@@ -742,10 +750,10 @@ public final class CryptoUtils {
      * @param hashAlg Name of the hash algorithm
      * @param data Data to be hashed
      * @return hex encoded String of the input data digest
-     * @throws Exception if any errors occur
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static String hexDigest(String hashAlg, String data)
-            throws Exception {
+    public static String hexDigest(String hashAlg, String data) throws IOException, OperatorCreationException {
         return hexDigest(hashAlg, data.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -787,7 +795,7 @@ public final class CryptoUtils {
      */
     public static void writeCertificatePem(byte[] certBytes, OutputStream out)
             throws IOException {
-        try (PEMWriter writer = new PEMWriter(new OutputStreamWriter(out))) {
+        try (JcaPEMWriter writer = new JcaPEMWriter(new OutputStreamWriter(out))) {
             writer.writeObject(readCertificate(certBytes));
         }
     }

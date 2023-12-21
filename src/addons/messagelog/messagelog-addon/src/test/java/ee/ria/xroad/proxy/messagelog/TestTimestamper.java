@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,10 +25,13 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+
 class TestTimestamper extends Timestamper {
 
     @Override
-    protected Class<? extends TimestamperWorker> getWorkerImpl() {
-        return TestTimestamperWorker.class;
+    protected TimestamperWorker getWorkerImpl() {
+        return new TestTimestamperWorker(ServerConf.getTspUrl());
     }
+
 }

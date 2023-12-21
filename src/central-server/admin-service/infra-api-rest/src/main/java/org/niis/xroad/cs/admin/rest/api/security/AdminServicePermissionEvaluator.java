@@ -1,21 +1,21 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,9 +27,12 @@
 package org.niis.xroad.cs.admin.rest.api.security;
 
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.openapi.model.AddressChangeRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.springframework.security.access.PermissionEvaluator;
@@ -43,8 +46,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.util.Fn.self;
-
 @Component
 public class AdminServicePermissionEvaluator implements PermissionEvaluator {
     private final Map<Class<?>, Enum<?>> targetMapping;
@@ -52,13 +53,17 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
 
     public AdminServicePermissionEvaluator(List<TargetTypeResolver<?>> resolvers) {
         this.resolvers = resolvers;
-        this.targetMapping = self(new IdentityHashMap<>(), self -> {
-            self.put(AuthenticationCertificateRegistrationRequestDto.class, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
-            self.put(AuthenticationCertificateDeletionRequestDto.class, ManagementRequestType.AUTH_CERT_DELETION_REQUEST);
-            self.put(ClientRegistrationRequestDto.class, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
-            self.put(ClientDeletionRequestDto.class, ManagementRequestType.CLIENT_DELETION_REQUEST);
-            self.put(OwnerChangeRequestDto.class, ManagementRequestType.OWNER_CHANGE_REQUEST);
-        });
+        this.targetMapping = new IdentityHashMap<>(Map.of(
+                AuthenticationCertificateRegistrationRequestDto.class, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
+                AuthenticationCertificateDeletionRequestDto.class, ManagementRequestType.AUTH_CERT_DELETION_REQUEST,
+                ClientRegistrationRequestDto.class, ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
+                ClientDeletionRequestDto.class, ManagementRequestType.CLIENT_DELETION_REQUEST,
+                ClientDisableRequestDto.class, ManagementRequestType.CLIENT_DISABLE_REQUEST,
+                ClientEnableRequestDto.class, ManagementRequestType.CLIENT_ENABLE_REQUEST,
+                OwnerChangeRequestDto.class, ManagementRequestType.OWNER_CHANGE_REQUEST,
+                AddressChangeRequestDto.class, ManagementRequestType.ADDRESS_CHANGE_REQUEST
+        ));
+
     }
 
     @Override
@@ -71,7 +76,7 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
             return false;
         }
 
-        final Enum target = targetMapping.get(targetDomainObject.getClass());
+        final Enum<?> target = targetMapping.get(targetDomainObject.getClass());
         if (target != null) {
             return authentication.getAuthorities().contains(authority(permission.toString(), target));
         }

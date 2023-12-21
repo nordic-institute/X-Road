@@ -1,21 +1,20 @@
-/**
+/*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,25 +33,26 @@ import static com.codeborne.selenide.Selenide.$x;
 public class MemberDetailsPageObj {
     private final EditNameDialog editNameDialog = new EditNameDialog();
     private final DeleteDialog deleteDialog = new DeleteDialog();
+    private final OwnedServers ownedServers = new OwnedServers();
 
 
     public SelenideElement memberNameCard(String name) {
-        var xpath = "//div[@data-test='member-name-card']//div[2]//div[contains(text(), '%s')]";
+        var xpath = "//div[@data-test='member-name-card']//div[contains(@class, 'v-card-text')]//div[text()='%s']";
         return $x(String.format(xpath, name));
     }
 
     public SelenideElement memberClassCard(String name) {
-        var xpath = "//div[@data-test='member-class-card']//div[2]//div[contains(text(), '%s')]";
+        var xpath = "//div[@data-test='member-class-card']//div[contains(@class, 'v-card-text')]//div[text()='%s']";
         return $x(String.format(xpath, name));
     }
 
     public SelenideElement memberCodeCard(String name) {
-        var xpath = "//div[@data-test='member-code-card']//div[2]//div[contains(text(), '%s')]";
+        var xpath = "//div[@data-test='member-code-card']//div[contains(@class, 'v-card-text')]//div[text()='%s']";
         return $x(String.format(xpath, name));
     }
 
     public SelenideElement tableTitle(String name) {
-        var xpath = "//div[@class='xrd-view-title' and contains(text(), '%s')]";
+        var xpath = "//div[@class='xrd-view-title' and text()='%s']";
         return $x(String.format(xpath, name));
     }
 
@@ -65,15 +65,11 @@ public class MemberDetailsPageObj {
     }
 
     public SelenideElement ownerServersSearch() {
-        return $x("//div[@data-test='search-owned-servers']");
+        return $x("//div[@id='owned-servers']//div[@data-test='search-query-field']");
     }
 
     public SelenideElement globalGroupsSearch() {
-        return $x("//div[@data-test='search-global-groups']");
-    }
-
-    public SelenideElement ownerServersTable() {
-        return $x("//div[@data-test='owned-servers-table']");
+        return $x("//div[@id='global-groups']//div[@data-test='search-query-field']");
     }
 
     public SelenideElement globalGroupsTable() {
@@ -88,16 +84,31 @@ public class MemberDetailsPageObj {
         return deleteDialog;
     }
 
+    public OwnedServers ownedServers() {
+        return ownedServers;
+    }
+
+    public class OwnedServers {
+        public SelenideElement table() {
+            return $x("//div[@data-test='owned-servers-table']");
+        }
+
+        public SelenideElement server(String serverCode) {
+            return $x(String.format("//div[@data-test='owned-servers-table']//div[@data-test='owned-server-%s']",
+                    serverCode));
+        }
+    }
+
     public class EditNameDialog {
         public SelenideElement inputMemberName() {
-            return $x("//input[@data-test='edit-member-name']");
+            return $x("//div[@data-test='edit-member-name']");
         }
     }
 
 
     public class DeleteDialog {
         public SelenideElement inputMemberCode() {
-            return $x("//input[@data-test='member-code']");
+            return $x("//div[@data-test='member-code']");
         }
     }
 }

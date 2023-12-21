@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,47 +31,44 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateInfoSensor.CertificateInfoCollector;
 import ee.ria.xroad.monitor.CertificateInfoSensor.TokenExtractor;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
-import com.typesafe.config.ConfigFactory;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import com.google.protobuf.ByteString;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.monitor.CertificateInfoSensor.CERT_HEX_DELIMITER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  * CertificateInfoSensorTest
  */
-@Slf4j
-public class CertificateInfoSensorTest {
-    private static ActorSystem actorSystem;
+@ExtendWith(MockitoExtension.class)
+class CertificateInfoSensorTest {
     private MetricRegistry metrics;
     private TokenInfo caTokenInfo;
     private TokenInfo tspTokenInfo;
@@ -83,12 +80,10 @@ public class CertificateInfoSensorTest {
     private static final String TSP_NOT_BEFORE = "2012-11-29T11:53:06Z";
     private static final String TSP_NOT_AFTER = "2014-11-29T11:53:06Z";
 
-    /**
-     * Before test handler
-     */
-    @Before
-    public void init() throws Exception {
-        actorSystem = ActorSystem.create("AkkaRemoteServer", ConfigFactory.load());
+    private CertificateInfoSensor certificateInfoSensor;
+
+    @BeforeEach
+    void init() throws Exception {
         metrics = new MetricRegistry();
         MetricRegistryHolder.getInstance().setMetrics(metrics);
 
@@ -109,78 +104,69 @@ public class CertificateInfoSensorTest {
 
         ServerConf.reload(new EmptyServerConf());
 
-    }
+        var taskScheduler = spy(TaskScheduler.class);
+        when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-    /**
-     * Shut down actor system and wait for clean up, so that other tests are not disturbed
-     */
-    @After
-    public void tearDown() throws Exception {
-        Await.result(actorSystem.terminate(), Duration.Inf());
+        certificateInfoSensor = new CertificateInfoSensor(taskScheduler);
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {
-        List<KeyInfo> keyInfos = new ArrayList<>();
-        for (KeyInfo info: keyInfoParams) {
-            keyInfos.add(info);
+        List<KeyInfoProto> keyInfos = new ArrayList<>();
+        for (KeyInfo info : keyInfoParams) {
+            keyInfos.add(info.getMessage());
         }
-        Map<String, String> tokenInfos = new HashMap<>();
 
-        return new TokenInfo("type",
-                "friendlyName",
-                "id",
-                false, false, false,
-                "serialNumber",
-                "label",
-                -1,
-                TokenStatusInfo.OK,
-                Collections.unmodifiableList(keyInfos),
-                Collections.unmodifiableMap(tokenInfos));
+        return new TokenInfo(TokenInfoProto.newBuilder()
+                .setType("type")
+                .setFriendlyName("friendlyName")
+                .setId("id")
+                .setReadOnly(false)
+                .setAvailable(false)
+                .setActive(false)
+                .setSerialNumber("serialNumber")
+                .setLabel("label")
+                .setSlotIndex(-1)
+                .setStatus(TokenStatusInfo.OK)
+                .addAllKeyInfo(keyInfos)
+                .build());
     }
 
     private KeyInfo createTestKeyInfo(CertificateInfo caInfo) {
-        KeyInfo keyInfo = new KeyInfo(true,
-                null, "friendlyName", "id",
-                "label", "publickey", new ArrayList<CertificateInfo>(),
-                new ArrayList<CertRequestInfo>(), "mechanismName");
-        keyInfo.getCerts().add(caInfo);
-        return keyInfo;
+        return new KeyInfo(KeyInfoProto.newBuilder()
+                .setAvailable(true)
+                .setFriendlyName("friendlyName")
+                .setId("id")
+                .setLabel("label")
+                .setPublicKey("publickey")
+                .addCerts(caInfo.getMessage())
+                .setSignMechanismName("mechanismName")
+                .build());
     }
 
     private CertificateInfo createTestCertificateInfo(X509Certificate cert)
             throws Exception {
-        CertificateInfo cInfo = new CertificateInfo(
-                null,
-                false,
-                false,
-                "status",
-                CryptoUtils.calculateDelimitedCertHexHash(cert, CERT_HEX_DELIMITER),
-                cert.getEncoded(),
-                null);
-        return cInfo;
+        return new CertificateInfo(CertificateInfoProto.newBuilder()
+                .setActive(false)
+                .setSavedToConfiguration(false)
+                .setStatus("status")
+                .setId(CryptoUtils.calculateDelimitedCertHexHash(cert, CERT_HEX_DELIMITER))
+                .setCertificateBytes(ByteString.copyFrom(cert.getEncoded()))
+                .build());
     }
 
     @Test
-    public void testSystemMetricsRequest() throws Exception {
-
-        log.info("testing");
-        final Props props = Props.create(CertificateInfoSensor.class);
-        final TestActorRef<CertificateInfoSensor> ref = TestActorRef.create(actorSystem, props,
-                "testActorRef");
-
-        CertificateInfoSensor sensor = ref.underlyingActor();
-
+    void testSystemMetricsRequest() {
         CertificateInfoCollector collector = new CertificateInfoCollector()
                 .addExtractor(new TokenExtractor(() -> Arrays.asList(caTokenInfo, tspTokenInfo)));
 
-        sensor.setCertificateInfoCollector(collector);
+        certificateInfoSensor.setCertificateInfoCollector(collector);
+        certificateInfoSensor.measure();
 
-        sensor.onReceive(new CertificateInfoSensor.CertificateInfoMeasure());
         Map<String, Metric> result = metrics.getMetrics();
         assertEquals(2, result.entrySet().size()); // certs & jmx certs
         SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =
                 (SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>)
-                result.get(SystemMetricNames.CERTIFICATES);
+                        result.get(SystemMetricNames.CERTIFICATES);
         SimpleSensor<ArrayList<String>> certificatesAsText = (SimpleSensor<ArrayList<String>>)
                 result.get(SystemMetricNames.CERTIFICATES_STRINGS);
         assertNotNull(certificates);
@@ -193,21 +179,13 @@ public class CertificateInfoSensorTest {
         CertificateMonitoringInfo tspInfo = getCertificateInfo(certificates.getValue().getDtoData(), tspCertId);
         assertEquals(TSP_NOT_AFTER, tspInfo.getNotAfter());
         assertEquals(TSP_NOT_BEFORE, tspInfo.getNotBefore());
-        log.info("testing done");
     }
 
     @Test
-    public void testFailingCertExtractionSystemMetricsRequest() throws Exception {
-
-        final Props props = Props.create(CertificateInfoSensor.class);
-        final TestActorRef<CertificateInfoSensor> ref = TestActorRef.create(actorSystem, props,
-                "testActorRef");
-
+    void testFailingCertExtractionSystemMetricsRequest() throws Exception {
         X509Certificate mockCert = mock(X509Certificate.class, Mockito.RETURNS_DEEP_STUBS);
         when(mockCert.getEncoded()).thenThrow(new IllegalStateException("some random exception"));
         when(mockCert.getIssuerDN().getName()).thenReturn("DN");
-
-        CertificateInfoSensor sensor = ref.underlyingActor();
 
         CertificateInfoCollector collector = new CertificateInfoCollector()
                 .addExtractor(new CertificateInfoSensor.CertificateInfoExtractor() {
@@ -220,9 +198,9 @@ public class CertificateInfoSensorTest {
                     }
                 });
 
-        sensor.setCertificateInfoCollector(collector);
+        certificateInfoSensor.setCertificateInfoCollector(collector);
+        certificateInfoSensor.measure();
 
-        sensor.onReceive(new CertificateInfoSensor.CertificateInfoMeasure());
         Map<String, Metric> result = metrics.getMetrics();
         assertEquals(2, result.entrySet().size()); // certs & jmx certs
         SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =

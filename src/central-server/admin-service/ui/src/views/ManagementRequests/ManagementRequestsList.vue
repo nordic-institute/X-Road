@@ -26,94 +26,92 @@
  -->
 <template>
   <div>
-    <!-- Toolbar buttons -->
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-title-search align-fix mt-0 pt-0">
-        <div class="xrd-view-title align-fix">
-          {{ $t('tab.main.managementRequests') }}
-        </div>
-        <xrd-search
-          v-model="filterQuery"
-          class="margin-fix"
-          data-test="management-requests-search"
-        />
-        <!-- Not yet implemented -->
-        <!--<xrd-filter class="ml-4 margin-fix" />-->
-      </div>
-      <div class="only-pending">
-        <v-checkbox
-          v-model="showOnlyPending"
-          :label="$t('managementRequests.showOnlyPending')"
-          class="custom-checkbox"
-          data-test="show-only-pending-requests"
-          @change="changeOptions"
-        ></v-checkbox>
-      </div>
-    </div>
-
-    <v-data-table
-      :loading="loading"
-      :headers="headers"
-      :items="managementRequestsStore.items"
-      :search="managementRequestsStore.currentFilter.query"
-      :must-sort="true"
-      :items-per-page="10"
-      :options.sync="managementRequestsStore.pagingSortingOptions"
-      :server-items-length="managementRequestsStore.pagingOptions.total_items"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      :footer-props="{ itemsPerPageOptions: [10, 25, 50] }"
-      data-test="management-requests-table"
-      @update:options="changeOptions"
+    <searchable-titled-view
+      v-model="filterQuery"
+      title-key="tab.main.managementRequests"
     >
-      <template #[`item.id`]="{ item }">
-        <management-request-id-cell :management-request="item" />
+      <template #header-buttons>
+        <div class="only-pending">
+          <v-checkbox
+            v-model="showOnlyPending"
+            density="compact"
+            :label="$t('managementRequests.showOnlyPending')"
+            class="custom-checkbox"
+            data-test="show-only-pending-requests"
+            hide-details
+            @update:model-value="fetchItems"
+          />
+        </div>
       </template>
+      <v-data-table-server
+        v-model:sort-by="sortBy"
+        data-test="management-requests-table"
+        :loading="loading"
+        :headers="headers"
+        :must-sort="true"
+        :items="managementRequestsStore.items"
+        :items-length="managementRequestsStore.pagingOptions.total_items"
+        :items-per-page="10"
+        :items-per-page-options="itemsPerPageOptions"
+        class="elevation-0 data-table"
+        item-key="id"
+        :loader-height="2"
+        @update:options="changeOptions"
+      >
+        <template #[`item.id`]="{ item }">
+          <management-request-id-cell :management-request="item" />
+        </template>
 
-      <template #[`item.created_at`]="{ item }">
-        <div>{{ item.created_at | formatDateTime }}</div>
-      </template>
+        <template #[`item.created_at`]="{ item }">
+          <div>
+            <date-time :value="item.created_at" />
+          </div>
+        </template>
 
-      <template #[`item.type`]="{ item }">
-        <mr-type-cell :type="item.type" />
-      </template>
+        <template #[`item.type`]="{ item }">
+          <mr-type-cell :type="item.type" />
+        </template>
 
-      <template #[`item.security_server_owner`]="{ item }">
-        <div>{{ item.security_server_owner }}</div>
-      </template>
+        <template #[`item.security_server_owner`]="{ item }">
+          <div>{{ item.security_server_owner }}</div>
+        </template>
 
-      <template #[`item.security_server_id`]="{ item }">
-        <div>{{ item.security_server_id.encoded_id }}</div>
-      </template>
+        <template #[`item.security_server_id`]="{ item }">
+          <div>{{ item.security_server_id.encoded_id }}</div>
+        </template>
 
-      <template #[`item.status`]="{ item }">
-        <mr-status-cell :status="item.status" />
-      </template>
+        <template #[`item.status`]="{ item }">
+          <mr-status-cell :status="item.status" />
+        </template>
 
-      <template #[`item.button`]="{ item }">
-        <mr-actions-cell
-          :management-request="item"
-          @approve="changeOptions"
-          @decline="changeOptions"
-        />
-      </template>
-    </v-data-table>
+        <template #[`item.button`]="{ item }">
+          <mr-actions-cell
+            :management-request="item"
+            @approve="fetchItems"
+            @decline="fetchItems"
+          />
+        </template>
+      </v-data-table-server>
+    </searchable-titled-view>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { managementRequestsStore } from '@/store/modules/managementRequestStore';
+import { useManagementRequests } from '@/store/modules/management-requests';
 import { ManagementRequestStatus } from '@/openapi-types';
 import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vue';
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
 import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
+import { DataQuery, DataTableHeader } from '@/ui-types';
+import { defaultItemsPerPageOptions } from '@/util/defaults';
+import DateTime from '@/components/ui/DateTime.vue';
+import { defineComponent } from 'vue';
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,67 +120,27 @@ let that: any;
 /**
  * General component for Management requests
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'ManagementRequestsList',
   components: {
+    SearchableTitledView,
+    DateTime,
     MrTypeCell,
     MrStatusCell,
     MrActionsCell,
     ManagementRequestIdCell,
+    VDataTableServer,
   },
   data() {
     return {
+      sortBy: [{ key: 'id', order: 'desc' }],
       loading: false, //is data being loaded
+      dataQuery: {} as DataQuery,
+      itemsPerPageOptions: defaultItemsPerPageOptions(50),
     };
   },
   computed: {
-    ...mapStores(managementRequestsStore),
-    headers(): DataTableHeader[] {
-      return [
-        {
-          text: this.$t('global.id') as string,
-          align: 'start',
-          value: 'id',
-          class: 'xrd-table-header mr-table-header-id',
-        },
-        {
-          text: this.$t('global.created') as string,
-          align: 'start',
-          value: 'created_at',
-          class: 'xrd-table-header mr-table-header-created',
-        },
-        {
-          text: this.$t('global.type') as string,
-          align: 'start',
-          value: 'type',
-          class: 'xrd-table-header mr-table-header-type',
-        },
-        {
-          text: this.$t('managementRequests.securityServerOwnerName') as string,
-          align: 'start',
-          value: 'security_server_owner',
-          class: 'xrd-table-header mr-table-header-owner-name',
-        },
-        {
-          text: this.$t('managementRequests.securityServerId') as string,
-          align: 'start',
-          value: 'security_server_id',
-          class: 'xrd-table-header mr-table-header-owner-id',
-        },
-        {
-          text: this.$t('global.status') as string,
-          align: 'start',
-          value: 'status',
-          class: 'xrd-table-header mr-table-header-status',
-        },
-        {
-          text: '',
-          value: 'button',
-          sortable: false,
-          class: 'xrd-table-header mr-table-header-buttons',
-        },
-      ];
-    },
+    ...mapStores(useManagementRequests),
     showOnlyPending: {
       get(): boolean {
         return (
@@ -206,10 +164,51 @@ export default Vue.extend({
         this.managementRequestsStore.currentFilter.query = value;
       },
     },
+    headers(): DataTableHeader[] {
+      return [
+        {
+          title: this.$t('global.id') as string,
+          align: 'start',
+          key: 'id',
+        },
+        {
+          title: this.$t('global.created') as string,
+          align: 'start',
+          key: 'created_at',
+        },
+        {
+          title: this.$t('global.type') as string,
+          align: 'start',
+          key: 'type',
+        },
+        {
+          title: this.$t(
+            'managementRequests.securityServerOwnerName',
+          ) as string,
+          align: 'start',
+          key: 'security_server_owner',
+        },
+        {
+          title: this.$t('managementRequests.securityServerId') as string,
+          align: 'start',
+          key: 'security_server_id',
+        },
+        {
+          title: this.$t('global.status') as string,
+          align: 'start',
+          key: 'status',
+        },
+        {
+          title: '',
+          sortable: false,
+          key: 'button',
+        },
+      ];
+    },
   },
   watch: {
     filterQuery: {
-      handler(newValue, oldValue) {
+      handler() {
         this.debouncedFetchItems();
       },
     },
@@ -218,12 +217,16 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.fetchItems();
     }, 600),
-    changeOptions: async function () {
+    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
+      this.dataQuery.itemsPerPage = itemsPerPage;
+      this.dataQuery.page = page;
+      this.dataQuery.sortBy = sortBy[0]?.key;
+      this.dataQuery.sortOrder = sortBy[0]?.order;
       await this.fetchItems();
     },
     fetchItems: async function () {
@@ -231,7 +234,7 @@ export default Vue.extend({
 
       try {
         await this.managementRequestsStore.find(
-          this.managementRequestsStore.pagingSortingOptions,
+          this.dataQuery,
           this.managementRequestsStore.currentFilter,
         );
       } catch (error: unknown) {
@@ -245,29 +248,11 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~@/assets/tables';
-
-#management-request-filters {
-  display: flex;
-  justify-content: space-between;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
+@import '@/assets/tables';
 
 .custom-checkbox {
   .v-label {
     font-size: 14px;
   }
-}
-
-.only-pending {
-  display: flex;
-  justify-content: flex-end;
 }
 </style>

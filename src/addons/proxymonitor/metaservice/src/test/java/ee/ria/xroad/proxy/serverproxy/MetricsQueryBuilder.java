@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,10 +27,9 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.message.SoapBuilder;
 
+import jakarta.xml.soap.SOAPBody;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import javax.xml.soap.SOAPBody;
 
 import java.util.List;
 

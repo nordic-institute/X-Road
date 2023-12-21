@@ -4,9 +4,12 @@
     "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 
 <hibernate-configuration>
-  <session-factory>
-    <property name="hikari.maximumPoolSize">20</property>
-    <mapping resource="serverconf.hbm.xml"/>
-    <mapping resource="identifiers.hbm.xml"/>
-  </session-factory>
+    <session-factory>
+        <property name="hikari.maximumPoolSize">20</property>
+        <!--TODO Migrate to newer strategies -->
+        <property name="hibernate.id.db_structure_naming_strategy">legacy</property>
+        <!--TODO Migrate hbm.xml to orm.xml or mapping xml -->
+        <mapping resource="serverconf.hbm.xml"/>
+        <mapping resource="identifiers.hbm.xml"/>
+    </session-factory>
 </hibernate-configuration>

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,7 +29,7 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpField;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -90,7 +90,7 @@ final class ConfigurationSignature extends AbstractConfigurationPart {
     private static VerificationCertHash getCertVerificationHash(String value) {
         Map<String, String> p = new HashMap<>();
 
-        String hash = HttpFields.valueParameters(value, p);
+        String hash = HttpField.valueParameters(value, p);
         String algoId = p.get(HEADER_HASH_ALGORITHM_ID);
 
         if (StringUtils.isBlank(algoId)) {

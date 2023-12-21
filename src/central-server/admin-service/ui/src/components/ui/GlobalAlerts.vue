@@ -32,26 +32,24 @@
   >
     <v-alert
       v-if="alerts"
-      :value="true"
-      color="red"
-      border="left"
-      colored-border
+      border="start"
+      variant="outlined"
       class="alert"
       icon="icon-Error-notification"
+      type="error"
     >
       <span v-for="item in alerts" :key="item.errorCode" class="alert-text">
         {{ $t(item.errorCode, reformatDates(item.metadata)) }}
       </span>
     </v-alert>
-
     <v-alert
+      v-if="showRestoreInProgress"
       data-test="global-alert-restore"
-      :value="showRestoreInProgress"
-      color="red"
-      border="left"
-      colored-border
+      border="start"
+      variant="outlined"
       class="alert"
       icon="icon-Error-notification"
+      type="error"
     >
       <span class="alert-text">{{
         $t('globalAlert.backupRestoreInProgress', {
@@ -63,19 +61,19 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { formatDateTime, formatDateTimeSeconds } from '@/filters';
 import { mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
-import { userStore } from '@/store/modules/user';
-import { systemStore } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
+import { useSystem } from '@/store/modules/system';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AlertsContainer',
   computed: {
     ...mapState(useAlerts, ['alerts']),
-    ...mapState(userStore, ['isAuthenticated']),
-    ...mapState(systemStore, ['isServerInitialized']),
+    ...mapState(useUser, ['isAuthenticated']),
+    ...mapState(useSystem, ['isServerInitialized']),
     hasAlerts(): boolean {
       return this.showRestoreInProgress || this.alerts?.length > 0;
     },
@@ -103,7 +101,7 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .alerts-container {
   padding: 0;
@@ -123,6 +121,7 @@ export default Vue.extend({
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
+  background-color: $XRoad-White100;
 }
 
 .alert-text {

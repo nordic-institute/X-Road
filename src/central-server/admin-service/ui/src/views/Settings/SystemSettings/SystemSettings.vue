@@ -25,160 +25,106 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="system-settings-view">
-    <!-- Title  -->
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-view-title align-fix">
-        {{ $t('tab.settings.systemSettings') }}
-      </div>
-    </div>
-
-    <div>
-      <!-- System Parameters -->
-      <div
-        id="system-parameters-anchor"
-        class="mb-6"
-        data-test="system-settings-system-parameters-card"
-      >
-        <v-card class="pb-4" flat>
-          <div class="card-top">
-            <div class="card-main-title">
-              {{ $t('systemSettings.systemParameters') }}
-            </div>
-          </div>
-
-          <table class="xrd-table mt-0 pb-3">
-            <tbody>
-              <tr>
-                <td class="title-cell">
-                  <div>
-                    <div>
-                      {{ $t('systemSettings.instanceIdentifier') }}
-                    </div>
-                  </div>
-                </td>
-                <td data-test="system-settings-instance-identifier-field">
-                  {{ instanceIdentifier }}
-                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                  <div>
-                    <div>
-                      {{ $t('systemSettings.centralServerAddress') }}
-                    </div>
-                  </div>
-                </td>
-                <td data-test="system-settings-central-server-address-field">
-                  {{ serverAddress }}
-                </td>
-                <td class="action-cell">
-                  <xrd-button
-                    text
-                    data-test="system-settings-central-server-address-edit-button"
-                    :outlined="false"
-                    @click="onServerAddressEdit"
-                    >{{ $t('action.edit') }}
-                  </xrd-button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </v-card>
-      </div>
-
-      <xrd-simple-dialog
-        v-if="isEditingServerAddress"
-        title="systemSettings.editCentralServerAddressTitle"
-        data-test="system-settings-central-server-address-edit-dialog"
-        :dialog="isEditingServerAddress"
-        :scrollable="false"
-        :show-close="true"
-        :loading="saveInProgress"
-        save-button-text="action.save"
-        @save="onServerAddressSave(renewedServerAddress)"
-        @cancel="onCancelAddressEdit"
-      >
-        <div slot="content">
-          <div class="pt-4 dlg-input-width">
-            <ValidationProvider
-              ref="serverAddressVP"
-              v-slot="{ errors }"
-              rules="required"
-              name="serviceAddress"
-              class="validation-provider"
-            >
-              <v-text-field
-                v-model="renewedServerAddress"
-                data-test="system-settings-central-server-address-edit-field"
-                :label="$t('systemSettings.centralServerAddress')"
-                autofocus
-                outlined
-                class="dlg-row-input"
-                name="serviceAddress"
-                :error-messages="errors"
-              ></v-text-field>
-            </ValidationProvider>
+  <titled-view
+    data-test="system-settings-view"
+    title-key="tab.settings.systemSettings"
+  >
+    <!-- System Parameters -->
+    <div
+      id="system-parameters-anchor"
+      class="mb-6"
+      data-test="system-settings-system-parameters-card"
+    >
+      <v-card class="pb-4" flat>
+        <div class="card-top">
+          <div class="card-main-title">
+            {{ $t('systemSettings.systemParameters') }}
           </div>
         </div>
-      </xrd-simple-dialog>
-    </div>
 
-    <!-- Management Services -->
+        <table class="xrd-table mt-0 pb-3">
+          <tbody>
+            <tr>
+              <td class="title-cell">
+                <div>
+                  <div>
+                    {{ $t('systemSettings.instanceIdentifier') }}
+                  </div>
+                </div>
+              </td>
+              <td data-test="system-settings-instance-identifier-field">
+                {{ instanceIdentifier }}
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div>
+                  <div>
+                    {{ $t('systemSettings.centralServerAddress') }}
+                  </div>
+                </div>
+              </td>
+              <td data-test="system-settings-central-server-address-field">
+                {{ serverAddress }}
+              </td>
+              <td class="action-cell">
+                <xrd-button
+                  text
+                  data-test="system-settings-central-server-address-edit-button"
+                  @click="showEditServerAddressDialog = true"
+                  >{{ $t('action.edit') }}
+                </xrd-button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </v-card>
+    </div>
     <ManagementServices ref="managementServices" />
     <MemberClasses />
-  </div>
+  </titled-view>
+  <edit-server-address-dialog
+    v-if="showEditServerAddressDialog"
+    :service-address="serverAddress || ''"
+    @cancel="showEditServerAddressDialog = false"
+    @edit="refreshData"
+  />
+  <!-- Management Services -->
 </template>
 
 <script lang="ts">
-import { ErrorInfo } from '@/openapi-types';
-import { managementServicesStore } from '@/store/modules/management-services';
-import { notificationsStore } from '@/store/modules/notifications';
-import { systemStore } from '@/store/modules/system';
-
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
-import ManagementServices from '@/components/systemSettings/ManagementServices.vue';
+import { useManagementServices } from '@/store/modules/management-services';
+import { useSystem } from '@/store/modules/system';
+import ManagementServices from '@/components/systemSettings/managementServices/ManagementServices.vue';
 import MemberClasses from '@/components/systemSettings/MemberClasses.vue';
-import { AxiosError } from 'axios';
+import EditServerAddressDialog from '@/components/systemSettings/EditServerAddressDialog.vue';
 import { mapActions, mapState } from 'pinia';
-import { ValidationProvider } from 'vee-validate';
 
 /**
  * View for 'system settings' tab
  */
-import Vue, { VueConstructor } from 'vue';
+import { defineComponent } from 'vue';
+import TitledView from '@/components/ui/TitledView.vue';
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        serverAddressVP: InstanceType<typeof ValidationProvider>;
-        managementServices: InstanceType<typeof ManagementServices>;
-      };
-    }
-  >
-).extend({
+export default defineComponent({
   components: {
+    TitledView,
     MemberClasses,
-    ValidationProvider,
     ManagementServices,
+    EditServerAddressDialog,
   },
+
   data() {
     return {
       search: '' as string,
       showOnlyPending: false,
       saveInProgress: false,
-      isEditingServerAddress: false,
-      renewedServerAddress: '',
+      showEditServerAddressDialog: false,
     };
   },
   computed: {
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapState(useSystem, ['getSystemStatus']),
     serverAddress(): string | undefined {
       return this.getSystemStatus?.initialization_status
         ?.central_server_address;
@@ -191,66 +137,23 @@ export default (
     this.fetchSystemStatus();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    ...mapActions(systemStore, [
+    ...mapActions(useSystem, [
       'fetchSystemStatus',
       'updateCentralServerAddress',
     ]),
-    ...mapActions(managementServicesStore, [
+    ...mapActions(useManagementServices, [
       'fetchManagementServicesConfiguration',
     ]),
-    async onServerAddressSave(serverAddress: string): Promise<void> {
-      this.saveInProgress = true;
-      try {
-        await this.updateCentralServerAddress({
-          central_server_address: serverAddress,
-        });
-
-        await this.fetchSystemStatus();
-        this.$refs.managementServices.fetchManagementServicesConfiguration();
-
-        this.showSuccess(
-          this.$t('systemSettings.editCentralServerAddressSuccess'),
-        );
-        this.saveInProgress = false;
-        this.isEditingServerAddress = false;
-      } catch (updateError: unknown) {
-        const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
-        if (isFieldError(errorInfo)) {
-          // backend validation error
-          let fieldErrors = errorInfo.error?.validation_errors;
-          if (fieldErrors && this.$refs?.serverAddressVP) {
-            this.$refs.serverAddressVP.setErrors(
-              getTranslatedFieldErrors(
-                'serverAddressUpdateBody.centralServerAddress',
-                fieldErrors,
-              ),
-            );
-          }
-          this.isEditingServerAddress = true;
-        } else {
-          this.showError(updateError);
-          this.isEditingServerAddress = false;
-        }
-        return;
-      }
-    },
-    onServerAddressEdit(): void {
-      this.renewedServerAddress = this.serverAddress ? this.serverAddress : '';
-      this.isEditingServerAddress = true;
-    },
-    onCancelAddressEdit(): void {
-      this.isEditingServerAddress = false;
+    refreshData() {
+      this.showEditServerAddressDialog = false;
+      this.fetchSystemStatus();
+      this.$refs.managementServices.fetchManagementServicesConfiguration();
     },
   },
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
-
-.align-fix {
-  align-items: center;
-}
+@import '@/assets/tables';
 
 .card-top {
   padding-top: 15px;

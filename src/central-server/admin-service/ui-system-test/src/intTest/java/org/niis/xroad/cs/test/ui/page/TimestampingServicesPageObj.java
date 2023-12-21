@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -45,17 +45,19 @@ public class TimestampingServicesPageObj {
     }
 
     public SelenideElement tableWithHeaders(String url, String interval, String cost) {
-        var xpath = "./thead//tr[th/span[contains(text(), '%s')] and th/span[contains(text(), '%s')] and th/span[contains(text(), '%s')]]";
+        var xpath = "./thead//tr[th//span[contains(text(), '%s')] "
+                + "and th//span[contains(text(), '%s')] "
+                + "and th//span[contains(text(), '%s')]]";
         return table().find(xpath(String.format(xpath, url, interval, cost)));
     }
 
     public SelenideElement tableServicesRowOf(String url) {
-        var xpath = "./tbody/tr/td[contains(text(), '%s')]";
+        var xpath = "./tbody/tr/td[text()='%s']";
         return table().find(xpath(String.format(xpath, url)));
     }
 
     public SelenideElement tableLoading() {
-        return $x("//tr[@class='v-data-table__progress']");
+        return $x("//tr[@class='v-data-table-progress']");
     }
 
     public SelenideElement buttonLoading() {
@@ -84,7 +86,7 @@ public class TimestampingServicesPageObj {
 
     public class AddEditDialog {
         public SelenideElement inputUrl() {
-            return $x("//input[@data-test='timestamping-service-url-input']");
+            return $x("//div[@data-test='timestamping-service-url-input']");
         }
 
         public SelenideElement inputCertificateFile() {

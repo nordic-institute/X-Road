@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import ee.ria.xroad.signer.protocol.message.GetHSMOperationalInfoResponse;
-
-import akka.actor.Props;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
 
 /**
  * Module manager that supports hardware tokens.
@@ -36,44 +35,31 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
-    private static final String HSM_OPERATIONAL_INFO = "HsmOperationalInfo";
-    private static final String DISPATCHER = "module-worker-dispatcher";
-
     @Override
-    public void onMessage(Object message) throws Exception {
-        if (HSM_OPERATIONAL_INFO.equals(message)) {
-            handleGetHSMOperationalInfo();
-        }
-        super.onMessage(message);
-    }
-
-
-    @Override
-    protected void initializeModule(ModuleType module) {
+    protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
         if (module instanceof HardwareModuleType) {
-            initializeHardwareModule((HardwareModuleType) module);
-        } else if (module instanceof SoftwareModuleType) {
-            initializeSoftwareModule((SoftwareModuleType) module);
+            return createWorker((HardwareModuleType) module);
         }
+
+        return super.createModuleWorker(module);
     }
 
-    private void initializeHardwareModule(HardwareModuleType hardwareModule) {
-        if (!isModuleInitialized(hardwareModule)) {
-            try {
-                Props props = Props.create(HardwareModuleWorker.class, hardwareModule).withDispatcher(DISPATCHER);
-                initializeModuleWorker(hardwareModule.getType(), props);
-            } catch (Exception e) {
-                log.error("Error initializing hardware module '" + hardwareModule.getType() + "'", e);
-            }
+    private AbstractModuleWorker createWorker(HardwareModuleType hardwareModule) {
+        try {
+            return new HardwareModuleWorker(hardwareModule);
+        } catch (Exception e) {
+            log.error("Error initializing hardware module '{}'", hardwareModule.getType(), e);
         }
+
+        return null;
     }
 
-    private void handleGetHSMOperationalInfo() {
+    @Override
+    public Optional<Boolean> isHSMModuleOperational() {
         boolean hsmOperationalStatus = ModuleConf.getModules().stream()
                 .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
                         && !isModuleInitialized(moduleType));
 
-        GetHSMOperationalInfoResponse hsmOperationalInfo = new GetHSMOperationalInfoResponse(hsmOperationalStatus);
-        getSender().tell(hsmOperationalInfo, getSelf());
+        return Optional.of(hsmOperationalStatus);
     }
 }

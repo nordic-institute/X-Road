@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,10 +24,11 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,6 +46,7 @@ import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEME
 @Slf4j
 @Configuration
 @Profile("!devtools-test-auth")
+@RequiredArgsConstructor
 public class PamAuthenticationProviderConfig {
 
     public static final String KEY_MANAGEMENT_PAM_AUTHENTICATION = "keyManagementPam";
@@ -56,17 +58,7 @@ public class PamAuthenticationProviderConfig {
 
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
-    private final SecurityHelper securityHelper;
-
-    /**
-     * constructor
-     */
-    public PamAuthenticationProviderConfig(GrantedAuthorityMapper grantedAuthorityMapper,
-            AuditEventLoggingFacade auditEventLoggingFacade, SecurityHelper securityHelper) {
-        this.grantedAuthorityMapper = grantedAuthorityMapper;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
-        this.securityHelper = securityHelper;
-    }
+    private final UserRoleConfig userRoleConfig;
 
     /**
      * PAM authentication for form login, with corresponding IP whitelist
@@ -76,8 +68,9 @@ public class PamAuthenticationProviderConfig {
     public PamAuthenticationProvider formLoginPamAuthentication() {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
-        return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN,
-                auditEventLoggingFacade, securityHelper);
+        return new PamAuthenticationProvider(
+                formLoginWhitelist, grantedAuthorityMapper, userRoleConfig.getUserRoleMappings(), RestApiAuditEvent.FORM_LOGIN,
+                auditEventLoggingFacade);
     }
 
     /**
@@ -87,8 +80,8 @@ public class PamAuthenticationProviderConfig {
     @Bean(KEY_MANAGEMENT_PAM_AUTHENTICATION)
     public PamAuthenticationProvider keyManagementWhitelist(
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
-        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper,
-                RestApiAuditEvent.KEY_MANAGEMENT_PAM_LOGIN, auditEventLoggingFacade, securityHelper);
+        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper, userRoleConfig.getUserRoleMappings(),
+                RestApiAuditEvent.KEY_MANAGEMENT_PAM_LOGIN, auditEventLoggingFacade);
     }
 }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,16 +25,15 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.util.StringUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * Use two csrf repositories:
@@ -52,13 +51,14 @@ public class CookieAndSessionCsrfTokenRepository implements CsrfTokenRepository 
     private HttpSessionCsrfTokenRepository httpSessionCsrfTokenRepository;
 
     /**
-     * Creates an instance of CookieAndSessionCsrfTokenRepository which holds a instances of
+     * Creates an instance of CookieAndSessionCsrfTokenRepository which holds instances of
      * {@link HttpSessionCsrfTokenRepository} and {@link CookieCsrfTokenRepository} with <code>cookieHttpOnly</code>
      * set to <code>false</code>. Also sets the CSRF header name to ensure it does not change in future Spring updates
      */
-    public CookieAndSessionCsrfTokenRepository() {
+    public CookieAndSessionCsrfTokenRepository(final String sameSite) {
         cookieCsrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         cookieCsrfTokenRepository.setHeaderName(CSRF_HEADER_NAME);
+        cookieCsrfTokenRepository.setCookieCustomizer(customizer -> customizer.sameSite(sameSite));
         httpSessionCsrfTokenRepository = new HttpSessionCsrfTokenRepository();
         httpSessionCsrfTokenRepository.setSessionAttributeName(SESSION_CSRF_TOKEN_ATTR_NAME);
     }

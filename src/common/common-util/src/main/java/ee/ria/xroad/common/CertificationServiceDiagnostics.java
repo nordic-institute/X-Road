@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -37,9 +37,18 @@ import java.util.Map;
 public class CertificationServiceDiagnostics implements Serializable {
 
     @Getter
-    private final Map<String, CertificationServiceStatus> certificationServiceStatusMap;
+    private Map<String, CertificationServiceStatus> certificationServiceStatusMap;
 
     public CertificationServiceDiagnostics() {
         certificationServiceStatusMap = new HashMap<>();
+    }
+
+    /**
+     * Updates existing map with a provided one
+     *
+     * @param certificationServiceStatusMapParam new map
+     */
+    public void update(Map<String, CertificationServiceStatus> certificationServiceStatusMapParam) {
+        this.certificationServiceStatusMap = certificationServiceStatusMapParam;
     }
 }

@@ -34,6 +34,7 @@ import org.niis.xroad.cs.test.ui.page.SecurityServerDetailsPageObj;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
 
@@ -81,9 +82,8 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("enters new server address: {string}")
     public void enterNewServerAddress(final String serverAddress) {
-        clearInput(securityServerDetailsPageObj.editAddressDialog().inputAddress());
-        securityServerDetailsPageObj.editAddressDialog().inputAddress()
-                .shouldBe(visible)
+        vTextField(securityServerDetailsPageObj.editAddressDialog().inputAddress())
+                .clear()
                 .setValue(serverAddress);
     }
 
@@ -118,8 +118,7 @@ public class SecurityServerDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("enters server code: {string}")
     public void enterServerCode(final String serverCode) {
-        clearInput(securityServerDetailsPageObj.deleteSecurityServerDialog().inputSeverCode()
-                .shouldBe(visible))
+        vTextField(securityServerDetailsPageObj.deleteSecurityServerDialog().inputSeverCode())
                 .setValue(serverCode);
     }
 

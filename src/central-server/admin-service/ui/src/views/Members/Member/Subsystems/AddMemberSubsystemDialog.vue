@@ -27,7 +27,6 @@
 <template>
   <xrd-simple-dialog
     :disable-save="!formReady"
-    :dialog="showDialog"
     :loading="loading"
     cancel-button-text="action.cancel"
     title="members.member.subsystems.addClient"
@@ -39,7 +38,7 @@
         <v-text-field
           v-model="subsystemCode"
           :label="$t('members.member.subsystems.subsystemcode')"
-          outlined
+          variant="outlined"
           autofocus
           data-test="add-subsystem-input"
         ></v-text-field>
@@ -49,24 +48,24 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { XRoadId } from '@/openapi-types';
-import { clientStore } from '@/store/modules/clients';
-import { memberStore } from '@/store/modules/members';
-import { systemStore } from '@/store/modules/system';
-import { notificationsStore } from '@/store/modules/notifications';
-import { subsystemStore } from '@/store/modules/subsystems';
+import { ClientId } from '@/openapi-types';
+import { useClient } from '@/store/modules/clients';
+import { useMember } from '@/store/modules/members';
+import { useSystem } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSubsystem } from '@/store/modules/subsystems';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AddMemberSubsystemDialog',
   props: {
-    showDialog: {
-      type: Boolean,
+    member: {
+      type: Object as PropType<{ client_id: ClientId }>,
       required: true,
     },
   },
-
+  emits: ['cancel', 'added-subsystem'],
   data() {
     return {
       loading: false,
@@ -74,17 +73,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(clientStore, memberStore, subsystemStore),
-    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapStores(useClient, useMember, useSubsystem),
+    ...mapState(useSystem, ['getSystemStatus']),
     formReady(): boolean {
       return !!this.subsystemCode;
     },
   },
-  created() {
-    this.memberStore.currentMember;
-  },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
       this.clearForm();
@@ -94,13 +90,11 @@ export default Vue.extend({
     },
     add(): void {
       this.loading = true;
-      const instanceId: string = this.getSystemStatus?.initialization_status
-        ?.instance_identifier as string;
       this.subsystemStore
         .addSubsystem({
           subsystem_id: {
-            member_class: this.memberStore.currentMember.client_id.member_class,
-            member_code: this.memberStore.currentMember.client_id.member_code,
+            member_class: this.member.client_id.member_class,
+            member_code: this.member.client_id.member_code,
             subsystem_code: this.subsystemCode,
           },
         })
@@ -110,7 +104,7 @@ export default Vue.extend({
               subsystemCode: this.subsystemCode,
             }),
           );
-          this.$emit('addedSubsystem');
+          this.$emit('added-subsystem');
           this.clearForm();
         })
         .catch((error) => {

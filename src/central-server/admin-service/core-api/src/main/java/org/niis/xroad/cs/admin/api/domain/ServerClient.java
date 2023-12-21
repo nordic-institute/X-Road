@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -40,6 +40,7 @@ public class ServerClient {
     private String serverCode;
     private String serverOwner;
     private SecurityServerId serverId;
+    private boolean enabled = true;
 }
 
 

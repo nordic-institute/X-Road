@@ -3,12 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation  project(':common:common-verifier'),
-                    project(':asic-util')
+    implementation project(':common:common-verifier'),
+        project(':asic-util')
 
-    implementation(project(':common:common-util')) {
-        exclude group: 'com.typesafe.akka'
-    }
+    implementation(project(':common:common-util'))
 
     testImplementation project(':common:common-test')
 }

@@ -1,0 +1,30 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Image tag", name: "REPOSITORY_NAME", defaultValue: "${params?.REPOSITORY_NAME}")
+        string(description: "Version", name: "RELEASE_VERSION", defaultValue: "${params?.RELEASE_VERSION}")
+    }
+    stages {
+        stage('Clone X-Road Security Server Sidecar repository') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'develop']],
+                    doGenerateSubmoduleConfigurations: false,
+                    gitTool: 'Default',
+                    userRemoteConfigs: [
+                        [
+                            url: 'https://github.com/nordic-institute/X-Road.git',
+                            refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
+                        ]
+                    ]
+                ])
+            }
+        }
+        stage('Build all X-Road Security Server Sidecar images') {
+            steps {
+                sh 'sidecar/docker-build.sh ${RELEASE_VERSION} ${REPOSITORY_NAME}'
+            }
+        }
+    }
+}

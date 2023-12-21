@@ -137,7 +137,7 @@ class TrustedAnchorServiceImplTest {
             verify(auditDataHelper).calculateAndPutAnchorHash(bytes);
             verify(auditDataHelper).put(INSTANCE_IDENTIFIER, "CS0");
             verify(auditDataHelper).putDate(GENERATED_AT, anchorDate);
-            verify(auditDataHelper).put(ANCHOR_URLS, Set.of("http://cs0/internalconf?version=2"));
+            verify(auditDataHelper).put(ANCHOR_URLS, Set.of("http://cs0/internalconf"));
 
             verify(configurationVerifier).verifyConfiguration(any(), any());
 
@@ -164,7 +164,7 @@ class TrustedAnchorServiceImplTest {
             verify(auditDataHelper).calculateAndPutAnchorHash(bytes);
             verify(auditDataHelper).put(INSTANCE_IDENTIFIER, "CS0");
             verify(auditDataHelper).putDate(GENERATED_AT, anchorDate);
-            verify(auditDataHelper).put(ANCHOR_URLS, Set.of("http://cs0/internalconf?version=2"));
+            verify(auditDataHelper).put(ANCHOR_URLS, Set.of("http://cs0/internalconf"));
 
             verifyNoMoreInteractions(trustedAnchorRepository);
         }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -102,7 +102,7 @@ public class GlobalGroupDetailsPageObj {
         }
 
         public SelenideElement inputCode() {
-            final var xpath = "//input[@data-test='verify-member-code']";
+            final var xpath = "//div[@data-test='verify-member-code']";
             return $x(xpath);
         }
     }
@@ -121,39 +121,39 @@ public class GlobalGroupDetailsPageObj {
         }
 
         public SelenideElement rowCheckbox(final String identifier) {
-            return selectableRow(identifier).$("div[data-test='members-checkbox']");
+            return selectableRow(identifier).$x(".//div[contains(@class, 'v-checkbox-btn')]");
         }
 
         private SelenideElement selectableRow(final String instance, final String clazz, final String code) {
             final var xpath = "//div[@data-test='select-members-list']"
-                    + "//tr[.//div[@data-test='instance' and contains(text(), '%s')] "
-                    + "and .//div[@data-test='class' and contains(text(), '%s')]"
-                    + "and .//div[@data-test='code' and contains(text(), '%s')]"
-                    + "and .//div[@data-test='subsystem' and not(normalize-space(text()))]]";
+                    + "//tr[.//span[@data-test='instance' and contains(text(), '%s')] "
+                    + "and .//span[@data-test='class' and contains(text(), '%s')]"
+                    + "and .//span[@data-test='code' and contains(text(), '%s')]"
+                    + "and .//span[@data-test='subsystem' and not(normalize-space(text()))]]";
             return $x(String.format(xpath, instance, clazz, code));
         }
 
         private SelenideElement selectableRow(final String instance, final String clazz, final String code, final String subsystem) {
             final var xpath = "//div[@data-test='select-members-list']"
-                    + "//tr[.//div[@data-test='instance' and contains(text(), '%s')] "
-                    + "and .//div[@data-test='class' and contains(text(), '%s')]"
-                    + "and .//div[@data-test='code' and contains(text(), '%s')]"
-                    + "and .//div[@data-test='subsystem' and contains(text(), '%s')]]";
+                    + "//tr[.//span[@data-test='instance' and contains(text(), '%s')] "
+                    + "and .//span[@data-test='class' and contains(text(), '%s')]"
+                    + "and .//span[@data-test='code' and contains(text(), '%s')]"
+                    + "and .//span[@data-test='subsystem' and contains(text(), '%s')]]";
             return $x(String.format(xpath, instance, clazz, code, subsystem));
         }
 
         public SelenideElement btnAddMembers() {
-            final var xpath = "//button[@data-test='member-subsystem-add-button']";
+            final var xpath = "//button[@data-test='dialog-save-button']";
             return $x(xpath);
         }
 
         public SelenideElement btnClose() {
-            final var xpath = "//button[@data-test='cancel-button']";
+            final var xpath = "//button[@data-test='dialog-cancel-button']";
             return $x(xpath);
         }
 
         public SelenideElement inputFilter() {
-            final var xpath = "//input[@data-test='member-subsystem-search-field']";
+            final var xpath = "//div[@data-test='member-subsystem-search-field']";
             return $x(xpath);
         }
     }

@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.8
+Version: 1.9  
 Doc. ID: DM-SS
 
 ## Version history
@@ -19,6 +19,7 @@ Doc. ID: DM-SS
 | 16.09.2019 | 1.6     | Remove Ubuntu 14.04 support                                         | Jarkko Hyöty                    |
 | 26.09.2022 | 1.7     | Remove Ubuntu 18.04 support                                         | Andres Rosenthal                |
 | 10.05.2023 | 1.8     | Security Categories removed.                                        | Justas Samuolis                 |
+| 08.12.2023 | 1.9     | Added "Disabled" and related "in progress" client states            | Madis Loitmaa                   |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -201,6 +202,9 @@ The field clientstatus shows the progress of registering in central server the c
 * _registered_ -- the registration request sent to the central server is approved and the connection between the client and the security server is registered in the global configuration. In this state the security server can exchange messages on behalf of the client.
 * _deletion in progress_ -- the security server has successfully sent client deletion request to the central server. From this state, the only possible action is to delete the client from security server configuration.
 * _global error_ -- the client was in state “registered”, but the connection between the client and the security server has been deleted from the global configuration. From this state the administrator can either wait for updated global configuration (in case the deletion was caused by an error), contact the systems administrator of the central server or delete the client.
+* _disabled_ -- the client is temporarily disabled
+* _disabling in progress__ -- the administrator has successfully sent clientDisable request. When the security server receives updated global configuration, it enters the "disabled" state. 
+* _enabling in progress__ -- the administrator has successfully sent clientEnable request. When the security server receives updated global configuration, it returns to "registered" state.
 
 #### 2.5.1 Indexes
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,20 +29,20 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeUtils;
 
-import com.sun.xml.bind.api.AccessorException;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.ValidationEvent;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.soap.SOAPHeader;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.jaxb.runtime.api.AccessorException;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEvent;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPHeader;
-import javax.xml.soap.SOAPMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -170,8 +170,7 @@ public class SoapParserImpl implements SoapParser {
         Iterator<?> it = soapHeader.getChildElements();
         while (it.hasNext()) {
             Object next = it.next();
-            if (next instanceof SOAPElement) {
-                SOAPElement soapElement = (SOAPElement) next;
+            if (next instanceof SOAPElement soapElement) {
                 if (!fields.add(soapElement.getElementQName())) {
                     throw new CodedException(X_DUPLICATE_HEADER_FIELD,
                             "SOAP header contains duplicate field '%s'",
@@ -204,20 +203,15 @@ public class SoapParserImpl implements SoapParser {
             unmarshaller.setListener(new RequiredHeaderFieldsChecker(clazz));
         }
 
-        unmarshaller.setEventHandler(event -> {
-            switch (event.getSeverity()) {
-                case ValidationEvent.WARNING:
-                    return true;
-                case ValidationEvent.ERROR:
-                    Throwable t = event.getLinkedException();
-
-                    return !(t instanceof AccessorException
-                            && t.getCause() instanceof CodedException);
-                case ValidationEvent.FATAL_ERROR:
-                    return false;
-                default:
-                    return true;
+        unmarshaller.setEventHandler(event -> switch (event.getSeverity()) {
+            case ValidationEvent.WARNING -> true;
+            case ValidationEvent.ERROR -> {
+                Throwable t = event.getLinkedException();
+                yield !(t instanceof AccessorException
+                        && t.getCause() instanceof CodedException);
             }
+            case ValidationEvent.FATAL_ERROR -> false;
+            default -> true;
         });
 
         JAXBElement<T> jaxbElement =

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,12 +25,13 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,9 @@ public class Configuration {
     @Setter(AccessLevel.PACKAGE)
     private OffsetDateTime expirationDate;
 
+    @Setter(AccessLevel.PACKAGE)
+    private String version;
+
     /**
      * For each file, calls a function taking the ConfigurationLocation
      * and ConfigurationFile as arguments.
@@ -64,7 +68,7 @@ public class Configuration {
      * @return true, if the configuration is expired at the current date
      */
     public boolean isExpired() {
-        return expirationDate != null && Instant.now().isAfter(expirationDate.toInstant());
+        return expirationDate != null && TimeUtils.now().isAfter(expirationDate.toInstant());
     }
 
 

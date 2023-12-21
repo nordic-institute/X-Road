@@ -1,3 +1,35 @@
+plugins {
+    id 'java-library'
+    id 'com.google.protobuf'
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java'
+            , 'build/generated-sources'
+            , 'build/generated/source/proto/main/grpc'
+            , 'build/generated/source/proto/main/java']
+    }
+}
+
 dependencies {
     implementation project(':common:common-util')
+    api project(':common:common-rpc')
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:$protocVersion" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+}
+
+compileJava.dependsOn generateProto
+
+test {
+    useJUnitPlatform()
 }

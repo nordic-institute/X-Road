@@ -25,85 +25,73 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     title="login.logIn"
     save-button-text="login.logIn"
-    :disable-save="!isValid"
+    :disable-save="!meta.valid"
     :loading="loading"
     width="620"
     @save="save"
     @cancel="cancel"
   >
-    <div slot="content">
+    <template #content>
       <div class="pt-5 dlg-input-width">
-        <ValidationProvider
-          ref="tokenPin"
-          v-slot="{ errors }"
-          rules="required"
+        <v-text-field
+          v-model="tokenPin"
+          type="password"
+          variant="outlined"
+          :label="$t('fields.tokenPin')"
+          autofocus
           name="tokenPin"
-          class="validation-provider"
-        >
-          <v-text-field
-            v-model="pin"
-            type="password"
-            outlined
-            :label="$t('fields.tokenPin')"
-            autofocus
-            name="tokenPin"
-            :error-messages="errors"
-            @keyup.enter="save"
-          ></v-text-field>
-        </ValidationProvider>
+          :error-messages="errors"
+          @keyup.enter="save"
+        ></v-text-field>
       </div>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider } from 'vee-validate';
+import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { Token } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { useAlerts } from '@/store/modules/alerts';
 import { useNotifications } from '@/store/modules/notifications';
-import { useTokensStore } from '@/store/modules/tokens';
+import { useTokens } from '@/store/modules/tokens';
+import { useField } from 'vee-validate';
 
-export default Vue.extend({
-  components: { ValidationProvider },
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
   },
-
+  emits: ['cancel', 'save'],
+  setup() {
+    const { value, meta, errors, setErrors, resetField } = useField(
+      'tokenPin',
+      'required',
+      { initialValue: '' },
+    );
+    return { tokenPin: value, meta, errors, setErrors, resetField };
+  },
   data() {
     return {
-      pin: '',
       loading: false,
     };
   },
-
   computed: {
-    ...mapState(useTokensStore, ['selectedToken']),
-
-    isValid(): boolean {
-      // Check that input is not empty
-      if (this.pin && this.pin.length > 0) {
-        return true;
-      }
-      return false;
-    },
+    ...mapState(useTokens, ['selectedToken']),
   },
-
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.$emit('cancel');
-      this.clear();
+      this.resetField();
     },
     save(): void {
       if (!this.selectedToken) {
@@ -116,7 +104,7 @@ export default Vue.extend({
       this.loading = true;
       api
         .put(`/tokens/${encodePathParameter(token.id)}/login`, {
-          password: this.pin,
+          password: this.tokenPin,
         })
         .then(() => {
           this.loading = false;
@@ -129,25 +117,18 @@ export default Vue.extend({
             error.response.status === 400 &&
             error.response.data.error.code === 'pin_incorrect'
           ) {
-            (
-              this.$refs.tokenPin as InstanceType<typeof ValidationProvider>
-            ).setErrors([this.$t('keys.incorrectPin') as string]);
+            this.setErrors(this.$t('keys.incorrectPin'));
           }
-
           this.showError(error);
         })
         .finally(() => this.checkAlertStatus());
 
-      this.clear();
-    },
-    clear(): void {
-      this.pin = '';
-      (this.$refs.tokenPin as InstanceType<typeof ValidationProvider>).reset();
+      this.resetField();
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/dialogs';
+@import '@/assets/dialogs';
 </style>

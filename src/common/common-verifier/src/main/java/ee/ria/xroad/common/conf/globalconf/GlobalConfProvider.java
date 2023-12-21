@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -196,7 +195,7 @@ public interface GlobalConfProvider {
      * @return the client id that owns the security server with the specified id
      * or null if the given id does not match an existing server
      */
-    ClientId.Conf getServerOwner(SecurityServerId serverId);
+    ClientId getServerOwner(SecurityServerId serverId);
 
     /**
      * @param cert the certificate
@@ -241,13 +240,13 @@ public interface GlobalConfProvider {
      * @param instanceIdentifier the instance identifier
      * @return all approved TSPs for the given instance identifier
      */
-    List<String> getApprovedTsps(String instanceIdentifier);
+    List<String> getApprovedTspUrls(String instanceIdentifier);
 
     /**
      * @param instanceIdentifier the instance identifier
      * @return all approved TSP types for the given instance identifier
      */
-    List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier);
+    List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier);
 
     /**
      * @param instanceIdentifier the instance identifier

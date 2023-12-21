@@ -5,12 +5,59 @@
   "fields": {
     "password": "Password",
     "username": "LIB-Username",
-    "shared": "sharedlib"
+    "shared": "sharedlib",
+    "code": "Code",
+    "description": "Description"
   },
   "action": {
     "cancel": "Cancel",
     "add": "Add",
     "yes": "Yes",
-    "upload": "Upload"
+    "delete": "Delete",
+    "download": "Download",
+    "upload": "Upload",
+    "restore": "Restore"
+  },
+  "noData": {
+    "noMatches": "No items matching criteria",
+    "loading": "Loading... Please wait"
+  },
+  "keys": {
+    "gotIt": "Got it"
+  },
+  "global": {
+    "all": "All",
+    "name": "Name"
+  },
+  "backup": {
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to delete backup {file}?",
+        "title": "Are you sure?"
+      },
+      "success": "Backup {file} deleted"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Are you sure you want to restore from {file}?",
+        "title": "Are you sure?"
+      },
+      "success": "Configuration restored from {file}"
+    },
+    "createBackup": {
+      "button": "Back up config.",
+      "messages": {
+        "success": "Backup {file} successfully created",
+        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead."
+      }
+    },
+    "uploadBackup": {
+      "button": "Upload backup",
+      "confirmationDialog": {
+        "confirmation": "File {name} already exists, are you sure you want to overwrite it?",
+        "title": "File already exists"
+      },
+      "success": "Backup {file} uploaded successfully"
+    }
   }
 }

@@ -29,7 +29,6 @@
  These are not in openapi definitions.
 */
 import { Location } from 'vue-router';
-import { AxiosError } from 'axios';
 
 // Interface for Tab data
 export interface Tab {
@@ -38,12 +37,6 @@ export interface Tab {
   to: Location; // Contains the path or path name for router. Same type as https://router.vuejs.org/api/#to
   permissions?: string[]; // Permissions needed to view this tab
 }
-
-// The result of the FileUpload components fileChanged event
-export type FileUploadResult = {
-  buffer: ArrayBuffer;
-  file: File;
-};
 
 // Action info for notification. In practise the "action" is navigtion to a given route.
 export interface NotificationAction {
@@ -69,6 +62,7 @@ export interface Notification {
   url?: string;
   status?: string; // http status code
   action?: NotificationAction;
+  preserve?: boolean;
 }
 
 export type ValidationError = {
@@ -80,4 +74,37 @@ export type ValidationError = {
 export interface ActionError {
   errorMessage?: string;
   action?: NotificationAction;
+}
+
+export interface DataQuery {
+  itemsPerPage: number;
+  page: number;
+  sortBy?: string;
+  sortOrder?: string;
+  search?: string;
+}
+
+export interface PagingOptions {
+  itemsPerPage: number;
+  page: number;
+  sortBy: { key: string; order?: boolean | 'asc' | 'desc' }[];
+}
+
+export interface DataTableHeader {
+  title: string;
+  align?: string;
+  key: string;
+  sortable?: boolean;
+}
+
+export enum Event {
+  Add = 'add',
+  Edit = 'edit',
+  Delete = 'delete',
+  Cancel = 'cancel',
+  Select = 'select',
+  Generate = 'generate',
+  Confirm = 'confirm',
+  Upload = 'upload',
+  ModelValue = 'update:model-value',
 }

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <tr>
+  <tr data-test="key-row">
     <td class="pl-8">
       <div class="name-wrap-top">
         <i class="icon-Key key-icon" />
@@ -44,6 +44,7 @@
         :outlined="false"
         text
         :disabled="disableGenerateCsr"
+        data-test="generate-csr-button"
         @click="generateCsr"
         >{{ $t('keys.generateCsr') }}</xrd-button
       >
@@ -55,29 +56,24 @@
 /**
  * Table component for an array of keys
  */
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
-import {
-  Key,
-  PossibleAction,
-  TokenCertificate,
-  KeyUsageType,
-} from '@/openapi-types';
+import { defineComponent, PropType } from 'vue';
+import { Key, PossibleAction, KeyUsageType } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { mapState } from 'pinia';
 
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     tokenKey: {
-      type: Object as Prop<Key>,
+      type: Object as PropType<Key>,
       required: true,
     },
     tokenLoggedIn: {
       type: Boolean,
     },
   },
+  emits: ['key-click', 'generate-csr'],
   computed: {
     ...mapState(useUser, ['hasPermission']),
     showGenerateCsr(): boolean {
@@ -115,9 +111,6 @@ export default Vue.extend({
     keyClick(): void {
       this.$emit('key-click');
     },
-    certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$emit('certificate-click', { cert, key });
-    },
     generateCsr(): void {
       this.$emit('generate-csr');
     },
@@ -126,7 +119,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .table-button-fix {
   margin-left: auto;

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
@@ -36,7 +37,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Component
@@ -69,6 +69,6 @@ public class SecurityServerConfigurationBackupGenerator extends BaseConfiguratio
     @Override
     protected String generateBackupFileName() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
-        return "conf_backup_" + LocalDateTime.now().format(dtf) + ".gpg";
+        return "conf_backup_" + TimeUtils.localDateTimeNow().format(dtf) + ".gpg";
     }
 }

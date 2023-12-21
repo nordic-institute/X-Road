@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -38,17 +38,9 @@ import java.util.Optional;
 @Slf4j
 public class UsernameHelper {
 
-    public static final String UNKNOWN_USERNAME = null;
+    private static final String UNKNOWN_USERNAME = null;
 
-    /**
-     * String that represents value for unknown username
-     * @return
-     */
-    public String getUnknownUsername() {
-        return UNKNOWN_USERNAME;
-    }
-
-    /**
+     /**
      * Returns optional that holds currently logged in user's username, if it could be determined.
      * Exceptions are logged, not thrown, and empty optional is returned if they happen.
      * Other Throwables are thrown.

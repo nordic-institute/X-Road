@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.test.ui.glue.mappers;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.WebElementCondition;
 import io.cucumber.java.ParameterType;
 import lombok.Getter;
 
@@ -39,9 +40,9 @@ public class ParameterMappers {
         DISABLED(Condition.disabled);
 
         @Getter
-        private final Condition selenideCondition;
+        private final WebElementCondition selenideCondition;
 
-        SelenideValidation(Condition selenideCondition) {
+        SelenideValidation(WebElementCondition selenideCondition) {
             this.selenideCondition = selenideCondition;
         }
 

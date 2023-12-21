@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -44,7 +44,11 @@ public enum ClientStatusMapping {
     REGISTRATION_IN_PROGRESS(ClientType.STATUS_REGINPROG, ClientStatus.REGISTRATION_IN_PROGRESS),
     REGISTERED(ClientType.STATUS_REGISTERED, ClientStatus.REGISTERED),
     DELETION_IN_PROGRESS(ClientType.STATUS_DELINPROG, ClientStatus.DELETION_IN_PROGRESS),
-    GLOBAL_ERROR(ClientType.STATUS_GLOBALERR, ClientStatus.GLOBAL_ERROR);
+    GLOBAL_ERROR(ClientType.STATUS_GLOBALERR, ClientStatus.GLOBAL_ERROR),
+    DISABLING_IN_PROGRESS(ClientType.STATUS_DISABLING_INPROG, ClientStatus.DISABLING_IN_PROGRESS),
+    DISABLED(ClientType.STATUS_DISABLED, ClientStatus.DISABLED),
+    ENABLING_IN_PROGRESS(ClientType.STATUS_ENABLING_INPROG, ClientStatus.ENABLING_IN_PROGRESS);
+
 
     private final String clientTypeStatus; // ClientType statuses
     private final ClientStatus statusEnum;

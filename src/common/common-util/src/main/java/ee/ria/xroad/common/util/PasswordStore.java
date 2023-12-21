@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,6 +27,9 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.output.WriterOutputStream;
 
 import java.io.ByteArrayOutputStream;
@@ -37,49 +40,64 @@ import java.io.OutputStreamWriter;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * Manages passwords stored in the shared memory segment.
+ * Manages passwords that are shared across different JVMs.
  */
+@Slf4j
+@SuppressWarnings("squid:S2068")
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PasswordStore {
-
+    private static final String CFG_PASSWORD_STORE_PROVIDER = SystemProperties.PREFIX + "internal.passwordstore-provider";
+    private static final String CFG_PASSWORD_STORE_FILE = "file";
     private static final int PERMISSIONS = 0600;
 
+    private static final PasswordStoreProvider PASSWORD_STORE_PROVIDER;
+
     static {
-        System.loadLibrary("passwordstore");
+        if (isFilePasswordStoreEnabled()) {
+            log.warn("WARNING: FilePasswordStoreProvider is enabled. This provider is not production ready.");
+            PASSWORD_STORE_PROVIDER = new FilePasswordStoreProvider();
+        } else {
+            PASSWORD_STORE_PROVIDER = new MemoryPasswordStoreProvider();
+        }
     }
 
-    private PasswordStore() {
+    private static boolean isFilePasswordStoreEnabled() {
+        return CFG_PASSWORD_STORE_FILE.equals(System.getProperty(CFG_PASSWORD_STORE_PROVIDER));
     }
 
     /**
      * Returns stored password with identifier id.
+     *
      * @param id identifier of the password
      * @return password value or null, if password with this ID was not found.
      * @throws Exception in case of any errors
      */
     public static char[] getPassword(String id) throws Exception {
-        byte[] raw = read(getPathnameForFtok(), id);
+        byte[] raw = PASSWORD_STORE_PROVIDER.read(getPathnameForFtok(), id);
         return raw == null ? null : byteToChar(raw);
     }
 
     /**
      * Stores the password in shared memory.
      * Use null as password parameter to remove password from memory.
-     * @param id identifier of the password
+     *
+     * @param id       identifier of the password
      * @param password password to be stored
      * @throws Exception in case of any errors
      */
     public static void storePassword(String id, char[] password)
             throws Exception {
         byte[] raw = charToByte(password);
-        write(getPathnameForFtok(), id, raw, PERMISSIONS);
+        PASSWORD_STORE_PROVIDER.write(getPathnameForFtok(), id, raw, PERMISSIONS);
     }
 
     /**
      * Clears the password store. Useful for testing purposes.
+     *
      * @throws Exception in case of any errors
      */
     public static void clearStore() throws Exception {
-        clear(getPathnameForFtok(), PERMISSIONS);
+        PASSWORD_STORE_PROVIDER.clear(getPathnameForFtok(), PERMISSIONS);
     }
 
     private static byte[] charToByte(char[] buffer) throws IOException {
@@ -107,16 +125,15 @@ public final class PasswordStore {
         return writer.toCharArray();
     }
 
-    private static native byte[] read(String pathnameForFtok, String id)
-            throws Exception;
-
-    private static native void write(String pathnameForFtok,
-            String id, byte[] password, int permissions) throws Exception;
-
-    private static native void clear(String pathnameForFtok, int permissions)
-            throws Exception;
-
     private static String getPathnameForFtok() {
         return SystemProperties.getSignerPasswordStoreIPCKeyPathname();
+    }
+
+    public interface PasswordStoreProvider {
+        byte[] read(String pathnameForFtok, String id) throws Exception;
+
+        void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
+
+        void clear(String pathnameForFtok, int permissions) throws Exception;
     }
 }

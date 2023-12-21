@@ -29,7 +29,6 @@
     <xrd-button
       v-if="showUploadButton"
       :data-test="`configuration-part-${configurationPart.content_identifier}-upload`"
-      :outlined="false"
       text
       @click="showUploadDialog = true"
     >
@@ -49,33 +48,33 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapState } from 'pinia';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 import UploadConfigurationPartDialog from '@/components/configurationParts/UploadConfigurationPartDialog.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { UploadConfigurationPartDialog },
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     configurationPart: {
-      type: Object as Prop<ConfigurationPart>,
+      type: Object as PropType<ConfigurationPart>,
       required: true,
     },
   },
+  emits: ['save'],
   data() {
     return {
       showUploadDialog: false,
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
 
     showUploadButton(): boolean {
       return (

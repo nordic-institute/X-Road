@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -28,9 +28,8 @@ package org.niis.xroad.cs.admin.rest.api.openapi.validator;
 
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class HostAddressValidator implements ConstraintValidator<ValidHostAddress, String> {
 

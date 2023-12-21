@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -58,6 +58,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 
 /**
  * Parses and handles the downloaded configuration directory.
@@ -74,7 +75,7 @@ public class ConfigurationParser {
     }
 
     private enum ContentPart {
-        EXPIRATION_DATE,
+        HEADER,
         CONTENT
     }
 
@@ -276,7 +277,7 @@ public class ConfigurationParser {
 
         protected Map<String, String> headers;
 
-        private ContentPart nextPart = ContentPart.EXPIRATION_DATE;
+        private ContentPart nextPart = ContentPart.HEADER;
 
         @Override
         public final void startMultipart(BodyDescriptor bd) {
@@ -295,9 +296,10 @@ public class ConfigurationParser {
 
         @Override
         public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
-            if (nextPart == ContentPart.EXPIRATION_DATE) {
+            if (nextPart == ContentPart.HEADER) {
                 parseExpirationDate();
                 verifyConfUpToDate();
+                parseVersion();
                 nextPart = ContentPart.CONTENT;
             } else {
                 parseContent(is);
@@ -306,6 +308,10 @@ public class ConfigurationParser {
 
         private void parseExpirationDate() {
             configuration.setExpirationDate(parseExpireDate(getHeader(HEADER_EXPIRE_DATE)));
+        }
+
+        private void parseVersion() {
+            configuration.setVersion(getHeader(HEADER_VERSION));
         }
 
         private void verifyConfUpToDate() {
@@ -319,8 +325,8 @@ public class ConfigurationParser {
             log.trace("onContent({})", headers);
 
             try {
-                ConfigurationFile file = ConfigurationFile.of(headers, configuration.getExpirationDate(),
-                        IOUtils.toString(is));
+                ConfigurationFile file = ConfigurationFile.of(headers,
+                        configuration.getExpirationDate(), configuration.getVersion(), IOUtils.toString(is));
 
                 if (shouldHandleContent(file)) {
                     configuration.getFiles().add(file);

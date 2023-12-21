@@ -29,127 +29,103 @@
       <div class="apply-to-all-text">{{ $t('services.applyToAll') }}</div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="px-4 pt-4">
-        <div class="edit-row">
-          <xrd-form-label
-            class="edit-title"
-            data-test="service-parameters-service-url-label"
-            :label-text="$t('services.serviceUrl')"
-            :help-text="$t('services.urlTooltip')"
-          />
+    <div class="px-4 pt-4">
+      <div class="edit-row">
+        <xrd-form-label
+          class="edit-title"
+          data-test="service-parameters-service-url-label"
+          :label-text="$t('services.serviceUrl')"
+          :help-text="$t('services.urlTooltip')"
+        />
 
-          <div class="edit-input">
-            <ValidationProvider
-              v-slot="{ errors }"
-              rules="required|wsdlUrl"
-              name="serviceUrl"
-              class="validation-provider"
-            >
-              <v-text-field
-                v-model="service.url"
-                outlined
-                class="description-input"
-                name="serviceUrl"
-                :error-messages="errors"
-                data-test="service-url"
-                :disabled="!canEdit"
-                @input="changeUrl()"
-              ></v-text-field>
-            </ValidationProvider>
-          </div>
-
-          <v-checkbox
-            v-if="showApplyToAll"
-            v-model="url_all"
-            color="primary"
-            class="table-checkbox"
-            data-test="url-all"
-            @change="setTouched()"
-          ></v-checkbox>
+        <div class="edit-input">
+          <v-text-field
+            v-bind="serviceUrlRef"
+            variant="outlined"
+            class="description-input"
+            data-test="service-url-text-field"
+            :disabled="!canEdit"
+            @update:model-value="changeUrl()"
+          ></v-text-field>
         </div>
 
-        <div class="edit-row">
-          <xrd-form-label
-            class="edit-title"
-            data-test="service-parameters-timeout-label"
-            :label-text="$t('services.timeoutSec')"
-            :help-text="$t('services.timeoutTooltip')"
-          />
-
-          <div class="edit-input">
-            <ValidationProvider
-              v-slot="{ errors }"
-              :rules="{ required: true, between: { min: 0, max: 1000 } }"
-              name="serviceTimeout"
-              class="validation-provider"
-            >
-              <v-text-field
-                v-model="service.timeout"
-                outlined
-                type="number"
-                style="max-width: 200px"
-                name="serviceTimeout"
-                :error-messages="errors"
-                :disabled="!canEdit"
-                data-test="service-timeout"
-                @input="setTouched()"
-              ></v-text-field>
-            </ValidationProvider>
-            <!-- 0 - 1000 -->
-          </div>
-
-          <v-checkbox
-            v-if="showApplyToAll"
-            v-model="timeout_all"
-            color="primary"
-            class="table-checkbox"
-            data-test="timeout-all"
-            @change="setTouched()"
-          ></v-checkbox>
-        </div>
-
-        <div class="edit-row">
-          <xrd-form-label
-            class="edit-title"
-            data-test="service-parameters-verify-tls-label"
-            :label-text="$t('services.verifyTls')"
-            :help-text="$t('services.tlsTooltip')"
-          />
-
-          <div class="edit-input">
-            <v-checkbox
-              v-model="service.ssl_auth"
-              :disabled="!isHttpsMethod() || !canEdit"
-              color="primary"
-              class="table-checkbox"
-              data-test="ssl-auth"
-              @change="setTouched()"
-            ></v-checkbox>
-          </div>
-
-          <v-checkbox
-            v-if="showApplyToAll"
-            v-model="ssl_auth_all"
-            color="primary"
-            class="table-checkbox"
-            data-test="ssl-auth-all"
-            @change="setTouched()"
-          ></v-checkbox>
-        </div>
-
-        <div class="button-wrap">
-          <xrd-button
-            v-if="canEdit"
-            :disabled="invalid || disableSave"
-            :loading="saving"
-            data-test="save-service-parameters"
-            @click="save(false)"
-            >{{ $t('action.save') }}</xrd-button
-          >
-        </div>
+        <v-checkbox
+          v-if="showApplyToAll"
+          v-model="url_all"
+          class="table-checkbox"
+          data-test="url-all"
+          @update:model-value="setTouched()"
+        ></v-checkbox>
       </div>
-    </ValidationObserver>
+
+      <div class="edit-row">
+        <xrd-form-label
+          class="edit-title"
+          data-test="service-parameters-timeout-label"
+          :label-text="$t('services.timeoutSec')"
+          :help-text="$t('services.timeoutTooltip')"
+        />
+
+        <div class="edit-input">
+          <v-text-field
+            v-bind="serviceTimeoutRef"
+            variant="outlined"
+            type="number"
+            style="max-width: 200px"
+            name="serviceTimeout"
+            :disabled="!canEdit"
+            data-test="service-timeout-text-field"
+            @update:model-value="setTouched()"
+          ></v-text-field>
+        </div>
+
+        <v-checkbox
+          v-if="showApplyToAll"
+          v-model="timeout_all"
+          class="table-checkbox"
+          data-test="timeout-all"
+          @update:model-value="setTouched()"
+        ></v-checkbox>
+      </div>
+
+      <div class="edit-row">
+        <xrd-form-label
+          class="edit-title"
+          data-test="service-parameters-verify-tls-label"
+          :label-text="$t('services.verifyTls')"
+          :help-text="$t('services.tlsTooltip')"
+        />
+
+        <div class="edit-input">
+          <v-checkbox
+            v-model="service.ssl_auth"
+            :disabled="!isHttpsMethod() || !canEdit"
+            class="table-checkbox"
+            data-test="ssl-auth"
+            @update:model-value="setTouched()"
+          ></v-checkbox>
+        </div>
+
+        <v-checkbox
+          v-if="showApplyToAll"
+          v-model="ssl_auth_all"
+          class="table-checkbox"
+          data-test="ssl-auth-all"
+          @update:model-value="setTouched()"
+        ></v-checkbox>
+      </div>
+
+      <div class="button-wrap">
+        <xrd-button
+          v-if="canEdit"
+          :disabled="!meta.valid || disableSave"
+          :loading="saving"
+          data-test="save-service-parameters"
+          @click="save(false)"
+          >{{ $t('action.save') }}
+        </xrd-button>
+      </div>
+    </div>
 
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('accessRights.title') }}</div>
@@ -160,16 +136,16 @@
           outlined
           data-test="remove-subjects"
           @click="removeAllServiceClients()"
-          >{{ $t('action.removeAll') }}</xrd-button
-        >
+          >{{ $t('action.removeAll') }}
+        </xrd-button>
         <xrd-button
           v-if="canEdit"
           outlined
           class="add-members-button"
           data-test="show-add-subjects"
           @click="showAddServiceClientDialog()"
-          >{{ $t('accessRights.addServiceClients') }}</xrd-button
-        >
+          >{{ $t('accessRights.addServiceClients') }}
+        </xrd-button>
       </div>
     </div>
 
@@ -187,7 +163,7 @@
             <td class="identifier-wrap">{{ sc.name }}</td>
             <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.service_client_type }}</td>
-            <td>{{ sc.rights_given_at | formatDateTime }}</td>
+            <td>{{ $filters.formatDateTime(sc.rights_given_at ?? '') }}</td>
             <td>
               <div class="button-wrap">
                 <xrd-button
@@ -196,8 +172,8 @@
                   :outlined="false"
                   data-test="remove-subject"
                   @click="removeServiceClient(sc)"
-                  >{{ $t('action.remove') }}</xrd-button
-                >
+                  >{{ $t('action.remove') }}
+                </xrd-button>
               </div>
             </td>
           </tr>
@@ -205,16 +181,15 @@
       </table>
 
       <div class="xrd-footer-buttons-wrap">
-        <xrd-button data-test="close" @click="close()">{{
-          $t('action.close')
-        }}</xrd-button>
+        <xrd-button data-test="close" @click="close()"
+          >{{ $t('action.close') }}
+        </xrd-button>
       </div>
     </v-card>
 
     <!-- Confirm dialog remove Access Right service clients -->
     <xrd-confirm-dialog
       v-if="confirmMember"
-      :dialog="confirmMember"
       title="accessRights.removeTitle"
       text="accessRights.removeText"
       data-test="confirm-delete-access-right"
@@ -225,16 +200,15 @@
     <!-- Confirm dialog remove all Access Right service clients -->
     <xrd-confirm-dialog
       v-if="confirmAllServiceClients"
-      :dialog="confirmAllServiceClients"
       title="accessRights.removeAllTitle"
       text="accessRights.removeAllText"
       data-test="confirm-delete-all-access-right"
       @cancel="confirmAllServiceClients = false"
-      @accept="doRemoveAllServiveClient()"
+      @accept="doRemoveAllServiceClient()"
     />
 
     <!-- Add access right service clients dialog -->
-    <accessRightsDialog
+    <AccessRightsDialog
       v-if="addServiceClientDialogVisible"
       :dialog="addServiceClientDialogVisible"
       :existing-service-clients="serviceClients"
@@ -245,7 +219,7 @@
     />
 
     <!-- Warning dialog when service parameters are saved -->
-    <warningDialog
+    <WarningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
       localization-parent="services.service_parameters_ssl_test_warnings"
@@ -256,28 +230,32 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import AccessRightsDialog from '../AccessRightsDialog.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { RouteName, Permissions } from '@/global';
-import { ServiceClient, ServiceClients, ServiceUpdate } from '@/openapi-types';
+import {
+  CodeWithDetails,
+  Service,
+  ServiceClient,
+  ServiceClients,
+  ServiceUpdate,
+} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useServicesStore } from '@/store/modules/services';
+import { useServices } from '@/store/modules/services';
+import { PublicPathState, useForm } from 'vee-validate';
 
 type NullableServiceClient = undefined | ServiceClient;
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     AccessRightsDialog,
     WarningDialog,
-    ValidationProvider,
-    ValidationObserver,
   },
   props: {
     serviceId: {
@@ -288,6 +266,31 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+  },
+  emits: ['update-service'],
+  setup() {
+    const { service } = useServices();
+    const { meta, values, setValues, defineComponentBinds } = useForm({
+      validationSchema: {
+        serviceUrl: 'required|max:255|wsdlUrl',
+        serviceTimeout: 'required|between:0,1000',
+      },
+      initialValues: {
+        serviceUrl: service.url,
+        serviceTimeout: service.timeout,
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const serviceUrlRef = defineComponentBinds('serviceUrl', componentConfig);
+    const serviceTimeoutRef = defineComponentBinds(
+      'serviceTimeout',
+      componentConfig,
+    );
+    return { meta, values, setValues, serviceUrlRef, serviceTimeoutRef };
   },
   data() {
     return {
@@ -302,19 +305,18 @@ export default Vue.extend({
       url_all: false as boolean,
       timeout_all: false as boolean,
       ssl_auth_all: false as boolean,
-      warningInfo: [] as string[],
+      warningInfo: [] as CodeWithDetails[],
       warningDialog: false as boolean,
       saving: false as boolean,
     };
   },
   computed: {
-    ...mapState(useServicesStore, ['service', 'serviceClients']),
+    ...mapState(useServices, ['service', 'serviceClients']),
     ...mapState(useUser, ['hasPermission']),
     hasServiceClients(): boolean {
       return this.serviceClients?.length > 0;
     },
     disableSave(): boolean {
-      // service is undefined --> can't save OR inputs are not touched
       return !this.service || !this.touched;
     },
     showApplyToAll(): boolean {
@@ -327,10 +329,17 @@ export default Vue.extend({
       return this.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
     },
   },
-
+  watch: {
+    service(newValue: Service) {
+      this.setValues({
+        serviceUrl: newValue.url,
+        serviceTimeout: newValue.timeout,
+      });
+    },
+  },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useServicesStore, ['setServiceClients']),
+    ...mapActions(useServices, ['setService', 'setServiceClients']),
     cancelSubmit(): void {
       this.warningDialog = false;
     },
@@ -345,8 +354,8 @@ export default Vue.extend({
        * must be a boolean even if the service is using http. Backend will handle saving correct data.
        */
       const serviceUpdate: ServiceUpdate = {
-        url: this.service.url,
-        timeout: this.service.timeout,
+        url: this.values.serviceUrl,
+        timeout: this.values.serviceTimeout,
         ssl_auth: this.service.ssl_auth ?? false, // set false as backup as backend takes boolean
         timeout_all: this.timeout_all,
         url_all: this.url_all,
@@ -356,11 +365,12 @@ export default Vue.extend({
 
       this.saving = true;
       api
-        .patch(
+        .patch<Service>(
           `/services/${encodePathParameter(this.serviceId)}`,
           serviceUpdate,
         )
-        .then(() => {
+        .then((res) => {
+          this.setService(res.data);
           this.showSuccess(this.$t('services.serviceSaved'));
         })
         .catch((error) => {
@@ -422,7 +432,7 @@ export default Vue.extend({
       this.confirmAllServiceClients = true;
     },
 
-    doRemoveAllServiveClient(): void {
+    doRemoveAllServiceClient(): void {
       const items = this.serviceClients.map((sc: ServiceClient) => ({
         id: sc.id,
         service_client_type: sc.service_client_type,
@@ -486,7 +496,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .apply-to-all {
   display: flex;
@@ -499,7 +509,6 @@ export default Vue.extend({
 
 .edit-row {
   display: flex;
-  align-items: baseline;
 
   .description-input {
     width: 100%;

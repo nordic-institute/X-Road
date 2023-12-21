@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,9 +29,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.xml.soap.SOAPMessage;
 import lombok.SneakyThrows;
-
-import javax.xml.soap.SOAPMessage;
 
 import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
@@ -44,8 +43,8 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
     private byte[] hash;
 
     SoapMessageImpl(byte[] rawXml, String charset, SoapHeader header,
-            SOAPMessage soap, String serviceName, boolean isRpcEncoded,
-            String originalContentType) throws Exception {
+                    SOAPMessage soap, String serviceName, boolean isRpcEncoded,
+                    String originalContentType) throws Exception {
         super(rawXml, charset, header, soap, isResponseMessage(serviceName),
                 isRpcEncoded, originalContentType);
     }

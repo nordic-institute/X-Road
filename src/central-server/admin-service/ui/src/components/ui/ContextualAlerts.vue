@@ -37,14 +37,14 @@
         :key="notification.timeAdded"
         v-model="notification.show"
         data-test="contextual-alert"
-        color="red"
-        border="left"
-        colored-border
-        class="alert"
+        border="start"
+        variant="outlined"
+        class="alert mb-2"
+        icon="icon-Error-notification"
+        type="error"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="icon-wrapper">
-            <v-icon class="icon"> icon-Error-notification</v-icon>
             <div class="row-wrapper">
               <!-- Show error message text -->
               <div v-if="notification.errorMessage">
@@ -86,7 +86,7 @@
                   v-for="validationError in notification.validationErrors"
                   :key="validationError.field"
                 >
-                  {{ $t(`fields.${validationError.field}`) }}:
+                  {{ $t(`fields.${validationError.field}`) + ':' }}
                   <template v-if="validationError.errorCodes.length === 1">
                     {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
                   </template>
@@ -105,7 +105,7 @@
 
               <!-- Error ID -->
               <div v-if="notification.errorId">
-                {{ $t('alert.id') }}:
+                {{ $t('alert.id') + ':' }}
                 {{ notification.errorId }}
               </div>
 
@@ -119,15 +119,13 @@
           <xrd-button
             v-if="notification.errorId"
             text
-            :outlined="false"
             class="id-button"
             data-test="copy-id-button"
             @click.prevent="copyId(notification)"
           >
-            <xrd-icon-base class="xrd-large-button-icon"
-              ><XrdIconCopy
-            /></xrd-icon-base>
-
+            <xrd-icon-base class="xrd-large-button-icon">
+              <XrdIconCopy />
+            </xrd-icon-base>
             {{ $t('action.copyId') }}</xrd-button
           >
 
@@ -143,37 +141,36 @@
               {{ $t(notification.action.text) }}
             </xrd-button>
           </div>
-
-          <div class="close-button">
-            <v-btn
-              icon
-              color="primary"
-              data-test="close-alert"
-              @click="closeError(notification.timeAdded)"
-            >
-              <xrd-icon-base><XrdIconClose /></xrd-icon-base>
-            </v-btn>
-          </div>
         </div>
+        <template #close>
+          <v-btn
+            color="primary"
+            data-test="close-alert"
+            variant="plain"
+            @click="closeError(notification.timeAdded)"
+          >
+            <xrd-icon-base><xrd-icon-close /></xrd-icon-base>
+          </v-btn>
+        </template>
       </v-alert>
     </v-container>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 
-export default Vue.extend({
+export default defineComponent({
   // Component for contextual notifications
   computed: {
-    ...mapState(notificationsStore, ['errorNotifications']),
+    ...mapState(useNotifications, ['errorNotifications']),
   },
   methods: {
-    ...mapActions(notificationsStore, ['deleteNotification']),
+    ...mapActions(useNotifications, ['deleteNotification']),
 
     closeError(id: number): void {
       this.deleteNotification(id);
@@ -198,7 +195,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .alerts-container {
   padding: 0;
@@ -213,6 +210,7 @@ export default Vue.extend({
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
+  background-color: $XRoad-White100;
 }
 
 .row-wrapper-top {
@@ -227,11 +225,6 @@ export default Vue.extend({
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-
-  .icon {
-    margin-right: 12px;
-    color: $XRoad-Error;
-  }
 }
 
 .row-wrapper {
@@ -241,6 +234,7 @@ export default Vue.extend({
   overflow-wrap: break-word;
   justify-content: center;
   margin-right: 30px;
+  color: $XRoad-Black100;
 }
 
 .id-button {

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,18 +25,24 @@
  */
 package ee.ria.xroad.monitor;
 
-import akka.actor.UntypedAbstractActor;
-import scala.concurrent.duration.FiniteDuration;
+import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.TaskScheduler;
+
+import java.time.Duration;
 
 /**
  * Base class for sensors
  */
-public abstract class AbstractSensor extends UntypedAbstractActor {
+@RequiredArgsConstructor
+public abstract class AbstractSensor {
+    private final TaskScheduler taskScheduler;
 
-    protected void scheduleSingleMeasurement(FiniteDuration duration, Object msg) {
-        context().system().scheduler().scheduleOnce(duration,
-                self(), msg, context().system().dispatcher(), null);
+    protected void scheduleSingleMeasurement(Duration delay) {
+        taskScheduler.schedule(this::measure, taskScheduler.getClock().instant().plus(delay));
     }
 
-    protected abstract FiniteDuration getInterval();
+    protected abstract Duration getInterval();
+
+    protected abstract void measure();
+
 }

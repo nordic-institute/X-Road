@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.validation.ConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -48,8 +49,6 @@ import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
-
-import javax.validation.ConstraintViolationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;

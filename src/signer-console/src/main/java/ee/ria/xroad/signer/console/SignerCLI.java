@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,60 +32,29 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.PasswordStore;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.ActivateCert;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
-import ee.ria.xroad.signer.protocol.message.DeleteCert;
-import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
-import ee.ria.xroad.signer.protocol.message.DeleteKey;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
-import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
-import ee.ria.xroad.signer.protocol.message.GenerateKey;
-import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
-import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
-import ee.ria.xroad.signer.protocol.message.GetAuthKey;
-import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
-import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
-import ee.ria.xroad.signer.protocol.message.GetMemberCerts;
-import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
-import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
-import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
-import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
-import ee.ria.xroad.signer.protocol.message.ImportCert;
-import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
-import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
-import ee.ria.xroad.signer.protocol.message.ListTokens;
-import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
-import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
-import ee.ria.xroad.signer.protocol.message.Sign;
-import ee.ria.xroad.signer.protocol.message.SignResponse;
-import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
-import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
 import asg.cliche.Command;
 import asg.cliche.InputConverter;
 import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
-import com.typesafe.config.ConfigFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -95,10 +64,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
@@ -135,6 +104,12 @@ import static ee.ria.xroad.signer.console.Utils.fileToBytes;
 import static ee.ria.xroad.signer.console.Utils.printCertInfo;
 import static ee.ria.xroad.signer.console.Utils.printKeyInfo;
 import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
+import static ee.ria.xroad.signer.protocol.dto.KeyUsageInfo.AUTHENTICATION;
+import static ee.ria.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static org.niis.xroad.signer.proto.CertificateRequestFormat.DER;
+import static org.niis.xroad.signer.proto.CertificateRequestFormat.PEM;
 
 /**
  * Signer command line interface.
@@ -160,15 +135,11 @@ public class SignerCLI {
      */
     @SuppressWarnings({"squid:S1873", "squid:S2386"})
     public static final InputConverter[] CLI_INPUT_CONVERTERS = {
-            new InputConverter() {
-                @Override
-                @SuppressWarnings("rawtypes")
-                public Object convertInput(String original, Class toClass) throws Exception {
-                    if (toClass.equals(ClientId.class)) {
-                        return createClientId(original);
-                    } else {
-                        return null;
-                    }
+            (original, toClass) -> {
+                if (toClass.equals(ClientId.class)) {
+                    return createClientId(original);
+                } else {
+                    return null;
                 }
             },
     };
@@ -180,7 +151,7 @@ public class SignerCLI {
      */
     @Command(description = "Lists all tokens")
     public void listTokens() throws Exception {
-        List<TokenInfo> tokens = SignerClient.execute(new ListTokens());
+        List<TokenInfo> tokens = SignerProxy.getTokens();
         tokens.forEach(t -> printTokenInfo(t, verbose));
     }
 
@@ -191,7 +162,7 @@ public class SignerCLI {
      */
     @Command(description = "Lists all keys on all tokens")
     public void listKeys() throws Exception {
-        List<TokenInfo> tokens = SignerClient.execute(new ListTokens());
+        List<TokenInfo> tokens = SignerProxy.getTokens();
         tokens.forEach(t -> {
             printTokenInfo(t, verbose);
 
@@ -212,7 +183,7 @@ public class SignerCLI {
      */
     @Command(description = "Lists all certs on all keys on all tokens")
     public void listCerts() throws Exception {
-        List<TokenInfo> tokens = SignerClient.execute(new ListTokens());
+        List<TokenInfo> tokens = SignerProxy.getTokens();
         tokens.forEach(t -> {
             printTokenInfo(t, verbose);
 
@@ -250,12 +221,11 @@ public class SignerCLI {
         logData.put(TOKEN_FRIENDLY_NAME_PARAM, friendlyName);
 
         try {
-            SignerClient.execute(new SetTokenFriendlyName(tokenId, friendlyName));
+            SignerProxy.setTokenFriendlyName(tokenId, friendlyName);
 
             AuditLogger.log(SET_A_FRIENDLY_NAME_TO_THE_TOKEN_EVENT, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(SET_A_FRIENDLY_NAME_TO_THE_TOKEN_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -269,18 +239,17 @@ public class SignerCLI {
      */
     @Command(description = "Sets key friendly name")
     public void setKeyFriendlyName(@Param(name = "keyId", description = "Key ID") String keyId,
-            @Param(name = "friendlyName", description = "Friendly name") String friendlyName) throws Exception {
+                                   @Param(name = "friendlyName", description = "Friendly name") String friendlyName) throws Exception {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(KEY_ID_PARAM, keyId);
         logData.put(KEY_FRIENDLY_NAME_PARAM, friendlyName);
 
         try {
-            SignerClient.execute(new SetKeyFriendlyName(keyId, friendlyName));
+            SignerProxy.setKeyFriendlyName(keyId, friendlyName);
 
             AuditLogger.log(SET_A_FRIENDLY_NAME_TO_THE_KEY_EVENT, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(SET_A_FRIENDLY_NAME_TO_THE_KEY_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -294,9 +263,8 @@ public class SignerCLI {
     @Command(description = "Returns key ID for certificate hash")
     public void getKeyIdForCertHash(@Param(name = "certHash", description = "Certificare hash") String certHash)
             throws Exception {
-        GetKeyIdForCertHashResponse response = SignerClient.execute(new GetKeyIdForCertHash(certHash));
-
-        System.out.println(response.getKeyId());
+        SignerProxy.KeyIdInfo keyId = SignerProxy.getKeyIdForCertHash(certHash);
+        System.out.println(keyId.getKeyId());
     }
 
     /**
@@ -308,11 +276,11 @@ public class SignerCLI {
     @Command(description = "Returns all certificates of a member")
     public void getMemberCerts(
             @Param(name = "memberId", description = "Member identifier") ClientId memberId) throws Exception {
-        GetMemberCertsResponse response = SignerClient.execute(new GetMemberCerts(memberId));
+        List<CertificateInfo> certificateInfos = SignerProxy.getMemberCerts(memberId);
 
         System.out.println("Certs of member " + memberId + ":");
 
-        for (CertificateInfo cert : response.getCerts()) {
+        for (CertificateInfo cert : certificateInfos) {
             System.out.println("\tId:\t" + cert.getId());
             System.out.println("\t\tStatus:\t" + cert.getStatus());
             System.out.println("\t\tActive:\t" + cert.isActive());
@@ -332,12 +300,11 @@ public class SignerCLI {
         logData.put(CERT_ID_PARAM, certId);
 
         try {
-            SignerClient.execute(new ActivateCert(certId, true));
+            SignerProxy.activateCert(certId);
 
             AuditLogger.log(ACTIVATE_THE_CERTIFICATE_EVENT, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(ACTIVATE_THE_CERTIFICATE_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -355,12 +322,11 @@ public class SignerCLI {
         logData.put(CERT_ID_PARAM, certId);
 
         try {
-            SignerClient.execute(new ActivateCert(certId, false));
+            SignerProxy.deactivateCert(certId);
 
             AuditLogger.log(DEACTIVATE_THE_CERTIFICATE_EVENT, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(DEACTIVATE_THE_CERTIFICATE_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -377,12 +343,11 @@ public class SignerCLI {
         logData.put(KEY_ID_PARAM, keyId);
 
         try {
-            SignerClient.execute(new DeleteKey(keyId, true));
+            SignerProxy.deleteKey(keyId, true);
 
             AuditLogger.log(DELETE_THE_KEY_EVENT, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(DELETE_THE_KEY_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -400,12 +365,11 @@ public class SignerCLI {
         logData.put(CERT_ID_PARAM, certId);
 
         try {
-            SignerClient.execute(new DeleteCert(certId));
+            SignerProxy.deleteCert(certId);
 
             AuditLogger.log(DELETE_THE_CERT_EVENT, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(DELETE_THE_CERT_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -423,12 +387,11 @@ public class SignerCLI {
         logData.put(CERT_REQUEST_ID_PARAM, certReqId);
 
         try {
-            SignerClient.execute(new DeleteCertRequest(certReqId));
+            SignerProxy.deleteCertRequest(certReqId);
 
             AuditLogger.log(DELETE_THE_CERT_REQUEST_EVENT, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(DELETE_THE_CERT_REQUEST_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -442,9 +405,9 @@ public class SignerCLI {
      */
     @Command(description = "Returns suitable authentication key for security server")
     public void getAuthenticationKey(@Param(name = "clientId", description = "Member identifier") ClientId clientId,
-            @Param(name = "serverCode", description = "Security server code") String serverCode) throws Exception {
+                                     @Param(name = "serverCode", description = "Security server code") String serverCode) throws Exception {
         SecurityServerId serverId = SecurityServerId.Conf.create(clientId, serverCode);
-        AuthKeyInfo authKey = SignerClient.execute(new GetAuthKey(serverId));
+        AuthKeyInfo authKey = SignerProxy.getAuthKey(serverId);
 
         System.out.println("Auth key:");
         System.out.println("\tAlias:\t" + authKey.getAlias());
@@ -461,7 +424,7 @@ public class SignerCLI {
     @Command(description = "Returns signing info for member")
     public void getMemberSigningInfo(@Param(name = "clientId", description = "Member identifier") ClientId clientId)
             throws Exception {
-        MemberSigningInfo response = SignerClient.execute(new GetMemberSigningInfo(clientId));
+        final SignerProxy.MemberSigningInfoDto response = SignerProxy.getMemberSigningInfo(clientId);
 
         System.out.println("Signing info for member " + clientId + ":");
         System.out.println("\tKey id:         " + response.getKeyId());
@@ -478,23 +441,21 @@ public class SignerCLI {
      */
     @Command(description = "Imports a certificate")
     public void importCertificate(@Param(name = "file", description = "Certificate file (PEM)") String file,
-            @Param(name = "clientId", description = "Member identifier") ClientId.Conf clientId) throws Exception {
+                                  @Param(name = "clientId", description = "Member identifier") ClientId.Conf clientId) throws Exception {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(CERT_FILE_NAME_PARAM, file);
         logData.put(CLIENT_IDENTIFIER_PARAM, clientId);
 
         try {
             byte[] certBytes = fileToBytes(file);
-            ImportCertResponse response = SignerClient.execute(new ImportCert(certBytes,
-                    CertificateInfo.STATUS_REGISTERED, clientId));
+            final String keyId = SignerProxy.importCert(certBytes, CertificateInfo.STATUS_REGISTERED, clientId);
 
-            logData.put(KEY_ID_PARAM, response.getKeyId());
+            logData.put(KEY_ID_PARAM, keyId);
             AuditLogger.log(IMPORT_A_CERTIFICATE_FROM_THE_FILE, XROAD_USER, null, logData);
 
-            System.out.println(response.getKeyId());
+            System.out.println(keyId);
         } catch (Exception e) {
             AuditLogger.log(IMPORT_A_CERTIFICATE_FROM_THE_FILE, XROAD_USER, null, e.getMessage(), logData);
-
             System.out.println("ERROR: " + e);
         }
     }
@@ -517,12 +478,10 @@ public class SignerCLI {
             } else {
                 pin = new Scanner(System.in).nextLine().toCharArray();
             }
-            PasswordStore.storePassword(tokenId, pin);
-            SignerClient.execute(new ActivateToken(tokenId, true));
+            SignerProxy.activateToken(tokenId, pin);
             AuditLogger.log(LOG_INTO_THE_TOKEN, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(LOG_INTO_THE_TOKEN, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -539,13 +498,10 @@ public class SignerCLI {
         logData.put(TOKEN_ID_PARAM, tokenId);
 
         try {
-            PasswordStore.storePassword(tokenId, null);
-            SignerClient.execute(new ActivateToken(tokenId, false));
-
+            SignerProxy.deactivateToken(tokenId);
             AuditLogger.log(LOGOUT_FROM_THE_TOKEN_EVENT, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(LOGOUT_FROM_THE_TOKEN_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -562,17 +518,14 @@ public class SignerCLI {
 
         if (!Arrays.equals(pin, pin2)) {
             System.out.println("ERROR: PINs do not match");
-
             return;
         }
 
         try {
-            SignerClient.execute(new InitSoftwareToken(pin));
-
+            SignerProxy.initSoftwareToken(pin);
             AuditLogger.log(INITIALIZE_THE_SOFTWARE_TOKEN_EVENT, XROAD_USER, null, null);
         } catch (Exception e) {
             AuditLogger.log(INITIALIZE_THE_SOFTWARE_TOKEN_EVENT, XROAD_USER, null, e.getMessage(), null);
-
             throw e;
         }
     }
@@ -601,11 +554,10 @@ public class SignerCLI {
                 throw new Exception("new PIN was empty");
             }
 
-            SignerClient.execute(new UpdateSoftwareTokenPin(softwareTokenId, oldPin, newPin));
+            SignerProxy.updateTokenPin(softwareTokenId, oldPin, newPin);
             AuditLogger.log(UPDATE_SOFTWARE_TOKEN_PIN, XROAD_USER, null, logData);
         } catch (Exception e) {
             AuditLogger.log(UPDATE_SOFTWARE_TOKEN_PIN, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
     }
@@ -619,18 +571,16 @@ public class SignerCLI {
      */
     @Command(description = "Sign some data")
     public void sign(@Param(name = "keyId", description = "Key ID") String keyId,
-            @Param(name = "data", description = "Data to sign (<data1> <data2> ...)") String... data) throws Exception {
-        String digestAlgoId = CryptoUtils.SHA512_ID;
+                     @Param(name = "data", description = "Data to sign (<data1> <data2> ...)") String... data) throws Exception {
 
-        GetSignMechanismResponse mechanismResponse = SignerClient.execute(new GetSignMechanism(keyId));
-
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, mechanismResponse.getSignMechanismName());
+        final String signMechanism = SignerProxy.getSignMechanism(keyId);
+        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(SHA512_ID, signMechanism);
 
         for (String d : data) {
-            byte[] digest = calculateDigest(digestAlgoId, d.getBytes(StandardCharsets.UTF_8));
-            SignResponse response = SignerClient.execute(new Sign(keyId, signAlgoId, digest));
+            byte[] digest = calculateDigest(SHA512_ID, d.getBytes(UTF_8));
+            final byte[] signature = SignerProxy.sign(keyId, signAlgoId, digest);
 
-            System.out.println("Signature: " + Arrays.toString(response.getSignature()));
+            System.out.println("Signature: " + Arrays.toString(signature));
         }
     }
 
@@ -643,18 +593,15 @@ public class SignerCLI {
      */
     @Command(description = "Sign a file")
     public void signFile(@Param(name = "keyId", description = "Key ID") String keyId,
-            @Param(name = "fileName", description = "File name") String fileName) throws Exception {
-        String digestAlgoId = CryptoUtils.SHA512_ID;
+                         @Param(name = "fileName", description = "File name") String fileName) throws Exception {
 
-        GetSignMechanismResponse mechanismResponse = SignerClient.execute(new GetSignMechanism(keyId));
+        final String signMechanism = SignerProxy.getSignMechanism(keyId);
+        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(SHA512_ID, signMechanism);
 
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, mechanismResponse.getSignMechanismName());
+        byte[] digest = calculateDigest(SHA512_ID, fileToBytes(fileName));
+        final byte[] signed = SignerProxy.sign(keyId, signAlgoId, digest);
 
-        byte[] digest = calculateDigest(digestAlgoId, fileToBytes(fileName));
-
-        SignResponse response = SignerClient.execute(new Sign(keyId, signAlgoId, digest));
-
-        System.out.println("Signature: " + Arrays.toString(response.getSignature()));
+        System.out.println("Signature: " + Arrays.toString(signed));
     }
 
     /**
@@ -676,22 +623,19 @@ public class SignerCLI {
      */
     @Command(description = "Benchmark signing")
     public void signBenchmark(@Param(name = "keyId", description = "Key ID") String keyId,
-            @Param(name = "iterations", description = "iterations") int iterations) throws Exception {
+                              @Param(name = "iterations", description = "iterations") int iterations) throws Exception {
         String data = "Hello world!";
-        String digestAlgoId = CryptoUtils.SHA512_ID;
+        final String signMechanism = SignerProxy.getSignMechanism(keyId);
 
-        GetSignMechanismResponse mechanismResponse = SignerClient.execute(new GetSignMechanism(keyId));
-
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, mechanismResponse.getSignMechanismName());
-        final byte[] digest = calculateDigest(digestAlgoId, data.getBytes(StandardCharsets.UTF_8));
+        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(SHA512_ID, signMechanism);
+        final byte[] digest = calculateDigest(SHA512_ID, data.getBytes(UTF_8));
         final long startTime = System.nanoTime();
-        final Sign cmd = new Sign(keyId, signAlgoId, digest);
 
         for (int i = 0; i < iterations; i++) {
-            SignerClient.execute(cmd);
+            SignerProxy.sign(keyId, signAlgoId, digest);
         }
 
-        final long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        final long duration = NANOSECONDS.toMillis(System.nanoTime() - startTime);
 
         System.out.println("Signed " + iterations + " times in " + duration + " milliseconds");
     }
@@ -705,25 +649,21 @@ public class SignerCLI {
      */
     @Command(description = "Generate key on token")
     public void generateKey(@Param(name = "tokenId", description = "Token ID") String tokenId,
-            @Param(name = "label", description = "Key label") String label) throws Exception {
+                            @Param(name = "label", description = "Key label") String label) throws Exception {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
         logData.put(KEY_LABEL_PARAM, label);
 
-        KeyInfo response;
-
         try {
-            response = SignerClient.execute(new GenerateKey(tokenId, label));
+            KeyInfo response = SignerProxy.generateKey(tokenId, label);
 
             logData.put(KEY_ID_PARAM, response.getId());
             AuditLogger.log(GENERATE_A_KEY_ON_THE_TOKEN_EVENT, XROAD_USER, null, logData);
+            System.out.println(response.getId());
         } catch (Exception e) {
             AuditLogger.log(GENERATE_A_KEY_ON_THE_TOKEN_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
-
-        System.out.println(response.getId());
     }
 
     /**
@@ -738,14 +678,13 @@ public class SignerCLI {
      */
     @Command(description = "Generate certificate request")
     public void generateCertRequest(@Param(name = "keyId", description = "Key ID") String keyId,
-            @Param(name = "memberId", description = "Member identifier") ClientId.Conf memberId,
-            @Param(name = "usage", description = "Key usage (a - auth, s - sign)") String usage,
-            @Param(name = "subjectName", description = "Subject name") String subjectName,
-            @Param(name = "format", description = "Format of request (der/pem)") String format) throws Exception {
-        KeyUsageInfo keyUsage = "a".equals(usage) ? KeyUsageInfo.AUTHENTICATION : KeyUsageInfo.SIGNING;
+                                    @Param(name = "memberId", description = "Member identifier") ClientId.Conf memberId,
+                                    @Param(name = "usage", description = "Key usage (a - auth, s - sign)") String usage,
+                                    @Param(name = "subjectName", description = "Subject name") String subjectName,
+                                    @Param(name = "format", description = "Format of request (der/pem)") String format) throws Exception {
+        KeyUsageInfo keyUsage = "a".equals(usage) ? AUTHENTICATION : SIGNING;
 
-        CertificateRequestFormat requestFormat = format.equalsIgnoreCase("der")
-                ? CertificateRequestFormat.DER : CertificateRequestFormat.PEM;
+        CertificateRequestFormat requestFormat = format.equalsIgnoreCase("der") ? DER : PEM;
 
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(KEY_ID_PARAM, keyId);
@@ -754,21 +693,17 @@ public class SignerCLI {
         logData.put(SUBJECT_NAME_PARAM, subjectName);
         logData.put(CSR_FORMAT_PARAM, requestFormat.name());
 
-        GenerateCertRequestResponse response;
-
         try {
-            GenerateCertRequest request = new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
-                    requestFormat);
-            response = SignerClient.execute(request);
+            final GeneratedCertRequestInfo generatedCertRequestInfo =
+                    SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, requestFormat);
 
             AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER, null, logData);
+
+            bytesToFile(keyId + ".csr", generatedCertRequestInfo.getCertRequest());
         } catch (Exception e) {
             AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER, null, e.getMessage(), logData);
-
             throw e;
         }
-
-        bytesToFile(keyId + ".csr", response.getCertRequest());
     }
 
     /**
@@ -780,7 +715,7 @@ public class SignerCLI {
      */
     @Command(description = "Create dummy public key certificate")
     public void dummyCert(@Param(name = "keyId", description = "Key ID") String keyId,
-            @Param(name = "cn", description = "Common name") String cn) throws Exception {
+                          @Param(name = "cn", description = "Common name") String cn) throws Exception {
         Calendar cal = GregorianCalendar.getInstance();
         cal.add(Calendar.YEAR, -1);
         Date notBefore = cal.getTime();
@@ -789,11 +724,8 @@ public class SignerCLI {
 
         ClientId.Conf memberId = ClientId.Conf.create("FOO", "BAR", "BAZ");
 
-        GenerateSelfSignedCert request = new GenerateSelfSignedCert(keyId, cn, notBefore, notAfter,
-                KeyUsageInfo.SIGNING, memberId);
-
-        GenerateSelfSignedCertResponse response = SignerClient.execute(request);
-        X509Certificate cert = readCertificate(response.getCertificateBytes());
+        final byte[] certificateBytes = SignerProxy.generateSelfSignedCert(keyId, memberId, SIGNING, cn, notBefore, notAfter);
+        X509Certificate cert = readCertificate(certificateBytes);
 
         System.out.println("Certificate base64:");
         System.out.println(encodeBase64(cert.getEncoded()));
@@ -810,7 +742,7 @@ public class SignerCLI {
      */
     @Command(description = "Check if batch signing is available on token")
     public void batchSigningEnabled(@Param(name = "keyId", description = "Key ID") String keyId) throws Exception {
-        Boolean enabled = SignerClient.execute(new GetTokenBatchSigningEnabled(keyId));
+        Boolean enabled = SignerProxy.isTokenBatchSigningEnabled(keyId);
 
         if (enabled) {
             System.out.println("Batch signing is enabled");
@@ -828,16 +760,14 @@ public class SignerCLI {
     @Command(description = "Show certificate")
     public void showCertificate(@Param(name = "certId", description = "Certificate ID") String certId)
             throws Exception {
-        List<TokenInfo> tokens = SignerClient.execute(new ListTokens());
+        List<TokenInfo> tokens = SignerProxy.getTokens();
 
         for (TokenInfo token : tokens) {
             for (KeyInfo key : token.getKeyInfo()) {
                 for (CertificateInfo cert : key.getCerts()) {
                     if (certId.equals(cert.getId())) {
                         X509Certificate x509 = readCertificate(cert.getCertificateBytes());
-
                         System.out.println(x509);
-
                         return;
                     }
                 }
@@ -865,15 +795,11 @@ public class SignerCLI {
 
         if (cmd.hasOption("help")) {
             processCommandAndExit("?list");
-
             return;
         }
 
-        ActorSystem actorSystem = ActorSystem.create("SignerConsole", ConfigFactory.load().getConfig("signer-console")
-                .withFallback(ConfigFactory.load()));
-
         try {
-            SignerClient.init(actorSystem);
+            RpcSignerClient.init();
 
             String[] arguments = cmd.getArgs();
 
@@ -883,18 +809,18 @@ public class SignerCLI {
                 startCommandLoop();
             }
         } finally {
-            actorSystem.terminate();
+            RpcSignerClient.shutdown();
         }
     }
 
     private static void startCommandLoop() throws IOException {
         String prompt = "signer@" + SystemProperties.getSignerPort();
 
-        StringBuilder description = new StringBuilder("Enter '?list' to get list of available commands\n");
-        description.append("Enter '?help <command>' to get command description\n");
-        description.append("\nNOTE: Member identifier is entered as \"<INSTANCE> <CLASS> <CODE>\" (in quotes)\n");
+        String description = "Enter '?list' to get list of available commands\n"
+                + "Enter '?help <command>' to get command description\n"
+                + "\nNOTE: Member identifier is entered as \"<INSTANCE> <CLASS> <CODE>\" (in quotes)\n";
 
-        getShell(prompt, description.toString()).commandLoop();
+        getShell(prompt, description).commandLoop();
     }
 
     private static void processCommandAndExit(String command) throws CLIException {

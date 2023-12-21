@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -28,8 +28,8 @@ package org.niis.xroad.restapi.openapi.validator;
 
 import ee.ria.xroad.common.validation.StringValidationUtils;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class NoControlCharsValidator implements ConstraintValidator<NoControlChars, String> {
     @Override

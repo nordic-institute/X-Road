@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -40,6 +40,8 @@ import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.util.ResourceUtils;
+import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.converter.AnchorConverter;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.securityserver.restapi.converter.NodeTypeMapping;
@@ -52,15 +54,20 @@ import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeType;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponse;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddress;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfo;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.ConfigurationDownloadException;
+import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
+import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
 import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.ManagementRequestSendingFailedException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
@@ -94,6 +101,9 @@ public class SystemApiController implements SystemApi {
     private final VersionConverter versionConverter;
     private final SystemService systemService;
     private final VersionService versionService;
+    private final CurrentSecurityServerId currentSecurityServerId;
+    private final GlobalConfService globalConfService;
+    private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final CsrFilenameCreator csrFilenameCreator;
     private final AuditDataHelper auditDataHelper;
 
@@ -157,6 +167,32 @@ public class SystemApiController implements SystemApi {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(timestampingServiceToAdd, HttpStatus.CREATED);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('CHANGE_SS_ADDRESS')")
+    @AuditEventMethod(event = RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS)
+    public ResponseEntity<Void> addressChange(SecurityServerAddress securityServerAddress) {
+        try {
+            systemService.changeSecurityServerAddress(securityServerAddress.getAddress());
+        } catch (GlobalConfOutdatedException e) {
+            throw new ConflictException(e);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new InternalServerErrorException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('CHANGE_SS_ADDRESS')")
+    public ResponseEntity<SecurityServerAddressStatus> getServerAddress() {
+        String current = globalConfService.getSecurityServerAddress(currentSecurityServerId.getServerId());
+        SecurityServerAddressStatus response = new SecurityServerAddressStatus();
+        response.setCurrentAddress(new SecurityServerAddress(current));
+        addressChangeStatus.getAddressChangeRequest()
+                .map(SecurityServerAddress::new)
+                .ifPresent(response::setRequestedChange);
+        return ResponseEntity.ok(response);
     }
 
     @Override
@@ -239,7 +275,7 @@ public class SystemApiController implements SystemApi {
         } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
             throw new BadRequestException(e);
         } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
-                | ConfigurationVerifier.ConfigurationVerificationException e) {
+                 | ConfigurationVerifier.ConfigurationVerificationException e) {
             throw new InternalServerErrorException(e);
         }
         return ControllerUtil.createCreatedResponse("/api/system/anchor", null);
@@ -261,6 +297,7 @@ public class SystemApiController implements SystemApi {
     /**
      * For uploading an initial configuration anchor. The difference between this and {@link #replaceAnchor(Resource)}}
      * is that the anchor's instance does not get verified
+     *
      * @param anchorResource
      * @return
      */
@@ -274,7 +311,7 @@ public class SystemApiController implements SystemApi {
         } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
             throw new BadRequestException(e);
         } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
-                | ConfigurationVerifier.ConfigurationVerificationException e) {
+                 | ConfigurationVerifier.ConfigurationVerificationException e) {
             throw new InternalServerErrorException(e);
         } catch (SystemService.AnchorAlreadyExistsException e) {
             throw new ConflictException(e);

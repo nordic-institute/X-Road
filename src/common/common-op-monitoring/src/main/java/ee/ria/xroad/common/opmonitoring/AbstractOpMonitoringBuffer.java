@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,56 +25,20 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
-import akka.actor.UntypedAbstractActor;
+import ee.ria.xroad.common.util.StartStop;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Abstract operational monitoring buffer.
  */
 @Slf4j
-public abstract class AbstractOpMonitoringBuffer extends UntypedAbstractActor {
+public abstract class AbstractOpMonitoringBuffer implements StartStop {
 
-    public static final String SEND_MONITORING_DATA = "sendMonitoringData";
-    public static final String SENDING_SUCCESS = "sendingSuccess";
-    public static final String SENDING_FAILURE = "sendingFailure";
-
-    private static final String LOGGING_FORMAT = "onReceive: {}";
+    public abstract void store(OpMonitoringData data) throws Exception;
 
     @Override
-    public void onReceive(Object message) throws Exception {
-        try {
-            if (message instanceof OpMonitoringData) {
-                OpMonitoringData data = (OpMonitoringData) message;
-
-                log.trace(LOGGING_FORMAT, data);
-
-                store(data);
-            } else if (message.equals(SEND_MONITORING_DATA)) {
-                log.trace(LOGGING_FORMAT, SEND_MONITORING_DATA);
-
-                send();
-            } else if (message.equals(SENDING_SUCCESS)) {
-                log.trace(LOGGING_FORMAT, SENDING_SUCCESS);
-
-                sendingSuccess();
-            } else if (message.equals(SENDING_FAILURE)) {
-                log.trace(LOGGING_FORMAT, SENDING_FAILURE);
-
-                sendingFailure();
-            } else {
-                unhandled(message);
-            }
-        } catch (Exception e) {
-            log.error("Operational monitoring buffer failed", e);
-        }
+    public void join() throws InterruptedException {
+        //No-OP
     }
-
-    protected abstract void store(OpMonitoringData data) throws Exception;
-
-    protected abstract void send() throws Exception;
-
-    protected abstract void sendingSuccess() throws Exception;
-
-    protected abstract void sendingFailure() throws Exception;
-
 }

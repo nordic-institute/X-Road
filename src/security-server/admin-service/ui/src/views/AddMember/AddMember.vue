@@ -32,7 +32,7 @@
       :show-close="false"
       @close="cancel()"
     />
-
+    <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
     <v-stepper
       v-model="currentStep"
       :alt-labels="true"
@@ -40,39 +40,39 @@
     >
       <template v-if="addMemberWizardMode === wizardModes.FULL">
         <v-stepper-header class="wizard-noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{
+          <v-stepper-item :complete="currentStep > 1" :value="1">{{
             $t('wizard.member.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 2" step="2">{{
+          <v-stepper-item :complete="currentStep > 2" :value="2">{{
             $t('wizard.token.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 3" step="3">{{
+          <v-stepper-item :complete="currentStep > 3" :value="3">{{
             $t('wizard.signKey.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 4" step="4">{{
+          <v-stepper-item :complete="currentStep > 4" :value="4">{{
             $t('csr.csrDetails')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 5" step="5">{{
+          <v-stepper-item :complete="currentStep > 5" :value="5">{{
             $t('csr.generateCsr')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step step="6">{{
+          <v-stepper-item :value="6">{{
             $t('wizard.finish.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
         </v-stepper-header>
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CERTIFICATE_EXISTS">
         <v-stepper-header class="wizard-noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{
+          <v-stepper-step :complete="currentStep > 1" :value="1">{{
             $t('wizard.member.title')
           }}</v-stepper-step>
           <v-divider></v-divider>
-          <v-stepper-step step="2">{{
+          <v-stepper-step :value="2">{{
             $t('wizard.finish.title')
           }}</v-stepper-step>
         </v-stepper-header>
@@ -80,74 +80,74 @@
 
       <template v-if="addMemberWizardMode === wizardModes.CSR_EXISTS">
         <v-stepper-header class="wizard-noshadow">
-          <v-stepper-step :complete="currentStep > 1" step="1">{{
+          <v-stepper-item :complete="currentStep > 1" :value="1">{{
             $t('wizard.member.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 2" step="2">{{
+          <v-stepper-item :complete="currentStep > 2" :value="2">{{
             $t('csr.csrDetails')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step :complete="currentStep > 3" step="3">{{
+          <v-stepper-item :complete="currentStep > 2" :value="3">{{
             $t('csr.generateCsr')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
           <v-divider></v-divider>
-          <v-stepper-step step="4">{{
+          <v-stepper-item :value="4">{{
             $t('wizard.finish.title')
-          }}</v-stepper-step>
+          }}</v-stepper-item>
         </v-stepper-header>
       </template>
 
-      <v-stepper-items class="wizard-stepper-content">
+      <v-stepper-window class="wizard-stepper-content">
         <!-- Step 1 -->
-        <v-stepper-content step="1">
+        <v-stepper-window-item :value="1">
           <MemberDetailsPage @cancel="cancel" @done="currentStep++" />
-        </v-stepper-content>
+        </v-stepper-window-item>
         <!-- Step 2 -->
-        <v-stepper-content :step="tokenPageNumber">
+        <v-stepper-window-item :value="tokenPageNumber">
           <TokenPage
             @cancel="cancel"
             @previous="currentStep--"
             @done="currentStep++"
           />
-        </v-stepper-content>
+        </v-stepper-window-item>
         <!-- Step 3 -->
-        <v-stepper-content :step="keyPageNumber">
+        <v-stepper-window-item :value="keyPageNumber">
           <SignKeyPage
             @cancel="cancel"
             @previous="currentStep--"
             @done="currentStep++"
           />
-        </v-stepper-content>
+        </v-stepper-window-item>
         <!-- Step 4 -->
-        <v-stepper-content :step="csrDetailsPageNumber">
+        <v-stepper-window-item :value="csrDetailsPageNumber">
           <CsrDetailsPageLocked
             save-button-text="action.next"
             @cancel="cancel"
             @previous="currentStep--"
             @done="csrDetailsReady"
           />
-        </v-stepper-content>
+        </v-stepper-window-item>
         <!-- Step 5 -->
-        <v-stepper-content :step="csrGeneratePageNumber">
+        <v-stepper-window-item :value="csrGeneratePageNumber">
           <GenerateCsrPage
             save-button-text="action.next"
             @cancel="cancel"
             @previous="currentStep--"
             @done="currentStep++"
           />
-        </v-stepper-content>
+        </v-stepper-window-item>
         <!-- Step 6 -->
-        <v-stepper-content :step="finishPageNumber">
+        <v-stepper-window-item :value="finishPageNumber">
           <FinishPage @cancel="cancel" @previous="currentStep--" @done="done" />
-        </v-stepper-content>
-      </v-stepper-items>
+        </v-stepper-window-item>
+      </v-stepper-window>
     </v-stepper>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import MemberDetailsPage from './MemberDetailsPage.vue';
 import TokenPage from '@/components/wizard/TokenPage.vue';
 import SignKeyPage from '@/components/wizard/SignKeyPage.vue';
@@ -158,13 +158,25 @@ import { RouteName, AddMemberWizardModes } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useGeneral } from '@/store/modules/general';
+import {
+  VStepper,
+  VStepperHeader,
+  VStepperItem,
+  VStepperWindow,
+  VStepperWindowItem,
+} from 'vuetify/labs/VStepper';
 
 const NO_SELECTION = 999;
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    VStepper,
+    VStepperHeader,
+    VStepperItem,
+    VStepperWindow,
+    VStepperWindowItem,
     MemberDetailsPage,
     TokenPage,
     SignKeyPage,
@@ -173,29 +185,27 @@ export default Vue.extend({
     GenerateCsrPage,
   },
   props: {
-    instanceId: {
+    ownerInstanceId: {
       type: String,
       required: true,
     },
-    memberClass: {
+    ownerMemberClass: {
       type: String,
       required: true,
     },
-    memberCode: {
+    ownerMemberCode: {
       type: String,
       required: true,
     },
   },
   data() {
     return {
-      currentStep: 1 as number,
+      currentStep: 1,
       wizardModes: AddMemberWizardModes,
     };
   },
-
   computed: {
     ...mapState(useAddClient, ['addMemberWizardMode', 'selectedMemberId']),
-
     tokenPageNumber(): number {
       if (
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS ||
@@ -203,10 +213,8 @@ export default Vue.extend({
       ) {
         return NO_SELECTION;
       }
-
       return 2;
     },
-
     keyPageNumber(): number {
       if (
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS ||
@@ -214,45 +222,37 @@ export default Vue.extend({
       ) {
         return NO_SELECTION;
       }
-
       return 3;
     },
     csrDetailsPageNumber(): number {
-      if (
-        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-      ) {
-        return NO_SELECTION;
+      switch (this.addMemberWizardMode) {
+        case AddMemberWizardModes.CERTIFICATE_EXISTS:
+          return NO_SELECTION;
+        case AddMemberWizardModes.CSR_EXISTS:
+          return 2;
+        default:
+          return 4;
       }
-      if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
-        return 2;
-      }
-
-      return 4;
     },
-
     csrGeneratePageNumber(): number {
-      if (
-        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-      ) {
-        return NO_SELECTION;
+      switch (this.addMemberWizardMode) {
+        case AddMemberWizardModes.CERTIFICATE_EXISTS:
+          return NO_SELECTION;
+        case AddMemberWizardModes.CSR_EXISTS:
+          return 3;
+        default:
+          return 5;
       }
-      if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
-        return 3;
-      }
-
-      return 5;
     },
-
     finishPageNumber(): number {
-      if (
-        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-      ) {
-        return 2;
+      switch (this.addMemberWizardMode) {
+        case AddMemberWizardModes.CERTIFICATE_EXISTS:
+          return 2;
+        case AddMemberWizardModes.CSR_EXISTS:
+          return 4;
+        default:
+          return 6;
       }
-      if (this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS) {
-        return 4;
-      }
-      return 6;
     },
   },
   created() {
@@ -267,19 +267,18 @@ export default Vue.extend({
 
     // Store the reserved member info to store
     this.storeReservedMember({
-      instanceId: this.instanceId,
-      memberClass: this.memberClass,
-      memberCode: this.memberCode,
+      instanceId: this.ownerInstanceId,
+      memberClass: this.ownerMemberClass,
+      memberCode: this.ownerMemberCode,
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.resetAddClientState();
     this.resetCsrState();
   },
-
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsrStore, [
+    ...mapActions(useCsr, [
       'storeCsrClient',
       'storeCsrIsNewMember',
       'resetCsrState',
@@ -289,11 +288,9 @@ export default Vue.extend({
     ]),
     ...mapActions(useAddClient, ['storeReservedMember', 'resetAddClientState']),
     ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance']),
-
     cancel(): void {
       this.$router.replace({ name: RouteName.Clients });
     },
-
     csrDetailsReady(): void {
       // Add the selected client id in csr store
       const idString = this.selectedMemberId;
@@ -309,7 +306,6 @@ export default Vue.extend({
         },
       );
     },
-
     done(): void {
       this.$router.replace({ name: RouteName.Clients });
     },

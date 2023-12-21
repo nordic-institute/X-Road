@@ -36,175 +36,165 @@
           outlined
           data-test="delete-endpoint"
           @click="showDeletePopup()"
-          >{{ $t('action.delete') }}</xrd-button
-        >
+          >{{ $t('action.delete') }}
+        </xrd-button>
       </div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="px-4">
-        <div class="dlg-edit-row">
-          <v-select
-            v-model="endpoint.method"
-            class="dlg-row-input"
-            data-test="endpoint-method"
-            :label="$t('endpoints.httpRequestMethod')"
-            autofocus
-            outlined
-            :items="methods"
-            @input="touched = true"
-          />
-        </div>
+    <div class="px-4">
+      <div class="dlg-edit-row">
+        <v-select
+          v-bind="methodRef"
+          class="dlg-row-input"
+          data-test="endpoint-method"
+          :label="$t('endpoints.httpRequestMethod')"
+          autofocus
+          variant="outlined"
+          :items="methods"
+        />
+      </div>
 
-        <div class="dlg-edit-row">
-          <ValidationProvider
-            ref="path"
-            v-slot="{ errors }"
-            rules="required|xrdEndpoint"
-            name="path"
-            class="validation-provider dlg-row-input"
-          >
-            <v-text-field
-              v-model="endpoint.path"
-              outlined
-              :error-messages="errors"
-              name="path"
-              :label="$t('endpoints.path')"
-              data-test="endpoint-path"
-              @input="touched = true"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
+      <div class="dlg-edit-row">
+        <v-text-field
+          v-bind="pathRef"
+          variant="outlined"
+          name="path"
+          :label="$t('endpoints.path')"
+          data-test="endpoint-path"
+        ></v-text-field>
+      </div>
 
-        <div class="helper-text pl-2">
-          <div>
-            <div>{{ $t('endpoints.endpointHelp1') }}</div>
-            <div>{{ $t('endpoints.endpointHelp2') }}</div>
-            <div>{{ $t('endpoints.endpointHelp3') }}</div>
-            <div>{{ $t('endpoints.endpointHelp4') }}</div>
-          </div>
+      <div class="helper-text pl-2">
+        <div>
+          <div>{{ $t('endpoints.endpointHelp1') }}</div>
+          <div>{{ $t('endpoints.endpointHelp2') }}</div>
+          <div>{{ $t('endpoints.endpointHelp3') }}</div>
+          <div>{{ $t('endpoints.endpointHelp4') }}</div>
         </div>
       </div>
-      <div class="xrd-footer-buttons-wrap">
-        <xrd-button outlined @click="close()">{{
-          $t('action.cancel')
-        }}</xrd-button>
-        <xrd-button
-          class="save-button"
-          :loading="saveBusy"
-          :disabled="!touched || invalid"
-          @click="saveEndpoint()"
-          >{{ $t('action.save') }}</xrd-button
-        >
-      </div>
-    </ValidationObserver>
+    </div>
+    <div class="xrd-footer-buttons-wrap">
+      <xrd-button outlined @click="close()"
+        >{{ $t('action.cancel') }}
+      </xrd-button>
+      <xrd-button
+        class="save-button"
+        :loading="saving"
+        :disabled="!meta.touched || !meta.valid"
+        @click="save()"
+        >{{ $t('action.save') }}
+      </xrd-button>
+    </div>
 
     <!-- Confirm dialog delete REST -->
     <xrd-confirm-dialog
-      :dialog="confirmDelete"
+      v-if="confirmDelete"
       title="endpoints.deleteTitle"
       text="endpoints.deleteEndpointText"
       @cancel="confirmDelete = false"
-      @accept="deleteEndpoint(id)"
+      @accept="remove(id)"
     />
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import * as api from '@/util/api';
+import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import { Endpoint } from '@/openapi-types';
-import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
+import { PublicPathState, useForm } from 'vee-validate';
+import { useServices } from '@/store/modules/services';
 
-export default Vue.extend({
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+export default defineComponent({
   props: {
     id: {
       type: String,
       required: true,
     },
   },
+  setup(props) {
+    const { endpoints } = useServices();
+    const endpoint = endpoints.find((endpoint) => endpoint.id === props.id)!;
+    const { meta, resetForm, values, defineComponentBinds } = useForm({
+      validationSchema: {
+        method: 'required',
+        path: 'required|xrdEndpoint',
+      },
+      initialValues: {
+        method: endpoint.method,
+        path: endpoint.path,
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const methodRef = defineComponentBinds('method', componentConfig);
+    const pathRef = defineComponentBinds('path', componentConfig);
+    return { meta, resetForm, values, methodRef, pathRef, endpoint };
+  },
   data() {
     return {
-      endpoint: {} as Endpoint,
       confirmDelete: false,
-      saveBusy: false,
-      touched: false,
+      saving: false,
       methods: [
-        { text: this.$t('endpoints.all'), value: '*' },
-        { text: 'GET', value: 'GET' },
-        { text: 'POST', value: 'POST' },
-        { text: 'PUT', value: 'PUT' },
-        { text: 'PATCH', value: 'PATCH' },
-        { text: 'DELETE', value: 'DELETE' },
-        { text: 'HEAD', value: 'HEAD' },
-        { text: 'OPTIONS', value: 'OPTIONS' },
-        { text: 'TRACE', value: 'TRACE' },
+        { title: this.$t('endpoints.all'), value: '*' },
+        { title: 'GET', value: 'GET' },
+        { title: 'POST', value: 'POST' },
+        { title: 'PUT', value: 'PUT' },
+        { title: 'PATCH', value: 'PATCH' },
+        { title: 'DELETE', value: 'DELETE' },
+        { title: 'HEAD', value: 'HEAD' },
+        { title: 'OPTIONS', value: 'OPTIONS' },
+        { title: 'TRACE', value: 'TRACE' },
       ],
     };
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
+    ...mapState(useServices, ['endpoints']),
     showDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_ENDPOINT);
     },
   },
-  created(): void {
-    this.fetchData(this.id);
-  },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useServices, ['deleteEndpoint', 'updateEndpoint']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
     showDeletePopup(): void {
       this.confirmDelete = true;
     },
-    deleteEndpoint(id: string): void {
-      api
-        .remove(`/endpoints/${encodePathParameter(id)}`)
+    remove(id: string): void {
+      this.deleteEndpoint(id)
         .then(() => {
           this.showSuccess(this.$t('endpoints.deleteSuccess'));
-          this.$router.go(-1);
+          this.$router.back();
         })
         .catch((error) => {
           this.showError(error);
           this.confirmDelete = false;
         });
     },
-    saveEndpoint(): void {
-      if (!this.endpoint.id) {
-        throw new Error('Unable to save endpoint: Endpoint id not defined!');
-      }
-      api
-        .patch(
-          `/endpoints/${encodePathParameter(this.endpoint.id)}`,
-          this.endpoint,
-        )
-        .then(() => {
+    save(): void {
+      this.saving = true;
+      this.updateEndpoint({
+        ...this.endpoint,
+        method: this.values.method,
+        path: this.values.path,
+      })
+        .then(async () => {
           this.showSuccess(this.$t('endpoints.editSuccess'));
-          this.$router.go(-1);
+          this.$router.back();
         })
         .catch((error) => {
           this.showError(error);
-        });
-    },
-    fetchData(id: string): void {
-      api
-        .get<Endpoint>(`/endpoints/${encodePathParameter(id)}`)
-        .then((endpoint) => {
-          this.endpoint = endpoint.data;
         })
-        .catch((error) => {
-          this.showError(error);
+        .finally(() => {
+          this.saving = false;
         });
     },
   },
@@ -212,8 +202,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/dialogs';
-@import '~styles/tables';
+@import '@/assets/dialogs';
+@import '@/assets/tables';
 
 .delete-wrap {
   margin-top: 50px;

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.datasource.JdbcTransactionObjectSupport;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -33,8 +34,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.TransactionDefinition;
-
-import javax.persistence.EntityManagerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

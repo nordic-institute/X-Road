@@ -11,21 +11,21 @@ dependencies {
 }
 
 ext {
-  mainClassName = 'ee.ria.xroad.signer.console.SignerCLI'
+    mainClassName = 'ee.ria.xroad.signer.console.SignerCLI'
 }
 
 jar {
-  manifest {
-    attributes  'Main-Class': mainClassName
-  }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
 }
 
 shadowJar {
     archiveClassifier = ''
     exclude('**/module-info.class')
     exclude 'asg/cliche/example/**'
-    append('reference.conf')
     from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
 }
 
 jar.enabled = false

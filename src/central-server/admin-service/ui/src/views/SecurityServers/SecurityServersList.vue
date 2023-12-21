@@ -26,45 +26,37 @@
  -->
 <template>
   <div data-test="security-servers-view">
-    <!-- Toolbar buttons -->
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-title-search align-fix mt-0 pt-0">
-        <div class="xrd-view-title align-fix">
-          {{ $t('tab.main.securityServers') }}
-        </div>
-        <xrd-search v-model="search" class="margin-fix" />
-      </div>
-    </div>
-
-    <!-- Table -->
-    <v-data-table
-      :loading="loading"
-      :headers="headers"
-      :items="securityServerStore.securityServers"
-      :search="search"
-      :must-sort="true"
-      :items-per-page="10"
-      :options.sync="pagingSortingOptions"
-      :server-items-length="
-        securityServerStore.securityServerPagingOptions.total_items
-      "
-      disable-filtering
-      class="elevation-0 data-table"
-      :no-data-text="emptyListReasoning"
-      item-key="server_id.server_code"
-      :loader-height="2"
-      :footer-props="{ itemsPerPageOptions: [10, 25] }"
-      @update:options="findServers"
+    <searchable-titled-view
+      v-model="search"
+      title-key="tab.main.securityServers"
     >
-      <template #[`item.server_id.server_code`]="{ item }">
-        <div class="server-code xrd-clickable" @click="toDetails(item)">
-          <xrd-icon-base class="mr-4">
-            <XrdIconSecurityServer />
-          </xrd-icon-base>
-          {{ item.server_id.server_code }}
-        </div>
-      </template>
-    </v-data-table>
+      <v-data-table-server
+        :loading="loading"
+        :headers="headers"
+        :items="securityServerStore.securityServers"
+        :items-per-page-options="itemsPerPageOptions"
+        :items-length="
+          securityServerStore.securityServerPagingOptions.total_items
+        "
+        :must-sort="true"
+        :items-per-page="10"
+        disable-filtering
+        class="elevation-0 data-table"
+        :no-data-text="emptyListReasoning"
+        item-key="server_id.server_code"
+        :loader-height="2"
+        @update:options="findServers"
+      >
+        <template #[`item.server_id.server_code`]="{ item }">
+          <div class="server-code xrd-clickable" @click="toDetails(item)">
+            <xrd-icon-base class="mr-4">
+              <xrd-icon-security-server />
+            </xrd-icon-base>
+            {{ item.server_id.server_code }}
+          </div>
+        </template>
+      </v-data-table-server>
+    </searchable-titled-view>
   </div>
 </template>
 
@@ -72,61 +64,61 @@
 /**
  * View for 'security servers' tab
  */
-import Vue from 'vue';
-import { DataOptions, DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import VueI18n from 'vue-i18n';
-import TranslateResult = VueI18n.TranslateResult;
+import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
+import { VDataTableServer } from 'vuetify/labs/VDataTable';
+import { defaultItemsPerPageOptions } from '@/util/defaults';
+import { DataQuery, DataTableHeader } from '@/ui-types';
+import { XrdIconSecurityServer } from '@niis/shared-ui';
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
-export default Vue.extend({
+export default defineComponent({
+  components: { SearchableTitledView, XrdIconSecurityServer, VDataTableServer },
   data() {
     return {
       search: '',
       loading: false,
       showOnlyPending: false,
-      pagingSortingOptions: {} as DataOptions,
+      dataQuery: {} as DataQuery,
+      itemsPerPageOptions: defaultItemsPerPageOptions(),
     };
   },
   computed: {
-    ...mapStores(useSecurityServerStore),
+    ...mapStores(useSecurityServer),
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('securityServers.serverCode') as string,
+          title: this.$t('securityServers.serverCode') as string,
           align: 'start',
-          value: 'server_id.server_code',
-          class: 'xrd-table-header ss-table-header-sercer-code',
+          key: 'server_id.server_code',
         },
         {
-          text: this.$t('securityServers.ownerName') as string,
+          title: this.$t('securityServers.ownerName') as string,
           align: 'start',
-          value: 'owner_name',
-          class: 'xrd-table-header ss-table-header-owner-name',
+          key: 'owner_name',
         },
         {
-          text: this.$t('securityServers.ownerCode') as string,
+          title: this.$t('securityServers.ownerCode') as string,
           align: 'start',
-          value: 'server_id.member_code',
-          class: 'xrd-table-header ss-table-header-owner-code',
+          key: 'server_id.member_code',
         },
         {
-          text: this.$t('securityServers.ownerClass') as string,
+          title: this.$t('securityServers.ownerClass') as string,
           align: 'start',
-          value: 'server_id.member_class',
-          class: 'xrd-table-header ss-table-header-owner-class',
+          key: 'server_id.member_class',
         },
       ];
     },
-    emptyListReasoning(): TranslateResult {
+    emptyListReasoning(): string {
       return this.search
         ? this.$t('noData.noMatches')
         : this.$t('noData.noSecurityServers');
@@ -142,10 +134,10 @@ export default Vue.extend({
     that = this;
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
+    ...mapActions(useNotifications, ['showError']),
     debouncedFindServers: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.findServers(that.pagingSortingOptions);
+      that.fetchServers();
     }, 600),
     toDetails(securityServer: SecurityServer): void {
       this.$router.push({
@@ -153,14 +145,18 @@ export default Vue.extend({
         params: { serverId: securityServer.server_id.encoded_id || '' },
       });
     },
-    changeOptions: async function () {
-      this.findServers(this.pagingSortingOptions);
+    findServers: async function ({ itemsPerPage, page, sortBy }) {
+      this.dataQuery.itemsPerPage = itemsPerPage;
+      this.dataQuery.page = page;
+      this.dataQuery.sortBy = sortBy[0]?.key;
+      this.dataQuery.sortOrder = sortBy[0]?.order;
+      this.fetchServers();
     },
-    findServers: async function (options: DataOptions) {
+    fetchServers: async function () {
       this.loading = true;
-
+      this.dataQuery.search = this.search;
       try {
-        await this.securityServerStore.find(options, this.search);
+        await this.securityServerStore.find(this.dataQuery);
       } catch (error: unknown) {
         this.showError(error);
       } finally {
@@ -171,7 +167,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .server-code {
   color: $XRoad-Purple100;

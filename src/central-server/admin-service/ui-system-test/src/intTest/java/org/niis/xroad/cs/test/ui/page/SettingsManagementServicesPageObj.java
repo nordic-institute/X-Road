@@ -51,8 +51,8 @@ public class SettingsManagementServicesPageObj {
         return $x("//td[@data-test='management-wsdl-address-field']");
     }
 
-    public SelenideElement centralServerAddress() {
-        return $x("//td[@data-test='management-central-server-address-field']");
+    public SelenideElement managementServicesAddress() {
+        return $x("//td[@data-test='management-management-services-address-field']");
     }
 
     public SelenideElement ownerGroupCode() {
@@ -63,8 +63,8 @@ public class SettingsManagementServicesPageObj {
         return $x("//button[@data-test='management-wsdl-address-copy-btn']");
     }
 
-    public SelenideElement centralServerAddressCopyButton() {
-        return $x("//button[@data-test='management-central-server-address-copy-btn']");
+    public SelenideElement managementServicesAddressCopyButton() {
+        return $x("//button[@data-test='management-management-services-address-copy-btn']");
     }
 
     public SelenideElement editManagementSubsystemButton() {
@@ -76,39 +76,39 @@ public class SettingsManagementServicesPageObj {
     }
 
     public SelenideElement title(String title) {
-        var xpath = "//span[@class='dialog-title-text' and contains(text(),'%s')]";
+        var xpath = "//span[@data-test='dialog-title' and contains(text(),'%s')]";
         return $x(String.format(xpath, title));
     }
 
     public class EditManagementSubsystemDialog {
 
         public SelenideElement search() {
-            return $x("//input[@data-test='management-subsystem-search-field']");
+            return $x("//div[@data-test='management-subsystem-search-field']");
         }
 
         public SelenideElement checkboxOf(String subsystem) {
-            var xpath = "//div[text()='%s']/../preceding-sibling::td/div[@data-test='management-subsystem-checkbox']";
+            var xpath = "//div[@data-test='subsystems-table']//tr[./td[text()='%s']]/td/div[contains(@class, 'v-checkbox-btn')]";
             return $x(String.format(xpath, subsystem));
         }
 
         public SelenideElement selectButton() {
-            return $x("//button[@data-test='management-subsystem-select-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
     }
 
     public class EditManagementSecurityServerDialog {
 
         public SelenideElement search() {
-            return $x("//input[@data-test='management-security-server-search-field']");
+            return $x("//div[@data-test='management-security-server-search-field']");
         }
 
         public SelenideElement checkboxOf(String code) {
-            var xpath = "//td[text()='%s']/../td/div[@data-test='management-security-server-checkbox']";
+            var xpath = "//td[text()='%s']/../td/div[contains(@class, 'v-checkbox-btn')]";
             return $x(String.format(xpath, code));
         }
 
         public SelenideElement selectButton() {
-            return $x("//button[@data-test='management-security-server-select-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
     }
 }

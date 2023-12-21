@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,25 +26,30 @@
 package org.niis.xroad.restapi.auth;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.Role;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import java.util.Set;
 
-/**
- * test role
- */
-public class RoleTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.niis.xroad.restapi.domain.Role.XROAD_SERVICE_ADMINISTRATOR;
+
+class RoleTest {
 
     @Test
-    public void test() {
-        Role role = Role.getForKey(3);
-        assertEquals("XROAD_SERVICE_ADMINISTRATOR", role.name());
+    void getGrantedAuthorityName() {
+        String result = XROAD_SERVICE_ADMINISTRATOR.getGrantedAuthorityName();
+        assertThat(result).isEqualTo("ROLE_" + XROAD_SERVICE_ADMINISTRATOR.name());
+    }
 
-        try {
-            role = Role.getForKey(10);
-            fail("should throw exception");
-        } catch (Exception expected) {
-        }
+    @Test
+    void getForNames() throws InvalidRoleNameException {
+        Set<Role> result = Role.getForNames(Set.of(XROAD_SERVICE_ADMINISTRATOR.name()));
+        assertThat(result).containsOnly(XROAD_SERVICE_ADMINISTRATOR);
+
+        assertThatThrownBy(() -> Role.getForNames(Set.of("INVALID_ROLE")))
+                .isInstanceOf(InvalidRoleNameException.class)
+                .hasMessage("Invalid role: INVALID_ROLE");
     }
 }

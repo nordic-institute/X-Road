@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,14 +39,15 @@ import java.io.InputStream;
 import java.time.OffsetDateTime;
 
 /**
- * Represents meta data information for a configuration part.
- * The meta data contains the following information:
+ * Represents metadata information for a configuration part.
+ * The metadata contains the following information:
  * <ul>
  * <li>content identifier</li>
  * <li>instance identifier</li>
  * <li>expiration date</li>
  * <li>content file name</li>
  * <li>content location</li>
+ * <li>configuration version</li>
  * </ul>
  */
 @Getter
@@ -62,10 +64,13 @@ public class ConfigurationPartMetadata {
 
     private String contentLocation;
 
+    private String configurationVersion;
+
     private static final ObjectMapper MAPPER;
 
     static {
         final ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(Include.NON_NULL);
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
@@ -75,15 +80,15 @@ public class ConfigurationPartMetadata {
     // ------------------------------------------------------------------------
 
     /**
-     * @return the metadata as byte array
+     * @return the metadata JSON as byte array
      * @throws JsonProcessingException if an error occurs while serializing the data
      */
-    public byte[] toByteArray() throws JsonProcessingException {
+    public byte[] toJson() throws JsonProcessingException {
         return MAPPER.writeValueAsBytes(this);
     }
 
     /**
-     * Reads the meta data from input stream.
+     * Reads the metadata from input stream.
      * @param in the input stream
      * @return the meta data
      * @throws IOException if an error occurs while deserializing the data

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -40,8 +41,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.TeeInputStream;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -51,7 +52,6 @@ import org.xml.sax.ext.DefaultHandler2;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.soap.SOAPException;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;

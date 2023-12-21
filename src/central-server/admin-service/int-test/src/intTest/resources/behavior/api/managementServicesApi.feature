@@ -3,10 +3,12 @@ Feature: Management services API
 
   @Modifying
   Scenario: Update management services configuration is successful
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:E2E:member-for-management' is added
     And new subsystem "CS:E2E:member-for-management:Management" is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:member-for-management:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And client 'CS:E2E:member-for-management:Management' is registered as security server 'CS:E2E:member-for-management:SS0' client from 'SECURITY_SERVER'
@@ -23,10 +25,12 @@ Feature: Management services API
 
   @Modifying
   Scenario: Update management services configuration is successful using dedicated endpoint
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:E2E:member-for-management' is added
     And new subsystem "CS:E2E:member-for-management:Management" is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:member-for-management:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is approved
     And Authentication header is set to SECURITY_OFFICER
@@ -70,3 +74,30 @@ Feature: Management services API
     Given Authentication header is set to REGISTRATION_OFFICER
     When Management services configuration is retrieved
     Then Response is of status code 403
+
+  Scenario: Get management service TLS certificate is retrieved for privileged user
+    Given Authentication header is set to SECURITY_OFFICER
+    When Management service TLS certificate is retrieved
+    Then Response is of status code 200
+
+  Scenario: Management service TLS certificate is successfully downloaded for privileged user
+    Given Authentication header is set to SECURITY_OFFICER
+    When Management service TLS certificate is downloaded
+    Then Response is of status code 200
+
+  @Modifying
+  Scenario: Management service TLS key and certificate is successfully reCreated for privileged user
+    Given Authentication header is set to SECURITY_OFFICER
+    When Management service TLS key and certificate is created
+    Then Response is of status code 201
+
+  Scenario: Management service certificate sign request is successfully created for privileged user
+    Given Authentication header is set to SECURITY_OFFICER
+    When Management service certificate CSR is generated
+    Then Response is of status code 200
+
+  @Modifying
+  Scenario: Management service TLS certificate is successfully uploaded for privileged user
+    Given Authentication header is set to SECURITY_OFFICER
+    When Management service TLS certificate is uploaded
+    Then Response is of status code 200

@@ -24,126 +24,128 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <v-card v-if="showConnectionType" flat class="xrd-card">
-      <v-flex class="px-4 pt-4">
-        <h1 class="title mb-3">{{ $t('internalServers.connectionType') }}</h1>
-        <v-select
-          :key="revertHack"
-          v-model="connectionTypeModel"
-          :items="connectionTypes"
-          class="select-connection"
-          outlined
-          :disabled="!canEditConnectionType"
-          :readonly="!canEditConnectionType"
-        ></v-select>
-      </v-flex>
-      <div class="conn-info pa-4">
-        {{ $t('internalServers.connectionInfo') }}
-      </div>
-    </v-card>
+  <v-card v-if="showConnectionType" variant="flat" class="xrd-card">
+    <v-card-title class="text-h6 mb-3 mt-4">
+      {{ $t('internalServers.connectionType') }}
+    </v-card-title>
+    <v-select
+      :key="revertHack"
+      v-model="connectionTypeModel"
+      :items="connectionTypes"
+      class="select-connection pl-4"
+      variant="outlined"
+      :disabled="!canEditConnectionType"
+      :readonly="!canEditConnectionType"
+    ></v-select>
+    <v-card-text class="conn-info">
+      {{ $t('internalServers.connectionInfo') }}
+    </v-card-text>
+  </v-card>
 
-    <v-card flat class="xrd-card pb-4">
-      <div class="tls-title-wrap pa-4">
-        <h1 class="title mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
-        <xrd-file-upload
-          v-if="canAddTlsCert"
-          v-slot="{ upload }"
-          accepts=".pem, .cer, .der"
-          @file-changed="onFileChange"
-        >
-          <xrd-button outlined color="primary" @click="upload"
-            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('action.add') }}</xrd-button
-          >
-        </xrd-file-upload>
-      </div>
-      <div class="cert-table-title pl-4">
-        {{ $t('internalServers.certHash') }}
-      </div>
-      <table class="server-certificates xrd-table">
-        <template v-if="tlsCertificates && tlsCertificates.length > 0">
-          <tr v-for="certificate in tlsCertificates" :key="certificate.hash">
-            <td class="pl-4 pt-2">
-              <i class="icon-Certificate icon" />
-            </td>
-            <td>
-              <span
-                v-if="canViewTlsCertDetails"
-                class="certificate-link"
-                @click="openCertificate(certificate)"
-                >{{ certificate.hash | colonize }}</span
-              >
-              <span v-else>{{ certificate.hash | colonize }}</span>
-            </td>
-          </tr>
-        </template>
+  <v-card variant="flat" class="xrd-card pb-4">
+    <v-card-title class="tls-title-wrap pa-4">
+      <h1 class="text-h6 mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
+      <xrd-file-upload
+        v-if="canAddTlsCert"
+        v-slot="{ upload }"
+        accepts=".pem, .cer, .der"
+        @file-changed="onFileChange"
+      >
+        <xrd-button outlined color="primary" @click="upload">
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-add />
+          </xrd-icon-base>
+          {{ $t('action.add') }}
+        </xrd-button>
+      </xrd-file-upload>
+    </v-card-title>
+    <div class="cert-table-title pl-4">
+      {{ $t('internalServers.certHash') }}
+    </div>
+    <table class="server-certificates xrd-table">
+      <template v-if="tlsCertificates && tlsCertificates.length > 0">
+        <tr v-for="certificate in tlsCertificates" :key="certificate.hash">
+          <td class="pl-4 pt-2">
+            <i class="icon-Certificate icon" />
+          </td>
+          <td>
+            <span
+              v-if="canViewTlsCertDetails"
+              class="certificate-link"
+              @click="openCertificate(certificate)"
+              >{{ $filters.colonize(certificate.hash) }}</span
+            >
+            <span v-else>{{ $filters.colonize(certificate.hash) }}</span>
+          </td>
+        </tr>
+      </template>
 
-        <XrdEmptyPlaceholderRow
-          :colspan="2"
-          :loading="tlsCertLoading"
-          :data="tlsCertificates"
-          :no-items-text="$t('noData.noCertificates')"
-        />
-      </table>
-    </v-card>
+      <XrdEmptyPlaceholderRow
+        :colspan="2"
+        :loading="tlsCertLoading"
+        :data="tlsCertificates"
+        :no-items-text="$t('noData.noCertificates')"
+      />
+    </table>
+  </v-card>
 
-    <v-card v-if="canViewSSCert" flat class="xrd-card pb-4">
-      <div class="pa-4">
-        <h1 class="title mb-3">{{ $t('internalServers.ssCertTitle') }}</h1>
-      </div>
-      <div class="cert-table-title pl-4">
-        {{ $t('internalServers.certHash') }}
-      </div>
-      <table class="server-certificates xrd-table">
-        <template v-if="ssCertificate && !ssCertLoading">
-          <tr>
-            <td class="pl-4 pt-2">
-              <i class="icon-Certificate icon" />
-            </td>
-            <td>
-              <span>{{ ssCertificate.hash | colonize }}</span>
-            </td>
+  <v-card v-if="canViewSSCert" variant="flat" class="xrd-card pb-4">
+    <v-card-title class="text-h6 mb-3 pa-4">{{
+      $t('internalServers.ssCertTitle')
+    }}</v-card-title>
+    <div class="cert-table-title pl-4">
+      {{ $t('internalServers.certHash') }}
+    </div>
+    <table class="server-certificates xrd-table">
+      <template v-if="ssCertificate && !ssCertLoading">
+        <tr>
+          <td class="pl-4 pt-2">
+            <i class="icon-Certificate icon" />
+          </td>
+          <td>
+            <span>{{ $filters.colonize(ssCertificate.hash) }}</span>
+          </td>
 
-            <td class="column-button">
-              <xrd-button
-                v-if="canExportSSCert"
-                small
-                :outlined="false"
-                text
-                color="primary"
-                @click="exportSSCertificate"
-                >{{ $t('action.export') }}</xrd-button
-              >
-            </td>
-          </tr>
-        </template>
-        <XrdEmptyPlaceholderRow
-          :colspan="3"
-          :loading="ssCertLoading"
-          :data="ssCertificate"
-          :no-items-text="$t('noData.noCertificate')"
-        />
-      </table>
-    </v-card>
-  </div>
+          <td class="column-button">
+            <xrd-button
+              v-if="canExportSSCert"
+              small
+              :outlined="false"
+              text
+              color="primary"
+              data-test="export-button"
+              @click="exportSSCertificate"
+              >{{ $t('action.export') }}
+            </xrd-button>
+          </td>
+        </tr>
+      </template>
+      <XrdEmptyPlaceholderRow
+        :colspan="3"
+        :loading="ssCertLoading"
+        :data="ssCertificate"
+        :no-items-text="$t('noData.noCertificate')"
+      />
+    </table>
+  </v-card>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 import { Permissions, RouteName } from '@/global';
-import { FileUploadResult } from '@niis/shared-ui';
-import { CertificateDetails } from '@/openapi-types';
+import { CertificateDetails, ConnectionType } from '@/openapi-types';
 import { saveResponseAsFile } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
+import { FileUploadResult, XrdIconAdd } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdIconAdd },
   props: {
     id: {
       type: String,
@@ -153,9 +155,9 @@ export default Vue.extend({
   data() {
     return {
       connectionTypes: [
-        { text: 'HTTP', value: 'HTTP' },
-        { text: 'HTTPS', value: 'HTTPS' },
-        { text: 'HTTPS NO AUTH', value: 'HTTPS_NO_AUTH' },
+        { title: 'HTTP', value: ConnectionType.HTTP },
+        { title: 'HTTPS', value: ConnectionType.HTTPS },
+        { title: 'HTTPS NO AUTH', value: ConnectionType.HTTPS_NO_AUTH },
       ],
       dialog: false,
       selectedCertificate: null,
@@ -166,7 +168,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission']),
-    ...mapState(useClientStore, [
+    ...mapState(useClient, [
       'tlsCertificates',
       'ssCertificate',
       'connectionType',
@@ -220,7 +222,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useClientStore, [
+    ...mapActions(useClient, [
       'saveConnectionType',
       'fetchTlsCertificates',
       'fetchSSCertificate',
@@ -293,8 +295,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .select-connection {
   max-width: 240px;

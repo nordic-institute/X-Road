@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,12 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.Sign;
-import ee.ria.xroad.signer.protocol.message.SignResponse;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.util.MultiPartOutputStream;
@@ -62,11 +59,11 @@ abstract class GenericClientRequest implements ManagementRequest {
 
     private CertificateInfo clientCert;
 
-    private byte[] dataToSign;
+    private final byte[] dataToSign;
 
     private MultiPartOutputStream multipart;
 
-    GenericClientRequest(ClientId client, SoapMessageImpl request) throws Exception {
+    GenericClientRequest(ClientId client, SoapMessageImpl request) {
         this.client = client;
         this.requestMessage = request;
 
@@ -110,7 +107,7 @@ abstract class GenericClientRequest implements ManagementRequest {
     }
 
     private void writeSignature() throws Exception {
-        MemberSigningInfo memberSigningInfo = getMemberSigningInfo();
+        MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
         String clientSignAlgoId = CryptoUtils.getSignatureAlgorithmId(SIGNATURE_DIGEST_ALGORITHM_ID,
                 memberSigningInfo.getSignMechanismName());
@@ -128,9 +125,9 @@ abstract class GenericClientRequest implements ManagementRequest {
         multipart.write(dataToSign);
     }
 
-    private MemberSigningInfo getMemberSigningInfo() throws Exception {
+    private MemberSigningInfoDto getMemberSigningInfo() {
         try {
-            MemberSigningInfo signingInfo = SignerClient.execute(new GetMemberSigningInfo(client));
+            MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(client);
 
             clientCert = signingInfo.getCert();
 
@@ -140,11 +137,9 @@ abstract class GenericClientRequest implements ManagementRequest {
         }
     }
 
-    private static byte[] createSignature(String keyId, String signAlgoId, byte[] digest) throws Exception {
+    private static byte[] createSignature(String keyId, String signAlgoId, byte[] digest) {
         try {
-            SignResponse response = SignerClient.execute(new Sign(keyId, signAlgoId, digest));
-
-            return response.getSignature();
+            return SignerProxy.sign(keyId, signAlgoId, digest);
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

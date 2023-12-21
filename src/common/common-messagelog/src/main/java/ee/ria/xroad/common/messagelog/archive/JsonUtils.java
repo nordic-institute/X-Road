@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -61,7 +61,7 @@ final class JsonUtils {
         newObjectMapper.enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
         newObjectMapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
-        newObjectMapper.setVisibilityChecker(
+        newObjectMapper.setVisibility(
                 newObjectMapper.getSerializationConfig().
                 getDefaultVisibilityChecker().
                 withFieldVisibility(JsonAutoDetect.Visibility.ANY).

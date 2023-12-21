@@ -26,7 +26,7 @@
  */
 
 import { defineStore } from 'pinia';
-import { notificationsStore } from './notifications';
+import { useNotifications } from './notifications';
 import * as api from '@/util/api';
 
 type AlertData = {
@@ -48,7 +48,7 @@ export const useAlerts = defineStore('alerts', {
           this.alerts = resp.data;
         })
         .catch((error) => {
-          const notifications = notificationsStore();
+          const notifications = useNotifications();
           notifications.showError(error);
         });
     },

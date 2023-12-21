@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,16 +29,16 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -63,6 +64,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     public static final String SOFTWARE_TOKEN_ID = PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
     public static final String OTHER_TOKEN_ID = "1";
     public static final String MOCK_CA = "mock-ca";
+    Map<String, TokenInfo> tokens = new HashMap<>();
 
     @Before
     public void setup() throws Exception {
@@ -76,11 +78,11 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                 .type("mock-type")
                 .friendlyName("mock-token1")
                 .build();
-        Map<String, TokenInfo> tokens = new HashMap<>();
+
         tokens.put(token0.getId(), token0);
         tokens.put(token1.getId(), token1);
         // mock related signer proxy methods
-        when(signerProxyFacade.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
+        when(signerProxyFacade.getTokens()).thenAnswer(i -> new ArrayList<>(tokens.values()));
         when(signerProxyFacade.getToken(any())).thenAnswer(
                 invocation -> tokens.get(invocation.getArguments()[0]));
         when(signerProxyFacade.generateKey(any(), any())).thenAnswer(invocation -> {
@@ -93,7 +95,10 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                     .friendlyName(label)
                     .build();
             TokenInfo token = tokens.get(tokenId);
-            token.getKeyInfo().add(keyInfo);
+            TokenInfo newTokenInfo = new TokenInfo(token.getMessage().toBuilder()
+                    .addKeyInfo(keyInfo.getMessage())
+                    .build());
+            tokens.put(tokenId, newTokenInfo);
             return keyInfo;
         });
         when(signerProxyFacade.getTokenForKeyId(any())).thenAnswer(invocation -> {
@@ -112,8 +117,17 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                             .keyInfo(keyInfo)
                             .keyUsageInfo(keyUsage)
                             .build();
-                    tokenInfo.getKeyInfo().remove(keyInfo);
-                    tokenInfo.getKeyInfo().add(copy);
+
+                    final ArrayList<KeyInfo> keyInfos = new ArrayList<>(tokenInfo.getKeyInfo());
+                    keyInfos.remove(keyInfo);
+                    keyInfos.add(copy);
+
+                    TokenInfo newToken = new TokenInfo(tokenInfo.getMessage().toBuilder()
+                            .clearKeyInfo()
+                            .addAllKeyInfo(keyInfos.stream().map(KeyInfo::getMessage).collect(Collectors.toList()))
+                            .build());
+                    tokens.put(newToken.getId(), newToken);
+
                     return new SignerProxy.GeneratedCertRequestInfo(null, null, null, null, null);
                 });
         when(globalConfFacade.getApprovedCAs(any())).thenReturn(Arrays.asList(
@@ -124,8 +138,8 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
     }
 
-    private KeyInfo getKey(Map<String, TokenInfo> tokens, String keyId) {
-        for (TokenInfo tokenInfo : tokens.values()) {
+    private KeyInfo getKey(Map<String, TokenInfo> tokenInfos, String keyId) {
+        for (TokenInfo tokenInfo : tokenInfos.values()) {
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 if (keyInfo.getId().equals(keyId)) {
                     return keyInfo;
@@ -135,8 +149,8 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         return null;
     }
 
-    private TokenInfo getTokenWithKey(Map<String, TokenInfo> tokens, String keyId) {
-        for (TokenInfo tokenInfo : tokens.values()) {
+    private TokenInfo getTokenWithKey(Map<String, TokenInfo> tokenInfos, String keyId) {
+        for (TokenInfo tokenInfo : tokenInfos.values()) {
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 if (keyInfo.getId().equals(keyId)) {
                     return tokenInfo;
@@ -147,7 +161,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY" })
+    @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
     public void addKeyAndCertSuccess() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
         KeyAndCertificateRequestService.KeyAndCertRequestInfo info = keyAndCertificateRequestService
@@ -171,7 +185,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY" })
+    @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
     public void canAddAuthKeyToSoftToken() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
         KeyAndCertificateRequestService.KeyAndCertRequestInfo info = keyAndCertificateRequestService
@@ -183,7 +197,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     }
 
     @Test(expected = ActionNotPossibleException.class)
-    @WithMockUser(authorities = { "DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY" })
+    @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
     public void cannotAddAuthKeyToNonSoftToken() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
         KeyAndCertificateRequestService.KeyAndCertRequestInfo info = keyAndCertificateRequestService
@@ -194,7 +208,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY" })
+    @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
     public void csrGenerateFailureRollsBackKeyCreate() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
         try {
@@ -215,7 +229,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY" })
+    @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
     public void failedRollback() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
         doThrow(new CodedException(TokenService.KEY_NOT_FOUND_FAULT_CODE))

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.common.message;
 
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+
+import org.glassfish.jaxb.runtime.marshaller.NamespacePrefixMapper;
 
 /**
  * Maps namespace URIs to specified prefixes. This class is used when
@@ -36,14 +37,11 @@ public class SoapNamespacePrefixMapper extends NamespacePrefixMapper {
     @Override
     public String getPreferredPrefix(String namespaceUri, String suggestion,
             boolean requirePrefix) {
-        switch (namespaceUri) {
-            case SoapHeader.NS_XROAD:
-                return SoapHeader.PREFIX_XROAD;
-            case SoapUtils.NS_SOAPENV:
-                return SoapUtils.PREFIX_SOAPENV;
-            default:
-                return null;
-        }
+        return switch (namespaceUri) {
+            case SoapHeader.NS_XROAD -> SoapHeader.PREFIX_XROAD;
+            case SoapUtils.NS_SOAPENV -> SoapUtils.PREFIX_SOAPENV;
+            default -> null;
+        };
     }
 
 }

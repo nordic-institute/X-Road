@@ -45,6 +45,7 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SecurityServerAuthCertificatesStepDefs extends BaseUiStepDefs {
 
@@ -119,8 +120,8 @@ public class SecurityServerAuthCertificatesStepDefs extends BaseUiStepDefs {
 
     @Step("enters server code: {string} to delete Authentication certificate")
     public void deleteAuthenticationCertificate(String serverCode) {
-        clearInput(securityServerAuthCertificatesPageObj.getDeleteDialog().inputSeverCode()
-                .shouldBe(visible, enabled))
+        vTextField(securityServerAuthCertificatesPageObj.getDeleteDialog().inputSeverCode())
+                .clear()
                 .setValue(serverCode);
     }
 

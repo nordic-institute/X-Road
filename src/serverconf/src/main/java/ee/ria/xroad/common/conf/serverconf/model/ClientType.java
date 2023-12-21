@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -39,12 +39,14 @@ import java.util.List;
 @Getter
 @Setter
 public class ClientType {
-
     public static final String STATUS_SAVED = "saved";
     public static final String STATUS_REGINPROG = "registration in progress";
     public static final String STATUS_REGISTERED = "registered";
     public static final String STATUS_DELINPROG = "deletion in progress";
     public static final String STATUS_GLOBALERR = "global error";
+    public static final String STATUS_DISABLED = "disabled";
+    public static final String STATUS_DISABLING_INPROG = "disabling in progress";
+    public static final String STATUS_ENABLING_INPROG = "enabling in progress";
 
     private final List<ServiceDescriptionType> serviceDescription = new ArrayList<>();
     private final List<LocalGroupType> localGroup = new ArrayList<>();

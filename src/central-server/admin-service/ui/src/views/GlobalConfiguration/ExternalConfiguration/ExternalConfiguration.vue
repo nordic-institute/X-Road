@@ -26,7 +26,7 @@
  -->
 <template>
   <div>
-    <Configuration
+    <configuration-view
       :title="$t('tab.globalConf.externalConf')"
       configuration-type="EXTERNAL"
     />
@@ -37,12 +37,12 @@
 /**
  * View for 'External configuration' tab
  */
-import Vue from 'vue';
-import Configuration from '../shared/Configuration.vue';
+import { defineComponent } from 'vue';
+import ConfigurationView from '../shared/ConfigurationView.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
-    Configuration,
+    ConfigurationView,
   },
   data() {
     return {};

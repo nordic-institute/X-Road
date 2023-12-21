@@ -26,9 +26,12 @@
  -->
 <template>
   <div>
-    <v-icon v-if="closed" class="icon-closed" @click="closed = false"
-      >mdi-filter-outline</v-icon
-    >
+    <v-icon
+      v-if="closed"
+      class="icon-closed"
+      icon="mdi-filter-outline"
+      @click="closed = false"
+    />
     <v-text-field
       v-if="!closed"
       ref="textField"
@@ -39,9 +42,9 @@
       class="search-input"
       prepend-inner-icon="mdi-filter-outline"
       clearable
-      :value="value"
+      :model-value="value"
       autofocus
-      @input="$emit('input', $event)"
+      @update:model-value="$emit('input', $event)"
       @blur="inputBlur"
     >
     </v-text-field>
@@ -49,12 +52,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
+
 /**
  * Component for launching the filter view
  * */
 
-export default Vue.extend({
+export default defineComponent({
   name: 'XrdFilter',
   props: {
     label: {
@@ -66,7 +70,7 @@ export default Vue.extend({
       default: '',
     },
   },
-
+  emits: ['input'],
   data() {
     return {
       closed: true,
@@ -88,7 +92,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .icon-closed {
   margin-top: 20px; // adjusted so that icon stays in the same place open/closed

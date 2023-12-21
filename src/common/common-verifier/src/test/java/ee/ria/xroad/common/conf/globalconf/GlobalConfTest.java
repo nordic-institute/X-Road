@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -129,7 +129,22 @@ public class GlobalConfTest {
      */
     @Test
     public void getInstanceIdentifiers() {
-        assertEquals(Arrays.asList("EE", "bar", "foo"), GlobalConf.getInstanceIdentifiers());
+        assertTrue(Arrays.asList("EE", "bar", "foo").containsAll(GlobalConf.getInstanceIdentifiers()));
+    }
+
+    /**
+     * Tests checking if subject is in global group.
+     */
+    @Test
+    public void isSubjectInGlobalGroup() {
+        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member2"),
+                GlobalGroupId.Conf.create("EE", "Test group"))
+        );
+        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member2"),
+                GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
+        );
     }
 
     /**

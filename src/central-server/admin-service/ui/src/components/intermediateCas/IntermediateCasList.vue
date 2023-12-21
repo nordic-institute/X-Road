@@ -37,29 +37,19 @@
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
       data-test="intermediate-cas-table"
     >
-      <template #header>
-        <thead class="borderless-table-header">
-          <tr>
-            <th />
-            <th />
-            <th />
-            <th class="text-right">
-              <div class="button-wrap mb-6 mt-4">
-                <xrd-button
-                  outlined
-                  data-test="add-intermediate-ca-button"
-                  @click="showAddIntermediateCaDialog = true"
-                >
-                  <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-                  {{ $t('action.add') }}
-                </xrd-button>
-              </div>
-            </th>
-          </tr>
-        </thead>
+      <template #top>
+        <data-table-toolbar>
+          <xrd-button
+            outlined
+            data-test="add-intermediate-ca-button"
+            @click="showAddIntermediateCaDialog = true"
+          >
+            <v-icon class="xrd-large-button-icon" icon="icon-Add" />
+            {{ $t('action.add') }}
+          </xrd-button>
+        </data-table-toolbar>
       </template>
 
       <template #[`item.ca_certificate.subject_common_name`]="{ item }">
@@ -76,11 +66,15 @@
       </template>
 
       <template #[`item.ca_certificate.not_before`]="{ item }">
-        <div>{{ item.ca_certificate.not_before | formatDateTime }}</div>
+        <div>
+          <date-time :value="item.ca_certificate.not_before" />
+        </div>
       </template>
 
       <template #[`item.ca_certificate.not_after`]="{ item }">
-        <div>{{ item.ca_certificate.not_after | formatDateTime }}</div>
+        <div>
+          <date-time :value="item.ca_certificate.not_after" />
+        </div>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -104,18 +98,20 @@
         </div>
       </template>
 
-      <template #footer>
-        <div class="cs-table-custom-footer"></div>
+      <template #bottom>
+        <custom-data-table-footer />
       </template>
     </v-data-table>
 
     <!-- Add Intermediate CA dialog -->
-    <AddIntermediateCaDialog
-      v-if="showAddIntermediateCaDialog"
+    <add-intermediate-ca-dialog
+      v-if="
+        intermediateCasServiceStore.currentCs && showAddIntermediateCaDialog
+      "
       :ca-id="intermediateCasServiceStore.currentCs.id"
       @cancel="hideAddIntermediateCaDialog"
       @save="hideAddIntermediateCaDialog"
-    ></AddIntermediateCaDialog>
+    />
 
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
@@ -124,7 +120,7 @@
       title="trustServices.trustService.intermediateCas.delete.confirmationDialog.title"
       text="trustServices.trustService.intermediateCas.delete.confirmationDialog.message"
       :data="{
-        name: selectedIntermediateCa.ca_certificate.subject_common_name,
+        name: selectedIntermediateCa?.ca_certificate.subject_common_name,
       }"
       :loading="deletingIntermediateCa"
       @cancel="confirmDelete = false"
@@ -134,22 +130,31 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
+import { DataTableHeader } from '@/ui-types';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useIntermediateCaStore } from '@/store/modules/trust-services';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useIntermediateCasService } from '@/store/modules/trust-services';
+import { useNotifications } from '@/store/modules/notifications';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import {
   ApprovedCertificationService,
   CertificateAuthority,
 } from '@/openapi-types';
 import AddIntermediateCaDialog from '@/components/intermediateCas/AddIntermediateCaDialog.vue';
 import { Permissions, RouteName } from '@/global';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
+import DateTime from '@/components/ui/DateTime.vue';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
-export default Vue.extend({
-  name: 'IntermediateCasList',
-  components: { AddIntermediateCaDialog },
+export default defineComponent({
+  components: {
+    DataTableToolbar,
+    CustomDataTableFooter,
+    DateTime,
+    AddIntermediateCaDialog,
+    VDataTable,
+  },
   props: {
     cs: {
       type: Object as () => ApprovedCertificationService,
@@ -166,8 +171,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useIntermediateCaStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapStores(useIntermediateCasService),
     intermediateCas(): CertificateAuthority[] {
       return this.intermediateCasServiceStore.currentIntermediateCas;
     },
@@ -177,30 +182,27 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t(
+          title: this.$t(
             'trustServices.trustService.intermediateCas.intermediateCa',
           ) as string,
           align: 'start',
-          value: 'ca_certificate.subject_common_name',
-          class: 'xrd-table-header text-uppercase',
+          key: 'ca_certificate.subject_common_name',
         },
         {
-          text: this.$t('trustServices.validFrom') as string,
+          title: this.$t('trustServices.validFrom') as string,
           align: 'start',
-          value: 'ca_certificate.not_before',
-          class: 'xrd-table-header text-uppercase',
+          key: 'ca_certificate.not_before',
         },
         {
-          text: this.$t('trustServices.validTo') as string,
+          title: this.$t('trustServices.validTo') as string,
           align: 'start',
-          value: 'ca_certificate.not_after',
-          class: 'xrd-table-header text-uppercase',
+          key: 'ca_certificate.not_after',
         },
         {
-          text: '',
-          value: 'button',
+          title: '',
+          key: 'button',
+          align: 'end',
           sortable: false,
-          class: 'xrd-table-header mr-table-header-buttons',
         },
       ];
     },
@@ -209,7 +211,7 @@ export default Vue.extend({
     this.intermediateCasServiceStore.loadByCs(this.cs);
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     toDetails(intermediateCa: CertificateAuthority) {
       this.$router.push({
         name: RouteName.IntermediateCaDetails,
@@ -259,6 +261,4 @@ export default Vue.extend({
   },
 });
 </script>
-<style lang="scss" scoped>
-@import '~styles/tables';
-</style>
+<style lang="scss" scoped></style>

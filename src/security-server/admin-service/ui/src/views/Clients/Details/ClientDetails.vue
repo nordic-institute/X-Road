@@ -24,87 +24,82 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <v-card flat>
-      <table v-if="client && !clientLoading" class="xrd-table detail-table">
-        <tr>
-          <td>{{ $t('client.memberName') }}</td>
-          <td class="identifier-wrap">{{ client.member_name }}</td>
-        </tr>
-        <tr>
-          <td>{{ $t('client.memberClass') }}</td>
-          <td class="identifier-wrap">{{ client.member_class }}</td>
-        </tr>
-        <tr>
-          <td>{{ $t('client.memberCode') }}</td>
-          <td class="identifier-wrap">{{ client.member_code }}</td>
-        </tr>
-        <tr v-if="client.subsystem_code">
-          <td>{{ $t('client.subsystemCode') }}</td>
-          <td class="identifier-wrap">{{ client.subsystem_code }}</td>
-        </tr>
-      </table>
+  <v-card variant="flat" class="mt-10">
+    <table v-if="client && !clientLoading" class="xrd-table detail-table">
+      <tr>
+        <td>{{ $t('client.memberName') }}</td>
+        <td class="identifier-wrap">{{ client.member_name }}</td>
+      </tr>
+      <tr>
+        <td>{{ $t('client.memberClass') }}</td>
+        <td class="identifier-wrap">{{ client.member_class }}</td>
+      </tr>
+      <tr>
+        <td>{{ $t('client.memberCode') }}</td>
+        <td class="identifier-wrap">{{ client.member_code }}</td>
+      </tr>
+      <tr v-if="client.subsystem_code">
+        <td>{{ $t('client.subsystemCode') }}</td>
+        <td class="identifier-wrap">{{ client.subsystem_code }}</td>
+      </tr>
+    </table>
+  </v-card>
 
-      <XrdEmptyPlaceholder
-        :loading="clientLoading"
-        :data="client"
-        :no-items-text="$t('noData.noClientData')"
-      />
-    </v-card>
-
-    <v-card flat>
-      <table class="xrd-table details-certificates">
-        <tr>
-          <th>{{ $t('cert.signCertificate') }}</th>
-          <th>{{ $t('cert.serialNumber') }}</th>
-          <th>{{ $t('cert.state') }}</th>
-          <th>{{ $t('cert.expires') }}</th>
-        </tr>
-        <template
-          v-if="
-            signCertificates &&
-            signCertificates.length > 0 &&
-            !certificatesLoading
-          "
+  <v-card variant="flat" class="mt-10">
+    <table class="xrd-table">
+      <tr>
+        <th>{{ $t('cert.signCertificate') }}</th>
+        <th>{{ $t('cert.serialNumber') }}</th>
+        <th>{{ $t('cert.state') }}</th>
+        <th>{{ $t('cert.expires') }}</th>
+      </tr>
+      <template
+        v-if="
+          signCertificates &&
+          signCertificates.length > 0 &&
+          !certificatesLoading
+        "
+      >
+        <tr
+          v-for="certificate in signCertificates"
+          :key="certificate.certificate_details.hash"
         >
-          <tr
-            v-for="certificate in signCertificates"
-            :key="certificate.certificate_details.hash"
-          >
-            <td>
-              <span class="cert-name" @click="viewCertificate(certificate)">{{
-                certificate.certificate_details.issuer_common_name
-              }}</span>
-            </td>
-            <td>{{ certificate.certificate_details.serial }}</td>
-            <td v-if="certificate.active">{{ $t('cert.inUse') }}</td>
-            <td v-else>{{ $t('cert.disabled') }}</td>
-            <td>
-              {{ certificate.certificate_details.not_after | formatDate }}
-            </td>
-          </tr>
-        </template>
-        <XrdEmptyPlaceholderRow
-          :colspan="5"
-          :loading="certificatesLoading"
-          :data="signCertificates"
-          :no-items-text="$t('noData.noCertificates')"
-        />
-      </table>
-    </v-card>
-  </div>
+          <td>
+            <span
+              class="cert-name"
+              data-test="cert-name"
+              @click="viewCertificate(certificate)"
+              >{{ certificate.certificate_details.issuer_common_name }}</span
+            >
+          </td>
+          <td>{{ certificate.certificate_details.serial }}</td>
+          <td v-if="certificate.active">{{ $t('cert.inUse') }}</td>
+          <td v-else>{{ $t('cert.disabled') }}</td>
+          <td>
+            {{ $filters.formatDate(certificate.certificate_details.not_after) }}
+          </td>
+        </tr>
+      </template>
+      <XrdEmptyPlaceholderRow
+        :colspan="5"
+        :loading="certificatesLoading"
+        :data="signCertificates"
+        :no-items-text="$t('noData.noCertificates')"
+      />
+    </table>
+  </v-card>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 import { RouteName } from '@/global';
 import { KeyUsageType, TokenCertificate } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     id: {
       type: String,
@@ -117,11 +112,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useClientStore, [
-      'client',
-      'signCertificates',
-      'clientLoading',
-    ]),
+    ...mapState(useClient, ['client', 'signCertificates', 'clientLoading']),
   },
   created() {
     this.certificatesLoading = true;
@@ -133,7 +124,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useClientStore, ['fetchSignCertificates']),
+    ...mapActions(useClient, ['fetchSignCertificates']),
     viewCertificate(cert: TokenCertificate) {
       this.$router.push({
         name: RouteName.Certificate,
@@ -151,8 +142,6 @@ export default Vue.extend({
 @import '../../../assets/tables';
 
 .detail-table {
-  margin-top: 40px;
-
   tr td:first-child {
     width: 20%;
   }
@@ -161,9 +150,5 @@ export default Vue.extend({
 .cert-name {
   color: $XRoad-Link;
   cursor: pointer;
-}
-
-.details-certificates {
-  margin-top: 40px;
 }
 </style>

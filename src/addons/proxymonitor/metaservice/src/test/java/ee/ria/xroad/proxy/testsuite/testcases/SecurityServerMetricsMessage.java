@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,15 +25,12 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.monitor.common.SystemMetricsRequest;
-import ee.ria.xroad.monitor.common.SystemMetricsResponse;
-import ee.ria.xroad.monitor.common.dto.HistogramDto;
-import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
@@ -46,29 +43,29 @@ import ee.ria.xroad.proxymonitor.message.HistogramMetricType;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.MetricType;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.UntypedAbstractActor;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import com.google.protobuf.util.Timestamps;
+import io.grpc.stub.StreamObserver;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.SOAPBody;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.SOAPBody;
+import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.monitor.common.HistogramMetrics;
+import org.niis.xroad.monitor.common.Metrics;
+import org.niis.xroad.monitor.common.MetricsGroup;
+import org.niis.xroad.monitor.common.MetricsServiceGrpc;
+import org.niis.xroad.monitor.common.SystemMetricsReq;
+import org.niis.xroad.monitor.common.SystemMetricsResp;
 
 import java.math.BigDecimal;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.verifyAndGetSingleBodyElementOfType;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test member list retrieval
@@ -76,15 +73,11 @@ import static org.junit.Assert.assertThat;
  */
 @Slf4j
 public class SecurityServerMetricsMessage extends MessageTestCase {
-
     private static final String EXPECTED_XR_INSTANCE = "EE";
     private static final ClientId.Conf DEFAULT_OWNER_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS", "producer");
 
     private static final SecurityServerId.Conf DEFAULT_OWNER_SERVER =
             SecurityServerId.Conf.create(DEFAULT_OWNER_CLIENT, "ownerServer");
-
-    private static final ActorSystem ACTOR_SYSTEM
-            = ActorSystem.create("xroad-monitor", loadAkkaConfiguration());
 
     private static final String EXPECTED_METRIC_SET_NAME = "someMetricSet";
     private static final double MIN_VALUE = 0.125;
@@ -94,6 +87,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
 
     private static Unmarshaller unmarshaller;
 
+    private static RpcServer monitorRpcServer;
 
     /**
      * Constructs the test case.
@@ -101,8 +95,6 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
     public SecurityServerMetricsMessage() {
         this.requestFileName = "getMetrics.query";
     }
-
-
 
     @Override
     protected void validateNormalResponse(Message receivedResponse)
@@ -147,6 +139,12 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
+        monitorRpcServer = RpcServer.newServer(
+                SystemProperties.getGrpcInternalHost(),
+                SystemProperties.getEnvMonitorPort(),
+                builder -> builder.addService(new MockMetricsProvider()));
+        monitorRpcServer.start();
+
         GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
@@ -162,44 +160,44 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
         });
 
         unmarshaller = JAXBContext.newInstance(GetSecurityServerMetricsResponse.class).createUnmarshaller();
-
-        ACTOR_SYSTEM.actorOf(Props.create(MockMetricsProvider.class), "MetricsProviderActor");
     }
 
     @Override
     protected void closeDown() throws Exception {
-        Await.ready(ACTOR_SYSTEM.terminate(), Duration.Inf());
+        monitorRpcServer.stop();
     }
 
-    private static SystemMetricsResponse createMetricsResponse() {
-        HistogramDto histogramDto = new HistogramDto("exampleHistogram",
-                75, 95, 98, 99,
-                99.9, MAX_VALUE, 50, 51, MIN_VALUE, 2);
-        MetricSetDto.Builder builder = new MetricSetDto.Builder(EXPECTED_METRIC_SET_NAME);
-        builder.withMetric(histogramDto);
-        return new SystemMetricsResponse(builder.build());
-    }
+    private static SystemMetricsResp createMetricsResponse() {
+        var histogram = HistogramMetrics.newBuilder()
+                .setName("exampleHistogram")
+                .setUpdateDateTime(Timestamps.now())
+                .setDistribution75ThPercentile(75)
+                .setDistribution95ThPercentile(95)
+                .setDistribution98ThPercentile(98)
+                .setDistribution99ThPercentile(99)
+                .setDistribution999ThPercentile(99.9)
+                .setMax(MAX_VALUE)
+                .setMean(50)
+                .setMedian(51)
+                .setMin(MIN_VALUE)
+                .setStdDev(2);
 
-
-    private static Config loadAkkaConfiguration() {
-        Config config = ConfigFactory.parseFile(Paths.get("src/test/resources/application.conf").toFile());
-        return ConfigFactory.load(config);
+        return SystemMetricsResp.newBuilder()
+                .setMetrics(MetricsGroup.newBuilder()
+                        .setName(EXPECTED_METRIC_SET_NAME)
+                        .addMetrics(Metrics.newBuilder().setSingleHistogram(histogram)))
+                .build();
     }
 
     /**
      * Mock provider for metrics data
      */
-    public static class MockMetricsProvider extends UntypedAbstractActor {
+    public static class MockMetricsProvider extends MetricsServiceGrpc.MetricsServiceImplBase {
 
         @Override
-        public void onReceive(Object message) throws Throwable {
-            if (message instanceof SystemMetricsRequest) {
-                getSender().tell(createMetricsResponse(), getSelf());
-
-            } else {
-                unhandled(message);
-            }
-
+        public void getMetrics(SystemMetricsReq request, StreamObserver<SystemMetricsResp> responseObserver) {
+            responseObserver.onNext(createMetricsResponse());
+            responseObserver.onCompleted();
         }
     }
 }

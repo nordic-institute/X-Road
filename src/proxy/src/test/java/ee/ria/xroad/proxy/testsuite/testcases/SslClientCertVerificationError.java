@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -48,11 +48,6 @@ public class SslClientCertVerificationError extends SslMessageTestCase {
      */
     public SslClientCertVerificationError() {
         requestFileName = "getstate.query";
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.5";
     }
 
     @Override

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -46,16 +46,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OcspCache {
 
     protected final Map<String, OCSPResp> cache = new ConcurrentHashMap<>();
-
-    /**
-     * @param key the key
-     * @param atDate the date
-     * @return the OCSP response or null if the response is not found or is
-     * expired at the specified date
-     */
-    public OCSPResp get(Object key, Date atDate) {
-        return getResponse(key, atDate);
-    }
 
     /**
      * @param key the key

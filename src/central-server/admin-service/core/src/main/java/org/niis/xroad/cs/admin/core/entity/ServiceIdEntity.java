@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -32,10 +32,9 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
 
 import static ee.ria.xroad.common.util.Validation.validateArgument;
 import static org.niis.xroad.cs.admin.core.entity.ServiceIdEntity.DISCRIMINATOR_VALUE;

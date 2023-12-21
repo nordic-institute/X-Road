@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -35,6 +35,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.testsuite.EmptyKeyConf;
 import ee.ria.xroad.proxy.util.TestUtil;
@@ -45,7 +46,6 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
@@ -93,7 +93,7 @@ public class TestKeyConf extends EmptyKeyConf {
 
         if (!ocspResponses.containsKey(certHash)) {
             try {
-                Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+                Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
                 OCSPResp resp = OcspTestUtils.createOCSPResponse(cert,
                         GlobalConf.getCaCert("EE", cert), getOcspSignerCert(),
                         getOcspRequestKey(), CertificateStatus.GOOD,

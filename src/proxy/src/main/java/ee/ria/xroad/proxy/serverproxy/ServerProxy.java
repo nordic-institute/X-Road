@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -40,18 +40,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -113,7 +114,7 @@ public class ServerProxy implements StartStop {
 
         log.debug("Configuring server from {}", file);
 
-        try (InputStream in = Files.newInputStream(file)) {
+        try (Resource in = Resource.newResource(file)) {
             new XmlConfiguration(in).configure(server);
         }
     }
@@ -151,8 +152,15 @@ public class ServerProxy implements StartStop {
         connector.setIdleTimeout(SystemProperties.getServerProxyConnectorInitialIdleTime());
 
         connector.getConnectionFactories().stream()
-                .filter(cf -> cf instanceof HttpConnectionFactory)
-                .forEach(httpCf -> ((HttpConnectionFactory) httpCf).getHttpConfiguration().setSendServerVersion(false));
+                .filter(HttpConnectionFactory.class::isInstance)
+                .map(HttpConnectionFactory.class::cast)
+                .forEach(httpCf -> {
+                    httpCf.getHttpConfiguration().setSendServerVersion(false);
+                    Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
+                            .ifPresent(customizer -> {
+                                customizer.setSniHostCheck(false);
+                            });
+                });
 
         server.addConnector(connector);
 
@@ -220,7 +228,7 @@ public class ServerProxy implements StartStop {
     }
 
     private static ServerConnector createClientProxySslConnector(Server server) throws Exception {
-        SslContextFactory.Server cf = new SslContextFactory.Server();
+        var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());

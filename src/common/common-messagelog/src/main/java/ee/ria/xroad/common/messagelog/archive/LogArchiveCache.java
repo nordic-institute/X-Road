@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -193,9 +193,9 @@ class LogArchiveCache implements Closeable {
         final ZipEntry entry = new ZipEntry(archiveFilename);
         entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
         archiveTmp.putNextEntry(entry);
-        try (CountingOutputStream cos = new CountingOutputStream(
-                new DigestOutputStream(new EntryStream(archiveTmp), digest));
-             OutputStream bos = new BufferedOutputStream(cos)) {
+        try (CountingOutputStream cos =
+                     new CountingOutputStream(new DigestOutputStream(new EntryStream(archiveTmp), digest));
+                OutputStream bos = new BufferedOutputStream(cos)) {
             // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
             // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
             // large (over 1GiB)

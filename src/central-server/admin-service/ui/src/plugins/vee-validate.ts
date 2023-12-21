@@ -24,42 +24,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { extend, configure } from 'vee-validate';
-import { required, min, max, between, is } from 'vee-validate/dist/rules';
-import i18n from '../i18n';
-import * as Helpers from '@/util/helpers';
+import { configure, defineRule } from 'vee-validate';
+import { between, is, max, min, required, url } from '@vee-validate/rules';
+import { App } from 'vue';
+import i18n from '@/plugins/i18n';
 
-configure({
-  // This should be ok, as it is the vee-validate contract
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultMessage: (field, values: any): string => {
-    // override the field name.
-    values._field_ = i18n.t(`fields.${field}`);
+export function createValidators(i18nMessages = {}) {
+  const { t } = i18n.global;
+  return {
+    install(app: App) {
+      configure({
+        // This should be ok, as it is the vee-validate contract
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        generateMessage: (ctx) => {
+          // override the field name.
 
-    return i18n.t(`validation.${values._rule_}`, values) as string;
-  },
-});
+          const field =
+            ctx.label || (i18n.global.t(`fields.${ctx.field}`) as string);
+          const args: Record<string, unknown> = { field };
+          switch (ctx.rule?.name) {
+            case 'max':
+            case 'min': {
+              args.length = ctx.rule?.params[0];
+              break;
+            }
+            case 'is': {
+              args.other = ctx.rule?.params[0];
+              break;
+            }
+            case 'between': {
+              args.min = ctx.rule?.params[0];
+              args.max = ctx.rule?.params[1];
+              break;
+            }
+          }
+          return t(`validation.messages.${ctx.rule.name}`, args) as string;
+        },
+      });
 
-// Install required rule and message.
-extend('required', required);
+      // Install required rule and message.
+      defineRule('required', required);
 
-// Install min rule and message.
-extend('min', min);
+      // Install min rule and message.
+      defineRule('min', min);
 
-// Install max rule and message.
-extend('max', max);
+      // Install max rule and message.
+      defineRule('max', max);
 
-// Install between rule and message.
-extend('between', between);
+      // Install between rule and message.
+      defineRule('between', between);
 
-// Install is rule and message.
-extend('is', is);
+      // Install is rule and message.
+      defineRule('is', is);
 
-extend('url', {
-  validate: (value) => {
-    return Helpers.isValidUrl(value);
-  },
-  message() {
-    return i18n.t('customValidation.invalidUrl') as string;
-  },
-});
+      defineRule('url', url);
+    },
+  };
+}

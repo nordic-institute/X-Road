@@ -1,21 +1,21 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,6 +42,10 @@ public class CommonPageObj {
     public final Alerts alerts = new Alerts();
     public final Button button = new Button();
 
+    public SelenideElement viewTitle(final String viewTitle) {
+        return $x(String.format("//div[@data-test='view-title' and text()='%s']", viewTitle));
+    }
+
     public class Menu {
 
         public SelenideElement memberTab() {
@@ -64,12 +68,20 @@ public class CommonPageObj {
             return $x(getTabXpath("Settings"));
         }
 
+        public SelenideElement usernameButton() {
+            return $x("//button[@data-test='username-button']");
+        }
+
+        public SelenideElement logout() {
+            return $x("//div[@data-test='logout-list-tile']");
+        }
+
         public SelenideElement securityServersTab() {
             return $x(getTabXpath("Security Servers"));
         }
 
         private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'v-tabs-bar__content')]//*[contains(@class,'v-tab') and contains(text(), '%s')]";
+            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab')]//span[text()='%s']";
             return String.format(xpath, tabName);
         }
     }
@@ -90,6 +102,10 @@ public class CommonPageObj {
         public SelenideElement apiKeysTab() {
             return $x("//*[@data-test='apikeys-tab-button']");
         }
+
+        public SelenideElement tlsCertificatesTab() {
+            return $x("//*[@data-test='tlscertificates-tab-button']");
+        }
     }
 
     public class Dialog {
@@ -106,11 +122,11 @@ public class CommonPageObj {
         }
 
         public SelenideElement btnConfirm() {
-            return $x("//button[@data-test='dialog-confirm-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
 
         public SelenideElement btnDelete() {
-            return $x("//button[@data-test='dialog-delete-button']");
+            return $x("//button[@data-test='dialog-save-button']");
         }
     }
 
@@ -126,7 +142,7 @@ public class CommonPageObj {
 
     public class Alerts {
         public SelenideElement alert(final String text) {
-            return $x(String.format("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]", text));
+            return $x("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]".formatted(text));
         }
 
         public SelenideElement btnClose() {

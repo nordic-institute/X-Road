@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.JsonUtils;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
+import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
@@ -64,6 +65,8 @@ class ApiKeysControllerTest extends AbstractSpringMvcTest {
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
     @MockBean
     private AllowedHostnamesConfig allowedHostnamesConfig;
+    @MockBean
+    private UserRoleConfig userRoleConfig;
 
     private static final String AUTHORITY_WRONG = "AUTHORITY_WRONG";
     private static final String AUTHORITY_CREATE_API_KEY = "CREATE_API_KEY";

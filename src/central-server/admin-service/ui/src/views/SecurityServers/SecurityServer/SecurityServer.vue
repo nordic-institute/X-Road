@@ -25,33 +25,31 @@
    THE SOFTWARE.
  -->
 <template>
-  <details-view back-to="/security-servers" data-test="security-server-view">
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">{{ securityServerCode }}</div>
-      </div>
-    </div>
-    <PageNavigation :tabs="securityServerNavigationTabs"></PageNavigation>
-    <router-view />
+  <details-view :back-to="backTo" data-test="security-server-view">
+    <titled-view :title="securityServerCode">
+      <PageNavigation :tabs="securityServerNavigationTabs"></PageNavigation>
+      <router-view />
+    </titled-view>
   </details-view>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import PageNavigation, {
   PageNavigationTab,
 } from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
+import TitledView from '@/components/ui/TitledView.vue';
 
 /**
  * Wrapper component for a security server view
  */
-export default Vue.extend({
-  components: { DetailsView, PageNavigation },
+export default defineComponent({
+  components: { TitledView, DetailsView, PageNavigation },
   props: {
     serverId: {
       type: String,
@@ -61,10 +59,13 @@ export default Vue.extend({
   data() {
     return {
       colors: Colors,
+      backTo: {
+        name: RouteName.SecurityServers,
+      },
     };
   },
   computed: {
-    ...mapStores(useSecurityServerStore),
+    ...mapStores(useSecurityServer),
     securityServerCode(): string {
       return (
         this.securityServerStore?.currentSecurityServer?.server_id
@@ -78,6 +79,8 @@ export default Vue.extend({
           name: 'securityServers.securityServer.tabs.details',
           to: {
             name: RouteName.SecurityServerDetails,
+            params: { serverId: this.serverId },
+            replace: true,
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
@@ -87,6 +90,8 @@ export default Vue.extend({
           name: 'securityServers.securityServer.tabs.clients',
           to: {
             name: RouteName.SecurityServerClients,
+            params: { serverId: this.serverId },
+            replace: true,
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
@@ -96,6 +101,8 @@ export default Vue.extend({
           name: 'securityServers.securityServer.tabs.authCertificates',
           to: {
             name: RouteName.SecurityServerAuthenticationCertificates,
+            params: { serverId: this.serverId },
+            replace: true,
           },
           permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
         },
@@ -106,7 +113,7 @@ export default Vue.extend({
     this.fetchDetails();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError']),
+    ...mapActions(useNotifications, ['showError']),
     fetchDetails: async function () {
       try {
         await this.securityServerStore.loadById(this.serverId);

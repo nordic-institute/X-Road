@@ -1,21 +1,21 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,7 +29,16 @@ package org.niis.xroad.cs.admin.core.entity;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import com.google.common.collect.ImmutableMap;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,23 +48,15 @@ import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.core.entity.converter.XRoadObjectTypeConverter;
 import org.springframework.data.annotation.Immutable;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
 import java.time.Instant;
 import java.util.Map;
 
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.ADDRESS_CHANGE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DELETION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DISABLE_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
@@ -146,12 +147,15 @@ public class ManagementRequestViewEntity {
     }
 
     public static class ManagementRequestTypeDiscriminatorMapping {
-        private static final Map<ManagementRequestType, String> MAPPING = ImmutableMap.of(
+        private static final Map<ManagementRequestType, String> MAPPING = Map.of(
                 AUTH_CERT_REGISTRATION_REQUEST, AuthenticationCertificateRegistrationRequestEntity.DISCRIMINATOR_VALUE,
                 CLIENT_REGISTRATION_REQUEST, ClientRegistrationRequestEntity.DISCRIMINATOR_VALUE,
                 OWNER_CHANGE_REQUEST, OwnerChangeRequestEntity.DISCRIMINATOR_VALUE,
                 CLIENT_DELETION_REQUEST, ClientDeletionRequestEntity.DISCRIMINATOR_VALUE,
-                AUTH_CERT_DELETION_REQUEST, AuthenticationCertificateDeletionRequestEntity.DISCRIMINATOR_VALUE
+                CLIENT_DISABLE_REQUEST, ClientDisableRequestEntity.DISCRIMINATOR_VALUE,
+                CLIENT_ENABLE_REQUEST, ClientEnableRequestEntity.DISCRIMINATOR_VALUE,
+                AUTH_CERT_DELETION_REQUEST, AuthenticationCertificateDeletionRequestEntity.DISCRIMINATOR_VALUE,
+                ADDRESS_CHANGE_REQUEST, AddressChangeRequestEntity.DISCRIMINATOR_VALUE
         );
 
         public static ManagementRequestType getManagementRequestType(String discriminator) {

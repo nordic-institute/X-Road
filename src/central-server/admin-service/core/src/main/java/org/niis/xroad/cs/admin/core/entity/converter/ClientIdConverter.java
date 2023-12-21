@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -29,15 +29,14 @@ package org.niis.xroad.cs.admin.core.entity.converter;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.ValueMappings;
 import org.niis.xroad.restapi.converter.DtoConverter;
-
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 
 @Mapper
 public interface ClientIdConverter {

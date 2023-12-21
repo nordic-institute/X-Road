@@ -24,47 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Vue from 'vue';
-import { ClientId } from '@/openapi-types';
-import { toShortMemberId } from '@/util/helpers';
-
-Vue.filter('capitalize', (value: string): string => {
-  if (!value) {
-    return '';
-  }
-  value = value.toString();
-  return value.charAt(0).toUpperCase() + value.slice(1);
-});
-
-// Add colon for every two characters.  xxxxxx -> xx:xx:xx
-Vue.filter('colonize', (value: string): string => {
-  if (!value) {
-    return '';
-  }
-
-  const colonized = value.replace(/(.{2})/g, '$1:');
-
-  if (colonized[colonized.length - 1] === ':') {
-    return colonized.slice(0, -1);
-  }
-
-  return colonized;
-});
-
-// Upper case every word
-Vue.filter('upperCaseWords', (value: string): string => {
-  if (!value) {
-    return '';
-  }
-  return value
-    .toLowerCase()
-    .split(' ')
-    .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
-    .join(' ');
-});
+import type { App } from 'vue';
+import * as dayjs from 'dayjs';
 
 // Format date string. Result YYYY-MM-DD.
-Vue.filter('formatDate', (value: string): string => {
+export function formatDate(value: string): string {
   const timestamp = Date.parse(value);
 
   if (isNaN(timestamp)) {
@@ -80,10 +44,10 @@ Vue.filter('formatDate', (value: string): string => {
     '-' +
     date.getDate().toString().padStart(2, '0')
   );
-});
+}
 
 // Format date string. Result YYYY-MM-DD HH:MM.
-export const formatDateTime = (value: string): string => {
+export function formatDateTime(value: string): string {
   const timestamp = Date.parse(value);
 
   if (isNaN(timestamp)) {
@@ -103,10 +67,10 @@ export const formatDateTime = (value: string): string => {
     ':' +
     date.getMinutes().toString().padStart(2, '0')
   );
-};
+}
 
 // Format date string. Result YYYY-MM-DD HH:MM:SS.
-export const formatDateTimeSeconds = (value: string): string => {
+export function formatDateTimeSeconds(value: string): string {
   const timestamp = Date.parse(value);
 
   if (isNaN(timestamp)) {
@@ -118,31 +82,16 @@ export const formatDateTimeSeconds = (value: string): string => {
   return (
     formatDateTime(value) + ':' + date.getSeconds().toString().padStart(2, '0')
   );
-};
+}
 
-Vue.filter('formatDateTime', formatDateTime);
-Vue.filter('formatDateTimeSeconds', formatDateTimeSeconds);
-
-// Format date string. Result HH:MM.
-Vue.filter('formatHoursMins', (value: string): string => {
-  const timestamp = Date.parse(value);
-
-  if (isNaN(timestamp)) {
-    return '-';
-  }
-
-  const date = new Date(value);
-  return (
-    date.getHours().toString().padStart(2, '0') +
-    ':' +
-    date.getMinutes().toString().padStart(2, '0')
-  );
-});
-
-Vue.filter('commaSeparate', (value: string[]) => {
-  return value.join(', ');
-});
-
-Vue.filter('formatShortMemberId', (value: ClientId) => {
-  return toShortMemberId(value);
-});
+export function createFilters(i18nMessages = {}) {
+  return {
+    install(app: App) {
+      app.config.globalProperties.$filters = {
+        formatDate,
+        formatDateTime,
+        formatDateTimeSeconds,
+      };
+    },
+  };
+}

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,9 +28,8 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
+import jakarta.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
-
-import javax.persistence.criteria.CriteriaQuery;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
@@ -43,7 +42,6 @@ public class ServerConfDAOImpl {
     /**
      * For old UI compatibility
      * @return true, if configuration exists in the database
-     * @throws Exception if an error occurs
      */
     @Deprecated
     public boolean confExists() {
@@ -90,7 +88,6 @@ public class ServerConfDAOImpl {
     /**
      * For old UI compatibility
      */
-    @SuppressWarnings("unchecked")
     @Deprecated
     private <T> T getFirst(final Class<T> clazz) {
         Session session = get().getSession();

@@ -25,136 +25,103 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog
-    v-if="dialog"
-    :value="dialog"
-    :width="width"
-    persistent
-    :scrollable="scrollable"
+  <xrd-simple-dialog
+    title="filters.chooseFilters"
     data-test="group-members-filter-dialog"
+    save-button-text="filters.apply"
+    width="824"
+    z-index="1999"
+    @save="apply"
+    @cancel="cancel"
   >
-    <v-card class="xrd-card" data-test="dialog-simple">
-      <v-card-title>
-        <slot name="title">
-          <span data-test="dialog-title" class="dialog-title-text">{{
-            $t('filters.chooseFilters')
-          }}</span>
-        </slot>
-        <v-spacer />
-        <xrd-close-button
-          id="dlg-close-x"
-          data-test="dlg-close-x"
-          @click="cancel()"
-        />
-      </v-card-title>
-      <div class="alert-slot">
-        <slot name="alert"></slot>
-      </div>
-      <v-card-text class="filters-content-wrapper">
-        <v-container fluid class="ma-0 pa-0 mb-9">
-          <!-- By type -->
-          <div class="filter-title-row field-title">
-            {{ $t('filters.groupMembers.byType') }}
-          </div>
-          <v-row class="filter-dlg-row">
-            <v-col class="d-flex" cols="4" sm="4" md="4">
-              <v-checkbox
-                v-model="typeMemberModel"
-                :label="$t('filters.groupMembers.member')"
-              ></v-checkbox>
-            </v-col>
-            <v-col class="d-flex" cols="4" sm="4" md="4">
-              <v-checkbox
-                v-model="typeSubsystemModel"
-                :label="$t('filters.groupMembers.subsystem')"
-              ></v-checkbox>
-            </v-col>
-          </v-row>
-          <v-divider class="custom-divider"></v-divider>
+    <template #content>
+      <v-container fluid class="ma-0 pa-0 mb-9">
+        <!-- By type -->
+        <div class="filter-title-row field-title">
+          {{ $t('filters.groupMembers.byType') }}
+        </div>
+        <v-row class="filter-dlg-row">
+          <v-col class="d-flex" cols="4" sm="4" md="4">
+            <v-checkbox
+              v-model="typeMemberModel"
+              :label="$t('filters.groupMembers.member')"
+            />
+          </v-col>
+          <v-col class="d-flex" cols="4" sm="4" md="4">
+            <v-checkbox
+              v-model="typeSubsystemModel"
+              :label="$t('filters.groupMembers.subsystem')"
+            />
+          </v-col>
+        </v-row>
+        <v-divider class="custom-divider"></v-divider>
 
-          <v-row align="center" class="filter-dlg-row">
-            <v-col class="d-flex flex-column" cols="12" sm="6">
-              <div class="field-title mt-6 mb-6">
-                {{ $t('filters.groupMembers.byInstance') }}
-              </div>
-              <v-select
-                v-model="instanceModel"
-                :items="instances"
-                :label="$t('filters.groupMembers.instance')"
-                outlined
-              ></v-select>
-            </v-col>
+        <v-row align="center" class="filter-dlg-row">
+          <v-col class="d-flex flex-column" cols="12" sm="6">
+            <div class="field-title mt-6 mb-6">
+              {{ $t('filters.groupMembers.byInstance') }}
+            </div>
+            <v-select
+              v-model="instanceModel"
+              :items="instances"
+              :label="$t('filters.groupMembers.instance')"
+              variant="outlined"
+            />
+          </v-col>
 
-            <v-col class="d-flex flex-column" cols="12" sm="6">
-              <div class="field-title mt-6 mb-6">
-                {{ $t('filters.groupMembers.byClass') }}
-              </div>
-              <v-select
-                v-model="memberClassModel"
-                :items="memberClasses"
-                outlined
-                :label="$t('filters.groupMembers.class')"
-              ></v-select>
-            </v-col>
-          </v-row>
+          <v-col class="d-flex flex-column" cols="12" sm="6">
+            <div class="field-title mt-6 mb-6">
+              {{ $t('filters.groupMembers.byClass') }}
+            </div>
+            <v-select
+              v-model="memberClassModel"
+              :items="memberClasses"
+              variant="outlined"
+              :label="$t('filters.groupMembers.class')"
+            />
+          </v-col>
+        </v-row>
 
-          <!-- By code -->
-          <v-row align="center" class="filter-dlg-row">
-            <v-col class="d-flex flex-column" cols="12" sm="6">
-              <div class="field-title mt-0 mb-6">
-                {{ $t('filters.groupMembers.byCode') }}
-              </div>
-              <v-autocomplete
-                v-model="codesModel"
-                clearable
-                multiple
-                :items="codes"
-              ></v-autocomplete>
-            </v-col>
+        <!-- By code -->
+        <v-row align="center" class="filter-dlg-row">
+          <v-col class="d-flex flex-column" cols="12" sm="6">
+            <div class="field-title mt-0 mb-6">
+              {{ $t('filters.groupMembers.byCode') }}
+            </div>
+            <v-autocomplete
+              v-model="codesModel"
+              clearable
+              multiple
+              :items="codes"
+              variant="underlined"
+            />
+          </v-col>
 
-            <!-- By subsystem -->
-            <v-col class="d-flex flex-column" cols="12" sm="6">
-              <div class="field-title mt-0 mb-6">
-                {{ $t('filters.groupMembers.bySubsystem') }}
-              </div>
-              <v-autocomplete
-                v-model="subsystemsModel"
-                clearable
-                multiple
-                :items="subsystems"
-              ></v-autocomplete>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-        <xrd-button
-          data-test="dialog-cancel-button"
-          class="mr-3"
-          outlined
-          @click="clearFields()"
-        >
-          {{ $t('filters.clearFields') }}
-        </xrd-button>
-        <xrd-button
-          data-test="dialog-save-button"
-          :loading="loading"
-          @click="apply()"
-        >
-          {{ $t('filters.apply') }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+          <!-- By subsystem -->
+          <v-col class="d-flex flex-column" cols="12" sm="6">
+            <div class="field-title mt-0 mb-6">
+              {{ $t('filters.groupMembers.bySubsystem') }}
+            </div>
+            <v-autocomplete
+              v-model="subsystemsModel"
+              clearable
+              multiple
+              :items="subsystems"
+              variant="underlined"
+            />
+          </v-col>
+        </v-row>
+      </v-container>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 /** Base component for simple dialogs */
 
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
+import { useGlobalGroups } from '@/store/modules/global-groups';
 
 const initialState = () => {
   return {
@@ -167,17 +134,12 @@ const initialState = () => {
   };
 };
 
-export default Vue.extend({
+export default defineComponent({
   name: 'GroupMembersFilterDialog',
-  components: {},
+  components: { },
   props: {
     groupCode: {
       type: String,
-      required: true,
-    },
-    // Dialog visible / hidden
-    dialog: {
-      type: Boolean,
       required: true,
     },
     // Is the content scrollable
@@ -185,19 +147,16 @@ export default Vue.extend({
       type: Boolean,
       default: false,
     },
-    width: {
-      type: [Number, String],
-      default: 824,
-    },
     // Set save button loading spinner
     loading: {
       type: Boolean,
       default: false,
     },
   },
-
+  emits: ['cancel', 'apply'],
   data() {
     return {
+      opened: true,
       instances: [] as string[] | null | undefined,
       memberClasses: [] as string[] | null | undefined,
       subsystems: [] as string[] | null | undefined,
@@ -207,7 +166,7 @@ export default Vue.extend({
   },
 
   computed: {
-    ...mapStores(useGlobalGroupsStore),
+    ...mapStores(useGlobalGroups),
   },
   created() {
     this.globalGroupStore.getMembersFilterModel(this.groupCode).then((resp) => {
@@ -255,7 +214,7 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-@import '~@/assets/colors';
+@import '@/assets/colors';
 
 .xrd-card {
   .xrd-card-actions {

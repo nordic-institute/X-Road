@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-import { Key, Token, TokenCertificate } from '@/openapi-types';
+import { Key, Token, TokenCertificate, TokenPinUpdate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { deepClone } from '@/util/helpers';
 import { encodePathParameter } from '@/util/api';
@@ -48,13 +48,16 @@ function sortTokens(tokens: Token[]): Token[] {
   return arr;
 }
 
-export const useTokensStore = defineStore('tokensStore', {
+export const useTokens = defineStore('tokens', {
   state: () => {
     return {
       expandedTokens: [] as string[],
       tokens: [] as Token[],
       selectedToken: undefined as Token | undefined,
     };
+  },
+  persist: {
+    paths: ['tokens', 'selectedToken'],
   },
   getters: {
     filteredTokens: (state) => (search: string) => {
@@ -120,20 +123,22 @@ export const useTokensStore = defineStore('tokensStore', {
       return state.expandedTokens.includes(id);
     },
 
-    tokensFilteredByName: (state) => (search: string | undefined) => {
-      // Filter term is applied to token name
-      const arr = sortTokens(state.tokens);
+    tokensFilteredByName:
+      (state) =>
+      (search: string | undefined): Token[] => {
+        // Filter term is applied to token name
+        const arr: Token[] = sortTokens(state.tokens);
 
-      if (!search || search.length < 1) {
-        return arr;
-      }
+        if (!search || search.length < 1) {
+          return arr;
+        }
 
-      const mysearch = search.toLowerCase();
+        const mysearch = search.toLowerCase();
 
-      return arr.filter((token: Token) => {
-        return token.name.toLowerCase().includes(mysearch);
-      });
-    },
+        return arr.filter((token: Token) => {
+          return token.name.toLowerCase().includes(mysearch);
+        });
+      },
   },
 
   actions: {
@@ -181,6 +186,28 @@ export const useTokensStore = defineStore('tokensStore', {
           this.fetchTokens();
           const alerts = useAlerts();
           alerts.checkAlertStatus();
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    updatePin(tokenId: string, oldPin: string, newPin: string) {
+      const tokenPinUpdate: TokenPinUpdate = {
+        old_pin: oldPin,
+        new_pin: newPin,
+      };
+      return api
+        .put(`/tokens/${encodePathParameter(tokenId)}/pin`, tokenPinUpdate)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    updateToken(token: Token) {
+      return api
+        .patch<Token>(`/tokens/${encodePathParameter(token.id)}`, token)
+        .then((res) => {
+          const tokenIndex = this.tokens.findIndex((t) => t.id === token.id);
+          this.tokens[tokenIndex] = res.data;
         })
         .catch((error) => {
           throw error;

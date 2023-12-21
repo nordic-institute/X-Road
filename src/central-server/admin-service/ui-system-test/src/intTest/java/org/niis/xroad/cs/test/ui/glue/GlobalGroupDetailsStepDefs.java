@@ -34,6 +34,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
 
@@ -128,14 +129,15 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("user filters selectable members list with query: {string}")
     public void filterCandidates(final String query) {
-        clearInput(globalGroupDetailsPage.getAddMembersDialogObj().inputFilter())
-                .shouldBe(visible, enabled)
+        vTextField(globalGroupDetailsPage.getAddMembersDialogObj().inputFilter())
+                .clear()
                 .setValue(query);
     }
 
     @Step("user deletes selectable members filter query")
     public void clearCandidatesFilter() {
-        clearInput(globalGroupDetailsPage.getAddMembersDialogObj().inputFilter());
+        vTextField(globalGroupDetailsPage.getAddMembersDialogObj().inputFilter())
+                 .clear();
     }
 
     @Step("user opens delete member dialog for {string}")
@@ -164,8 +166,8 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
 
     @Step("user enters member code: {string}")
     public void enterMemberCode(final String code) {
-        clearInput(globalGroupDetailsPage.getDeleteMemberDialogObj().inputCode())
-                .shouldBe(visible, enabled)
+        vTextField(globalGroupDetailsPage.getDeleteMemberDialogObj().inputCode())
+                .clear()
                 .setValue(code);
     }
 }

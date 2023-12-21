@@ -1,112 +1,73 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-
-plugins {
-    id 'base'
-    id 'com.github.node-gradle.node' version "$nodePluginVersion"
-}
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 configurations {
-    npm
+    yarn
     dist
 }
 
 dependencies {
-    npm project(path: ":shared-ui", configuration: "npm")
+    yarn project(path: ":shared-ui", configuration: "yarn")
 }
 
-node {
-    download = true
-    version = nodeVersion
-
-    if (System.getenv().containsKey("CI")) {
-        npmInstallCommand = "ci"
-    }
-}
-
-task npmUpdateDeps(type: NpmTask, dependsOn: configurations.npm) {
+tasks.register('yarnUpdateDeps', RunYarn) {
+    var currentDir = java.nio.file.Path.of("${projectDir}")
     inputs.files('package.json')
-    outputs.files('package-lock.json')
-    args = ['--quiet', 'install', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
+    outputs.files('yarn.lock')
+
+    var packages = configurations.yarn.files
+        .collect { it.toPath() }
+        .collect { currentDir.relativize(it) }
+        .collect { '@niis/shared-ui@file:' + it }
+        .join(' ')
+
+    script = 'add --mode=update-lockfile ' + packages
 }
 
-task cleanNpmUpdateDeps {
-    //NOP, we do not want to accidentally delete package-lock.json
-}
+installFrontend.dependsOn("yarnUpdateDeps")
 
-npmInstall {
-    dependsOn += 'npmUpdateDeps'
-}
-
-task npmGenerateTypes(type: NpmTask, dependsOn: ['npmInstall']) {
+tasks.register('yarnGenerateTypes', RunYarn) {
+    dependsOn installFrontend
     inputs.files('./package.json',
         '../infra-api-rest/src/main/resources/openapi-definition.yaml')
     outputs.dir('src/openapi-types')
     outputs.dir("${buildDir}/openapi")
-    args = ['--quiet', 'run', 'generate-types']
+    script = 'run generate-types'
 
     doFirst {
         project.delete('src/openapi')
     }
 }
 
-task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
+tasks.register('yarnBuild', RunYarn) {
+    dependsOn yarnGenerateTypes
     inputs.files(
         'src/',
         'public/',
         'package.json',
-        'package-lock.json',
-        'vue.config.js',
+        'yarn.lock',
+        'vite.config.js',
         'tsconfig.js',
-        'babel.config.js',
         fileTree('node_modules') {
             exclude '.cache'
             exclude 'webpack-dev-server/ssl'
         }
     )
     outputs.dir('dist')
-    args = ['run', '--quiet', 'build:gradle']
-}
-
-task checkFrontAudit(type: NpmTask) {
-    inputs.files(
-        'package.json',
-        'package-lock.json'
-    )
-    outputs.files("${buildDir}/reports/audit-ci.txt")
-    args = ['run', 'npx-check-audit']
-}
-
-// check that npm run license-check passes
-task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
-    inputs.files(
-        "test/",
-        "public/",
-        fileTree('src/') {
-            exclude 'openapi-types'
-        }
-    )
-    outputs.upToDateWhen { true }
-    args = ['run', 'license-check']
+    script = 'run build:gradle'
 }
 
 clean {
-    delete file('node_modules')
     delete file('dist')
 }
 
-assemble.dependsOn npmBuild
-check.dependsOn checkFrontLicense
+assemble.dependsOn yarnBuild
 
-if (project.hasProperty('frontend-npm-audit')) {
-  npmUpdateDeps.dependsOn checkFrontAudit
+tasks.named("installFrontend") {
+    dependsOn(":shared-ui:yarnPack")
 }
 
 artifacts {
     dist(file("dist/")) {
-        builtBy(npmBuild)
+        builtBy(yarnBuild)
     }
 }

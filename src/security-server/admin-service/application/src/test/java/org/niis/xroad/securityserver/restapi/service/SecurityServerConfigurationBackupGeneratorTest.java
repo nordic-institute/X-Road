@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -47,7 +47,8 @@ public class SecurityServerConfigurationBackupGeneratorTest extends AbstractServ
 
     @Test
     public void addBackupFails() throws Exception {
-        when(externalProcessRunner.executeAndThrowOnFailure(any(String.class), any())).thenThrow(new ProcessFailedException(""));
+        when(externalProcessRunner.executeAndThrowOnFailure(any(String.class), any(String[].class)))
+                .thenThrow(new ProcessFailedException(""));
 
         assertThatThrownBy(() -> backupGenerator.generateBackup())
                 .isInstanceOf(DeviationAwareRuntimeException.class);

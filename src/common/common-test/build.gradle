@@ -7,8 +7,9 @@ dependencies {
     implementation project(':common:common-verifier')
     implementation 'org.antlr:ST4:4.0.7'
     // JUnit is needed for ExpectedCodedException
-    implementation "junit:junit:$junitVersion"
-    api "org.mockito:mockito-core:$mockitoVersion"
+    implementation "org.junit.vintage:junit-vintage-engine:$junitVersion"
+    api "org.mockito:mockito-junit-jupiter:$mockitoVersion"
+    api("org.awaitility:awaitility:$awaitilityVersion")
 
     implementation "io.vavr:vavr:$vavrVersion"
 }

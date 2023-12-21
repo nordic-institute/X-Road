@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,8 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -66,7 +67,7 @@ public class NotificationService {
         OffsetDateTime backupRestoreStartedAt = getBackupRestoreRunningSince();
         if (backupRestoreStartedAt != null) {
             alertStatus.setBackupRestoreRunningSince(backupRestoreStartedAt);
-            alertStatus.setCurrentTime(OffsetDateTime.now(ZoneOffset.UTC));
+            alertStatus.setCurrentTime(TimeUtils.offsetDateTimeNow(ZoneOffset.UTC));
             alertStatus.setSoftTokenPinEntered(false);
             alertStatus.setSoftTokenPinEnteredCheckSuccess(false);
         } else {
@@ -139,7 +140,7 @@ public class NotificationService {
      * Sets backupRestoreRunningSince to current date/time.
      */
     public synchronized void setBackupRestoreRunningSince() {
-        backupRestoreRunningSince = OffsetDateTime.now(ZoneOffset.UTC);
+        backupRestoreRunningSince = TimeUtils.offsetDateTimeNow(ZoneOffset.UTC);
     }
 
     @EventListener

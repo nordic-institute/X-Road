@@ -26,7 +26,7 @@
  -->
 <template>
   <div>
-    <XrdEmptyPlaceholder
+    <xrd-empty-placeholder
       :data="securityServer"
       :loading="loading"
       :no-items-text="$t('noData.noData')"
@@ -72,20 +72,22 @@
         :info-text="securityServer.server_address"
         :action-text="$t('action.edit')"
         :show-action="canEditAddress"
-        @actionClicked="$refs.editAddressDialog.open()"
+        @action-clicked="showEditAddressDialog = true"
       />
 
       <info-card
         :title-text="$t('securityServers.registered')"
-        :info-text="securityServer.created_at | formatDateTimeSeconds"
         data-test="security-server-registered"
-      />
+        ><date-time :value="securityServer.created_at" with-seconds
+      /></info-card>
 
-      <div class="delete-action" @click="$refs.deleteDialog.open()">
+      <div class="delete-action" @click="showDeleteServerDialog = true">
         <div>
-          <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-            >mdi-close-circle
-          </v-icon>
+          <v-icon
+            class="xrd-large-button-icon"
+            :color="colors.Purple100"
+            icon="mdi-close-circle"
+          />
         </div>
         <div
           v-if="canDeleteServer"
@@ -100,39 +102,43 @@
         </div>
       </div>
     </main>
-    <delete-security-server-address-dialog
-      ref="deleteDialog"
+    <delete-security-server-dialog
+      v-if="serverCode && showDeleteServerDialog"
       :server-code="serverCode"
       :security-server-id="serverId"
-      @deleted="deleteServer"
+      @cancel="showDeleteServerDialog = false"
     />
     <edit-security-server-address-dialog
-      ref="editAddressDialog"
+      v-if="address && showEditAddressDialog"
       :address="address"
       :security-server-id="serverId"
+      @cancel="showEditAddressDialog = false"
+      @address-updated="showEditAddressDialog = false"
     />
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { useSecurityServer } from '@/store/modules/security-servers';
 import { SecurityServer } from '@/openapi-types';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
-import DeleteSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerAddressDialog.vue';
-import { notificationsStore } from '@/store/modules/notifications';
+import DeleteSecurityServerDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
+import { useNotifications } from '@/store/modules/notifications';
+import DateTime from '@/components/ui/DateTime.vue';
 
 /**
  * Component for a Security server details view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'SecurityServerDetails',
   components: {
-    DeleteSecurityServerAddressDialog,
+    DateTime,
+    DeleteSecurityServerDialog,
     EditSecurityServerAddressDialog,
     InfoCard,
   },
@@ -145,11 +151,13 @@ export default Vue.extend({
   data() {
     return {
       colors: Colors,
+      showEditAddressDialog: false,
+      showDeleteServerDialog: false,
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapStores(useSecurityServerStore),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapStores(useSecurityServer),
     securityServer(): SecurityServer | null {
       return this.securityServerStore.currentSecurityServer;
     },
@@ -170,22 +178,14 @@ export default Vue.extend({
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showSuccess']),
-    deleteServer() {
-      this.$router.replace({
-        name: RouteName.SecurityServers,
-      });
-      this.showSuccess(
-        this.$t('securityServers.dialogs.deleteAddress.success'),
-      );
-    },
+    ...mapActions(useNotifications, ['showSuccess']),
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 #security-server-details {
   margin-top: 24px;

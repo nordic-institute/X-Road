@@ -27,11 +27,9 @@
 
 package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.ClickOptions;
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.test.ui.api.FeignManagementRequestsApi;
 import org.niis.xroad.cs.test.ui.constants.Constants;
@@ -42,10 +40,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.getSecurityServerId;
 import static org.niis.xroad.cs.test.ui.glue.BaseUiStepDefs.StepDataKey.MANAGEMENT_REQUEST_ID;
 
@@ -69,26 +70,43 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     private void userIsAbleToSortByFieldAndOrder(String name, String defaultOrder) {
         final var column = managementRequestsPageObj.tableCol(name);
-        Assertions.assertEquals(defaultOrder, column.getAttribute(ARIA_SORT));
+        final var sortIcon = column.$x(".//i");
+        boolean descending;
+        if ("none".equals(defaultOrder)) {
+            column.shouldNotHave(cssClass("v-data-table__th--sorted"));
+            descending = true;
+        } else {
+            column.shouldHave(cssClass("v-data-table__th--sorted"));
+            descending = "descending".equals(defaultOrder);
+            sortIcon.shouldHave(cssClass(orderDirectionClass(descending)));
+        }
         column.click();
-        Assertions.assertEquals("ascending", column.getAttribute(ARIA_SORT));
+        descending = !descending;
+        sortIcon.shouldHave(cssClass(orderDirectionClass(descending)));
         column.click();
-        Assertions.assertEquals("descending", column.getAttribute(ARIA_SORT));
+        descending = !descending;
+        sortIcon.shouldHave(cssClass(orderDirectionClass(descending)));
+    }
+
+    private String orderDirectionClass(final boolean descending) {
+        return descending ? "mdi-arrow-down" : "mdi-arrow-up";
     }
 
     @Step("the user clicks on search icon")
     public void clickOnSearchIcon() {
         managementRequestsPageObj.search().click();
+        vTextField(managementRequestsPageObj.search()).shouldBe(focused);
     }
 
     @Step("the user enters {} in the search field")
     public void isWrittenInSearchField(String searchTerm) {
-        managementRequestsPageObj.searchInput().setValue(searchTerm);
+        vTextField(managementRequestsPageObj.search()).setValue(searchTerm);
     }
 
     @Step("the user clears the search field")
     public void clearSearchField() {
-        clearInput(managementRequestsPageObj.searchInput());
+        vTextField(managementRequestsPageObj.search())
+                .clear();
     }
 
     @Step("the user views the Management request from Security server {} with owner code {}")
@@ -239,17 +257,17 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("the option to show only pending requests is selected")
     public void showOnlyPendingRequestsIsSelected() {
-        managementRequestsPageObj.showOnlyPendingRequestsIsChecked(true).shouldBe(Condition.enabled);
+        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeChecked();
     }
 
     @Step("the option to show only pending requests is not selected")
     public void showOnlyPendingRequestsIsNotSelected() {
-        managementRequestsPageObj.showOnlyPendingRequestsIsChecked(false).shouldBe(Condition.enabled);
+        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).shouldBeUnchecked();
     }
 
     @Step("the user clicks the checkbox to show only pending requests")
     public void showOnlyPendingRequestsIsClicked() {
-        managementRequestsPageObj.showOnlyPendingRequests().click(ClickOptions.usingJavaScript());
+        vCheckbox(managementRequestsPageObj.showOnlyPendingRequests()).click();
     }
 
     @Step("the user can not see the Approve, Decline actions for requests that have already been processed")
@@ -260,8 +278,8 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
     @Step("search field contains {string}")
     public void searchFieldContainsText(String text) {
-        managementRequestsPageObj.searchInput().shouldBe(visible);
-        managementRequestsPageObj.searchInput().shouldHave(value(text));
+        managementRequestsPageObj.search().shouldBe(visible);
+        vTextField(managementRequestsPageObj.search()).shouldHaveText(text);
     }
 
 }

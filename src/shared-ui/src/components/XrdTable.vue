@@ -31,17 +31,9 @@ This component is a wrapper for a X-Road table component that contains default s
 
 <template>
   <table class="xrd-table">
-    <slot></slot>
+    <slot />
   </table>
 </template>
-
-<script>
-import Vue from 'vue';
-
-export default Vue.extend({
-  name: 'xrd-table',
-});
-</script>
 
 <style scoped lang="scss">
 @import '../assets/colors';

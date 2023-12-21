@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,37 +25,79 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
 import lombok.Value;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Tiny container class to help handle the key list
- */
+
 @Value
-public final class KeyInfo implements Serializable {
+@ToString(onlyExplicitlyIncluded = true)
+public class KeyInfo implements Serializable {
 
-    private final boolean available;
+    @JsonIgnore
+    KeyInfoProto message;
 
-    private final KeyUsageInfo usage;
+    @ToString.Include
+    public boolean isAvailable() {
+        return message.getAvailable();
+    }
 
-    private final String friendlyName;
+    @ToString.Include
+    public KeyUsageInfo getUsage() {
+        var usage = message.getUsage();
+        return usage != KeyUsageInfo.KEY_USAGE_UNSPECIFIED ? usage : null;
+    }
 
-    private final String id;
+    @ToString.Include
+    public String getFriendlyName() {
+        if (message.hasFriendlyName()) {
+            return message.getFriendlyName();
+        }
+        return null;
+    }
 
-    private final String label;
+    @ToString.Include
+    public String getId() {
+        return message.getId();
+    }
 
-    private final String publicKey;
+    @ToString.Include
+    public String getLabel() {
+        if (message.hasFriendlyName()) {
+            return message.getLabel();
+        }
+        return null;
+    }
 
-    private final List<CertificateInfo> certs;
+    @ToString.Include
+    public String getPublicKey() {
+        return message.getPublicKey();
+    }
 
-    private final List<CertRequestInfo> certRequests;
+    @ToString.Include
+    public List<CertificateInfo> getCerts() {
+        return message.getCertsList().stream()
+                .map(CertificateInfo::new)
+                .collect(Collectors.toUnmodifiableList());
+    }
 
-    private final String signMechanismName;
+    public List<CertRequestInfo> getCertRequests() {
+        return message.getCertRequestsList().stream()
+                .map(CertRequestInfo::new)
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    @ToString.Include
+    public String getSignMechanismName() {
+        return message.getSignMechanismName();
+    }
 
     public boolean isForSigning() {
-        return usage == KeyUsageInfo.SIGNING;
+        return getUsage() == KeyUsageInfo.SIGNING;
     }
 
     /**
@@ -64,11 +106,15 @@ public final class KeyInfo implements Serializable {
      * (logic originally from token_renderer.rb#key_saved_to_configuration)
      */
     public boolean isSavedToConfiguration() {
-        if (!certRequests.isEmpty()) {
+        if (!getCertRequests().isEmpty()) {
             return true;
         }
-        return certs.stream()
-                .anyMatch(certificateInfo -> certificateInfo.isSavedToConfiguration());
+        return getCerts().stream()
+                .anyMatch(CertificateInfo::isSavedToConfiguration);
 
+    }
+
+    public KeyInfoProto asMessage() {
+        return message;
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -129,7 +129,7 @@ final class TestUtil {
 
     static void cleanUpDatabase() throws Exception {
         doInTransaction(session -> {
-            Query q = session.createSQLQuery(
+            Query q = session.createNativeQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database
                     "TRUNCATE SCHEMA public AND COMMIT");

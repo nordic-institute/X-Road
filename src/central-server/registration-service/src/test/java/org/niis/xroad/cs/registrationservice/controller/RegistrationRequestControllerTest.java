@@ -1,21 +1,21 @@
-/**
+/*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,7 +31,10 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
@@ -47,15 +50,11 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.time.Instant;
 import java.util.Date;
 import java.util.Random;
 
@@ -161,7 +160,7 @@ class RegistrationRequestControllerTest {
                 TestCertUtil.getCaCert(),
                 TestCertUtil.getOcspSigner().certChain[0],
                 TestCertUtil.getOcspSigner().key,
-                new RevokedStatus(Date.from(Instant.now().minusSeconds(3600)), CRLReason.unspecified));
+                new RevokedStatus(Date.from(TimeUtils.now().minusSeconds(3600)), CRLReason.unspecified));
 
         var builder = new TestManagementRequestBuilder(serverId.getOwner(), serverId.getOwner());
         var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", authCert);

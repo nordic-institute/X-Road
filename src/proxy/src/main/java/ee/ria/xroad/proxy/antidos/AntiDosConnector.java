@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -91,7 +91,7 @@ public class AntiDosConnector extends ServerConnector {
      * @param acceptorCount acceptor count
      * @param sslContextFactory SSL context factory to use for configuration
      */
-    public AntiDosConnector(Server server, int acceptorCount, SslContextFactory sslContextFactory) {
+    public AntiDosConnector(Server server, int acceptorCount, SslContextFactory.Server sslContextFactory) {
         super(server, acceptorCount, -1, sslContextFactory);
     }
 

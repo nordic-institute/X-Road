@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -73,6 +73,11 @@ public final class SoftwareTokenType implements TokenType {
     @Override
     public boolean isBatchSigningEnabled() {
         return true;
+    }
+
+    @Override
+    public boolean isPinVerificationPerSigning() {
+        return false;
     }
 
     @Override

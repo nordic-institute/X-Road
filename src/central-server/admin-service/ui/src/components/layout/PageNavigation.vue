@@ -26,13 +26,13 @@
  -->
 <template>
   <div>
-    <v-tabs :background-color="'transparent'" class="page-navigation-row">
+    <v-tabs>
       <v-tab
         v-for="tab in allowedTabs"
         :key="tab.key"
         :to="tab.to"
         :data-test="tab.key"
-        exact-path
+        exact
         >{{ $t(tab.name) }}
         <span v-if="tab.showAttention" class="dot mb-3"></span>
       </v-tab>
@@ -41,29 +41,35 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
 import { mapState } from 'pinia';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Tab } from '@/ui-types';
 
 export interface PageNavigationTab extends Tab {
   showAttention?: boolean;
 }
 
-export default Vue.extend({
+export default defineComponent({
   name: 'PageNavigation',
   props: {
     tabs: {
-      type: Array as Prop<PageNavigationTab[]>,
+      type: Array as PropType<PageNavigationTab[]>,
       required: true,
     },
   },
   computed: {
-    ...mapState(userStore, ['getAllowedTabs']),
+    ...mapState(useUser, ['getAllowedTabs']),
     allowedTabs(): PageNavigationTab[] {
       return this.getAllowedTabs(this.tabs);
     },
   },
 });
 </script>
+<style lang="scss" scoped>
+:deep(.v-tab) {
+  text-transform: none;
+  font-weight: 600;
+  color: rgb(0 0 0 / 54%);
+}
+</style>

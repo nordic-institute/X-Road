@@ -41,11 +41,13 @@ Feature: Global groups API
       | $subsystems    |  |
 
   Scenario: Global group filter model
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:m-1' is added
     And new member 'CS:E2E:m-2' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     And new security server 'CS:TEST:m-1:SS-2' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     Then global group 'security-server-owners' has filter model as follows
@@ -55,12 +57,14 @@ Feature: Global groups API
       | $subsystems    |          |
 
   Scenario: Global group members list
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:m-1' is added
     And new member 'CS:E2E:m-2' is added
     And new member 'CS:TEST:m-3' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     And new security server 'CS:E2E:m-2:SS-2' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     And new security server 'CS:TEST:m-1:SS-3' authentication certificate registered with origin 'SECURITY_SERVER' and approved
@@ -89,9 +93,10 @@ Feature: Global groups API
       | memb |            |       | MEMBER,SUBSYSTEM | CS        |        | m-2,m-1,m-3 |             | 2         | 1     | 2            | 3      |               |
 
   Scenario: Add member to global group
-    Given Authentication header is set to MANAGEMENT_SERVICE
-    And new global group 'test-group' with description 'group description' is added
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
+    And new global group 'test-group' with description 'group description' is added
     And new member 'CS:TEST:member' is added
     When members are added to group 'test-group'
       | $identifier    | $isNew |
@@ -103,9 +108,10 @@ Feature: Global groups API
       |    |         |       |        |           |        |        |             | 5         | 1     | 1            | 1      |               |
 
   Scenario: Add members to global group
-    Given Authentication header is set to MANAGEMENT_SERVICE
-    And new global group 'test-group' with description 'group description' is added
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
+    And new global group 'test-group' with description 'group description' is added
     And new member 'CS:TEST:member1' is added
     And new subsystem 'CS:TEST:member1:subsystem' is added
     And new member 'CS:TEST:member2' is added
@@ -129,9 +135,10 @@ Feature: Global groups API
       | member2 |         |       |           |           |        |        |             |           |       | 3            | 3      |               |
 
   Scenario: Add same members twice to global group
-    Given Authentication header is set to MANAGEMENT_SERVICE
-    And new global group 'test-group' with description 'group description' is added
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
+    And new global group 'test-group' with description 'group description' is added
     And new member 'CS:TEST:member1' is added
     And new subsystem 'CS:TEST:member1:subsystem1' is added
     And new subsystem 'CS:TEST:member1:subsystem2' is added
@@ -165,9 +172,10 @@ Feature: Global groups API
     Then Response is of status code 400 and error code 'cannot_add_member_to_owners_group'
 
   Scenario: Adding non existing member to global group should fail
-    Given Authentication header is set to MANAGEMENT_SERVICE
-    And new global group 'test-group' with description 'group description' is added
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
+    And Authentication header is set to REGISTRATION_OFFICER
+    And new global group 'test-group' with description 'group description' is added
     And new member 'CS:TEST:member' is added
     And new subsystem 'CS:TEST:member:subsystem' is added
     When members are added to group 'test-group'
@@ -186,17 +194,20 @@ Feature: Global groups API
     Then Response is of status code 404 and error code "subsystem_not_found"
 
   Scenario: Delete global group member fails on protected group
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:E2E:m-2' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     When global group "security-server-owners" member 'CS:E2E:m-2' is deleted
     Then Response is of status code 400 and error code 'owners_global_group_member_cannot_be_deleted'
 
   Scenario: Add and delete members to global group
-    Given Authentication header is set to MANAGEMENT_SERVICE
-    And new global group 'test-group' with description 'group description' is added
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
+    And Authentication header is set to REGISTRATION_OFFICER
+    And new global group 'test-group' with description 'group description' is added
     And new member 'CS:E2E:m-1' is added
     And new member 'CS:E2E:m-2' is added
     And new member 'CS:E2E:m-3' is added
@@ -212,9 +223,10 @@ Feature: Global groups API
     And global group "test-group" members list does not contain "CS:E2E:m-2" member
 
   Scenario: Global Group behavior when deleting member/subsystems
-    Given Authentication header is set to MANAGEMENT_SERVICE
-    And new global group 'test-group' with description 'group description' is added
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
+    And Authentication header is set to REGISTRATION_OFFICER
+    And new global group 'test-group' with description 'group description' is added
     And new member 'CS:E2E:m-1' is added
     And new subsystem 'CS:E2E:m-1:Subsystem-0' is added
     And new subsystem 'CS:E2E:m-1:Subsystem-1' is added
@@ -239,9 +251,10 @@ Feature: Global groups API
     And global group 'test-group' has 0 members
 
   Scenario: Add and delete members to global group fails due to wrong member
-    Given Authentication header is set to MANAGEMENT_SERVICE
-    And new global group 'test-group' with description 'group description' is added
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
+    And Authentication header is set to REGISTRATION_OFFICER
+    And new global group 'test-group' with description 'group description' is added
     And new member 'CS:E2E:m-1' is added
     And new member 'CS:E2E:m-2' is added
     And new member 'CS:E2E:m-3' is added

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -40,128 +40,62 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.messagelog.archiver.LogArchiver;
 import ee.ria.xroad.messagelog.archiver.LogCleaner;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.DeadLetter;
-import akka.actor.Props;
-import akka.actor.UntypedAbstractActor;
-import akka.testkit.TestActorRef;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigRenderOptions;
-import com.typesafe.config.ConfigValueFactory;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
+import org.quartz.JobExecutionContext;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 @Slf4j
 abstract class AbstractMessageLogTest {
 
     JobManager jobManager;
-    ActorSystem actorSystem;
     LogManager logManager;
 
-    protected final Path archivesPath = Paths.get("build/archive");
+    protected final String archivesDir = "build/archive";
+    protected final Path archivesPath = Paths.get(archivesDir);
 
-    @Getter
-    private TestActorRef<LogManager> logManagerRef;
-    private TestActorRef<LogArchiver> logArchiverRef;
-    private TestActorRef<LogCleaner> logCleanerRef;
+    private LogArchiver logArchiverRef;
+    private LogCleaner logCleanerRef;
 
     void testSetUp() throws Exception {
         testSetUp(false);
     }
 
-    private List<DeadLetter> deadLetters = new ArrayList<>();
-
-    List<DeadLetter> getDeadLetters() {
-        return deadLetters;
-    }
-
-    private void clearDeadLetters() {
-        deadLetters = new ArrayList<>();
-    }
-
-    synchronized void addDeadLetter(DeadLetter d) {
-        deadLetters.add(d);
-    }
-
-    public static class DeadLetterActor extends UntypedAbstractActor {
-
-        private final AbstractMessageLogTest test;
-
-        DeadLetterActor(AbstractMessageLogTest test) {
-            this.test = test;
-        }
-
-        public void onReceive(Object message) {
-            if (message instanceof DeadLetter) {
-                log.info("dead letter: " + message);
-
-                test.addDeadLetter((DeadLetter) message);
-            }
-        }
-    }
-
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
+        System.setProperty(MessageLogProperties.ARCHIVE_PATH, archivesDir);
 
         jobManager = new JobManager();
-        clearDeadLetters();
-
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load()
-                .getConfig("proxy")
-                .withValue("akka.actor.provider", ConfigValueFactory.fromAnyRef("local"))); //remoting is not needed
-
-        actorSystem.eventStream().subscribe(actorSystem.actorOf(Props.create(DeadLetterActor.class, this)),
-                DeadLetter.class);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
         System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
 
-        logManagerRef = TestActorRef.create(actorSystem, Props.create(getLogManagerImpl(), jobManager),
-                MessageLog.LOG_MANAGER);
+        logManager = (LogManager) getLogManagerImpl().getDeclaredConstructor(JobManager.class).newInstance(jobManager);
 
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
         }
-        logArchiverRef = TestActorRef.create(actorSystem, Props.create(TestLogArchiver.class, archivesPath));
-        logCleanerRef = TestActorRef.create(actorSystem, Props.create(TestLogCleaner.class));
-
-        logManager = logManagerRef.underlyingActor();
-    }
-
-    // Use this to print Akka configuration out to log. May be useful when solving problems.
-    protected void logAkkaConfiguration() {
-        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
-                .setOriginComments(false)
-                .setComments(false)
-                .setJson(false);
-        String configString = ConfigFactory.load().root().render(renderOpts);
-
-        log.info("akka configuration: {}", configString);
+        logArchiverRef = new TestLogArchiver();
+        logCleanerRef = new TestLogCleaner();
     }
 
     void testTearDown() throws Exception {
+        logManager.shutdown();
         jobManager.stop();
-        Await.ready(actorSystem.terminate(), Duration.Inf());
         FileUtils.deleteDirectory(archivesPath.toFile());
     }
 
-    protected Class<? extends AbstractLogManager> getLogManagerImpl() throws Exception {
+    protected Class<? extends AbstractLogManager> getLogManagerImpl() {
         return LogManager.class;
     }
 
@@ -171,10 +105,11 @@ abstract class AbstractMessageLogTest {
 
     /**
      * Sends time stamping status message to LogManager
+     *
      * @param status status message
      */
     private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {
-        logManagerRef.tell(new SetTimestampingStatusMessage(status), ActorRef.noSender());
+        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(status));
     }
 
     protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {
@@ -201,19 +136,15 @@ abstract class AbstractMessageLogTest {
     }
 
     void startTimestamping() {
-        logManager.taskQueueRef.tell(TaskQueue.START_TIMESTAMPING, ActorRef.noSender());
+        logManager.taskQueue.handleStartTimestamping();
     }
 
     void startArchiving() {
-        logArchiverRef.tell(LogArchiver.START_ARCHIVING, ActorRef.noSender());
+        logArchiverRef.execute(mock(JobExecutionContext.class));
     }
 
     void startCleaning() {
-        logCleanerRef.tell(LogCleaner.START_CLEANING, ActorRef.noSender());
-    }
-
-    void awaitTermination() throws Exception {
-        Await.result(actorSystem.whenTerminated(), Duration.Inf());
+        logCleanerRef.execute(mock(JobExecutionContext.class));
     }
 
     static void assertMessageRecord(Object o, String queryId) {
@@ -239,6 +170,5 @@ abstract class AbstractMessageLogTest {
 
         return (Timestamper.TimestampSucceeded) result;
     }
-
 
 }

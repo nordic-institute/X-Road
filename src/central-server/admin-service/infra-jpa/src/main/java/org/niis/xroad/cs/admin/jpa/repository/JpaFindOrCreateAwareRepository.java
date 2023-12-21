@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.cs.admin.jpa.repository;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.Id;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
@@ -39,10 +42,6 @@ import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.FluentQuery;
-
-import javax.persistence.Column;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.Id;
 
 import java.util.Objects;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -63,14 +63,14 @@ final class DigestPrefixCache {
      */
     private static final Map<Integer, byte[]> CACHE =
             new HashMap<Integer, byte[]>() {
-        {
-            put(CryptoUtils.SHA1_DIGEST_LENGTH, SHA1_DIGEST_PREFIX);
-            put(CryptoUtils.SHA224_DIGEST_LENGTH, SHA224_DIGEST_PREFIX);
-            put(CryptoUtils.SHA256_DIGEST_LENGTH, SHA256_DIGEST_PREFIX);
-            put(CryptoUtils.SHA384_DIGEST_LENGTH, SHA384_DIGEST_PREFIX);
-            put(CryptoUtils.SHA512_DIGEST_LENGTH, SHA512_DIGEST_PREFIX);
-        }
-    };
+                {
+                    put(CryptoUtils.SHA1_DIGEST_LENGTH, SHA1_DIGEST_PREFIX);
+                    put(CryptoUtils.SHA224_DIGEST_LENGTH, SHA224_DIGEST_PREFIX);
+                    put(CryptoUtils.SHA256_DIGEST_LENGTH, SHA256_DIGEST_PREFIX);
+                    put(CryptoUtils.SHA384_DIGEST_LENGTH, SHA384_DIGEST_PREFIX);
+                    put(CryptoUtils.SHA512_DIGEST_LENGTH, SHA512_DIGEST_PREFIX);
+                }
+            };
 
     static byte[] getPrefix(byte[] digest) {
         if (CACHE.containsKey(digest.length)) {

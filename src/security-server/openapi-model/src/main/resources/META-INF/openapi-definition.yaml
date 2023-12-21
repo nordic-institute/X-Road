@@ -399,13 +399,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '200':
           description: token certificate
@@ -436,13 +436,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: deletion was successful
@@ -475,13 +475,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: request was successful
@@ -507,13 +507,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: certificate was deactivated
@@ -541,13 +541,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '201':
           description: the imported certificate
@@ -588,13 +588,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '200':
           description: possible actions that can be done on the certificate
@@ -624,13 +624,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       requestBody:
         content:
           application/json:
@@ -663,13 +663,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: request was successful
@@ -713,13 +713,13 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: request was successful
@@ -1609,13 +1609,13 @@ paths:
             maxLength: 1023
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '200':
           description: certificate details
@@ -1653,13 +1653,13 @@ paths:
             maxLength: 1023
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate
+          description: SHA-256 hash of the certificate
           required: true
           schema:
             type: string
             format: text
             minLength: 1
-            maxLength: 40
+            maxLength: 64
       responses:
         '204':
           description: certificate deletion was successful
@@ -1979,6 +1979,106 @@ paths:
       responses:
         '204':
           description: client was set as owner
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+  /clients/{id}/disable:
+    put:
+      tags:
+        - clients
+      summary: disable security server client
+      operationId: disableClient
+      description:
+        <h3>Administrator disables client.</h3>
+        <p>This endpoint can also return metadata in the error response if sending the management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '204':
+          description: disabling was successful
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+  /clients/{id}/enable:
+    put:
+      tags:
+        - clients
+      summary: enable security server client
+      operationId: enableClient
+      description:
+        <h3>Administrator enables client.</h3>
+        <p>This endpoint can also return metadata in the error response if sending the management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '204':
+          description: enabling was successful
         '400':
           description: request was invalid
           content:
@@ -4375,6 +4475,91 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /system/server-address:
+    get:
+      tags:
+        - system
+      operationId: getServerAddress
+      summary: Get current Security Server address
+      description: <h3>Administrator views Security Server address and status</h3>
+      responses:
+        '200':
+          description: Security Server address status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityServerAddressStatus'
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+
+    put:
+      tags:
+        - system
+      operationId: addressChange
+      summary: Change Security Server address
+      description: <h3>Administrator changes Security Server address</h3>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityServerAddress'
+      responses:
+        '202':
+          description: address change request submitted
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /certificate-authorities:
     get:
       tags:
@@ -5574,10 +5759,10 @@ components:
         hash:
           type: string
           format: text
-          description: certificate SHA-1 hash
+          description: certificate SHA-256 hash
           example: 1234567890ABCDEF
           minLength: 1
-          maxLength: 40
+          maxLength: 64
         key_usages:
           type: array
           description: certificate key usage array
@@ -5807,6 +5992,9 @@ components:
         - GLOBAL_ERROR
         - REGISTRATION_IN_PROGRESS
         - DELETION_IN_PROGRESS
+        - DISABLED
+        - DISABLING_IN_PROGRESS
+        - ENABLING_IN_PROGRESS
     CodeWithDetails:
       $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConfigurationStatus:
@@ -6139,6 +6327,7 @@ components:
         - is_server_code_initialized
         - is_server_owner_initialized
         - software_token_init_status
+        - enforce_token_pin_policy
       properties:
         is_anchor_imported:
           type: boolean
@@ -6151,6 +6340,9 @@ components:
           description: whether the server owner of the security server has been initialized or not
         software_token_init_status:
           $ref: '#/components/schemas/TokenInitStatus'
+        enforce_token_pin_policy:
+          type: boolean
+          description: whether the token pin policy is enforced or not
     KeyWithCertificateSigningRequestId:
       type: object
       description: Key and TokenCertificateSigningRequest id
@@ -6465,6 +6657,14 @@ components:
           maxLength: 255
       example:
         address: 127.0.0.1
+    SecurityServerAddressStatus:
+      type: object
+      description: Security Server address with status
+      properties:
+        current_address:
+          $ref: '#/components/schemas/SecurityServerAddress'
+        requested_change:
+          $ref: '#/components/schemas/SecurityServerAddress'
     Service:
       type: object
       description: service for the service description

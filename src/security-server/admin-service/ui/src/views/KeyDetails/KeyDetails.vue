@@ -24,90 +24,81 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width dtlv-outer">
-    <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="dtlv-content">
-        <div>
-          <xrd-sub-view-title
-            v-if="key.usage == 'SIGNING'"
-            :title="$t('keys.signDetailsTitle')"
-            @close="close"
-          />
-          <xrd-sub-view-title
-            v-else-if="key.usage == 'AUTHENTICATION'"
-            :title="$t('keys.authDetailsTitle')"
-            @close="close"
-          />
-          <xrd-sub-view-title
-            v-else
-            :title="$t('keys.detailsTitle')"
-            @close="close"
-          />
-          <div class="dtlv-tools">
-            <xrd-button
-              v-if="canDelete"
-              :loading="deleting"
-              outlined
-              @click="confirmDelete = true"
-              >{{ $t('action.delete') }}</xrd-button
-            >
-          </div>
-        </div>
-
-        <div>
-          <ValidationProvider
-            v-slot="{ errors }"
-            rules="required"
-            name="keys.name"
-            class="validation-provider"
-          >
-            <v-text-field
-              v-model="key.name"
-              class="code-input key-name"
-              name="keys.name"
-              type="text"
-              :label="$t('fields.keys.name')"
-              outlined
-              :maxlength="255"
-              :error-messages="errors"
-              :disabled="!canEdit"
-              @input="touched = true"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-
-        <div>
-          <h3 class="info-title">{{ $t('keys.keyInfo') }}</h3>
-          <div class="info-row">
-            <div class="row-title">{{ $t('keys.keyId') }}</div>
-            <div class="row-data">{{ key.id }}</div>
-          </div>
-          <div class="info-row">
-            <div class="row-title">{{ $t('keys.label') }}</div>
-            <div class="row-data">{{ key.label }}</div>
-          </div>
-          <div class="info-row">
-            <div class="row-title">{{ $t('keys.readOnly') }}</div>
-            <div class="row-data">{{ tokenForCurrentKey.read_only }}</div>
-          </div>
+  <div class="xrd-tab-max-width detail-view-outer">
+    <div class="detail-view-content">
+      <div>
+        <xrd-sub-view-title
+          v-if="key.usage == 'SIGNING'"
+          :title="$t('keys.signDetailsTitle')"
+          @close="close"
+        />
+        <xrd-sub-view-title
+          v-else-if="key.usage == 'AUTHENTICATION'"
+          :title="$t('keys.authDetailsTitle')"
+          @close="close"
+        />
+        <xrd-sub-view-title
+          v-else
+          :title="$t('keys.detailsTitle')"
+          @close="close"
+        />
+        <div class="detail-view-tools">
+          <xrd-button
+            v-if="canDelete"
+            :loading="deleting"
+            outlined
+            @click="confirmDelete = true"
+            >{{ $t('action.delete') }}
+          </xrd-button>
         </div>
       </div>
-      <div class="dtlv-actions-footer">
-        <xrd-button outlined @click="close()">{{
-          $t('action.cancel')
-        }}</xrd-button>
-        <xrd-button
-          :loading="saveBusy"
-          :disabled="!touched || invalid"
-          @click="save()"
-          >{{ $t('action.save') }}</xrd-button
-        >
+
+      <div>
+        <v-text-field
+          v-model="keyName"
+          class="code-input key-name"
+          name="keys.name"
+          type="text"
+          :label="$t('fields.keys.name')"
+          variant="outlined"
+          :maxlength="255"
+          :error-messages="errorMessage"
+          :disabled="!canEdit"
+          @blur="handleBlur"
+        ></v-text-field>
       </div>
-    </ValidationObserver>
+
+      <div>
+        <h3 class="info-title">{{ $t('keys.keyInfo') }}</h3>
+        <div class="info-row">
+          <div class="row-title">{{ $t('keys.keyId') }}</div>
+          <div class="row-data">{{ key.id }}</div>
+        </div>
+        <div class="info-row">
+          <div class="row-title">{{ $t('keys.label') }}</div>
+          <div class="row-data">{{ key.label }}</div>
+        </div>
+        <div class="info-row">
+          <div class="row-title">{{ $t('keys.readOnly') }}</div>
+          <div class="row-data">{{ tokenForCurrentKey.read_only }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-view-actions-footer">
+      <xrd-button outlined @click="close()"
+        >{{ $t('action.cancel') }}
+      </xrd-button>
+      <xrd-button
+        :loading="saving"
+        :disabled="!meta.touched || !meta.valid"
+        @click="save()"
+        >{{ $t('action.save') }}
+      </xrd-button>
+    </div>
 
     <!-- Confirm dialog delete Key -->
     <xrd-confirm-dialog
-      :dialog="confirmDelete"
+      v-if="confirmDelete"
       title="keys.deleteTitle"
       text="keys.deleteKeyText"
       @cancel="confirmDelete = false"
@@ -115,7 +106,7 @@
     />
 
     <!-- Warning dialog when key is deleted -->
-    <warningDialog
+    <WarningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
       localization-parent="keys"
@@ -129,11 +120,11 @@
 /***
  * Component for showing the details of a key
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import {
+  CodeWithDetails,
   Key,
   KeyUsageType,
   PossibleAction,
@@ -146,14 +137,13 @@ import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 import { isEmpty } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
-import { useTokensStore } from '@/store/modules/tokens';
+import { useTokens } from '@/store/modules/tokens';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
+import { useField } from 'vee-validate';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
-    ValidationProvider,
-    ValidationObserver,
     WarningDialog,
   },
   props: {
@@ -162,21 +152,36 @@ export default Vue.extend({
       required: true,
     },
   },
+  setup() {
+    const { meta, errorMessage, value, setValue, handleBlur } = useField(
+      'keys.name',
+      {
+        required: true,
+      },
+      { initialValue: '' },
+    );
+    return {
+      meta,
+      errorMessage,
+      keyName: value,
+      setKeyNameField: setValue,
+      handleBlur,
+    };
+  },
   data() {
     return {
       confirmDelete: false,
-      touched: false,
-      saveBusy: false,
+      saving: false,
       key: {} as Key,
       possibleActions: [] as PossibleActions,
       deleting: false as boolean,
-      warningInfo: [] as string[],
+      warningInfo: [] as CodeWithDetails[],
       warningDialog: false as boolean,
       tokenForCurrentKey: {} as Token,
     };
   },
   computed: {
-    ...mapState(useTokensStore, ['tokens']),
+    ...mapState(useTokens, ['tokens']),
 
     ...mapState(useUser, ['hasPermission']),
     canEdit(): boolean {
@@ -207,23 +212,23 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useTokensStore, ['fetchTokens']),
+    ...mapActions(useTokens, ['fetchTokens']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
 
     save(): void {
-      this.saveBusy = true;
-
+      this.saving = true;
+      this.key.name = this.keyName;
       api
         .patch(`/keys/${encodePathParameter(this.id)}`, this.key)
         .then(() => {
-          this.saveBusy = false;
+          this.saving = false;
           this.showSuccess(this.$t('keys.keySaved'));
           this.close();
         })
         .catch((error) => {
-          this.saveBusy = false;
+          this.saving = false;
           this.showError(error);
         });
     },
@@ -235,8 +240,7 @@ export default Vue.extend({
 
       this.key = keyResponse.data;
       this.fetchPossibleActions(id);
-      // If the key has no name, use key id instead
-      this.setKeyName();
+      this.setNameField();
 
       if (this.tokens?.length === 0) {
         await this.fetchTokens();
@@ -290,18 +294,19 @@ export default Vue.extend({
         })
         .finally(() => (this.deleting = false));
     },
-    setKeyName(): void {
-      if (isEmpty(this.key.name)) {
-        this.key.name = this.key.id;
-      }
+    setNameField(): void {
+      // If the key has no name, use key id instead
+      this.setKeyNameField(
+        isEmpty(this.key.name) ? this.key.id : this.key.name,
+      );
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/detail-views';
-@import '~styles/wizards';
+@import '@/assets/detail-views';
+@import '@/assets/wizards';
 
 .info-title {
   margin-top: 30px;

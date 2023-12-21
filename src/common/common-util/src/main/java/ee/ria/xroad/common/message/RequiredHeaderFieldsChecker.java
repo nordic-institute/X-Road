@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,11 +27,10 @@ package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.CodedException;
 
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.XmlElement;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-
-import javax.xml.bind.Unmarshaller.Listener;
-import javax.xml.bind.annotation.XmlElement;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -42,7 +41,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
-class RequiredHeaderFieldsChecker extends Listener {
+class RequiredHeaderFieldsChecker extends Unmarshaller.Listener {
 
     private final Class<?> clazz;
 
@@ -69,8 +68,8 @@ class RequiredHeaderFieldsChecker extends Listener {
                             annotation.name());
                 }
 
-                if (value != null && value instanceof ValidatableField) {
-                    ((ValidatableField) value).validate();
+                if (value instanceof ValidatableField vField) {
+                    vField.validate();
                 }
             }
         }

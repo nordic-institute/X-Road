@@ -28,196 +28,120 @@
   <div data-test="member-classes-list">
     <!-- Table -->
     <v-data-table
+      v-model:sort-by="sortBy"
       :headers="headers"
       :items="memberClasses"
       :must-sort="true"
-      sort-by="code"
-      :items-per-page="itemsPerPage"
-      class="elevation-0 data-table"
+      :items-per-page="itemsPerPageOptions[0].value"
+      :items-per-page-options="itemsPerPageOptions"
+      class="elevation-0 data-table xrd-table"
       item-key="code"
       :loader-height="2"
       :no-data-text="$t('noData.noMemberClasses')"
     >
       <template #top>
-        <div class="card-top">
-          <div class="card-main-title">
-            {{ $t('systemSettings.memberClasses') }}
-          </div>
-          <div class="card-corner-button">
-            <xrd-button
-              outlined
-              class="mr-4"
-              data-test="system-settings-add-member-class-button"
-              @click="openMemberClassDialog(undefined)"
-            >
-              <xrd-icon-base class="xrd-large-button-icon">
-                <XrdIconAdd />
-              </xrd-icon-base>
-              {{ $t('action.add') }}
-            </xrd-button>
-          </div>
-        </div>
+        <data-table-toolbar title-key="systemSettings.memberClasses">
+          <xrd-button
+            outlined
+            class="mr-4"
+            data-test="system-settings-add-member-class-button"
+            @click="openEditMemberClassDialog()"
+          >
+            <xrd-icon-base class="xrd-large-button-icon">
+              <xrd-icon-add />
+            </xrd-icon-base>
+            {{ $t('action.add') }}
+          </xrd-button>
+        </data-table-toolbar>
       </template>
 
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
           <xrd-button
             text
-            :outlined="false"
             data-test="system-settings-edit-member-class-button"
-            @click="openMemberClassDialog(item)"
+            @click="openEditMemberClassDialog(item)"
           >
             {{ $t('action.edit') }}
           </xrd-button>
 
           <xrd-button
             text
-            :outlined="false"
             data-test="system-settings-delete-member-class-button"
-            @click="confirmDelete(item)"
+            @click="openDeleteMemberClassDialog(item)"
           >
             {{ $t('action.delete') }}
           </xrd-button>
         </div>
       </template>
     </v-data-table>
-    <xrd-confirm-dialog
-      v-if="activeItem !== undefined"
-      data-test="system-settings-member-class-delete-confirm-dialog"
-      :dialog="confirmDeleteDialog"
-      :loading="deletingMemberClass"
-      title="action.confirm"
-      text="systemSettings.deleteMemberClass"
-      @cancel="cancelDelete"
-      @accept="acceptDelete"
+
+    <delete-member-class-dialog
+      v-if="selectedMemberClass && showDeleteMemberClassDialog"
+      :member-class="selectedMemberClass"
+      @cancel="closeDeleteMemberClassDialog"
+      @delete="closeDeleteMemberClassDialog"
     />
-    <xrd-simple-dialog
-      :title="
-        adding
-          ? 'systemSettings.addMemberClassTitle'
-          : 'systemSettings.editMemberClassTitle'
-      "
-      data-test="system-settings-member-class-edit-dialog"
-      :dialog="memberClassDialog"
-      :scrollable="false"
-      :show-close="true"
-      :loading="savingMemberClass"
-      save-button-text="action.save"
-      :disable-save="!valid"
-      @save="onSaveMemberClass"
-      @cancel="memberClassDialog = false"
-    >
-      <div slot="content">
-        <div class="pt-4 dlg-input-width">
-          <v-form
-            v-if="activeItem !== undefined"
-            ref="form"
-            v-model="valid"
-            lazy-validation
-            ><ValidationProvider
-              v-slot="{ errors }"
-              ref="code"
-              rules="required"
-              name="code"
-              class="validation-provider"
-            >
-              <v-text-field
-                v-model="activeItem.code"
-                data-test="system-settings-member-class-code-edit-field"
-                :disabled="!adding"
-                :label="$t('systemSettings.code')"
-                :rules="fieldRules"
-                :autofocus="adding"
-                outlined
-                class="dlg-row-input"
-                name="code"
-                :error-messages="errors"
-              ></v-text-field>
-            </ValidationProvider>
-            <v-text-field
-              v-model="activeItem.description"
-              data-test="system-settings-member-class-description-edit-field"
-              :label="$t('systemSettings.description')"
-              :rules="fieldRules"
-              :autofocus="!adding"
-              outlined
-              class="dlg-row-input"
-              name="memberClass"
-            ></v-text-field>
-          </v-form>
-        </div>
-      </div>
-    </xrd-simple-dialog>
+    <edit-member-class-dialog
+      v-if="showAddEditMemberClassDialog"
+      :member-class="selectedMemberClass"
+      @cancel="closeEditMemberClassDialog"
+      @edit="closeEditMemberClassDialog"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
-import { ErrorInfo, MemberClass } from '@/openapi-types';
+import { defineComponent } from 'vue';
+import { MemberClass } from '@/openapi-types';
 import { mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useMemberClassStore } from '@/store/modules/member-class';
-import { DataTableHeader } from 'vuetify';
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
-import { AxiosError } from 'axios';
-import { ValidationProvider } from 'vee-validate';
+import { useNotifications } from '@/store/modules/notifications';
+import { useMemberClass } from '@/store/modules/member-class';
+import EditMemberClassDialog from '@/components/systemSettings/EditMemberClassDialog.vue';
+import DeleteMemberClassDialog from '@/components/systemSettings/DeleteMemberClassDialog.vue';
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import { toPagingOptions } from '@/util/helpers';
 
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        code: InstanceType<typeof ValidationProvider>;
-      };
-    }
-  >
-).extend({
-  components: { ValidationProvider },
+export default defineComponent({
+  components: {
+    DataTableToolbar,
+    EditMemberClassDialog,
+    DeleteMemberClassDialog,
+    VDataTable,
+  },
   data: () => ({
-    deletingMemberClass: false,
-    savingMemberClass: false,
-    confirmDeleteDialog: false,
-    memberClassDialog: false,
-    activeItem: undefined as undefined | MemberClass,
-    adding: false,
-    valid: true,
+    sortBy: [{ key: 'code', order: 'asc' }],
+    selectedMemberClass: undefined as MemberClass | undefined,
+    showAddEditMemberClassDialog: false,
+    showDeleteMemberClassDialog: false,
   }),
   computed: {
-    ...mapStores(useMemberClassStore, notificationsStore),
+    ...mapStores(useMemberClass, useNotifications),
+    itemsPerPageOptions: () => toPagingOptions(5, 10, -1),
     memberClasses() {
       return this.memberClassStore.memberClasses;
     },
-    fieldRules() {
-      return [
-        (v: string) =>
-          (v.length <= 255 && v.length > 0) || this.$t('validationError.Size'),
-      ];
-    },
-    itemsPerPage() {
-      return this.memberClassStore.memberClasses.length > 5 ? 5 : -1;
+    totalItems(): number {
+      return this.memberClassStore.memberClasses.length;
     },
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('systemSettings.code') as string,
+          title: this.$t('systemSettings.code') as string,
           align: 'start',
-          value: 'code',
-          class: 'xrd-table-header member-classes-table-header-code',
+          key: 'code',
         },
         {
-          text: this.$t('systemSettings.description') as string,
+          title: this.$t('systemSettings.description') as string,
           align: 'start',
-          value: 'description',
-          class: 'xrd-table-header member-classes-table-header-description',
+          key: 'description',
         },
         {
-          text: '',
-          value: 'button',
+          title: '',
+          key: 'button',
           sortable: false,
-          class: 'xrd-table-header member-classes-table-header-buttons',
         },
       ];
     },
@@ -226,82 +150,30 @@ export default (
     this.memberClassStore.fetchAll();
   },
   methods: {
-    confirmDelete(item: MemberClass) {
-      this.confirmDeleteDialog = true;
-      this.activeItem = item;
+    openEditMemberClassDialog(
+      memberClass: MemberClass | undefined = undefined,
+    ) {
+      this.selectedMemberClass = memberClass;
+      this.showAddEditMemberClassDialog = true;
     },
-    async acceptDelete() {
-      this.deletingMemberClass = true;
-      if (this.activeItem !== undefined) {
-        try {
-          await this.memberClassStore.delete(this.activeItem);
-          this.notificationsStoreStore.showSuccess(
-            this.$t('systemSettings.memberClassDeleted'),
-          );
-        } catch (error: unknown) {
-          this.notificationsStoreStore.showError(error);
-        }
-        this.activeItem = undefined;
-      }
-      this.confirmDeleteDialog = false;
-      this.deletingMemberClass = false;
+    closeEditMemberClassDialog() {
+      this.showAddEditMemberClassDialog = false;
+      this.selectedMemberClass = undefined;
     },
-    cancelDelete() {
-      this.confirmDeleteDialog = false;
-      this.activeItem = undefined;
+    openDeleteMemberClassDialog(item: MemberClass) {
+      this.showDeleteMemberClassDialog = true;
+      this.selectedMemberClass = item;
     },
-    async onSaveMemberClass() {
-      if (this.activeItem !== undefined) {
-        this.savingMemberClass = true;
-        try {
-          await (this.adding
-            ? this.memberClassStore.add(this.activeItem)
-            : this.memberClassStore.update(
-                this.activeItem.code,
-                this.activeItem.description,
-              ));
-          this.notificationsStoreStore.showSuccess(
-            this.$t('systemSettings.memberClassSaved'),
-          );
-        } catch (error: unknown) {
-          const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
-          if (isFieldError(errorInfo)) {
-            let fieldErrors = errorInfo.error?.validation_errors;
-            if (fieldErrors && this.$refs?.code) {
-              this.$refs.code.setErrors(
-                getTranslatedFieldErrors('memberClassDto.code', fieldErrors),
-              );
-              return;
-            }
-          } else {
-            this.notificationsStoreStore.showError(error);
-          }
-        } finally {
-          this.savingMemberClass = false;
-        }
-      }
-      this.activeItem = undefined;
-      this.memberClassDialog = false;
-    },
-    openMemberClassDialog(item: MemberClass | undefined) {
-      if (item === undefined) {
-        this.activeItem = {
-          code: '',
-          description: '',
-        };
-        this.adding = true;
-      } else {
-        this.activeItem = { ...item };
-        this.adding = false;
-      }
-      this.memberClassDialog = true;
+    closeDeleteMemberClassDialog() {
+      this.showDeleteMemberClassDialog = false;
+      this.selectedMemberClass = undefined;
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .server-code {
   color: $XRoad-Purple100;
@@ -311,11 +183,6 @@ export default (
 
 .align-fix {
   align-items: center;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 
 .card-corner-button {

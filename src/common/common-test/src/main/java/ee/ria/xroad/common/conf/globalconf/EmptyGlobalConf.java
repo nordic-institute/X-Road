@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,7 +28,6 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -215,12 +214,12 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getApprovedTsps(String instanceIdentifier) {
+    public List<String> getApprovedTspUrls(String instanceIdentifier) {
         return null;
     }
 
     @Override
-    public List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
+    public List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier) {
         return null;
     }
 
@@ -236,7 +235,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId.Conf getServerOwner(SecurityServerId serverId) {
+    public ClientId getServerOwner(SecurityServerId serverId) {
         return null;
     }
 

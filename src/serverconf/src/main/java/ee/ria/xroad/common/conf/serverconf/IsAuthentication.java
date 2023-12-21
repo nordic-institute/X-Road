@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -74,8 +74,7 @@ public enum IsAuthentication {
         if (isAuthentication == IsAuthentication.SSLNOAUTH
                 && auth.isPlaintextConnection()) {
             throw new CodedException(X_SSL_AUTH_FAILED,
-                    "Client (%s) specifies HTTPS NO AUTH but client made "
-                            + " plaintext connection", client);
+                    "Client (%s) specifies HTTPS NO AUTH but client made plaintext connection", client);
         } else if (isAuthentication == IsAuthentication.SSLAUTH) {
             if (auth.getCert() == null) {
                 throw new CodedException(X_SSL_AUTH_FAILED,

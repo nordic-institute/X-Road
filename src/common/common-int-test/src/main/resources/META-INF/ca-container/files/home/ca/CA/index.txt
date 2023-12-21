@@ -1,0 +1,19 @@
+V	410305073557Z		01	unknown	/C=FI/O=X-Road Test/OU=X-Road Test OCSP OU/CN=X-Road Test OCSP CN
+V	410305073557Z		02	unknown	/C=FI/O=X-Road Test/OU=X-Road Test TSA OU/CN=X-Road Test TSA CN
+V	410305082412Z		03	unknown	/C=FI/O=TestGov/CN=ss1/serialNumber=CS/SS1/GOV
+V	410305082420Z		04	unknown	/C=FI/O=TestGov/CN=0245437-2/serialNumber=CS/SS1/GOV
+V	410305082641Z		05	unknown	/C=FI/O=TestOrg/CN=ss0/serialNumber=CS/SS0/ORG
+V	410305082657Z		06	unknown	/C=FI/O=TestOrg/CN=2908758-4/serialNumber=CS/SS0/ORG
+V	410305093823Z		07	unknown	/C=FI/O=TestGov/CN=1710128-9/serialNumber=CS/SS1/COM
+V	410526110621Z		08	unknown	/C=FI/O=TestGov/CN=0245437-2/serialNumber=CS/SS2/GOV
+V	410526110621Z		09	unknown	/C=FI/O=TestCom/CN=1710128-9/serialNumber=CS/SS2/COM
+V	410526110621Z		0A	unknown	/C=FI/O=TestGov/CN=ss2/serialNumber=CS/SS2/GOV
+V	420526111057Z		0B	unknown	/C=FI/O=TestOrg/CN=2908758-4/serialNumber=CS/SS1/ORG
+V	420526111057Z		0C	unknown	/C=FI/O=TestGov/CN=0245437-2/serialNumber=CS/SS1/GOV
+V	420526111057Z		0D	unknown	/C=FI/O=TestCom/CN=1710128-9/serialNumber=CS/SS1/COM
+V	420526111057Z		0E	unknown	/C=FI/O=TestGov/CN=ss1/serialNumber=CS/SS1/GOV
+V	420526123150Z		0F	unknown	/C=FI/O=NORTAL/CN=0245437-2/serialNumber=CS/SS0/GOV
+V	420526123150Z		10	unknown	/C=FI/O=NORTAL/CN=0245437-2/serialNumber=CS/SS0/GOV
+V	420526131417Z		11	unknown	/C=FI/O=NORTAL/CN=0245437-2/serialNumber=CS/SS0/GOV
+V	420526131506Z		12	unknown	/C=FI/O=NORTAL/CN=0245437-2/serialNumber=CS/SS0/GOV
+V	420526131506Z		13	unknown	/C=FI/O=NORTAL/CN=0245437-2/serialNumber=CS/SS0/GOV

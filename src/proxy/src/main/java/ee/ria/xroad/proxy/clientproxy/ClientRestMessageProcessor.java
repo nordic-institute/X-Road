@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -33,8 +33,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -46,6 +44,8 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -58,9 +58,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -187,15 +184,10 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         // Add unique id to distinguish request/response pairs
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 
-        try {
-            final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
-            opMonitoringData.setRequestOutTs(getEpochMillisecond());
-            httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
-            opMonitoringData.setResponseInTs(getEpochMillisecond());
-        } catch (Exception e) {
-            MonitorAgent.serverProxyFailed(createRequestMessageInfo());
-            throw e;
-        }
+        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
+        opMonitoringData.setRequestOutTs(getEpochMillisecond());
+        httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
+        opMonitoringData.setResponseInTs(getEpochMillisecond());
     }
 
     private void parseResponse(HttpSender httpSender) throws Exception {
@@ -290,19 +282,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (response.hasRestBody()) {
             IOUtils.copy(response.getRestBody(), servletResponse.getOutputStream());
         }
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        if (restRequest == null) {
-            return null;
-        }
-
-        return new MessageInfo(MessageInfo.Origin.CLIENT_PROXY,
-                restRequest.getClientId(),
-                requestServiceId,
-                null,
-                null);
     }
 
     class ProxyMessageEntity extends AbstractHttpEntity {

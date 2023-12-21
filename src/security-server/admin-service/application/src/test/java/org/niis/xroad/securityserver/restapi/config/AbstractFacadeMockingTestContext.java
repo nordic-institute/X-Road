@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Base for all tests that mock GlobalConfFacade, ManagementRequestSenderService, and SignerProxyFacade.
  * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
- * read global configuration from filesystem, send actual management requests, or send Akka requests to signer.
+ * read global configuration from filesystem, send actual management requests, or send rpc requests to signer.
  *
  * Extending this base class also helps in keeping mock injections standard, and reduce number of different
  * application contexts built for testing.

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,20 +26,20 @@
 package ee.ria.xroad.monitor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * MetricsRegistryHolderTest
  */
 @Slf4j
-public class MetricRegistryHolderTest {
+class MetricRegistryHolderTest {
 
     @Test
-    public void testGetOrCreateSimpleSensor() {
-
+    void testGetOrCreateSimpleSensor() {
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
             assertEquals(holder.getOrCreateSimpleSensor("Sensor"),
@@ -47,12 +47,10 @@ public class MetricRegistryHolderTest {
         } catch (Exception e) {
             fail("Exception should not have been thrwon!");
         }
-
     }
 
     @Test
-    public void testGetOrCreateHistogram() {
-
+    void testGetOrCreateHistogram() {
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
             assertEquals(holder.getOrCreateHistogram("Histogram"),
@@ -60,13 +58,12 @@ public class MetricRegistryHolderTest {
         } catch (Exception e) {
             fail("Exception should not have been thrown!");
         }
-
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testTypeConflict() {
+    @Test
+    void testTypeConflict() {
         final MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
         holder.getMetrics().gauge("test", () -> () -> 42L);
-        holder.getOrCreateSimpleSensor("test");
+        assertThrows(IllegalArgumentException.class, () -> holder.getOrCreateSimpleSensor("test"));
     }
 }

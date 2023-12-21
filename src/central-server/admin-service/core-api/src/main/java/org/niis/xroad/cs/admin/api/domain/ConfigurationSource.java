@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -47,5 +47,4 @@ public class ConfigurationSource {
     private String haNodeName;
     private Set<ConfigurationSigningKey> configurationSigningKeys = new HashSet<>(0);
 }
-
 

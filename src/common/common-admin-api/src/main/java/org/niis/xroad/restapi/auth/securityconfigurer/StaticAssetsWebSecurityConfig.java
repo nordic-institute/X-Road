@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,50 +26,47 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+
+import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerPolicyDirectives;
 
 /**
  * Static assets should be open to everyone
  */
 @Configuration
-@Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
-public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class StaticAssetsWebSecurityConfig {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .requestMatchers()
-                .antMatchers("/favicon.ico",
+
+    @Bean
+    @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+    public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher(
+                        "/favicon.ico",
                         "/",
                         "/index.html",
                         "/img/**",
                         "/css/**",
                         "/js/**",
-                        "/fonts/**")
-                    .and()
-                .headers()
-                    .contentSecurityPolicy(
-                                "default-src 'self' 'unsafe-inline' ;"
-                                        + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
-                                        + "style-src 'self' 'unsafe-inline' ;"
-                                        + "font-src data: 'self'"
-                            )
-                            .and()
-                    .and()
-                .authorizeRequests()
-                        .anyRequest()
-                        .permitAll()
-                    .and()
-                .sessionManagement()
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                    .and()
-                .csrf()
-                    .disable()
-                .formLogin()
-                    .disable();
+                        "/fonts/**",
+                        "/assets/**"
+                )
+                .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline' data: ;"
+                                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+                                                + "style-src 'self' 'unsafe-inline' ;"
+                                                + "font-src data: 'self'"
+                                )
+                )
+                .authorizeHttpRequests(customizer -> customizer.anyRequest().permitAll())
+                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .build();
     }
 }

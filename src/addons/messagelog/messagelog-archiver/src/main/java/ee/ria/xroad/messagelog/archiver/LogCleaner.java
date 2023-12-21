@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,49 +26,43 @@
 package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
-import akka.actor.UntypedAbstractActor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
 
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 /**
  * Deletes all archived log records from the database.
  */
 @Slf4j
-public class LogCleaner extends UntypedAbstractActor {
+public class LogCleaner implements Job {
 
-    public static final String START_CLEANING = "doClean";
     public static final int CLEAN_BATCH_LIMIT = MessageLogProperties.getCleanTransactionBatchSize();
 
     @Override
-    public void onReceive(Object message) {
-        log.trace("onReceive({})", message);
-
-        if (message.equals(START_CLEANING)) {
-            try {
-                log.info("Removing archived records from database...");
-                final long removed = handleClean();
-                if (removed == 0) {
-                    log.info("No archived records to remove from database");
-                } else {
-                    log.info("Removed {} archived records from database", removed);
-                }
-            } catch (Exception e) {
-                log.error("Error when cleaning archived records from database", e);
+    public void execute(JobExecutionContext context) {
+        try {
+            log.info("Removing archived records from database...");
+            final long removed = handleClean();
+            if (removed == 0) {
+                log.info("No archived records to remove from database");
+            } else {
+                log.info("Removed {} archived records from database", removed);
             }
-        } else {
-            unhandled(message);
+        } catch (Exception e) {
+            log.error("Error when cleaning archived records from database", e);
         }
     }
 
     protected long handleClean() throws Exception {
 
         final Long time =
-                Instant.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
+                TimeUtils.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
         long count = 0;
         int removed;
         do {

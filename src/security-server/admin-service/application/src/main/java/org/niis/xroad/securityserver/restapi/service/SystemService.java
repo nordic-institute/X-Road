@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -44,10 +44,12 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,7 +92,9 @@ public class SystemService {
     private final AnchorRepository anchorRepository;
     private final ConfigurationVerifier configurationVerifier;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
+    private final SecurityServerAddressChangeStatus addressChangeStatus;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
@@ -212,7 +216,7 @@ public class SystemService {
      */
     public AnchorFile getAnchorFile() throws AnchorNotFoundException {
         AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(readAnchorFile()));
-        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromFile();
+        ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
         return anchorFile;
     }
@@ -228,7 +232,7 @@ public class SystemService {
      */
     public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, MalformedAnchorException {
-        ConfigurationAnchorV2 anchor = createAnchorFromBytes(anchorBytes);
+        ConfigurationAnchor anchor = createAnchorFromBytes(anchorBytes);
         if (shouldVerifyAnchorInstance) {
             verifyAnchorInstance(anchor);
         }
@@ -300,7 +304,7 @@ public class SystemService {
             throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
             ConfigurationDownloadException, ConfigurationVerifier.ConfigurationVerificationException {
         auditDataHelper.calculateAndPutAnchorHash(anchorBytes);
-        ConfigurationAnchorV2 anchor = createAnchorFromBytes(anchorBytes);
+        ConfigurationAnchor anchor = createAnchorFromBytes(anchorBytes);
         auditDataHelper.putDate(RestApiAuditProperty.GENERATED_AT, anchor.getGeneratedAt());
         if (shouldVerifyAnchorInstance) {
             verifyAnchorInstance(anchor);
@@ -343,15 +347,37 @@ public class SystemService {
     }
 
     /**
+     * Sends a management request to change Security Server address
+     * @param newAddress new address
+     * @return request ID in the central server database
+     * @throws GlobalConfOutdatedException
+     * @throws ManagementRequestSendingFailedException
+     */
+    public Integer changeSecurityServerAddress(String newAddress) throws GlobalConfOutdatedException,
+            ManagementRequestSendingFailedException {
+        auditDataHelper.put(RestApiAuditProperty.ADDRESS, newAddress);
+        if (addressChangeStatus.getAddressChangeRequest().isPresent()) {
+            throw new ConflictException("Address change request already submitted.");
+        }
+        if (globalConfService.getSecurityServerAddress(currentSecurityServerId.getServerId()).equals(newAddress)) {
+            throw new ConflictException("Can not change to the same address.");
+        }
+        Integer requestId = managementRequestSenderService.sendAddressChangeRequest(newAddress);
+        addressChangeStatus.setAddress(newAddress);
+
+        return requestId;
+    }
+
+    /**
      * Simple helper to create a ConfigurationAnchorV2 instance from bytes
      * @param anchorBytes
      * @return
      * @throws MalformedAnchorException if the anchor is malformed or somehow invalid
      */
-    private ConfigurationAnchorV2 createAnchorFromBytes(byte[] anchorBytes) throws MalformedAnchorException {
-        ConfigurationAnchorV2 anchor = null;
+    private ConfigurationAnchor createAnchorFromBytes(byte[] anchorBytes) throws MalformedAnchorException {
+        ConfigurationAnchor anchor = null;
         try {
-            anchor = new ConfigurationAnchorV2(anchorBytes);
+            anchor = new ConfigurationAnchor(anchorBytes);
         } catch (CodedException ce) {
             if (isCausedByMalformedAnchorContent(ce)) {
                 throw new MalformedAnchorException("Anchor is invalid");
@@ -389,7 +415,7 @@ public class SystemService {
      * @param anchor
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      */
-    private void verifyAnchorInstance(ConfigurationAnchorV2 anchor) throws InvalidAnchorInstanceException {
+    private void verifyAnchorInstance(ConfigurationAnchor anchor) throws InvalidAnchorInstanceException {
         String anchorInstanceId = anchor.getInstanceIdentifier();
         String ownerInstance = currentSecurityServerId.getServerId().getOwner().getXRoadInstance();
         if (!anchorInstanceId.equals(ownerInstance)) {
@@ -419,7 +445,7 @@ public class SystemService {
      */
     public String getAnchorFilenameForDownload() {
         DateFormat df = new SimpleDateFormat(ANCHOR_DOWNLOAD_DATE_TIME_FORMAT);
-        ConfigurationAnchorV2 anchor = anchorRepository.loadAnchorFromFile();
+        ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
         return ANCHOR_DOWNLOAD_FILENAME_PREFIX + df.format(anchor.getGeneratedAt()) + ANCHOR_DOWNLOAD_FILE_EXTENSION;
     }
 

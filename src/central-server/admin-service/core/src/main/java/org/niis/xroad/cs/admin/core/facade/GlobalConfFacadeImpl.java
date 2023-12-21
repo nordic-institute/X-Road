@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,7 +32,7 @@ import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -177,10 +177,10 @@ public class GlobalConfFacadeImpl implements GlobalConfFacade {
     }
 
     /**
-     * {@link GlobalConf#getApprovedTspTypes(String)}
+     * {@link GlobalConf#getApprovedTsps(String)}
      */
-    public List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
-        return GlobalConf.getApprovedTspTypes(instanceIdentifier);
+    public List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier) {
+        return GlobalConf.getApprovedTsps(instanceIdentifier);
     }
 
     /**

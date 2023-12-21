@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -59,13 +59,13 @@ import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyT
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsIterableContaining.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -538,15 +538,15 @@ public class MergeOntoFileTokenStrategyTest {
         }
 
         static int getCertCount(String id) {
-            return Integer.valueOf(id) + 2;
+            return Integer.parseInt(id) + 2;
         }
 
         static int getResponseIndex(String id) {
-            return Integer.valueOf(id) + 1;
+            return Integer.parseInt(id) + 1;
         }
 
         static int getResponseStatus(String id) {
-            return Integer.valueOf(id) * 15 + 3;
+            return Integer.parseInt(id) * 15 + 3;
         }
 
         static List<Key> createKeys(int count) {

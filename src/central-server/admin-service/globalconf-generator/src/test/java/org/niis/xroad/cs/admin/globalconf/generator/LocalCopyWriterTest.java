@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -53,6 +55,7 @@ class LocalCopyWriterTest {
             .data("test data2".getBytes(UTF_8))
             .build();
     static final Set<ConfigurationPart> CONFIGURATION_PARTS = Set.of(CONFIGURATION_PART1, CONFIGURATION_PART2);
+    static final int CONFIGURATION_VERSION = 3;
     static final String INSTANCE = "XROAD-INSTANCE";
     public static final String CONF_EXPIRE_TIME = "2023-01-03T15:52:33Z";
     static final Instant CONF_EXPIRE_INSTANT = Instant.parse(CONF_EXPIRE_TIME);
@@ -63,7 +66,7 @@ class LocalCopyWriterTest {
 
     @Test
     void shouldCreateDir() {
-        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, Instant.now());
+        var localCopyWriter = new LocalCopyWriter(CONFIGURATION_VERSION, INSTANCE, localConfDir, TimeUtils.now());
         localCopyWriter.write(CONFIGURATION_PARTS);
 
         assertThat(localConfDir.resolve(INSTANCE))
@@ -73,7 +76,7 @@ class LocalCopyWriterTest {
 
     @Test
     void shouldWriteFiles() {
-        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, Instant.now());
+        var localCopyWriter = new LocalCopyWriter(CONFIGURATION_VERSION, INSTANCE, localConfDir, TimeUtils.now());
         localCopyWriter.write(CONFIGURATION_PARTS);
 
         CONFIGURATION_PARTS.forEach(part ->
@@ -85,7 +88,7 @@ class LocalCopyWriterTest {
 
     @Test
     void shouldWriteMetadata() {
-        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, CONF_EXPIRE_INSTANT);
+        var localCopyWriter = new LocalCopyWriter(CONFIGURATION_VERSION, INSTANCE, localConfDir, CONF_EXPIRE_INSTANT);
         localCopyWriter.write(CONFIGURATION_PARTS);
 
         CONFIGURATION_PARTS.forEach(part ->
@@ -93,8 +96,10 @@ class LocalCopyWriterTest {
                         .exists()
                         .content().isEqualTo("{\"contentIdentifier\":\"DUMMY\","
                                 + "\"instanceIdentifier\":\"%s\",\"contentFileName\":null,"
-                                + "\"contentLocation\":\"\""
-                                + ",\"expirationDate\":\"%s\"}", INSTANCE, CONF_EXPIRE_TIME)
+                                + "\"contentLocation\":\"\","
+                                + "\"expirationDate\":\"%s\","
+                                + "\"configurationVersion\":\"%d\"}",
+                                INSTANCE, CONF_EXPIRE_TIME, CONFIGURATION_VERSION)
         );
     }
 
@@ -104,7 +109,7 @@ class LocalCopyWriterTest {
                 localConfDir.resolve(INSTANCE).resolve(CONFIGURATION_PART1.getFilename()).toAbsolutePath(),
                 localConfDir.resolve(INSTANCE).resolve(CONFIGURATION_PART2.getFilename()).toAbsolutePath());
 
-        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, CONF_EXPIRE_INSTANT);
+        var localCopyWriter = new LocalCopyWriter(CONFIGURATION_VERSION, INSTANCE, localConfDir, CONF_EXPIRE_INSTANT);
         localCopyWriter.write(CONFIGURATION_PARTS);
 
         assertThat(localConfDir.resolve("files"))
@@ -114,7 +119,7 @@ class LocalCopyWriterTest {
 
     @Test
     void shouldWriteInstanceIdentifier() {
-        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, CONF_EXPIRE_INSTANT);
+        var localCopyWriter = new LocalCopyWriter(CONFIGURATION_VERSION, INSTANCE, localConfDir, CONF_EXPIRE_INSTANT);
         localCopyWriter.write(CONFIGURATION_PARTS);
 
         assertThat(localConfDir.resolve("instance-identifier"))
@@ -130,7 +135,7 @@ class LocalCopyWriterTest {
         Files.writeString(targetDir.resolve("some-config.xml.metadata"), "metadata");
         Files.writeString(targetDir.resolve("some-config-without-metadata.xml"), "data");
 
-        var localCopyWriter = new LocalCopyWriter(INSTANCE, localConfDir, CONF_EXPIRE_INSTANT);
+        var localCopyWriter = new LocalCopyWriter(CONFIGURATION_VERSION, INSTANCE, localConfDir, CONF_EXPIRE_INSTANT);
         localCopyWriter.write(CONFIGURATION_PARTS);
 
         assertAll(

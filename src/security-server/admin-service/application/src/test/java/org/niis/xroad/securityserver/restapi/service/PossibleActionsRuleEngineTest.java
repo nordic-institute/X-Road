@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -424,6 +425,33 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         assertTrue(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
         assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
 
+        // not possible if key has certificate and system property not set (using default)
+        tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .id(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)
+                .key(new TokenTestUtils.KeyInfoBuilder()
+                        .keyUsageInfo(null)
+                        .cert(new CertificateTestUtils.CertificateInfoBuilder().build())
+                        .build())
+                .build();
+        actions = getPossibleKeyActions(tokenInfo);
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
+
+        // possible if key has certificate and system property is set to allow csr
+        boolean currValue = SystemProperties.getAllowCsrForKeyWithCertificate();
+        System.setProperty(SystemProperties.PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, "true");
+        tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .id(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID)
+                .key(new TokenTestUtils.KeyInfoBuilder()
+                        .keyUsageInfo(null)
+                        .cert(new CertificateTestUtils.CertificateInfoBuilder().build())
+                        .build())
+                .build();
+        actions = getPossibleKeyActions(tokenInfo);
+        assertTrue(actions.contains(PossibleActionEnum.GENERATE_AUTH_CSR));
+        assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
+        System.setProperty(SystemProperties.PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, String.valueOf(currValue));
+
         // not possible if token is not softtoken
         tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .id(PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID + 1)
@@ -501,6 +529,31 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
                 .build();
         actions = getPossibleKeyActions(tokenInfo);
         assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
+
+        // not possible if key has certificate
+        tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .key(new TokenTestUtils.KeyInfoBuilder()
+                        .keyUsageInfo(null)
+                        .cert(new CertificateTestUtils.CertificateInfoBuilder().build())
+                        .available(true)
+                        .build())
+                .build();
+        actions = getPossibleKeyActions(tokenInfo);
+        assertFalse(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
+
+        // possible if key has certificate and allowed in properties
+        boolean currVal = SystemProperties.getAllowCsrForKeyWithCertificate();
+        System.setProperty(SystemProperties.PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, "true");
+        tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .key(new TokenTestUtils.KeyInfoBuilder()
+                        .keyUsageInfo(null)
+                        .cert(new CertificateTestUtils.CertificateInfoBuilder().build())
+                        .available(true)
+                        .build())
+                .build();
+        actions = getPossibleKeyActions(tokenInfo);
+        assertTrue(actions.contains(PossibleActionEnum.GENERATE_SIGN_CSR));
+        System.setProperty(SystemProperties.PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE, String.valueOf(currVal));
 
         // not possible if usage = auth
         tokenInfo = new TokenTestUtils.TokenInfoBuilder()

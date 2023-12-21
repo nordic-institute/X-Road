@@ -37,7 +37,7 @@ import {
   PagedGroupMemberListView,
   PagingMetadata,
 } from '@/openapi-types';
-import { DataOptions } from 'vuetify';
+import { PagingOptions } from '@/ui-types';
 
 export interface State {
   globalGroups: GlobalGroupResource[];
@@ -46,7 +46,7 @@ export interface State {
   pagingOptions: PagingMetadata;
 }
 
-export const useGlobalGroupsStore = defineStore('globalGroup', {
+export const useGlobalGroups = defineStore('globalGroup', {
   state: (): State => ({
     globalGroups: [],
     groupsLoading: false,
@@ -91,15 +91,15 @@ export const useGlobalGroupsStore = defineStore('globalGroup', {
     },
     async findMembers(
       groupCode: string,
-      dataOptions: DataOptions,
+      dataOptions: PagingOptions,
       filter: GroupMembersFilter,
     ) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       filter.paging_sorting = {
         limit: dataOptions.itemsPerPage,
         offset: offset,
-        sort: dataOptions.sortBy[0],
-        desc: dataOptions.sortDesc[0],
+        sort: dataOptions.sortBy?.[0]?.key,
+        desc: dataOptions.sortBy?.[0]?.order === 'desc',
       };
 
       return axios

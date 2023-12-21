@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.test;
 
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
@@ -47,8 +48,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.unit.DataSize;
-
-import javax.transaction.Transactional;
 
 /**
  * Base class for {@link  MockMvc} based test cases.

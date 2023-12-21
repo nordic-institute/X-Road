@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
@@ -102,10 +102,10 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
      */
     private void displayInfo(final String instance,
                              final ConfProxyProperties conf) throws Exception {
-        ConfigurationAnchorV2 anchor = null;
+        ConfigurationAnchor anchor = null;
         String anchorError = null;
         try {
-            anchor = new ConfigurationAnchorV2(conf.getProxyAnchorPath());
+            anchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
         } catch (Exception e) {
             anchorError = "'" + ConfProxyProperties.ANCHOR_XML
                     + "' could not be loaded: " + e;
@@ -133,14 +133,15 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         }
         System.out.println();
 
-        System.out.println("Configuration URL");
+        System.out.println("Configuration URLs");
         System.out.println(delimiter);
-        if (conf.getConfigurationProxyURL().equals("0.0.0.0")) {
-            System.out.println("configuration-proxy.address has not been"
-                    + " configured in 'local.ini'!");
+        var configurationProxyURLs = conf.getConfigurationProxyURLs();
+        if (configurationProxyURLs.isEmpty()) {
+            System.out.println("configuration-proxy.address has not been configured in 'local.ini'!");
         } else {
-            System.out.println(conf.getConfigurationProxyURL() + "/"
-                    + OutputBuilder.SIGNED_DIRECTORY_NAME);
+            for (String proxyURL : configurationProxyURLs) {
+                System.out.println(proxyURL + "/" + OutputBuilder.SIGNED_DIRECTORY_NAME);
+            }
         }
         System.out.println();
 

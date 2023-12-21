@@ -31,13 +31,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificationServiceCertificate',
   components: { CertificateDetails },
   props: {
@@ -52,7 +52,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore),
+    ...mapStores(useCertificationService),
   },
   created() {
     this.certificationServiceStore

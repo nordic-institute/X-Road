@@ -24,113 +24,112 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
+  <v-dialog
+    v-if="dialog"
+    :model-value="dialog"
+    width="842"
+    scrollable
+    persistent
+  >
     <v-card class="xrd-card px-0 mx-0" height="90vh">
-      <v-card-title>
-        <span class="headline" data-test="access-rights-dialog-title">
+      <v-card-title class="d-flex pt-4">
+        <span class="text-h5" data-test="access-rights-dialog-title">
           {{ title }}
         </span>
         <v-spacer />
         <i id="close-x" data-test="cancel" @click="cancel()"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px" class="elevation-0 px-0">
-        <v-expansion-panels
-          v-model="expandPanel"
-          class="elevation-0 px-0"
-          multiple
-        >
-          <v-expansion-panel class="elevation-0 px-0">
-            <v-expansion-panel-header></v-expansion-panel-header>
-            <v-expansion-panel-content class="elevation-0">
-              <template #header>
-                <v-spacer />
-                <div class="exp-title">
-                  {{ $t('localGroup.searchOptions') }}
-                </div>
-              </template>
+      <v-card-text style="height: 500px" class="pa-0">
+        <xrd-expandable :is-open="true" class="px-4">
+          <template #link="{ toggle }">
+            <div class="exp-title cursor-pointer" @click="toggle">
+              {{ $t('localGroup.searchOptions') }}
+            </div>
+          </template>
 
-              <div>
-                <div class="flex-wrap">
-                  <div class="input-row">
-                    <v-text-field
-                      v-model="name"
-                      :label="$t('general.name')"
-                      hide-details
-                      autofocus
-                      outlined
-                      clearable
-                      data-test="name"
-                      class="flex-input"
-                    ></v-text-field>
+          <template #content>
+            <div class="flex-wrap">
+              <div class="input-row px-2 pb-4">
+                <v-text-field
+                  v-model="name"
+                  :label="$t('general.name')"
+                  hide-details
+                  autofocus
+                  variant="outlined"
+                  clearable
+                  data-test="name-text-field"
+                  class="flex-input"
+                ></v-text-field>
 
-                    <v-select
-                      v-model="instance"
-                      :items="xroadInstances"
-                      :label="$t('general.instance')"
-                      class="flex-input"
-                      data-test="instance"
-                      outlined
-                      clearable
-                    ></v-select>
-                  </div>
-
-                  <div class="input-row">
-                    <v-select
-                      v-model="memberClass"
-                      :items="memberClasses"
-                      :label="$t('general.memberClass')"
-                      data-test="memberClass"
-                      class="flex-input"
-                      clearable
-                      outlined
-                    ></v-select>
-                    <v-text-field
-                      v-model="memberCode"
-                      :label="$t('serviceClients.memberGroupCodeLabel')"
-                      hide-details
-                      clearable
-                      data-test="memberCode"
-                      class="flex-input"
-                      outlined
-                    ></v-text-field>
-                  </div>
-
-                  <div class="input-row">
-                    <v-text-field
-                      v-model="subsystemCode"
-                      :label="$t('general.subsystemCode')"
-                      hide-details
-                      clearable
-                      data-test="subsystemCode"
-                      class="flex-input"
-                      outlined
-                    ></v-text-field>
-
-                    <v-select
-                      v-model="serviceClientType"
-                      :items="ServiceClientTypeItems"
-                      label="Subject type"
-                      class="flex-input"
-                      data-test="serviceClientType"
-                      outlined
-                      clearable
-                    ></v-select>
-                  </div>
-                </div>
-
-                <div class="search-wrap">
-                  <xrd-button
-                    :loading="loading"
-                    data-test="search-button"
-                    @click="search()"
-                    >{{ $t('action.search') }}</xrd-button
-                  >
-                </div>
+                <v-select
+                  v-model="instance"
+                  :items="xroadInstances"
+                  :label="$t('general.instance')"
+                  class="flex-input"
+                  data-test="instance-select"
+                  variant="outlined"
+                  clearable
+                  hide-details
+                ></v-select>
               </div>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-        </v-expansion-panels>
+
+              <div class="input-row px-2 pb-4">
+                <v-select
+                  v-model="memberClass"
+                  :items="memberClasses"
+                  :label="$t('general.memberClass')"
+                  data-test="member-class-select"
+                  class="flex-input"
+                  clearable
+                  hide-details
+                  variant="outlined"
+                ></v-select>
+                <v-text-field
+                  v-model="memberCode"
+                  :label="$t('serviceClients.memberGroupCodeLabel')"
+                  hide-details
+                  clearable
+                  data-test="member-code-text-field"
+                  class="flex-input"
+                  variant="outlined"
+                ></v-text-field>
+              </div>
+
+              <div class="input-row px-2 pb-4">
+                <v-text-field
+                  v-model="subsystemCode"
+                  :label="$t('general.subsystemCode')"
+                  hide-details
+                  clearable
+                  data-test="subsystem-code-text-field"
+                  class="flex-input"
+                  variant="outlined"
+                ></v-text-field>
+
+                <v-select
+                  v-model="serviceClientType"
+                  :items="ServiceClientTypeItems"
+                  label="Subject type"
+                  class="flex-input"
+                  data-test="service-client-type-select"
+                  variant="outlined"
+                  clearable
+                  hide-details
+                ></v-select>
+              </div>
+            </div>
+
+            <div class="search-wrap">
+              <xrd-button
+                :loading="loading"
+                data-test="search-button"
+                @click="search()"
+                >{{ $t('action.search') }}</xrd-button
+              >
+            </div>
+          </template>
+        </xrd-expandable>
 
         <!-- Table -->
         <table class="xrd-table members-table fixed_header">
@@ -149,9 +148,9 @@
               <td class="first-column">
                 <div class="checkbox-wrap">
                   <v-checkbox
-                    color="primary"
-                    data-test="sc-checkbox"
-                    @change="checkboxChange(sc, $event)"
+                    data-test="service-client-checkbox"
+                    hide-details
+                    @update:model-value="checkboxChange(sc, $event)"
                   ></v-checkbox>
                 </div>
               </td>
@@ -199,18 +198,13 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
-import { ServiceClient } from '@/openapi-types';
-
-enum ServiceClientTypes {
-  GLOBALGROUP = 'GLOBALGROUP',
-  LOCALGROUP = 'LOCALGROUP',
-  SUBSYSTEM = 'SUBSYSTEM',
-}
+import { ServiceClient, ServiceClientType } from '@/openapi-types';
+import { XrdExpandable } from '@niis/shared-ui';
 
 const initialState = () => {
   return {
@@ -220,8 +214,7 @@ const initialState = () => {
     memberClass: '',
     memberCode: '',
     subsystemCode: '',
-    serviceClientTypes: ServiceClientTypes,
-    expandPanel: [0],
+    serviceClientTypes: ServiceClientType,
     serviceClientCandidates: [] as ServiceClient[],
     selectedIds: [] as ServiceClient[],
     noResults: false,
@@ -230,7 +223,8 @@ const initialState = () => {
   };
 };
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdExpandable },
   props: {
     dialog: {
       type: Boolean,
@@ -249,7 +243,7 @@ export default Vue.extend({
       required: true,
     },
   },
-
+  emits: ['cancel', 'service-clients-added'],
   data() {
     return { ...initialState() };
   },
@@ -262,15 +256,15 @@ export default Vue.extend({
       // Returns items for subject type select with translated texts
       return [
         {
-          text: this.$t('serviceClientType.globalGroup'),
+          title: this.$t('serviceClientType.globalGroup'),
           value: this.serviceClientTypes.GLOBALGROUP,
         },
         {
-          text: this.$t('serviceClientType.localGroup'),
+          title: this.$t('serviceClientType.localGroup'),
           value: this.serviceClientTypes.LOCALGROUP,
         },
         {
-          text: this.$t('serviceClientType.subsystem'),
+          title: this.$t('serviceClientType.subsystem'),
           value: this.serviceClientTypes.SUBSYSTEM,
         },
       ];
@@ -295,6 +289,15 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
+      if (this.name == null) {
+        this.name = '';
+      }
+      if (this.memberCode == null) {
+        this.memberCode = '';
+      }
+      if (this.subsystemCode == null) {
+        this.subsystemCode = '';
+      }
       let query = `/clients/${this.clientId}/service-client-candidates?member_name_group_description=${this.name}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
 
       // These checks are needed because instance, subject type and member class (dropdowns) return undefined if they are first selected and then cleared
@@ -370,5 +373,9 @@ export default Vue.extend({
 
 .first-column {
   width: 40px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

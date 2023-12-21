@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -45,15 +45,15 @@ public class InitializationPageObj {
     }
 
     public SelenideElement confirmPinInput() {
-        return $x("//input[@data-test='confirm-pin--input']");
+        return $x("//div[@data-test='confirm-pin--input']");
     }
 
     public SelenideElement pinInput() {
-        return $x("//input[@data-test='pin--input']");
+        return $x("//div[@data-test='pin--input']");
     }
 
     public SelenideElement pinValidation() {
-        return $x("//span[@data-test='pin--validation']");
+        return pinInput().$x(".//div[@class='v-messages__message']");
     }
 
     public SelenideElement submitButton() {
@@ -61,19 +61,19 @@ public class InitializationPageObj {
     }
 
     public SelenideElement instanceIdentifierInput() {
-        return $x("//input[@data-test='instance-identifier--input']");
+        return $x("//div[@data-test='instance-identifier--input']");
     }
 
     public SelenideElement instanceIdentifierValidation() {
-        return $x("//span[@data-test='instance-identifier--validation']");
+        return instanceIdentifierInput().$x(".//div[@class='v-messages__message']");
     }
 
     public SelenideElement serverAddressInput() {
-        return $x("//input[@data-test='address--input']");
+        return $x("//div[@data-test='address--input']");
     }
 
     public SelenideElement serverAddressValidation() {
-        return $x("//span[@data-test='address--validation']");
+        return serverAddressInput().$x(".//div[@class='v-messages__message']");
     }
 
     public SelenideElement contextualAlertsNote() {

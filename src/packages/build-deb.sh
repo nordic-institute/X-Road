@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-LAST_SUPPORTED_VERSION=7.1.0
+LAST_SUPPORTED_VERSION=7.2.0
 
 function builddeb {
     local root="$1"
@@ -33,6 +33,7 @@ EOF
     done
     sed -i "s/#LAST_SUPPORTED_VERSION#/${LAST_SUPPORTED_VERSION}/" debian/*.preinst
 
+    echo "Building $dist packages.."
     echo "using packageVersion $packageVersion"
     if [[ $packageVersion != "-release" ]]; then
         version=$version."$packageVersion"
@@ -67,10 +68,6 @@ else
 fi
 
 case "$1" in
-    bionic)
-        prepare ubuntu18.04
-        builddeb build/xroad/ubuntu bionic ubuntu18.04 "$PACKAGE_VERSION"
-        ;;
     focal)
         prepare ubuntu20.04
         builddeb build/xroad/ubuntu focal ubuntu20.04 "$PACKAGE_VERSION"

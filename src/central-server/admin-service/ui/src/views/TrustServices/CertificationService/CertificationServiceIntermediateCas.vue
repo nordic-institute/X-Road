@@ -26,23 +26,23 @@
  -->
 <template>
   <main id="certification-service-indermediate-cas" class="mt-8">
-    <IntermediateCasList
+    <intermediate-cas-list
       :cs="certificationServiceStore.currentCertificationService"
     />
   </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { useCertificationService } from '@/store/modules/trust-services';
 import IntermediateCasList from '@/components/intermediateCas/IntermediateCasList.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'CertificationServiceIntermediateCas',
   components: { IntermediateCasList },
   computed: {
-    ...mapStores(useCertificationServiceStore),
+    ...mapStores(useCertificationService),
   },
 });
 </script>

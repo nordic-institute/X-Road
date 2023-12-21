@@ -76,4 +76,10 @@ log "Making sure that token pin policy is enforced by default"
 if ! crudini --get /etc/xroad/conf.d/local.ini signer enforce-token-pin-policy &>/dev/null; then
   crudini --set /etc/xroad/conf.d/local.ini signer enforce-token-pin-policy "true"
 fi
+
+#initialize transport keys
+mkdir -p -m0750 /var/run/xroad
+chown xroad:xroad /var/run/xroad
+su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
+
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

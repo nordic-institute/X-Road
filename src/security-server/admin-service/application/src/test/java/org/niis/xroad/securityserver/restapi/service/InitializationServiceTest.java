@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -104,8 +104,8 @@ public class InitializationServiceTest {
         when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
-        when(externalProcessRunner.executeAndThrowOnFailure(any(), any())).thenReturn(
-                new ExternalProcessRunner.ProcessResult("mockCmd", 0, new ArrayList<String>()));
+        when(externalProcessRunner.executeAndThrowOnFailure(any(), any(String[].class))).thenReturn(
+                new ExternalProcessRunner.ProcessResult("mockCmd", 0, new ArrayList<>()));
         initializationService = new InitializationService(systemService, serverConfService,
                 tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper, tokenPinValidator,
                 externalProcessRunner);

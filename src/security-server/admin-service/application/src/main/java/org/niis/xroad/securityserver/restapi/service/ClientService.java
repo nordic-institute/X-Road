@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -71,6 +71,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLED;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
@@ -562,6 +565,62 @@ public class ClientService {
     }
 
     /**
+     * Disable a client
+     *
+     * @param clientId client to disable
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws ActionNotPossibleException when trying to unregister a client that cannot be disabled
+     */
+    public void disableClient(ClientId.Conf clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotUnregisterOwnerException, ActionNotPossibleException {
+
+        auditDataHelper.put(clientId);
+
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        if (!STATUS_REGISTERED.equals(client.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot disable client with status " + client.getClientStatus());
+        }
+        try {
+            Integer requestId = managementRequestSenderService.sendClientDisableRequest(clientId);
+            auditDataHelper.putClientStatus(client);
+            auditDataHelper.putManagementRequestId(requestId);
+            client.setClientStatus(STATUS_DISABLING_INPROG);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Enable a client
+     *
+     * @param clientId client to disable
+     * @throws GlobalConfOutdatedException
+     * @throws ClientNotFoundException
+     * @throws ActionNotPossibleException when trying to unregister a client that cannot be enable
+     */
+    public void enableClient(ClientId.Conf clientId) throws GlobalConfOutdatedException, ClientNotFoundException,
+            CannotUnregisterOwnerException, ActionNotPossibleException {
+
+        auditDataHelper.put(clientId);
+
+        ClientType client = getLocalClientOrThrowNotFound(clientId);
+        if (!STATUS_DISABLED.equals(client.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot enable client with status " + client.getClientStatus());
+        }
+        try {
+            Integer requestId = managementRequestSenderService.sendClientEnableRequest(clientId);
+            auditDataHelper.putClientStatus(client);
+            auditDataHelper.putManagementRequestId(requestId);
+            client.setClientStatus(STATUS_ENABLING_INPROG);
+        } catch (ManagementRequestSendingFailedException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+
+
+    /**
      * Merge two client lists into one with only unique clients. The distinct clients in the latter list
      * {@code moreClients} are favoured in the case of duplicates.
      *
@@ -762,7 +821,7 @@ public class ClientService {
             throw new CannotDeleteOwnerException();
         }
         // cant delete with statuses STATUS_REGINPROG and STATUS_REGISTERED
-        List<String> allowedStatuses = Arrays.asList(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
+        Set<String> allowedStatuses = Set.of(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR, STATUS_DISABLING_INPROG, STATUS_DISABLED);
         if (!allowedStatuses.contains(clientType.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
         }

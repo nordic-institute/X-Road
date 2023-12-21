@@ -1,20 +1,21 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,6 +32,7 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
@@ -39,9 +41,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.verify.decode.AddressChangeRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.AuthCertDeletionRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.AuthCertRegRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientDeletionRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.ClientDisableRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.ClientEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientRegRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
@@ -53,6 +58,8 @@ import java.util.Optional;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
 
 /**
  * Reads and verifies management requests.
@@ -71,23 +78,24 @@ public final class ManagementRequestVerifier {
         private final AuthCertRegRequestType authCertRegRequest;
         private final AuthCertDeletionRequestType authCertDeletionRequestType;
         private final ClientRequestType clientRequest;
+        private final AddressChangeRequestType addressChangeRequest;
 
-        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType,
-                      AuthCertRegRequestType authCertRegRequest) {
+        public Result(SoapMessageImpl soapMessage, AuthCertRegRequestType authCertRegRequest) {
             this.soapMessage = soapMessage;
-            this.requestType = requestType;
+            this.requestType = AUTH_CERT_REGISTRATION_REQUEST;
             this.authCertRegRequest = authCertRegRequest;
             this.authCertDeletionRequestType = null;
+            this.addressChangeRequest = null;
             this.clientRequest = null;
         }
 
-        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType,
-                      AuthCertDeletionRequestType authCertDeletionRequestType) {
+        public Result(SoapMessageImpl soapMessage, AuthCertDeletionRequestType authCertDeletionRequestType) {
             this.soapMessage = soapMessage;
-            this.requestType = requestType;
+            this.requestType = AUTH_CERT_DELETION_REQUEST;
             this.authCertRegRequest = null;
             this.authCertDeletionRequestType = authCertDeletionRequestType;
             this.clientRequest = null;
+            this.addressChangeRequest = null;
         }
 
         public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, ClientRequestType clientRequest) {
@@ -95,7 +103,17 @@ public final class ManagementRequestVerifier {
             this.requestType = requestType;
             this.authCertRegRequest = null;
             this.authCertDeletionRequestType = null;
+            this.addressChangeRequest = null;
             this.clientRequest = clientRequest;
+        }
+
+        public Result(SoapMessageImpl soapMessage, AddressChangeRequestType addressChangeRequest) {
+            this.soapMessage = soapMessage;
+            this.requestType = ManagementRequestType.ADDRESS_CHANGE_REQUEST;
+            this.addressChangeRequest = addressChangeRequest;
+            this.clientRequest = null;
+            this.authCertDeletionRequestType = null;
+            this.authCertRegRequest = null;
         }
 
         public Optional<AuthCertRegRequestType> getAuthCertRegRequest() {
@@ -104,6 +122,10 @@ public final class ManagementRequestVerifier {
 
         public Optional<AuthCertDeletionRequestType> getAuthCertDeletionRequest() {
             return Optional.ofNullable(authCertDeletionRequestType);
+        }
+
+        public Optional<AddressChangeRequestType> getAddressChangeRequest() {
+            return Optional.ofNullable(addressChangeRequest);
         }
 
         public Optional<ClientRequestType> getClientRequest() {
@@ -142,14 +164,17 @@ public final class ManagementRequestVerifier {
             throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request");
         }
 
-        if (request instanceof AuthCertRegRequestType) {
-            return new Result(cb.getSoapMessage(), cb.getRequestType(), (AuthCertRegRequestType) request);
+        if (request instanceof AuthCertRegRequestType authCertRegRequestType) {
+            return new Result(cb.getSoapMessage(), authCertRegRequestType);
         }
-        if (request instanceof AuthCertDeletionRequestType) {
-            return new Result(cb.getSoapMessage(), cb.getRequestType(), (AuthCertDeletionRequestType) request);
+        if (request instanceof AuthCertDeletionRequestType authCertDeletionRequestType) {
+            return new Result(cb.getSoapMessage(), authCertDeletionRequestType);
         }
-        if (request instanceof ClientRequestType) {
-            return new Result(cb.getSoapMessage(), cb.getRequestType(), (ClientRequestType) request);
+        if (request instanceof ClientRequestType clientRequestType) {
+            return new Result(cb.getSoapMessage(), cb.getRequestType(), clientRequestType);
+        }
+        if (request instanceof AddressChangeRequestType addressChangeRequestType) {
+            return new Result(cb.getSoapMessage(), addressChangeRequestType);
         }
 
         throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
@@ -168,25 +193,17 @@ public final class ManagementRequestVerifier {
             this.soapMessage = (SoapMessageImpl) message;
             this.requestType = ManagementRequestType.getByServiceCode(soapMessage.getService().getServiceCode());
 
-            switch (requestType) {
-                case AUTH_CERT_REGISTRATION_REQUEST:
-                    managementRequestDecoderCallback = new AuthCertRegRequestDecoderCallback(this);
-                    break;
-                case CLIENT_REGISTRATION_REQUEST:
-                    managementRequestDecoderCallback = new ClientRegRequestCallback(this);
-                    break;
-                case OWNER_CHANGE_REQUEST:
-                    managementRequestDecoderCallback = new OwnerChangeRequestCallback(this);
-                    break;
-                case CLIENT_DELETION_REQUEST:
-                    managementRequestDecoderCallback = new ClientDeletionRequestCallback(this);
-                    break;
-                case AUTH_CERT_DELETION_REQUEST:
-                    managementRequestDecoderCallback = new AuthCertDeletionRequestDecoderCallback(this);
-                    break;
-                default:
-                    throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
-            }
+            managementRequestDecoderCallback = switch (requestType) {
+                case AUTH_CERT_REGISTRATION_REQUEST -> new AuthCertRegRequestDecoderCallback(this);
+                case CLIENT_REGISTRATION_REQUEST -> new ClientRegRequestCallback(this);
+                case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestCallback(this);
+                case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestCallback(this);
+                case AUTH_CERT_DELETION_REQUEST -> new AuthCertDeletionRequestDecoderCallback(this);
+                case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(this);
+                case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(this);
+                case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(this);
+                default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
+            };
         }
 
         @Override

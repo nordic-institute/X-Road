@@ -1,6 +1,7 @@
 plugins {
     id 'com.github.johnrengelman.shadow'
 }
+
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
@@ -11,22 +12,36 @@ sourceSets {
     main {
         java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
     }
+    intTest {
+        resources {
+            srcDir '../common/common-int-test/src/main/resources/'
+        }
+    }
 }
 
 dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+
     implementation project(':common:common-util')
     implementation project(':common:common-verifier')
+    implementation project(':common:common-rpc')
     implementation project(':signer-protocol')
 
+    implementation('org.springframework:spring-context')
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../libs', include: '*.jar')
 
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
 
-    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
+
+
+    intTestRuntimeOnly project(':addons:hwtoken')
+    intTestRuntimeOnly project(':common:common-util')
+    intTestImplementation project(":common:common-test")
+    intTestImplementation project(":common:common-int-test")
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
@@ -37,16 +52,17 @@ jar {
         attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
     }
     archiveClassifier = 'plain'
+
 }
 
 shadowJar {
     archiveClassifier = ''
     exclude('**/module-info.class')
-    append('reference.conf')
     from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
 }
 
-assemble.dependsOn shadowJar
+jar.finalizedBy shadowJar
 
 task createDirs() {
     doLast {
@@ -111,3 +127,31 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
+
+tasks.register('intTest', Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def intTestArgs = []
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
+
+    jvmArgs intTestArgs
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('intTest')
+}

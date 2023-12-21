@@ -2,9 +2,11 @@
 Feature: Management requests API
 
   Background:
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:E2E:member-1' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
 
   @Modifying
   Scenario: Add/delete Authentication certificate
@@ -187,6 +189,17 @@ Feature: Management requests API
     And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And management request is with status 'WAITING'
     Then details of management request can be retrieved for security server 'CS:E2E:member-1:SS-X'
+
+  @Modifying
+  Scenario: Disabling/enabling subsystem
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And management request is approved
+    And client 'CS:E2E:member-1:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And management request is approved
+    When security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is disabled
+    Then member 'CS:E2E:member-1' subsystem 'subsystem-1' status in server 'SS-X' is 'DISABLED'
+    When security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is enabled
+    Then member 'CS:E2E:member-1' subsystem 'subsystem-1' status in server 'SS-X' is 'APPROVED'
 
   @Modifying
   Scenario: Management requests list

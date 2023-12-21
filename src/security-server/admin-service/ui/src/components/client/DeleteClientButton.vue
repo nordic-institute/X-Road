@@ -24,47 +24,48 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <xrd-button
-      data-test="delete-client-button"
-      outlined
-      @click="confirmDelete = true"
-      ><v-icon class="xrd-large-button-icon">icon-Declined</v-icon
-      >{{ $t('action.delete') }}</xrd-button
-    >
+  <xrd-button
+    data-test="delete-client-button"
+    outlined
+    @click="confirmDelete = true"
+  >
+    <xrd-icon-base class="xrd-large-button-icon">
+      <xrd-icon-declined />
+    </xrd-icon-base>
+    {{ $t('action.delete') }}
+  </xrd-button>
 
-    <!-- Confirm dialog for delete client -->
-    <xrd-confirm-dialog
-      :dialog="confirmDelete"
-      :loading="deleteLoading"
-      title="client.action.delete.confirmTitle"
-      text="client.action.delete.confirmText"
-      @cancel="confirmDelete = false"
-      @accept="deleteClient()"
-    />
+  <!-- Confirm dialog for delete client -->
+  <xrd-confirm-dialog
+    v-if="confirmDelete"
+    :loading="deleteLoading"
+    title="client.action.delete.confirmTitle"
+    text="client.action.delete.confirmText"
+    @cancel="confirmDelete = false"
+    @accept="deleteClient()"
+  />
 
-    <!-- Confirm dialog for deleting orphans -->
-    <xrd-confirm-dialog
-      :dialog="confirmOrphans"
-      :loading="orphansLoading"
-      title="client.action.removeOrphans.confirmTitle"
-      text="client.action.removeOrphans.confirmText"
-      cancel-button-text="client.action.removeOrphans.cancelButtonText"
-      @cancel="notDeleteOrphans()"
-      @accept="deleteOrphans()"
-    />
-  </div>
+  <!-- Confirm dialog for deleting orphans -->
+  <xrd-confirm-dialog
+    v-if="confirmOrphans"
+    :loading="orphansLoading"
+    title="client.action.removeOrphans.confirmTitle"
+    text="client.action.removeOrphans.confirmText"
+    cancel-button-text="client.action.removeOrphans.cancelButtonText"
+    @cancel="notDeleteOrphans()"
+    @accept="deleteOrphans()"
+  />
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     id: {
       type: String,

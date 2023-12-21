@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
@@ -33,11 +33,11 @@ import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
 import org.apache.commons.cli.CommandLine;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -68,15 +68,15 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
         ensureProxyExists(commandLine);
         final ConfProxyProperties conf = loadConf(commandLine);
 
-        ConfigurationAnchorV2 sourceAnchor = null;
+        ConfigurationAnchor sourceAnchor = null;
         try {
-            sourceAnchor = new ConfigurationAnchorV2(conf.getProxyAnchorPath());
+            sourceAnchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
         } catch (Exception ex) {
             fail("Could not load source anchor: ", ex);
         }
         String instance = sourceAnchor.getInstanceIdentifier();
 
-        if (conf.getConfigurationProxyURL().equals("0.0.0.0")) {
+        if (conf.getConfigurationProxyURLs().isEmpty()) {
             fail("configuration-proxy.address has not been"
                     + " configured in 'local.ini'!", null);
         }
@@ -110,32 +110,37 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
      * @throws Exception if xml generation fails
      */
     private void generateAnchorXml(final ConfProxyProperties conf,
-                                   final String instanceIdentifier, final OutputStream out)
-            throws Exception {
+                                   final String instanceIdentifier,
+                                   final OutputStream out) throws Exception {
         JAXBContext jaxbCtx = JAXBContext.newInstance(ObjectFactory.class);
         Marshaller marshaller = jaxbCtx.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 
         ObjectFactory factory = new ObjectFactory();
-        ConfigurationSourceType sourceType =
-                factory.createConfigurationSourceType();
-        sourceType.setDownloadURL(conf.getConfigurationProxyURL() + "/"
-                + OutputBuilder.SIGNED_DIRECTORY_NAME);
-        for (byte[] cert : conf.getVerificationCerts()) {
-            sourceType.getVerificationCert().add(cert);
-        }
-        ConfigurationAnchorType anchorType =
-                factory.createConfigurationAnchorType();
+        ConfigurationAnchorType anchorType = factory.createConfigurationAnchorType();
         anchorType.setInstanceIdentifier(instanceIdentifier);
         GregorianCalendar gcal = new GregorianCalendar();
         gcal.setTimeZone(TimeZone.getTimeZone("UTC"));
         XMLGregorianCalendar xgcal = DatatypeFactory.newInstance()
                 .newXMLGregorianCalendar(gcal);
         anchorType.setGeneratedAt(xgcal);
-        anchorType.getSource().add(sourceType);
+
+        addSources(conf, factory, anchorType);
+
         JAXBElement<ConfigurationAnchorType> root =
                 factory.createConfigurationAnchor(anchorType);
 
         marshaller.marshal(root, out);
+    }
+
+    private void addSources(ConfProxyProperties conf, ObjectFactory factory, ConfigurationAnchorType anchorType) throws Exception {
+        for (String url : conf.getConfigurationProxyURLs()) {
+            ConfigurationSourceType sourceType = factory.createConfigurationSourceType();
+            sourceType.setDownloadURL(url + "/" + OutputBuilder.SIGNED_DIRECTORY_NAME);
+            for (byte[] cert : conf.getVerificationCerts()) {
+                sourceType.getVerificationCert().add(cert);
+            }
+            anchorType.getSource().add(sourceType);
+        }
     }
 }

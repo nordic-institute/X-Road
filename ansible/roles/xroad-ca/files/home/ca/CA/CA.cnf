@@ -86,6 +86,7 @@ commonName              = supplied
 emailAddress            = optional
 domainComponent         = optional
 serialNumber            = optional
+businessCategory        = optional
 
 [ req ]
 # Options for the `req` tool (`man req`).

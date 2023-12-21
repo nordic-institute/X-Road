@@ -33,15 +33,17 @@
         hide-details
         autofocus
         data-test="search-service-client"
+        variant="underlined"
+        density="compact"
         class="search-input"
+        append-inner-icon="mdi-magnify"
       >
-        <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
     </div>
 
     <v-radio-group
       v-model="selection"
-      @change="$emit('candidate-selection', $event)"
+      @update:model-value="$emit('candidate-selection', $event)"
     >
       <table class="xrd-table service-clients-table">
         <thead>
@@ -92,25 +94,25 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
-import { Prop } from 'vue/types/options';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     id: {
-      type: String as Prop<string>,
+      type: String,
       required: true,
     },
     serviceClients: {
-      type: Array as Prop<ServiceClient[]>,
+      type: Array as PropType<ServiceClient[]>,
       required: true,
     },
   },
+  emits: ['candidate-selection', 'set-step'],
   data() {
     return {
       search: '' as string,
@@ -132,7 +134,7 @@ export default Vue.extend({
         .catch((error) => this.showError(error));
     },
     cancel(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
     filteredCandidates(): ServiceClient[] {
       return this.serviceClientCandidates.filter(
@@ -161,8 +163,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/wizards';
+@import '@/assets/tables';
+@import '@/assets/wizards';
 
 .search-field {
   max-width: 300px;

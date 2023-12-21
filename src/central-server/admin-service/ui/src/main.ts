@@ -31,26 +31,38 @@ Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
-import Vue from 'vue';
+import { createApp } from 'vue';
 import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
-import './filters';
+import { createFilters } from '@/filters';
 import App from './App.vue';
 import router from './router/router';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
-import i18n from './i18n';
-import { createPinia, PiniaVuePlugin } from 'pinia';
-import VueCompositionAPI from '@vue/composition-api';
+import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
-
-Vue.use(VueCompositionAPI);
-Vue.use(PiniaVuePlugin);
+import { createValidators } from '@/plugins/vee-validate';
+import vuetify from '@/plugins/vuetify';
+import i18n from '@/plugins/i18n';
+import '@niis/shared-ui/dist/style.css';
+import {
+  XrdButton,
+  XrdCloseButton,
+  XrdConfirmDialog,
+  XrdEmptyPlaceholder,
+  XrdIconAdd,
+  XrdIconBase,
+  XrdIconChecked,
+  XrdIconChecker,
+  XrdIconClose,
+  XrdIconCopy,
+  XrdIconFolderOutline,
+  XrdSearch,
+  XrdSimpleDialog,
+  XrdSubViewContainer,
+  XrdSubViewTitle,
+} from '@niis/shared-ui';
 
 const pinia = createPinia();
 pinia.use(
@@ -58,17 +70,33 @@ pinia.use(
     storage: sessionStorage,
   }),
 );
-Vue.config.productionTip = false;
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';
 
-Vue.use(Router);
+const app = createApp(App);
+app.use(pinia);
+app.use(router);
+app.use(vuetify);
+app.use(i18n);
+app.use(createFilters());
+app.use(createValidators());
+//icons
+app.component('XrdIconFolderOutline', XrdIconFolderOutline);
+app.component('XrdIconBase', XrdIconBase);
+app.component('XrdIconChecker', XrdIconChecker);
+app.component('XrdIconClose', XrdIconClose);
+app.component('XrdIconChecked', XrdIconChecked);
+app.component('XrdIconAdd', XrdIconAdd);
+app.component('XrdIconCopy', XrdIconCopy);
+//components
+app.component('XrdButton', XrdButton);
+app.component('XrdSearch', XrdSearch);
+app.component('XrdCloseButton', XrdCloseButton);
+app.component('XrdSubViewContainer', XrdSubViewContainer);
+app.component('XrdSimpleDialog', XrdSimpleDialog);
+app.component('XrdConfirmDialog', XrdConfirmDialog);
+app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
+app.component('XrdSubViewTitle', XrdSubViewTitle);
 
-new Vue({
-  router,
-  i18n,
-  vuetify,
-  pinia,
-  render: (h) => h(App),
-}).$mount('#app');
+app.mount('#app');

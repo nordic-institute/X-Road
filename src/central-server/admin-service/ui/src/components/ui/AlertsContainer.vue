@@ -35,12 +35,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import ContextualAlerts from './ContextualAlerts.vue';
 import GlobalAlerts from './GlobalAlerts.vue';
 import InitNotification from '@/components/ui/InitNotification.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     InitNotification,
     ContextualAlerts,

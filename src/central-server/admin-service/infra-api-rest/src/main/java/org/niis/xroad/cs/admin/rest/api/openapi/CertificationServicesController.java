@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -110,9 +110,15 @@ public class CertificationServicesController implements CertificationServicesApi
     @PreAuthorize("hasAuthority('ADD_APPROVED_CA')")
     public ResponseEntity<OcspResponderDto> addCertificationServiceOcspResponder(Integer caId, String url, MultipartFile certificate) {
         final var addRequest = new OcspResponderAddRequest();
-        byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
-        fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
-        addRequest.setCaId(caId).setUrl(url).setCertificate(fileBytes);
+        addRequest
+                .setCaId(caId)
+                .setUrl(url);
+
+        if (certificate != null && !certificate.isEmpty()) {
+            byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
+            fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
+            addRequest.setCertificate(fileBytes);
+        }
 
         var ocspResponder = certificationServicesService.addOcspResponder(addRequest);
         return status(CREATED).body(ocspResponderDtoConverter.toDto(ocspResponder));

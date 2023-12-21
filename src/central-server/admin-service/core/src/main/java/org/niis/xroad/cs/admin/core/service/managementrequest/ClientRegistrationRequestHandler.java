@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.common.exception.ValidationFailureException;
@@ -51,8 +52,6 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.util.EnumSet;
 import java.util.List;

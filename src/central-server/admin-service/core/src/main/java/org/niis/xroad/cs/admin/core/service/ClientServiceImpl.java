@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
 import org.niis.xroad.cs.admin.api.paging.Page;
@@ -37,8 +38,6 @@ import org.niis.xroad.cs.admin.core.entity.mapper.FlattenedSecurityServerClientV
 import org.niis.xroad.cs.admin.core.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.paging.StableSortHelper;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.util.List;
 

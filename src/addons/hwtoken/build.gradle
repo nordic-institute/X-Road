@@ -1,5 +1,7 @@
 dependencies {
-    implementation(project(':signer'))
+    implementation(project(':signer')) {
+        exclude group: 'org.springframework', module: 'spring-context'
+    }
     implementation(project(':signer-protocol'))
     implementation(project(':common:common-util'))
 

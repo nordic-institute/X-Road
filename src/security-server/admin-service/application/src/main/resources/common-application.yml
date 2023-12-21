@@ -1,10 +1,7 @@
 ## properties that are not specific to a runtime (test or prod)
-
 spring:
   mvc:
     throw-exception-if-no-handler-found: true
-  resources:
-    add-mappings: false
   jpa:
     ## *.hbm.xml files are loaded from classpath
     mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml
@@ -16,8 +13,8 @@ spring:
     default-property-inclusion: NON_NULL
   servlet:
     multipart:
-      max-file-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload:${request.sizelimit.binary.upload}}
-      max-request-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload:${request.sizelimit.binary.upload}}
+      max-file-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
+      max-request-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
 
 # default is 30m
 # server.servlet.session.timeout=1m
@@ -27,35 +24,19 @@ server:
     session:
       cookie:
         secure: true
-  tomcat:
-    accesslog:
-      enabled: true
-      directory: /var/log/xroad
-      prefix: proxy_ui_api_access
-      suffix: .log
-      pattern: "%h %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{X-Forwarded-For}i\""
-      renameOnRotate: true
-      rotatable: true
-      max-days: 30
-
-# Deprecated, should be replaced with "xroad.proxy-ui-api.request-sizelimit-regular" & "xroad.proxy-ui-api.request-sizelimit-binary-upload" once removed
-request:
-  sizelimit:
-    regular: 50KB
-    binary:
-      upload: 10MB
+        same-site: Strict
 
 xroad:
   proxy-ui-api:
-    rate-limit-requests-per-second: ${ratelimit.requests.per.second:20} #Deprecated. This is a fallback to old style properties
-    rate-limit-requests-per-minute: ${ratelimit.requests.per.minute:600} #Deprecated. This is a fallback to old style properties
+    rate-limit-requests-per-second: 20
+    rate-limit-requests-per-minute: 600
     rate-limit-cache-size: 10_000
     rate-limit-expire-after-access-minutes: 5
     cache-default-ttl: 60
     cache-api-key-ttl: 60
     strict-identifier-checks: true
-    request-size-limit-regular: ${request.sizelimit.regular}
-    request-size-limit-binary-upload: ${request.sizelimit.binary.upload}
+    request-size-limit-regular: 50KB
+    request-size-limit-binary-upload: 10MB
 
 file-upload-endpoints:
   endpoint-definitions:

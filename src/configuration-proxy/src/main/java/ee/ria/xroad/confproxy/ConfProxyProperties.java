@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -69,8 +69,8 @@ public class ConfProxyProperties {
 
     private static final String CERT_EXTENSION = ".pem";
 
-    private INIConfiguration config;
-    private Path configFile;
+    private final INIConfiguration config;
+    private final Path configFile;
 
     @Getter
     String instance;
@@ -78,6 +78,7 @@ public class ConfProxyProperties {
     /**
      * Constructs the configuration for the given
      * configuration proxy instance id.
+     *
      * @param name the if of the configuration proxy instance
      * @throws ConfigurationException if the configuration could not be loaded
      */
@@ -104,6 +105,7 @@ public class ConfProxyProperties {
     /**
      * Gets the location of the configuration client script, which downloads
      * the global configuration.
+     *
      * @return path to the configuration client script
      */
     public static String getDownloadScriptPath() {
@@ -113,6 +115,7 @@ public class ConfProxyProperties {
     /**
      * Gets the path to the directory which should hold the downloaded global
      * configuration files for this configuration proxy instance.
+     *
      * @return download path for the global configuration files
      */
     public final String getConfigurationDownloadPath(int version) {
@@ -123,6 +126,7 @@ public class ConfProxyProperties {
     /**
      * Gets the path to the directory which should hold the generated global
      * configuration files for this configuration proxy instance.
+     *
      * @return path to the global configuration destination
      */
     public final String getConfigurationTargetPath() {
@@ -134,6 +138,7 @@ public class ConfProxyProperties {
     /**
      * Gets the configured temporary directory path for the generated global
      * configuration files.
+     *
      * @return path to the temporary directory
      */
     public final String getTemporaryDirectoryPath() {
@@ -144,6 +149,7 @@ public class ConfProxyProperties {
     /**
      * Gets the default path for the configuration proxy
      * instance 'anchor.xml' file.
+     *
      * @return the configuration proxy instance 'anchor.xml' file.
      */
     public final String getProxyAnchorPath() {
@@ -154,18 +160,25 @@ public class ConfProxyProperties {
     /**
      * Gets the public URL where configurations should be available,
      * 'configuration-proxy.address' needs to be defined in 'local.ini'.
-     * @return the URL where global configurations are made available
+     *
+     * @return list of  URLs where global configurations are made available
      * @throws Exception if the configured configuration proxy
      *                   address is invalid
      */
-    public final String getConfigurationProxyURL() throws Exception {
+    public final List<String> getConfigurationProxyURLs() throws Exception {
         String address = SystemProperties.getConfigurationProxyAddress();
-        URI uri = new URI("http", address, "/" + instance, null);
-        return uri.toString();
+        if (SystemProperties.DEFAULT_CONNECTOR_HOST.equals(address)) {
+            return List.of();
+        }
+
+        return List.of(
+                new URI("http", address, "/" + instance, null).toString(),
+                new URI("https", address, "/" + instance, null).toString());
     }
 
     /**
      * Gets the configured active signing key id.
+     *
      * @return the configured active signing key id
      */
     public final String getActiveSigningKey() {
@@ -177,6 +190,7 @@ public class ConfProxyProperties {
 
     /**
      * Configures the active signing key id.
+     *
      * @param keyId new active signing key id
      * @throws ConfigurationException if an error occurs when saving the configuration
      */
@@ -188,6 +202,7 @@ public class ConfProxyProperties {
 
     /**
      * Gets the id for the configured signature digest algorithm.
+     *
      * @return the id of the configured signature digest algorithm.
      */
     public final String getSignatureDigestAlgorithmId() {
@@ -196,6 +211,7 @@ public class ConfProxyProperties {
 
     /**
      * Gets the configured validity interval.
+     *
      * @return the configured validity interval in seconds
      */
     public final int getValidityIntervalSeconds() {
@@ -204,6 +220,7 @@ public class ConfProxyProperties {
 
     /**
      * Configures the validity interval of the generated configurations.
+     *
      * @param value number of seconds the configurations should be valid
      * @throws ConfigurationException if an error occurs when saving the configuration
      */
@@ -215,6 +232,7 @@ public class ConfProxyProperties {
 
     /**
      * Gets the URI for the configured hash algorithm.
+     *
      * @return the URI of the configured hash algorithm.
      */
     public final String getHashAlgorithmURI() {
@@ -223,10 +241,10 @@ public class ConfProxyProperties {
 
     /**
      * Reads all certificate bytes from disk.
+     *
      * @return a list of certificate byte content
-     * @throws IOException if reading a certificate from disk failed
      */
-    public final List<byte[]> getVerificationCerts() throws IOException {
+    public final List<byte[]> getVerificationCerts() {
         List<X509Certificate> certs = new ArrayList<>();
         if (getActiveSigningKey() != null) {
             certs.add(readCert(getActiveSigningKey()));
@@ -238,6 +256,7 @@ public class ConfProxyProperties {
 
     /**
      * Reads configured keys from the configuration.
+     *
      * @return a list containing configured key ids
      */
     public final List<String> getKeyList() {
@@ -255,6 +274,7 @@ public class ConfProxyProperties {
 
     /**
      * Saves the given certificate to the appropriate location.
+     *
      * @param keyId     the key id the certificate corresponds to
      * @param certBytes the byte contents of the certificate
      * @throws Exception if an error occurs when saving the certificate to disk
@@ -268,6 +288,7 @@ public class ConfProxyProperties {
 
     /**
      * Adds the given key id to the configuration.
+     *
      * @param keyId the id to be added
      * @throws ConfigurationException if an error occurs when saving the configuration
      */
@@ -280,6 +301,7 @@ public class ConfProxyProperties {
 
     /**
      * Removes the given key id from the configuration.
+     *
      * @param keyId the id to be removed
      * @return true if the given key id was found and removed
      * @throws ConfigurationException if an error occurs when saving the configuration
@@ -306,6 +328,7 @@ public class ConfProxyProperties {
 
     /**
      * Checks whether the configuration is loaded correctly.
+     *
      * @return true if the configuration file has been loaded.
      */
     public final boolean exists() {
@@ -314,6 +337,7 @@ public class ConfProxyProperties {
 
     /**
      * Deletes the certificate file for the given key id.
+     *
      * @param keyId the id for the key corresponding to the certificate
      * @throws IOException if an I/O error occurs
      */
@@ -323,6 +347,7 @@ public class ConfProxyProperties {
 
     /**
      * Constructs the path to the certificate file for the given key id.
+     *
      * @param keyId the id for the key corresponding to the certificate
      * @return the path to the certificate file
      */
@@ -333,18 +358,20 @@ public class ConfProxyProperties {
 
     /**
      * Get the current active signing key count.
+     *
      * @return the active signing key count
      */
     private int activeSigningKeyCount() {
         Object activeKeyProperty = config.getProperty(ACTIVE_SIGNING_KEY_ID);
         if (activeKeyProperty instanceof ArrayList) {
-            return ((ArrayList<?>)activeKeyProperty).size();
+            return ((ArrayList<?>) activeKeyProperty).size();
         }
         return activeKeyProperty != null ? 1 : 0;
     }
 
     /**
      * Get next available key number.
+     *
      * @return the next available key number
      */
     private int getNextKeyNumber() {
@@ -357,6 +384,7 @@ public class ConfProxyProperties {
 
     /**
      * Read the certificate for the provided key id from disk.
+     *
      * @param keyId the key id
      * @return the certificate for the provided key id
      */
@@ -373,6 +401,7 @@ public class ConfProxyProperties {
 
     /**
      * Quietly get the raw bytes of a certificate.
+     *
      * @param cert the certificate
      * @return raw bytes for the provided certificate
      */

@@ -27,7 +27,6 @@
 <template>
   <xrd-simple-dialog
     :disable-save="!formReady"
-    :dialog="dialog"
     :loading="loading"
     cancel-button-text="action.cancel"
     title="globalResources.addGlobalGroup"
@@ -35,63 +34,60 @@
     @save="save"
   >
     <template #content>
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="code"
-          outlined
-          :label="$t('globalResources.code')"
-          autofocus
-          data-test="add-global-group-code-input"
-        ></v-text-field>
-      </div>
+      <v-text-field
+        v-bind="code"
+        variant="outlined"
+        :label="$t('globalResources.code')"
+        :error-messages="errors.code"
+        autofocus
+        data-test="add-global-group-code-input"
+      />
 
-      <div class="dlg-input-width">
-        <v-text-field
-          v-model="description"
-          :label="$t('globalResources.description')"
-          outlined
-          data-test="add-global-group-description-input"
-        ></v-text-field>
-      </div>
+      <v-text-field
+        v-bind="description"
+        :label="$t('globalResources.description')"
+        :error-messages="errors.description"
+        variant="outlined"
+        data-test="add-global-group-description-input"
+      />
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { useGlobalGroupsStore } from '@/store/modules/global-groups';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useGlobalGroups } from '@/store/modules/global-groups';
+import { useNotifications } from '@/store/modules/notifications';
+import { useForm } from 'vee-validate';
 
-export default Vue.extend({
-  name: 'AddGroupDialog',
-  props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
+export default defineComponent({
+  emits: ['cancel', 'group-added'],
+  setup() {
+    const { values, errors, defineComponentBinds, meta, resetForm } = useForm({
+      validationSchema: {
+        code: 'required',
+        description: 'required',
+      },
+    });
+    const code = defineComponentBinds('code');
+    const description = defineComponentBinds('description');
+    return { values, errors, meta, resetForm, code, description };
   },
-
   data() {
     return {
       loading: false,
-      code: '',
-      description: '',
     };
   },
   computed: {
-    ...mapStores(useGlobalGroupsStore, notificationsStore),
+    ...mapStores(useGlobalGroups, useNotifications),
     formReady(): boolean {
-      return !!(
-        this.code &&
-        this.code.length > 0 &&
-        this.description.length > 0
-      );
+      return this.meta.valid;
     },
   },
 
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
       this.clearForm();
       this.$emit('cancel');
@@ -99,25 +95,31 @@ export default Vue.extend({
     save(): void {
       this.loading = true;
       this.globalGroupStore
-        .add({ code: this.code, description: this.description })
+        .add({ code: this.values.code, description: this.values.description })
         .then(() => {
-          this.notificationsStoreStore.showSuccess(
+          this.notificationsStore.showSuccess(
             this.$t('globalResources.globalGroupSuccessfullyAdded'),
           );
           this.clearForm();
           this.$emit('group-added');
         })
         .catch((error) => {
-          this.notificationsStoreStore.showError(error);
+          this.notificationsStore.showError(error);
         })
         .finally(() => {
           this.loading = false;
         });
     },
     clearForm(): void {
-      this.code = '';
-      this.description = '';
+      this.resetForm();
     },
   },
 });
 </script>
+<style lang="scss" scoped>
+@import '@/assets/tables';
+
+div.v-input {
+  padding-bottom: 8px;
+}
+</style>

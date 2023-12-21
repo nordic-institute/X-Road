@@ -9,7 +9,6 @@ Feature: Tokens API
     When User can login token 'token-id-1' with password '1234'
     Then Token login is successful
 
-
   Scenario: Login token is forbidden for non privileged user
     Given Authentication header is set to REGISTRATION_OFFICER
     When User can login token 'token-id-1' with password '1234'

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,8 +30,9 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
+import jakarta.xml.soap.SOAPElement;
+
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
 
 /**
  * Client sends and receives a message with a CDATA block.

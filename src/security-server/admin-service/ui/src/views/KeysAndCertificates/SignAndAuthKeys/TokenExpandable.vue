@@ -26,16 +26,15 @@
 <template>
   <xrd-expandable
     class="expandable"
-    :is-open="isExpanded(token.id)"
+    :is-open="tokenExpanded(token.id)"
     :color="tokenStatusColor"
-    @open="descOpen(token.id)"
-    @close="descClose(token.id)"
+    @open="toggleToken"
   >
-    <template #link>
+    <template #link="{ toggle }">
       <div
         class="clickable-link identifier-wrap"
         data-test="token-name"
-        @click="tokenNameClick()"
+        @click="toggle"
       >
         <span
           class="token-status-indicator token-name"
@@ -45,11 +44,14 @@
 
         <v-btn
           icon
+          variant="text"
           color="primary"
           data-test="token-icon-button"
           @click="tokenClick(token)"
         >
-          <v-icon class="button-icon">icon-Edit</v-icon>
+          <xrd-icon-base class="button-icon">
+            <xrd-icon-edit />
+          </xrd-icon-base>
         </v-btn>
       </div>
     </template>
@@ -62,9 +64,12 @@
             class="token-status token-status-indicator label"
             :class="tokenStatusClass"
           >
-            <v-icon class="token-status-indicator" :class="tokenStatusClass">
+            <xrd-icon-base
+              class="token-status-indicator"
+              :class="tokenStatusClass"
+            >
               {{ tokenIcon }}
-            </v-icon>
+            </xrd-icon-base>
             {{ $t(tokenLabelKey) }}
           </div>
           <TokenLoggingButton
@@ -87,7 +92,9 @@
             data-test="token-add-key-button"
             @click="addKey()"
           >
-            <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+            <xrd-icon-base class="xrd-large-button-icon">
+              <xrd-icon-add />
+            </xrd-icon-base>
             {{ $t('keys.addKey') }}
           </xrd-button>
           <xrd-file-upload
@@ -103,7 +110,9 @@
               data-test="token-import-cert-button"
               @click="upload"
             >
-              <v-icon class="xrd-large-button-icon">icon-Import</v-icon>
+              <xrd-icon-base class="xrd-large-button-icon">
+                <xrd-icon-import />
+              </xrd-icon-base>
               {{ $t('keys.importCert') }}
             </xrd-button>
           </xrd-file-upload>
@@ -118,7 +127,7 @@
             :arrow-state="authKeysOpen"
             @click="authKeysOpen = !authKeysOpen"
           />
-          <keys-table
+          <KeysTable
             v-if="authKeysOpen"
             :keys="getAuthKeys(token.keys)"
             :token-logged-in="token.logged_in"
@@ -141,7 +150,7 @@
             @click="signKeysOpen = !signKeysOpen"
           />
 
-          <keys-table
+          <KeysTable
             v-if="signKeysOpen"
             class="keys-table"
             :keys="getSignKeys(token.keys)"
@@ -164,7 +173,7 @@
             :arrow-state="unknownKeysOpen"
             @click="unknownKeysOpen = !unknownKeysOpen"
           />
-          <unknown-keys-table
+          <UnknownKeysTable
             v-if="unknownKeysOpen"
             :keys="getOtherKeys(token.keys)"
             :token-logged-in="token.logged_in"
@@ -182,18 +191,15 @@
 
 <script lang="ts">
 // View for a token
-import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { Component, defineComponent, PropType } from 'vue';
+import { Colors, Permissions, RouteName } from '@/global';
 import KeysTable from './KeysTable.vue';
 import KeysTableTitle from './KeysTableTitle.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
-import { FileUploadResult } from '@niis/shared-ui';
 import { encodePathParameter } from '@/util/api';
 import TokenLoggingButton from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenLoggingButton.vue';
-import { Prop } from 'vue/types/options';
-import { Colors } from '@/global';
 import {
   getTokenUIStatus,
   TokenUIStatus,
@@ -201,10 +207,21 @@ import {
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useTokensStore } from '@/store/modules/tokens';
+import { useTokens } from '@/store/modules/tokens';
+import { FileUploadResult } from '@/ui-types';
+import {
+  XrdIconCancel,
+  XrdIconEdit,
+  XrdIconError,
+  XrdIconImport,
+  XrdExpandable,
+} from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    XrdExpandable,
+    XrdIconImport,
+    XrdIconEdit,
     KeysTable,
     KeysTableTitle,
     UnknownKeysTable,
@@ -212,10 +229,11 @@ export default Vue.extend({
   },
   props: {
     token: {
-      type: Object as Prop<Token>,
+      type: Object as PropType<Token>,
       required: true,
     },
   },
+  emits: ['add-key', 'token-login', 'token-logout', 'refresh-list'],
   data() {
     return {
       colors: Colors,
@@ -227,8 +245,7 @@ export default Vue.extend({
   computed: {
     ...mapState(useUser, ['hasPermission']),
 
-    ...mapState(useTokensStore, ['tokenExpanded']),
-
+    ...mapState(useTokens, ['tokenExpanded']),
     canActivateToken(): boolean {
       return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
     },
@@ -241,60 +258,50 @@ export default Vue.extend({
     canAddKey(): boolean {
       return this.hasPermission(Permissions.GENERATE_KEY);
     },
-
     tokenLabelKey(): string {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-
-      if (status === TokenUIStatus.Inactive) {
-        return 'keys.tokenStatus.inactive';
-      } else if (status === TokenUIStatus.Unavailable) {
-        return 'keys.tokenStatus.unavailable';
-      } else if (status === TokenUIStatus.Unsaved) {
-        return 'keys.tokenStatus.unsaved';
+      switch (getTokenUIStatus(this.token.status)) {
+        case TokenUIStatus.Inactive:
+          return 'keys.tokenStatus.inactive';
+        case TokenUIStatus.Unavailable:
+          return 'keys.tokenStatus.unavailable';
+        case TokenUIStatus.Unsaved:
+          return 'keys.tokenStatus.unsaved';
+        default:
+          return ''; // if TokenUIStatus is Active or Available or unknown return empty string
       }
-
-      return ''; // if TokenUIStatus is Active or Available or unknown return empty string
     },
-
-    tokenIcon(): string {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-
-      if (status === TokenUIStatus.Inactive) {
-        return 'icon-Cancel';
-      } else if (status === TokenUIStatus.Unavailable) {
-        return 'icon-Error';
-      } else if (status === TokenUIStatus.Unsaved) {
-        return 'icon-Error';
+    tokenIcon(): Component | string {
+      switch (getTokenUIStatus(this.token.status)) {
+        case TokenUIStatus.Inactive:
+          return XrdIconCancel;
+        case TokenUIStatus.Unavailable:
+        case TokenUIStatus.Unsaved:
+          return XrdIconError;
+        default:
+          return '';
       }
-
-      return '';
     },
-
     tokenStatusClass(): string {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-
-      if (status === TokenUIStatus.Inactive) {
-        return 'inactive';
-      } else if (status === TokenUIStatus.Unavailable) {
-        return 'unavailable';
-      } else if (status === TokenUIStatus.Unsaved) {
-        return 'unsaved';
+      switch (getTokenUIStatus(this.token.status)) {
+        case TokenUIStatus.Inactive:
+          return 'inactive';
+        case TokenUIStatus.Unavailable:
+          return 'unavailable';
+        case TokenUIStatus.Unsaved:
+          return 'unsaved';
+        default:
+          return '';
       }
-
-      return '';
     },
     tokenStatusColor(): string {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-
-      if (status === TokenUIStatus.Inactive) {
-        return this.colors.Black50;
-      } else if (
-        status === TokenUIStatus.Unavailable ||
-        status === TokenUIStatus.Unsaved
-      ) {
-        return this.colors.Error; // Red
-      } else {
-        return this.colors.Black100;
+      switch (getTokenUIStatus(this.token.status)) {
+        case TokenUIStatus.Inactive:
+          return this.colors.Black50;
+        case TokenUIStatus.Unavailable:
+        case TokenUIStatus.Unsaved:
+          return this.colors.Error;
+        default:
+          return this.colors.Black100;
       }
     },
   },
@@ -308,46 +315,31 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useTokensStore, [
-      'setSelectedToken',
-      'hideToken',
-      'expandToken',
-    ]),
+    ...mapActions(useTokens, ['setSelectedToken', 'hideToken', 'expandToken']),
     addKey(): void {
       this.setSelectedToken(this.token);
       this.$emit('add-key');
     },
-
     login(): void {
       this.setSelectedToken(this.token);
       this.$emit('token-login');
     },
-
     logout(): void {
       this.setSelectedToken(this.token);
       this.$emit('token-logout');
     },
-
-    tokenNameClick(): void {
-      this.isExpanded(this.token.id)
-        ? this.descClose(this.token.id)
-        : this.descOpen(this.token.id);
-    },
-
     tokenClick(token: Token): void {
       this.$router.push({
         name: RouteName.Token,
         params: { id: token.id },
       });
     },
-
     keyClick(key: Key): void {
       this.$router.push({
         name: RouteName.Key,
         params: { id: key.id },
       });
     },
-
     certificateClick(payload: { cert: TokenCertificate; key: Key }): void {
       this.$router.push({
         name: RouteName.Certificate,
@@ -357,19 +349,14 @@ export default Vue.extend({
         },
       });
     },
-
     getAuthKeys(keys: Key[]): Key[] {
-      const filtered = keys.filter((key: Key) => {
+      return keys.filter((key: Key) => {
         return key.usage === KeyUsageType.AUTHENTICATION;
       });
-
-      return filtered;
     },
-
     getSignKeys(keys: Key[]): Key[] {
       return keys.filter((key: Key) => key.usage === KeyUsageType.SIGNING);
     },
-
     getOtherKeys(keys: Key[]): Key[] {
       // Keys that don't have assigned usage type
       return keys.filter(
@@ -378,17 +365,13 @@ export default Vue.extend({
           key.usage !== KeyUsageType.AUTHENTICATION,
       );
     },
-
-    descClose(tokenId: string) {
-      this.hideToken(tokenId);
+    toggleToken(opened: boolean): void {
+      if (opened) {
+        this.expandToken(this.token.id);
+      } else {
+        this.hideToken(this.token.id);
+      }
     },
-    descOpen(tokenId: string) {
-      this.expandToken(tokenId);
-    },
-    isExpanded(tokenId: string) {
-      return this.tokenExpanded(tokenId);
-    },
-
     importCert(event: FileUploadResult) {
       api
         .post('/token-certificates', event.buffer, {
@@ -437,8 +420,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .token-logging-button {
   display: inline-flex;
@@ -511,6 +494,6 @@ export default Vue.extend({
 }
 
 .button-icon {
-  margin-top: -14px; // fix for icon position
+  margin-top: 12px; // fix for icon position
 }
 </style>

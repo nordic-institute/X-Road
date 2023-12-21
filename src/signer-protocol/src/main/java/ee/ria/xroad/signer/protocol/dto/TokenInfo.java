@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,51 +25,110 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
 import lombok.Value;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 
 /**
  * Token info DTO.
  */
 @Value
-public final class TokenInfo implements Serializable {
+@ToString(onlyExplicitlyIncluded = true)
+public class TokenInfo implements Serializable {
 
     public static final String SOFTWARE_MODULE_TYPE = "softToken";
 
-    private final String type;
+    @JsonIgnore
+    TokenInfoProto message;
 
-    private final String friendlyName;
+    @ToString.Include
+    public String getType() {
+        return message.getType();
+    }
 
-    private final String id;
+    @ToString.Include
+    public String getFriendlyName() {
+        if (message.hasFriendlyName()) {
+            return message.getFriendlyName();
+        }
+        return null;
+    }
 
-    private final boolean readOnly;
+    @ToString.Include
+    public String getId() {
+        return message.getId();
+    }
 
-    private final boolean available;
+    @ToString.Include
+    public boolean isReadOnly() {
+        return message.getReadOnly();
+    }
 
-    private final boolean active;
+    @ToString.Include
+    public boolean isAvailable() {
+        return message.getAvailable();
+    }
 
-    private final String serialNumber;
+    @ToString.Include
+    public boolean isActive() {
+        return message.getActive();
+    }
 
-    private final String label;
+    @ToString.Include
+    public String getSerialNumber() {
+        if (message.hasSerialNumber()) {
+            return message.getSerialNumber();
+        }
+        return null;
+    }
 
-    private final int slotIndex;
+    @ToString.Include
+    public String getLabel() {
+        if (message.hasLabel()) {
+            return message.getLabel();
+        }
+        return null;
+    }
 
-    private final TokenStatusInfo status;
+    @ToString.Include
+    public int getSlotIndex() {
+        return message.getSlotIndex();
+    }
 
-    private final List<KeyInfo> keyInfo;
+    @ToString.Include
+    public TokenStatusInfo getStatus() {
+        var status = message.getStatus();
+        return status != TokenStatusInfo.TOKEN_STATUS_UNSPECIFIED ? status : null;
+    }
 
-    /** Contains label-value pairs of information about token. */
-    private final Map<String, String> tokenInfo;
+    @ToString.Include
+    public List<KeyInfo> getKeyInfo() {
+        return message.getKeyInfoList().stream()
+                .map(KeyInfo::new)
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    @ToString.Include
+    public Map<String, String> getTokenInfo() {
+        return message.getTokenInfoMap();
+    }
+
+    public TokenInfoProto asMessage() {
+        return message;
+    }
 
     /**
      * Logic to determine if a token is saved to configuration.
      * True if there is at least one key which is saved to configuration
      */
     public boolean isSavedToConfiguration() {
-        return keyInfo.stream()
-                .anyMatch(k -> k.isSavedToConfiguration());
+        return getKeyInfo().stream()
+                .anyMatch(KeyInfo::isSavedToConfiguration);
     }
 }

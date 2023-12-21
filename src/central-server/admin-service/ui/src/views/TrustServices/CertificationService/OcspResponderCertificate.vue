@@ -29,19 +29,21 @@
 -->
 <template>
   <main id="ocsp-responder-certificate-details" class="mt-8">
-    <CertificateDetails :certificate-details="certificateDetails" />
+    <certificate-details
+      v-if="certificateDetails"
+      :certificate-details="certificateDetails"
+    />
   </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
-import { useOcspResponderStore } from '@/store/modules/trust-services';
+import { useOcspResponderService } from '@/store/modules/trust-services';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
-export default Vue.extend({
-  name: 'OcspResponderCertificate',
+export default defineComponent({
   components: { CertificateDetails },
   props: {
     ocspResponderId: {
@@ -55,7 +57,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useOcspResponderStore),
+    ...mapStores(useOcspResponderService),
   },
   created() {
     this.ocspResponderServiceStore

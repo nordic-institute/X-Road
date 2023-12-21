@@ -532,7 +532,6 @@ paths:
                 - $ref: '#/components/schemas/CertificateFile'
               required:
                 - url
-                - certificate
         description: ocsp responder to add
       responses:
         '201':
@@ -1491,7 +1490,6 @@ paths:
                 - $ref: '#/components/schemas/CertificateFile'
               required:
                 - url
-                - certificate
         description: ocsp responder to add
       responses:
         '201':
@@ -1983,7 +1981,7 @@ paths:
           schema:
             example: foobar
             format: text
-            maxLength: 25
+            maxLength: 255
             type: string
         - description: >
             optional paging and sorting parameters. Sorting possible according to one of the following values:
@@ -2212,7 +2210,7 @@ paths:
           schema:
             example: foobar
             format: text
-            maxLength: 25
+            maxLength: 255
             type: string
         - description: >
             optional paging and sorting parameters. Sorting possible according to one of the following values:
@@ -2496,6 +2494,138 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       tags:
         - management-services
+  /management-services-configuration/download-certificate:
+    get:
+      tags:
+        - management-services
+      summary: download the management service certificate as gzip compressed tar archive
+      operationId: downloadCertificate
+      description: <h3>Administrator downloads the management service TLS certificate.</h3>
+      responses:
+        '200':
+          description: information fetched successfully
+          content:
+            application/gzip:
+              schema:
+                type: string
+                format: binary
+                description: certificate file
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /management-services-configuration/certificate:
+    get:
+      tags:
+        - management-services
+      summary: view the management service certificate information
+      operationId: getCertificate
+      description: <h3>Administrator views the management service TLS certificate information.</h3>
+      responses:
+        '200':
+          description: certificate information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - management-services
+      summary: generate a new management service TLS key and self-sign cert
+      operationId: generateKeyAndCertificate
+      description:
+        <h3>Administrator generates new management service TLS key and certificate.</h3>
+      responses:
+        '201':
+          description: tls key generated
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /management-services-configuration/generate-csr:
+    post:
+      tags:
+        - management-services
+      summary: generate new certificate request
+      operationId: generateCertificateRequest
+      description: <h3>Administrator generates a new certificate request.</h3>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistinguishedName'
+        required: true
+      responses:
+        '201':
+          description: created CSR
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: csr file
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /management-services-configuration/upload-certificate:
+    post:
+      tags:
+        - management-services
+      summary: upload new management service TLS certificate.
+      operationId: uploadCertificate
+      description: <h3>Administrator uploads a new management service TLS certificate</h3>
+      requestBody:
+        description: certificate file
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificateFile'
+      responses:
+        '200':
+          description: tls certificate imported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /system/server-address:
     put:
       operationId: updateCentralServerAddress
@@ -3143,10 +3273,10 @@ components:
       description: certificate details for any kind of certificate (TLS, auth, sign) # potential-common-api
       properties:
         hash:
-          description: certificate SHA-1 hash
+          description: certificate SHA-256 hash
           example: 1234567890ABCDEF
           format: text
-          maxLength: 40
+          maxLength: 64
           minLength: 1
           type: string
         issuer_common_name:
@@ -3306,6 +3436,16 @@ components:
           description: can the CA be used for TLS authentication
           type: string
       type: object
+    DistinguishedName:
+      type: object
+      properties:
+        name:
+          type: string
+          format: text
+          description: distinguished name
+          example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
     CodeWithDetails:
       $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConfigurationAnchorContainer:
@@ -3360,7 +3500,7 @@ components:
           type: integer
       required:
         - content_identifier
-        - filename
+        - file_name
         - file_updated_at
         - version
         - optional
@@ -3712,7 +3852,6 @@ components:
         - service_provider_name
         - services_address
         - wsdl_address
-        - service_provider_id
       type: object
     Client:
       allOf:
@@ -3784,7 +3923,11 @@ components:
         used_security_servers:
           items:
             $ref: '#/components/schemas/UsedSecurityServers'
+          type: array
       type: object
+      required:
+        - subsystem_id
+        - used_security_servers
     UsedSecurityServers:
       properties:
         server_code:
@@ -4456,7 +4599,10 @@ components:
           AUTH_CERT_DELETION_REQUEST: "AuthenticationCertificateDeletionRequest"
           CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
           CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
+          CLIENT_DISABLE_REQUEST: "ClientDisableRequest"
+          CLIENT_ENABLE_REQUEST: "ClientEnableRequest"
           OWNER_CHANGE_REQUEST: "OwnerChangeRequest"
+          ADDRESS_CHANGE_REQUEST: "AddressChangeRequest"
       properties:
         id:
           type: integer
@@ -4480,8 +4626,8 @@ components:
           readOnly: true
       required:
         - type
-        - source
-        - securityserverId
+        - origin
+        - security_server_id
     ManagementRequestListView:
       type: object
       description: Management Request view
@@ -4511,7 +4657,7 @@ components:
           readOnly: true
       required:
         - type
-        - source
+        - origin
         - security_server_id
     ManagementRequestType:
       type: string
@@ -4520,7 +4666,10 @@ components:
         - CLIENT_REGISTRATION_REQUEST
         - OWNER_CHANGE_REQUEST
         - CLIENT_DELETION_REQUEST
+        - CLIENT_DISABLE_REQUEST
+        - CLIENT_ENABLE_REQUEST
         - AUTH_CERT_DELETION_REQUEST
+        - ADDRESS_CHANGE_REQUEST
     ManagementRequestStatus:
       type: string
       readOnly: true
@@ -4656,8 +4805,8 @@ components:
           type: string
           format: byte
       required:
-        - serverAddress
-        - authenticationCertificate
+        - server_address
+        - authentication_certificate
     AuthenticationCertificateDeletionRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4667,7 +4816,7 @@ components:
           type: string
           format: byte
       required:
-        - authenticationCertificate
+        - authentication_certificate
     ClientRegistrationRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4677,7 +4826,7 @@ components:
           type: string
           description: Encoded Client ID
       required:
-        - clientId
+        - client_id
     ClientDeletionRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
@@ -4688,7 +4837,7 @@ components:
           description: Encoded Client ID
       required:
         - clientId
-    OwnerChangeRequest:
+    ClientDisableRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'
       type: object
@@ -4698,6 +4847,35 @@ components:
           description: Encoded Client ID
       required:
         - clientId
+    ClientEnableRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Encoded Client ID
+      required:
+        - client_id
+    OwnerChangeRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Encoded Client ID
+      required:
+        - client_id
+    AddressChangeRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        server_address:
+          type: string
+      required:
+        - server_address
   securitySchemes:
     ApiKeyAuth:
       description: X-Road-ApiKey token=<api key>

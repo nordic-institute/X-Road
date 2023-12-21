@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,12 +27,11 @@ package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.ErrorCodes;
 
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import org.glassfish.jaxb.runtime.marshaller.NamespacePrefixMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,9 +54,9 @@ public final class JaxbUtils {
      * @throws Exception if an error was encountered while creating the Marshaller object
      */
     public static Marshaller createMarshaller(Class<?> clazz,
-            NamespacePrefixMapper mpr) throws Exception {
+                                              NamespacePrefixMapper mpr) throws Exception {
         Marshaller marshaller = createMarshaller(clazz);
-        marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", mpr);
+        marshaller.setProperty("org.glassfish.jaxb.namespacePrefixMapper", mpr);
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
         return marshaller;
     }

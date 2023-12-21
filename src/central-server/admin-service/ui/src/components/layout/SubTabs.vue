@@ -29,23 +29,19 @@
     <v-tabs
       class="xrd-tabs"
       color="primary"
-      :background-color="colors.WarmGrey10"
+      :bg-color="colors.WarmGrey10"
       slider-size="2"
     >
-      <v-tabs-slider
-        color="primary"
-        class="xrd-sub-tabs-slider"
-      ></v-tabs-slider>
-      <slot></slot>
+      <slot />
     </v-tabs>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Colors } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       colors: Colors,
@@ -54,10 +50,16 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .v-tabs-slider.xrd-sub-tabs-slider {
   width: 40px;
   margin-left: auto;
   margin-right: auto;
+}
+
+:deep(.v-tab) {
+  text-transform: none;
+  font-weight: 600;
+  color: rgb(0 0 0 / 54%);
 }
 </style>

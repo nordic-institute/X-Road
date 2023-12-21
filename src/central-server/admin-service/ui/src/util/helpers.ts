@@ -28,8 +28,9 @@
 // Filters an array of objects excluding specified object key
 import { NavigationFailure } from 'vue-router';
 import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
-import i18n from '@/i18n';
 import { AxiosError, AxiosResponse } from 'axios';
+import i18n from '@/plugins/i18n';
+import dayjs from 'dayjs';
 
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
@@ -56,19 +57,6 @@ export function selectedFilter<T, K extends keyof T>(
       return String(g[key]).toLowerCase().includes(mysearch);
     });
   });
-}
-
-// Checks if the given URL is valid
-export function isValidUrl(str: string): boolean {
-  try {
-    const url = new URL(str);
-    const protocolPattern = /^https?:$/;
-    const hostPattern =
-      /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$/;
-    return protocolPattern.test(url.protocol) && hostPattern.test(url.hostname);
-  } catch (_) {
-    return false;
-  }
 }
 
 // Save response data as a file
@@ -174,7 +162,7 @@ export function getTranslatedFieldErrors(
   const errors: string[] = fieldError[fieldName];
   if (errors) {
     return errors.map((errorKey: string) => {
-      return i18n.t(`validationError.${errorKey}Field`).toString();
+      return i18n.global.t(`validationError.${errorKey}Field`).toString();
     });
   } else {
     return [];
@@ -224,18 +212,72 @@ export function toShortMemberId(client: ClientId): string {
 export function managementTypeToText(
   type: ManagementRequestType | undefined,
 ): string {
+  const { t } = i18n.global;
   switch (type) {
     case ManagementRequestType.OWNER_CHANGE_REQUEST:
-      return i18n.t('managementRequests.changeOwner') as string;
+      return t('managementRequests.changeOwner') as string;
     case ManagementRequestType.AUTH_CERT_DELETION_REQUEST:
-      return i18n.t('managementRequests.removeCertificate') as string;
+      return t('managementRequests.removeCertificate') as string;
     case ManagementRequestType.CLIENT_DELETION_REQUEST:
-      return i18n.t('managementRequests.removeClient') as string;
+      return t('managementRequests.removeClient') as string;
+    case ManagementRequestType.CLIENT_DISABLE_REQUEST:
+      return t('managementRequests.clientDisable') as string;
+    case ManagementRequestType.CLIENT_ENABLE_REQUEST:
+      return t('managementRequests.clientEnable') as string;
     case ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST:
-      return i18n.t('managementRequests.addCertificate') as string;
+      return t('managementRequests.addCertificate') as string;
     case ManagementRequestType.CLIENT_REGISTRATION_REQUEST:
-      return i18n.t('managementRequests.addClient') as string;
+      return t('managementRequests.addClient') as string;
+    case ManagementRequestType.ADDRESS_CHANGE_REQUEST:
+      return t('managementRequests.changeAddress') as string;
     default:
       return '';
   }
+}
+
+// Add colon for every two characters.  xxxxxx -> xx:xx:xx
+export function colonize(value: string): string {
+  if (!value) {
+    return '';
+  }
+
+  const colonized = value.replace(/(.{2})/g, '$1:');
+
+  if (colonized[colonized.length - 1] === ':') {
+    return colonized.slice(0, -1);
+  }
+
+  return colonized;
+}
+
+// Upper case every word
+export function upperCaseWords(value: string): string {
+  if (!value) {
+    return '';
+  }
+  return value
+    .toLowerCase()
+    .split(' ')
+    .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+    .join(' ');
+}
+
+export function formatDateTime(
+  valueAsText: string | undefined,
+  format: string,
+): string {
+  if (!valueAsText) {
+    return '-';
+  }
+  const time = dayjs(valueAsText);
+  return time.isValid() ? time.format(format) : '-';
+}
+
+export function toPagingOptions(
+  ...options: number[]
+): { title: string; value: number }[] {
+  const all = i18n.global.t('global.all');
+  return options.map((value) => {
+    return { title: value === -1 ? all : value.toString(), value };
+  });
 }

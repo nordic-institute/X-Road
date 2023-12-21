@@ -25,16 +25,39 @@
  */
 
 /*
-Startpoint of the Vue application. 
+Startpoint of the Vue application.
 Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
-import Vue from 'vue';
+import { createApp } from 'vue';
 import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
+import {
+  XrdButton,
+  XrdCloseButton,
+  XrdConfirmDialog,
+  XrdEmptyPlaceholder,
+  XrdEmptyPlaceholderRow,
+  XrdExpandable,
+  XrdFileUpload,
+  XrdFormLabel,
+  XrdIconAdd,
+  XrdIconBase,
+  XrdIconChecked,
+  XrdIconChecker,
+  XrdIconClose,
+  XrdIconCopy,
+  XrdIconDeclined,
+  XrdIconError,
+  XrdIconFolderOutline,
+  XrdIconSortingArrow,
+  XrdIconTooltip,
+  XrdSearch,
+  XrdSimpleDialog,
+  XrdStatusIcon,
+  XrdSubViewContainer,
+  XrdSubViewTitle,
+} from '@niis/shared-ui';
 import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
 import './filters';
@@ -43,26 +66,54 @@ import router from './router';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
-import i18n from './i18n';
-import { createPinia, PiniaVuePlugin } from 'pinia';
-import VueCompositionAPI from '@vue/composition-api';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
-
-Vue.use(VueCompositionAPI);
-Vue.use(PiniaVuePlugin);
+import '@niis/shared-ui/dist/style.css';
+import i18n from './plugins/i18n';
+import { createPinia } from 'pinia';
+import { createPersistedState } from 'pinia-plugin-persistedstate';
+import { createFilters } from '@/filters';
+import { createValidators } from '@/plugins/vee-validate';
 
 const pinia = createPinia();
-pinia.use(piniaPluginPersistedstate);
+pinia.use(
+  createPersistedState({
+    storage: sessionStorage,
+  }),
+);
 
-Vue.config.productionTip = false;
-Vue.use(Router);
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
+axios.defaults.baseURL = import.meta.env.VITE_VUE_APP_BASE_URL;
 axios.defaults.headers.get.Accepts = 'application/json';
 
-new Vue({
-  router,
-  i18n,
-  vuetify,
-  pinia,
-  render: (h) => h(App),
-}).$mount('#app');
+const app = createApp(App);
+app.use(router);
+app.use(i18n);
+app.use(vuetify);
+app.use(pinia);
+app.use(createFilters());
+app.use(createValidators());
+//icons
+app.component('XrdIconFolderOutline', XrdIconFolderOutline);
+app.component('XrdIconBase', XrdIconBase);
+app.component('XrdIconChecker', XrdIconChecker);
+app.component('XrdIconChecked', XrdIconChecked);
+app.component('XrdIconClose', XrdIconClose);
+app.component('XrdIconAdd', XrdIconAdd);
+app.component('XrdIconCopy', XrdIconCopy);
+app.component('XrdIconError', XrdIconError);
+app.component('XrdIconTooltip', XrdIconTooltip);
+app.component('XrdIconSortingArrow', XrdIconSortingArrow);
+app.component('XrdIconDeclined', XrdIconDeclined);
+app.component('XrdStatusIcon', XrdStatusIcon);
+//components
+app.component('XrdButton', XrdButton);
+app.component('XrdSearch', XrdSearch);
+app.component('XrdSubViewContainer', XrdSubViewContainer);
+app.component('XrdSimpleDialog', XrdSimpleDialog);
+app.component('XrdConfirmDialog', XrdConfirmDialog);
+app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
+app.component('XrdEmptyPlaceholderRow', XrdEmptyPlaceholderRow);
+app.component('XrdSubViewTitle', XrdSubViewTitle);
+app.component('XrdCloseButton', XrdCloseButton);
+app.component('XrdFileUpload', XrdFileUpload);
+app.component('XrdFormLabel', XrdFormLabel);
+app.component('XrdExpandable', XrdExpandable);
+app.mount('#app');

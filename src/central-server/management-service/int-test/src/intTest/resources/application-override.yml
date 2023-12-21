@@ -19,8 +19,9 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
-      reuse-between-runs: true
+      reuse-between-runs: false
       spring-boot:
+        base-image: eclipse-temurin:17-jammy
         jar-debug-enabled: true
         debug-port: 9000
         jacoco:

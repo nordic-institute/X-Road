@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -58,19 +58,19 @@ public class TrustServicesPageObj {
 
 
     public SelenideElement cardSubjectDn() {
-        return $x("//div[@data-test='subject-distinguished-name-card']/div[2]/div");
+        return $x("//div[@data-test='subject-distinguished-name-card']/div[contains(@class, 'v-card-text')]/div");
     }
 
     public SelenideElement cardIssuerDn() {
-        return $x("//div[@data-test='issuer-distinguished-name-card']/div[2]/div");
+        return $x("//div[@data-test='issuer-distinguished-name-card']/div[contains(@class, 'v-card-text')]/div");
     }
 
     public SelenideElement cardValidFrom() {
-        return $x("//div[@data-test='valid-from-card']/div[2]/div");
+        return $x("//div[@data-test='valid-from-card']/div[contains(@class, 'v-card-text')]//span");
     }
 
     public SelenideElement cardValidTo() {
-        return $x("//div[@data-test='valid-to-card']/div[2]/div");
+        return $x("//div[@data-test='valid-to-card']/div[contains(@class, 'v-card-text')]//span");
     }
 
 
@@ -79,15 +79,18 @@ public class TrustServicesPageObj {
         public final IntermediateCasPageObj intermediaCas = new IntermediateCasPageObj();
 
         public SelenideElement tabSettings() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'CA Settings')]");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+                    + "//a[@data-test='certification-service-settings-tab-button']");
         }
 
         public SelenideElement tabIntermediateCas() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'Intermediate CAs')]");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+                    + "//a[@data-test='certification-service-intermediate-cas-tab-button']");
         }
 
         public SelenideElement tabOcspResponders() {
-            return $x("//article[@id='certification-service-view']//div[@role='tablist']//a[contains(text(), 'OCSP Responders')]");
+            return $x("//article[@id='certification-service-view']//div[@role='tablist']"
+                    + "//a[@data-test='certification-service-ocsp-responders-tab-button']");
         }
 
         public SelenideElement btnViewCertificate() {
@@ -100,11 +103,11 @@ public class TrustServicesPageObj {
 
         public class CaSettings {
             public SelenideElement cardTlsAuth() {
-                return $x("//div[@data-test='tls-auth-card']/div[2]/div");
+                return $x("//div[@data-test='tls-auth-card']/div[contains(@class, 'v-card-text')]/div");
             }
 
             public SelenideElement cardCertProfile() {
-                return $x("//div[@data-test='cert-profile-card']/div[2]/div");
+                return $x("//div[@data-test='cert-profile-card']/div[contains(@class, 'v-card-text')]/div");
             }
 
             public SelenideElement btnEditTlsAuth() {
@@ -116,11 +119,11 @@ public class TrustServicesPageObj {
             }
 
             public SelenideElement checkboxTlsAuth() {
-                return $x("//div[@data-test='dialog-simple']//input[@role='checkbox']/parent::div/following-sibling::label");
+                return $x("//div[@data-test='dialog-simple']//div[@data-test='tls-auth-checkbox']");
             }
 
             public SelenideElement inputCertProfile() {
-                return $x("//div[@data-test='dialog-simple']//input[@data-test='cert-profile-input']");
+                return $x("//div[@data-test='dialog-simple']//div[@data-test='cert-profile-input']");
             }
         }
 
@@ -134,7 +137,7 @@ public class TrustServicesPageObj {
 
     public class AddCaSettingsDialog {
         public SelenideElement inputCertificateProfile() {
-            return $x("//input[@data-test='cert-profile-input']");
+            return $x("//div[@data-test='cert-profile-input']");
         }
     }
 }

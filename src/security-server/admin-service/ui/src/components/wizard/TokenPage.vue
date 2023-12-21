@@ -24,98 +24,96 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="wizard-token-step-form-content">
-      {{ $t('wizard.token.info') }}
-      <v-text-field
-        v-model="search"
-        :label="$t('wizard.token.tokenName')"
-        single-line
-        hide-details
-        class="search-input"
-        data-test="token-search-input"
-        autofocus
-      >
-        <v-icon slot="append">mdi-magnify</v-icon>
-      </v-text-field>
+  <div class="wizard-token-step-form-content">
+    {{ $t('wizard.token.info') }}
+    <v-text-field
+      v-model="search"
+      :label="$t('wizard.token.tokenName')"
+      single-line
+      hide-details
+      class="search-input"
+      data-test="token-search-input"
+      autofocus
+      variant="underlined"
+      density="compact"
+      append-inner-icon="mdi-magnify"
+    >
+    </v-text-field>
 
-      <v-radio-group v-model="tokenGroup">
-        <div v-for="token in filteredTokens" :key="token.id" class="radio-row">
-          <v-radio
-            :label="`Token ${token.name}`"
-            :value="token"
-            :disabled="!token.logged_in"
-            data-test="token-radio-button"
-          ></v-radio>
-          <div>
-            <xrd-button
-              v-if="!token.logged_in"
-              :disabled="!token.available"
-              :outlined="false"
-              text
-              data-test="token-login-button"
-              @click="confirmLogin(token)"
-              >{{ $t('keys.logIn') }}</xrd-button
-            >
-            <xrd-button
-              v-if="token.logged_in"
-              text
-              :outlined="false"
-              disabled
-              data-test="token-logout-button"
-              >{{ $t('wizard.token.loggedIn') }}</xrd-button
-            >
-          </div>
+    <v-radio-group v-model="tokenGroup">
+      <div v-for="token in filteredTokens" :key="token.id" class="radio-row">
+        <v-radio
+          :label="`Token ${token.name}`"
+          :value="token"
+          :disabled="!token.logged_in"
+          data-test="token-radio-button"
+        ></v-radio>
+        <div>
+          <xrd-button
+            v-if="!token.logged_in"
+            :disabled="!token.available"
+            :outlined="false"
+            text
+            data-test="token-login-button"
+            @click="confirmLogin(token)"
+            >{{ $t('keys.logIn') }}
+          </xrd-button>
+          <xrd-button
+            v-if="token.logged_in"
+            text
+            :outlined="false"
+            disabled
+            data-test="token-logout-button"
+            >{{ $t('wizard.token.loggedIn') }}
+          </xrd-button>
         </div>
-      </v-radio-group>
-    </div>
-
-    <div class="button-footer">
-      <xrd-button
-        outlined
-        :disabled="!disableDone"
-        data-test="cancel-button"
-        @click="cancel"
-        >{{ $t('action.cancel') }}</xrd-button
-      >
-
-      <xrd-button
-        outlined
-        class="previous-button"
-        data-test="previous-button"
-        @click="previous"
-        >{{ $t('action.previous') }}</xrd-button
-      >
-
-      <xrd-button
-        :disabled="disableNext"
-        data-test="next-button"
-        @click="done"
-        >{{ $t('action.next') }}</xrd-button
-      >
-    </div>
-    <TokenLoginDialog
-      :dialog="loginDialog"
-      @cancel="loginDialog = false"
-      @save="tokenLogin"
-    />
+      </div>
+    </v-radio-group>
   </div>
+
+  <div class="button-footer">
+    <xrd-button
+      outlined
+      :disabled="!disableDone"
+      data-test="cancel-button"
+      @click="cancel"
+      >{{ $t('action.cancel') }}
+    </xrd-button>
+
+    <xrd-button
+      outlined
+      class="previous-button"
+      data-test="previous-button"
+      @click="previous"
+      >{{ $t('action.previous') }}
+    </xrd-button>
+
+    <xrd-button :disabled="disableNext" data-test="next-button" @click="done"
+      >{{ $t('action.next') }}
+    </xrd-button>
+  </div>
+  <TokenLoginDialog
+    :dialog="loginDialog"
+    @cancel="loginDialog = false"
+    @save="tokenLogin"
+  />
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import { Token } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 
 import { useNotifications } from '@/store/modules/notifications';
-import { useTokensStore } from '@/store/modules/tokens';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useTokens } from '@/store/modules/tokens';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     TokenLoginDialog,
   },
+  emits: ['cancel', 'previous', 'done'],
   data() {
     return {
       search: undefined as string | undefined,
@@ -125,12 +123,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useTokensStore, ['tokens', 'tokensFilteredByName']),
+    ...mapState(useTokens, ['tokens', 'tokensFilteredByName']),
 
-    filteredTokens: {
-      get(): Token[] {
-        return this.tokensFilteredByName(this.search);
-      },
+    filteredTokens() {
+      return this.tokensFilteredByName(this.search);
     },
 
     disableSelection() {
@@ -152,8 +148,8 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsrStore, ['setCsrTokenId']),
-    ...mapActions(useTokensStore, ['setSelectedToken', 'fetchTokens']),
+    ...mapActions(useCsr, ['setCsrTokenId']),
+    ...mapActions(useTokens, ['setSelectedToken', 'fetchTokens']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -196,10 +192,9 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 
 .wizard-token-step-form-content {
-  width: 100%;
   padding: 30px;
 }
 

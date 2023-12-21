@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,7 +30,6 @@ import ee.ria.xroad.common.db.TransactionCallback;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.EmptyInterceptor;
-import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 
 import java.io.Serializable;
@@ -99,7 +98,7 @@ final class OpMonitorDaemonDatabaseCtx {
         private static void truncateStringProperties(Object[] state,
                 String[] propertyNames, Type[] types) {
             for (int i = 0; i < types.length; i++) {
-                if (types[i] instanceof StringType) {
+                if (types[i].getReturnedClass() == String.class) {
                     int maxLength = MAX_LENGTH;
                     if (propertyNames[i].equals(SOAP_FAULT_STRING)) {
                         maxLength = FAULT_MAX_LENGTH;

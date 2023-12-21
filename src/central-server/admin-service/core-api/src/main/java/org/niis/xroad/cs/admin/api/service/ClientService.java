@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -32,6 +32,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.niis.xroad.cs.admin.api.domain.FlattenedSecurityServerClientView;
+import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 
@@ -65,6 +66,7 @@ public interface ClientService {
         private String subsystemCodeSearch;
         private XRoadObjectType clientType;
         private Integer securityServerId;
+        private Boolean securityServerEnabled;
         private String excludingGroup;
 
         /**
@@ -131,6 +133,19 @@ public interface ClientService {
          */
         public SearchParameters setSecurityServerId(Integer securityServerIdParam) {
             this.securityServerId = securityServerIdParam;
+            return this;
+        }
+
+        /**
+         * Filter clients by {@link ServerClient#isEnabled()}.
+         * Parameter is only considered when securityServerId is set.
+         * @param enabled <code>true</code> - only enabled clients;
+         *                <code>false</code> - only disabled clients;
+         *                <code>null</code> - all clients (default)
+         * @return
+         */
+        public SearchParameters setSecurityServerEnabled(Boolean enabled) {
+            this.securityServerEnabled = enabled;
             return this;
         }
 

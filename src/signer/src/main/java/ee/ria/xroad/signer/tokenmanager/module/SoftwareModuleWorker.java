@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,14 +26,16 @@
 package ee.ria.xroad.signer.tokenmanager.module;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareToken;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
+import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 
-import akka.actor.Props;
-
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Worker for software module. Always lists only one software token.
@@ -41,16 +43,10 @@ import java.util.List;
 public class SoftwareModuleWorker extends AbstractModuleWorker {
 
     private static final List<TokenType> TOKENS =
-            Collections.singletonList((TokenType) new SoftwareTokenType());
+            Collections.singletonList(new SoftwareTokenType());
 
-    @Override
-    protected void initializeModule() throws Exception {
-        // nothing to do
-    }
-
-    @Override
-    protected void deinitializeModule() throws Exception {
-        // nothing to do
+    public SoftwareModuleWorker(ModuleType moduleType) {
+        super(moduleType);
     }
 
     @Override
@@ -59,8 +55,17 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
-    protected Props props(TokenInfo tokenInfo, TokenType tokenType) {
-        return Props.create(SoftwareToken.class, tokenInfo, tokenType);
+    protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
+        initTokenInfo(tokenInfo);
+
+        return new SoftwareTokenWorker(tokenInfo);
+    }
+
+    private void initTokenInfo(TokenInfo tokenInfo) {
+        Map<String, String> info = new HashMap<>();
+        info.put("Type", "Software");
+
+        TokenManager.setTokenInfo(tokenInfo.getId(), info);
     }
 
 }

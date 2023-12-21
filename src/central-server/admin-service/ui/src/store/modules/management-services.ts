@@ -27,17 +27,20 @@
 
 import * as api from '@/util/api';
 import {
+  CertificateDetails,
   ManagementServicesConfiguration,
   RegisterServiceProviderRequest,
   ServiceProviderId,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
+import axios from "axios";
+import { saveResponseAsFile } from "@/util/helpers";
 
 interface ManagementServicesState {
   managementServicesConfiguration: ManagementServicesConfiguration;
 }
 
-export const managementServicesStore = defineStore('managementServices', {
+export const useManagementServices = defineStore('managementServices', {
   state: (): ManagementServicesState => {
     return {
       managementServicesConfiguration: {
@@ -88,6 +91,49 @@ export const managementServicesStore = defineStore('managementServices', {
         .catch((error) => {
           throw error;
         });
+    },
+    downloadCertificate() {
+      return axios
+        .get(`/management-services-configuration/download-certificate`, {
+          responseType: 'blob',
+        })
+        .then((resp) => {
+          saveResponseAsFile(resp, 'management-service.tar.gz');
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    uploadCertificate(certificate: File) {
+      const formData = new FormData();
+      formData.append('certificate', certificate);
+      return axios
+        .post(`/management-services-configuration/upload-certificate`, formData)
+        .catch((error) => {
+          throw error;
+        });
+    },
+    generateKey() {
+      return axios
+        .post(`/management-services-configuration/certificate`, {})
+        .catch((error) => {
+          throw error;
+        });
+    },
+    async generateCsr(distinguishedName: String) {
+      return axios
+        .post(`/management-services-configuration/generate-csr`, {name: distinguishedName}, {responseType: 'json'})
+        .then((res) => {
+          saveResponseAsFile(res, 'request.csr');
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    getCertificate() {
+      return axios.get<CertificateDetails>(
+        `/management-services-configuration/certificate`,
+      );
     },
   },
 });

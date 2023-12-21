@@ -30,8 +30,6 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
-    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
 task createDirs() {
@@ -67,6 +65,7 @@ shadowJar {
         include(project(':monitor-common'))
         include(project(':monitoring-conf'))
     }
+    mergeServiceFiles()
 }
 
 build.dependsOn shadowJar
@@ -90,7 +89,7 @@ task runProxymonitorMetaserviceTest(type: JavaExec) {
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
         '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl',
-        '-Dproxy.akka.remote.artery.canonical.port=0'
+        '-Dxroad.common.grpc-internal-tls-enabled=false'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath

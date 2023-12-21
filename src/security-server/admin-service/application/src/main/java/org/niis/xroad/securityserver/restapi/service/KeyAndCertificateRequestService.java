@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,14 +26,14 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
+import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -55,7 +55,7 @@ public class KeyAndCertificateRequestService {
 
     @Autowired
     public KeyAndCertificateRequestService(KeyService keyService,
-            TokenCertificateService tokenCertificateService) {
+                                           TokenCertificateService tokenCertificateService) {
         this.keyService = keyService;
         this.tokenCertificateService = tokenCertificateService;
     }
@@ -91,8 +91,8 @@ public class KeyAndCertificateRequestService {
      * were some extra parameters
      */
     public KeyAndCertRequestInfo addKeyAndCertRequest(String tokenId, String keyLabel,
-            ClientId.Conf memberId, KeyUsageInfo keyUsageInfo, String caName,
-            Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat)
+                                                      ClientId.Conf memberId, KeyUsageInfo keyUsageInfo, String caName,
+                                                      Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat)
             throws ActionNotPossibleException,
             ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
             DnFieldHelper.InvalidDnParameterException {

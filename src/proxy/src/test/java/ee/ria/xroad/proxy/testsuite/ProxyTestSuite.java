@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,10 +26,12 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -38,11 +40,9 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
+import org.niis.xroad.common.rpc.server.RpcServer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +52,8 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static java.lang.String.valueOf;
 
 /**
  * Proxy test suite program.
@@ -67,13 +69,14 @@ public final class ProxyTestSuite {
     private static ServerProxy serverProxy;
 
     private static JobManager jobManager;
-    private static ActorSystem actorSystem;
+    private static RpcServer proxyRpcServer;
 
     private ProxyTestSuite() {
     }
 
     /**
      * Main program entry point.
+     *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
@@ -102,16 +105,17 @@ public final class ProxyTestSuite {
         startWatchdog();
 
         try {
-            MessageLog.init(actorSystem, jobManager);
-            OpMonitoring.init(actorSystem);
+            MessageLog.init(jobManager);
+            OpMonitoring.init();
 
             runNormalTestCases(normalTestCases);
             runSslTestCases(sslTestCases);
             runIsolatedSslTestCases(isolatedSslTestCases);
 
         } finally {
+            MessageLog.shutdown();
+            OpMonitoring.shutdown();
             jobManager.stop();
-            Await.ready(actorSystem.terminate(), Duration.Inf());
 
             List<MessageTestCase> failed = getFailedTestcases(testCasesToRun);
 
@@ -135,12 +139,16 @@ public final class ProxyTestSuite {
         }
     }
 
+    @SneakyThrows
     private static void setPropsIfNotSet() {
 
         PropsSolver solver = new PropsSolver();
 
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, "8080");
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, "8443");
+        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(TestPortUtils.findRandomPort()));
+        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(TestPortUtils.findRandomPort()));
+        final var proxyPort = valueOf(TestPortUtils.findRandomPort());
+        solver.setIfNotSet(SystemProperties.PROXY_SERVER_LISTEN_PORT, proxyPort);
+        solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, proxyPort);
         solver.setIfNotSet(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
         solver.setIfNotSet(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
         solver.setIfNotSet(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
@@ -168,11 +176,12 @@ public final class ProxyTestSuite {
         jobManager = new JobManager();
         jobManager.start();
 
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy"));
-
-        for (AddOn addon :ServiceLoader.load(AddOn.class)) {
-            addon.init(actorSystem);
+        AddOn.BindableServiceRegistry serviceRegistry = new AddOn.BindableServiceRegistry();
+        for (AddOn addon : ServiceLoader.load(AddOn.class)) {
+            addon.init(serviceRegistry);
         }
+
+        proxyRpcServer = ProxyMain.createRpcServer(serviceRegistry.getRegisteredServices());
     }
 
     private static void runNormalTestCases(List<MessageTestCase> tc) throws Exception {
@@ -229,9 +238,13 @@ public final class ProxyTestSuite {
 
     private static void runTestSuite(List<StartStop> services, List<MessageTestCase> tc) throws Exception {
         for (StartStop s : services) {
-            s.start();
+            try {
+                s.start();
 
-            log.info(s.getClass().getSimpleName() + " started");
+                log.info(s.getClass().getSimpleName() + " started");
+            } catch (Exception e) {
+                log.error("Failed to start service", e);
+            }
         }
 
         try {
@@ -290,6 +303,7 @@ public final class ProxyTestSuite {
 
         return new ArrayList<>(// need mutable list
                 Arrays.asList(clientProxy, serverProxy, new CertHashBasedOcspResponder("127.0.0.1"),
+                        proxyRpcServer,
                         new DummyService(), new DummyServerProxy()));
     }
 

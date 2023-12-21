@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -91,9 +91,7 @@ public class ServerProxyConnectionAborted extends MessageTestCase {
 
                 LOG.debug("Starting to listen at 127.0.0.3:{}", port);
 
-                try (ServerSocket srvr = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.3"));
-                     Socket skt = srvr.accept()) {
-
+                try (ServerSocket srvr = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.3")); Socket skt = srvr.accept()) {
                     LOG.debug("Received connection from {}", skt.getRemoteSocketAddress());
 
                     // Read something.

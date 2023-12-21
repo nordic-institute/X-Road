@@ -29,7 +29,6 @@
     <xrd-button
       v-if="showDownloadButton"
       :data-test="`configuration-part-${configurationPart.content_identifier}-download`"
-      :outlined="false"
       :loading="loading"
       text
       @click="download"
@@ -40,22 +39,21 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { mapState, mapStores } from 'pinia';
-import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
+import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     configurationPart: {
-      type: Object as Prop<ConfigurationPart>,
+      type: Object as PropType<ConfigurationPart>,
       required: true,
     },
   },
@@ -65,8 +63,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useConfigurationSourceStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useConfigurationSource),
+    ...mapState(useUser, ['hasPermission']),
 
     showDownloadButton(): boolean {
       return (

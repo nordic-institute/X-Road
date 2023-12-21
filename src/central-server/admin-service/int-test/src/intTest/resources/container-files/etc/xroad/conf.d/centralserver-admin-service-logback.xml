@@ -9,13 +9,12 @@
         </encoder>
     </appender>
 
-    <logger name="akka" level="WARN"/>
-    <logger name="ee.ria.xroad" level="DEBUG"/>
+<!--    <logger name="ee.ria.xroad" level="DEBUG"/>-->
     <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF"/>
-    <logger name="org.niis.xroad" level="DEBUG"/>
-    <logger name="org.niis.xroad.cs" level="TRACE" />
-    <logger name="org.hibernate.sql" level="DEBUG" />
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
+<!--    <logger name="org.niis.xroad" level="DEBUG"/>-->
+<!--    <logger name="org.niis.xroad.cs" level="TRACE" />-->
+<!--    <logger name="org.hibernate.sql" level="DEBUG" />-->
+<!--    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />-->
     <logger name="org.springframework.boot.autoconfigure" level="INFO" />
 
     <root level="INFO">

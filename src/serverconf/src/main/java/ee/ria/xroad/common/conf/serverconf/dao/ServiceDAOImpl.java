@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,16 +32,15 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.persistence.Tuple;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-
-import javax.persistence.Tuple;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,23 +128,23 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
 
     @SuppressWarnings("squid:S1192")
     private ServiceType find(Session session, ServiceId id) {
-        StringBuilder qb = new StringBuilder();
-        qb.append("select s from ServiceType s");
-        qb.append(" inner join fetch s.serviceDescription w");
-        qb.append(" inner join fetch w.client c");
+        String query = """
+                select s from ServiceType s
+                 inner join fetch s.serviceDescription w
+                 inner join fetch w.client c
+                 where s.serviceCode = :serviceCode
+                 and s.serviceVersion %s
+                 and c.identifier.xRoadInstance = :clientInstance
+                 and c.identifier.memberClass = :clientClass
+                 and c.identifier.memberCode = :clientCode
+                 and c.identifier.subsystemCode %s
+                """
+                .formatted(
+                        nullOrName(id.getServiceVersion(), "serviceVersion"),
+                        nullOrName(id.getClientId().getSubsystemCode(), CLIENT_SUBSYSTEM_CODE)
+                );
 
-        qb.append(" where s.serviceCode = :serviceCode");
-        qb.append(" and s.serviceVersion "
-                + nullOrName(id.getServiceVersion(), "serviceVersion"));
-
-        qb.append(" and c.identifier.xRoadInstance = :clientInstance");
-        qb.append(" and c.identifier.memberClass = :clientClass");
-        qb.append(" and c.identifier.memberCode = :clientCode");
-        qb.append(" and c.identifier.subsystemCode "
-                + nullOrName(id.getClientId().getSubsystemCode(),
-                CLIENT_SUBSYSTEM_CODE));
-
-        Query<ServiceType> q = session.createQuery(qb.toString(), ServiceType.class);
+        Query<ServiceType> q = session.createQuery(query, ServiceType.class);
 
         q.setParameter("serviceCode", id.getServiceCode());
         setString(q, "serviceVersion", id.getServiceVersion());

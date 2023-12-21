@@ -1,4 +1,4 @@
-<!--
+ <!--
    The MIT License
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="xrd-view-common">
+  <v-container fluid class="xrd-view-common pa-7">
     <div class="table-toolbar pb-3 pt-5">
       <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
@@ -38,41 +38,51 @@
           class="add-member"
           outlined
           @click="addMember"
-          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-          {{ $t('action.addMember') }}</xrd-button
         >
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-add />
+          </xrd-icon-base>
+
+          {{ $t('action.addMember') }}
+        </xrd-button>
         <xrd-button
           v-if="showAddClient"
           data-test="add-client-button"
           @click="addClient"
-          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-          {{ $t('action.addClient') }}</xrd-button
         >
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-add />
+          </xrd-icon-base>
+          {{ $t('action.addClient') }}
+        </xrd-button>
       </div>
     </div>
 
+    <!-- @vue-ignore -->
     <v-data-table
       :loading="clientsLoading"
       :headers="headers"
-      :items="getClients"
-      :search="search"
+      :items="filteredClients"
       :must-sort="true"
       :items-per-page="-1"
-      :sort-by="['visibleName']"
-      :custom-sort="customSort"
-      :custom-filter="customFilter"
+      :sort-by="sortBy"
+      :custom-key-sort="dummyKeySort"
       hide-default-footer
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
+      @update:sort-by="sort"
     >
       <!-- https://stackoverflow.com/questions/61344980/v-slot-directive-doesnt-support-any-modifier -->
       <template #[`item.visibleName`]="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
-          <i @click="openClient(item)">
-            <v-icon class="icon-member icon-size">icon-Folder</v-icon></i
+          <xrd-icon-base
+            class="icon-member icon-size"
+            @click="openClient(item)"
           >
+            <xrd-icon-folder />
+          </xrd-icon-base>
           <span
             v-if="canOpenClient"
             class="member-name identifier-wrap clickable"
@@ -86,11 +96,12 @@
         </template>
         <!-- Name - Member -->
         <template v-else-if="item.type === clientTypes.MEMBER">
-          <i @click="openClient(item)">
-            <v-icon class="icon-member icon-size"
-              >icon-Folder-outline</v-icon
-            ></i
+          <xrd-icon-base
+            class="icon-member icon-size"
+            @click="openClient(item)"
           >
+            <xrd-icon-folder-outline />
+          </xrd-icon-base>
           <span
             v-if="canOpenClient"
             class="member-name identifier-wrap clickable"
@@ -108,9 +119,9 @@
             item.type === clientTypes.MEMBER
           "
         >
-          <v-icon class="icon-virtual-member icon-size"
-            >icon-Folder-outline</v-icon
-          >
+          <xrd-icon-base class="icon-virtual-member icon-size">
+            <xrd-icon-folder-outline />
+          </xrd-icon-base>
 
           <span class="identifier-wrap member-name">{{
             item.visibleName
@@ -149,9 +160,12 @@
             text
             :outlined="false"
             @click="addSubsystem(item)"
-            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('action.addSubsystem') }}</xrd-button
           >
+            <xrd-icon-base class="xrd-large-button-icon">
+              <xrd-icon-add />
+            </xrd-icon-base>
+            {{ $t('action.addSubsystem') }}
+          </xrd-button>
 
           <xrd-button
             v-if="
@@ -163,23 +177,24 @@
             text
             :outlined="false"
             @click="registerClient(item)"
-            >{{ $t('action.register') }}</xrd-button
-          >
+            >{{ $t('action.register') }}
+          </xrd-button>
         </div>
       </template>
 
-      <template slot="no-data">{{ $t('action.noData') }}</template>
-      <v-alert slot="no-results" :value="true" color="error">{{
-        $t('action.emptySearch', { msg: search })
-      }}</v-alert>
+      <template #no-data>{{ $t('action.noData') }}</template>
 
-      <template #footer>
+      <template #bottom>
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
 
+    <v-alert v-if="search.length > 1 && getClients.length < 1" type="error">
+      {{ $t('action.emptySearch', { msg: search }) }}
+    </v-alert>
+
     <xrd-confirm-dialog
-      :dialog="confirmRegisterClient"
+      v-if="confirmRegisterClient"
       title="clients.action.register.confirm.title"
       text="clients.action.register.confirm.text"
       :loading="registerClientLoading"
@@ -194,38 +209,49 @@
  * This component renders the Clients data table.
  * Default sort and filter functions are replaced to achieve the end result where
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import ClientStatus from './ClientStatus.vue';
-
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import { ExtendedClient } from '@/ui-types';
-import { DataTableHeader } from 'vuetify';
+import { DataTableHeader, ExtendedClient } from '@/ui-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import { useClientsStore } from '@/store/modules/clients';
+import { useClients } from '@/store/modules/clients';
+import { XrdIconFolder, XrdIconFolderOutline } from '@niis/shared-ui';
+import { AxiosError } from 'axios';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    XrdIconFolder,
+    XrdIconFolderOutline,
     ClientStatus,
+    VDataTable,
   },
 
   data: () => ({
-    search: '' as string,
+    search: '',
     clientTypes: ClientTypes,
-    pagination: {
-      sortBy: 'visibleName' as string,
-    },
-    confirmRegisterClient: false as boolean,
-    registerClientLoading: false as boolean,
+    confirmRegisterClient: false,
+    registerClientLoading: false,
     selectedClient: undefined as undefined | ExtendedClient,
+    filteredClients: [] as ExtendedClient[],
+    sortBy: [{ key: 'visibleName', order: 'asc' }],
+    // Currently the new version of v-data-table is missing the customSort property,
+    // so we'll ignore its internal sorting for now and do our own sorting externally
+    // https://github.com/vuetifyjs/vuetify/issues/16654
+    dummyKeySort: {
+      visibleName: () => 0,
+      id: () => 0,
+      status: () => 0,
+    },
   }),
 
   computed: {
-    ...mapState(useClientsStore, [
+    ...mapState(useClients, [
       'getClients',
       'clientsLoading',
       'ownerMember',
@@ -235,28 +261,24 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('client.name') as string,
+          title: this.$t('client.name') as string,
           align: 'start',
-          value: 'visibleName',
-          class: 'xrd-table-header xrd-table-header-name',
+          key: 'visibleName',
         },
         {
-          text: this.$t('client.id') as string,
+          title: this.$t('client.id') as string,
           align: 'start',
-          value: 'id',
-          class: 'xrd-table-header xrd-table-header-id',
+          key: 'id',
         },
         {
-          text: this.$t('client.status') as string,
+          title: this.$t('client.status') as string,
           align: 'start',
-          value: 'status',
-          class: 'xrd-table-header xrd-table-header-status',
+          key: 'status',
         },
         {
-          text: '',
-          value: 'button',
+          title: '',
+          key: 'button',
           sortable: false,
-          class: 'xrd-table-header xrd-table-header-button',
         },
       ];
     },
@@ -276,13 +298,28 @@ export default Vue.extend({
       return this.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
     },
   },
+
+  watch: {
+    search(newValue: string) {
+      const filteredClients = this.getClients.filter((client) =>
+        this.customFilter('', newValue, client),
+      );
+      this.filteredClients = this.customSort(
+        filteredClients,
+        this.sortBy[0].key,
+        this.sortBy[0].order === 'desc',
+      );
+    },
+  },
+
   created() {
     this.fetchData();
+    this.sort(this.sortBy);
   },
 
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useClientsStore, ['fetchClients']),
+    ...mapActions(useClients, ['fetchClients']),
 
     openClient(item: ExtendedClient): void {
       if (!item.id) {
@@ -290,7 +327,7 @@ export default Vue.extend({
         throw new Error('Invalid client');
       }
       this.$router.push({
-        name: RouteName.Client,
+        name: RouteName.MemberDetails,
         params: { id: item.id },
       });
     },
@@ -301,7 +338,7 @@ export default Vue.extend({
         throw new Error('Invalid client');
       }
       this.$router.push({
-        name: RouteName.Subsystem,
+        name: RouteName.SubsystemDetails,
         params: { id: item.id },
       });
     },
@@ -321,9 +358,9 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.AddMember,
         params: {
-          instanceId: this.ownerMember.instance_id,
-          memberClass: this.ownerMember.member_class,
-          memberCode: this.ownerMember.member_code,
+          ownerInstanceId: this.ownerMember.instance_id,
+          ownerMemberClass: this.ownerMember.member_class,
+          ownerMemberCode: this.ownerMember.member_code,
         },
       });
     },
@@ -350,19 +387,19 @@ export default Vue.extend({
       this.confirmRegisterClient = true;
     },
 
-    registerAccepted(item: ExtendedClient) {
+    registerAccepted(item: ExtendedClient | undefined) {
       this.registerClientLoading = true;
 
       // This should not happen, but better to throw error than create an invalid client id
-      if (!item.instance_id) {
+      if (!item?.instance_id) {
         throw new Error('Missing instance id');
       }
 
       const clientId = createClientId(
-        item.instance_id,
-        item.member_class,
-        item.member_code,
-        item.subsystem_code,
+        item?.instance_id,
+        item?.member_class,
+        item?.member_code,
+        item?.subsystem_code,
       );
 
       api
@@ -382,13 +419,10 @@ export default Vue.extend({
         });
     },
 
-    customFilter: (
-      value: unknown,
-      search: string | null,
-      item: ExtendedClient,
-    ): boolean => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    customFilter: (value: string, search: string, item: any) => {
       // Override for the default filter function.
-      if (search === null || search.length === 0 || search?.trim() === '') {
+      if (search.length === 0 || search?.trim() === '') {
         return true;
       }
 
@@ -407,13 +441,22 @@ export default Vue.extend({
       return isFiltered;
     },
 
+    sort(event: { key: string; order: string }[]) {
+      this.filteredClients = this.customSort(
+        this.filteredClients,
+        event[0].key,
+        event[0].order === 'desc',
+      );
+      this.sortBy = [{ key: event[0].key, order: event[0].order }];
+    },
+
     customSort(
       items: ExtendedClient[],
-      sortBy: string[],
-      sortDesc: boolean[],
+      sortBy: string,
+      sortDesc: boolean,
     ): ExtendedClient[] {
-      const index = sortBy[0] as keyof ExtendedClient;
-      const sortDirection = !sortDesc[0] ? 1 : -1;
+      const index = sortBy as keyof ExtendedClient;
+      const sortDirection = !sortDesc ? 1 : -1;
 
       // Filter out all subsystems for later use
       const subsystems = items.filter(
@@ -479,36 +522,44 @@ export default Vue.extend({
     },
 
     fetchData() {
-      this.fetchClients().catch((error) => {
-        this.showError(error);
-      });
+      this.fetchClients()
+        .catch((error: AxiosError) => {
+          this.showError(error);
+        })
+        .finally(() => {
+          this.filteredClients = this.getClients;
+          this.sort(this.sortBy);
+        });
     },
   },
 });
 </script>
 
 <style lang="scss">
-@import '~styles/colors';
+@import '@/assets/colors';
+
 .xrd-table-header {
   border-bottom: 1px solid $XRoad-WarmGrey30 !important;
 }
 
 // Override Vuetify default table cell height
-.v-data-table > .v-data-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-data-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-data-table__wrapper > table > tfoot > tr > td {
+.v-data-table > .v-table__wrapper > table > tbody > tr > td,
+.v-data-table > .v-table__wrapper > table > thead > tr > td,
+.v-data-table > .v-table__wrapper > table > tfoot > tr > td {
   height: 56px;
   color: $XRoad-Black100;
 }
 
 // Override Vuetify table row hover color
-.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover {
+.v-data-table > .v-table__wrapper > table > tbody > tr:hover {
   background: $XRoad-Purple10 !important;
 }
 </style>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
+@import '@/assets/tables';
+
 .icon-member {
   padding-left: 0;
   color: $XRoad-Link;

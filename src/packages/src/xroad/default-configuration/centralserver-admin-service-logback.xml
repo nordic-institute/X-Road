@@ -31,7 +31,6 @@
         <suffixPattern>correlation-id:[%X{traceId:-}] %-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} - %msg</suffixPattern>
     </appender>
 
-    <logger name="akka" level="WARN" />
     <logger name="ee.ria.xroad" level="INFO" />
     <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
     <logger name="org.niis.xroad" level="INFO" />

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd">
+
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../identifiers.xsd" id="id"/>
+
+    <complexType name="ManagementServiceType">
+        <sequence>
+            <element name="authCertRegServiceAddress" type="string">
+                <annotation>
+                    <documentation>
+                        Address of the authentication certificate registration service that can be called by the
+                        security servers.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authCertRegServiceCert" type="base64Binary" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Server certificate that is used to authenticate TLS connection to the authentication
+                        certificate registration service.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="managementRequestServiceProviderId" type="id:XRoadClientIdentifierType">
+                <annotation>
+                    <documentation>
+                        Identifier of the X-Road member or subsystem providing the management request services.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ConfigurationAnchorType">
+        <sequence>
+            <element name="generatedAt" minOccurs="0" type="dateTime">
+                <annotation>
+                    <documentation>Date when this anchor was produced
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="instanceIdentifier" type="string">
+                <annotation>
+                    <documentation>
+                        Code of the X-Road instance that provides configuration to this configuration source.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="source" type="tns:ConfigurationSourceType" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Describes one configuration source.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ConfigurationSourceType">
+        <sequence>
+            <element name="downloadURL" type="string">
+                <annotation>
+                    <documentation>
+                        HTTP URL that can be used to download signed configuration.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="verificationCert" type="base64Binary" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Public key that can be used to verify the signed configuration, presented as X.509 certificate.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+</schema>

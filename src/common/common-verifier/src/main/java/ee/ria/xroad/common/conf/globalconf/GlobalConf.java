@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,7 +30,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -484,18 +483,18 @@ public final class GlobalConf {
      * @param instanceIdentifier the instance identifier
      * @return all approved TSPs for the given instance identifier
      */
-    public static List<String> getApprovedTsps(String instanceIdentifier) {
+    public static List<String> getApprovedTspUrls(String instanceIdentifier) {
         log.trace("getApprovedTsps({})", instanceIdentifier);
 
-        return getInstance().getApprovedTsps(instanceIdentifier);
+        return getInstance().getApprovedTspUrls(instanceIdentifier);
     }
 
     /**
      * @param instanceIdentifier the instance identifier
      * @return all approved TSP types for the given instance identifier
      */
-    public static List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
-        return getInstance().getApprovedTspTypes(instanceIdentifier);
+    public static List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier) {
+        return getInstance().getApprovedTsps(instanceIdentifier);
     }
 
     /**

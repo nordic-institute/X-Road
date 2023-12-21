@@ -1,0 +1,147 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+syntax = "proto3";
+
+package org.niis.xroad.signer.proto;
+
+import "common_messages.proto";
+import "tokens.proto";
+import "token_status_info.proto";
+
+option java_multiple_files = true;
+
+service CertificateService {
+  rpc ActivateCert(ActivateCertReq) returns (Empty) {}
+
+  rpc GetCertificateInfoForHash(GetCertificateInfoForHashReq) returns (GetCertificateInfoResp) {}
+
+  rpc GetMemberCerts(GetMemberCertsReq) returns (GetMemberCertsResp) {}
+
+  rpc SetCertStatus(SetCertStatusReq) returns (Empty) {}
+
+  rpc GenerateCertRequest(GenerateCertRequestReq) returns (GenerateCertRequestResp) {}
+
+  rpc RegenerateCertRequest(RegenerateCertRequestReq) returns (RegenerateCertRequestResp) {}
+
+  rpc DeleteCert(DeleteCertReq) returns (Empty) {}
+
+  rpc DeleteCertRequest(DeleteCertRequestReq) returns (Empty) {}
+
+  rpc ImportCert(ImportCertReq) returns (ImportCertResp) {}
+
+  rpc GenerateSelfSignedCert(GenerateSelfSignedCertReq) returns (GenerateSelfSignedCertResp) {}
+}
+
+message GetCertificateInfoForHashReq {
+  string cert_hash = 1;
+}
+
+message GetCertificateInfoResp {
+  CertificateInfoProto certificate_info = 1;
+}
+
+message ActivateCertReq {
+  string cert_id_or_hash = 1;
+  bool active = 2;
+}
+
+message SetCertStatusReq{
+  string cert_id = 1;
+  string status = 2;
+}
+
+message GetMemberCertsReq{
+  ClientIdProto member_id = 1;
+}
+
+message GetMemberCertsResp{
+  repeated CertificateInfoProto certs = 1;
+}
+
+message RegenerateCertRequestReq {
+  string cert_request_id = 1;
+  CertificateRequestFormat format = 2;
+}
+
+message RegenerateCertRequestResp {
+  string cert_req_id = 1;
+  bytes cert_request = 2;
+  CertificateRequestFormat format = 3;
+  optional ClientIdProto member_id = 4;
+  KeyUsageInfo key_usage = 5;
+}
+
+/** Specifies the cert request format to return. */
+enum CertificateRequestFormat {
+  CERTIFICATE_REQUEST_FORMAT_UNSPECIFIED = 0;
+  PEM = 1;
+  DER = 2;
+}
+
+message DeleteCertReq {
+  string cert_id = 1;
+}
+
+message DeleteCertRequestReq {
+  string cert_request_id = 1;
+}
+
+message ImportCertReq {
+  bytes cert_data = 1;
+  string initial_status = 2;
+  optional ClientIdProto member_id = 3;
+}
+
+message ImportCertResp {
+  string key_id = 1;
+}
+
+message GenerateSelfSignedCertReq {
+  string key_id = 1;
+  string common_name = 2;
+  int64 date_not_before = 3;
+  int64 date_not_after = 4;
+  KeyUsageInfo key_usage = 5;
+  optional ClientIdProto member_id = 6;
+}
+
+message GenerateSelfSignedCertResp {
+  bytes certificate_bytes = 1;
+}
+
+message GenerateCertRequestReq {
+  string key_id = 1;
+  optional ClientIdProto member_id = 2;
+  KeyUsageInfo key_usage = 3;
+  string subject_name = 4;
+  CertificateRequestFormat format = 5;
+}
+
+message GenerateCertRequestResp {
+  string cert_req_id = 1;
+  bytes cert_request = 2;
+  CertificateRequestFormat format = 3;
+}

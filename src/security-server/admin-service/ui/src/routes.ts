@@ -38,16 +38,16 @@ import AppError from '@/views/AppError.vue';
 import AppLogin from '@/views/AppLogin.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vue';
-import Client from '@/views/Clients/Client.vue';
 import ClientDetails from '@/views/Clients/Details/ClientDetails.vue';
+import ClientsView from '@/views/Clients/ClientsView.vue';
 import ClientTabs from '@/views/Clients/ClientTabs.vue';
 import ClientTlsCertificate from '@/views/ClientTlsCertificate/ClientTlsCertificate.vue';
-import Clients from '@/views/Clients/Clients.vue';
+import ClientView from '@/views/Clients/ClientView.vue';
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
-import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
+import DiagnosticsView from '@/views/Diagnostics/DiagnosticsView.vue';
 import EndpointAccessRights from '@/views/Service/Endpoints/Endpoint/EndpointAccessRights.vue';
 import EndpointDetails from '@/views/Service/Endpoints/Endpoint/EndpointDetails.vue';
-import Endpoints from '@/views/Service/Endpoints/Endpoints.vue';
+import EndpointsView from '@/views/Service/Endpoints/EndpointsView.vue';
 import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
 import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
 import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
@@ -58,25 +58,25 @@ import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertific
 import LocalGroup from '@/views/LocalGroup/LocalGroup.vue';
 import LocalGroups from '@/views/Clients/LocalGroups/LocalGroups.vue';
 import AppForbidden from '@/views/AppForbidden.vue';
-import { RouteConfig } from 'vue-router';
+import { RouteRecordRaw } from 'vue-router';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
-import Service from '@/views/Service/Service.vue';
 import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
 import ServiceClients from '@/views/Clients/ServiceClients/ServiceClients.vue';
 import ServiceDescriptionDetails from '@/views/ServiceDescriptionDetails/ServiceDescriptionDetails.vue';
 import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
-import Services from '@/views/Clients/Services/Services.vue';
-import Settings from '@/views/Settings/Settings.vue';
+import ServicesView from '@/views/Clients/Services/ServicesView.vue';
+import ServiceView from '@/views/Service/ServiceView.vue';
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
+import SettingsView from '@/views/Settings/SettingsView.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
-import Subsystem from '@/views/Clients/Subsystem.vue';
 import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
+import SubsystemView from '@/views/Clients/SubsystemView.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
 
-const routes: RouteConfig[] = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: AppBase,
@@ -155,7 +155,7 @@ const routes: RouteConfig[] = [
         name: RouteName.Diagnostics,
         path: '/diagnostics',
         components: {
-          default: Diagnostics,
+          default: DiagnosticsView,
           top: TabsBase,
           alerts: AlertsContainer,
         },
@@ -170,7 +170,7 @@ const routes: RouteConfig[] = [
           ],
         },
         components: {
-          default: Settings,
+          default: SettingsView,
           top: TabsBase,
           subTabs: SettingsTabs,
           alerts: AlertsContainer,
@@ -220,7 +220,7 @@ const routes: RouteConfig[] = [
       },
       {
         name: RouteName.AddMember,
-        path: '/add-member/:instanceId/:memberClass/:memberCode',
+        path: '/add-member/:ownerInstanceId/:ownerMemberClass/:ownerMemberCode',
         components: {
           default: AddMember,
           alerts: AlertsContainer,
@@ -235,9 +235,9 @@ const routes: RouteConfig[] = [
         name: RouteName.Subsystem,
         path: '/subsystem',
         meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
-        redirect: '/subsystem/details/:id',
+        redirect: { name: RouteName.SubsystemDetails },
         components: {
-          default: Subsystem,
+          default: SubsystemView,
           top: TabsBase,
           subTabs: SubsystemTabs,
           alerts: AlertsContainer,
@@ -264,7 +264,7 @@ const routes: RouteConfig[] = [
           {
             name: RouteName.SubsystemServices,
             path: '/subsystem/services/:id',
-            component: Services,
+            component: ServicesView,
             props: true,
             meta: { permissions: [Permissions.VIEW_CLIENT_SERVICES] },
           },
@@ -288,9 +288,9 @@ const routes: RouteConfig[] = [
         name: RouteName.Client,
         path: '/client',
         meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
-        redirect: '/client/details/:id',
+        redirect: { name: RouteName.MemberDetails },
         components: {
-          default: Client,
+          default: ClientView,
           top: TabsBase,
           subTabs: ClientTabs,
           alerts: AlertsContainer,
@@ -317,7 +317,7 @@ const routes: RouteConfig[] = [
         name: RouteName.Clients,
         path: '/clients',
         components: {
-          default: Clients,
+          default: ClientsView,
           top: TabsBase,
           alerts: AlertsContainer,
         },
@@ -410,11 +410,11 @@ const routes: RouteConfig[] = [
         name: RouteName.Service,
         path: '/service',
         components: {
-          default: Service,
+          default: ServiceView,
           alerts: AlertsContainer,
           top: TabsBaseEmpty,
         },
-        redirect: '/service/:clientId/:serviceId/parameters',
+        redirect: { name: RouteName.ServiceParameters },
         props: { default: true },
         children: [
           {
@@ -429,7 +429,7 @@ const routes: RouteConfig[] = [
             name: RouteName.Endpoints,
             path: '/service/:clientId/:serviceId/endpoints',
             components: {
-              default: Endpoints,
+              default: EndpointsView,
             },
             props: { default: true },
           },
@@ -499,7 +499,11 @@ const routes: RouteConfig[] = [
     component: AppForbidden,
   },
   {
-    path: '*',
+    path: '/:pathMatch(.*)*',
+    component: AppError,
+  },
+  {
+    path: '/:pathMatch(.*)',
     component: AppError,
   },
 ];

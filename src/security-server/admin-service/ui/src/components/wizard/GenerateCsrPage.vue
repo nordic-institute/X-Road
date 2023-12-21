@@ -25,64 +25,51 @@
  -->
 <template>
   <div>
-    <ValidationObserver ref="form2" v-slot="{ invalid }">
-      <div class="wizard-step-form-content pt-6">
-        <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
-          <div class="wizard-label">
-            {{ $t(`certificateProfile.${item.label_key}`) }}
-          </div>
-          <div>
-            <ValidationProvider
-              v-slot="{ errors }"
-              :name="item.id"
-              :rules="item.required && 'required'"
-            >
-              <v-text-field
-                v-model="item.default_value"
-                class="wizard-form-input"
-                :name="item.id"
-                type="text"
-                :disabled="item.read_only"
-                :error-messages="errors"
-                outlined
-                autofocus
-                data-test="dynamic-csr-input"
-              ></v-text-field>
-            </ValidationProvider>
-          </div>
+    <div class="wizard-step-form-content pt-6">
+      <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
+        <div class="wizard-label">
+          {{ $t(`certificateProfile.${item.label_key}`) }}
+        </div>
+        <div>
+          <v-text-field
+            v-bind="componentRef(item.id)"
+            class="wizard-form-input"
+            :name="item.id"
+            type="text"
+            :disabled="item.read_only"
+            variant="outlined"
+            autofocus
+            :data-test="`dynamic-csr-input_${item.id}`"
+          ></v-text-field>
         </div>
       </div>
-      <div class="button-footer">
-        <xrd-button outlined data-test="cancel-button" @click="cancel">{{
-          $t('action.cancel')
-        }}</xrd-button>
+    </div>
+    <div class="button-footer">
+      <xrd-button outlined data-test="cancel-button" @click="cancel">{{
+        $t('action.cancel')
+      }}</xrd-button>
 
-        <xrd-button
-          outlined
-          class="previous-button"
-          data-test="previous-button"
-          @click="previous"
-          >{{ $t('action.previous') }}</xrd-button
-        >
-        <xrd-button :disabled="invalid" data-test="save-button" @click="done">{{
-          $t(saveButtonText)
-        }}</xrd-button>
-      </div>
-    </ValidationObserver>
+      <xrd-button
+        outlined
+        class="previous-button"
+        data-test="previous-button"
+        @click="previous"
+        >{{ $t('action.previous') }}</xrd-button
+      >
+      <xrd-button :disabled="!meta.valid" data-test="save-button" @click="done">
+        {{ $t(saveButtonText) }}
+      </xrd-button>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { mapState } from 'pinia';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { defineComponent, Ref } from 'vue';
+import { useCsr } from '@/store/modules/certificateSignRequest';
+import { PublicPathState, useForm } from 'vee-validate';
+import { CsrSubjectFieldDescription } from '@/openapi-types';
 
-export default Vue.extend({
-  components: {
-    ValidationObserver,
-    ValidationProvider,
-  },
+export default defineComponent({
   props: {
     saveButtonText: {
       type: String,
@@ -93,10 +80,45 @@ export default Vue.extend({
       default: true,
     },
   },
-  computed: {
-    ...mapState(useCsrStore, ['csrForm']),
+  emits: ['cancel', 'previous', 'done'],
+  setup() {
+    const {
+      csrForm,
+      setCsrForm,
+    }: {
+      csrForm: CsrSubjectFieldDescription[];
+      setCsrForm: (form: CsrSubjectFieldDescription[]) => void;
+    } = useCsr();
+    const validationSchema: Record<string, string> = csrForm.reduce(
+      (acc, cur) => ({ ...acc, [cur.id]: cur.required && 'required' }),
+      {},
+    );
+    const initialValues: Record<string, string> = csrForm.reduce(
+      (acc, cur) => ({ ...acc, [cur.id]: cur.default_value }),
+      {},
+    );
+    const { meta, values, defineComponentBinds } = useForm({
+      validationSchema,
+      initialValues,
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const componentBinds: Record<string, Ref> = csrForm.reduce(
+      (acc, cur) => ({
+        ...acc,
+        [cur.id]: defineComponentBinds(cur.id, componentConfig),
+      }),
+      {},
+    );
+    return { meta, values, ...componentBinds, csrForm, setCsrForm };
   },
   methods: {
+    componentRef(id: string): Ref {
+      return (this as never)[id];
+    },
     cancel(): void {
       this.$emit('cancel');
     },
@@ -104,6 +126,12 @@ export default Vue.extend({
       this.$emit('previous');
     },
     done(): void {
+      this.setCsrForm(
+        this.csrForm.map((field: CsrSubjectFieldDescription) => ({
+          ...field,
+          default_value: this.values[field.id],
+        })),
+      );
       this.$emit('done');
     },
   },
@@ -111,5 +139,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 </style>

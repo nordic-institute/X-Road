@@ -1,15 +1,14 @@
-
 dependencies {
     intTestImplementation project(':common:common-test')
     intTestImplementation project(":central-server:admin-service:api-client")
     intTestImplementation(testFixtures(project(":common:common-management-request")))
-    intTestImplementation ("io.github.openfeign:feign-hc5:$openFeignVersion")
+    intTestImplementation("io.github.openfeign:feign-hc5:$openFeignVersion")
 
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-assert:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}") {
-      exclude(group: "org.bouncycastle", module: "bcpkix-jdk18on")
-      exclude(group: "org.bouncycastle", module: "bcprov-jdk18on")
+        exclude(group: "org.bouncycastle", module: "bcpkix-jdk18on")
+        exclude(group: "org.bouncycastle", module: "bcprov-jdk18on")
     }
     intTestImplementation("com.nortal.test:test-automation-feign:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")

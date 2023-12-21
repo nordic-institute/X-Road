@@ -177,32 +177,6 @@ EOF
 
   cd /usr/share/xroad/db/ || die "Running database migrations failed, please check that directory /usr/share/xroad/db exists"
 
-  if [[ $(psql_adminuser -c "select 1 from pg_tables where schemaname = 'public' and tablename='databasechangelog'" 2>/dev/null) == 1 ]]; then
-    /usr/share/xroad/db/liquibase.sh \
-      --classpath=/usr/share/xroad/jlib/proxy.jar \
-      --url="jdbc:postgresql://$db_host/$db_database" \
-      --changeLogFile=${db_name}-legacy-changelog.xml \
-      --password="${db_admin_password}" \
-      --username="${db_admin_conn_user}" \
-      update ||
-      die "Running legacy database migrations failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
-
-    psql_master --single-transaction -d "$db_database" <<EOF || die "Renaming public schema to '$db_schema' failed."
-\set STOP_ON_ERROR on
-ALTER DATABASE "${db_database}" OWNER TO "${db_master_user}";
-REVOKE ALL ON DATABASE "${db_database}" FROM PUBLIC;
-GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_admin_user}";
-GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
-ALTER SCHEMA public RENAME TO "${db_schema}";
-ALTER SCHEMA "${db_schema}" OWNER TO "${db_admin_user}";
-REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
-CREATE SCHEMA public;
-GRANT USAGE ON SCHEMA public TO "${db_admin_user}";
-GRANT USAGE ON SCHEMA public TO "${db_user}";
-ALTER EXTENSION hstore SET SCHEMA public;
-EOF
-  fi
-
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
     context="--contexts=admin"

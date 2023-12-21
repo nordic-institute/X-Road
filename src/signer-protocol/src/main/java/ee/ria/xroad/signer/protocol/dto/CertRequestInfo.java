@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,10 @@
 package ee.ria.xroad.signer.protocol.dto;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -35,12 +38,28 @@ import java.io.Serializable;
  * Certificate request info DTO.
  */
 @Value
+@ToString(onlyExplicitlyIncluded = true)
 public class CertRequestInfo implements Serializable {
 
-    private final String id;
+    @JsonIgnore
+    CertRequestInfoProto message;
 
-    private final ClientId memberId;
+    @ToString.Include
+    public String getId() {
+        return message.getId();
+    }
 
-    private final String subjectName;
+    @ToString.Include
+    public ClientId getMemberId() {
+        if (message.hasMemberId()) {
+            return ClientIdMapper.fromDto(message.getMemberId());
+        }
+        return null;
+    }
+
+    @ToString.Include
+    public String getSubjectName() {
+        return message.getSubjectName();
+    }
 
 }

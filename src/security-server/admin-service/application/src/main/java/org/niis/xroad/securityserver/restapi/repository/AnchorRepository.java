@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.repository;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.util.AtomicSave;
 
 import lombok.extern.slf4j.Slf4j;
@@ -69,8 +69,8 @@ public class AnchorRepository {
      * Load anchor from file
      * @return
      */
-    public ConfigurationAnchorV2 loadAnchorFromFile() {
-        return new ConfigurationAnchorV2(CONFIGURATION_ANCHOR_FILENAME);
+    public ConfigurationAnchor loadAnchorFromFile() {
+        return new ConfigurationAnchor(CONFIGURATION_ANCHOR_FILENAME);
     }
 
     /**

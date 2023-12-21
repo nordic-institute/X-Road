@@ -26,93 +26,87 @@
  -->
 <template>
   <div data-test="timestamping-services">
-    <!-- Title and button -->
-    <div class="table-toolbar align-fix mt-8 pl-0">
-      <div class="xrd-view-title align-fix">
-        {{ $t('trustServices.timestampingServices') }}
-      </div>
-
-      <xrd-button
-        v-if="showAddTsaButton"
-        data-test="add-timestamping-service"
-        @click="showAddDialog = true"
+    <titled-view title-key="trustServices.timestampingServices">
+      <template #header-buttons>
+        <xrd-button
+          v-if="showAddTsaButton"
+          data-test="add-timestamping-service"
+          @click="showAddDialog = true"
+        >
+          <xrd-icon-base class="xrd-large-button-icon">
+            <XrdIconAdd />
+          </xrd-icon-base>
+          {{ $t('trustServices.timestampingService.dialog.add.title') }}
+        </xrd-button>
+      </template>
+      <v-data-table
+        v-if="showTsaList"
+        data-test="timestamping-services-table"
+        class="elevation-0 data-table"
+        item-value="id"
+        :loading="loading"
+        :headers="headers"
+        :items="timestampingServices"
+        :must-sort="true"
+        :items-per-page="-1"
+        :loader-height="2"
       >
-        <xrd-icon-base class="xrd-large-button-icon">
-          <XrdIconAdd />
-        </xrd-icon-base>
-        {{ $t('trustServices.timestampingService.dialog.add.title') }}
-      </xrd-button>
-    </div>
+        <template #[`item.timestamping_interval`]="{ item }">
+          {{
+            $t(
+              'trustServices.trustService.timestampingService.timestampingIntervalMinutes',
+              { min: toMinutes(item.timestamping_interval) },
+            )
+          }}
+        </template>
+        <template #[`item.cost`]="{ item }">
+          {{
+            $t(
+              'trustServices.trustService.timestampingService.costValues.' +
+                item.cost,
+            )
+          }}
+        </template>
+        <template #[`item.button`]="{ item }">
+          <div class="cs-table-actions-wrap">
+            <xrd-button
+              text
+              :outlined="false"
+              data-test="view-timestamping-service-certificate"
+              @click="navigateToCertificateDetails(item)"
+            >
+              {{ $t('trustServices.viewCertificate') }}
+            </xrd-button>
+            <xrd-button
+              v-if="showEditTsaButton"
+              text
+              :outlined="false"
+              data-test="edit-timestamping-service"
+              @click="openEditDialog(item)"
+            >
+              {{ $t('action.edit') }}
+            </xrd-button>
+            <xrd-button
+              v-if="showDeleteTsaButton"
+              text
+              :outlined="false"
+              data-test="delete-timestamping-service"
+              @click="showDeleteDialog(item)"
+            >
+              {{ $t('action.delete') }}
+            </xrd-button>
+          </div>
+        </template>
 
-    <!-- Table -->
-    <v-data-table
-      v-if="showTsaList"
-      :loading="loading"
-      :headers="headers"
-      :items="timestampingServices"
-      :must-sort="true"
-      :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      hide-default-footer
-      data-test="timestamping-services-table"
-    >
-      <template #[`item.timestamping_interval`]="{ item }">
-        {{
-          $t(
-            'trustServices.trustService.timestampingService.timestampingIntervalMinutes',
-            { min: toMinutes(item.timestamping_interval) },
-          )
-        }}
-      </template>
-      <template #[`item.cost`]="{ item }">
-        {{
-          $t(
-            'trustServices.trustService.timestampingService.costValues.' +
-              item.cost,
-          )
-        }}
-      </template>
-      <template #[`item.button`]="{ item }">
-        <div class="cs-table-actions-wrap">
-          <xrd-button
-            text
-            :outlined="false"
-            data-test="view-timestamping-service-certificate"
-            @click="navigateToCertificateDetails(item)"
-          >
-            {{ $t('trustServices.viewCertificate') }}
-          </xrd-button>
-          <xrd-button
-            v-if="showEditTsaButton"
-            text
-            :outlined="false"
-            data-test="edit-timestamping-service"
-            @click="openEditDialog(item)"
-          >
-            {{ $t('action.edit') }}
-          </xrd-button>
-          <xrd-button
-            v-if="showDeleteTsaButton"
-            text
-            :outlined="false"
-            data-test="delete-timestamping-service"
-            @click="showDeleteDialog(item)"
-          >
-            {{ $t('action.delete') }}
-          </xrd-button>
-        </div>
-      </template>
-
-      <template #footer>
-        <div class="custom-footer"></div>
-      </template>
-    </v-data-table>
+        <template #bottom>
+          <custom-data-table-footer />
+        </template>
+      </v-data-table>
+    </titled-view>
 
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
-      v-if="confirmDelete"
+      v-if="selectedTimestampingService && confirmDelete"
       :dialog="confirmDelete"
       title="trustServices.trustService.timestampingService.delete.dialog.title"
       text="trustServices.trustService.timestampingService.delete.dialog.message"
@@ -122,41 +116,43 @@
       @accept="deleteTimestampingService"
     />
 
-    <AddTimestampingServiceDialog
+    <add-timestamping-service-dialog
       v-if="showAddDialog"
       :show-dialog="showAddDialog"
       @save="hideAddDialog"
       @cancel="hideAddDialog"
-    >
-    </AddTimestampingServiceDialog>
-    <EditTimestampingServiceDialog
-      v-if="showEditDialog"
-      :show-dialog="showEditDialog"
+    />
+    <edit-timestamping-service-dialog
+      v-if="selectedTimestampingService && showEditDialog"
       :tsa-service="selectedTimestampingService"
       @save="hideEditDialog"
       @cancel="hideEditDialog"
-    >
-    </EditTimestampingServiceDialog>
+    />
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import AddTimestampingServiceDialog from '@/components/timestampingServices/AddTimestampingServiceDialog.vue';
 import EditTimestampingServiceDialog from '@/components/timestampingServices/EditTimestampingServiceDialog.vue';
-import { DataTableHeader } from 'vuetify';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
-import { timestampingServicesStore } from '@/store/modules/trust-services';
+import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import { DataTableHeader } from '@/ui-types';
+import TitledView from '@/components/ui/TitledView.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
-export default Vue.extend({
-  name: 'TimestampingServicesList',
+export default defineComponent({
   components: {
+    CustomDataTableFooter,
+    TitledView,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
+    VDataTable,
   },
   props: {},
   data() {
@@ -170,8 +166,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(timestampingServicesStore, notificationsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useTimestampingServicesStore),
+    ...mapState(useUser, ['hasPermission']),
 
     timestampingServices(): TimestampingService[] {
       return this.timestampingServicesStore.timestampingServices;
@@ -191,34 +187,30 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t(
+          title: this.$t(
             'trustServices.trustService.timestampingService.url',
           ) as string,
           align: 'start',
-          value: 'url',
-          class: 'xrd-table-header text-uppercase',
+          key: 'url',
         },
         {
-          text: this.$t(
+          title: this.$t(
             'trustServices.trustService.timestampingService.timestampingInterval',
           ) as string,
           align: 'start',
-          value: 'timestamping_interval',
-          class: 'xrd-table-header text-uppercase',
+          key: 'timestamping_interval',
         },
         {
-          text: this.$t(
+          title: this.$t(
             'trustServices.trustService.timestampingService.cost',
           ) as string,
           align: 'start',
-          value: 'cost',
-          class: 'xrd-table-header text-uppercase',
+          key: 'cost',
         },
         {
-          text: '',
-          value: 'button',
+          title: '',
           sortable: false,
-          class: 'xrd-table-header mr-table-header-buttons',
+          key: 'button',
         },
       ];
     },
@@ -227,7 +219,7 @@ export default Vue.extend({
     this.fetchTimestampingServices();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchTimestampingServices(): void {
       this.loading = true;
       this.timestampingServicesStore
@@ -282,10 +274,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
+@import '@/assets/tables';
 </style>

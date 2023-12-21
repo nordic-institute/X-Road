@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd">
+
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../identifiers.xsd" id="id"/>
+
+    <complexType name="MemberType">
+        <sequence>
+            <element name="memberClass" type="tns:MemberClassType">
+                <annotation>
+                    <documentation>
+                        Member class of the member.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="memberCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies the member within the given member class.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>
+                        Full, official name of the member, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="subsystem" type="tns:SubsystemType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Represents information about a part of the member's information system that is acting as an
+                        independent service consumer or provider in the X-Road system.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+
+    <complexType name="SecurityServerType">
+        <sequence>
+            <element name="owner" type="IDREF">
+                <annotation>
+                    <documentation>
+                        Identifier of the member who is responsible for the security server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="serverCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies this server within servers owned by the same member.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="address" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Externally visible address of the security server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authCertHash" type="base64Binary" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Hash of the authentication certificate used by the security server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="client" type="IDREF" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Identifier a registered client of this security server. Client can be either a member or a subsystem.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="GlobalGroupType">
+        <sequence>
+            <element name="groupCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies the group within an X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="description" type="string">
+                <annotation>
+                    <documentation>
+                        Description of the group.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="groupMember" type="id:XRoadClientIdentifierType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Identifier of an X-Road member or a subsystem belonging to this group.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="OcspInfoType">
+        <annotation>
+            <documentation>
+                Information about an OCSP provider.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="url" type="string">
+                <annotation>
+                    <documentation>
+                        URL of the OSCP server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="base64Binary" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Certificate used by the OCSP server to sign OCSP responses.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="ApprovedTSAType">
+        <sequence>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>
+                        Name of the time-stamping authority, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="url" type="string">
+                <annotation>
+                    <documentation>
+                        URL of the time-stamping service.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="base64Binary">
+                <annotation>
+                    <documentation>
+                        Certificate used by the time-stamping server to sign responses.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="CaInfoType">
+        <annotation>
+            <documentation>
+                This type encapsulates information about a certification authority.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="cert" type="base64Binary">
+                <annotation>
+                    <documentation>
+                        The CA certificate value.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ocsp" type="tns:OcspInfoType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        List of OCSP responders that provide status of certificates issued by this CA.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="SubsystemType">
+        <sequence>
+            <element name="subsystemCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies this subsystem within the subsystems of its parent-member.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+
+    <complexType name="MemberClassType">
+        <sequence>
+            <element name="code" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies the member class in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="description" type="string">
+                <annotation>
+                    <documentation>
+                        Description of the member class.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="CentralServiceType">
+        <sequence>
+            <element name="serviceCode" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies a central service in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="implementingService" type="id:XRoadServiceIdentifierType" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Identifier of the service that implements the central service.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="GlobalSettingsType">
+        <sequence>
+            <element name="memberClass" type="tns:MemberClassType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Lists the member classes used in this X-Road instance.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ocspFreshnessSeconds" type="integer">
+                <annotation>
+                    <documentation>
+                        Maximum allowed validity time of OCSP responses. If thisUpdate field of an OCSP response is
+                        older than ocspFreshnessSeconds seconds, it is no longer valid.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+</schema>

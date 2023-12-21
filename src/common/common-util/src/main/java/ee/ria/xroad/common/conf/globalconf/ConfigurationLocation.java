@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -34,6 +34,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.cert.X509Certificate;
@@ -83,6 +84,7 @@ public class ConfigurationLocation {
         URL url = new URL(urlStr);
         URLConnection connection = url.openConnection();
         connection.setReadTimeout(READ_TIMEOUT);
+        ConfigurationHttpUrlConnectionConfig.apply((HttpURLConnection) connection);
         return connection;
     }
 

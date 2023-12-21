@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -27,7 +27,8 @@
 package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.ClientId;
+import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
@@ -37,7 +38,6 @@ import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
 import static ee.ria.xroad.common.util.Fn.self;
-import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -57,13 +57,20 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
                 UsedSecurityServersDto usedSecurityServersDto = new UsedSecurityServersDto();
                 usedSecurityServersDto.setServerCode(serverClient.getServerCode());
                 usedSecurityServersDto.setServerOwner(serverClient.getServerOwner());
-                ManagementRequestStatus securityServerRegStatus = securityServerService
-                        .findSecurityServerClientRegistrationStatus(serverClient.getServerId(), source.getIdentifier());
-                usedSecurityServersDto.setStatus(securityServerRegStatus != null
-                        ? securityServerRegStatus.name() : null);
+
+                var securityServerRegStatus = resolveSecurityServerStatus(serverClient, source.getIdentifier());
+                usedSecurityServersDto.setStatus(securityServerRegStatus);
                 return usedSecurityServersDto;
-            }).collect(toList()));
+            }).toList());
         });
+    }
+
+    private String resolveSecurityServerStatus(ServerClient serverClient, ClientId clientId) {
+        if (!serverClient.isEnabled()) {
+            return "DISABLED";
+        }
+        var status = securityServerService.findSecurityServerClientRegistrationStatus(serverClient.getServerId(), clientId);
+        return status != null ? status.name() : null;
     }
 
     @Override

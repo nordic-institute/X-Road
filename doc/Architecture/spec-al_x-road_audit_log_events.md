@@ -1,6 +1,6 @@
 # Audit log events
 
-Version: 1.11
+Version: 1.12
 
 Doc. ID: SPEC-AL
 
@@ -23,6 +23,7 @@ Doc. ID: SPEC-AL
 | 16.02.2023 | 1.9     | Converted document from docx to markdown                                                                                                                  | Raido Kaju         |
 | 17.04.2023 | 1.10    | Remove central services support                                                                                                                           | Justas Samuolis    |
 | 05.06.2023 | 1.11    | New Central Server                                                                                                                                        | Eneli Reimets      |
+| 09.12.2023 | 1.12    | Management service TLS certificate                                                                                                                        | Eneli Reimets      |
 
 ## Table of Contents
 
@@ -305,6 +306,9 @@ The audit log events related to the system settings.
 | API key create                                                 | <ul><li>apiKeyId - identifier of the API key</li><li>apiKeyRoles - array containing the roles associated with the API key</li></ul>                                                                                                                                                                                                                       |
 | API key update                                                 | <ul><li>apiKeyId - identifier of the API key</li><li>apiKeyRoles - array containing the roles associated with the API key</li></ul>                                                                                                                                                                                                                       |
 | API key remove                                                 | <ul><li>apiKeyId - identifier of the API key</li><li>apiKeyRoles - array containing the roles associated with the API key</li></ul>                                                                                                                                                                                                                       |
+| Generate management service TLS key and self-sign certificate  | <ul><li>certHash - the hash of the management service TLS certificate</li><li>certHashAlgorithm - the hash algorithm used to calculate value of the field certHash</li></ul>                                                                                                                                                                              |
+| Generate management service TLS certificate signing request    | <ul><li>subjectName - the subject name of the generated certificate request</li></ul>                                                                                                                                                                                                                                                                     |
+| Upload management service TLS certificate                      | <ul><li>certFileName - the file name of the uploaded certificate</li><li>certHash - the hash of the uploaded certificate</li><li>certHashAlgorithm - the hash algorithm used to calculate value of the field certHash</li></ul>                                                                                                                           |
 #### 2.1.11 Backup and Restore Events
 
 The audit log events related to back up and restore.

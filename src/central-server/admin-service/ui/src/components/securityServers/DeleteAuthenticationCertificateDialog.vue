@@ -26,92 +26,94 @@
  -->
 
 <template>
-  <ValidationObserver v-slot="{ invalid }">
-    <xrd-simple-dialog
-      :disable-save="invalid"
-      :dialog="true"
-      :loading="loading"
-      title="securityServers.securityServer.dialog.deleteAuthCertificate.title"
-      save-button-text="action.delete"
-      cancel-button-text="action.cancel"
-      @cancel="cancel"
-      @save="deleteCert"
-    >
-      <template #content>
-        <p>
-          {{
-            $t(
-              'securityServers.securityServer.dialog.deleteAuthCertificate.content',
-            )
-          }}
-        </p>
-        <ValidationProvider
-          v-slot="{ errors }"
-          :rules="`required|is:${securityServer.server_id.server_code}`"
-          name="securityServerCode"
-        >
-          <v-text-field
-            v-model="securityServerCode"
-            data-test="verify-server-code"
-            outlined
-            autofocus
-            :placeholder="
-              $t(
-                'securityServers.securityServer.dialog.deleteAuthCertificate.securityServerCode',
-              )
-            "
-            :label="$t('fields.securityServerCode')"
-            :error-messages="errors"
-          >
-          </v-text-field>
-        </ValidationProvider>
-      </template>
-    </xrd-simple-dialog>
-  </ValidationObserver>
+  <xrd-simple-dialog
+    :disable-save="!meta.valid"
+    :loading="loading"
+    title="securityServers.securityServer.dialog.deleteAuthCertificate.title"
+    save-button-text="action.delete"
+    cancel-button-text="action.cancel"
+    @cancel="cancel"
+    @save="deleteCert"
+  >
+    <template #text>
+      {{
+        $t(
+          'securityServers.securityServer.dialog.deleteAuthCertificate.content',
+        )
+      }}
+    </template>
+    <template #content>
+      <v-text-field
+        v-model="value"
+        data-test="verify-server-code"
+        variant="outlined"
+        autofocus
+        :placeholder="
+          $t(
+            'securityServers.securityServer.dialog.deleteAuthCertificate.securityServerCode',
+          )
+        "
+        :label="$t('fields.securityServerCode')"
+        :error-messages="errors"
+      >
+      </v-text-field>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import { SecurityServer } from '@/openapi-types';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
-import { securityServerAuthCertStore } from '@/store/modules/security-servers-authentication-certificates';
+import { SecurityServer, SecurityServerId } from '@/openapi-types';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
+import { defineComponent, PropType } from 'vue';
+import { useField } from 'vee-validate';
 import { mapActions, mapStores } from 'pinia';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import Vue from 'vue';
-export default Vue.extend({
-  name: 'DeleteAuthenticationCertificateDialog',
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+
+export default defineComponent({
   props: {
     authenticationCertificateId: {
       type: String,
       required: true,
     },
+    securityServerId: {
+      type: Object as PropType<SecurityServerId>,
+      required: true,
+    },
+  },
+  emits: ['cancel', 'delete'],
+  setup(props) {
+    const { value, meta, errors } = useField(
+      'securityServerCode',
+      {
+        required: true,
+        is: props.securityServerId.server_code,
+      },
+      { initialValue: '' },
+    );
+    return { value, meta, errors };
   },
   data() {
     return {
-      securityServerCode: '',
       loading: false,
     };
   },
   computed: {
-    ...mapStores(securityServerAuthCertStore, useSecurityServerStore),
+    ...mapStores(useSecurityServerAuthCert, useSecurityServer),
     securityServer(): SecurityServer | null {
       return this.securityServerStore.currentSecurityServer;
     },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showSuccess', 'showError']),
+    ...mapActions(useNotifications, ['showSuccess', 'showError']),
     cancel(): void {
       this.$emit('cancel');
     },
     deleteCert(): void {
       this.loading = true;
       this.securityServerAuthCertStore
-        .delete(
-          this.securityServer?.server_id.encoded_id as string,
+        .deleteAuthenticationCertificate(
+          this.securityServerId.encoded_id as string,
           this.authenticationCertificateId,
         )
         .then(() => {

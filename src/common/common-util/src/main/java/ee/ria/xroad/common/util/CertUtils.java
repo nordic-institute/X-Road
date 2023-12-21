@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -74,6 +74,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
@@ -90,6 +91,7 @@ import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.toDERObject;
 
 /**
@@ -329,11 +331,35 @@ public final class CertUtils {
     }
 
     /**
+     * @deprecated This method should be applicable until 7.3.x is no longer supported
+     * <p> From that point onward its usages should be replaced with {@link #getHashes(List)} instead.
      * @param certs list of certificates
-     * @return list of certificate hashes for given list of certificates.
-     * @throws Exception in case of any errors
+     * @return list of certificate SHA-1 hashes for given list of certificates.
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static String[] getCertHashes(List<X509Certificate> certs) throws Exception {
+    @Deprecated
+    public static String[] getSha1Hashes(List<X509Certificate> certs)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
+        String[] certHashes = new String[certs.size()];
+
+        for (int i = 0; i < certs.size(); i++) {
+            certHashes[i] = calculateCertSha1HexHash(certs.get(i));
+        }
+
+        return certHashes;
+    }
+
+    /**
+     * @param certs list of certificates
+     * @return list of certificate SHA-256 hashes for given list of certificates.
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
+     */
+    public static String[] getHashes(List<X509Certificate> certs)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
         String[] certHashes = new String[certs.size()];
 
         for (int i = 0; i < certs.size(); i++) {

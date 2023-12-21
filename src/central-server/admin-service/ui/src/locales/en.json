@@ -7,12 +7,10 @@
   },
   "action": {
     "activate": "Activate",
-    "add": "Add",
     "addClient": "Add client",
     "addMember": "Add member",
     "addSubsystem": "Add subsystem",
     "approve": "Approve",
-    "cancel": "Cancel",
     "close": "Close",
     "confirm": "Confirm",
     "continue": "Continue",
@@ -20,9 +18,7 @@
     "copyId": "Copy ID",
     "deactivate": "Disable",
     "decline": "Decline",
-    "delete": "Delete",
     "done": "Done",
-    "download": "Download",
     "edit": "Edit",
     "emptySearch": "Your search for {msg} found no results.",
     "export": "Export",
@@ -37,15 +33,13 @@
     "register": "Register",
     "remove": "Remove",
     "removeAll": "Remove All",
-    "restore": "Restore",
     "save": "Save",
     "search": "Search",
     "searching": "Searching...",
     "submit": "Submit",
     "unregister": "Unregister",
-    "upload": "Upload",
-    "yes": "Yes",
-    "select": "Select"
+    "select": "Select",
+    "generateCsr": "Generate CSR"
   },
   "alert": {
     "count": "Amount of same errors:",
@@ -77,6 +71,9 @@
       "XROAD_SECURITY_OFFICER": "Security Officer",
       "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
       "XROAD_MANAGEMENT_SERVICE": "Management Services"
+    },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
     },
     "table": {
       "action": {
@@ -240,7 +237,17 @@
     "conf_verification.signature_invalid": "Configuration verification failed: signature_invalid",
     "conf_verification.unreachable": "Configuration verification failed: unreachable",
     "cannot_add_member_to_owners_group": "Cannot add members to server owner group",
-    "validation_failure": "Validation failure"
+    "validation_failure": "Validation failure",
+    "invalid_distinguished_name": "Invalid distinguished name",
+    "generate_key_cert_interrupted": "Key and certificate generation has been interrupted",
+    "key_and_cert_generation_failed": "Failed to generate TLS key and certificate",
+    "csr_generation_failed": "CSR generation failed",
+    "cannot_convert_bytes_to_certificate": "Cannot convert bytes to certificate",
+    "certificate_writing_failed": "Writing certificate to file failed",
+    "cannot_read_certificate": "Cannot read TLS certificate",
+    "key_not_found": "The imported certificate does not match the TLS key",
+    "certificate_already_exists": "The imported certificate already exists",
+    "certificate_import_failed": "Cannot import TLS certificate"
   },
   "fields": {
     "init": {
@@ -303,6 +310,8 @@
     }
   },
   "global": {
+    "appTitle": "X-Road Central Server",
+    "pageNotFound": "oops, page not found",
     "approve": "Approve",
     "class": "Class",
     "code": "Code",
@@ -431,6 +440,7 @@
     "softwareToken": "Software Token"
   },
   "keys": {
+    "title": "Signing Keys",
     "addKey": "Add key",
     "created": "Created",
     "logIn": "Log in",
@@ -448,7 +458,7 @@
         "title": "Add key",
         "labelField": "Key friendly name",
         "confirmButton": "Add",
-        "success": "Sign Key '{label}' added successfully"
+        "success": "Sign Key '{label}' added successfully. Please do not activate the key immediately. Please see the Central Server user guide before activating the key."
       },
       "activate": {
         "title": "Activate key",
@@ -480,7 +490,7 @@
   },
   "cert": {
     "certificate": "Certificate",
-    "hashInfo": "Hash (SHA-1)",
+    "hashInfo": "Hash (SHA-256)",
     "rsaExp": "RSA Public Key Exponent",
     "rsaModulus": "RSA Public Key Modulus",
     "keyUsage": {
@@ -511,6 +521,9 @@
     "approved": "Approved",
     "submitted": "Submitted for approval",
     "changeOwner": "Change Owner",
+    "changeAddress": "Change address",
+    "clientEnable": "Enable client",
+    "clientDisable": "Disable client",
     "pending": "Pending",
     "rejected": "Rejected",
     "revoked": "Revoked",
@@ -548,6 +561,8 @@
     "address": "Address",
     "clientInformation": "Client Submitted for Registration",
     "ownerChangeInformation": "New Owner Submitted for Registration",
+    "clientDisableInformation": "Disabled client",
+    "clientEnableInformation": "Enabled client",
     "subsystemCode": "Subsystem Code",
     "certificateformation": "Authentication Certificate Submitted for Registration",
     "ca": "CA",
@@ -585,7 +600,7 @@
         "subsystems": "Subsystems"
       },
       "subsystems": {
-        "addClient": "Add new subsystem to database",
+        "addClient": "Add subsystem",
         "deleteSubsystem": "Delete Subsystem",
         "serverOwner": "Server owner",
         "servercode": "Server code",
@@ -620,6 +635,7 @@
     "registered": "Registered",
     "unregistered": "Unregistered",
     "pending": "Pending approval",
+    "disabled": "Temporarily disabled",
     "securityServer": {
       "certificationAuthority": "Certification Authority",
       "deleteServer": "Delete server",
@@ -658,14 +674,16 @@
     "serverCode": "Server Code"
   },
   "systemSettings": {
-    "centralServerAddress": "Central Server address",
+    "centralServerAddress": "Central Server Address",
     "code": "Code",
     "description": "Description",
-    "editCentralServerAddressSuccess": "Central server address successfully updated",
+    "editCentralServerAddressSuccess": "Central Server address successfully updated",
     "editCentralServerAddressTitle": "Edit Central Server address",
     "instanceIdentifier": "Instance Identifier",
-    "managementServiceSecurityServer": "Management Services' Security Server",
-    "managementServices": "Management Services",
+    "managementServices": {
+      "title": "Management Services",
+      "securityServer": "Management Services' Security Server"
+    },
     "selectSubsystem": {
       "title": "Select Subsystem",
       "search": "Search",
@@ -696,11 +714,40 @@
     "serviceProviderName": "Service Provider Name",
     "systemParameters": "System Parameters",
     "wsdlAddress": "WSDL Address",
+    "managementServicesAddress": "Management Services Address",
     "editMemberClassTitle": "Edit member class",
     "addMemberClassTitle": "Add member class",
     "deleteMemberClass": "Delete member class?",
     "memberClassSaved": "Member class saved.",
     "memberClassDeleted": "Member class deleted."
+  },
+  "tlsCertificates": {
+    "managementService": {
+      "title": "Management Service TLS certificate",
+      "key": "Management Service TLS key",
+      "downloadCertificate": "Download certificate",
+      "downloadSuccess": "Management service TLS certificate successfully downloaded",
+      "generateKey": {
+        "button": "Re-create key",
+        "title": "Management Service TLS key",
+        "confirmation": "Generate a new Management service TLS key and certificate?",
+        "explanation": "The system will generate a new Management service TLS key and a self-signed certificate, replacing the existing key and certificate.",
+        "success": "New Management service TLS key and certificate generated successfully"
+      },
+      "generateCsr": {
+        "button": "Generate CSR",
+        "title": "Generate TLS Certificate Signing Request",
+        "content": "First, provide a distinguished name. Then, generate a new CSR and save it into a safe place",
+        "distinguishedName": "Enter Distinguished name",
+        "example": "CN=mycentralserver.example.com, O=My Organization, C=EE"
+      },
+      "uploadCertificate": {
+        "button": "Upload certificate",
+        "title": "Upload Management Service TLS certificate",
+        "label": "Upload the certificate file from your computer",
+        "success": "Management service TLS certificate successfully uploaded"
+      }
+    }
   },
   "tab": {
     "globalConf": {
@@ -720,7 +767,8 @@
       "apiKeys": "API Keys",
       "backupAndRestore": "Backup And Restore",
       "globalResources": "Global Resources",
-      "systemSettings": "System Settings"
+      "systemSettings": "System Settings",
+      "tlsCertificates": "TLS Certificates"
     }
   },
   "trustServices": {
@@ -870,7 +918,12 @@
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   },
-  "validation.is": "The {_field_} field must have a value of \"{other}\"",
+
+  "validation": {
+    "messages": {
+      "is": "The {field} field must have a value of \"{other}\""
+    }
+  },
   "status": {
     "signer_error": "Invocation of signer client failed",
     "global_conf_generation": {

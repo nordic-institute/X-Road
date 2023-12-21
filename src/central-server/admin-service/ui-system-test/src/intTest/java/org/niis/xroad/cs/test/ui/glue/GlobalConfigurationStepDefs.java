@@ -30,13 +30,22 @@ package org.niis.xroad.cs.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.tuple.Pair;
 import org.awaitility.core.EvaluatedCondition;
 import org.niis.xroad.cs.test.ui.page.GlobalConfigurationPageObj;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -45,9 +54,10 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.ClassLoader.getSystemResource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.given;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
-
+    private static final DocumentBuilderFactory DBF = DocumentBuilderFactory.newInstance();
     private static final String CONTENT_IDENTIFIER = "CONTENT_IDENTIFIER";
     private static final String DOWNLOADED_FILE = "DOWNLOADED_FILE";
     private static final String ANCHOR_DETAILS = "ANCHOR_DETAILS";
@@ -80,7 +90,8 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 .shouldBe(Condition.enabled)
                 .click();
 
-        globalConfigurationPageObj.tokenLoginDialog.inputPin().setValue(tokenPin);
+        vTextField(globalConfigurationPageObj.tokenLoginDialog.inputPin())
+                .setValue(tokenPin);
         globalConfigurationPageObj.tokenLoginDialog.btnLogin()
                 .shouldBe(Condition.enabled)
                 .click();
@@ -193,7 +204,8 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 .shouldBe(Condition.enabled)
                 .click();
 
-        globalConfigurationPageObj.addSigningKeyDialog.inputLabel().setValue(keyLabel);
+        vTextField(globalConfigurationPageObj.addSigningKeyDialog.inputLabel())
+                .setValue(keyLabel);
         globalConfigurationPageObj.addSigningKeyDialog.btnSave()
                 .shouldBe(Condition.enabled)
                 .click();
@@ -202,8 +214,8 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("Configuration anchor is recreated")
-    public void recreateAnchor() {
+    @Step("Current configuration anchor information is marked")
+    public void rememberCurrentAnchorData() {
         scenarioContext.putStepData(ANCHOR_DETAILS,
                 Pair.of(
                         Optional.of(globalConfigurationPageObj.anchor.txtHash())
@@ -216,6 +228,10 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                                 .orElse(null)
                 )
         );
+    }
+
+    @Step("Configuration anchor is recreated")
+    public void recreateAnchor() {
         globalConfigurationPageObj.anchor.btnRecreate()
                 .shouldBe(Condition.enabled)
                 .click();
@@ -258,6 +274,28 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
                 .hasExtension("xml");
     }
 
+    @Step("Downloaded anchor has {int} certificates for {sourceType} source")
+    public void anchorFileHas(int count, String sourceType)
+            throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
+
+        final File file = scenarioContext.getStepData(DOWNLOADED_FILE);
+        final var anchorDoc = DBF.newDocumentBuilder().parse(file);
+        final var xPath = XPathFactory.newInstance().newXPath();
+
+        Double certCount = (Double) xPath
+                .compile("count(.//source[starts-with(downloadURL/text(), '" + sourceType + ":')]/verificationCert)")
+                .evaluate(anchorDoc, XPathConstants.NUMBER);
+
+        assertThat(certCount)
+                .describedAs("Anchor expected count of certificates for " + sourceType + " URL")
+                .isEqualTo(count);
+    }
+
+    @ParameterType("http|https")
+    public String sourceType(String type) {
+        return type;
+    }
+
     @Step("There is entry for configuration part: {}")
     public void isConfigurationPartPresent(String contentIdentifier) {
         scenarioContext.putStepData(CONTENT_IDENTIFIER, contentIdentifier);
@@ -268,6 +306,7 @@ public class GlobalConfigurationStepDefs extends BaseUiStepDefs {
         scenarioContext.putStepData(CFG_PART_UPDATED,
                 globalConfigurationPageObj.configurationParts.textUpdatedAt(contentIdentifier).text());
     }
+
 
     @Step("Configuration part was updated")
     public void doesntHaveUpdatedAtForConfigurationPart() {

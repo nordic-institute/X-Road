@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -39,9 +39,10 @@ public class SecurityServerAuthCertificatesPageObj {
     private final DeleteDialog deleteDialog = new DeleteDialog();
 
     public SelenideElement listRowOf(String certAuthorityName, String serialNumber, String subject) {
-        var xpath = "//main[@data-test='security-server-authentication-certificates-view']"
-                + "//table/tbody/tr[(normalize-space(td[1]/div/text()) = '%s') "
-                + " and (normalize-space(td[2]/text()) = '%s') and (normalize-space(td[3]/text()) = '%s')]";
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']//table/tbody/tr["
+                + "contains(./td[1]/div/text(), '%s') "
+                + "and ./td[2]/text()='%s' "
+                + "and ./td[3]/text()='%s']";
 
         return $x(String.format(xpath, certAuthorityName, serialNumber, subject));
     }
@@ -66,7 +67,7 @@ public class SecurityServerAuthCertificatesPageObj {
     }
 
     public ElementsCollection columnHeaders() {
-        var xpath = "//main[@data-test='security-server-authentication-certificates-view']//thead/tr/th/span";
+        var xpath = "//main[@data-test='security-server-authentication-certificates-view']//thead/tr/th/div/span";
         return $$x(xpath);
     }
 
@@ -93,7 +94,7 @@ public class SecurityServerAuthCertificatesPageObj {
 
     public class DeleteDialog {
         public SelenideElement deleteButton() {
-            var xpath = "//button[@data-test='dialog-save-button' and (normalize-space(span/text()) = 'Delete')]";
+            var xpath = "//button[@data-test='dialog-save-button']";
 
             return $x(xpath);
         }
@@ -105,7 +106,7 @@ public class SecurityServerAuthCertificatesPageObj {
         }
 
         public SelenideElement inputSeverCode() {
-            var xpath = "//input[@data-test='verify-server-code']";
+            var xpath = "//div[@data-test='verify-server-code']";
             return $x(xpath);
         }
     }

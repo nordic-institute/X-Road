@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,14 +32,13 @@ import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoPar
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
+import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +55,7 @@ import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -127,7 +127,8 @@ public class TokenCertificateService {
      * @throws ActionNotPossibleException if generate csr was not possible for this key
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-            String caName, Map<String, String> subjectFieldValues, CertificateRequestFormat format)
+                                                        String caName, Map<String, String> subjectFieldValues,
+                                                        CertificateRequestFormat format)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             WrongKeyUsageException,
             KeyNotFoundException,
@@ -308,7 +309,7 @@ public class TokenCertificateService {
     }
 
     /**
-     * Import a cert that is found from a token by it's bytes.
+     * Import a cert that is found from a token by its bytes.
      * Adds audit log properties for
      * - clientId (if sign cert),
      * - cert hash and cert hash algo
@@ -861,7 +862,7 @@ public class TokenCertificateService {
     public void deleteCertificates(List<CertificateInfo> certificateInfos)
             throws CertificateNotFoundException, ActionNotPossibleException {
         List<TokenInfo> tokenInfos = tokenService.getAllTokens();
-        for (CertificateInfo certificateInfo: certificateInfos) {
+        for (CertificateInfo certificateInfo : certificateInfos) {
             deleteCertificate(certificateInfo.getId(), tokenInfos);
         }
     }
@@ -869,9 +870,9 @@ public class TokenCertificateService {
     private void deleteCertificate(String certificateId, List<TokenInfo> allTokens) throws
             CertificateNotFoundException, ActionNotPossibleException {
         // find token, key, and certificate info
-        for (TokenInfo tokenInfo: allTokens) {
-            for (KeyInfo keyInfo: tokenInfo.getKeyInfo()) {
-                for (CertificateInfo certificateInfo: keyInfo.getCerts()) {
+        for (TokenInfo tokenInfo : allTokens) {
+            for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
+                for (CertificateInfo certificateInfo : keyInfo.getCerts()) {
                     if (certificateInfo.getId().equals(certificateId)) {
                         auditDataHelper.addCertificateHash(certificateInfo);
                         deleteCertificate(certificateInfo, keyInfo, tokenInfo);
@@ -910,11 +911,11 @@ public class TokenCertificateService {
         deleteCertificate(certificateInfo, keyInfo, tokenInfo);
     }
 
-        /**
-         * Delete certificate with given hash
-         * @throws CertificateNotFoundException if signer could not find the cert
-         * @throws ActionNotPossibleException if delete was not possible due to cert/key/token states
-         */
+    /**
+     * Delete certificate with given hash
+     * @throws CertificateNotFoundException if signer could not find the cert
+     * @throws ActionNotPossibleException if delete was not possible due to cert/key/token states
+     */
     private void deleteCertificate(CertificateInfo certificateInfo, KeyInfo keyInfo, TokenInfo tokenInfo)
             throws CertificateNotFoundException, ActionNotPossibleException {
         possibleActionsRuleEngine.requirePossibleCertificateAction(
@@ -949,7 +950,7 @@ public class TokenCertificateService {
      */
     public String getKeyIdForCertificateHash(String hash) throws CertificateNotFoundException {
         try {
-            return signerProxyFacade.getKeyIdForCertHash(hash);
+            return signerProxyFacade.getKeyIdForCertHash(hash).getKeyId();
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " not found");

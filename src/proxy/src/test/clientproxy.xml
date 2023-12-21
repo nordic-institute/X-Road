@@ -1,5 +1,7 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_10_0.dtd">
 <Configure id="Server" class="org.eclipse.jetty.server.Server">
-    <Set name="stopTimeout">1000</Set>
+    <Set name="stopTimeout">3000</Set>
     <Get name="ThreadPool">
         <Set name="minThreads" type="int">10</Set>
         <Set name="maxThreads" type="int">4500</Set>

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -69,7 +69,7 @@ public class SettingsApiKeysPageObj {
         }
 
         public SelenideElement checkboxRole(String role) {
-            var xpath = "//input[@data-test='role-%s-checkbox']/following-sibling::div";
+            var xpath = "//div[@data-test='role-%s-checkbox']";
             return $x(String.format(xpath, role));
         }
 

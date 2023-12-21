@@ -1,0 +1,46 @@
+---
+#Logging configuration
+logging:
+  level:
+    ROOT: INFO
+    cucumber: TRACE
+    liquibase: WARN
+    org.springframework: INFO
+    com.nortal.test: INFO # TRACE is helpful for development
+
+test-automation:
+  report-name: xroad-ss-api-test-suite
+  environment: restuitest
+  spring-component-scan: "org.niis.xroad.ss.test"
+  cucumber:
+    execution:
+      parallel:
+        enabled: true
+        executor-count: 3
+        isolation-tag: "Modifying"
+    glue-append: "org.niis.xroad.ss.test.glue"
+    filter:
+      tags: "not @Skip"
+  containers:
+    testable-container:
+      reuse-between-runs: ${reuse-between-runs}
+      spring-boot:
+        base-image: eclipse-temurin:17-jammy
+        jar-debug-enabled: false
+        debug-port: 9000
+        jacoco:
+          enabled: true
+        jar-build-dir: ../application/build/libs/
+        spring-profiles-to-activate: int-test,audit-test
+    context-containers:
+      xrd-db :
+        enabled: true
+        reuse-between-runs: ${reuse-between-runs}
+      mock-server:
+        enabled: true
+        reuse-between-runs: ${reuse-between-runs}
+
+# toggle for reusable containers. This allows quicker test development as containers are not destroyed between runs.
+# WARNING: this leaves containers running indefinitely. They have to be stopped manually.
+# Note: this required testcontainers.reuse.enable=true property to be defined in your ~/.testcontainers.properties file
+reuse-between-runs: false

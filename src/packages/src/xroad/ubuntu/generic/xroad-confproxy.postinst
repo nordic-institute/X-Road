@@ -1,43 +1,114 @@
 #!/bin/bash
+set -e
 . /usr/share/debconf/confmodule
 
+handle_error() {
+  ERR=$1
+  db_reset xroad-common/cert-generation-retry
+  db_reset xroad-common/cert-generation-error
+  db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+  db_beginblock
+  db_input critical xroad-common/cert-generation-error || true
+  db_input critical xroad-common/cert-generation-retry || true
+  db_endblock
+  db_go
+
+  db_get xroad-common/cert-generation-retry
+  if [ "$RET" = false ]; then
+    exit 1
+  fi
+
+  echo "Retrying certificate generation"
+}
+
+create_conf_proxy_certificate() {
+  if [[ ! -r /etc/xroad/ssl/confproxy.crt || ! -r /etc/xroad/ssl/confproxy.key || ! -r /etc/xroad/ssl/confproxy.p12 ]]; then
+    echo "Generating new confproxy.[crt|key|p12] files "
+    HOST=$(hostname -f)
+    if ((${#HOST} > 64)); then
+      HOST="$(hostname -s)"
+    fi
+
+    LIST=
+    for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done
+    ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+    db_subst xroad-common/confproxy-subject HOST "$HOST"
+    db_subst xroad-common/confproxy-altsubject ALT "$ALT"
+
+    while :; do
+      db_get xroad-common/confproxy-subject
+      [ -z "$RET" ] && db_set xroad-common/confproxy-subject "/CN=$HOST"
+      db_get xroad-common/confproxy-altsubject
+      [ -z "$RET" ] && db_set xroad-common/confproxy-altsubject "$ALT"
+
+      db_beginblock
+      db_input critical xroad-common/confproxy-subject || true
+      db_input critical xroad-common/confproxy-altsubject || true
+      db_endblock
+      db_go
+
+      db_get xroad-common/confproxy-subject
+      subj="$RET"
+      db_get xroad-common/confproxy-altsubject
+      altn="$RET"
+      if [[ -z "$subj" || -z "$altn" ]]; then
+        handle_error "Subject or subject alternative names empty"
+        continue
+      fi
+
+      echo "generating new global configuration TLS key self-signed-certificate with $subj and $altn"
+      if ! /usr/share/xroad/scripts/generate_certificate.sh -n confproxy -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err; then
+        ERR=$(</tmp/cert.err)
+        rm -f /tmp/cert.err
+        handle_error "$ERR"
+        db_fset xroad-common/confproxy-subject seen false
+        db_fset xroad-common/confproxy-altsubject seen false
+        continue
+      fi
+
+      break
+
+    done
+  fi
+}
+
 case "$1" in
-    configure)
-        mkdir -p  /var/lib/xroad/public
-        chmod 755 /var/lib/xroad/public
-        chown xroad:xroad /var/lib/xroad/public
+  configure | reconfigure)
+    create_conf_proxy_certificate
+    mkdir -p /var/lib/xroad/public
+    chmod 755 /var/lib/xroad/public
+    chown xroad:xroad /var/lib/xroad/public
 
-        mkdir -p  /etc/xroad/confproxy
-        chmod 755 /etc/xroad/confproxy
-        chown xroad:xroad /etc/xroad/confproxy
+    mkdir -p /etc/xroad/confproxy
+    chmod 755 /etc/xroad/confproxy
+    chown xroad:xroad /etc/xroad/confproxy
 
-        # replace configuration property signature-algorithm-id with signature-digest-algorithm-id
-        local_ini=/etc/xroad/conf.d/local.ini
-        if [[ -f ${local_ini} && `crudini --get ${local_ini} configuration-proxy signature-algorithm-id 2>/dev/null` ]]
-        then
-            signature_algorithm_id=`crudini --get ${local_ini} configuration-proxy signature-algorithm-id`
-            crudini --del ${local_ini} configuration-proxy signature-algorithm-id
-            case "$signature_algorithm_id" in
-                SHA512*) crudini --set ${local_ini} configuration-proxy signature-digest-algorithm-id SHA-512;;
-                SHA384*) crudini --set ${local_ini} configuration-proxy signature-digest-algorithm-id SHA-384;;
-                SHA256*) crudini --set ${local_ini} configuration-proxy signature-digest-algorithm-id SHA-256;;
-                SHA1*) crudini --set ${local_ini} configuration-proxy signature-digest-algorithm-id SHA-1;;
-            esac
-        fi
+    # replace configuration property signature-algorithm-id with signature-digest-algorithm-id
+    local_ini=/etc/xroad/conf.d/local.ini
+    if [[ -f ${local_ini} && $(crudini --get ${local_ini} configuration-proxy signature-algorithm-id 2>/dev/null) ]]; then
+      signature_algorithm_id=$(crudini --get ${local_ini} configuration-proxy signature-algorithm-id)
+      crudini --del ${local_ini} configuration-proxy signature-algorithm-id
+      case "$signature_algorithm_id" in
+        SHA512*) crudini --set ${local_ini} configuration-proxy signature-digest-algorithm-id SHA-512 ;;
+        SHA384*) crudini --set ${local_ini} configuration-proxy signature-digest-algorithm-id SHA-384 ;;
+        SHA256*) crudini --set ${local_ini} configuration-proxy signature-digest-algorithm-id SHA-256 ;;
+        SHA1*) crudini --set ${local_ini} configuration-proxy signature-digest-algorithm-id SHA-1 ;;
+      esac
+    fi
 
-        invoke-rc.d --quiet nginx try-restart || true
-        invoke-rc.d --quiet xroad-signer try-restart || true
+    invoke-rc.d --quiet nginx try-restart || true
+    invoke-rc.d --quiet xroad-signer try-restart || true
 
-        deb-systemd-invoke stop xroad-confclient
-        deb-systemd-invoke disable xroad-confclient
+    deb-systemd-invoke stop xroad-confclient
+    deb-systemd-invoke disable xroad-confclient
     ;;
 
-    abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
+  abort-upgrade | abort-remove | abort-deconfigure) ;;
 
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
-        exit 1
+  *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
     ;;
 esac
 

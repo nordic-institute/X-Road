@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet id="apikey-testdata" author="ricardas">
+        <comment>Add default apiKey which can be used for scenarios which do not case about permissions.
+        </comment>
+        <sql>
+            -- noinspection SqlResolve
+            INSERT INTO apikey
+                (id, encodedkey)
+            VALUES (1, 'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1'), -- d56e1ca7-4134-4ed4-8030-5f330bdb602a
+                   (2, 'ed99ce2b1660cb681598b9d33bb84089f3023d6f511729a281066bed5a764ca0'), -- 4a5842e5-4ede-49f1-ab32-1b6be33d81c3
+                   (3, 'e26a8562ff905ba186970fb889b429eab2ceb8195b81e58767dd170ca910583d'), -- 3964334d-1f65-4629-a4a4-73c62ade0c9c
+                   (4, 'ccba0161478071cbd9801d981e74465d54d963563afc7713513698e1173a76f0'); -- de628164-9485-409c-b654-7dda28bb3872
+
+            INSERT INTO apikey_roles
+                (id, apikey_id, role)
+            VALUES (1000001, 1, 'XROAD_SYSTEM_ADMINISTRATOR'),
+                   (1000002, 2, 'XROAD_REGISTRATION_OFFICER'),
+                   (1000003, 3, 'XROAD_SECURITY_OFFICER'),
+                   (1000004, 4, 'XROAD_REGISTRATION_OFFICER'),
+                   (1000005, 4, 'XROAD_SYSTEM_ADMINISTRATOR');
+            ALTER SEQUENCE apikey_roles_id_seq RESTART WITH 1001000;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

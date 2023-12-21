@@ -33,6 +33,11 @@ import org.niis.xroad.cs.test.ui.page.SettingsMemberClassesPageObj;
 import java.util.List;
 import java.util.Map;
 
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+
 /**
  * Settings -> System Settings -> Member classes page steps.
  */
@@ -42,9 +47,12 @@ public class SystemSettingsMemberClassesStepDefs extends BaseUiStepDefs {
     @Step("A new member class {} with description {} is added")
     public void memberClassIsAdded(String code, String description) {
         settingsMemberClassesPageObj.btnAddMemberClass().click();
-        settingsMemberClassesPageObj.addEditDialog.inputMemberClassCode().setValue(code);
-        settingsMemberClassesPageObj.addEditDialog.inputMemberClassDescription().setValue(description);
-        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnSave()
+                .shouldBe(visible)
+                .shouldBe(disabled);
+        vTextField(settingsMemberClassesPageObj.addEditDialog.inputMemberClassCode()).setValue(code);
+        vTextField(settingsMemberClassesPageObj.addEditDialog.inputMemberClassDescription()).setValue(description);
+        commonPageObj.dialog.btnSave().shouldBe(visible, enabled).click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
@@ -90,7 +98,10 @@ public class SystemSettingsMemberClassesStepDefs extends BaseUiStepDefs {
 
     @Step("Member class {} edit dialog is opened")
     public void clickMemberClassEditDialog(String code) {
-        settingsMemberClassesPageObj.listRowBtnEditOf(code).click();
+        settingsMemberClassesPageObj.listRowBtnEditOf(code)
+                .shouldBe(visible)
+                .shouldBe(enabled)
+                .click();
     }
 
     @Step("Member class {} delete button is clicked")
@@ -101,7 +112,8 @@ public class SystemSettingsMemberClassesStepDefs extends BaseUiStepDefs {
 
     @Step("Member class description is set to {} in popup")
     public void editMemberClassDesc(String value) {
-        clearInput(settingsMemberClassesPageObj.addEditDialog.inputMemberClassDescription())
+        vTextField(settingsMemberClassesPageObj.addEditDialog.inputMemberClassDescription())
+                .clear()
                 .setValue(value);
     }
 

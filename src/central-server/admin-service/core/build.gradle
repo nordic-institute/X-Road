@@ -25,6 +25,7 @@ dependencies {
     api("jakarta.persistence:jakarta.persistence-api")
 
     implementation("io.vavr:vavr:$vavrVersion")
+    implementation("org.apache.commons:commons-compress:1.21")
 
     testImplementation project(':common:common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
@@ -32,7 +33,6 @@ dependencies {
     testImplementation('org.liquibase:liquibase-core')
     testImplementation('org.xmlunit:xmlunit-core:2.9.0')
     testImplementation('org.xmlunit:xmlunit-assertj3:2.9.0')
-    testImplementation("org.mockito:mockito-inline:$mockitoVersion")
 }
 
 sourceSets {

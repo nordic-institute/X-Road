@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,10 +27,12 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,6 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
-import org.niis.xroad.cs.admin.api.service.ConfigurationAnchorService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
@@ -61,15 +62,14 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
@@ -79,8 +79,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
-import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
 
@@ -111,8 +109,6 @@ class ConfigurationSigningKeysServiceImplTest {
     private SignerProxyFacade signerProxyFacade;
     @Mock
     private SystemParameterService systemParameterService;
-    @Mock
-    private ConfigurationAnchorService configurationAnchorService;
     @Spy
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
     @Spy
@@ -124,7 +120,6 @@ class ConfigurationSigningKeysServiceImplTest {
     @BeforeEach
     void beforeEach() {
         configurationSigningKeysServiceImpl = new ConfigurationSigningKeysServiceImpl(systemParameterService,
-                configurationAnchorService,
                 configurationSigningKeyRepository,
                 configurationSourceRepository,
                 configurationSigningKeyMapper,
@@ -201,7 +196,6 @@ class ConfigurationSigningKeysServiceImplTest {
         verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
         verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
         verify(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
-        verify(configurationAnchorService).recreateAnchor(INTERNAL, false);
     }
 
     @Test
@@ -221,7 +215,6 @@ class ConfigurationSigningKeysServiceImplTest {
         verify(auditDataHelper).put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
         verify(configurationSigningKeyRepository).deleteByKeyIdentifier(signingKeyEntity.getKeyIdentifier());
         verify(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
-        verify(configurationAnchorService).recreateAnchor(EXTERNAL, false);
     }
 
     @Test
@@ -232,7 +225,7 @@ class ConfigurationSigningKeysServiceImplTest {
         when(signerProxyFacade.generateKey(TOKEN_ID, KEY_LABEL)).thenReturn(createKeyInfo("keyId"));
         when(signerProxyFacade.generateSelfSignedCert(eq(KEY_ID), isA(ClientId.Conf.class),
                 eq(KeyUsageInfo.SIGNING),
-                eq("N/A"),
+                eq("internalSigningKey"),
                 eq(SIGNING_KEY_CERT_NOT_BEFORE),
                 eq(SIGNING_KEY_CERT_NOT_AFTER))
         ).thenReturn(new byte[0]);
@@ -268,10 +261,20 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     private TokenInfo createToken(List<KeyInfo> keys) {
-        return new TokenInfo(null, "tokenName", TOKEN_ID,
-                true, true, true, "serialNumber", "tokenLabel",
-                1, TokenStatusInfo.OK, keys, new HashMap<>()
-        );
+        final TokenInfoProto.Builder builder = TokenInfoProto.newBuilder()
+                .setFriendlyName("tokenName")
+                .setId(TOKEN_ID)
+                .setReadOnly(true)
+                .setAvailable(true)
+                .setActive(true)
+                .setSerialNumber("serialNumber")
+                .setLabel("tokenLabel")
+                .setSlotIndex(1)
+                .setStatus(OK);
+        if (!keys.isEmpty()) {
+            builder.addAllKeyInfo(keys.stream().map(KeyInfo::getMessage).collect(toList()));
+        }
+        return new TokenInfo(builder.build());
     }
 
     @Test
@@ -328,8 +331,8 @@ class ConfigurationSigningKeysServiceImplTest {
 
         when(configurationSigningKeyRepository.findByKeyIdentifierIn(Set.of("keyId-1", "keyId-3")))
                 .thenReturn(List.of(
-                        new ConfigurationSigningKeyEntity("keyId-1", new byte[0], Instant.now(), TOKEN_ID),
-                        new ConfigurationSigningKeyEntity("keyId-3", new byte[0], Instant.now(), TOKEN_ID)
+                        new ConfigurationSigningKeyEntity("keyId-1", new byte[0], TimeUtils.now(), TOKEN_ID),
+                        new ConfigurationSigningKeyEntity("keyId-3", new byte[0], TimeUtils.now(), TOKEN_ID)
                 ));
 
         final List<ConfigurationSigningKeyWithDetails> keysWithDetails = configurationSigningKeysServiceImpl.findDetailedByToken(token);
@@ -339,15 +342,34 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     private KeyInfo createKeyInfo(String keyIdentifier) {
-        return new ee.ria.xroad.signer.protocol.dto.KeyInfo(true, KeyUsageInfo.SIGNING, "keyFriendlyName",
-                keyIdentifier, "keyLabel", "keyPublicKey", List.of(), List.of(), "keySignMechanismName");
+        return new ee.ria.xroad.signer.protocol.dto.KeyInfo(KeyInfoProto.newBuilder()
+                .setAvailable(true)
+                .setUsage(KeyUsageInfo.SIGNING)
+                .setFriendlyName("keyFriendlyName")
+                .setId(keyIdentifier)
+                .setLabel("keyLabel")
+                .setPublicKey("keyPublicKey")
+                .setSignMechanismName("keySignMechanismName")
+                .build());
     }
 
     private TokenInfo createTokenInfo(boolean active, boolean available, List<KeyInfo> keyInfos) {
-        return new TokenInfo(
-                "type", "TOKEN_FRIENDLY_NAME", "TOKEN_ID", false, available,
-                active, "TOKEN_SERIAL_NUMBER", "label", 13, OK, keyInfos, Map.of()
-        );
+        final TokenInfoProto.Builder builder = TokenInfoProto.newBuilder()
+                .setType("type")
+                .setFriendlyName("TOKEN_FRIENDLY_NAME")
+                .setId("TOKEN_ID")
+                .setReadOnly(false)
+                .setAvailable(available)
+                .setActive(active)
+                .setSerialNumber("TOKEN_SERIAL_NUMBER")
+                .setLabel("label")
+                .setSlotIndex(13)
+                .setStatus(OK);
+        if (!keyInfos.isEmpty()) {
+            builder.addAllKeyInfo(keyInfos.stream().map(KeyInfo::getMessage).collect(toList()));
+        }
+        return new TokenInfo(builder
+                .build());
     }
 
     private ConfigurationSigningKeyEntity createConfigurationSigningEntity(
@@ -355,7 +377,7 @@ class ConfigurationSigningKeysServiceImplTest {
         ConfigurationSigningKeyEntity configurationSigningKey = new ConfigurationSigningKeyEntity();
         configurationSigningKey.setKeyIdentifier("keyIdentifier");
         configurationSigningKey.setCert("keyCert".getBytes());
-        configurationSigningKey.setKeyGeneratedAt(Instant.now());
+        configurationSigningKey.setKeyGeneratedAt(TimeUtils.now());
         configurationSigningKey.setTokenIdentifier(TOKEN_ID);
 
         ConfigurationSourceEntity configurationSource = new ConfigurationSourceEntity();

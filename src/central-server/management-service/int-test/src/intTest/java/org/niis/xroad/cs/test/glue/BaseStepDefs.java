@@ -35,6 +35,8 @@ import com.nortal.test.asserts.ValidationService;
 import com.nortal.test.core.services.CucumberScenarioProvider;
 import com.nortal.test.core.services.ScenarioContext;
 import feign.FeignException;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.mockserver.client.MockServerClient;
@@ -43,12 +45,11 @@ import org.niis.xroad.cs.test.api.FeignManagementRequestsApi;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.xml.SimpleNamespaceContext;
 import org.xml.sax.InputSource;
 
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
@@ -131,6 +132,7 @@ public abstract class BaseStepDefs {
 
     protected void executeRequest(TestManagementRequestPayload payload) {
         ResponseEntity<String> responseEntity = null;
+        cucumberScenarioProvider.getCucumberScenario().attach(new String(payload.getPayload()), MediaType.TEXT_PLAIN_VALUE, "request");
         try {
             responseEntity = managementRequestsApi.addManagementRequest(payload.getContentType(), payload.getPayload());
         } catch (FeignException e) {
@@ -138,11 +140,15 @@ public abstract class BaseStepDefs {
         } catch (Exception e) {
             log.error("Unexpected feign client failure.", e);
         }
+        cucumberScenarioProvider.getCucumberScenario().attach(responseEntity.getBody(), MediaType.TEXT_PLAIN_VALUE, "response");
         putStepData(StepDataKey.RESPONSE, responseEntity);
     }
 
     protected ClientId.Conf resolveClientIdFromEncodedStr(String clientIdStr) {
         String[] clientIdSplit = clientIdStr.split(":");
+        if (clientIdSplit.length == 4) {
+            return ClientId.Conf.create(clientIdSplit[0], clientIdSplit[1], clientIdSplit[2], clientIdSplit[3]);
+        }
         return ClientId.Conf.create(clientIdSplit[0], clientIdSplit[1], clientIdSplit[2]);
     }
 

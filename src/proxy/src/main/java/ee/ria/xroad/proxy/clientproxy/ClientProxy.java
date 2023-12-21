@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -46,10 +46,10 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.eclipse.jetty.http.HttpComplianceSection;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
@@ -71,6 +71,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
 
@@ -79,7 +80,6 @@ import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
  */
 @Slf4j
 public class ClientProxy implements StartStop {
-
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 
     // SSL session timeout
@@ -235,12 +235,12 @@ public class ClientProxy implements StartStop {
 
     private void applyConnectionFactoryConfig(ServerConnector connector) {
         connector.getConnectionFactories().stream()
-                .filter(cf -> cf instanceof HttpConnectionFactory)
-                .map(cf -> (HttpConnectionFactory)cf)
-                .forEach(cf -> {
-                    //allowed so that x-road identifiers with a '/' can be encoded to a path segment using %2F
-                    cf.getHttpCompliance().sections().remove(HttpComplianceSection.NO_AMBIGUOUS_PATH_SEGMENTS);
-                    cf.getHttpConfiguration().setSendServerVersion(false);
+                .filter(HttpConnectionFactory.class::isInstance)
+                .map(HttpConnectionFactory.class::cast)
+                .forEach(httpCf -> {
+                    httpCf.getHttpConfiguration().setSendServerVersion(false);
+                    Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
+                            .ifPresent(customizer -> customizer.setSniHostCheck(false));
                 });
     }
 

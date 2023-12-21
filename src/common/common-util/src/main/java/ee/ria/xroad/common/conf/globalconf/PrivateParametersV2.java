@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -26,45 +26,53 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ManagementServiceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import lombok.Getter;
 
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Contains private parameters of a configuration instance.
  */
-public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> {
+public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> implements PrivateParametersProvider {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
+    private final PrivateParametersV2Converter converter = new PrivateParametersV2Converter();
+
+    @Getter
+    private final PrivateParameters privateParameters;
+
+    @Getter
     private final OffsetDateTime expiresOn;
 
-    // variable to prevent using load methods after constrution
+
+    // variable to prevent using load methods after construction
     private boolean initCompleted;
+
 
     PrivateParametersV2(byte[] content) {
         super(content, PrivateParametersSchemaValidatorV2.class);
         expiresOn = OffsetDateTime.MAX;
+        privateParameters = converter.convert(confType);
         initCompleted = true;
     }
 
     PrivateParametersV2(Path privateParametersPath, OffsetDateTime expiresOn) {
         super(privateParametersPath.toString(), PrivateParametersSchemaValidatorV2.class);
         this.expiresOn = expiresOn;
+        privateParameters = converter.convert(confType);
         initCompleted = true;
     }
 
     PrivateParametersV2(PrivateParametersV2 original, OffsetDateTime newExpiresOn) {
         super(original);
         expiresOn = newExpiresOn;
+        privateParameters = original.getPrivateParameters();
         initCompleted = true;
     }
 
@@ -86,28 +94,6 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
         }
     }
 
-    String getInstanceIdentifier() {
-        return confType.getInstanceIdentifier();
-    }
-
-    List<ConfigurationSource> getConfigurationSource() {
-        return confType.getConfigurationAnchor().stream()
-                .map(ConfigurationAnchorV2::new)
-                .collect(Collectors.toList());
-    }
-
-    BigInteger getTimeStampingIntervalSeconds() {
-        return confType.getTimeStampingIntervalSeconds();
-    }
-
-    ManagementServiceType getManagementService() {
-        return confType.getManagementService();
-    }
-
-    public OffsetDateTime getExpiresOn() {
-        return expiresOn;
-    }
-
     @Override
     protected JAXBContext getJAXBContext() {
         return JAXB_CONTEXT;
@@ -120,4 +106,5 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
             throw new RuntimeException(e);
         }
     }
+
 }

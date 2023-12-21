@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -34,11 +34,10 @@ import ee.ria.xroad.monitor.executablelister.XroadProcessLister;
 
 import com.codahale.metrics.Metric;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
+import org.springframework.scheduling.TaskScheduler;
 
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Sensor which collects data by running external commands and
@@ -48,13 +47,15 @@ import java.util.concurrent.TimeUnit;
 public class ExecListingSensor extends AbstractSensor {
 
     private MetricRegistryHolder registryHolder;
+
     /**
      * Constructor
      */
-    public <T extends Metric> ExecListingSensor() {
+    public <T extends Metric> ExecListingSensor(TaskScheduler taskScheduler) {
+        super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
         updateMetrics();
-        scheduleSingleMeasurement(getInterval(), new ProcessMeasure());
+        scheduleSingleMeasurement(getInterval());
     }
 
     private void createOrUpdateMetricPair(String parsedName, String jmxName, JmxStringifiedData data) {
@@ -103,19 +104,16 @@ public class ExecListingSensor extends AbstractSensor {
     }
 
     @Override
-    public void onReceive(Object o) throws Exception {
-        if (o instanceof ProcessMeasure) {
-            log.debug("Updating metrics");
-            updateMetrics();
-            scheduleSingleMeasurement(getInterval(), new ProcessMeasure());
-        }
+    public void measure() {
+        log.debug("Updating metrics");
+        updateMetrics();
+        scheduleSingleMeasurement(getInterval());
+
     }
 
     @Override
-    protected FiniteDuration getInterval() {
-        return Duration.create(SystemProperties.getEnvMonitorExecListingSensorInterval(), TimeUnit.SECONDS);
+    protected Duration getInterval() {
+        return Duration.ofSeconds(SystemProperties.getEnvMonitorExecListingSensorInterval());
     }
-
-    private static class ProcessMeasure { }
 
 }

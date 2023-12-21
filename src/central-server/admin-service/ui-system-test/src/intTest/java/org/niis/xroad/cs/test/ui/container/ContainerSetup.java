@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.utility.LazyFuture;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,13 +50,14 @@ public class ContainerSetup {
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
+            @Value("${test-automation.custom.docker-root}") String dockerRoot,
             @Value("${test-automation.custom.package-repo}") String packageRepo,
             @Value("${test-automation.custom.package-repo-key}") String packageRepoKey) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
-            public LazyFuture<String> imageDefinition() {
-                Path csDockerRoot = Paths.get("../../../../Docker/centralserver/");
+            public ImageFromDockerfile imageDefinition() {
+                Path csDockerRoot = Paths.get(dockerRoot);
                 Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
 
                 return new ImageFromDockerfile("cs-system-test", true)

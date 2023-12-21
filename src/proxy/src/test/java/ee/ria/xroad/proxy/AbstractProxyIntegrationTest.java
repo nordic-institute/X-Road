@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -43,9 +43,6 @@ import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -64,14 +61,13 @@ import java.util.Set;
 
 /**
  * Base class for proxy integration tests
- * Starts and stops an test proxy instance and a service simulator.
+ * Starts and stops the test proxy instance and a service simulator.
  */
 @Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
 
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
 
-    private static ActorSystem actorSystem;
     private static JobManager jobManager;
     private static ClientProxy clientProxy;
     private static ServerProxy serverProxy;
@@ -131,13 +127,12 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         jobManager = new JobManager();
-        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(getFreePort())));
 
-        MessageLog.init(actorSystem, jobManager);
-        OpMonitoring.init(actorSystem);
+        MessageLog.init(jobManager);
+        OpMonitoring.init();
+        AddOn.BindableServiceRegistry serviceRegistry = new AddOn.BindableServiceRegistry();
         for (AddOn addon : ServiceLoader.load(AddOn.class)) {
-            addon.init(actorSystem);
+            addon.init(serviceRegistry);
         }
 
         clientProxy = new ClientProxy();
@@ -162,7 +157,9 @@ public abstract class AbstractProxyIntegrationTest {
             svc.stop();
             svc.join();
         }
-        actorSystem.terminate();
+
+        OpMonitoring.shutdown();
+        MessageLog.shutdown();
         RESERVED_PORTS.clear();
     }
 

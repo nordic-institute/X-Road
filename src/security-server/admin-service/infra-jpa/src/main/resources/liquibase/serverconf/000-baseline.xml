@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+<changeSet author="niis" id="000-baseline" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <changeSetExecuted id="0-initial" author="toja" changeLogFile="serverconf/0-initial.xml"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="apikey_roles_id_seq"/>
+        <createSequence sequenceName="hibernate_sequence"/>
+        <createSequence sequenceName="history_id_seq"/>
+        <createSequence sequenceName="service_securitycategories_id_seq"/>
+        <createTable tableName="accessright">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subjectid" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rightsgiven" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="BIGINT"/>
+            <column name="endpoint_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="apikey">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="encodedkey" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="apikey_roles">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="apikey_rolespk"/>
+            </column>
+            <column name="apikey_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="certificate">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="data" type="BYTEA"/>
+            <column name="client_id" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="client">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="conf_id" type="BIGINT"/>
+            <column name="identifier" type="BIGINT"/>
+            <column name="clientstatus" type="VARCHAR(255)"/>
+            <column name="isauthentication" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="endpoint">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="BIGINT"/>
+            <column name="servicecode" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="method" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="VARCHAR(2048)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="generated" type="BOOL"/>
+        </createTable>
+        <createTable tableName="groupmember">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="groupmemberid" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="added" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="localgroup_id" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="history">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="history_pkey"/>
+            </column>
+            <column name="operation" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="table_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="record_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="field_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="old_value" type="TEXT"/>
+            <column name="new_value" type="TEXT"/>
+            <column name="user_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="identifier">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="discriminator" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="xroadinstance" type="VARCHAR(255)"/>
+            <column name="memberclass" type="VARCHAR(255)"/>
+            <column name="membercode" type="VARCHAR(255)"/>
+            <column name="subsystemcode" type="VARCHAR(255)"/>
+            <column name="serviceversion" type="VARCHAR(255)"/>
+            <column name="servicecode" type="VARCHAR(255)"/>
+            <column name="groupcode" type="VARCHAR(255)"/>
+            <column name="securitycategory" type="VARCHAR(255)"/>
+            <column name="servercode" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="localgroup">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="groupcode" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="serverconf">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="servercode" type="VARCHAR(255)"/>
+            <column name="owner" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="service">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="servicedescription_id" type="BIGINT"/>
+            <column name="servicecode" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="serviceversion" type="VARCHAR(255)"/>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="url" type="VARCHAR(255)"/>
+            <column name="sslauthentication" type="BOOL"/>
+            <column name="timeout" type="INT"/>
+        </createTable>
+        <createTable tableName="service_securitycategories">
+            <column name="service_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="security_cat_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="servicedescription">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="BIGINT"/>
+            <column name="url" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="disabled" type="BOOL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="disablednotice" type="VARCHAR(255)"/>
+            <column name="refresheddate" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column defaultValue="WSDL" name="type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="tsp">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="url" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="conf_id" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="uiuser">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locale" type="VARCHAR(255)"/>
+        </createTable>
+        <addPrimaryKey columnNames="id" constraintName="accessrightpk" tableName="accessright"/>
+        <addPrimaryKey columnNames="id" constraintName="apikeypk" tableName="apikey"/>
+        <addPrimaryKey columnNames="id" constraintName="certificatepk" tableName="certificate"/>
+        <addPrimaryKey columnNames="id" constraintName="clientpk" tableName="client"/>
+        <addPrimaryKey columnNames="id" constraintName="groupmemberpk" tableName="groupmember"/>
+        <addPrimaryKey columnNames="id" constraintName="identifierpk" tableName="identifier"/>
+        <addPrimaryKey columnNames="id" constraintName="localgrouppk" tableName="localgroup"/>
+        <addPrimaryKey columnNames="id" constraintName="pk_endpoint" tableName="endpoint"/>
+        <addPrimaryKey columnNames="id" constraintName="serverconfpk" tableName="serverconf"/>
+        <addPrimaryKey columnNames="id" constraintName="servicepk" tableName="service"/>
+        <addPrimaryKey columnNames="id" constraintName="tsppk" tableName="tsp"/>
+        <addPrimaryKey columnNames="id" constraintName="uiuserpk" tableName="uiuser"/>
+        <addPrimaryKey columnNames="id" constraintName="wsdlpk" tableName="servicedescription"/>
+        <addUniqueConstraint columnNames="id" constraintName="service_securitycategories_id_key" tableName="service_securitycategories"/>
+        <addUniqueConstraint columnNames="apikey_id, role" constraintName="unique_apikey_role" tableName="apikey_roles"/>
+        <createIndex indexName="ACCESSRIGHT_CLIENT_ID_fkey" tableName="accessright">
+            <column name="client_id"/>
+        </createIndex>
+        <createIndex indexName="AUTHORIZEDSUBJECT_SUBJECTID_fkey" tableName="accessright">
+            <column name="subjectid"/>
+        </createIndex>
+        <createIndex indexName="CLIENT_CONF_ID_fkey" tableName="client">
+            <column name="conf_id"/>
+        </createIndex>
+        <createIndex indexName="CLIENT_IDENTIFIER_fkey" tableName="client">
+            <column name="identifier"/>
+        </createIndex>
+        <createIndex indexName="GROUPMEMBER_GROUPMEMBERID_fkey" tableName="groupmember">
+            <column name="groupmemberid"/>
+        </createIndex>
+        <createIndex indexName="GROUPMEMBER_LOCALGROUP_ID_fkey" tableName="groupmember">
+            <column name="localgroup_id"/>
+        </createIndex>
+        <createIndex indexName="LOCALGROUP_CLIENT_ID_fkey" tableName="localgroup">
+            <column name="client_id"/>
+        </createIndex>
+        <createIndex indexName="SERVERCONF_OWNER_fkey" tableName="serverconf">
+            <column name="owner"/>
+        </createIndex>
+        <createIndex indexName="SERVICE_SECURITYCATEGORIES_SECURITY_CAT_ID_fkey" tableName="service_securitycategories">
+            <column name="security_cat_id"/>
+        </createIndex>
+        <createIndex indexName="SERVICE_SECURITYCATEGORIES_SERVICE_ID_fkey" tableName="service_securitycategories">
+            <column name="service_id"/>
+        </createIndex>
+        <createIndex indexName="SERVICE_WSDL_ID_fkey" tableName="service">
+            <column name="servicedescription_id"/>
+        </createIndex>
+        <createIndex indexName="TSP_CONF_ID_fkey" tableName="tsp">
+            <column name="conf_id"/>
+        </createIndex>
+        <createIndex indexName="WSDL_CLIENT_ID_fkey" tableName="servicedescription">
+            <column name="client_id"/>
+        </createIndex>
+        <createIndex indexName="ix_endpoint" tableName="endpoint" unique="true">
+            <column name="client_id"/>
+            <column name="servicecode"/>
+            <column name="method"/>
+            <column name="path"/>
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="owner" baseTableName="serverconf" constraintName="fk_1feb23ww1ondj5dv8eu6gp86o" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="client"/>
+        <addForeignKeyConstraint baseColumnNames="client_id" baseTableName="localgroup" constraintName="fk_3hbuo4vaqc9xpgq8ombxsfuqa" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="client"/>
+        <addForeignKeyConstraint baseColumnNames="subjectid" baseTableName="accessright" constraintName="fk_5vnw7dq6i9x7eob71bp7jym42" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifier"/>
+        <addForeignKeyConstraint baseColumnNames="groupmemberid" baseTableName="groupmember" constraintName="fk_7htiw4bes7513yvehdp9o1ccn" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifier"/>
+        <addForeignKeyConstraint baseColumnNames="localgroup_id" baseTableName="groupmember" constraintName="fk_9s9v7iqgb50l3n9xnxfia82p1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="localgroup"/>
+        <addForeignKeyConstraint baseColumnNames="endpoint_id" baseTableName="accessright" constraintName="fk_accessright_endpoint" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="endpoint"/>
+        <addForeignKeyConstraint baseColumnNames="apikey_id" baseTableName="apikey_roles" constraintName="fk_apikey_roles_apikey_id" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="apikey"/>
+        <addForeignKeyConstraint baseColumnNames="client_id" baseTableName="accessright" constraintName="fk_cs3rkn8ilbyf6hnoeto8xhu68" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="client"/>
+        <addForeignKeyConstraint baseColumnNames="client_id" baseTableName="endpoint" constraintName="fk_endpoint_client" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="client"/>
+        <addForeignKeyConstraint baseColumnNames="client_id" baseTableName="servicedescription" constraintName="fk_i1xxlscwb84540u33au7ff9vb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="client"/>
+        <addForeignKeyConstraint baseColumnNames="security_cat_id" baseTableName="service_securitycategories" constraintName="fk_jug7e4jtiiojg492hh1i10qr0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifier"/>
+        <addForeignKeyConstraint baseColumnNames="service_id" baseTableName="service_securitycategories" constraintName="fk_or1xkhdc830058rh2kpdgjvd0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="service"/>
+        <addForeignKeyConstraint baseColumnNames="conf_id" baseTableName="client" constraintName="fk_p1n5e2yp385eusd471lon18lm" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="serverconf"/>
+        <addForeignKeyConstraint baseColumnNames="servicedescription_id" baseTableName="service" constraintName="fk_q2me40qtkcypwyh6ttrrpf5xf" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="servicedescription"/>
+        <addForeignKeyConstraint baseColumnNames="conf_id" baseTableName="tsp" constraintName="fk_sae6cb6emxn9iy5h56bq8ier2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="serverconf"/>
+        <addForeignKeyConstraint baseColumnNames="client_id" baseTableName="certificate" constraintName="fk_sm6kk4lbadiiis4mj1ltp15h9" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="client"/>
+        <addForeignKeyConstraint baseColumnNames="identifier" baseTableName="client" constraintName="fk_th1b8viw7rfxp53t1b27oscv1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifier"/>
+        <sql splitStatements="false">
+            <![CDATA[
+CREATE TYPE changed_field_type AS (
+	field_key text,
+	field_value text
+);
+
+CREATE FUNCTION add_history_rows() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+
+DECLARE
+  _record_id bigint;
+  _old_data hstore;
+  _new_data hstore;
+  _changed_fields hstore;
+  _field_data changed_field_type;
+  _user_name text;
+  _operation text;
+
+BEGIN
+  IF TG_WHEN <> 'AFTER' THEN
+    RAISE EXCEPTION 'add_history_rows() may only be used as an AFTER trigger';
+  END IF;
+
+  IF TG_LEVEL <> 'ROW' THEN
+    RAISE EXCEPTION 'add_history_rows() may only be used as a row-level trigger';
+  END IF;
+
+  _operation := TG_OP::text;
+
+  -- Detect the type of operation, the changed fields and the ID of the changed record.
+  IF (_operation = 'UPDATE') THEN
+    _changed_fields := (hstore(NEW.*) - hstore(OLD.*));
+    IF _changed_fields = hstore('') THEN
+      -- There are no changes to record in the history table.
+      RETURN NULL;
+    END IF;
+    _old_data := hstore(OLD.*);
+    _new_data := hstore(NEW.*);
+    _record_id := OLD.id;
+  ELSIF (_operation = 'DELETE') THEN
+    _changed_fields := hstore(OLD.*);
+    _old_data := _changed_fields;
+    _record_id := OLD.id;
+  ELSIF (_operation = 'INSERT') THEN
+    _changed_fields := hstore(NEW.*);
+    _new_data := _changed_fields;
+    _record_id := NEW.id;
+  ELSE
+    RAISE EXCEPTION 'add_history_rows() supports only INSERT, UPDATE and DELETE';
+  END IF;
+
+  -- Detect the name of the user if present.
+  BEGIN
+    _user_name := current_setting('xroad.user_name');
+  EXCEPTION WHEN undefined_object THEN
+    _user_name := session_user::text;
+  END;
+
+  -- Fill and insert a history record for each changed field.
+  FOR _field_data IN SELECT kv."key", kv."value" FROM each(_changed_fields) kv
+  LOOP
+    PERFORM insert_history_row(
+      _user_name, _operation, TG_TABLE_NAME::text,
+    _field_data, _old_data, _new_data, _record_id);
+  END LOOP;
+
+  RETURN NULL;
+END;
+$$;
+
+CREATE FUNCTION insert_history_row(user_name text, operation text, table_name text, field_data changed_field_type, old_data hstore, new_data hstore, record_id bigint) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+
+DECLARE
+  _history_row history;
+
+BEGIN
+
+  _history_row = ROW(
+    NEXTVAL('history_id_seq'),
+    operation, table_name, record_id,
+    field_data.field_key, -- name of the field that was changed
+    NULL, -- old value
+    NULL, -- new value
+    user_name,
+    statement_timestamp()
+  );
+
+  IF (operation = 'UPDATE') THEN
+    _history_row.old_value = old_data -> field_data.field_key;
+    _history_row.new_value = field_data.field_value;
+  ELSIF (operation = 'DELETE') THEN
+    _history_row.old_value = old_data -> field_data.field_key;
+  ELSIF (operation = 'INSERT') THEN
+    _history_row.new_value = field_data.field_value;
+  END IF;
+
+  INSERT INTO history VALUES (_history_row.*);
+END;
+$$;
+
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON accessright FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON apikey FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON apikey_roles FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON certificate FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON client FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON groupmember FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON identifier FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON localgroup FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON serverconf FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON service FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON service_securitycategories FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON servicedescription FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON tsp FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+CREATE TRIGGER update_history AFTER INSERT OR DELETE OR UPDATE ON uiuser FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

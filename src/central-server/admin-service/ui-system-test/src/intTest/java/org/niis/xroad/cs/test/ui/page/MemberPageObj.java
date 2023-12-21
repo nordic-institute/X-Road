@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -38,6 +38,14 @@ public class MemberPageObj {
         return $x("//button[@data-test='add-member-button']");
     }
 
+    public SelenideElement searchIcon() {
+        return $x("//div[@data-test='search-query-field']");
+    }
+
+    public SelenideElement searchInput() {
+        return $x("//div[@data-test='search-query-field']//input");
+    }
+
     public SelenideElement listRowOf(String memberName) {
         var xpath = "//div[@data-test='members-table']//table//tbody//tr//td//div[contains(text(), '%s')]";
         return $x(String.format(xpath, memberName));
@@ -56,19 +64,19 @@ public class MemberPageObj {
 
     public class AddDialog {
         public SelenideElement inputMemberName() {
-            return $x("//input[@data-test='add-member-name-input']");
+            return $x("//div[@data-test='add-member-name-input']");
         }
 
         public SelenideElement inputMemberCode() {
-            return $x("//input[@data-test='add-member-code-input']");
+            return $x("//div[@data-test='add-member-code-input']");
         }
 
         public SelenideElement selectMemberClass() {
-            return $x("//input[@data-test='add-member-class-input']");
+            return $x("//div[@data-test='add-member-class-input']");
         }
 
         public SelenideElement selectMemberClassOption(String option) {
-            var xpath = "//div[@role='listbox']//div[@role='option' and contains(./descendant-or-self::*/text(),'%s')]";
+            var xpath = "//div[@role='listbox']//div[contains(@class, 'v-list-item') and contains(./descendant-or-self::*/text(),'%s')]";
             return $x(String.format(xpath, option));
         }
     }

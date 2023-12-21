@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,7 +31,13 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.transaction.Transactional;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.ServiceException;
@@ -49,11 +55,6 @@ import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.transaction.Transactional;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
@@ -136,8 +137,8 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         }
 
         final var sources = configurationSourceRepository.findAllBySourceType(configurationType.name().toLowerCase());
-        final var now = ZonedDateTime.now(ZoneId.of("UTC"));
-        final var anchorXml = buildAnchorXml(configurationType, instanceIdentifier, now, sources);
+        final var now = TimeUtils.zonedDateTimeNow(ZoneId.of("UTC"));
+        final var anchorXml = buildAnchorXml(instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
         final var anchorXmlHash = CryptoUtils.calculateAnchorHashDelimited(anchorXmlBytes);
         if (addAuditLog) {
@@ -155,8 +156,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         return new ConfigurationAnchor(anchorXmlHash, now.toInstant());
     }
 
-    private String buildAnchorXml(final ConfigurationSourceType configurationType,
-                                  final String instanceIdentifier,
+    private String buildAnchorXml(final String instanceIdentifier,
                                   final ZonedDateTime now,
                                   final List<ConfigurationSourceEntity> sources) {
         try {
@@ -170,7 +170,10 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
             configurationAnchor.setInstanceIdentifier(instanceIdentifier);
 
             sources.stream()
-                    .map(src -> toXmlSource(src, configurationType, factory))
+                    .map(src -> toXmlSource(src, factory, false))
+                    .forEach(configurationAnchor.getSource()::add);
+            sources.stream()
+                    .map(src -> toXmlSource(src, factory, true))
                     .forEach(configurationAnchor.getSource()::add);
 
             JAXBElement<ConfigurationAnchorType> root = factory.createConfigurationAnchor(configurationAnchor);
@@ -183,22 +186,23 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         }
     }
 
-    private String buildGlobalDownloadUrl(final ConfigurationSourceType sourceType, final String haNodeName) {
+    private String buildGlobalDownloadUrl(final String sourceType, final String haNodeName, final boolean isHttps) {
         final var csAddress = systemParameterService.getCentralServerAddress(haNodeName);
-        final String sourceDirectory = sourceType.equals(INTERNAL)
+        final String sourceDirectory = INTERNAL.name().equalsIgnoreCase(sourceType)
                 ? SystemProperties.getCenterInternalDirectory()
                 : SystemProperties.getCenterExternalDirectory();
+        final String protocol = isHttps ? "https" : "http";
 
-        return String.format("http://%s/%s", csAddress, sourceDirectory);
+        return String.format("%s://%s/%s", protocol, csAddress, sourceDirectory);
     }
 
     private ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType toXmlSource(
             final ConfigurationSourceEntity source,
-            final ConfigurationSourceType configurationType,
-            final ObjectFactory factory) {
+            final ObjectFactory factory,
+            final boolean isHttps) {
         final var xmlSource = factory.createConfigurationSourceType();
 
-        xmlSource.setDownloadURL(buildGlobalDownloadUrl(configurationType, source.getHaNodeName()));
+        xmlSource.setDownloadURL(buildGlobalDownloadUrl(source.getSourceType(), source.getHaNodeName(), isHttps));
         source.getConfigurationSigningKeys().stream()
                 .map(ConfigurationSigningKeyEntity::getCert)
                 .forEach(xmlSource.getVerificationCert()::add);

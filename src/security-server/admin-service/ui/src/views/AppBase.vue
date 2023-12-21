@@ -27,36 +27,32 @@
 <template>
   <div>
     <router-view name="top" />
-    <v-layout align-center justify-center>
-      <transition name="fade" mode="out-in">
-        <div class="base-full-width">
-          <router-view name="subTabs" />
+    <transition name="fade" mode="out-in">
+      <div class="base-full-width">
+        <router-view name="subTabs" />
 
-          <div class="sticky">
-            <router-view name="alerts" />
-          </div>
-          <v-layout
-            align-center
-            justify-center
-            class="base-full-width bottom-pad"
-          >
-            <router-view />
-          </v-layout>
+        <div class="sticky">
+          <router-view name="alerts" />
         </div>
-      </transition>
-    </v-layout>
+        <v-row align="center" class="base-full-width" no-gutters>
+          <v-col class="d-flex justify-center align-center">
+            <router-view />
+          </v-col>
+        </v-row>
+      </div>
+    </transition>
 
     <v-dialog v-model="showDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
-          <span class="headline">{{ $t('logout.sessionExpired') }}</span>
+          <span class="text-h5">{{ $t('logout.sessionExpired') }}</span>
         </v-card-title>
         <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <xrd-button data-test="session-expired-ok-button" @click="logout()">{{
-            $t('action.ok')
-          }}</xrd-button>
+          <xrd-button data-test="session-expired-ok-button" @click="logout()">
+            {{ $t('action.ok') }}
+          </xrd-button>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -64,14 +60,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       sessionPollInterval: 0,
@@ -86,7 +82,7 @@ export default Vue.extend({
   },
   created() {
     // Set interval to poll backend for session
-    this.sessionPollInterval = setInterval(
+    this.sessionPollInterval = window.setInterval(
       () => this.pollSessionStatus(),
       30000,
     );
@@ -99,7 +95,7 @@ export default Vue.extend({
       return api
         .get('/notifications/session-status')
         .then(() => {
-          // Check alert status after a successfull session-status call
+          // Check alert status after a successful session-status call
           this.checkAlertStatus();
         })
         .catch((error) => {
@@ -131,16 +127,13 @@ export default Vue.extend({
   padding-bottom: 40px;
 }
 
-.bottom-pad {
-  padding-bottom: 40px;
-}
-
 .fade-enter-active,
 .fade-leave-active {
   transition-duration: 0.2s;
   transition-property: opacity;
   transition-timing-function: ease;
 }
+
 .fade-enter,
 .fade-leave-active {
   opacity: 0;

@@ -27,7 +27,7 @@
   <div class="certificate-details-wrapper xrd-default-shadow">
     <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
-      <div v-if="certificate" class="dtlv-tools">
+      <div v-if="certificate" class="detail-view-tools">
         <xrd-button
           v-if="showActivate"
           class="button-spacing"
@@ -59,13 +59,14 @@
           data-test="delete-button"
           @click="showConfirmDelete()"
         >
-          <v-icon class="xrd-large-button-icon">icon-Declined</v-icon>
-
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-declined />
+          </xrd-icon-base>
           {{ $t('action.delete') }}</xrd-button
         >
       </div>
       <template v-if="certificate && certificate.certificate_details">
-        <div class="dtlv-cert-hash">
+        <div class="detail-view-cert-hash">
           <certificateHash :hash="certificate.certificate_details.hash" />
         </div>
         <certificateInfo :certificate="certificate.certificate_details" />
@@ -74,7 +75,7 @@
 
     <!-- Confirm dialog for delete -->
     <xrd-confirm-dialog
-      :dialog="confirm"
+      v-if="confirm"
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
       @cancel="confirm = false"
@@ -83,7 +84,7 @@
 
     <!-- Confirm dialog for unregister certificate -->
     <xrd-confirm-dialog
-      :dialog="confirmUnregisterCertificate"
+      v-if="confirmUnregisterCertificate"
       :loading="unregisterLoading"
       title="keys.unregisterTitle"
       text="keys.unregisterText"
@@ -103,7 +104,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import {
@@ -121,7 +122,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     CertificateInfo,
     CertificateHash,
@@ -137,6 +138,7 @@ export default Vue.extend({
       default: undefined,
     },
   },
+  emits: ['refresh-list'],
   data() {
     return {
       confirm: false,
@@ -214,7 +216,7 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
     fetchData(hash: string): void {
       // Fetch certificate data
@@ -335,7 +337,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/detail-views';
+@import '@/assets/detail-views';
 
 .button-spacing {
   margin-left: 20px;

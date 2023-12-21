@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,7 +27,10 @@ package ee.ria.xroad.signer.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
+import com.google.protobuf.ByteString;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
@@ -38,6 +41,7 @@ import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
@@ -46,39 +50,65 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @Data
 public class Cert {
 
-    /** ID for cert that is used by the OCSP request keys. (optional) */
+    /**
+     * ID for cert that is used by the OCSP request keys. (optional)
+     */
     private final String id;
 
-    /** If this certificate belongs to signing key, then this attribute contains
-     * identifier of the member that uses this certificate. */
+    /**
+     * If this certificate belongs to signing key, then this attribute contains
+     * identifier of the member that uses this certificate.
+     */
     private ClientId.Conf memberId;
 
-    /** Whether this certificate can be used by the proxy. */
+    /**
+     * Whether this certificate can be used by the proxy.
+     */
     private boolean active;
 
-    /** Whether or not this certificate is in the configuration. */
+    /**
+     * Whether this certificate is in the configuration.
+     */
     private boolean savedToConfiguration;
 
-    /** Holds the status of the certificate. */
+    /**
+     * Holds the status of the certificate.
+     */
     private String status;
 
-    /** Holds the precalculated hash of the certificate. */
+    /**
+     * Holds the precalculated sha1 hash of the certificate.
+     * @deprecated Use {@link #getSha256hash()} instead.
+     */
+    @Deprecated
     @Setter(AccessLevel.PRIVATE)
-    private String hash;
+    private String sha1hash;
 
-    /** Holds the certificate instance. */
+    /**
+     * Holds the precalculated sha256 hash of the certificate.
+     */
+    @Setter(AccessLevel.PRIVATE)
+    private String sha256hash;
+
+    /**
+     * Holds the certificate instance.
+     */
     private X509Certificate certificate;
 
-    /** Holds the OCSP response of the certificate. */
+    /**
+     * Holds the OCSP response of the certificate.
+     */
     private OCSPResp ocspResponse;
 
     /**
      * Sets the certificate and hash
+     *
      * @param cert the certificate
      */
     public void setCertificate(X509Certificate cert) {
         try {
-            hash = calculateCertHexHash(cert);
+            sha1hash = calculateCertSha1HexHash(cert);
+            sha256hash = calculateCertHexHash(cert);
             certificate = cert;
         } catch (Exception e) {
             throw translateException(e);
@@ -87,6 +117,7 @@ public class Cert {
 
     /**
      * Sets the certificate and hash
+     *
      * @param certBytes the bytes of the certificate
      */
     public void setCertificate(byte[] certBytes) {
@@ -99,6 +130,7 @@ public class Cert {
 
     /**
      * Sets the ocsp response
+     *
      * @param ocspBytes the bytes of the ocsp response
      */
     public void setOcspResponse(byte[] ocspBytes) {
@@ -115,6 +147,7 @@ public class Cert {
 
     /**
      * Sets the ocsp response
+     *
      * @param ocsp the ocsp response
      */
     public void setOcspResponse(OCSPResp ocsp) {
@@ -132,15 +165,39 @@ public class Cert {
         }
     }
 
+    public CertificateInfoProto toProtoDTO() {
+        try {
+            var builder = CertificateInfoProto.newBuilder()
+                    .setActive(active)
+                    .setSavedToConfiguration(savedToConfiguration)
+                    .setId(id);
+
+            if (memberId != null) {
+                builder.setMemberId(ClientIdMapper.toDto(memberId));
+            }
+            if (status != null) {
+                builder.setStatus(status);
+            }
+            if (certificate != null) {
+                builder.setCertificateBytes(ByteString.copyFrom(certificate.getEncoded()));
+            }
+            if (ocspResponse != null) {
+                builder.setOcspBytes(ByteString.copyFrom(ocspResponse.getEncoded()));
+            }
+            return builder.build();
+        } catch (Exception e) {
+            throw translateException(e);
+        }
+    }
+
     /**
      * Converts this object to value object.
+     *
      * @return the value object
      */
     public CertificateInfo toDTO() {
         try {
-            return new CertificateInfo(memberId, active, savedToConfiguration,
-                    status, id, certificate.getEncoded(),
-                    ocspResponse != null ? ocspResponse.getEncoded() : null);
+            return new CertificateInfo(toProtoDTO());
         } catch (Exception e) {
             throw translateException(e);
         }

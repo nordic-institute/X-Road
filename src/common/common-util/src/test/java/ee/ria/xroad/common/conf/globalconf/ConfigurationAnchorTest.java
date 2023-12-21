@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -41,14 +41,14 @@ public class ConfigurationAnchorTest {
      */
     @Test
     public void readAnchorV2() {
-        ConfigurationAnchorV2 a = new ConfigurationAnchorV2(
+        ConfigurationAnchor a = new ConfigurationAnchor(
                 "src/test/resources/configuration-anchor1.xml");
 
         assertEquals("EE", a.getInstanceIdentifier());
         assertEquals(3, a.getLocations().size());
 
         ConfigurationLocation l = a.getLocations().get(0);
-        assertEquals("http://www.bar.com/conf?version=2", l.getDownloadURL());
+        assertEquals("http://www.bar.com/conf", l.getDownloadURL());
 
         String hash = "t7+jfR1wnsN1EBtBpCt/q8JIasg=";
         String hashAlgoId = "http://www.w3.org/2000/09/xmldsig#sha1";
@@ -63,11 +63,11 @@ public class ConfigurationAnchorTest {
      */
     @Test
     public void equalsAnchorV2() {
-        ConfigurationAnchorV2 a = new ConfigurationAnchorV2(
+        ConfigurationAnchor a = new ConfigurationAnchor(
                 "src/test/resources/configuration-anchor1.xml");
-        ConfigurationAnchorV2 b = new ConfigurationAnchorV2(
+        ConfigurationAnchor b = new ConfigurationAnchor(
                 "src/test/resources/configuration-anchor1.xml");
-        ConfigurationAnchorV2 c = new ConfigurationAnchorV2(
+        ConfigurationAnchor c = new ConfigurationAnchor(
                 "src/test/resources/configuration-anchor2.xml");
         assertEquals(a, a);
         assertEquals(a, b);

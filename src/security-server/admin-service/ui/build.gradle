@@ -1,193 +1,68 @@
-plugins {
-    id 'base'
-    id 'com.github.node-gradle.node' version "$nodePluginVersion"
-}
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
 
 configurations {
-    npm
+    yarn
     dist
 }
 
 dependencies {
-    npm project(path: ":shared-ui", configuration: "npm")
+    yarn project(path: ":shared-ui", configuration: "yarn")
 }
 
-node {
-    download = true
-    version = nodeVersion
-
-    if (System.getenv().containsKey("CI")) {
-        npmInstallCommand = "ci"
-    }
-}
-
-task npmUpdateDeps(type: NpmTask, dependsOn: configurations.npm) {
+tasks.register('yarnUpdateDeps', RunYarn) {
+    var currentDir = java.nio.file.Path.of("${projectDir}")
     inputs.files('package.json')
-    outputs.files('package-lock.json')
-    args = ['--quiet', 'install', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
+    outputs.files('yarn.lock')
+
+    var packages = configurations.yarn.files
+        .collect { it.toPath() }
+        .collect { currentDir.relativize(it) }
+        .collect { '@niis/shared-ui@file:' + it }
+        .join(' ')
+
+    script = 'add --mode=update-lockfile ' + packages
 }
 
-task cleanNpmInstallDeps {
-    //NOP, we do not want to accidentally delete package-lock.json
-}
+installFrontend.dependsOn("yarnUpdateDeps")
 
-npmInstall {
-    dependsOn += 'npmUpdateDeps'
-}
-
-task npmBuild(type: NpmTask, dependsOn: ['npmInstall']) {
+tasks.register('yarnBuild', RunYarn) {
+    dependsOn assembleFrontend
     inputs.files(
         'src/',
         'public/',
         'package.json',
-        'package-lock.json',
-        'vue.config.js',
+        'yarn.lock',
         'tsconfig.js',
-        'babel.config.js',
+        'vite.config.js',
         fileTree('node_modules') {
             exclude '.cache'
             exclude 'webpack-dev-server/ssl'
         }
     )
     outputs.dir('dist')
-    args = ['run', '--quiet', 'build']
+    script = 'run build'
 }
 
-task checkFrontAudit(type: NpmTask) {
-    inputs.files(
-        'package.json',
-        'package-lock.json'
-    )
-    outputs.files("${buildDir}/reports/audit-ci.txt")
-    args = ['run', 'npx-check-audit']
-}
-
-// check that npm run license-check passes
-task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
-    inputs.files(
-        "test/",
-        "public/",
-        fileTree('src/') {
-            exclude 'openapi-types'
-        }
-    )
-    outputs.upToDateWhen { true }
-    args = ['run', 'license-check']
-}
-
-// check that npm run test:unit passes
-task frontendUnitTests(type: NpmTask, dependsOn: 'npmBuild') {
+tasks.register('frontendUnitTests', RunYarn) {
+    dependsOn assembleFrontend
     inputs.files("dist", "test", "public")
     outputs.upToDateWhen { true }
-    args = ['run', 'test:unit']
+    script = 'run test:unit'
 }
-
-// run e2e tests vs remote url
-if (!project.hasProperty("testTargetUrl")) {
-    ext.testTargetUrl = ""
-}
-
-if (!project.hasProperty("testDataUrl")) {
-    ext.testDataUrl = ""
-}
-
-if (!project.hasProperty("withTags")) {
-    ext.withTags = ""
-}
-
-if (!project.hasProperty("withoutTags")) {
-    ext.withoutTags = ""
-}
-
-if (!project.hasProperty("failScreenshot")) {
-    ext.failScreenshot = ""
-}
-
-if (!project.hasProperty("runHeadless")) {
-    ext.runHeadless = ""
-}
-
-// TODO: rename these to "e2e"
-if (!project.hasProperty("testscript")) {
-    ext.testscript = ""
-}
-
-if (!project.hasProperty("testcase")) {
-    ext.testcase = ""
-}
-
-if (!project.hasProperty("testverbose")) {
-    ext.testverbose = ""
-}
-
-task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
-
-    doFirst {
-        if (testTargetUrl.isEmpty()) {
-            throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
-        }
-        if (testDataUrl.isEmpty()) {
-            throw new GradleException('testDataUrl property was empty, it is mandatory for e2eTests')
-        }
-    }
-
-    inputs.files fileTree("/") { exclude("dist/", "node_modules/.cache/") }
-    outputs.dir("dist")
-
-    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
-
-    if (!testverbose.isEmpty()) {
-        if (testverbose == "true") {
-            args.add("--verbose")
-        }
-    }
-
-    if (!runHeadless.isEmpty()) {
-        if (runHeadless == "true") {
-            args.add("--headless")
-        }
-    }
-
-    if (!failScreenshot.isEmpty()) {
-        if (failScreenshot == "true") {
-            args.add("--env screenshot")
-        }
-    }
-
-    // (at least if testcase name has spaces) wrap name in quotes, e.g. -Ptestcase "Security server client add wsdl service"
-    if (!testcase.isEmpty()) {
-        if (testscript.isEmpty()) {
-            // to run specific testcase, your need to also define -Ptestscript, otherwise nightwatch ignores this parameter
-            throw new GradleException('Tried to use -Ptestcase without -Ptestscript, that will not work.')
-        }
-        args.add("--testcase=" + testcase);
-        println 'set testcase arg to value [' + testcase + ']'
-
-    }
-
-    if (!testscript.isEmpty()) {
-        args.add("--test=" + testscript)
-    }
-
-}
-
 
 clean {
-    delete file('node_modules')
     delete file('dist')
 }
 
 // checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
-assemble.dependsOn npmBuild
-check.dependsOn checkFrontLicense
-check.dependsOn frontendUnitTests
+assemble.dependsOn yarnBuild
 
-if (project.hasProperty('frontend-npm-audit')) {
-    npmUpdateDeps.dependsOn checkFrontAudit
+tasks.named("installFrontend") {
+    dependsOn(":shared-ui:yarnPack")
 }
 
 artifacts {
     dist(file("dist/")) {
-        builtBy(npmBuild)
+        builtBy(yarnBuild)
     }
 }

@@ -5,9 +5,17 @@
 
 if [[ "$1" = configure ]]; then
   if [[ -d /etc/nginx/sites-enabled ]]; then
-    ln -sf /etc/xroad/nginx/management-service.conf /etc/nginx/sites-enabled/
-    invoke-rc.d --quiet nginx reload ||:
+    ln -sf /etc/xroad/nginx/management-service.conf /etc/nginx/sites-enabled/xroad-management-service
   fi
+
+  # upgrade from version $2
+  if [ -n "$2" ]; then
+    # 7.3.x created link with name that wasn't backed up. Link was renamed in 7.4.x.
+    if [[ -L /etc/nginx/sites-enabled/management-service.conf ]]; then
+      rm /etc/nginx/sites-enabled/management-service.conf
+    fi
+  fi
+  invoke-rc.d --quiet nginx reload ||:
 fi
 
 exit 0

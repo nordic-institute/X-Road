@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -33,11 +33,11 @@ import static com.codeborne.selenide.Selenide.$x;
 public class LoginPageObj {
 
     public SelenideElement inputUsername() {
-        return $x("//input[@data-test='login-username-input']");
+        return $x("//div[@data-test='login-username-input']");
     }
 
     public SelenideElement inputPassword() {
-        return $x("//input[@data-test='login-password-input']");
+        return $x("//div[@data-test='login-password-input']");
     }
 
     public SelenideElement btnLogin() {

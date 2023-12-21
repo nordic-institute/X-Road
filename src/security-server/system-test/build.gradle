@@ -1,0 +1,49 @@
+dependencies {
+    intTestImplementation project(":security-server:openapi-model")
+    intTestImplementation project(":addons:proxymonitor-common")
+    intTestImplementation project(":op-monitor-daemon")
+
+    intTestImplementation project(":common:common-int-test")
+    intTestImplementation("com.nortal.test:test-automation-assert:$testAutomationFrameworkVersion")
+    intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}") {
+        exclude group: "org.slf4j", module: "*"
+    }
+    intTestImplementation("io.github.openfeign:feign-hc5:$openFeignVersion")
+    intTestImplementation("org.postgresql:postgresql:$postgresqlVersion")
+}
+
+task systemTest(type: Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs system ui tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def systemTestArgs = ["-XX:MaxMetaspaceSize=200m"]
+    if (project.hasProperty('systemTestSsTags')) {
+        systemTestArgs += "-Dtest-automation.cucumber.filter.tags=" + project.getProperty('systemTestSsTags')
+    }
+    if (project.hasProperty('systemTestSsServeReport')) {
+        systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('systemTestSsServeReport')
+    }
+    if (project.hasProperty('systemTestSsPackageHost')) {
+        systemTestArgs += "-Dtest-automation.custom.package-host=" + project.getProperty('systemTestSsPackageHost')
+    }
+    if (project.hasProperty('systemTestSsDockerRoot')) {
+        systemTestArgs += "-Dtest-automation.custom.docker-root=" + project.getProperty('systemTestSsDockerRoot')
+    }
+    jvmArgs systemTestArgs
+
+    maxHeapSize("256m")
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+
+    shouldRunAfter test
+}

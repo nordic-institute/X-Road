@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -32,8 +32,6 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.protocol.message.ActivateToken;
-import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.ModuleConf;
 import ee.ria.xroad.signer.util.SignerUtil;
@@ -48,10 +46,22 @@ import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import jakarta.xml.bind.DatatypeConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.GenerateKeyReq;
 
-import javax.xml.bind.DatatypeConverter;
-
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.security.PublicKey;
+import java.security.cert.CertPath;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,12 +73,14 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addCert;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.getKeyInfo;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
@@ -87,7 +99,6 @@ import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.getTokenS
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.setPrivateKeyAttributes;
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.setPublicKeyAttributes;
 import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 import static ee.ria.xroad.signer.util.ExceptionHelper.loginFailed;
 import static ee.ria.xroad.signer.util.ExceptionHelper.logoutFailed;
 import static ee.ria.xroad.signer.util.SignerUtil.keyId;
@@ -101,7 +112,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
     private static final Mechanism KEYGEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_RSA_PKCS_KEY_PAIR_GEN);
 
-    private final HardwareTokenType tokenType;
+    private final TokenType tokenType;
 
     // maps signature algorithm id and signing mechanism
     private final Map<String, Mechanism> signMechanisms;
@@ -116,7 +127,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
      * @param tokenInfo the token info
      * @param tokenType the token type
      */
-    public HardwareTokenWorker(TokenInfo tokenInfo, HardwareTokenType tokenType) {
+    public HardwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType) {
         super(tokenInfo);
 
         this.tokenType = tokenType;
@@ -173,7 +184,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    public void preStart() throws Exception {
+    public void start() {
+        log.trace("start()");
         try {
             initialize();
             setTokenAvailable(tokenId, true);
@@ -188,13 +200,13 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         try {
             login();
         } catch (Exception e) {
-            log.error("Failed to log in to token '" + getWorkerId() + "' at initialization", e);
+            log.error("Failed to log in to token '{}' at initialization", getWorkerId(), e);
         }
     }
 
     @Override
-    public void postStop() throws Exception {
-        super.postStop();
+    public void stop() {
+        super.stop();
 
         try {
             closeActiveSession();
@@ -204,8 +216,13 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected void onUpdate() throws Exception {
-        log.trace("onUpdate()");
+    public void reload() {
+        start();
+    }
+
+    @Override
+    public void refresh() throws Exception {
+        log.trace("refresh()");
 
         if (isTokenAvailable(tokenId) && activeSession != null) {
             findKeysNotInConf();
@@ -215,31 +232,15 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected void onMessage(Object message) throws Exception {
-        try {
-            super.onMessage(message);
-        } finally {
-            updateTokenInfo();
-        }
-    }
-
-    @Override
-    protected Exception customizeException(Exception e) {
-        if (e instanceof PKCS11Exception) {
-            // For some unknown reason, throwing PKCS11Exception causes an
-            // association error in Akka, so that the response message is not
-            // sent to the client.
-            return new Exception(e.getMessage());
-        }
-
-        return e;
+    public void onActionHandled() {
+        updateTokenInfo();
     }
 
     // ----------------------- Message handlers -------------------------------
 
     @Override
-    protected void activateToken(ActivateToken message) throws Exception {
-        if (message.isActivate()) { // login
+    protected void activateToken(ActivateTokenReq message) {
+        if (message.getActivate()) { // login
             log.info("Logging in token '{}'", getWorkerId());
 
             try {
@@ -267,7 +268,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected GenerateKeyResult generateKey(GenerateKey message) throws Exception {
+    protected GenerateKeyResult generateKey(GenerateKeyReq message) throws Exception {
         log.trace("generateKeys()");
 
         assertTokenWritable();
@@ -355,7 +356,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             return;
         }
 
-        certs.get(keyId).stream().forEach(this::destroyCert);
+        certs.get(keyId).forEach(this::destroyCert);
         certs.remove(keyId);
     }
 
@@ -400,51 +401,49 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
         assertActiveSession();
-
-        if (tokenType.isPinVerificationPerSigning()) {
-            try {
-                login();
-            } catch (Exception e) {
-                log.warn("Login failed", e);
-
-                throw loginFailed(e.getMessage());
-            }
-        }
-
-        if (!isKeyAvailable(keyId)) {
-            throw keyNotAvailable(keyId);
-        }
+        pinVerificationPerSigningLogin();
+        assertKeyAvailable(keyId);
 
         RSAPrivateKey key = getPrivateKey(keyId);
-
         if (key == null) {
             throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
                     keyId, tokenId);
         }
 
         log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
-
         try {
             Mechanism signMechanism = signMechanisms.get(signatureAlgorithmId);
-
             if (signMechanism == null) {
                 throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
                         "Unsupported signature algorithm '%s'", signatureAlgorithmId);
             }
-
             activeSession.signInit(signMechanism, key);
-
             return activeSession.sign(data);
         } finally {
-            if (tokenType.isPinVerificationPerSigning()) {
-                try {
-                    logout();
-                } catch (Exception e) {
-                    log.error("Logout failed", e);
-                }
-            }
+            pinVerificationPerSigningLogout();
         }
     }
+
+    protected byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception {
+        log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
+
+        assertKeyAvailable(keyId);
+        KeyInfo keyInfo = getKeyInfo(keyId);
+        CertificateInfo certificateInfo = keyInfo.getCerts().get(0);
+        X509Certificate issuerX509Certificate = readCertificate(certificateInfo.getCertificateBytes());
+
+        ContentSigner contentSigner = new HardwareTokenContentSigner(keyId, signatureAlgorithmId);
+
+        JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
+                issuerX509Certificate);
+        X509CertificateHolder certHolder = certificateBuilder.build(contentSigner);
+        X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
+
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
+        CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
+        return certPath.getEncoded("PEM");
+    }
+
 
     // ------------------------------------------------------------------------
 
@@ -484,12 +483,10 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                     updatePublicKey(keyId);
                 }
             }
+        } catch (PKCS11Exception e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof PKCS11Exception) {
-                throw e;
-            } else {
-                log.error("Failed to find keys from token '{}'", getWorkerId(), e);
-            }
+            log.error("Failed to find keys from token '{}'", getWorkerId(), e);
         }
     }
 
@@ -532,12 +529,10 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                     }
                 }
             }
+        } catch (PKCS11Exception e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof PKCS11Exception) {
-                throw e;
-            } else {
-                log.error("Failed to find certificates not in conf", e);
-            }
+            log.error("Failed to find certificates not in conf", e);
         }
     }
 
@@ -564,12 +559,10 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
                 setPublicKey(keyId, publicKeyBase64);
             }
+        } catch (PKCS11Exception e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof PKCS11Exception) {
-                throw e;
-            } else {
-                log.error("Failed to find public key for key " + keyId, e);
-            }
+            log.error("Failed to find public key for key " + keyId, e);
         }
     }
 
@@ -634,7 +627,30 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    private void pinVerificationPerSigningLogin() {
+        if (tokenType.isPinVerificationPerSigning()) {
+            try {
+                login();
+            } catch (Exception e) {
+                log.warn("Login failed", e);
+
+                throw loginFailed(e.getMessage());
+            }
+        }
+    }
+
+    private void pinVerificationPerSigningLogout() {
+        if (tokenType.isPinVerificationPerSigning()) {
+            try {
+                logout();
+            } catch (Exception e) {
+                log.error("Logout failed", e);
+            }
+        }
+    }
+
     private void createSession() throws Exception {
+        log.trace("createSession()");
         closeActiveSession();
 
         if (getToken() != null) {
@@ -654,7 +670,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
         log.trace("Found {} private key(s) on token '{}'", keysOnToken.size(), getWorkerId());
 
-        for (RSAPrivateKey keyOnToken: keysOnToken) {
+        for (RSAPrivateKey keyOnToken : keysOnToken) {
             String keyId = keyId(keyOnToken);
 
             if (keyId == null) {
@@ -676,7 +692,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             setKeyAvailable(keyId, true);
         }
 
-        for (KeyInfo keyInfo: listKeys(tokenId)) {
+        for (KeyInfo keyInfo : listKeys(tokenId)) {
             String keyId = keyInfo.getId();
 
             if (!privateKeys.containsKey(keyId)) {
@@ -710,7 +726,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         if (activeSession != null) {
             try {
                 logout();
-            } finally  {
+            } finally {
                 activeSession.closeSession();
                 activeSession = null;
             }
@@ -718,7 +734,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     private Token getToken() {
-        return tokenType.getToken();
+        return ((HardwareTokenType) tokenType).getToken();
     }
 
     private void setTokenStatusFromErrorCode(long errorCode) throws Exception {
@@ -767,5 +783,73 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
 
         return false;
+    }
+
+    @Override
+    public boolean isSoftwareToken() {
+        return false;
+    }
+
+    @Override
+    public void handleUpdateTokenPin(char[] oldPin, char[] newPin) {
+        //NO-OP
+    }
+
+    @Override
+    public void initializeToken(char[] pin) {
+        //NO-OP
+    }
+
+    private class HardwareTokenContentSigner implements ContentSigner {
+
+        private final ByteArrayOutputStream out;
+        private final String keyId;
+        private final String signatureAlgorithmId;
+
+        HardwareTokenContentSigner(String keyId, String signatureAlgorithmId) {
+            this.keyId = keyId;
+            this.signatureAlgorithmId = signatureAlgorithmId;
+            out = new ByteArrayOutputStream();
+        }
+
+        @Override
+        public byte[] getSignature() {
+            try {
+                assertActiveSession();
+                pinVerificationPerSigningLogin();
+                byte[] dataToSign = out.toByteArray();
+                RSAPrivateKey privateKey = getPrivateKey(keyId);
+                if (privateKey == null) {
+                    throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
+                            keyId, tokenId);
+                }
+                log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
+                Mechanism signatureMechanism = signMechanisms.get(signatureAlgorithmId);
+                if (signatureMechanism == null) {
+                    throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                            "Unsupported signature algorithm '%s'", signatureAlgorithmId);
+                }
+                activeSession.signInit(signatureMechanism, privateKey);
+                String digestAlgorithmId = getDigestAlgorithmId(signatureAlgorithmId);
+                byte[] digest = calculateDigest(digestAlgorithmId, dataToSign);
+                byte[] dataDigestToSign = SignerUtil.createDataToSign(digest, signatureAlgorithmId);
+                return activeSession.sign(dataDigestToSign);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                throw translateException(e);
+            } finally {
+                pinVerificationPerSigningLogout();
+            }
+        }
+
+        @Override
+        public OutputStream getOutputStream() {
+            return out;
+        }
+
+        @Override
+        public AlgorithmIdentifier getAlgorithmIdentifier() {
+            return new DefaultSignatureAlgorithmIdentifierFinder().find(signatureAlgorithmId);
+        }
     }
 }

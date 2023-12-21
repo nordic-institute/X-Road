@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -37,10 +37,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
-import ee.ria.xroad.signer.protocol.SignerClient;
-import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.GetAuthKey;
-import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
+import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -145,7 +143,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
     protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
-        ee.ria.xroad.signer.protocol.dto.AuthKeyInfo keyInfo = SignerClient.execute(new GetAuthKey(serverId));
+        ee.ria.xroad.signer.protocol.dto.AuthKeyInfo keyInfo = SignerProxy.getAuthKey(serverId);
 
         CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
 
@@ -166,7 +164,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
     protected SigningInfo getSigningInfo(ClientId clientId) throws Exception {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
-        MemberSigningInfo signingInfo = SignerClient.execute(new GetMemberSigningInfo(clientId));
+        MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
         X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
         OCSPResp ocsp = new OCSPResp(signingInfo.getCert().getOcspBytes());
 

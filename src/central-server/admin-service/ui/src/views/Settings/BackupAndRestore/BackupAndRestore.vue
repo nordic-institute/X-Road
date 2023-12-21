@@ -25,47 +25,53 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="backup-and-restore-view">
-    <div class="table-toolbar mt-0 pl-0">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">
-          {{ $t('tab.settings.backupAndRestore') }}
-        </div>
-        <xrd-search v-model="filter" />
-      </div>
+  <searchable-titled-view
+    v-model="filter"
+    title-key="tab.settings.backupAndRestore"
+    data-test="backup-and-restore-view"
+  >
+    <template #header-buttons>
       <xrd-backups-toolbar
         accepts=".gpg"
         :backup-handler="backupHandler()"
         :can-backup="canBackup"
         @refresh-backups="fetchBackups"
+        @create-backup="fetchBackups"
+        @upload-backup="fetchBackups"
       />
-    </div>
+    </template>
+
     <xrd-backups-data-table
       :filter="filter"
       :backups="backups"
       :loading="loading"
       :can-backup="canBackup"
       :backup-handler="backupHandler()"
-      @refresh-backups="fetchBackups"
+      @delete="fetchBackups"
     />
-  </div>
+  </searchable-titled-view>
 </template>
 
 <script lang="ts">
 /**
  * View for 'backup and restore' tab
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Colors, Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { useBackupsStore } from '@/store/modules/backups';
-import { notificationsStore } from '@/store/modules/notifications';
-import VueI18n from 'vue-i18n';
-import Values = VueI18n.Values;
+import { useBackups } from '@/store/modules/backups';
+import { useNotifications } from '@/store/modules/notifications';
 import { Backup } from '@/openapi-types';
-import { userStore } from '@/store/modules/user';
+import { useUser } from '@/store/modules/user';
+import { BackupHandler, XrdBackupsToolbar, XrdBackupsDataTable } from '@niis/shared-ui';
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
-export default Vue.extend({
+export default defineComponent({
+  components: {
+    SearchableTitledView,
+    XrdBackupsToolbar,
+    XrdBackupsDataTable,
+  },
   data() {
     return {
       filter: '',
@@ -74,8 +80,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useBackupsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useBackups),
+    ...mapState(useUser, ['hasPermission']),
     canBackup(): boolean {
       return this.hasPermission(Permissions.BACKUP_CONFIGURATION);
     },
@@ -87,8 +93,8 @@ export default Vue.extend({
     this.fetchBackups();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    backupHandler() {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    backupHandler(): BackupHandler {
       return {
         showSuccess: this.displaySuccess,
         showError: this.showError,
@@ -97,6 +103,7 @@ export default Vue.extend({
         upload: this.uploadBackup,
         create: this.createBackup,
         restore: this.restoreFromBackup,
+        showWarning(textKey: string, data?: Record<string, unknown>) {},
       };
     },
     fetchBackups() {
@@ -119,14 +126,16 @@ export default Vue.extend({
       return this.backupStore.downloadBackup(filename);
     },
     uploadBackup(backupFile: File, ignoreWarnings = false) {
-      return this.backupStore.uploadBackup(backupFile, ignoreWarnings);
+      return this.backupStore
+        .uploadBackup(backupFile, ignoreWarnings)
+        .then((resp) => resp.data);
     },
-    displaySuccess(textKey: string, data: Values = {}) {
+    displaySuccess(textKey: string, data: Record<string, string> = {}) {
       this.showSuccess(this.$t(textKey, data));
     },
   },
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.util;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -311,11 +311,11 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static ApprovedTSAType createApprovedTsaType(String url, String name) {
-        ApprovedTSAType approvedTSAType = new ApprovedTSAType();
-        approvedTSAType.setUrl(url);
-        approvedTSAType.setName(name);
-        return approvedTSAType;
+    public static SharedParameters.ApprovedTSA createApprovedTsaType(String url, String name) {
+        SharedParameters.ApprovedTSA approvedTSA = new SharedParameters.ApprovedTSA();
+        approvedTSA.setUrl(url);
+        approvedTSA.setName(name);
+        return approvedTSA;
     }
 
     /**

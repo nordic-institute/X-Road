@@ -1,6 +1,6 @@
 # X-Road: Configuration Proxy Manual
 
-Version: 2.10  
+Version: 2.11  
 Doc. ID: UG-CP
 
 ## Version History
@@ -24,6 +24,7 @@ Doc. ID: UG-CP
 | 18.02.2021 | 2.8     | Add Ubuntu 20.04 in supported platforms                                                                                                                                                       | Petteri Kivimäki |
 | 01.07.2021 | 2.9     | Update 3rd party key server                                                                                                                                                                   | Petteri Kivimäki |
 | 26.09.2022 | 2.10    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal |
+| 30.10.2023 | 2.11    | Configuring TLS Certificates                                                                                                                                                                  | Madis Loitmaa    |
 
 
 ## Table of Contents
@@ -43,6 +44,7 @@ Doc. ID: UG-CP
   * [2.5 Installation](#25-installation)
   * [2.6 Post-Installation Checks](#26-post-installation-checks)
   * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+  * [2.8 Configuring TLS Certificates](#28-configuring-tls-certificates)
 * [3 Configuration](#3-configuration)
   * [3.1 Prerequisites](#31-prerequisites)
     * [3.1.1 Security Token Activation](#311-security-token-activation)
@@ -225,6 +227,17 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
 
+### 2.8 Configuring TLS Certificates
+
+The installation process creates a self-signed TLS certificate for serving configurations over HTTPS. However, self-signed certificates are not recommended for production use, and should be substituted with certificate issued by a trusted Certificate Authority (CA).
+
+To configure the configuration proxy to use a certificate issued by a trusted CA, replace the existing certificate files (`confproxy.crt`) and its associated private key (`confproxy.key`), located in the `/etc/xroad/ssl/` directory.
+
+Reload the nginx service for the certificate change to take effect.
+
+```bash
+systemctl reload nginx
+```
 
 ## 3 Configuration
 
@@ -345,9 +358,10 @@ Validity interval: 600 s.
 anchor.xml
 ================================================
 'anchor.xml' could not be loaded: IOError: /etc/xroad/confproxy/PROXY/anchor.xml (No such file or directory)
-Configuration URL
+Configuration URLs
 ================================================
 http://1.2.3.4/PROXY/conf
+https://1.2.3.4/PROXY/conf
 Signing keys and certificates
 ================================================
 active-signing-key-id:
@@ -398,9 +412,10 @@ anchor.xml
 Instance identifier: AA
 Generated at: UTC 2014-11-17 09:28:56
 Hash: 3A:3D:B2:A4:D3:FC:E8:08:7E:EA:8A:92:5C:6E:92:0C:70:C8
-Configuration URL
+Configuration URLs
 ================================================
 http://1.2.3.4/PROXY/conf
+https://1.2.3.4/PROXY/conf
 Signing keys and certificates
 ================================================
 active-signing-key-id:

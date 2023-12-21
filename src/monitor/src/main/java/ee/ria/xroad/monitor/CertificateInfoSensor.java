@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,20 +30,18 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.ListTokens;
 
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
+import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,7 +54,7 @@ import java.util.stream.Stream;
 public class CertificateInfoSensor extends AbstractSensor {
 
     // give signer some time to become available
-    private static final FiniteDuration INITIAL_DELAY = Duration.create(10, TimeUnit.SECONDS);
+    private static final Duration INITIAL_DELAY = Duration.ofSeconds(10);
     private static final String JMX_HEADER = "SHA1HASH\t\t\t\t\t\t\tCERT TYPE\t\tNOT BEFORE\t\tNOT AFTER\t\tACTIVE";
 
     private CertificateInfoCollector certificateInfoCollector;
@@ -70,7 +68,8 @@ public class CertificateInfoSensor extends AbstractSensor {
     /**
      * Create new CertificateInfoSensor
      */
-    public CertificateInfoSensor() {
+    public CertificateInfoSensor(TaskScheduler taskScheduler) {
+        super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
         certificateInfoCollector = new CertificateInfoCollector()
@@ -78,7 +77,7 @@ public class CertificateInfoSensor extends AbstractSensor {
                 .addExtractor(new InternalTlsExtractor())
                 .addExtractor(new TokenExtractor());
 
-        scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
+        scheduleSingleMeasurement(INITIAL_DELAY);
     }
 
     /**
@@ -189,7 +188,7 @@ public class CertificateInfoSensor extends AbstractSensor {
         }
 
         TokenExtractor() {
-            tokenInfoLister = () -> SignerClient.execute(new ListTokens());
+            tokenInfoLister = SignerProxy::getTokens;
         }
 
         @Override
@@ -212,7 +211,7 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     static class CertificateInfoCollector {
 
-        private List<CertificateInfoExtractor> extractors = new ArrayList<>();
+        private final List<CertificateInfoExtractor> extractors = new ArrayList<>();
 
         CertificateInfoCollector() {
         }
@@ -224,7 +223,7 @@ public class CertificateInfoSensor extends AbstractSensor {
 
         Set<CertificateMonitoringInfo> extractToSet() {
             return extractors.stream()
-                    .flatMap(entry -> entry.getCertificates())
+                    .flatMap(CertificateInfoExtractor::getCertificates)
                     .collect(Collectors.toSet());
         }
 
@@ -254,26 +253,15 @@ public class CertificateInfoSensor extends AbstractSensor {
     }
 
     @Override
-    public void onReceive(Object o) throws Exception {
-        if (o instanceof CertificateInfoMeasure) {
-            log.info("Updating CertificateInfo metrics");
-            updateOrRegisterData(list());
-            scheduleSingleMeasurement(getInterval(), new CertificateInfoMeasure());
-        } else {
-            log.error("received unhandled message {}", o);
-            unhandled(o);
-        }
+    public void measure() {
+        log.info("Updating CertificateInfo metrics");
+        updateOrRegisterData(list());
+        scheduleSingleMeasurement(getInterval());
     }
 
     @Override
-    protected FiniteDuration getInterval() {
-        return Duration.create(SystemProperties.getEnvMonitorCertificateInfoSensorInterval(), TimeUnit.SECONDS);
-    }
-
-    /**
-     * Akka message
-     */
-    public static class CertificateInfoMeasure {
+    protected Duration getInterval() {
+        return Duration.ofSeconds(SystemProperties.getEnvMonitorCertificateInfoSensorInterval());
     }
 
 }

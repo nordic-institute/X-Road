@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,22 +28,18 @@ package ee.ria.xroad.common.messagelog;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.util.JobManager;
 
-import akka.actor.UntypedAbstractActor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Base class for log manager actors.
  */
 @Slf4j
-public abstract class AbstractLogManager extends UntypedAbstractActor {
+public abstract class AbstractLogManager {
 
-    @Getter
-    protected static Map<String, DiagnosticsStatus> statusMap = new HashMap<>();
+    protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
     protected AbstractLogManager(JobManager jobManager) {
         if (jobManager == null) {
@@ -51,43 +47,14 @@ public abstract class AbstractLogManager extends UntypedAbstractActor {
         }
     }
 
-    @Override
-    public void onReceive(Object message) throws Exception {
-        try {
-            if (message instanceof LogMessage) {
-                LogMessage m = (LogMessage) message;
-                log(m);
-                getSender().tell(new Object(), getSelf());
-            } else if (message instanceof FindByQueryId) {
-                FindByQueryId f = (FindByQueryId) message;
-                LogRecord result = findByQueryId(f.getQueryId(), f.getStartTime(), f.getEndTime());
+    public abstract void log(LogMessage message) throws Exception;
 
-                getSender().tell(result, getSelf());
-            } else if (message instanceof TimestampMessage) {
-                try {
-                    TimestampMessage m = (TimestampMessage) message;
-                    TimestampRecord result = timestamp(m.getMessageRecordId());
+    public abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;
 
-                    log.info("message: {}, result: {}", message, result);
+    public abstract Map<String, DiagnosticsStatus> getDiagnosticStatus();
 
-                    getSender().tell(result, getSelf());
-                } catch (Exception e) {
-                    log.info("Timestamp failed: {}", e);
-
-                    getSender().tell(e, getSelf());
-                }
-
-            } else {
-                unhandled(message);
-            }
-        } catch (Exception e) {
-            getSender().tell(e, getSelf());
-        }
+    public void shutdown() {
+        // NO-OP
     }
 
-    protected abstract void log(LogMessage message) throws Exception;
-
-    protected abstract LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception;
-
-    protected abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;
 }

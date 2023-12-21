@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -33,6 +33,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +103,8 @@ public class ValidationErrorHelper {
                     fieldValidationErrors.add(fieldError.getCode());
                 }
             }
+            Collections.sort(fieldValidationErrors);
+
             errorMap.put(objectFieldName, fieldValidationErrors);
         });
         return errorMap;

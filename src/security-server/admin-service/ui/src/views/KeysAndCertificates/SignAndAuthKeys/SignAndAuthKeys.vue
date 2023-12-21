@@ -24,67 +24,64 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="title-and-search">
-      <div class="xrd-view-title">{{ $t('tab.keys.signAndAuthKeys') }}</div>
-      <div>
-        <help-button
-          help-image="keys_and_certificates.png"
-          help-title="keys.helpTitleKeys"
-          help-text="keys.helpTextKeys"
-        ></help-button>
-      </div>
-      <div class="search-row">
-        <xrd-search v-model="search" />
-      </div>
+  <div class="title-and-search">
+    <div class="xrd-view-title">{{ $t('tab.keys.signAndAuthKeys') }}</div>
+    <help-button
+      :help-image="helpImage"
+      help-title="keys.helpTitleKeys"
+      help-text="keys.helpTextKeys"
+    ></help-button>
+    <div class="search-row">
+      <xrd-search v-model="search" />
     </div>
-
-    <XrdEmptyPlaceholder
-      :data="filtered"
-      :loading="loading"
-      :filtered="search && search.length > 0"
-      :no-items-text="$t('noData.noTokens')"
-      skeleton-type="table-heading"
-    />
-
-    <template v-if="filtered && !loading">
-      <token-expandable
-        v-for="token in filtered"
-        :key="token.id"
-        :token="token"
-        @refresh-list="fetchData"
-        @token-logout="logoutDialog = true"
-        @token-login="loginDialog = true"
-        @add-key="addKey"
-      />
-    </template>
-
-    <xrd-confirm-dialog
-      :dialog="logoutDialog"
-      title="keys.logOutTitle"
-      text="keys.logOutText"
-      @cancel="logoutDialog = false"
-      @accept="acceptTokenLogout()"
-    />
-
-    <TokenLoginDialog
-      :dialog="loginDialog"
-      @cancel="loginDialog = false"
-      @save="tokenLogin"
-    />
   </div>
+
+  <XrdEmptyPlaceholder
+    :data="filtered"
+    :loading="loading"
+    :filtered="!!search && search.length > 0"
+    :no-items-text="$t('noData.noTokens')"
+    skeleton-type="table-heading"
+  />
+
+  <template v-if="filtered && !loading">
+    <TokenExpandable
+      v-for="token in filtered"
+      :key="token.id"
+      :token="token"
+      @refresh-list="fetchData"
+      @token-logout="logoutDialog = true"
+      @token-login="loginDialog = true"
+      @add-key="addKey"
+    />
+  </template>
+
+  <xrd-confirm-dialog
+    v-if="logoutDialog"
+    title="keys.logOutTitle"
+    text="keys.logOutText"
+    @cancel="logoutDialog = false"
+    @accept="acceptTokenLogout()"
+  />
+
+  <TokenLoginDialog
+    :dialog="loginDialog"
+    @cancel="loginDialog = false"
+    @save="tokenLogin"
+  />
 </template>
 
 <script lang="ts">
 // View for keys tab
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import HelpButton from '../HelpButton.vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useTokensStore } from '@/store/modules/tokens';
+import { useTokens } from '@/store/modules/tokens';
+import helpImage from '@/assets/keys_and_certificates.png';
 
 import {
   Key,
@@ -94,7 +91,7 @@ import {
 } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     HelpButton,
     TokenExpandable,
@@ -109,7 +106,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useTokensStore, ['tokens', 'selectedToken']),
+    ...mapState(useTokens, ['tokens', 'selectedToken']),
+    helpImage(): string {
+      return helpImage;
+    },
     filtered(): Token[] {
       if (!this.tokens || this.tokens.length === 0) {
         return [];
@@ -199,7 +199,7 @@ export default Vue.extend({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useTokensStore, ['fetchTokens', 'tokenLogout']),
+    ...mapActions(useTokens, ['fetchTokens', 'tokenLogout']),
     fetchData(): void {
       // Fetch tokens from backend
       this.loading = true;

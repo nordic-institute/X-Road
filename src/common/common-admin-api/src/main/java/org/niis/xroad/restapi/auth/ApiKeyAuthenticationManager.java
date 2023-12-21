@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,7 +31,6 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.service.ApiKeyService;
-import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -57,7 +56,6 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     private final GrantedAuthorityMapper permissionMapper;
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
-    private final SecurityHelper securityHelper;
 
     @Autowired
     public ApiKeyAuthenticationManager(ApiKeyAuthenticationHelper apiKeyAuthenticationHelper,
@@ -65,13 +63,12 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
             GrantedAuthorityMapper permissionMapper,
             @Qualifier(AuthenticationIpWhitelist.REGULAR_API_WHITELIST)
                     AuthenticationIpWhitelist authenticationIpWhitelist,
-            AuditEventLoggingFacade auditEventLoggingFacade, SecurityHelper securityHelper) {
+            AuditEventLoggingFacade auditEventLoggingFacade) {
         this.apiKeyAuthenticationHelper = apiKeyAuthenticationHelper;
         this.authenticationHeaderDecoder = authenticationHeaderDecoder;
         this.permissionMapper = permissionMapper;
         this.authenticationIpWhitelist = authenticationIpWhitelist;
         this.auditEventLoggingFacade = auditEventLoggingFacade;
-        this.securityHelper = securityHelper;
     }
 
     @Override
@@ -90,11 +87,8 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
                 throw new BadCredentialsException("Unknown problem when getting API key", e);
             }
             Set<Role> roles = key.getRoles();
-            PreAuthenticatedAuthenticationToken authenticationWithGrants =
-                    new PreAuthenticatedAuthenticationToken(createPrincipal(key),
-                            authentication.getCredentials(),
-                            permissionMapper.getAuthorities(roles));
-            return authenticationWithGrants;
+            return new PreAuthenticatedAuthenticationToken(
+                    createPrincipal(key), authentication.getCredentials(), permissionMapper.getAuthorities(roles));
         } catch (Exception e) {
             auditEventLoggingFacade.auditLogFail(RestApiAuditEvent.API_KEY_AUTHENTICATION, e);
             throw e;

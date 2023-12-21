@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -71,6 +71,7 @@ import static org.junit.Assert.assertTrue;
 public class DAOImplTest {
 
     private Session session;
+    private IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
 
     /**
      * Prepares test database.
@@ -217,7 +218,7 @@ public class DAOImplTest {
         LocalGroupType localGroup = client.getLocalGroup().get(0);
 
         ClientId clientId =
-                IdentifierDAOImpl.getIdentifier(createTestClientId(client(3)));
+                identifierDAO.findClientId(session, createTestClientId(client(3)));
         assertNotNull(clientId);
 
         GroupMemberType member = new GroupMemberType();

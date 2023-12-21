@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,13 +27,13 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -71,7 +71,7 @@ public class CsrFilenameCreator {
     }
 
     String createDateString() {
-        return LocalDateTime.now()
+        return TimeUtils.localDateTimeNow()
                 .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 

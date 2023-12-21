@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -63,7 +63,8 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_UNSUPPORTED
 @Component
 public class OpenApiParser {
 
-    private static final String SUPPORTED_OPENAPI_MINOR_VERSION = "3.0";
+    private static final String SUPPORTED_OPENAPI_MINOR_VERSION_3_0 = "3.0";
+    private static final String SUPPORTED_OPENAPI_VERSION_3_1_0 = "3.1.0";
     private static final int BUF_SIZE = 8192;
     private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
@@ -72,11 +73,11 @@ public class OpenApiParser {
      * Parse openapi3 description
      *
      * @return OpenApiParser.Result
-     * @throws ParsingException if parsing cannot be done
+     * @throws ParsingException                   if parsing cannot be done
      * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     public Result parse(String urlString) throws ParsingException, UnsupportedOpenApiVersionException {
-        URI openApiUrl = null;
+        URI openApiUrl;
         try {
             openApiUrl = new URI(urlString);
         } catch (URISyntaxException e) {
@@ -127,11 +128,16 @@ public class OpenApiParser {
 
     private void verifyOpenApiVersion(JsonNode node) throws UnsupportedOpenApiVersionException {
         final String openapiVersion = node.get("openapi").asText();
-        if (openapiVersion != null && !openapiVersion.startsWith(SUPPORTED_OPENAPI_MINOR_VERSION)) {
+        if (openapiVersion != null && !versionSupported(openapiVersion)) {
             String errorMsg = String.format("OpenAPI version %s not supported", openapiVersion);
             throw new UnsupportedOpenApiVersionException(errorMsg,
                     new ErrorDeviation(ERROR_UNSUPPORTED_OPENAPI_VERSION));
         }
+    }
+
+    private boolean versionSupported(String version) {
+        return version.startsWith(SUPPORTED_OPENAPI_MINOR_VERSION_3_0)
+                || version.equals(SUPPORTED_OPENAPI_VERSION_3_1_0);
     }
 
     private void validate(SwaggerParseResult result, URI openApiUrl) throws ParsingException {

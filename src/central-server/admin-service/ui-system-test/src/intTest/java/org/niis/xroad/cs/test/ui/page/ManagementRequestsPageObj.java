@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -40,12 +40,7 @@ public class ManagementRequestsPageObj {
     public final Client client = new Client();
 
     public SelenideElement showOnlyPendingRequests() {
-        return $x("//input[@data-test='show-only-pending-requests']");
-    }
-
-    public SelenideElement showOnlyPendingRequestsIsChecked(boolean checked) {
-        var xpath = "//input[@data-test='show-only-pending-requests' and @aria-checked='%s']";
-        return $x(String.format(xpath, checked));
+        return $x("//div[@data-test='show-only-pending-requests']");
     }
 
     public SelenideElement table() {
@@ -58,7 +53,7 @@ public class ManagementRequestsPageObj {
     }
 
     public SelenideElement titleOfDetails(String title) {
-        var xpath = "//h1[contains(text(), '%s')]";
+        var xpath = "//div[@class='xrd-view-title' and text()='%s']";
         return $x(String.format(xpath, title));
     }
 
@@ -68,15 +63,11 @@ public class ManagementRequestsPageObj {
     }
 
     public SelenideElement search() {
-        return $x("//div[@data-test='management-requests-search']");
-    }
-
-    public SelenideElement searchInput() {
-        return $x("//input[@data-test='search-input']");
+        return $x("//div[@data-test='search-query-field']");
     }
 
     public SelenideElement tableCol(String name) {
-        var xpath = "./thead/tr/th/span[text()='%s']/..";
+        var xpath = "./thead/tr/th/div/span[text()='%s']/../..";
         return table().find(xpath(String.format(xpath, name)));
     }
 

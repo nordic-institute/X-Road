@@ -3,7 +3,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
-  && apt-get -qq install sudo ca-certificates gnupg supervisor net-tools locales openjdk-11-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog wget python3 \
+  && apt-get -qq install sudo ca-certificates gnupg supervisor net-tools locales openjdk-17-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog wget python3 \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -62,6 +62,10 @@ RUN chown -R ca:ca /home/ca/CA \
   && chmod 0754 /home/ca/CA/ca.py \
   && chmod 0754 /home/ca/CA/sign_req.sh \
   && chmod 0755 /usr/share/xroad/scripts/verify_external_configuration.sh
+
+# Setup users
+ARG USER_PASSWD=secret
+RUN useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd"
 
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf

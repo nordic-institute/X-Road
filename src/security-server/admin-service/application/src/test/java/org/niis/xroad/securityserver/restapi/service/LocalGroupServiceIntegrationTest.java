@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -119,7 +119,7 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
     @Test
     public void deleteLocalGroup() throws Exception {
         ClientType ss1 = clientService.getLocalClient(TestUtils.getM1Ss1ClientId());
-        Long groupId = new Long(TestUtils.DB_LOCAL_GROUP_ID_1);
+        Long groupId = Long.valueOf(TestUtils.DB_LOCAL_GROUP_ID_1);
         XRoadId localGroupXroadId = localGroupService.getLocalGroupIdAsXroadId(groupId);
 
         assertTrue(ss1.getAcl().stream()

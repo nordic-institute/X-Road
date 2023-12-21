@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -58,7 +58,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -199,17 +198,18 @@ public class TokenManagerMergeTest {
         KeyInfo beforeKeyInfo = TokenManager.getKeyInfo(testKeyId);
         assertNotNull("test setup failure", beforeKeyInfo);
 
-        final String testCertId = "e82e0b2b184d4387c2afd83708d4cfeaeb872cf7";
+        final String testCertId = "06700c12f395183c779884fcd49d4ca55fa485aa65617da5b75d84927bec2c91";
+        final String testCertSha1Hash = "e82e0b2b184d4387c2afd83708d4cfeaeb872cf7";
         CertificateInfo beforeCertInfo = TokenManager.getCertificateInfo(testCertId);
         assertNotNull("test setup failure", beforeCertInfo);
 
         // assert no ocsp response exists before test
-        assertNull("test setup failure", beforeCertInfo.getOcspBytes());
+        assertArrayEquals("test setup failure", new byte[0], beforeCertInfo.getOcspBytes());
 
         OCSPResp shouldMatchResponse = mock(OCSPResp.class);
         final byte[] shouldMatchOcspResponseBytes = "some example string  11 2 34".getBytes();
         when(shouldMatchResponse.getEncoded()).thenReturn(shouldMatchOcspResponseBytes);
-        TokenManager.setOcspResponse(testCertId, shouldMatchResponse);
+        TokenManager.setOcspResponse(testCertSha1Hash, shouldMatchResponse);
 
         final int beforeCertCount = TokenManager.getAllCerts().size();
 

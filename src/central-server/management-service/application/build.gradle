@@ -1,4 +1,4 @@
- plugins {
+plugins {
     id 'org.springframework.boot'
 }
 
@@ -19,19 +19,19 @@ bootJar {
 
 
 dependencies {
-  implementation(project(":central-server:management-service:core")) {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    implementation(project(":central-server:management-service:core")) {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
-  implementation(project(":central-server:management-service:infra-api-soap")) {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    implementation(project(":central-server:management-service:infra-api-soap")) {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
-  implementation('org.springframework.boot:spring-boot-starter-web') {
-      exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
-  implementation('org.springframework.boot:spring-boot-starter-jetty')
+    implementation('org.springframework.boot:spring-boot-starter-jetty')
 
-  testImplementation project(":common:common-test")
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
-  testImplementation(testFixtures(project(":common:common-api-throttling")))
+    testImplementation project(":common:common-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(testFixtures(project(":common:common-api-throttling")))
 }
 

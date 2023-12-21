@@ -2,7 +2,7 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.15 
+Version: 1.16
 01.06.2023
 <!-- 15 pages -->
 Doc. ID: ARC-SS
@@ -35,6 +35,7 @@ Doc. ID: ARC-SS
 | 03.05.2022 | 1.13    | Update `xroad-addon-messagelog` process section                                                      | Petteri Kivimäki   |
 | 01.06.2023 | 1.14    | Update references                                                                                    | Petteri Kivimäki   |
 | 20.06.2023 | 1.15    | Fixed Security Server Admin API OpenAPI specification link                                           | Madis Loitmaa      |
+| 03.10.2023 | 1.16    | Remove Akka references                                                                               | Ričardas Bučiūnas  |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -332,13 +333,13 @@ The SSCD needs to be a PKCS \#11 (see \[[PKCS11](#Ref_PKCS11)\]) compliant hardw
 
 ### 2.13 Environmental Monitoring Service
 
-Provides method that can be used by X-Road participants to get environmental data of the security server. It requests the data from the local monitoring service via Akka interface and translates it to a SOAP XML response.
+Provides methods that can be used by X-Road participants to get environmental data of the security server. It requests the data from the local monitoring service via gRPC interface and translates it to a SOAP XML response.
 
 The component is a proxy addon.
 
 ### 2.14 Monitor
 
-Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via Akka and (optional) JMX interfaces.
+Monitor component collects environmental monitoring information such as running processes, available disk space, installed packages etc. The monitoring data is published via gRPC and (optional) JMX interfaces.
 
 The component is a separate daemon process.
 

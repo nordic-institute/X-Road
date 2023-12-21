@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -65,13 +65,13 @@ public class OcspRespondersPageObj {
     }
 
     public SelenideElement tableHeader() {
-        return table().find(xpath("./thead[2]/tr/th[1]"));
+        return table().find(xpath("./thead/tr/th[1]"));
     }
 
 
     public class AddEditDialog {
         public SelenideElement inputOcspResponderUrl() {
-            return $x("//input[@data-test='ocsp-responder-url-input']");
+            return $x("//div[@data-test='ocsp-responder-url-input']");
         }
 
         public SelenideElement inputCertificateFile() {

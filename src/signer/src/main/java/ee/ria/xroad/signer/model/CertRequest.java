@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,8 +27,12 @@ package ee.ria.xroad.signer.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
+import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
 import lombok.Value;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Model object representing the certificate request.
@@ -44,9 +48,23 @@ public class CertRequest {
 
     /**
      * Converts this object to value object.
+     *
+     * @return the value object
+     */
+    public CertRequestInfoProto toProtoDTO() {
+        final CertRequestInfoProto.Builder builder = CertRequestInfoProto.newBuilder()
+                .setId(id)
+                .setSubjectName(subjectName);
+        ofNullable(memberId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
+        return builder.build();
+    }
+
+    /**
+     * Converts this object to value object.
+     *
      * @return the value object
      */
     public CertRequestInfo toDTO() {
-        return new CertRequestInfo(id, memberId, subjectName);
+        return new CertRequestInfo(toProtoDTO());
     }
 }

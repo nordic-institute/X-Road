@@ -27,83 +27,79 @@
 <template>
   <div>
     <div data-test="certification-services">
-      <!-- Title and button -->
-      <div class="table-toolbar align-fix mt-0 pl-0">
-        <div class="xrd-view-title align-fix">
-          {{ $t('trustServices.certificationServices') }}
-        </div>
-
-        <xrd-button
-          v-if="showAddCSButton"
-          data-test="add-certification-service"
-          @click="showAddCSDialog = true"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <XrdIconAdd />
-          </xrd-icon-base>
-          {{ $t('trustServices.addCertificationService') }}
-        </xrd-button>
-      </div>
-
-      <!-- Table -->
-      <v-data-table
-        :loading="loading"
-        :headers="headers"
-        :items="certificationServices"
-        :search="search"
-        :must-sort="true"
-        :items-per-page="-1"
-        class="elevation-0 data-table"
-        item-key="id"
-        :loader-height="2"
-        hide-default-footer
-      >
-        <template #[`item.name`]="{ item }">
-          <div
-            v-if="hasPermissionToDetails"
-            class="xrd-clickable"
-            @click="toDetails(item)"
+      <titled-view title-key="trustServices.certificationServices">
+        <template #header-buttons>
+          <xrd-button
+            v-if="showAddCSButton"
+            data-test="add-certification-service"
+            @click="showAddCSDialog = true"
           >
-            {{ item.name }}
-          </div>
-          <div v-else>
-            {{ item.name }}
-          </div>
+            <xrd-icon-base class="xrd-large-button-icon">
+              <XrdIconAdd />
+            </xrd-icon-base>
+            {{ $t('trustServices.addCertificationService') }}
+          </xrd-button>
         </template>
-        <template #[`item.not_before`]="{ item }">
-          <div>{{ item.not_before | formatDateTime }}</div>
-        </template>
-        <template #[`item.not_after`]="{ item }">
-          <div>{{ item.not_after | formatDateTime }}</div>
-        </template>
+        <v-data-table
+          :loading="loading"
+          :headers="headers"
+          :items="certificationServices"
+          :search="search"
+          :must-sort="true"
+          :items-per-page="-1"
+          class="elevation-0 data-table"
+          item-key="id"
+          :loader-height="2"
+        >
+          <template #[`item.name`]="{ item }">
+            <div
+              v-if="hasPermissionToDetails"
+              class="xrd-clickable"
+              @click="toDetails(item)"
+            >
+              {{ item.name }}
+            </div>
+            <div v-else>
+              {{ item.name }}
+            </div>
+          </template>
+          <template #[`item.not_before`]="{ item }">
+            <div>
+              <date-time :value="item.not_before" />
+            </div>
+          </template>
+          <template #[`item.not_after`]="{ item }">
+            <div>
+              <date-time :value="item.not_after" />
+            </div>
+          </template>
 
-        <template #footer>
-          <div class="custom-footer"></div>
-        </template>
-      </v-data-table>
+          <template #bottom>
+            <custom-data-table-footer />
+          </template>
+        </v-data-table>
+      </titled-view>
     </div>
 
-    <TimestampingServicesList v-if="showTsaList"></TimestampingServicesList>
+    <timestamping-services-list v-if="showTsaList" class="tsa-list" />
 
     <!-- Dialogs -->
-    <AddCertificationServiceDialog
+    <add-certification-service-dialog
       v-if="showAddCSDialog"
-      :show-dialog="showAddCSDialog"
-      @save="addCertificationService"
+      @add="addCertificationService"
       @cancel="hideAddCSDialog"
-    >
-    </AddCertificationServiceDialog>
+    />
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import AddCertificationServiceDialog from '@/components/certificationServices/AddCertificationServiceDialog.vue';
-import { DataTableHeader } from 'vuetify';
+import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCertificationService } from '@/store/modules/trust-services';
+import { useUser } from '@/store/modules/user';
 import { Permissions, RouteName } from '@/global';
 import {
   ApprovedCertificationService,
@@ -111,12 +107,20 @@ import {
   CertificationServiceFileAndSettings,
 } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
+import DateTime from '@/components/ui/DateTime.vue';
+import { DataTableHeader } from '@/ui-types';
+import TitledView from '@/components/ui/TitledView.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'TrustServiceList',
   components: {
+    CustomDataTableFooter,
+    TitledView,
+    DateTime,
     AddCertificationServiceDialog,
     TimestampingServicesList,
+    VDataTable,
   },
   data() {
     return {
@@ -127,8 +131,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useCertificationServiceStore, notificationsStore),
-    ...mapState(userStore, ['hasPermission']),
+    ...mapStores(useCertificationService, useNotifications),
+    ...mapState(useUser, ['hasPermission']),
     certificationServices(): ApprovedCertificationServiceListItem[] {
       return this.certificationServiceStore.certificationServices;
     },
@@ -144,22 +148,21 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('trustServices.approvedCertificationService') as string,
+          title: this.$t(
+            'trustServices.approvedCertificationService',
+          ) as string,
           align: 'start',
-          value: 'name',
-          class: 'xrd-table-header ts-table-header-server-code text-uppercase',
+          key: 'name',
         },
         {
-          text: this.$t('trustServices.validFrom') as string,
+          title: this.$t('trustServices.validFrom') as string,
           align: 'start',
-          value: 'not_before',
-          class: 'xrd-table-header ts-table-header-valid-from text-uppercase',
+          key: 'not_before',
         },
         {
-          text: this.$t('trustServices.validTo') as string,
+          title: this.$t('trustServices.validTo') as string,
           align: 'start',
-          value: 'not_after',
-          class: 'xrd-table-header ts-table-header-valid-to text-uppercase',
+          key: 'not_after',
         },
       ];
     },
@@ -168,7 +171,7 @@ export default Vue.extend({
     this.fetchCertificationServices();
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchCertificationServices(): void {
       this.loading = true;
       this.certificationServiceStore
@@ -201,7 +204,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 
 .server-code {
   color: $XRoad-Purple100;
@@ -209,16 +212,7 @@ export default Vue.extend({
   font-size: 14px;
 }
 
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
+.tsa-list {
+  margin-top: 20px;
 }
 </style>

@@ -32,7 +32,7 @@ import {
   SecurityServerAddress,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import { DataOptions } from 'vuetify';
+import { DataQuery } from '@/ui-types';
 
 export interface State {
   currentSecurityServerLoading: boolean;
@@ -41,7 +41,7 @@ export interface State {
   securityServerPagingOptions: PagingMetadata;
 }
 
-export const useSecurityServerStore = defineStore('securityServer', {
+export const useSecurityServer = defineStore('securityServer', {
   state: (): State => ({
     currentSecurityServerLoading: false,
     currentSecurityServer: null,
@@ -55,14 +55,14 @@ export const useSecurityServerStore = defineStore('securityServer', {
   }),
   persist: true,
   actions: {
-    async find(dataOptions: DataOptions, q: string) {
+    async find(dataOptions: DataQuery) {
       const offset = dataOptions?.page == null ? 0 : dataOptions.page - 1;
       const searchUrlParams = {
         offset: offset,
         limit: dataOptions.itemsPerPage,
-        sort: dataOptions.sortBy[0],
-        desc: dataOptions.sortDesc[0],
-        q,
+        sort: dataOptions.sortBy,
+        desc: dataOptions.sortOrder === 'desc',
+        q: dataOptions.search,
       };
 
       return axios

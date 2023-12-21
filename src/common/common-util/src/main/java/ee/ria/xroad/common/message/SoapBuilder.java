@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,6 +29,11 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -37,12 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 
 import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
 import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.PREFIX_IDENTIFIERS;

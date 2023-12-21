@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -61,11 +61,11 @@ public class SettingsGlobalResourcesPageObj {
     public class GlobalGroupForm {
 
         public SelenideElement inputGroupCode() {
-            return $x("//input[@data-test='add-global-group-code-input']");
+            return $x("//div[@data-test='add-global-group-code-input']");
         }
 
         public SelenideElement inputGroupDescription() {
-            return $x("//input[@data-test='add-global-group-description-input']");
+            return $x("//div[@data-test='add-global-group-description-input']");
         }
 
         public SelenideElement btnConfirm() {

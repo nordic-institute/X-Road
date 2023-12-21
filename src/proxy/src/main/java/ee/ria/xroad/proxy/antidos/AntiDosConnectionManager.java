@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -66,6 +66,9 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
     // Holds a cache of previously known member IPs.
     // Used to determine if should sync the database when conf changed.
     private Set<String> previousKnownOrganizations = new HashSet<>();
+
+    // Fallback cpu load value in cases where OS fails to properly respond.
+    private double previousCpuLoad = 0d;
 
     AntiDosConnectionManager(AntiDosConfiguration configuration) {
         if (configuration == null) {
@@ -169,7 +172,13 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
 
     protected double getCpuLoad() {
         try {
-            return SystemMetrics.getStats().getSystemCpuLoad();
+            final double cpuLoad = SystemMetrics.getStats().getCpuLoad();
+            if (Double.isNaN(cpuLoad)) {
+                return previousCpuLoad;
+            } else {
+                previousCpuLoad = cpuLoad;
+                return cpuLoad;
+            }
         } catch (InternalError err) {
             log.error("Error getting cpu load", err);
 
@@ -227,11 +236,11 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
         double maxHeapUsage = configuration.getMaxHeapUsage();
 
         log.trace("Resource usage when considering connection:\n"
-                + "freeFileDescriptorCount: {} ( >= {})\n"
-                + "cpuLoad: {} ( < {})\n"
-                + "heapUsage: {} ( < {})",
-                new Object[] {freeFileDescriptorCount, minFreeFileHandles,
-                    cpuLoad, maxCpuLoad, heapUsage, maxHeapUsage});
+                        + "freeFileDescriptorCount: {} ( >= {})\n"
+                        + "cpuLoad: {} ( < {})\n"
+                        + "heapUsage: {} ( < {})",
+                freeFileDescriptorCount, minFreeFileHandles,
+                cpuLoad, maxCpuLoad, heapUsage, maxHeapUsage);
 
         return freeFileDescriptorCount >= minFreeFileHandles
                 && cpuLoad < maxCpuLoad

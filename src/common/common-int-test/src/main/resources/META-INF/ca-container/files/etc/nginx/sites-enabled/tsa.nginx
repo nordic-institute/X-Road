@@ -1,0 +1,16 @@
+server {
+    listen 8899 default_server;
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+    
+    # Make site accessible from http://localhost/
+    server_name localhost;
+    
+    location / {
+        limit_except GET POST {
+            deny  all;
+	}
+        proxy_pass       http://localhost:9999;	
+    }
+}
+

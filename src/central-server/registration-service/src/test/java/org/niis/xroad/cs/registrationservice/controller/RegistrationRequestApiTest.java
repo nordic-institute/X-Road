@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -42,9 +42,9 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestBaseManagementRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
+import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
-import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.registrationservice.config.RegistrationServiceProperties;
 import org.niis.xroad.cs.registrationservice.testutil.TestGlobalConf;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,6 @@ import java.security.KeyPairGenerator;
 import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @RunWith(SpringRunner.class)
@@ -97,9 +96,8 @@ class RegistrationRequestApiTest {
     void shouldRegisterAuthCert() throws Exception {
 
         properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.getHttpsPort())));
-        var response = new ManagementRequestDto();
+        var response = new AuthenticationCertificateRegistrationRequestDto();
         response.setId(42);
-        response.setType(AUTH_CERT_REGISTRATION_REQUEST);
 
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 202)));

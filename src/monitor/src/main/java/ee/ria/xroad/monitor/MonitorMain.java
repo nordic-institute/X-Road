@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,27 +25,21 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.monitor.configuration.MonitorConfig;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.UnhandledMessage;
 import com.codahale.metrics.jmx.JmxReporter;
 import com.google.common.collect.Lists;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_ENV_MONITOR;
 
@@ -53,6 +47,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_ENV_MONITOR;
  * Main class for monitor application
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MonitorMain {
 
     private static final String APP_NAME = "xroad-monitor";
@@ -64,9 +59,7 @@ public final class MonitorMain {
                 .load();
     }
 
-    private static final String AKKA_PORT = "akka.remote.artery.canonical.port";
-
-    private static ActorSystem actorSystem;
+    private static GenericApplicationContext springCtx;
     private static JmxReporter jmxReporter;
 
     /**
@@ -78,34 +71,13 @@ public final class MonitorMain {
         log.info("Starting X-Road Environmental Monitoring");
         Version.outputVersionInfo(APP_NAME);
 
-        registerShutdownHook();
-        initAkka();
+        RpcSignerClient.init();
+
+        springCtx = new AnnotationConfigApplicationContext(MonitorConfig.class);
+        springCtx.registerShutdownHook();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(MonitorMain::stopReporter));
         startReporters();
-    }
-
-    private MonitorMain() {
-    }
-
-    private static void registerShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            shutdownAkka();
-            stopReporter();
-        }));
-    }
-
-    private static void shutdownAkka() {
-        log.trace("shutdownAkka()");
-
-        if (actorSystem != null) {
-            try {
-                Await.ready(actorSystem.terminate(), Duration.Inf());
-            } catch (TimeoutException e) {
-                log.error("Timed out while waiting for akka to terminate");
-            } catch (InterruptedException e) {
-                log.error("Interrupted while waiting for akka to terminate");
-            }
-            actorSystem = null;
-        }
     }
 
     private static void stopReporter() {
@@ -114,30 +86,6 @@ public final class MonitorMain {
         if (jmxReporter != null) {
             jmxReporter.stop();
         }
-    }
-
-    private static void initAkka() throws Exception {
-        actorSystem = ActorSystem.create(APP_NAME, loadAkkaConfiguration());
-        SignerClient.init(actorSystem);
-
-        ActorRef unhandled = actorSystem.actorOf(Props.create(UnhandledListenerActor.class), "UnhandledListenerActor");
-        actorSystem.eventStream().subscribe(unhandled, UnhandledMessage.class);
-
-        actorSystem.actorOf(Props.create(MetricsProviderActor.class), "MetricsProviderActor");
-        actorSystem.actorOf(Props.create(SystemMetricsSensor.class), "SystemMetricsSensor");
-        actorSystem.actorOf(Props.create(DiskSpaceSensor.class), "DiskSpaceSensor");
-        actorSystem.actorOf(Props.create(ExecListingSensor.class), "ExecListingSensor");
-        actorSystem.actorOf(Props.create(CertificateInfoSensor.class), "CertificateInfoSensor");
-
-        log.info("akka init complete");
-    }
-
-    private static Config loadAkkaConfiguration() {
-        log.info("loadAkkaConfiguration");
-
-        final int port = SystemProperties.getEnvMonitorPort();
-
-        return ConfigFactory.load().withValue(AKKA_PORT, ConfigValueFactory.fromAnyRef(port));
     }
 
     private static void startReporters() {

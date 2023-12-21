@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -31,28 +31,28 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.MultiPartOutputStream;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service responsible for responding with OCSP responses of SSL certificates identified with the certificate hashes.
@@ -97,8 +97,7 @@ public class CertHashBasedOcspResponder implements StartStop {
         Path file = Paths.get(SystemProperties.getJettyOcspResponderConfFile());
 
         log.debug("Configuring server from {}", file);
-
-        try (InputStream in = Files.newInputStream(file)) {
+        try (Resource in = Resource.newResource(file)) {
             new XmlConfiguration(in).configure(server);
         }
     }
@@ -112,8 +111,15 @@ public class CertHashBasedOcspResponder implements StartStop {
         ocspConnector.setPort(SystemProperties.getOcspResponderPort());
         ocspConnector.setHost(host);
         ocspConnector.getConnectionFactories().stream()
-                .filter(cf -> cf instanceof HttpConnectionFactory)
-                .forEach(httpCf -> ((HttpConnectionFactory) httpCf).getHttpConfiguration().setSendServerVersion(false));
+                .filter(HttpConnectionFactory.class::isInstance)
+                .map(HttpConnectionFactory.class::cast)
+                .forEach(httpCf -> {
+                    httpCf.getHttpConfiguration().setSendServerVersion(false);
+                    Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
+                            .ifPresent(customizer -> {
+                                customizer.setSniHostCheck(false);
+                            });
+                });
 
         server.addConnector(ocspConnector);
     }
@@ -142,7 +148,7 @@ public class CertHashBasedOcspResponder implements StartStop {
     }
 
     private void doHandleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String[] hashes = getCertHashes(request);
+        String[] hashes = getCertSha1Hashes(request);
         List<OCSPResp> ocspResponses = getOcspResponses(hashes);
 
         log.debug("Returning OCSP responses for cert hashes: " + Arrays.toString(hashes));
@@ -190,10 +196,10 @@ public class CertHashBasedOcspResponder implements StartStop {
         }
     }
 
-    private static List<OCSPResp> getOcspResponses(String[] hashes) throws Exception {
-        List<OCSPResp> ocspResponses = new ArrayList<>(hashes.length);
+    private static List<OCSPResp> getOcspResponses(String[] certHashes) throws Exception {
+        List<OCSPResp> ocspResponses = new ArrayList<>(certHashes.length);
 
-        for (String certHash : hashes) {
+        for (String certHash : certHashes) {
             ocspResponses.add(getOcspResponse(certHash));
         }
 
@@ -210,7 +216,8 @@ public class CertHashBasedOcspResponder implements StartStop {
         return ocsp;
     }
 
-    private static String[] getCertHashes(HttpServletRequest request) throws Exception {
+    private static String[] getCertSha1Hashes(HttpServletRequest request) throws Exception {
+        // TODO sha256 cert hashes should be read from "cert_hash" param instead once 7.3.x is no longer supported
         String[] paramValues = request.getParameterValues(CERT_PARAM);
 
         if (paramValues.length < 1) {

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,13 +27,12 @@ package ee.ria.xroad.common.util;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.util.MultiPartWriter;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Various MIME related utility methods.
@@ -140,7 +139,7 @@ public final class MimeUtils {
      * @return String
      */
     public static String getBaseContentType(String mimeType) {
-        return HttpFields.valueParameters(mimeType, null);
+        return HttpField.valueParameters(mimeType, null);
     }
 
     /**
@@ -191,8 +190,7 @@ public final class MimeUtils {
         if (headers != null && !headers.isEmpty()) {
             return headers.entrySet().stream()
                     .map(e -> e.getKey() + ": " + e.getValue())
-                    .collect(Collectors.toList())
-                    .toArray(new String[] {});
+                    .toArray(String[]::new);
         } else {
             return null;
         }
@@ -207,7 +205,7 @@ public final class MimeUtils {
 
     private static String getParameterValue(String contentType, String parameterName) {
         Map<String, String> params = new HashMap<>();
-        HttpFields.valueParameters(contentType, params);
+        HttpField.valueParameters(contentType, params);
 
         return params.entrySet().stream()
                 .filter(e -> e.getKey().trim().equalsIgnoreCase(parameterName))

@@ -29,12 +29,13 @@ package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.page.TimestampingServicesPageObj;
 import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
 
 public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
@@ -51,7 +52,8 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + url);
 
         timestampingServicesPageObj.addEditDialog.inputCertificateFile().uploadFile(CertificateUtils.getAsFile(certificate));
-        timestampingServicesPageObj.addEditDialog.inputUrl().setValue(url);
+        vTextField(timestampingServicesPageObj.addEditDialog.inputUrl())
+                .setValue(url);
 
         commonPageObj.dialog.btnSave().click();
         timestampingServicesPageObj.buttonLoading().should(appear);
@@ -68,11 +70,23 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
     @Step("user is able to sort the table by column {int}")
     public void userIsAbleToSortByColumn(int columnIndex) {
         var column = timestampingServicesPageObj.tableServicesCol(columnIndex);
-        Assertions.assertEquals("none", column.getAttribute("aria-sort"));
-        column.click();
-        Assertions.assertEquals("ascending", column.getAttribute("aria-sort"));
-        column.click();
-        Assertions.assertEquals("descending", column.getAttribute("aria-sort"));
+
+        column
+                .shouldHave(cssClass("v-data-table__th--sortable"))
+                .shouldNotHave(cssClass("v-data-table__th--sorted"))
+                .click();
+
+        column
+                .shouldHave(cssClass("v-data-table__th--sorted"))
+                .$x(".//i")
+                .shouldHave(cssClass("mdi-arrow-up"))
+                .click();
+
+        column
+                .shouldHave(cssClass("v-data-table__th--sorted"))
+                .$x(".//i")
+                .shouldHave(cssClass("mdi-arrow-down"))
+                .click();
     }
 
     @Step("Timestamping service table with columns {}, {}, {} is visible")
@@ -119,11 +133,13 @@ public class TrustServicesTimestampingServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnCancel().should(Condition.enabled);
         commonPageObj.dialog.btnSave().should(Condition.enabled);
 
-        clearInput(timestampingServicesPageObj.addEditDialog.inputUrl());
+        vTextField(timestampingServicesPageObj.addEditDialog.inputUrl())
+                .clear();
 
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
-        timestampingServicesPageObj.addEditDialog.inputUrl().setValue(newUrl);
+        vTextField(timestampingServicesPageObj.addEditDialog.inputUrl())
+                .setValue(newUrl);
         commonPageObj.dialog.btnSave().click();
         timestampingServicesPageObj.buttonLoading().should(appear);
 

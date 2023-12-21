@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -30,6 +30,8 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.InitializationPageObj;
 
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
+
 public class InitializationStepDefs extends BaseUiStepDefs {
     private final InitializationPageObj initializationPageObj = new InitializationPageObj();
 
@@ -49,7 +51,7 @@ public class InitializationStepDefs extends BaseUiStepDefs {
 
     @Step("PIN {} is entered")
     public void pinIsEntered(String pin) {
-        initializationPageObj.pinInput().setValue(pin);
+        vTextField(initializationPageObj.pinInput()).setValue(pin);
         initializationPageObj.initializationPhaseId().shouldBe(Condition.visible);
 
         initializationPageObj.confirmPinOKIcon().shouldNotBe(Condition.visible);
@@ -62,7 +64,7 @@ public class InitializationStepDefs extends BaseUiStepDefs {
 
     @Step("Confirmation PIN {} is entered")
     public void confirmationPinIsEntered(String pin) {
-        initializationPageObj.confirmPinInput().setValue(pin);
+        vTextField(initializationPageObj.confirmPinInput()).setValue(pin);
     }
 
     @Step("PIN should be marked as matching")
@@ -92,28 +94,28 @@ public class InitializationStepDefs extends BaseUiStepDefs {
 
     @Step("Instance identifier {} is entered")
     public void setInstanceIdentifier(String value) {
-        initializationPageObj.instanceIdentifierInput().setValue(value);
+        vTextField(initializationPageObj.instanceIdentifierInput()).setValue(value);
     }
 
     @Step("Central Server Address {} is entered")
     public void setCentralServerAddress(String value) {
-        initializationPageObj.serverAddressInput().setValue(value);
+        vTextField(initializationPageObj.serverAddressInput()).setValue(value);
     }
 
-    @Step("Submission failed with highlighted errors {}")
-    public void validateForm(String value) {
-        switch (value) {
+    @Step("Submission failed with highlighted errors {} for {}")
+    public void validateForm(String message, String target) {
+        switch (target) {
             case "IDENTIFIER-ERROR":
-                initializationPageObj.instanceIdentifierValidation().shouldBe(Condition.visible);
+                initializationPageObj.instanceIdentifierValidation().shouldBe(Condition.visible).shouldHave(Condition.text(message));
                 break;
             case "ADDRESS-ERROR":
-                initializationPageObj.serverAddressValidation().shouldBe(Condition.visible);
+                initializationPageObj.serverAddressValidation().shouldBe(Condition.visible).shouldHave(Condition.text(message));
                 break;
             case "PIN-ERROR":
-                initializationPageObj.pinValidation().shouldBe(Condition.visible);
+                initializationPageObj.pinValidation().shouldBe(Condition.visible).shouldHave(Condition.text(message));
                 break;
             default:
-                throw new IllegalArgumentException("Cannot process undefined error type " + value);
+                throw new IllegalArgumentException("Cannot process undefined error target " + target);
         }
 
         initializationPageObj.contextualAlertsNote().shouldBe(Condition.visible);

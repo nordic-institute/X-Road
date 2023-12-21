@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,9 +30,6 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
-import akka.actor.UntypedAbstractActor;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +38,6 @@ import org.hibernate.Session;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.proxy.messagelog.LogManager.TIMESTAMPER_NAME;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 
 /**
@@ -49,29 +45,13 @@ import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransactio
  */
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class TaskQueue extends UntypedAbstractActor {
+public class TaskQueue {
 
-    static final String START_TIMESTAMPING = "StartTimestamping";
-    static final String START_TIMESTAMPING_RETRY_MODE = "StartTimestampingRetryMode";
     static final double TIMESTAMPED_RECORDS_RATIO_THRESHOLD = 0.7;
     static final int TIMESTAMP_RECORDS_LIMIT_RETRY_MODE = 1;
 
-    @Override
-    public void onReceive(Object message) throws Exception {
-        log.trace("onReceive({})", message);
-
-        if (message.equals(START_TIMESTAMPING)) {
-            handleStartTimestamping();
-        } else if (message.equals(START_TIMESTAMPING_RETRY_MODE)) {
-            handleStartTimestamping(TIMESTAMP_RECORDS_LIMIT_RETRY_MODE);
-        } else if (message instanceof Timestamper.TimestampSucceeded) {
-            handleTimestampSucceeded((Timestamper.TimestampSucceeded) message);
-        } else if (message instanceof Timestamper.TimestampFailed) {
-            handleTimestampFailed((Timestamper.TimestampFailed) message);
-        } else {
-            unhandled(message);
-        }
-    }
+    private final Timestamper timestamper;
+    private final LogManager logManager;
 
     protected void handleTimestampSucceeded(TimestampSucceeded message) {
         log.trace("handleTimestampSucceeded");
@@ -133,10 +113,11 @@ public class TaskQueue extends UntypedAbstractActor {
 
     /**
      * Sends timestamping status message to LogManager.
+     *
      * @param status timestamping status message.
      */
     private void sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status status) {
-        getContext().parent().tell(new SetTimestampingStatusMessage(status), ActorRef.noSender());
+        logManager.setTimestampingStatus(new SetTimestampingStatusMessage(status));
     }
 
     protected void handleTimestampFailed(TimestampFailed message) {
@@ -149,7 +130,11 @@ public class TaskQueue extends UntypedAbstractActor {
         handleStartTimestamping(MessageLogProperties.getTimestampRecordsLimit());
     }
 
-    protected void handleStartTimestamping(int timestampRecordsLimit) {
+    protected void handleStartTimestampingRetryMode() {
+        handleStartTimestamping(TIMESTAMP_RECORDS_LIMIT_RETRY_MODE);
+    }
+
+    private void handleStartTimestamping(int timestampRecordsLimit) {
         List<Task> timestampTasks;
 
         try {
@@ -162,7 +147,7 @@ public class TaskQueue extends UntypedAbstractActor {
 
         if (timestampTasks.isEmpty()) {
             log.trace("Nothing to time-stamp, task queue is empty");
-
+            indicateSuccess();
             return;
         }
 
@@ -176,12 +161,14 @@ public class TaskQueue extends UntypedAbstractActor {
                     TIMESTAMPED_RECORDS_RATIO_THRESHOLD * 100);
         }
 
-        sendToTimestamper(createTimestampTask(timestampTasks));
-    }
+        final Timestamper.TimestampResult timestampResult = timestamper
+                .handleTimestampTask(createTimestampTask(timestampTasks));
+        if (timestampResult instanceof TimestampSucceeded) {
+            handleTimestampSucceeded((TimestampSucceeded) timestampResult);
+        } else if (timestampResult instanceof TimestampFailed) {
+            handleTimestampFailed((TimestampFailed) timestampResult);
+        }
 
-    private void sendToTimestamper(TimestampTask timestampTask) {
-        ActorSelection timestamper = getContext().actorSelection("../" + TIMESTAMPER_NAME);
-        timestamper.tell(timestampTask, getSelf());
     }
 
     private TimestampTask createTimestampTask(List<Task> timestampTasks) {
@@ -211,7 +198,6 @@ public class TaskQueue extends UntypedAbstractActor {
         return session.createQuery(getTaskQueueQuery()).setMaxResults(timestampRecordsLimit).list();
     }
 
-    @SuppressWarnings("unchecked")
     private static Long getTasksQueueSize(Session session) {
         return (Long) session.createQuery(getTaskQueueSizeQuery()).uniqueResult();
     }

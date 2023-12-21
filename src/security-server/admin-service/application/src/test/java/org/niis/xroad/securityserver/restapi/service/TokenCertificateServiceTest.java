@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,14 +29,14 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +53,7 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -89,6 +90,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.createCertificateInfo;
 
 /**
  * Test TokenCertificateService
@@ -171,6 +173,12 @@ public class TokenCertificateServiceTest {
             new CertificateTestUtils.CertificateInfoBuilder().id(EXISTING_CERT_IN_AUTH_KEY_HASH)
                     .certificate(CertificateTestUtils.getMockAuthCertificate()).build();
 
+    private CertRequestInfo newCertRequestInfo(String id) {
+        return new CertRequestInfo(CertRequestInfoProto.newBuilder()
+                .setId(id)
+                .build());
+    }
+
     @Before
     public void setup() throws Exception {
         when(clientService.getLocalClientMemberIds())
@@ -188,11 +196,10 @@ public class TokenCertificateServiceTest {
         // keyService.getKey, signerProxyFacade.getKeyIdForCertHash,
         // signerProxyFacade.getCertForHash
         // mock delete-operations (deleteCertificate, deleteCsr)
-        CertRequestInfo goodCsr = new CertRequestInfo(GOOD_CSR_ID, null, null);
-        CertRequestInfo authCsr = new CertRequestInfo(GOOD_AUTH_CSR_ID, null, null);
-        CertRequestInfo signCsr = new CertRequestInfo(GOOD_SIGN_CSR_ID, null, null);
-        CertRequestInfo signerExceptionCsr = new CertRequestInfo(
-                SIGNER_EXCEPTION_CSR_ID, null, null);
+        CertRequestInfo goodCsr = newCertRequestInfo(GOOD_CSR_ID);
+        CertRequestInfo authCsr = newCertRequestInfo(GOOD_AUTH_CSR_ID);
+        CertRequestInfo signCsr = newCertRequestInfo(GOOD_SIGN_CSR_ID);
+        CertRequestInfo signerExceptionCsr = newCertRequestInfo(SIGNER_EXCEPTION_CSR_ID);
         KeyInfo authKey = new TokenTestUtils.KeyInfoBuilder().id(AUTH_KEY_ID)
                 .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
                 .csr(authCsr)
@@ -209,10 +216,12 @@ public class TokenCertificateServiceTest {
                 .csr(signCsr)
                 .cert(signCert)
                 .build();
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder().friendlyName("fubar").build();
-        tokenInfo.getKeyInfo().add(authKey);
-        tokenInfo.getKeyInfo().add(signKey);
-        tokenInfo.getKeyInfo().add(goodKey);
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .friendlyName("fubar")
+                .key(authKey)
+                .key(signKey)
+                .key(goodKey)
+                .build();
 
         mockGetTokenAndKeyIdForCertificateHash(authKey, goodKey, signKey, tokenInfo);
         mockGetTokenAndKeyIdForCertificateRequestId(authKey, goodKey, signKey, tokenInfo);
@@ -325,7 +334,7 @@ public class TokenCertificateServiceTest {
                     // cert will have same id as hash
                     return new CertificateTestUtils.CertificateInfoBuilder().id(certHash).build();
                 case MISSING_CERTIFICATE_HASH:
-                    return new CertificateInfo(null, false, false, "status", "certID",
+                    return createCertificateInfo(null, false, false, "status", "certID",
                             CertificateTestUtils.getMockAuthCertificateBytes(), null);
                 default:
                     throw new RuntimeException("bad switch option: " + certHash);
@@ -338,9 +347,9 @@ public class TokenCertificateServiceTest {
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
             if (certHash.equals(EXISTING_CERT_IN_AUTH_KEY_HASH)) {
-                return AUTH_KEY_ID;
+                return new SignerProxy.KeyIdInfo(AUTH_KEY_ID, null);
             } else {
-                return SIGN_KEY_ID;
+                return new SignerProxy.KeyIdInfo(SIGN_KEY_ID, null);
             }
         }).when(signerProxyFacade).getKeyIdForCertHash(any());
     }
@@ -582,7 +591,7 @@ public class TokenCertificateServiceTest {
                 default:
                     throw new RuntimeException("bad switch option: " + certHash);
             }
-            return new CertificateInfo(null, active, true, "status", "certID",
+            return createCertificateInfo(null, active, true, "status", "certID",
                     CertificateTestUtils.getMockAuthCertificateBytes(), null);
         }).when(signerProxyFacade).getCertForHash(any());
 
@@ -613,7 +622,7 @@ public class TokenCertificateServiceTest {
     public void deActivateUnknownCertificate() throws Exception {
         // we want to use the real rules for this test
         Mockito.reset(possibleActionsRuleEngine);
-        doReturn(new CertificateInfo(null, true, true, "status",
+        doReturn(createCertificateInfo(null, true, true, "status",
                 "certID", CertificateTestUtils.getMockCertificateWithoutExtensionsBytes(), null))
                 .when(signerProxyFacade).getCertForHash(any());
 

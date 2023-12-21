@@ -26,18 +26,21 @@
  -->
 <template>
   <main id="intermediate-ca-certificate-details" class="mt-8">
-    <CertificateDetails :certificate-details="certificateDetails" />
+    <certificate-details
+      v-if="certificateDetails"
+      :certificate-details="certificateDetails"
+    />
   </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
-import { useIntermediateCaStore } from '@/store/modules/trust-services';
+import { useIntermediateCasService } from '@/store/modules/trust-services';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'IntermediateCaCertificate',
   components: { CertificateDetails },
   props: {
@@ -52,7 +55,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useIntermediateCaStore),
+    ...mapStores(useIntermediateCasService),
   },
   created() {
     this.intermediateCasServiceStore

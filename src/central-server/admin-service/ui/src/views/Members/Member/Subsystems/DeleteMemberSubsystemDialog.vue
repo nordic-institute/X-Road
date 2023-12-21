@@ -25,93 +25,76 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
-    <v-dialog v-if="true" :value="true" width="500" persistent>
-      <v-card class="xrd-card">
-        <v-card-title>
-          <span class="headline">
-            {{ $t('members.member.subsystems.deleteSubsystem') }}
-          </span>
-        </v-card-title>
-        <v-card-text class="pt-4" data-test="delete-subsystem">
-          <i18n path="members.member.subsystems.areYouSureDelete">
-            <template #subsystemCode>
-              <b>{{ subsystemCode }}</b>
-            </template>
-            <template #memberId>
-              <b>{{ currentMember.client_id | formatShortMemberId }}</b>
-            </template>
-          </i18n>
-        </v-card-text>
-        <v-card-actions class="xrd-card-actions">
-          <v-spacer></v-spacer>
-          <xrd-button
-            outlined
-            :disabled="loading"
-            data-test="dialog-cancel-button"
-            @click="cancel()"
-          >
-            {{ $t('action.cancel') }}
-          </xrd-button>
-          <xrd-button
-            :disabled="loading"
-            data-test="dialog-delete-button"
-            @click="deleteSubsystem()"
-          >
-            {{ $t('action.delete') }}
-          </xrd-button>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </xrd-sub-view-container>
+  <xrd-confirm-dialog
+    title="members.member.subsystems.deleteSubsystem"
+    accept-button-text="action.delete"
+    @cancel="cancel"
+    @accept="deleteSubsystem"
+  >
+    <template #text>
+      <div data-test="delete-subsystem">
+        <i18n-t
+          scope="global"
+          keypath="members.member.subsystems.areYouSureDelete"
+        >
+          <template #subsystemCode>
+            <b>{{ subsystemCode }}</b>
+          </template>
+          <template #memberId>
+            <b>{{ shortMemberId }}</b>
+          </template>
+        </i18n-t>
+      </div>
+    </template>
+  </xrd-confirm-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { clientStore } from '@/store/modules/clients';
-import { memberStore } from '@/store/modules/members';
-import { systemStore } from '@/store/modules/system';
-import { notificationsStore } from '@/store/modules/notifications';
-import { subsystemStore } from '@/store/modules/subsystems';
-import { Client } from '@/openapi-types';
-import { toIdentifier } from '@/util/helpers';
+import { useClient } from '@/store/modules/clients';
+import { useMember } from '@/store/modules/members';
+import { useSystem } from '@/store/modules/system';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSubsystem } from '@/store/modules/subsystems';
+import { ClientId } from '@/openapi-types';
+import { toIdentifier, toShortMemberId } from '@/util/helpers';
+import { Event } from '@/ui-types';
 
-export default Vue.extend({
-  name: 'DeleteMemberSubsystemDialog',
+export default defineComponent({
   props: {
-    showDialog: {
-      type: Boolean,
-      required: true,
-    },
     subsystemCode: {
       type: String,
       required: true,
     },
+    member: {
+      type: Object as PropType<{ client_id: ClientId }>,
+      required: true,
+    },
   },
+  emits: [Event.Cancel, Event.Delete],
   data() {
     return {
       loading: false,
-      currentMember: {} as Client,
     };
   },
   computed: {
-    ...mapStores(clientStore, memberStore, subsystemStore),
-    ...mapState(systemStore, ['getSystemStatus']),
-  },
-  created() {
-    this.currentMember = this.memberStore.$state.currentMember as Client;
+    ...mapStores(useClient, useMember, useSubsystem),
+    ...mapState(useSystem, ['getSystemStatus']),
+    shortMemberId() {
+      return toShortMemberId(this.member.client_id);
+    },
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
-      this.$emit('cancel');
+      this.$emit(Event.Cancel);
     },
     deleteSubsystem(): void {
       this.loading = true;
       this.subsystemStore
         .deleteById(
-          toIdentifier(this.currentMember.client_id) + ':' + this.subsystemCode,
+          toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
         )
         .then(() => {
           this.showSuccess(
@@ -119,11 +102,11 @@ export default Vue.extend({
               subsystemCode: this.subsystemCode,
             }),
           );
-          this.$emit('deletedSubsystem');
+          this.$emit(Event.Delete);
         })
         .catch((error) => {
           this.showError(error);
-          this.$emit('cancel');
+          this.$emit(Event.Cancel);
         })
         .finally(() => {
           this.loading = false;

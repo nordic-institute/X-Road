@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -52,7 +52,7 @@ public class SystemSettingsParametersPageObj {
 
     public class EditDialog {
         public SelenideElement inputCentralServerAddress() {
-            return $x("//input[@data-test='system-settings-central-server-address-edit-field']");
+            return $x("//div[@data-test='system-settings-central-server-address-edit-field']");
         }
 
     }

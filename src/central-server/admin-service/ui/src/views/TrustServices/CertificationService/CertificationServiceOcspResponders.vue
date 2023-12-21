@@ -26,23 +26,22 @@
  -->
 <template>
   <main id="certification-service-ocsp-responders" class="mt-8">
-    <OcspRespondersList
+    <ocsp-responders-list
       :ca="certificationServiceStore.currentCertificationService"
     />
   </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { mapStores } from 'pinia';
-import { useCertificationServiceStore } from '@/store/modules/trust-services';
+import { defineComponent } from 'vue';
+import { useCertificationService } from '@/store/modules/trust-services';
 import OcspRespondersList from '@/components/ocspResponders/OcspRespondersList.vue';
 
-export default Vue.extend({
-  name: 'CertificationServiceOcspResponders',
+export default defineComponent({
   components: { OcspRespondersList },
-  computed: {
-    ...mapStores(useCertificationServiceStore),
+  setup() {
+    const certificationServiceStore = useCertificationService();
+    return { certificationServiceStore };
   },
 });
 </script>

@@ -25,56 +25,84 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <v-icon v-if="closed" class="icon-closed" @click="closed = false"
-      >mdi-magnify</v-icon
-    >
-    <v-text-field
-      v-if="!closed"
-      :label="label"
-      data-test="search-input"
-      single-line
-      hide-details
-      class="search-input"
-      prepend-inner-icon="mdi-magnify"
-      clearable
-      :value="value"
-      @input="$emit('input', $event)"
-    >
-    </v-text-field>
-  </div>
+  <v-text-field
+    v-model="value"
+    data-test="search-input"
+    class="expanding-search"
+    single-line
+    density="compact"
+    variant="underlined"
+    prepend-inner-icon="mdi-magnify"
+    hide-details
+    :label="label"
+    :class="{ closed }"
+    @click:prepend-inner="hide=false"
+    @focus="hide = false"
+    @blur="hide = true"
+    @update:model-value="$emit('update:model-value', $event)"
+  />
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
+
 /**
  * Wrapper for vuetify button with x-road look
  * */
-
-export default Vue.extend({
-  name: 'XrdSearch',
-  props: ['value', 'label'],
-  data() {
-    return {
-      closed: !this.value,
-    };
-  },
-  computed: {},
-  methods: {
-    show(): void {
-      this.closed = false;
+export default defineComponent({
+  props: {
+    modelValue: {
+      type: String,
+      required: true,
+    },
+    label: {
+      type: String,
+      default: '',
     },
   },
+  emits: ['update:model-value'],
+  data() {
+    return {
+      hide: true,
+      value: this.modelValue
+    };
+  },
+  computed: {
+    closed() {
+      return this.hide && !this.value;
+    }
+  },
+  methods: {}
 });
 </script>
 
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-.icon-closed {
-  margin-top: 20px; // adjusted so that icon stays in the same place open/closed
-  cursor: pointer;
-  color: $XRoad-Purple100;
-  padding-bottom: 4px; // adjusted so that icon takes same space than input
+.expanding-search {
+  transition: 0.4s;
+  min-width: 220px;
+  max-width: 220px;
+
+  :deep(.v-field__input){
+    margin-bottom: 0;
+  }
+}
+
+.closed {
+  min-width: 10px;
+
+  :deep(.v-field__outline:before) {
+    border-color: $XRoad-WarmGrey30;
+  }
+
+  :deep(.v-field__input) {
+    width: 5px;
+  }
+
+  :deep(.v-field__prepend-inner>i) {
+    color: $XRoad-Purple100;
+    opacity: 1;
+  }
 }
 </style>

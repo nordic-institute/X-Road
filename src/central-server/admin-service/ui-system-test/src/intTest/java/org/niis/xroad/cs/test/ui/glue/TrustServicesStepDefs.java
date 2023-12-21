@@ -29,7 +29,6 @@ package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
-import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.cs.test.ui.constants.Constants;
 import org.niis.xroad.cs.test.ui.page.TrustServicesPageObj;
 import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
@@ -39,8 +38,11 @@ import java.text.SimpleDateFormat;
 import java.util.UUID;
 
 import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
 
 public class TrustServicesStepDefs extends BaseUiStepDefs {
@@ -63,7 +65,8 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
         trustServicesPageObj.addDialog.inputFile().uploadFile(CertificateUtils.getAsFile(certificate));
         commonPageObj.dialog.btnSave().click();
-        trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile().setValue(CERTIFICATE_PROFILE);
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile())
+                .setValue(CERTIFICATE_PROFILE);
         commonPageObj.dialog.btnSave().click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
@@ -84,11 +87,22 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     @Step("user is able to sort by column {int}")
     public void userIsAbleToSortByColumn(int columnIndex) {
         var column = trustServicesPageObj.tableServicesCol(columnIndex);
-        Assertions.assertEquals("none", column.getAttribute("aria-sort"));
-        column.click();
-        Assertions.assertEquals("ascending", column.getAttribute("aria-sort"));
-        column.click();
-        Assertions.assertEquals("descending", column.getAttribute("aria-sort"));
+        column
+                .shouldHave(cssClass("v-data-table__th--sortable"))
+                .shouldNotHave(cssClass("v-data-table__th--sorted"))
+                .click();
+
+        column
+                .shouldHave(cssClass("v-data-table__th--sorted"))
+                .$x(".//i")
+                .shouldHave(cssClass("mdi-arrow-up"))
+                .click();
+
+        column
+                .shouldHave(cssClass("v-data-table__th--sorted"))
+                .$x(".//i")
+                .shouldHave(cssClass("mdi-arrow-down"))
+                .click();
     }
 
 
@@ -128,7 +142,8 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     public void userCanChangeTheCertificateProfile() {
         trustServicesPageObj.certServiceDetails.caSettings.btnEditCertProfile().click();
 
-        clearInput(trustServicesPageObj.certServiceDetails.caSettings.inputCertProfile())
+        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputCertProfile())
+                .clear()
                 .setValue(NEW_CERTIFICATE_PROFILE);
 
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
@@ -142,7 +157,8 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
     @Step("user can change the TLS Auth setting")
     public void userCanChangeTheTLSAuthSetting() {
         trustServicesPageObj.certServiceDetails.caSettings.btnEditTlsAuth().click();
-        trustServicesPageObj.certServiceDetails.caSettings.checkboxTlsAuth().click();
+        vCheckbox(trustServicesPageObj.certServiceDetails.caSettings.checkboxTlsAuth())
+                .click();
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);

@@ -24,9 +24,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <tr data-test="system.parameters-timestamping-service-row">
-    <td :class="{ disabled: !messageLogEnabled }">{{ timestampingService.name }}</td>
-    <td :class="{ disabled: !messageLogEnabled }">{{ timestampingService.url }}</td>
+  <tr data-test="system-parameters-timestamping-service-row">
+    <td :class="{ disabled: !messageLogEnabled }">
+      {{ timestampingService.name }}
+    </td>
+    <td :class="{ disabled: !messageLogEnabled }">
+      {{ timestampingService.url }}
+    </td>
     <td class="pr-4">
       <xrd-button
         v-if="showDeleteTsp"
@@ -40,8 +44,8 @@
         }}
       </xrd-button>
       <xrd-confirm-dialog
+        v-if="confirmDeleteDialog"
         data-test="system-parameters-timestamping-service-delete-confirm-dialog"
-        :dialog="confirmDeleteDialog"
         :loading="deleting"
         title="systemParameters.timestampingServices.table.action.delete.confirmation.title"
         text="systemParameters.timestampingServices.table.action.delete.confirmation.text"
@@ -53,24 +57,24 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
-import { Prop } from 'vue/types/options';
 import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'TimestampingServiceRow',
   props: {
     timestampingService: {
-      type: Object as Prop<TimestampingService>,
+      type: Object as PropType<TimestampingService>,
       required: true,
     },
     messageLogEnabled: Boolean,
   },
+  emits: ['deleted'],
   data() {
     return {
       confirmDeleteDialog: false,
@@ -81,7 +85,9 @@ export default Vue.extend({
   computed: {
     ...mapState(useUser, ['hasPermission']),
     showDeleteTsp(): boolean {
-      return this.hasPermission(Permissions.DELETE_TSP) && this.messageLogEnabled;
+      return (
+        this.hasPermission(Permissions.DELETE_TSP) && this.messageLogEnabled
+      );
     },
   },
   methods: {
@@ -108,8 +114,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
 
 .disabled {
   color: $XRoad-WarmGrey100;

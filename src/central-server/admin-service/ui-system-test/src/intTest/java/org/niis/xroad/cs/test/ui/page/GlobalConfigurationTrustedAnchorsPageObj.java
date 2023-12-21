@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -39,25 +39,29 @@ public class GlobalConfigurationTrustedAnchorsPageObj {
     }
 
     public SelenideElement downloadAnchorButton(String instance) {
-        var xpath = "../div/button[@data-test='download-anchor-button']";
+        var xpath = "../../div/button[@data-test='download-anchor-button']";
         return instanceWithName(instance).find(xpath(xpath));
     }
 
     public SelenideElement deleteAnchorButton(String instance) {
-        var xpath = "../div/button[@data-test='delete-anchor-button']";
+        var xpath = "../../div/button[@data-test='delete-anchor-button']";
         return instanceWithName(instance).find(xpath(xpath));
     }
 
     public SelenideElement instanceWithName(String title) {
-        var xpath = "//div[@class='card-main-title' and contains(text(), '%s')]";
+        var xpath = "//div[@class='xdr-table-title' and contains(text(), '%s')]";
         return $x(String.format(xpath, title));
     }
 
-    public SelenideElement instanceWithNameAndHashAndCreated(String title, String hash, String created) {
-        var hashXpath = "../..//span[@data-test='anchor-hash' and contains(text(), '%s')]";
-        var createdXpath = "../..//span[@data-test='anchor-created-at' and contains(text(), '%s')]";
+    public SelenideElement instanceWithNameAndHash(String title, String hash) {
+        var hashXpath = "../../..//span[@data-test='anchor-hash' and contains(text(), '%s')]";
         return instanceWithName(title)
-                .find(xpath(String.format(hashXpath, hash)))
-                .find(xpath(String.format(createdXpath, created)));
+                .find(xpath(String.format(hashXpath, hash)));
+    }
+
+    public SelenideElement createdAtForInstanceWithName(String title) {
+        var createdXpath = "../../..//span[@data-test='anchor-created-at']";
+        return instanceWithName(title)
+                .find(xpath(createdXpath));
     }
 }

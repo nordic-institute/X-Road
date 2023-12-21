@@ -30,7 +30,8 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation('io.micrometer:micrometer-tracing-bridge-brave')
     implementation('org.kohsuke:libpam4j:1.11')
     implementation("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
     implementation("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
@@ -41,10 +42,10 @@ dependencies {
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('javax.validation:validation-api')
+    implementation('jakarta.validation:jakarta.validation-api')
     implementation('org.apache.tika:tika-core:2.8.0')
 
-    api ("com.github.ben-manes.caffeine:caffeine")
+    api("com.github.ben-manes.caffeine:caffeine")
 }
 
 bootJar {
@@ -73,11 +74,12 @@ openApiGenerate {
         generateSupportingFiles: "false"
     ]
     configOptions = [
-        interfaceOnly: "true",
-        useTags      : "true",
-        documentationProvider  : "none",
-        skipDefaultInterface   : "true",
-        openApiNullable: "false"
+        useJakartaEe         : "true",
+        interfaceOnly        : "true",
+        useTags              : "true",
+        documentationProvider: "none",
+        skipDefaultInterface : "true",
+        openApiNullable      : "false"
     ]
 }
 

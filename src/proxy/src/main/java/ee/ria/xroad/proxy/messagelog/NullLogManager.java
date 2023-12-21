@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,13 +25,13 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
 
-import java.util.Date;
+import java.util.Map;
 
 /**
  * A dummy implementation of message log that does nothing.
@@ -39,24 +39,23 @@ import java.util.Date;
  */
 public class NullLogManager extends AbstractLogManager {
 
-    NullLogManager(JobManager jobManager) throws Exception {
+    NullLogManager(JobManager jobManager) {
         super(jobManager);
     }
 
     @Override
-    protected void log(LogMessage message) throws Exception {
+    public void log(LogMessage message) {
         // do nothing
     }
 
     @Override
-    protected LogRecord findByQueryId(String queryId, Date startTime,
-            Date endTime) throws Exception {
+    public TimestampRecord timestamp(Long messageRecordId) {
         return null;
     }
 
     @Override
-    protected TimestampRecord timestamp(Long messageRecordId) throws Exception {
-        return null;
+    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
+        throw new RuntimeException("Status not available while using NullLogManager");
     }
 
 }

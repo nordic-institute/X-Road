@@ -30,13 +30,13 @@
   min-width: 120px;
 }
 
-.dtlv-tools {
+.detail-view-tools {
   margin-top: 50px;
   display: flex;
   justify-content: flex-end;
 }
 
-.dtlv-actions-footer {
+.detail-view-actions-footer {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -69,20 +69,20 @@
   border-radius: 4px;
 }
 
-.dtlv-cert-hash {
+.detail-view-cert-hash {
   margin-top: 30px;
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
 }
 
-.dtlv-outer {
+.detail-view-outer {
   margin-top: 20px;
   box-shadow: $XRoad-DefaultShadow;
   font-size: $XRoad-DefaultFontSize;
 }
 
-.dtlv-content {
+.detail-view-content {
   padding: 16px;
   padding-bottom: 40px;
   background-color: $XRoad-White100;

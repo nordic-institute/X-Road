@@ -24,39 +24,39 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap" data-test="add-subject-view">
+  <v-sheet class="view-wrap" data-test="add-subject-view">
     <xrd-sub-view-title
       :title="$t('serviceClients.addServiceClientTitle')"
       :show-close="false"
       data-test="add-subject-title"
       class="pa-4"
     />
-
+    <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
     <v-stepper
       v-model="step"
       :alt-labels="true"
       class="wizard-stepper wizard-noshadow"
     >
       <v-stepper-header class="wizard-noshadow stepper-header">
-        <v-stepper-step :complete="step > 1" step="1">{{
+        <v-stepper-item :complete="step > 1" :value="1">{{
           $t('serviceClients.memberGroupStep')
-        }}</v-stepper-step>
+        }}</v-stepper-item>
         <v-divider></v-divider>
-        <v-stepper-step :complete="step > 2" step="2">{{
+        <v-stepper-item :complete="step > 2" :value="2">{{
           $t('serviceClients.servicesStep')
-        }}</v-stepper-step>
+        }}</v-stepper-item>
       </v-stepper-header>
 
-      <v-stepper-items class="wizard-stepper-content">
-        <v-stepper-content step="1">
+      <v-stepper-window class="wizard-stepper-content">
+        <v-stepper-window-item :value="1">
           <MemberOrGroupSelectionStep
             :id="id"
             :service-clients="serviceClients"
             @candidate-selection="candidateSelection"
             @set-step="nextStep"
           ></MemberOrGroupSelectionStep>
-        </v-stepper-content>
-        <v-stepper-content step="2">
+        </v-stepper-window-item>
+        <v-stepper-window-item :value="2">
           <ServiceSelectionStep
             v-if="serviceClientCandidateSelection"
             :id="id"
@@ -66,14 +66,14 @@
             "
             @set-step="previousStep"
           ></ServiceSelectionStep>
-        </v-stepper-content>
-      </v-stepper-items>
+        </v-stepper-window-item>
+      </v-stepper-window>
     </v-stepper>
-  </div>
+  </v-sheet>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import MemberOrGroupSelectionStep from '@/views/Clients/ServiceClients/MemberOrGroupSelectionStep.vue';
 import ServiceSelectionStep from '@/views/Clients/ServiceClients/ServiceSelectionStep.vue';
 import {
@@ -88,9 +88,21 @@ import { compareByServiceCode } from '@/util/sorting';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
+import {
+  VStepper,
+  VStepperHeader,
+  VStepperItem,
+  VStepperWindow,
+  VStepperWindowItem,
+} from 'vuetify/labs/VStepper';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    VStepper,
+    VStepperHeader,
+    VStepperItem,
+    VStepperWindow,
+    VStepperWindowItem,
     MemberOrGroupSelectionStep,
     ServiceSelectionStep,
   },
@@ -162,6 +174,7 @@ export default Vue.extend({
 /* Modify wizard import */
 .view-wrap {
   max-width: 850px;
+  width: 100%;
   margin: 10px;
 }
 

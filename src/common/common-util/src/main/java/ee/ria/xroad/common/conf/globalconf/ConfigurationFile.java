@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,7 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpField;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -53,15 +53,20 @@ final class ConfigurationFile extends AbstractConfigurationPart {
     private final OffsetDateTime expirationDate;
 
     @Getter
+    private final String configurationVersion;
+
+    @Getter
     private final String hash;
 
     private ConfigurationFile(Map<String, String> parameters,
             ContentIdentifier contentIdentifier, OffsetDateTime expirationDate,
+            String configurationVersion,
             String hash) {
         super(parameters);
 
         this.contentIdentifier = contentIdentifier;
         this.expirationDate = expirationDate;
+        this.configurationVersion = configurationVersion;
         this.hash = hash;
     }
 
@@ -98,11 +103,12 @@ final class ConfigurationFile extends AbstractConfigurationPart {
         metadata.setExpirationDate(getExpirationDate());
         metadata.setContentFileName(getContentFileName());
         metadata.setContentLocation(getContentLocation());
+        metadata.setConfigurationVersion(getConfigurationVersion());
         return metadata;
     }
 
     static ConfigurationFile of(Map<String, String> headers,
-            OffsetDateTime expirationDate, String hash) {
+            OffsetDateTime expirationDate, String version, String hash) {
         if (headers == null) {
             throw new IllegalArgumentException("headers must not be null");
         }
@@ -120,18 +126,18 @@ final class ConfigurationFile extends AbstractConfigurationPart {
         verifyFieldExists(h, HEADER_HASH_ALGORITHM_ID);
 
         return new ConfigurationFile(headers,
-                getContentIdentififer(h.get(HEADER_CONTENT_IDENTIFIER)),
-                expirationDate, hash);
+                getContentIdentifier(h.get(HEADER_CONTENT_IDENTIFIER)),
+                expirationDate, version, hash);
     }
 
-    private static ContentIdentifier getContentIdentififer(String value) {
+    private static ContentIdentifier getContentIdentifier(String value) {
         if (StringUtils.isBlank(value)) {
             return new ContentIdentifier("", "");
         }
 
         Map<String, String> p = new HashMap<>();
 
-        String id = HttpFields.valueParameters(value, p);
+        String id = HttpField.valueParameters(value, p);
         String instance = p.get(PARAM_INSTANCE);
 
         if ((ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS.equals(id)

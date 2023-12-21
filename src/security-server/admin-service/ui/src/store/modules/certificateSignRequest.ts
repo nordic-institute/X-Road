@@ -43,9 +43,9 @@ import { encodePathParameter } from '@/util/api';
 export interface CsrState {
   csrKey: Key | undefined;
   csrClient: string | undefined;
-  usage: string | undefined;
+  usage: KeyUsageType | undefined;
   certificationService: string;
-  csrFormat: string;
+  csrFormat: CsrFormat;
   certificationServiceList: CertificateAuthority[];
   keyId: string;
   form: CsrSubjectFieldDescription[];
@@ -56,7 +56,7 @@ export interface CsrState {
   isNewMember: boolean;
 }
 
-export const useCsrStore = defineStore('csrStore', {
+export const useCsr = defineStore('csr', {
   state: (): CsrState => {
     return {
       csrKey: undefined,
@@ -114,7 +114,7 @@ export const useCsrStore = defineStore('csrStore', {
       if (state.tokenType === TokenType.HARDWARE) {
         return true;
       }
-      // Usage type can be selected only when the Key doesn't have already have it set
+      // Usage type can be selected only when the Key doesn't already have it set
       if (state.csrKey && state.csrKey.usage) {
         return true;
       }
@@ -266,7 +266,9 @@ export const useCsrStore = defineStore('csrStore', {
     setKeyId(keyId: string) {
       this.keyId = keyId;
     },
-
+    setCsrForm(form: CsrSubjectFieldDescription[]) {
+      this.form = form;
+    },
     setupSignKey() {
       // Initialize the state with sign type Key. Needed for "add client" wizard.
       const templateKey: Key = {

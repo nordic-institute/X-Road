@@ -24,47 +24,45 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <xrd-button
-      data-test="unregister-client-button"
-      outlined
-      @click="confirmUnregisterClient = true"
-      >{{ $t('action.unregister') }}</xrd-button
-    >
+  <xrd-button
+    data-test="unregister-client-button"
+    outlined
+    @click="confirmUnregisterClient = true"
+    >{{ $t('action.unregister') }}</xrd-button
+  >
 
-    <!-- Confirm dialog for unregister client -->
-    <xrd-confirm-dialog
-      :dialog="confirmUnregisterClient"
-      :loading="unregisterLoading"
-      title="client.action.unregister.confirmTitle"
-      text="client.action.unregister.confirmText"
-      @cancel="confirmUnregisterClient = false"
-      @accept="unregisterClient()"
-    />
-  </div>
+  <!-- Confirm dialog for unregister client -->
+  <xrd-confirm-dialog
+    v-if="confirmUnregisterClient"
+    :loading="unregisterLoading"
+    title="client.action.unregister.confirmTitle"
+    text="client.action.unregister.confirmText"
+    @cancel="confirmUnregisterClient = false"
+    @accept="unregisterClient()"
+  />
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     id: {
       type: String,
       required: true,
     },
   },
+  emits: ['done'],
   data() {
     return {
       confirmUnregisterClient: false as boolean,
       unregisterLoading: false as boolean,
     };
   },
-
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     unregisterClient(): void {

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,73 +25,79 @@
  */
 package ee.ria.xroad.proxymonitor.util;
 
-import ee.ria.xroad.monitor.common.dto.HistogramDto;
-import ee.ria.xroad.monitor.common.dto.MetricDto;
-import ee.ria.xroad.monitor.common.dto.MetricSetDto;
-import ee.ria.xroad.monitor.common.dto.SimpleMetricDto;
 import ee.ria.xroad.proxymonitor.message.HistogramMetricType;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.MetricType;
 import ee.ria.xroad.proxymonitor.message.NumericMetricType;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 
+import com.google.protobuf.util.Timestamps;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.niis.xroad.monitor.common.HistogramMetrics;
+import org.niis.xroad.monitor.common.Metrics;
+import org.niis.xroad.monitor.common.MetricsGroup;
+import org.niis.xroad.monitor.common.SingleMetrics;
+
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
+import java.util.Optional;
 
 /**
  * Created by hyoty on 25.9.2015.
  */
 public final class MetricTypes {
-    private MetricTypes() { }
+    private MetricTypes() {
+    }
 
     /**
      * MetricSetType factory
      */
-    public static MetricSetType of(MetricSetDto metrics) {
+    public static MetricSetType of(MetricsGroup metrics) {
         final MetricSetType metricSet = new MetricSetType();
         metricSet.setName(metrics.getName());
-        for (MetricDto metricDto : metrics.getMetrics()) {
-            if (metricDto instanceof MetricSetDto) {
-                metricSet.getMetrics().add(of((MetricSetDto) metricDto));
-            } else if (metricDto instanceof HistogramDto) {
-                metricSet.getMetrics().add(toMetricType((HistogramDto) metricDto));
-            } else if (metricDto instanceof SimpleMetricDto) {
-                metricSet.getMetrics().add(toMetricType((SimpleMetricDto<?>) metricDto));
+        for (Metrics metricDto : metrics.getMetricsList()) {
+            if (metricDto.hasMetricsGroup()) {
+                metricSet.getMetrics().add(of(metricDto.getMetricsGroup()));
+            } else if (metricDto.hasSingleHistogram()) {
+                metricSet.getMetrics().add(toMetricType(metricDto.getSingleHistogram()));
+            } else if (metricDto.hasSingleMetrics()) {
+                metricSet.getMetrics().add(toMetricType(metricDto.getSingleMetrics()));
             }
         }
         return metricSet;
     }
 
-    private static BigDecimal toBigDecimal(Number n) {
-        if (n instanceof BigDecimal) return (BigDecimal)n;
-        if (n instanceof Integer || n instanceof Long) return BigDecimal.valueOf(n.longValue());
-        return BigDecimal.valueOf(n.doubleValue());
 
-    }
+    private static MetricType toMetricType(SingleMetrics metricDto) {
+        Optional<String> optValue = Optional.ofNullable(metricDto.hasValue() ? metricDto.getValue() : null);
 
-    private static MetricType toMetricType(SimpleMetricDto<?> metricDto) {
-        Object value = metricDto.getValue();
-        if (value instanceof Number) {
+        if (optValue.isPresent() && NumberUtils.isCreatable(optValue.get())) {
             final NumericMetricType metric = new NumericMetricType();
             metric.setName(metricDto.getName());
-            metric.setValue(toBigDecimal((Number) value));
+            metric.setValue(new BigDecimal(optValue.get()));
             return metric;
         }
+
         final StringMetricType metric = new StringMetricType();
         metric.setName(metricDto.getName());
-        metric.setValue((metricDto.getValue() == null ? null : metricDto.getValue().toString()));
+        optValue.ifPresent(metric::setValue);
+
         return metric;
     }
 
-    private static MetricType toMetricType(HistogramDto metricDto) {
+    private static MetricType toMetricType(HistogramMetrics metricDto) {
         final HistogramMetricType metric = new HistogramMetricType();
+
+        var dateUpdated = Instant.ofEpochMilli(Timestamps.toMillis(metricDto.getUpdateDateTime()));
+
         final GregorianCalendar cal =
-                GregorianCalendar.from(ZonedDateTime.ofInstant(metricDto.getUpdateDateTime(), ZoneId.of("UTC")));
+                GregorianCalendar.from(ZonedDateTime.ofInstant(dateUpdated, ZoneId.of("UTC")));
         metric.setUpdated(DATATYPE_FACTORY.newXMLGregorianCalendar(cal));
         metric.setName(metricDto.getName());
         metric.setMax(BigDecimal.valueOf(metricDto.getMax()));
@@ -103,6 +109,7 @@ public final class MetricTypes {
     }
 
     private static final DatatypeFactory DATATYPE_FACTORY;
+
     static {
         try {
             DATATYPE_FACTORY = DatatypeFactory.newInstance();

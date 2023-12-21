@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -33,11 +33,22 @@ import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
+import org.niis.xroad.restapi.config.UserRoleConfig;
+import org.niis.xroad.restapi.domain.Role;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.unit.DataSize;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.domain.Role.XROAD_REGISTRATION_OFFICER;
+import static org.niis.xroad.restapi.domain.Role.XROAD_SECURITYSERVER_OBSERVER;
+import static org.niis.xroad.restapi.domain.Role.XROAD_SECURITY_OFFICER;
+import static org.niis.xroad.restapi.domain.Role.XROAD_SERVICE_ADMINISTRATOR;
+import static org.niis.xroad.restapi.domain.Role.XROAD_SYSTEM_ADMINISTRATOR;
 
 /**
  * Admin service configuration properties.
@@ -51,7 +62,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         AllowedHostnamesConfig,
         ApiCachingConfiguration.Config,
         LimitRequestSizesFilter.Config,
-        IdentifierValidationConfiguration.Config {
+        IdentifierValidationConfiguration.Config,
+        UserRoleConfig {
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -108,5 +120,27 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
 
     /** Configures Api file upload request size limit. */
     private DataSize requestSizeLimitBinaryUpload;
+
+    /**
+     * Configures additional UNIX groups mapped to X-Road user roles.
+     */
+    private EnumMap<Role, List<String>> complementaryUserRoleMappings;
+
+    @Override
+    public EnumMap<Role, List<String>> getUserRoleMappings() {
+        EnumMap<Role, List<String>> userRoleMappings = new EnumMap<>(Role.class);
+        userRoleMappings.put(XROAD_SECURITY_OFFICER, List.of("xroad-security-officer"));
+        userRoleMappings.put(XROAD_REGISTRATION_OFFICER, List.of("xroad-registration-officer"));
+        userRoleMappings.put(XROAD_SERVICE_ADMINISTRATOR, List.of("xroad-service-administrator"));
+        userRoleMappings.put(XROAD_SYSTEM_ADMINISTRATOR, List.of("xroad-system-administrator"));
+        userRoleMappings.put(XROAD_SECURITYSERVER_OBSERVER, List.of("xroad-securityserver-observer"));
+
+        if (complementaryUserRoleMappings != null) {
+            complementaryUserRoleMappings.forEach((role, groups) -> userRoleMappings.merge(role, groups,
+                    (a, b) -> Stream.concat(a.stream(), b.stream()).collect(toList())));
+        }
+
+        return userRoleMappings;
+    }
 }
 

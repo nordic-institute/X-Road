@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import akka.dispatch.ControlMessage;
+import ee.ria.xroad.common.util.TimeUtils;
+
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -33,14 +34,15 @@ import java.time.Instant;
 
 @Data
 @RequiredArgsConstructor
-class SetTimestampingStatusMessage implements ControlMessage {
+class SetTimestampingStatusMessage {
     /**
      * Status
      */
     public enum Status {
         SUCCESS,
-        FAILURE;
+        FAILURE
     }
+
     private final Status status;
     /**
      * Time when the status was achieved
@@ -49,11 +51,12 @@ class SetTimestampingStatusMessage implements ControlMessage {
 
     /**
      * Constructor that sets status change timestamp to current time.
+     *
      * @param status
      */
     SetTimestampingStatusMessage(Status status) {
         this.status = status;
-        this.atTime = Instant.now();
+        this.atTime = TimeUtils.now();
     }
 }
 

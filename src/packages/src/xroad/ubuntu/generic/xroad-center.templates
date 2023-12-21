@@ -27,8 +27,8 @@ Description: Insert admin interface TLS certificate subject name alternatives
 
 Template: xroad-common/service-subject
 Type: string
-Description: Insert TLS certificate subject name
- This certificate will be used to secure internal service->secureserver connections.
+Description: Insert management service TLS certificate subject name [default=/CN=${HOST}]
+ This certificate will be used to secure management Security Server and management services.
  .
  Include most used hostname or IP address as as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
  .
@@ -36,10 +36,30 @@ Description: Insert TLS certificate subject name
 
 Template: xroad-common/service-altsubject
 Type: string
-Description: Insert TLS certificate subject name alternatives
- This certificate will be used to secure internal service->secureserver connections.
+Description: Insert management service TLS certificate subject name alternatives [default=${ALT}]
+ This certificate will be used to secure management Security Server and management services.
  .
  Include all alternative names and IP addresses which will be used for accessing secure services
+ .
+ Format is IP:<ipaddress>,DNS:<hostname>,...
+ .
+ Server reports following ip addresses and hostnames: ${ALT}
+
+Template: xroad-common/global-conf-subject
+Type: string
+Description: Insert TLS certificate subject name for Global configuration distribution over HTTPS [default=/CN=${HOST}]
+ This certificate will be used to secure download Global configuration over HTTPS.
+ .
+ Include most used hostname or IP address as common name (CN=..) value. General form is /C=EE/O=Company/OU=Org Unit/CN=server.name.tld
+ .
+ Server reports full hostname as: ${HOST}
+
+Template: xroad-common/global-conf-altsubject
+Type: string
+Description: Insert TLS certificate subject alternatives for Global configuration distribution over HTTPS [default=${ALT}]
+ This certificate will be used to secure download Global configuration over HTTPS.
+ .
+ Include all alternative names and IP addresses which will be used for secure download Global configuration over HTTPS
  .
  Format is IP:<ipaddress>,DNS:<hostname>,...
  .
@@ -50,6 +70,11 @@ Type: error
 Description: Error during certificate generation, please fix issues
   output was:
   ${ERR}
+
+Template: xroad-common/cert-generation-retry
+Default: false
+Type: boolean
+Description: Retry certificate generation
 
 Template: xroad-common/username
 Type: string

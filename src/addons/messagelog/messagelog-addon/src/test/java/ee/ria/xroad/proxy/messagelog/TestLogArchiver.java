@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -27,17 +27,12 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.messagelog.archiver.LogArchiver;
 
-import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 class TestLogArchiver extends LogArchiver {
 
     private static CountDownLatch gate = new CountDownLatch(1);
-
-    TestLogArchiver(Path archivePath) {
-        super(archivePath);
-    }
 
     public static void waitForArchiveSuccessful() throws Exception {
         try {

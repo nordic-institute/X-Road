@@ -1,20 +1,20 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.junit.jupiter.api.Test;
@@ -36,8 +37,7 @@ import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
-import javax.persistence.EntityManager;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,6 +72,7 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     private Query query;
 
     @Test
+    @WithMockUser(authorities = {"ROLE_XROAD_REGISTRATION_OFFICER"})
     void testList() throws Exception {
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
@@ -92,6 +93,7 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     }
 
     @Test
+    @WithMockUser(authorities = {"ROLE_XROAD_REGISTRATION_OFFICER"})
     void testCacheEviction() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
@@ -130,6 +132,7 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     }
 
     @Test
+    @WithMockUser(authorities = {"ROLE_XROAD_REGISTRATION_OFFICER"})
     void testGet() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);

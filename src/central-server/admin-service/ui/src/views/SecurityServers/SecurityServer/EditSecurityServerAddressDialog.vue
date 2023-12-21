@@ -28,51 +28,36 @@
   Member details view
 -->
 <template>
-  <validation-observer v-slot="{ invalid }">
-    <xrd-simple-dialog
-      title="securityServers.dialogs.editAddress.title"
-      data-test="security-server-address-edit-dialog"
-      save-button-text="action.save"
-      :dialog="showDialog"
-      :scrollable="false"
-      :show-close="true"
-      :loading="loading"
-      :disable-save="invalid"
-      @save="saveAddress"
-      @cancel="close"
-    >
-      <div slot="content">
-        <div class="pt-4 dlg-input-width">
-          <validation-provider
-            ref="serverAddressVP"
-            v-slot="{ errors }"
-            rules="required"
-            name="securityServerAddress"
-            class="validation-provider"
-          >
-            <v-text-field
-              v-model="updatedAddress"
-              data-test="security-server-address-edit-field"
-              :label="$t('securityServers.dialogs.editAddress.addressField')"
-              autofocus
-              outlined
-              class="dlg-row-input"
-              name="securityServerAddress"
-              :error-messages="errors"
-            ></v-text-field>
-          </validation-provider>
-        </div>
-      </div>
-    </xrd-simple-dialog>
-  </validation-observer>
+  <xrd-simple-dialog
+    title="securityServers.dialogs.editAddress.title"
+    data-test="security-server-address-edit-dialog"
+    save-button-text="action.save"
+    :scrollable="false"
+    :show-close="true"
+    :loading="loading"
+    :disable-save="!meta.valid || !meta.dirty"
+    @save="saveAddress"
+    @cancel="close"
+  >
+    <template #content>
+      <v-text-field
+        v-bind="securityServerAddress"
+        data-test="security-server-address-edit-field"
+        :label="$t('securityServers.dialogs.editAddress.addressField')"
+        autofocus
+        variant="outlined"
+        class="dlg-row-input"
+        name="securityServerAddress"
+        :error-messages="errors.securityServerAddress"
+      />
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue, { VueConstructor } from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { mapActions, mapStores } from 'pinia';
-import { useSecurityServerStore } from '@/store/modules/security-servers';
-import { notificationsStore } from '@/store/modules/notifications';
+import { defineComponent } from 'vue';
+import { useSecurityServer } from '@/store/modules/security-servers';
+import { useNotifications } from '@/store/modules/notifications';
 import { ErrorInfo } from '@/openapi-types';
 import {
   getErrorInfo,
@@ -80,70 +65,82 @@ import {
   isFieldError,
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
+import { useForm } from 'vee-validate';
+import { mapActions, mapStores } from 'pinia';
 
 /**
  * Component for a Security server details view
  */
-export default (
-  Vue as VueConstructor<
-    Vue & {
-      $refs: {
-        serverAddressVP: InstanceType<typeof ValidationProvider>;
-      };
-    }
-  >
-).extend({
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+export default defineComponent({
   props: {
     securityServerId: {
       type: String,
-      default: '',
+      required: true,
     },
     address: {
       type: String,
       required: true,
     },
   },
+  emits: ['cancel', 'addressUpdated'],
+  setup(props) {
+    const {
+      values,
+      errors,
+      meta,
+      resetForm,
+      setFieldError,
+      defineComponentBinds,
+    } = useForm({
+      validationSchema: {
+        securityServerAddress: 'required',
+      },
+      initialValues: { securityServerAddress: props.address },
+    });
+    const securityServerAddress = defineComponentBinds('securityServerAddress');
+    return {
+      values,
+      meta,
+      errors,
+      resetForm,
+      setFieldError,
+      securityServerAddress,
+    };
+  },
   data() {
     return {
       loading: false,
       showDialog: false,
-      updatedAddress: this.address,
     };
   },
   computed: {
-    ...mapStores(useSecurityServerStore),
+    ...mapStores(useSecurityServer),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
-    open(): void {
-      this.showDialog = true;
-    },
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
-      this.updatedAddress = this.address;
-      this.showDialog = false;
+      this.resetForm();
+      this.$emit('cancel');
     },
     saveAddress: async function () {
       try {
         this.loading = true;
         await this.securityServerStore.updateAddress(
           this.securityServerId,
-          this.updatedAddress,
+          this.values.securityServerAddress,
         );
         this.showSuccess(
           this.$t('securityServers.dialogs.editAddress.success'),
         );
-        this.close();
+        this.$emit('addressUpdated');
       } catch (updateError: unknown) {
         const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
         if (isFieldError(errorInfo)) {
           // backend validation error
           let fieldErrors = errorInfo.error?.validation_errors;
-          if (fieldErrors && this.$refs?.serverAddressVP) {
-            this.$refs.serverAddressVP.setErrors(
+          if (fieldErrors) {
+            this.setFieldError(
+              'securityServerAddress',
               getTranslatedFieldErrors(
                 'securityServerAddressDto.serverAddress',
                 fieldErrors,

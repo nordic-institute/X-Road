@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -38,32 +38,32 @@ public class SecurityServerDetailsPageObj {
     private final DeleteSecurityServerDialog deleteSecurityServerDialog = new DeleteSecurityServerDialog();
 
     public SelenideElement ownerName() {
-        var xpath = "//div[@data-test='security-server-owner-name']//div[2]/div";
+        var xpath = "//div[@data-test='security-server-owner-name']//div[contains(@class, 'v-card-text')]";
         return $x(xpath);
     }
 
     public SelenideElement ownerClass() {
-        var xpath = "//div[@data-test='security-server-owner-class']//div[2]/div";
+        var xpath = "//div[@data-test='security-server-owner-class']//div[contains(@class, 'v-card-text')]";
         return $x(xpath);
     }
 
     public SelenideElement ownerCode() {
-        var xpath = "//div[@data-test='security-server-owner-code']//div[2]/div";
+        var xpath = "//div[@data-test='security-server-owner-code']//div[contains(@class, 'v-card-text')]";
         return $x(xpath);
     }
 
     public SelenideElement serverCode() {
-        var xpath = "//div[@data-test='security-server-server-code']//div[2]/div";
+        var xpath = "//div[@data-test='security-server-server-code']//div[contains(@class, 'v-card-text')]";
         return $x(xpath);
     }
 
     public SelenideElement serverAddress() {
-        var xpath = "//div[@data-test='security-server-address']//div[2]/div";
+        var xpath = "//div[@data-test='security-server-address']//div[contains(@class, 'v-card-text')]/div";
         return $x(xpath);
     }
 
     public SelenideElement serverRegistered() {
-        var xpath = "//div[@data-test='security-server-registered']//div[2]/div";
+        var xpath = "//div[@data-test='security-server-registered']//div[contains(@class, 'v-card-text')]";
         return $x(xpath);
     }
 
@@ -87,7 +87,7 @@ public class SecurityServerDetailsPageObj {
 
     public class EditServerAddressDialog {
         public SelenideElement inputAddress() {
-            var xpath = "//input[@data-test='security-server-address-edit-field']";
+            var xpath = "//div[@data-test='security-server-address-edit-field']";
             return $x(xpath);
         }
 
@@ -109,7 +109,7 @@ public class SecurityServerDetailsPageObj {
 
     public class DeleteSecurityServerDialog {
         public SelenideElement inputSeverCode() {
-            var xpath = "//input[@data-test='verify-server-code']";
+            var xpath = "//div[@data-test='verify-server-code']";
             return $x(xpath);
         }
 

@@ -29,25 +29,25 @@ task xjc() {
 
     doLast {
         ant.taskdef(name: 'xjc',
-                classname: 'com.sun.tools.xjc.XJCTask',
-                classpath: configurations.xjc.asPath)
+            classname: 'com.sun.tools.xjc.XJCTask',
+            classpath: configurations.xjc.asPath)
 
         // Generate classes for identifiers
         ant.xjc(
-                destdir: project.ext.schemaTargetDir,
-                package: 'ee.ria.xroad.proxymonitor.message',
-                schema: 'src/main/resources/monitoring.xsd',
-                binding: 'src/main/resources/jaxb-bindings.xml'
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.proxymonitor.message',
+            schema: 'src/main/resources/monitoring.xsd',
+            binding: 'src/main/resources/jaxb-bindings.xml'
         )
     }
 
 }
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }

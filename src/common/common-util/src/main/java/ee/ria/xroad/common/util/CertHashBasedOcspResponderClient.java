@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -29,7 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
@@ -37,12 +37,15 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +57,8 @@ import java.util.List;
 public final class CertHashBasedOcspResponderClient {
 
     private static final String METHOD = "GET";
-    private static final String CERT_PARAM = "cert";
+    private static final String SHA_1_CERT_PARAM = "cert";
+    private static final String SHA_256_CERT_PARAM = "cert_hash";
 
     private static final List<Integer> VALID_RESPONSE_CODES = Arrays.asList(
             200, 201, 202, 203, 204, 205, 206, 207, 208, 226);
@@ -66,17 +70,13 @@ public final class CertHashBasedOcspResponderClient {
      * Creates an GET request to the internal cert hash based OCSP responder and expects an OCSP responses.
      *
      * @param providerAddress URL of the OCSP response provider
-     * @param hashes          certificate hashes for which to get the responses
+     * @param certificates    certificates for which to get the responses
      * @return list of OCSP response objects
-     * @throws IOException   if I/O errors occurred
-     * @throws OCSPException if the response could not be parsed
+     * @throws Exception   if I/O errors occurred
      */
-    public static List<OCSPResp> getOcspResponsesFromServer(String providerAddress, String[] hashes)
-            throws IOException, OCSPException {
-        URL url = createUrl(providerAddress, hashes);
-
-        log.debug("Getting OCSP responses for hashes ({}) from: {}", Arrays.toString(hashes), url.getHost());
-
+    public static List<OCSPResp> getOcspResponsesFromServer(String providerAddress, List<X509Certificate> certificates)
+            throws CertificateEncodingException, URISyntaxException, IOException, OperatorCreationException, OCSPException {
+        URL url = createUrl(providerAddress, certificates);
         return getOcspResponsesFromServer(url);
     }
 
@@ -132,8 +132,19 @@ public final class CertHashBasedOcspResponderClient {
         return responses;
     }
 
-    private static URL createUrl(String providerAddress, String[] hashes) throws MalformedURLException {
-        return new URL("http", providerAddress, SystemProperties.getOcspResponderPort(), "/?" + CERT_PARAM + "="
-                + StringUtils.join(hashes, "&" + CERT_PARAM + "="));
+    private static URL createUrl(String providerAddress, List<X509Certificate> certificates)
+            throws URISyntaxException, IOException, CertificateEncodingException, OperatorCreationException {
+        String[] sha1Hashes = CertUtils.getSha1Hashes(certificates);
+        String[] sha256Hashes = CertUtils.getHashes(certificates);
+
+        var uriBuilder = new URIBuilder().setScheme("http").setHost(providerAddress).setPort(SystemProperties.getOcspResponderPort());
+        // TODO sha1 hashes should not be added to the request once 7.3.x is no longer supported
+        Arrays.stream(sha1Hashes).forEach(hash -> uriBuilder.addParameter(SHA_1_CERT_PARAM, hash));
+        Arrays.stream(sha256Hashes).forEach(hash -> uriBuilder.addParameter(SHA_256_CERT_PARAM, hash));
+        var uri = uriBuilder.build();
+
+        log.debug("Getting OCSP responses for hashes ({}) from: {}", Arrays.toString(sha1Hashes), uri.getHost());
+
+        return uri.toURL();
     }
 }

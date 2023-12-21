@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -122,36 +122,36 @@ public class QueryRequestHandlerTest {
         SoapMessageDecoder decoder = new SoapMessageDecoder(testContentType,
                 new SoapMessageDecoder.Callback() {
 
-                @Override
-                public void soap(SoapMessage message, Map<String, String> headers)
-                    throws Exception {
-                    assertEquals("cid:" + OperationalDataRequestHandler.CID,
-                            findRecordsContentId(message));
-                }
+                    @Override
+                    public void soap(SoapMessage message, Map<String, String> headers)
+                            throws Exception {
+                        assertEquals("cid:" + OperationalDataRequestHandler.CID,
+                                findRecordsContentId(message));
+                    }
 
-                @Override
-                public void attachment(String contentType, InputStream content,
-                        Map<String, String> additionalHeaders) throws Exception {
-                    String expectedCid = "<" + OperationalDataRequestHandler.CID
-                            + ">";
-                    assertEquals(expectedCid, additionalHeaders.get("content-id"));
-                }
+                    @Override
+                    public void attachment(String contentType, InputStream content,
+                                           Map<String, String> additionalHeaders) throws Exception {
+                        String expectedCid = "<" + OperationalDataRequestHandler.CID
+                                + ">";
+                        assertEquals(expectedCid, additionalHeaders.get("content-id"));
+                    }
 
-                @Override
-                public void onCompleted() {
-                    // Do nothing.
-                }
+                    @Override
+                    public void onCompleted() {
+                        // Do nothing.
+                    }
 
-                @Override
-                public void onError(Exception t) throws Exception {
-                    throw t;
-                }
+                    @Override
+                    public void onError(Exception t) throws Exception {
+                        throw t;
+                    }
 
-                @Override
-                public void fault(SoapFault fault) throws Exception {
-                    throw fault.toCodedException();
-                }
-            });
+                    @Override
+                    public void fault(SoapFault fault) throws Exception {
+                        throw fault.toCodedException();
+                    }
+                });
 
         decoder.parse(IOUtils.toInputStream(out.toString()));
     }

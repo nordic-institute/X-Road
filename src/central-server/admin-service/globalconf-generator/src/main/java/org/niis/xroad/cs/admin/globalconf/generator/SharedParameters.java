@@ -36,6 +36,7 @@ import java.util.List;
 @Data
 class SharedParameters {
     private String instanceIdentifier;
+    private List<ConfigurationSource> sources;
     private List<ApprovedCA> approvedCAs;
     private List<ApprovedTSA> approvedTSAs;
     private List<Member> members;
@@ -44,12 +45,20 @@ class SharedParameters {
     private GlobalSettings globalSettings;
 
     @Data
+    public static class ConfigurationSource {
+        private String address;
+        private List<byte[]> internalVerificationCerts;
+        private List<byte[]> externalVerificationCerts;
+    }
+
+    @Data
     public static class ApprovedCA {
         private String name;
         private Boolean authenticationOnly;
         private CaInfo topCA;
         private List<CaInfo> intermediateCAs;
         private String certificateProfileInfo;
+        private AcmeServer acmeServer;
     }
 
     @Data
@@ -57,6 +66,13 @@ class SharedParameters {
     public static class CaInfo {
         private List<OcspInfo> ocsp;
         private byte[] cert;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class AcmeServer {
+        private String directoryURL;
+        private String ipAddress;
     }
 
     @Data
@@ -95,7 +111,7 @@ class SharedParameters {
         private ClientId owner;
         private String serverCode;
         private String address;
-        private List<byte[]> authCertHashes;
+        private List<byte[]> authCerts;
         private List<ClientId> clients;
     }
 

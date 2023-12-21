@@ -37,7 +37,7 @@
         :show-action="allowMemberRename"
         :info-text="memberStore.currentMember.member_name || ''"
         data-test="member-name-card"
-        @actionClicked="showEditNameDialog = true"
+        @action-clicked="showEditNameDialog = true"
       />
 
       <info-card
@@ -55,15 +55,10 @@
 
     <!-- Owned Servers -->
     <div id="owned-servers">
-      <div class="xrd-title-search mb-8">
-        <div class="xrd-view-title">
-          {{ $t('members.member.details.ownedServers') }}
-        </div>
-        <xrd-search v-model="searchServers" data-test="search-owned-servers" />
-      </div>
-
-      <v-card flat>
-        <!-- Table -->
+      <searchable-titled-view
+        v-model="searchServers"
+        title-key="members.member.details.ownedServers"
+      >
         <v-data-table
           :loading="loadingServers"
           :headers="serversHeaders"
@@ -74,27 +69,30 @@
           class="elevation-0 data-table"
           item-key="id"
           :loader-height="2"
-          hide-default-footer
           data-test="owned-servers-table"
         >
-          <template #footer>
-            <div class="cs-table-custom-footer"></div>
+          <template #[`item.server_id.server_code`]="{ item }">
+            <div
+              class="server-code xrd-clickable"
+              :data-test="`owned-server-${item.server_id.server_code}`"
+              @click="toSecurityServerDetails(item)"
+            >
+              {{ item.server_id.server_code }}
+            </div>
+          </template>
+          <template #bottom>
+            <custom-data-table-footer />
           </template>
         </v-data-table>
-      </v-card>
+      </searchable-titled-view>
     </div>
 
     <!-- Global Groups -->
     <div id="global-groups">
-      <div class="xrd-title-search mt-8 mb-8">
-        <div class="xrd-view-title">
-          {{ $t('members.member.details.globalGroups') }}
-        </div>
-        <xrd-search v-model="searchGroups" data-test="search-global-groups" />
-      </div>
-
-      <v-card flat>
-        <!-- Table -->
+      <searchable-titled-view
+        v-model="searchGroups"
+        title-key="members.member.details.globalGroups"
+      >
         <v-data-table
           :loading="loadingGroups"
           :headers="groupsHeaders"
@@ -102,19 +100,18 @@
           :search="searchGroups"
           :must-sort="true"
           :items-per-page="-1"
-          class="elevation-0 data-table"
+          class="elevation-0 data-table xrd-data-table"
           :loader-height="2"
-          hide-default-footer
           data-test="global-groups-table"
         >
           <template #[`item.added_to_group`]="{ item }">
-            {{ item.added_to_group | formatDateTime }}
+            <date-time :value="item.added_to_group" />
           </template>
-          <template #footer>
-            <div class="cs-table-custom-footer"></div>
+          <template #bottom>
+            <custom-data-table-footer />
           </template>
         </v-data-table>
-      </v-card>
+      </searchable-titled-view>
 
       <div
         v-if="allowMemberDelete"
@@ -123,14 +120,18 @@
         @click="showDeleteDialog = true"
       >
         <div>
-          <v-icon class="xrd-large-button-icon" :color="colors.Purple100"
-            >mdi-close-circle</v-icon
-          >
+          <v-icon
+            class="xrd-large-button-icon"
+            :color="colors.Purple100"
+            icon="mdi-close-circle"
+          />
         </div>
         <div class="action-text">
-          {{ $t('members.member.details.deleteMember') }} "{{
-            memberStore.currentMember.member_name || ''
-          }}"
+          {{
+            `${$t('members.member.details.deleteMember')} "${
+              memberStore.currentMember.member_name || ''
+            }"`
+          }}
         </div>
       </div>
     </div>
@@ -140,31 +141,33 @@
       v-if="showEditNameDialog"
       :member="memberStore.currentMember"
       @cancel="cancelEditMemberName"
-      @nameChanged="memberNameChanged"
-    ></EditMemberNameDialog>
+      @name-changed="memberNameChanged"
+    />
 
     <!-- Delete member - Check member code dialog -->
     <MemberDeleteDialog
       v-if="showDeleteDialog"
       :member="memberStore.currentMember"
       @cancel="cancelDelete"
-      @deleted="memberDeleted"
-    ></MemberDeleteDialog>
+    />
   </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { defineComponent } from 'vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
-import { memberStore } from '@/store/modules/members';
+import { useMember } from '@/store/modules/members';
 import { MemberGlobalGroup, SecurityServer } from '@/openapi-types';
-import { notificationsStore } from '@/store/modules/notifications';
-import { userStore } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
 import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
+import DateTime from '@/components/ui/DateTime.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -173,12 +176,16 @@ let that: any;
 /**
  * Component for a Members details view
  */
-export default Vue.extend({
+export default defineComponent({
   name: 'MemberDetails',
   components: {
+    CustomDataTableFooter,
+    DateTime,
+    SearchableTitledView,
     EditMemberNameDialog,
     MemberDeleteDialog,
     InfoCard,
+    VDataTable,
   },
   props: {
     memberid: {
@@ -200,48 +207,41 @@ export default Vue.extend({
       loadingGroups: false,
       searchGroups: '',
       globalGroups: [] as MemberGlobalGroup[],
+
+      serversHeaders: [
+        {
+          title: this.$t('global.server') as string,
+          align: 'start',
+          key: 'server_id.server_code',
+        },
+      ],
+      groupsHeaders: [
+        {
+          key: 'group_code',
+          title: this.$t('members.member.details.group') as string,
+          align: 'start',
+        },
+        {
+          key: 'subsystem',
+          title: this.$t('global.subsystem') as string,
+          align: 'start',
+        },
+        {
+          key: 'added_to_group',
+          title: this.$t('members.member.details.addedToGroup') as string,
+          align: 'start',
+        },
+      ],
     };
   },
   computed: {
-    ...mapState(userStore, ['hasPermission']),
-    ...mapStores(memberStore),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapStores(useMember),
     allowMemberDelete(): boolean {
       return this.hasPermission(Permissions.DELETE_MEMBER);
     },
     allowMemberRename(): boolean {
       return this.hasPermission(Permissions.EDIT_MEMBER_NAME);
-    },
-    serversHeaders(): DataTableHeader[] {
-      return [
-        {
-          text: this.$t('global.server') as string,
-          align: 'start',
-          value: 'server_id.server_code',
-          class: 'xrd-table-header servers-table-header-server',
-        },
-      ];
-    },
-    groupsHeaders(): DataTableHeader[] {
-      return [
-        {
-          value: 'group_code',
-          text: this.$t('members.member.details.group') as string,
-          align: 'start',
-          class: 'xrd-table-header groups-table-header-group',
-        },
-        {
-          value: 'subsystem',
-          text: this.$t('global.subsystem') as string,
-          align: 'start',
-          class: 'xrd-table-header groups-table-header-subsystem',
-        },
-        {
-          value: 'added_to_group',
-          text: this.$t('members.member.details.addedToGroup') as string,
-          align: 'start',
-          class: 'xrd-table-header groups-table-header-added',
-        },
-      ];
     },
   },
   created() {
@@ -274,28 +274,37 @@ export default Vue.extend({
       });
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelEditMemberName() {
       this.showEditNameDialog = false;
     },
     memberNameChanged() {
       this.showEditNameDialog = false;
     },
-    memberDeleted() {
-      this.showDeleteDialog = false;
-      this.$router.replace({ name: RouteName.Members });
-      this.showSuccess(this.$t('members.member.details.memberDeleted'));
-    },
     cancelDelete() {
       this.showDeleteDialog = false;
+    },
+    toSecurityServerDetails(securityServer: SecurityServer): void {
+      this.$router.push({
+        name: RouteName.SecurityServerDetails,
+        params: { serverId: securityServer.server_id.encoded_id || '' },
+      });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
+@import '@/assets/colors';
+@import '@/assets/tables';
+
+.server-code {
+  color: $XRoad-Purple100;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
 
 .card-title {
   font-size: 12px;

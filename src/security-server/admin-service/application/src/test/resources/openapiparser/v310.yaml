@@ -5,7 +5,7 @@ servers:
     url: https://example.org/api
 info:
   title: Test
-  version: 1.0
+  version: "1.0"
 paths:
   /test:
     get:
@@ -23,7 +23,22 @@ paths:
         content:
           text/plain:
             schema:
-              type: string
+              exclusiveMaximum: 50
+              exclusiveMinimum: 1.22
+              type: number
+              contentEncoding: double
+              contentMediaType: text/plain
+            example: 3
+        required: true
       responses:
         '200':
+          description: OK
+  /file:
+    post:
+      summary: file upload
+      requestBody:
+        content:
+          application/octet-stream: { }
+      responses:
+        '201':
           description: OK

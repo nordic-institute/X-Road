@@ -1,0 +1,12 @@
+# Dockerfile for country (member) variants
+ARG VERSION
+ARG FROM
+FROM $FROM
+ARG VERSION
+ARG VARIANT
+
+# override-securityserver-$VARIANT.ini needs to be copied to 'build' dir before executing 'docker build'. See 'docker-build.sh' for details
+ADD --chown=xroad:xroad /build/etc/xroad/conf.d/override-securityserver-$VARIANT.ini /etc/xroad/conf.d/override-securityserver-$VARIANT.ini
+
+RUN chmod 660 /etc/xroad/conf.d/override-securityserver-$VARIANT.ini \
+  && cp -a /etc/xroad/conf.d/override-securityserver-$VARIANT.ini /usr/share/xroad/config/etc/xroad/conf.d/

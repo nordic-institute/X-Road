@@ -26,57 +26,78 @@
 package org.niis.xroad.cs.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
-import io.cucumber.java.en.Then;
+import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.MemberDetailsPageObj;
+
+import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class MemberDetailsStepDefs extends BaseUiStepDefs {
     private final MemberDetailsPageObj memberDetailsPageObj = new MemberDetailsPageObj();
 
-    @Then("The member name: {}, code: {} and class: {} are correctly shown")
+    @Step("The member name: {}, code: {} and class: {} are correctly shown")
     public void memberNameAndCodeAndClassAreShown(String memberName, String memberCode, String memberClass) {
-        memberDetailsPageObj.memberNameCard(memberName).shouldBe(Condition.enabled);
-        memberDetailsPageObj.memberClassCard(memberClass).shouldBe(Condition.enabled);
-        memberDetailsPageObj.memberCodeCard(memberCode).shouldBe(Condition.enabled);
+        memberDetailsPageObj.memberNameCard(memberName).shouldBe(visible);
+        memberDetailsPageObj.memberClassCard(memberClass).shouldBe(visible);
+        memberDetailsPageObj.memberCodeCard(memberCode).shouldBe(visible);
     }
 
-    @Then("The Owned Servers table is correctly shown")
+    @Step("The Owned Servers table is correctly shown")
     public void ownedSecurityServersTableIsShown() {
-        memberDetailsPageObj.tableTitle("Owned Servers").shouldBe(Condition.enabled);
-        memberDetailsPageObj.ownerServersSearch().shouldBe(Condition.enabled);
-        memberDetailsPageObj.ownerServersTable().shouldBe(Condition.enabled);
+        memberDetailsPageObj.tableTitle("Owned Servers").shouldBe(visible);
+        memberDetailsPageObj.ownerServersSearch().shouldBe(visible);
+        memberDetailsPageObj.ownedServers().table().shouldBe(visible);
     }
 
-    @Then("The Global Groups table is correctly shown")
+    @Step("The Global Groups table is correctly shown")
     public void globalGroupsTableIsShown() {
-        memberDetailsPageObj.tableTitle("Global Groups").shouldBe(Condition.enabled);
-        memberDetailsPageObj.globalGroupsSearch().shouldBe(Condition.enabled);
-        memberDetailsPageObj.globalGroupsTable().shouldBe(Condition.enabled);
+        memberDetailsPageObj.tableTitle("Global Groups").shouldBe(visible);
+        memberDetailsPageObj.globalGroupsSearch().shouldBe(visible);
+        memberDetailsPageObj.globalGroupsTable().shouldBe(visible);
     }
 
-    @Then("The name of the member is able to changed")
-    public void memberNameIsChanged() {
+    @Step("The name of the member is changed to {}")
+    public void memberNameIsChanged(final String newName) {
         memberDetailsPageObj.btnEdit().click();
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
 
-        memberDetailsPageObj.editNameDialog().inputMemberName().setValue(" Other");
+        vTextField(memberDetailsPageObj.editNameDialog().inputMemberName())
+                .clear()
+                .setValue(newName);
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Then("Deleting the member requires the user to input the member code: {}")
+    @Step("Deleting the member requires the user to input the member code: {}")
     public void deleteMember(String memberCode) {
         memberDetailsPageObj.btnDelete().click();
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnDelete().shouldNotBe(Condition.enabled);
 
-        memberDetailsPageObj.deleteDialog().inputMemberCode().setValue(memberCode);
+        vTextField(memberDetailsPageObj.deleteDialog().inputMemberCode())
+                .setValue(memberCode + "-invalid");
+        commonPageObj.dialog.btnDelete().shouldNotBe(Condition.enabled);
+
+        vTextField(memberDetailsPageObj.deleteDialog().inputMemberCode())
+                .clear()
+                .setValue(memberCode);
         commonPageObj.dialog.btnDelete().shouldBe(Condition.enabled).click();
 
-        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("owned servers contains server {string}")
+    public void ownedServersContainsServer(String serverCode) {
+        memberDetailsPageObj.ownedServers().server(serverCode).shouldBe(visible);
+    }
+
+    @Step("user clicks on owned server {string}")
+    public void userClicksOnOwnedServer(String serverCode) {
+        memberDetailsPageObj.ownedServers().server(serverCode).click();
     }
 
 }

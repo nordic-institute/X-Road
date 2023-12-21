@@ -27,8 +27,8 @@
 <template>
   <article>
     <div class="navigation-back" data-test="navigation-back">
-      <router-link :to="backTo">
-        <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
+      <router-link to="" @click="goBack">
+        <v-icon :color="colors.Purple100" icon="mdi-chevron-left" />
         {{ $t('global.navigation.back') }}
       </router-link>
     </div>
@@ -38,14 +38,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-
+import { defineComponent, PropType } from 'vue';
 import { Colors } from '@/global';
+import { RouteLocationRaw } from 'vue-router';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     backTo: {
-      type: String,
+      type: Object as PropType<RouteLocationRaw>,
       required: true,
     },
   },
@@ -54,11 +54,20 @@ export default Vue.extend({
       colors: Colors,
     };
   },
+  methods: {
+    goBack() {
+      if (this.$router.currentRoute.value.meta?.backTo) {
+        this.$router.back();
+      } else {
+        this.$router.push(this.backTo);
+      }
+    },
+  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .navigation-back {
   color: $XRoad-Link;

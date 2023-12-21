@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.34  
+Version: 2.37
 Doc. ID: IG-CS
 
 ---
@@ -50,8 +50,11 @@ Doc. ID: IG-CS
 | 19.04.2023 | 2.30    | Removed unused properties from db.properties                                                                                                                                                  | Mikk-Erik Bachmann |
 | 05.05.2023 | 2.31    | Minor updates                                                                                                                                                                                 | Justas Samuolis    |
 | 23.05.2023 | 2.32    | Backup Encryption Configuration                                                                                                                                                               | Eneli Reimets      |
-| 31.05.2023 | 2.33    | Add Central Server network diagram                                                                                                                                                            | Petteri Kivimäki |
-| 28.06.2023 | 2.34    | Update database properties to the new Spring datasource version                                                                                                                               | Raido Kaju       |
+| 31.05.2023 | 2.33    | Add Central Server network diagram                                                                                                                                                            | Petteri Kivimäki   |
+| 28.06.2023 | 2.34    | Update database properties to the new Spring datasource version                                                                                                                               | Raido Kaju         |
+| 13.09.2023 | 2.35    | Database integrity check errors before center upgrade                                                                                                                                         | Eneli Reimets      |
+| 14.10.2023 | 2.36    | Add Global configuration distribution over https                                                                                                                                              | Eneli Reimets      |
+| 08.12.2023 | 2.37    | Minor updates                                                                                                                                                                                 | Petteri Kivimäki   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -72,6 +75,7 @@ Doc. ID: IG-CS
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
   - [2.7 Package Installation](#27-package-installation)
+    - [2.7.1 Configuring TLS Certificates](#271-configuring-tls-certificates)
   - [2.8 Installing the Support for Hardware Tokens](#28-installing-the-support-for-hardware-tokens)
   - [2.9 Installing the Support for Monitoring](#29-installing-the-support-for-monitoring)
   - [2.10 Pre-configuration for Registration Web Service](#210-pre-configuration-for-registration-web-service)
@@ -84,12 +88,15 @@ Doc. ID: IG-CS
   - [3.4 Backup Encryption Configuration](#34-backup-encryption-configuration)
 - [4 Additional configuration](#4-additional-configuration)
   - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
+  - [4.2 Global configuration V2 support](#42-global-configuration-v2-support)
+  - [4.3 Global configuration V3 support](#43-global-configuration-v3-support)
 - [5 Installation Error Handling](#5-installation-error-handling)
   - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
   - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
   - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
   - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
   - [5.5 Upgrade supported from version X.Y.Z or newer](#55-upgrade-supported-from-version-xyz-or-newer)
+  - [5.6 Data quality issues in the database](#56-data-quality-issues-in-the-database)
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C Deployment Options](#annex-c-deployment-options)
@@ -148,20 +155,21 @@ Note: The information in empty cells will be determined at the latest during the
 
 Caution: Data necessary for the functioning of the operating system is not included.
 
-| **Ref** |                                                                                                                                                                                                           | **Explanation**                                                                                                                                                                                                                                                                            |
-|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0     | Ubuntu 20.04, 64-bit, 2 GB RAM, 3 GB free disk space                                                                                                                                                      | Minimum requirements                                                                                                                                                                                                                                                                       |
-| 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                                                                                                            | X-Road package repository                                                                                                                                                                                                                                                                  |
-| 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                                                                                                           | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
-| 1.3     |                                                                                                                                                                                                           | Account name in the user interface                                                                                                                                                                                                                                                         |
-| 1.4     | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration                                                                                           | Ports for inbound connections (from the external network to the Central Server)                                                                                                                                                                                                            |
-| 1.4.1   | TCP 4002 management services                                                                                                                                                                              | Port for inbound connections from the management Security Server                                                                                                                                                                                                                           |
-| 1.5     | TCP 80, 443 software updates                                                                                                                                                                              | Ports for outbound connections (from the Central Server to the external network)                                                                                                                                                                                                           |
-| 1.6     | TCP 80 HTTP between the Central Server and the management services' Security Server<br>TCP 4000 user interface<br>TCP 4002 HTTPS between the Central Server and the management services' Security Server  | Internal network ports, the user interface port, and management service ports for the management services' Security Server                                                                                                                                                                 |
-| 1.7     |                                                                                                                                                                                                           | Central Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                     |
-| 1.8     |                                                                                                                                                                                                           | Central Server public IP address, NAT address                                                                                                                                                                                                                                              |
-| 1.9     | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                            | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
-| 1.10    | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                            | Information about the services TLS certificate                                                                                                                                                                                                                                             |
+| **Ref** |                                                                                                                                                                                                                                                                                                  | **Explanation**                                                                                                                                                                                                                                                                            |
+|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0     | Ubuntu 20.04, 64-bit, 2 GB RAM, 3 GB free disk space                                                                                                                                                                                                                                             | Minimum requirements                                                                                                                                                                                                                                                                       |
+| 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                                                                                                                                                                                                   | X-Road package repository                                                                                                                                                                                                                                                                  |
+| 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                                                                                                                                                                                                  | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.3     |                                                                                                                                                                                                                                                                                                  | Account name in the user interface                                                                                                                                                                                                                                                         |
+| 1.4     | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration<br>TCP 443 distribution of the global configuration                                                                                                                              | Ports for inbound connections (from the external network to the Central Server)                                                                                                                                                                                                            |
+| 1.4.1   | TCP 4002 management services                                                                                                                                                                                                                                                                     | Port for inbound connections from the management Security Server                                                                                                                                                                                                                           |
+| 1.5     | TCP 80, 443 software updates                                                                                                                                                                                                                                                                     | Ports for outbound connections (from the Central Server to the external network)                                                                                                                                                                                                           |
+| 1.6     | TCP 80 HTTP between the Central Server and the management services' Security Server<br>TCP 443 HTTP between the Central Server and the management services' Security Server<br>TCP 4000 user interface<br>TCP 4002 HTTPS between the Central Server and the management services' Security Server | Internal network ports, the user interface port, and management service ports for the management services' Security Server                                                                                                                                                                 |
+| 1.7     |                                                                                                                                                                                                                                                                                                  | Central Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                     |
+| 1.8     |                                                                                                                                                                                                                                                                                                  | Central Server public IP address, NAT address                                                                                                                                                                                                                                              |
+| 1.9     | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                                                                                                                   | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
+| 1.10    | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                                                                                                                   | Information about the services TLS certificate                                                                                                                                                                                                                                             |
+| 1.11    | <by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field>                                                                                                                                                                                   | Information about the global configuration TLS certificate                                                                                                                                                                                                                                 |
 
 It is strongly recommended to protect the Central Server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the Central Server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the Central Server vulnerable to exploits and attacks.**
 
@@ -174,16 +182,16 @@ The network diagram below provides an example of a basic Central Server setup.
 The table below lists the required connections between different components. Please note that required connections between Security Servers and trust services (OCSP service, time-stamping service) have been omitted from the diagram and the table below. Their configuration is described in [IG-SS](#Ref_IG-SS).
 
 **Connection Type** | **Source**                        | **Target**                    | **Target Ports** | **Protocol** | **Note**                                                                                    |
------------|-----------------------------------|-------------------------------|------------|-----------|---------------------------------------------------------------------------------------------|
-Out | Monitoring Security Server        | X-Road Member Security Server | 5500, 5577 | tcp | Operational and environmental monitoring data collection                                    |
-In  | X-Road Member Security Server     | Central Server                | 80         | tcp | Global configuration distribution                                                           |
-In  | X-Road Member Security Server     | Central Server                | 4001       | tcp | Authentication certificate registration requests from X-Road Members' Security Servers      |
-In  | Management Security Server        | Central Server                | 4002       | tcp | Source in the internal network. Management service requests from Management Security Server |
-In  | X-Road Member Security Server     | Management Security Server    | 5500, 5577 | tcp | Management service requests from X-Road Members' Security Servers                           |
-In  | Central Monitoring Client         | Monitoring Security Server    | 80, 443    | tcp | Source in the internal network                                                              |
-In  | Admin, management REST API client | Central Server                | 4000       | tcp | Source in the internal network                                                              |
-In  | Admin                             | Management Security Server    | 4000       | tcp | Source in the internal network                                                              |
-In  | Admin                             | Monitoring Security Server    | 4000       | tcp | Source in the internal network                                                              |
+-----------|-----------------------------------|-------------------------------|------------------|-----------|---------------------------------------------------------------------------------------------|
+Out | Monitoring Security Server        | X-Road Member Security Server | 5500, 5577       | tcp | Operational and environmental monitoring data collection                                    |
+In  | X-Road Member Security Server     | Central Server                | 80, 443          | tcp | Global configuration distribution                                                           |
+In  | X-Road Member Security Server     | Central Server                | 4001             | tcp | Authentication certificate registration requests from X-Road Members' Security Servers      |
+In  | Management Security Server        | Central Server                | 4002             | tcp | Source in the internal network. Management service requests from Management Security Server |
+In  | X-Road Member Security Server     | Management Security Server    | 5500, 5577       | tcp | Management service requests from X-Road Members' Security Servers                           |
+In  | Central Monitoring Client         | Monitoring Security Server    | 8080, 8443       | tcp | Source in the internal network                                                              |
+In  | Admin, management REST API client | Central Server                | 4000             | tcp | Source in the internal network                                                              |
+In  | Admin                             | Management Security Server    | 4000             | tcp | Source in the internal network                                                              |
+In  | Admin                             | Monitoring Security Server    | 4000             | tcp | Source in the internal network                                                              |
 
 ### 2.3 Requirements to the Central Server
 
@@ -302,6 +310,24 @@ Upon the first installation of the Central Server software, the system asks for 
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+- Identification of the TLS certificate that is used for securing the HTTPS access point used for global configuration distribution (reference data: 1.7; 1.11). The name and IP addresses detected from the operating system are suggested as default values.
+
+  The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`.
+  All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
+
+#### 2.7.1 Configuring TLS Certificates
+
+The installation process creates a self-signed TLS certificates. However, self-signed certificates are not recommended for production use, and should be substituted with certificate issued by a trusted Certificate Authority (CA).
+
+To configure the Central Server to use a certificate issued by a trusted CA for serving global configurations over HTTPS, replace the existing certificate files (`global-conf.crt`) and its associated private key (`global-conf.key`), located in the `/etc/xroad/ssl/` directory.
+
+Reload the nginx service for the certificate change to take effect.
+
+```bash
+systemctl reload nginx
+```
+
 
 ### 2.8 Installing the Support for Hardware Tokens
 
@@ -469,7 +495,15 @@ gpg --homedir <your_gpg_homedir_here> --import server-public-key.gpg
 
 ### 4.1 Global configuration V1 support
 
-The support for global configuration version V1 has been removed in X-Road version 6.20. The Central Server produces only V2 global configuration which is expected by Security Servers from version 6.8.x and up.
+The support for global configuration version V1 has been removed in X-Road version 6.20.
+
+### 4.2 Global configuration V2 support
+
+The Central Server produces global configuration version V2. Version V2 is supported by Security Servers from version 6.8.0 and up.
+
+### 4.3 Global configuration V3 support
+
+The Central Server produces global configuration version V3. Version V3 is supported by Security Servers from version 7.4.0 and up.
 
 ## 5 Installation Error Handling
 
@@ -507,7 +541,7 @@ then the PostgreSQL package is installed with the wrong locale. One way to fix i
 
 To complete the interrupted installation, run the command:
 
-`sudo apt -f install`
+`sudo apt --fix-broken install`
 
 ### 5.3 Could Not Create Default Cluster
 
@@ -522,7 +556,7 @@ Use the following command to create the PostgreSQL data cluster:
 
 The interrupted installation can be finished using
 
-`sudo apt -f install`
+`sudo apt --fix-broken install`
 
 ### 5.4 Is Postgres Running on Port 5432?
 
@@ -538,7 +572,7 @@ Then check if any of the following errors occurred during the installation of Po
 
 The interrupted installation can be finished using
 
-`sudo apt -f install`
+`sudo apt --fix-broken install`
 
 ### 5.5 Upgrade supported from version X.Y.Z or newer
 
@@ -595,6 +629,58 @@ Finally, we can upgrade to our target version 7.3.x as follows.
 
 ```bash
 apt upgrade xroad-centralserver
+```
+
+### 5.6 Data quality issues in the database
+
+The following error message may come up during the Central Server upgrade.
+
+`Data quality issues in the XXXXX database. ...`
+
+Before upgrading the packages from the current version to the target version, incorrect data in the postgreSQL database needs to be fixed.
+
+For example, if the error message says:
+
+```bash
+root@test-cs:~# apt upgrade xroad-centralserver
+...
+Preparing to unpack .../xroad-center_7.4.0-1.ubuntu22.04_all.deb ...
+
+ERROR: Data quality issues in the centerui_production database. There are duplicate data in the table SYSTEM_PARAMETERS columns pair (KEY, HA_NODE_NAME):.........................................................] 
+----------------------------------------------------------------------------------------------------------------------------------------------
+id|key|value|created_at|updated_at|ha_node_name|count
+12|instanceIdentifier|cs|2021-03-10 07:37:26.59307|2021-03-10 07:37:26.59307|node_0|2
+1|instanceIdentifier|CS|2021-03-10 07:37:26.59307|2021-03-10 07:37:26.59307|node_0|2
+(2 rows)
+----------------------------------------------------------------------------------------------------------------------------------------------
+...
+Please fix incorrect data before continuing.
+```
+
+To fix incorrect data, login to the postreSQL database server. By default, the database is named `centerui_production`, database user and schema both are named `centerui`.
+
+```bash
+psql -h <database host> -U <database user> -d <database>
+```  
+
+and run script that shows all duplicate data in the SYSTEM_PARAMETERS table.
+
+```sql
+select * from (select *, count(*) over (partition by key, ha_node_name order by key, ha_node_name) as count
+      from system_parameters) as s
+where s.count > 1;
+```
+
+If script return data, then delete thus system parameters rows what system parameter value is not used or just delete one duplicate row if the values is same.
+
+```sql
+delete from system_parameters where id = 12;
+```
+
+The interrupted installation can be finished using:
+
+```bash
+sudo apt --fix-broken install
 ```
 
 ## Annex A Central Server Default Database Properties

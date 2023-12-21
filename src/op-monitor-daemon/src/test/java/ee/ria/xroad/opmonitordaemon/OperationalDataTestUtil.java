@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -51,7 +51,7 @@ final class OperationalDataTestUtil {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES,
                 "src/test/resources/hibernate.properties");
         doInTransaction(session -> {
-            Query q = session.createSQLQuery(
+            Query q = session.createNativeQuery(
                     // Completely wipe out the database. Assuming that HSQLDB
                     // is used for testing.
                     "TRUNCATE SCHEMA public AND COMMIT");

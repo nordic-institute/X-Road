@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.cs.admin.application;
 
+import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.RepetitionInfo;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,8 +43,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import javax.annotation.PostConstruct;
 
 import java.util.concurrent.TimeUnit;
 
@@ -76,27 +74,29 @@ class ApplicationIpRateLimitTest {
     @Nested
     @DirtiesContext
     class PerMinuteTests {
-
-        @RepeatedTest(RUNS_PER_MINUTE)
+        @Test
         @WithMockUser(authorities = {"VIEW_VERSION"})
-        void shouldTriggerRateLimitPerMin(RepetitionInfo repetitionInfo) throws Exception {
-            var expectedStatus = repetitionInfo.getCurrentRepetition() == RUNS_PER_MINUTE
-                    ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
-            mvc.perform(get(API_V1_PREFIX + "/test")).andExpect(expectedStatus).andReturn();
-            TimeUnit.MILLISECONDS.sleep(200);
+        void shouldTriggerRateLimitPerMin() throws Exception {
+            for (int i = 1; i <= RUNS_PER_MINUTE; i++) {
+                var expectedStatus = i == RUNS_PER_MINUTE
+                        ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
+                mvc.perform(get(API_V1_PREFIX + "/test")).andExpect(expectedStatus).andReturn();
+                TimeUnit.MILLISECONDS.sleep(200);
+            }
         }
     }
 
     @Nested
     @DirtiesContext
     class PerSecondTests {
-
-        @RepeatedTest(RUNS_PER_SECOND)
+        @Test
         @WithMockUser(authorities = {"VIEW_VERSION"})
-        void shouldTriggerRateLimitPerMin2(RepetitionInfo repetitionInfo) throws Exception {
-            var expectedStatus = repetitionInfo.getCurrentRepetition() == RUNS_PER_SECOND
-                    ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
-            mvc.perform(get(API_V1_PREFIX + "/test")).andExpect(expectedStatus).andReturn();
+        void shouldTriggerRateLimitPerSec() throws Exception {
+            for (int i = 1; i <= RUNS_PER_SECOND; i++) {
+                var expectedStatus = i == RUNS_PER_SECOND
+                        ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
+                mvc.perform(get(API_V1_PREFIX + "/test")).andExpect(expectedStatus).andReturn();
+            }
         }
     }
 
@@ -104,7 +104,6 @@ class ApplicationIpRateLimitTest {
     @PreAuthorize("denyAll")
     @RequestMapping(API_V1_PREFIX)
     static class TestIpRateLimitController {
-
         @GetMapping("/test")
         @PreAuthorize("hasAuthority('VIEW_VERSION')")
         ResponseEntity<Void> test() {

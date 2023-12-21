@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -31,18 +31,8 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.CoordinatedShutdown;
-import akka.actor.Props;
-import com.typesafe.config.ConfigFactory;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.Job;
 import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-
-import java.nio.file.Paths;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_MESSAGE_LOG;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
@@ -50,7 +40,6 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 @Slf4j
 public final class LogArchiverMain {
 
-    private static ActorSystem actorSystem;
     private static JobManager jobManager;
 
     private LogArchiverMain() {
@@ -67,14 +56,8 @@ public final class LogArchiverMain {
                     .load();
 
             jobManager = new JobManager();
-            actorSystem = ActorSystem.create("MessageLogArchiver", ConfigFactory.load().getConfig("messagelog-archiver")
-                    .withFallback(ConfigFactory.load()));
 
-            final ActorRef archiver = actorSystem.actorOf(
-                    Props.create(LogArchiver.class, Paths.get(MessageLogProperties.getArchivePath())));
-            final ActorRef cleaner = actorSystem.actorOf(Props.create(LogCleaner.class));
-
-            CoordinatedShutdown.get(actorSystem).addJvmShutdownHook(() -> {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("MessageLogArchiver shutting down...");
                 try {
                     if (jobManager != null) {
@@ -84,14 +67,13 @@ public final class LogArchiverMain {
                 } catch (Exception e) {
                     log.warn("JobManager failed to stop", e);
                 }
-            });
+            }));
 
+            jobManager.registerJob(LogArchiver.class, "ArchiverJob", MessageLogProperties.getArchiveInterval(),
+                    new JobDataMap());
 
-            jobManager.registerJob(ArchiverJob.class, "ArchiverJob", MessageLogProperties.getArchiveInterval(),
-                    jobData(archiver, LogArchiver.START_ARCHIVING));
-
-            jobManager.registerJob(ArchiverJob.class, "CleanerJob", MessageLogProperties.getCleanInterval(),
-                    jobData(cleaner, LogCleaner.START_CLEANING));
+            jobManager.registerJob(LogCleaner.class, "CleanerJob", MessageLogProperties.getCleanInterval(),
+                    new JobDataMap());
 
             jobManager.start();
 
@@ -101,24 +83,4 @@ public final class LogArchiverMain {
         }
     }
 
-    private static JobDataMap jobData(ActorRef actor, Object message) {
-        final JobDataMap dataMap = new JobDataMap();
-        dataMap.put(ArchiverJob.ACTOR_PROPERTY, actor);
-        dataMap.put(ArchiverJob.MESSAGE_PROPERTY, message);
-        return dataMap;
-    }
-
-    @Setter
-    public static class ArchiverJob implements Job {
-        private static final String ACTOR_PROPERTY = "actor";
-        private static final String MESSAGE_PROPERTY = "message";
-
-        private ActorRef actor;
-        private Object message;
-
-        @Override
-        public void execute(JobExecutionContext context) {
-            actor.tell(message, ActorRef.noSender());
-        }
-    }
 }

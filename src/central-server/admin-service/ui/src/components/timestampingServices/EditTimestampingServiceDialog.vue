@@ -25,98 +25,87 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver v-slot="{ invalid }">
-    <xrd-simple-dialog
-      :disable-save="invalid"
-      :dialog="true"
-      title="trustServices.timestampingService.dialog.edit.title"
-      save-button-text="action.save"
-      cancel-button-text="action.cancel"
-      :loading="loading"
-      @cancel="cancel"
-      @save="update"
-    >
-      <template #content>
+  <xrd-simple-dialog
+    :disable-save="!meta.valid"
+    title="trustServices.timestampingService.dialog.edit.title"
+    save-button-text="action.save"
+    cancel-button-text="action.cancel"
+    :loading="loading"
+    @cancel="cancel"
+    @save="update"
+  >
+    <template #content>
+      <div class="dlg-input-width">
+        <v-text-field
+          v-bind="tasUrl"
+          :label="$t('trustServices.timestampingService.url')"
+          :error-messages="errors.url"
+          variant="outlined"
+          autofocus
+          persistent-hint
+          data-test="timestamping-service-url-input"
+        ></v-text-field>
+      </div>
+
+      <div v-if="!certUploadActive">
+        <div class="dlg-input-width mb-6">
+          <xrd-button
+            outlined
+            class="mr-3"
+            data-test="view-timestamping-service-certificate"
+            @click="navigateToTsaDetails()"
+          >
+            {{ $t('trustServices.viewCertificate') }}
+          </xrd-button>
+          <xrd-button
+            text
+            data-test="upload-timestamping-service-certificate"
+            @click="certUploadActive = true"
+          >
+            <v-icon class="xrd-large-button-icon" icon="icon-upload" />
+            {{
+              $t(
+                'trustServices.timestampingService.dialog.edit.uploadCertificate',
+              )
+            }}
+          </xrd-button>
+        </div>
+      </div>
+      <div v-else>
         <div class="dlg-input-width">
-          <ValidationProvider
-            v-slot="{ errors }"
-            rules="required|url"
-            name="url"
+          <xrd-file-upload
+            v-slot="{ upload }"
+            accepts=".der, .crt, .pem, .cer"
+            @file-changed="onFileUploaded"
           >
             <v-text-field
-              v-model="tasUrl"
-              :label="$t('trustServices.timestampingService.url')"
-              :error-messages="errors"
-              outlined
+              v-model="certFileTitle"
+              variant="outlined"
               autofocus
-              persistent-hint
-              data-test="timestamping-service-url-input"
+              :label="$t('trustServices.uploadCertificate')"
+              append-inner-icon="icon-Upload"
+              @click="upload"
             ></v-text-field>
-          </ValidationProvider>
+          </xrd-file-upload>
         </div>
-
-        <div v-if="!certUploadActive">
-          <div class="dlg-input-width mb-6">
-            <xrd-button
-              outlined
-              class="mr-3"
-              data-test="view-timestamping-service-certificate"
-              @click="navigateToTsaDetails()"
-            >
-              {{ $t('trustServices.viewCertificate') }}
-            </xrd-button>
-            <xrd-button
-              text
-              data-test="upload-timestamping-service-certificate"
-              @click="certUploadActive = true"
-            >
-              <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
-              {{
-                $t(
-                  'trustServices.timestampingService.dialog.edit.uploadCertificate',
-                )
-              }}
-            </xrd-button>
-          </div>
-        </div>
-        <div v-else>
-          <div class="dlg-input-width">
-            <xrd-file-upload
-              v-slot="{ upload }"
-              accepts=".der, .crt, .pem, .cer"
-              @file-changed="onFileUploaded"
-            >
-              <v-text-field
-                v-model="certFileTitle"
-                outlined
-                autofocus
-                :label="$t('trustServices.uploadCertificate')"
-                append-icon="icon-Upload"
-                @click="upload"
-              ></v-text-field>
-            </xrd-file-upload>
-          </div>
-        </div>
-      </template>
-    </xrd-simple-dialog>
-  </ValidationObserver>
+      </div>
+    </template>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { FileUploadResult } from '@niis/shared-ui';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import { defineComponent } from 'vue';
+import { FileUploadResult, XrdFileUpload} from '@niis/shared-ui';
 import { TimestampingService } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
-import { timestampingServicesStore } from '@/store/modules/trust-services';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useTimestampingServicesStore } from '@/store/modules/trust-services';
+import { useForm } from 'vee-validate';
+import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
-  name: 'EditTimestampingServiceDialog',
+export default defineComponent({
   components: {
-    ValidationProvider,
-    ValidationObserver,
+    XrdFileUpload,
   },
   props: {
     tsaService: {
@@ -124,20 +113,28 @@ export default Vue.extend({
       required: true,
     },
   },
+  emits: ['save', 'cancel'],
+  setup(props) {
+    const { defineComponentBinds, errors, values, meta } = useForm({
+      validationSchema: { url: 'required|url' },
+      initialValues: { url: props.tsaService.url },
+    });
+    const tasUrl = defineComponentBinds('url');
+    return { defineComponentBinds, errors, values, tasUrl, meta };
+  },
   data() {
     return {
       certFile: null as File | null,
       certFileTitle: '',
       certUploadActive: false,
-      tasUrl: this.tsaService?.url,
       loading: false,
     };
   },
   computed: {
-    ...mapStores(timestampingServicesStore),
+    ...mapStores(useTimestampingServicesStore),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     onFileUploaded(result: FileUploadResult): void {
       this.certFile = result.file;
       this.certFileTitle = result.file.name;
@@ -148,7 +145,7 @@ export default Vue.extend({
       this.timestampingServicesStore
         .updateTimestampingService(
           this.tsaService.id,
-          this.tasUrl,
+          this.values.url,
           this.certFile,
         )
         .then(() => {

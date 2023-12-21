@@ -1,2 +1,1 @@
-etc/xroad/nginx/xroad-public.conf etc/nginx/sites-enabled/xroad-public
 usr/share/xroad/jlib/centralserver-admin-service-1.0.jar usr/share/xroad/jlib/centralserver-admin-service.jar

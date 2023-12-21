@@ -26,18 +26,21 @@
  -->
 <template>
   <main id="timestamping-service-certificate-details" class="mt-8">
-    <CertificateDetails :certificate-details="certificateDetails" />
+    <certificate-details
+      v-if="certificateDetails"
+      :certificate-details="certificateDetails"
+    />
   </main>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 import { mapStores } from 'pinia';
-import { timestampingServicesStore } from '@/store/modules/trust-services';
+import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'TimestampingServiceCertificate',
   components: { CertificateDetails },
   props: {
@@ -46,23 +49,21 @@ export default Vue.extend({
       required: true,
     },
   },
-  data() {
-    return {
-      certificateDetails: null as CertificateDetailsType | null,
-    };
-  },
   computed: {
-    ...mapStores(timestampingServicesStore),
+    ...mapStores(useTimestampingServicesStore),
+    certificateDetails(): CertificateDetailsType | null {
+      const find = this.timestampingServicesStore.timestampingServices.find(
+        (tsa) => tsa.id === this.timestampingServiceId,
+      );
+
+      if (find) {
+        return find.certificate;
+      }
+      return null;
+    },
   },
   created() {
     window.scrollTo(0, 0);
-    const find = this.timestampingServicesStore.timestampingServices.find(
-      (tsa) => tsa.id === this.timestampingServiceId,
-    );
-
-    if (find) {
-      this.certificateDetails = find.certificate;
-    }
   },
 });
 </script>

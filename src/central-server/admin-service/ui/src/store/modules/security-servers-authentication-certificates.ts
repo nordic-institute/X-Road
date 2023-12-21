@@ -32,33 +32,30 @@ interface SecurityServerAuthCertState {
   authenticationCertificates: SecurityServerAuthenticationCertificateDetails[];
 }
 
-export const securityServerAuthCertStore = defineStore(
-  'securityServerAuthCert',
-  {
-    state: (): SecurityServerAuthCertState => {
-      return {
-        authenticationCertificates: [],
-      };
+export const useSecurityServerAuthCert = defineStore('securityServerAuthCert', {
+  state: (): SecurityServerAuthCertState => {
+    return {
+      authenticationCertificates: [],
+    };
+  },
+  persist: true,
+  actions: {
+    async fetch(securityServerId: string) {
+      return axios
+        .get<SecurityServerAuthenticationCertificateDetails[]>(
+          `/security-servers/${securityServerId}/authentication-certificates`,
+        )
+        .then((resp) => {
+          this.authenticationCertificates = resp.data || [];
+        });
     },
-    persist: true,
-    actions: {
-      async fetch(securityServerId: string) {
-        return axios
-          .get<SecurityServerAuthenticationCertificateDetails[]>(
-            `/security-servers/${securityServerId}/authentication-certificates`,
-          )
-          .then((resp) => {
-            this.authenticationCertificates = resp.data || [];
-          });
-      },
-      async delete(
-        securityServerCode: string,
-        authenticationCertificateId: string,
-      ) {
-        return axios.delete(
-          `/security-servers/${securityServerCode}/authentication-certificates/${authenticationCertificateId}`,
-        );
-      },
+    async deleteAuthenticationCertificate(
+      securityServerCode: string,
+      authenticationCertificateId: string,
+    ) {
+      return axios.delete(
+        `/security-servers/${securityServerCode}/authentication-certificates/${authenticationCertificateId}`,
+      );
     },
   },
-);
+});

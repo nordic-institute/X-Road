@@ -25,11 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center column>oops, page not found</v-layout>
+  <v-layout align-center justify-center column>
+    {{ $t('global.pageNotFound') }}
+  </v-layout>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({});
+export default defineComponent({});
 </script>

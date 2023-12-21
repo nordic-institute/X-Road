@@ -26,48 +26,48 @@
  -->
 <template>
   <article id="anchor" class="mt-4">
-    <v-card flat>
-      <div class="card-top">
-        <div class="card-main-title">{{ title }}</div>
-        <div class="card-corner-button pr-4">
-          <slot></slot>
-        </div>
-      </div>
-      <v-card-text class="px-0">
-        <v-data-table
-          v-if="anchors"
-          :headers="headers"
-          :items="anchors"
-          :items-per-page="-1"
-          :loading="loading"
-          item-key="hash"
-          hide-default-footer
-          class="anchors-table"
-        >
-          <template #[`item.hash`]="{ item }">
-            <xrd-icon-base class="internal-conf-icon">
-              <XrdIconCertificate />
-            </xrd-icon-base>
-            <span data-test="anchor-hash">{{ item.hash }}</span>
-          </template>
-          <template #[`item.createdAt`]="{ item }">
-            <span data-test="anchor-created-at">{{
-              item.createdAt | formatDateTimeSeconds
-            }}</span>
-          </template>
-          <template #footer>
-            <div class="custom-footer"></div>
-          </template>
-        </v-data-table>
-      </v-card-text>
-    </v-card>
+    <v-data-table
+      v-if="anchors"
+      class="elevation-0 data-table"
+      :headers="headers"
+      :items="anchors"
+      :items-per-page="-1"
+      :loading="loading"
+      item-key="hash"
+    >
+      <template #top>
+        <data-table-toolbar :title-value="title">
+          <slot />
+        </data-table-toolbar>
+      </template>
+      <template #[`item.hash`]="{ item }">
+        <xrd-icon-base class="internal-conf-icon">
+          <XrdIconCertificate />
+        </xrd-icon-base>
+        <span data-test="anchor-hash">{{ item.hash }}</span>
+      </template>
+      <template #[`item.createdAt`]="{ item }">
+        <date-time
+          data-test="anchor-created-at"
+          :value="item.createdAt"
+          with-seconds
+        />
+      </template>
+      <template #bottom>
+        <custom-data-table-footer />
+      </template>
+    </v-data-table>
   </article>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
+import { DataTableHeader } from '@/ui-types';
+import { VDataTable } from 'vuetify/labs/VDataTable';
+import DateTime from '@/components/ui/DateTime.vue';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
+import { XrdIconCertificate } from '@niis/shared-ui';
 
 export interface Anchor {
   title: string;
@@ -75,14 +75,15 @@ export interface Anchor {
   createdAt?: string;
 }
 
-export default Vue.extend({
+export default defineComponent({
+  components: { CustomDataTableFooter, DataTableToolbar, DateTime, VDataTable, XrdIconCertificate },
   props: {
     loading: {
       type: Boolean,
       default: false,
     },
     anchor: {
-      type: Object as Prop<Anchor>,
+      type: Object as PropType<Anchor>,
       default: null,
     },
   },
@@ -99,16 +100,14 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('globalConf.anchor.certificateHash') as string,
+          title: this.$t('globalConf.anchor.certificateHash') as string,
           align: 'start',
-          value: 'hash',
-          class: 'xrd-table-header text-uppercase',
+          key: 'hash',
         },
         {
-          text: this.$t('globalConf.anchor.created') as string,
+          title: this.$t('globalConf.anchor.created') as string,
           align: 'start',
-          value: 'createdAt',
-          class: 'xrd-table-header text-uppercase',
+          key: 'createdAt',
         },
       ];
     },
@@ -119,7 +118,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/tables';
+@import '@/assets/colors';
 
 .card-title {
   font-size: 12px;
@@ -152,10 +152,5 @@ export default Vue.extend({
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 </style>

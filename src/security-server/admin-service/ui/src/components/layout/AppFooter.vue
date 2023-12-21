@@ -29,7 +29,7 @@
       <v-row>
         <v-col cols="2" class="pt-4">
           <v-img
-            :src="require('../../assets/xroad7_logo.svg')"
+            :src="xroad7Logo"
             height="35"
             width="132"
             max-height="35"
@@ -104,20 +104,24 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
-import { useSystemStore } from '@/store/modules/system';
+import { useSystem } from '@/store/modules/system';
+import xroad7Logo from '@/assets/xroad7_logo.svg';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AppFooter',
   computed: {
-    ...mapState(useSystemStore, ['securityServerVersion']),
+    ...mapState(useSystem, ['securityServerVersion']),
+    xroad7Logo(): string {
+      return xroad7Logo;
+    },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 $text-color: $XRoad-Black100;
 
 .footer {

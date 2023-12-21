@@ -1,14 +1,16 @@
-
-
 dependencies {
     intTestImplementation project(":central-server:openapi-model")
+    intTestImplementation project(":common:common-util")
+    intTestImplementation project(":common:common-int-test")
     intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
-    intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}")
+    intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}") {
+        exclude group: "org.slf4j", module: "*"
+    }
     intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
     intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
     intTestImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}")
-    intTestImplementation( "org.awaitility:awaitility:${awaitilityVersion}")
+    intTestImplementation("org.awaitility:awaitility:${awaitilityVersion}")
 }
 
 task systemTest(type: Test) {
@@ -32,6 +34,9 @@ task systemTest(type: Test) {
     }
     if (project.hasProperty('systemTestCsPackageHost')) {
         systemTestArgs += "-Dtest-automation.custom.package-host=" + project.getProperty('systemTestCsPackageHost')
+    }
+    if (project.hasProperty('systemTestCsDockerRoot')) {
+        systemTestArgs += "-Dtest-automation.custom.docker-root=" + project.getProperty('systemTestCsDockerRoot')
     }
     jvmArgs systemTestArgs
 

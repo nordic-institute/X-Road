@@ -28,8 +28,10 @@
   <v-card class="details-card" flat>
     <v-card-title class="card-title">{{ titleText }}</v-card-title>
     <v-divider></v-divider>
-    <v-card-text class="card-content"
-      ><div>{{ infoText }}</div>
+    <v-card-text class="card-content">
+      <div>
+        <slot>{{ infoText }}</slot>
+      </div>
       <!-- Use action prop & emit for one button. Use "actions" slot if more customisation is needed. -->
       <slot name="actions">
         <xrd-button
@@ -38,9 +40,9 @@
           :outlined="false"
           class="btn-adjust"
           data-test="info-card-edit-button"
-          @click="emitActionClick"
-          >{{ actionText }}</xrd-button
-        ></slot
+          @click="$emit('actionClicked')"
+          >{{ actionText }}
+        </xrd-button></slot
       ></v-card-text
     >
     <v-divider class="pb-4"></v-divider>
@@ -48,10 +50,9 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({
-  name: 'InfoCard',
+export default defineComponent({
   props: {
     // Text for the title
     titleText: {
@@ -61,7 +62,7 @@ export default Vue.extend({
     // Information text
     infoText: {
       type: String,
-      required: true,
+      default: '',
     },
     // Action in the right end
     actionText: {
@@ -75,16 +76,12 @@ export default Vue.extend({
       default: true,
     },
   },
-  methods: {
-    emitActionClick(): void {
-      this.$emit('actionClicked');
-    },
-  },
+  emits: ['actionClicked'],
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .card-title {
   font-size: 12px;

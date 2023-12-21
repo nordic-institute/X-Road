@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -28,6 +28,7 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import io.vavr.control.Try;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.niis.xroad.common.exception.DataIntegrityException;
@@ -53,8 +54,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.util.List;
 import java.util.Map;

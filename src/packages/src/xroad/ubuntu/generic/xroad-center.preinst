@@ -1,10 +1,152 @@
 #!/bin/bash
+
+. /usr/share/debconf/confmodule
+
 if [ "$1" = "upgrade" ]; then
   if dpkg --compare-versions "#LAST_SUPPORTED_VERSION#" gt "$2"; then
     echo "ERROR: Upgrade supported from #LAST_SUPPORTED_VERSION# or newer" >&2
     exit 1
   fi
+
+  # Start database integrity checks
+  source /usr/share/xroad/scripts/_read_cs_db_properties.sh
+  prepare_db_props
+
+  psql_query() {
+    local query=$1
+    PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" \
+      psql -h "$db_host" -p "$db_port" -qA -c "$query"
+  }
+
+  check_unique() {
+    local query=$1
+    local error_message=$2
+
+    local query_result=$(psql_query "$query")
+    declare -i query_result_lines=$(echo "$query_result" | wc -l)
+    # subtract 2 for header and footer lines
+    local query_row_count=$((query_result_lines - 2))
+
+    if [ $query_row_count -gt 0 ]; then
+      echo "ERROR: Data quality issues in $db_database database. $error_message:
+----------------------------------------------------------------------------------------------------------------------------------------------
+$query_result
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+To see duplicated rows, run the following query in the $db_database database:
+$query
+
+Please fix incorrect data before continuing."
+      exit 1;
+    fi
+
+  }
+
+
+    # this check can be removed after LAST_SUPPORTED_VERSION > 7.4.0)
+    sys_param_select="select * from (select id, key, value, created_at, updated_at, ha_node_name, count(*) over (partition by key, ha_node_name order by key, ha_node_name) as count
+    from system_parameters) as s
+where s.count > 1;"
+    check_unique "$sys_param_select" "There is duplicate data in SYSTEM_PARAMETERS table, columns pair (KEY, HA_NODE_NAME)"
+
+
+    # this check can be removed after LAST_SUPPORTED_VERSION > 7.4.0)
+    security_server_select="select *
+from (select *, count(*) over (partition by server_code, owner_id) as count
+    from security_servers) as s
+where s.count > 1
+order by id;"
+    check_unique "$security_server_select" "There is duplicate data in SECURITY_SERVERS table, columns pair (SERVER_CODE, OWNER_ID)"
+
+    server_clients_select="select *
+from (select *, count(*) over (partition by security_server_id, security_server_client_id) as count
+      from server_clients) as s
+where s.count > 1
+order by id;"
+    check_unique "$server_clients_select" "There is duplicate data in SERVER_CLIENTS table, columns pair (SECURITY_SERVER_ID, SECURITY_SERVER_CLIENT_ID)"
+
+
+  # End database integrity checks
+
 fi
+
+handle_error() {
+  ERR=$1
+  db_reset xroad-common/cert-generation-retry
+  db_reset xroad-common/cert-generation-error
+  db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+  db_beginblock
+  db_input critical xroad-common/cert-generation-error || true
+  db_input critical xroad-common/cert-generation-retry || true
+  db_endblock
+  db_go
+
+  db_get xroad-common/cert-generation-retry
+  if [ "$RET" = false ]; then
+    exit 1
+  fi
+
+  echo "Retrying certificate generation"
+}
+
+#check certificate and request necessary subject information from user
+create_global_configuration_certificate() {
+  if [[ ! -r /etc/xroad/ssl/global-conf.crt || ! -r /etc/xroad/ssl/global-conf.key || ! -r /etc/xroad/ssl/global-conf.p12 ]]; then
+    echo "Generating new global-conf.[crt|key|p12] files "
+    HOST=$(hostname -f)
+    if ((${#HOST} > 64)); then
+      HOST="$(hostname -s)"
+    fi
+
+    LIST=
+    for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done
+    ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
+
+    db_subst xroad-common/global-conf-subject HOST "$HOST"
+    db_subst xroad-common/global-conf-altsubject ALT "$ALT"
+
+    while :; do
+      db_get xroad-common/global-conf-subject
+      [ -z "$RET" ] && db_set xroad-common/global-conf-subject "/CN=$HOST"
+      db_get xroad-common/global-conf-altsubject
+      [ -z "$RET" ] && db_set xroad-common/global-conf-altsubject "$ALT"
+
+      db_beginblock
+      db_input critical xroad-common/global-conf-subject || true
+      db_input critical xroad-common/global-conf-altsubject || true
+      db_endblock
+      db_go
+
+      db_get xroad-common/global-conf-subject
+      subj="$RET"
+      db_get xroad-common/global-conf-altsubject
+      altn="$RET"
+      if [ -z "$subj" ]; then
+        subj="/CN=$HOST"
+      fi
+      if [ -z "$altn" ]; then
+        altn="$ALT"
+      fi
+
+      echo "generating new global configuration TLS key/self-signed-certificate with $subj and $altn"
+      if ! /usr/share/xroad/scripts/generate_certificate.sh -n global-conf -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err; then
+        ERR=$(</tmp/cert.err)
+        rm -f /tmp/cert.err
+        handle_error "$ERR"
+        db_fset xroad-common/global-conf-subject seen false
+        db_fset xroad-common/global-conf-altsubject seen false
+        continue
+      fi
+
+      break
+
+    done
+  fi
+}
+
+create_global_configuration_certificate
+
+db_stop
 
 # Free potentially occupied ports when upgrading from legacy installation
 if [[ "$1" = "upgrade" ]]; then

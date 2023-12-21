@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -90,7 +90,7 @@ public interface ConfigurationDirectory {
      */
     static void saveMetadata(Path fileName, ConfigurationPartMetadata metadata) throws Exception {
         AtomicSave.execute(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA,
-                "expires", metadata.toByteArray(), StandardCopyOption.ATOMIC_MOVE);
+                "expires", metadata.toJson(), StandardCopyOption.ATOMIC_MOVE);
     }
 
     /**
@@ -152,7 +152,6 @@ public interface ConfigurationDirectory {
      *
      * @param consumer the function instance that should be applied to all files belonging to the configuration
      * directory.
-     * @throws Exception if an error occurs
      */
-    void eachFile(FileConsumer consumer) throws Exception;
+    void eachFile(FileConsumer consumer) throws IOException;
 }

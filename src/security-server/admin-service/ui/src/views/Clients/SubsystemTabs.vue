@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
@@ -42,9 +42,9 @@ import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapState } from 'pinia';
 
 import { useUser } from '@/store/modules/user';
-import { useClientStore } from '@/store/modules/client';
+import { useClient } from '@/store/modules/client';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     SubTabs,
   },
@@ -63,7 +63,7 @@ export default Vue.extend({
   },
   computed: {
     ...mapState(useUser, ['hasPermission', 'getAllowedTabs']),
-    ...mapState(useClientStore, ['client']),
+    ...mapState(useClient, ['client']),
 
     showUnregister(): boolean {
       if (!this.client) return false;

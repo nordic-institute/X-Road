@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -30,11 +30,15 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 class TestTaskQueue extends TaskQueue {
+
+    static List<Integer> successfulMessageSizes = new ArrayList<>();
 
     private static CountDownLatch gate = new CountDownLatch(1);
     private static Object lastMessage;
@@ -44,8 +48,8 @@ class TestTaskQueue extends TaskQueue {
 
     static Exception throwWhenSavingTimestamp;
 
-    TestTaskQueue() {
-        super();
+    TestTaskQueue(Timestamper timestamper, LogManager logManager) {
+        super(timestamper, logManager);
     }
 
     static void initGateLatch() {
@@ -96,6 +100,7 @@ class TestTaskQueue extends TaskQueue {
                 throw throwWhenSavingTimestamp;
             }
 
+            successfulMessageSizes.add(message.getMessageRecords().length);
             super.saveTimestampRecord(message);
         } finally {
             timestampSavedLatch.countDown();

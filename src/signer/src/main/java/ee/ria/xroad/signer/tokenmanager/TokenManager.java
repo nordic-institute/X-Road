@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -116,6 +116,7 @@ public final class TokenManager {
     /**
      * Merge the in-memory configuration and the on-disk configuration if the configuration on
      * disk has changed.
+     *
      * @param listener
      */
     public static void merge(TokenMergeAddedCertificatesListener listener) {
@@ -157,7 +158,7 @@ public final class TokenManager {
     public static synchronized List<TokenInfo> listTokens() {
         return unmodifiableList(
                 currentTokens.stream()
-                        .map(t -> t.toDTO())
+                        .map(Token::toDTO)
                         .collect(Collectors.toList()));
     }
 
@@ -214,7 +215,7 @@ public final class TokenManager {
 
         return currentTokens.stream()
                 .filter(t -> t.getId().equals(tokenId))
-                .map(t -> t.toDTO())
+                .map(Token::toDTO)
                 .findFirst().orElse(null);
     }
 
@@ -242,14 +243,13 @@ public final class TokenManager {
     }
 
     /**
-     * @param certHash the certificate hash
+     * @param certHash the certificate hash in HEX
      * @return the tokenInfo and key id, or throws exception if not found
      */
     public static synchronized TokenInfoAndKeyId findTokenAndKeyIdForCertHash(String certHash) {
         log.trace("findTokenAndKeyIdForCertHash({})", certHash);
 
-        String keyId = forCert((k, c) -> certHash.equals(c.getHash()),
-                (k, c) -> k.getId())
+        String keyId = forCert((k, c) -> certHash.equals(c.getSha256hash()), (k, c) -> k.getId())
                 .orElseThrow(() -> certWithHashNotFound(certHash));
 
         return forKey((t, k) -> k.getId().equals(keyId),
@@ -382,36 +382,30 @@ public final class TokenManager {
      * @param certId the certificate id
      * @return the certificate info for the certificate id or null if not found
      */
-    public static synchronized CertificateInfo getCertificateInfo(
-            String certId) {
+    public static synchronized CertificateInfo getCertificateInfo(String certId) {
         log.trace("getCertificateInfo({})", certId);
 
-        return forCert((k, c) -> c.getId().equals(certId), (k, c) -> c.toDTO())
-                .orElse(null);
+        return forCert((k, c) -> c.getId().equals(certId), (k, c) -> c.toDTO()).orElse(null);
     }
 
     /**
-     * @param certHash the certificate hash
+     * @param certHash the certificate hash in HEX
      * @return the certificate info for the certificate hash or null
      */
-    public static synchronized CertificateInfo getCertificateInfoForCertHash(
-            String certHash) {
+    public static synchronized CertificateInfo getCertificateInfoForCertHash(String certHash) {
         log.trace("getCertificateInfoForCertHash({})", certHash);
 
-        return forCert((k, c) -> certHash.equals(c.getHash()),
-                (k, c) -> c.toDTO()).orElse(null);
+        return forCert((k, c) -> certHash.equals(c.getSha256hash()), (k, c) -> c.toDTO()).orElse(null);
     }
 
     /**
-     * @param certHash the certificate hash
+     * @param certSha1Hash the certificate SHA-1 hash in HEX
      * @return the certificate for the certificate hash or null
      */
-    public static synchronized X509Certificate getCertificateForCertHash(
-            String certHash) {
-        log.trace("getCertificateForCertHash({})", certHash);
+    public static synchronized X509Certificate getCertificateForCerHash(String certSha1Hash) {
+        log.trace("getCertificateForCertHash({})", certSha1Hash);
 
-        return forCert((k, c) -> certHash.equals(c.getHash()),
-                (k, c) -> c.getCertificate()).orElse(null);
+        return forCert((k, c) -> certSha1Hash.equals(c.getSha1hash()), (k, c) -> c.getCertificate()).orElse(null);
     }
 
     /**
@@ -423,25 +417,23 @@ public final class TokenManager {
         return currentTokens.stream()
                 .flatMap(t -> t.getKeys().stream())
                 .flatMap(k -> k.getCerts().stream())
-                .map(c -> c.toDTO())
-                .collect(Collectors.toList());
+                .map(Cert::toDTO)
+                .toList();
     }
 
     /**
      * Sets the OCSP response for the certificate.
      *
-     * @param certHash the certificate hash
+     * @param certSha1Hash the certificate SHA-1 hash in HEX
      * @param response the OCSP response
      */
-    public static synchronized void setOcspResponse(String certHash,
-                                                    OCSPResp response) {
-        log.trace("setOcspResponse({})", certHash);
+    public static synchronized void setOcspResponse(String certSha1Hash, OCSPResp response) {
+        log.trace("setOcspResponse({})", certSha1Hash);
 
-        forCert((k, c) -> certHash.equals(c.getHash()),
-                (k, c) -> {
-                    c.setOcspResponse(response);
-                    return null;
-                });
+        forCert((k, c) -> certSha1Hash.equals(c.getSha1hash()), (k, c) -> {
+            c.setOcspResponse(response);
+            return null;
+        });
     }
 
     /**
@@ -449,8 +441,7 @@ public final class TokenManager {
      * @param memberId the member id
      * @return the certificate request info or null if not found
      */
-    public static synchronized CertRequestInfo getCertRequestInfo(String keyId,
-                                                                  ClientId memberId) {
+    public static synchronized CertRequestInfo getCertRequestInfo(String keyId, ClientId memberId) {
         log.trace("getCertRequestInfo({}, {})", keyId, memberId);
 
         Key key = findKey(keyId);
@@ -473,14 +464,13 @@ public final class TokenManager {
     }
 
     /**
-     * @param certHash the certificate hash
+     * @param certHash the certificate hash in HEX
      * @return key info for the certificate hash
      */
     public static synchronized KeyInfo getKeyInfoForCertHash(String certHash) {
         log.trace("getKeyInfoForCertHash({})", certHash);
 
-        return forCert((k, c) -> certHash.equals(c.getHash()),
-                (k, c) -> k.toDTO()).orElse(null);
+        return forCert((k, c) -> certHash.equals(c.getSha256hash()), (k, c) -> k.toDTO()).orElse(null);
     }
 
     /**
@@ -730,23 +720,19 @@ public final class TokenManager {
 
     /**
      * Adds a certificate to a key. Throws exception, if key cannot be found.
-     *
-     * @param keyId    the key id
-     * @param certInfo the certificate info
      */
-    public static synchronized void addCert(String keyId,
-                                            CertificateInfo certInfo) {
+    public static synchronized void addCert(String keyId, ClientId.Conf memberId, boolean active, boolean savedToConfiguration,
+                                            String initialStatus, String id, byte[] certificate) {
         log.trace("addCert({})", keyId);
 
         Key key = findKey(keyId);
 
-        Cert cert = new Cert(certInfo.getId());
-        cert.setActive(certInfo.isActive());
-        cert.setCertificate(certInfo.getCertificateBytes());
-        cert.setOcspResponse(certInfo.getOcspBytes());
-        cert.setMemberId(certInfo.getMemberId());
-        cert.setSavedToConfiguration(certInfo.isSavedToConfiguration());
-        cert.setStatus(certInfo.getStatus());
+        Cert cert = new Cert(id);
+        cert.setActive(active);
+        cert.setCertificate(certificate);
+        cert.setMemberId(memberId);
+        cert.setSavedToConfiguration(savedToConfiguration);
+        cert.setStatus(initialStatus);
 
         key.addCert(cert);
     }

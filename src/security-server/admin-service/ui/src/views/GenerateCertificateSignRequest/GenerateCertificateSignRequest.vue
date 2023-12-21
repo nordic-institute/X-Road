@@ -30,54 +30,67 @@
       :title="$t('csr.generateCsr')"
       :show-close="false"
     />
+    <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
     <v-stepper
       v-model="currentStep"
       :alt-labels="true"
       class="wizard-stepper wizard-noshadow"
     >
       <v-stepper-header class="wizard-noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{
+        <v-stepper-item :complete="currentStep > 1" :value="1">{{
           $t('csr.csrDetails')
-        }}</v-stepper-step>
+        }}</v-stepper-item>
         <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{
+        <v-stepper-item :complete="currentStep > 2" :value="2">{{
           $t('csr.generateCsr')
-        }}</v-stepper-step>
+        }}</v-stepper-item>
       </v-stepper-header>
 
-      <v-stepper-items class="wizard-stepper-content">
+      <v-stepper-window class="wizard-stepper-content">
         <!-- Step 1 -->
-        <v-stepper-content step="1">
+        <v-stepper-window-item :value="1">
           <WizardPageCsrDetails
             :show-previous-button="false"
             @cancel="cancel"
             @done="save"
           />
-        </v-stepper-content>
+        </v-stepper-window-item>
         <!-- Step 2 -->
-        <v-stepper-content step="2">
+        <v-stepper-window-item :value="2">
           <WizardPageGenerateCsr
             @cancel="cancel"
             @previous="currentStep = 1"
             @done="cancel"
           />
-        </v-stepper-content>
-      </v-stepper-items>
+        </v-stepper-window-item>
+      </v-stepper-window>
     </v-stepper>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
+import {
+  VStepper,
+  VStepperHeader,
+  VStepperItem,
+  VStepperWindow,
+  VStepperWindowItem,
+} from 'vuetify/labs/VStepper';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
+    VStepper,
+    VStepperHeader,
+    VStepperItem,
+    VStepperWindow,
+    VStepperWindowItem,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
   },
@@ -85,12 +98,11 @@ export default Vue.extend({
     keyId: {
       type: String,
       required: true,
-      default: undefined,
     },
     tokenType: {
       type: String,
       required: false,
-      default: undefined,
+      default: '',
     },
   },
   data() {
@@ -108,13 +120,13 @@ export default Vue.extend({
       this.showError(error);
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     // Clear the store state
     this.resetCsrState();
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsrStore, [
+    ...mapActions(useCsr, [
       'resetCsrState',
       'setCsrTokenType',
       'storeKeyId',
@@ -140,5 +152,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 </style>

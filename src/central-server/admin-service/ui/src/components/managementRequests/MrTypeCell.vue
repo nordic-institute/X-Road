@@ -26,19 +26,30 @@
  -->
 <template>
   <div class="status-wrapper">
-    <v-tooltip top>
-      <template #activator="{ on, attrs }">
-        <div v-bind="attrs" v-on="on">
-          <xrd-icon-base v-bind="attrs" class="mr-3" v-on="on">
+    <v-tooltip location="top">
+      <template #activator="{ props }">
+        <div>
+          <xrd-icon-base class="mr-3" v-bind="props">
             <!-- Decide what icon to show -->
-            <XrdIconChangeOwner v-if="type === 'OWNER_CHANGE_REQUEST'" />
-            <XrdIconAddUser v-if="type === 'CLIENT_REGISTRATION_REQUEST'" />
-            <XrdIconRemoveUser v-if="type === 'CLIENT_DELETION_REQUEST'" />
-            <XrdIconRemoveCertificate
+            <xrd-icon-change-owner v-if="type === 'OWNER_CHANGE_REQUEST'" />
+            <xrd-icon-add-user v-if="type === 'CLIENT_REGISTRATION_REQUEST'" />
+            <xrd-icon-remove-user v-if="type === 'CLIENT_DELETION_REQUEST'" />
+            <xrd-icon-remove-certificate
               v-if="type === 'AUTH_CERT_DELETION_REQUEST'"
             />
-            <XrdIconAddCertificate
+            <xrd-icon-add-certificate
               v-if="type === 'AUTH_CERT_REGISTRATION_REQUEST'"
+            />
+            <xrd-icon-security-server
+              v-if="type === 'ADDRESS_CHANGE_REQUEST'"
+            />
+            <xrd-icon-error
+              v-if="type === 'CLIENT_DISABLE_REQUEST'"
+              :color="colors.WarmGrey100"
+            />
+            <xrd-icon-checked
+              v-if="type === 'CLIENT_ENABLE_REQUEST'"
+              :color="colors.Success100"
             />
           </xrd-icon-base>
         </div>
@@ -50,18 +61,43 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import {
+  XrdIconChangeOwner,
+  XrdIconAddUser,
+  XrdIconRemoveUser,
+  XrdIconRemoveCertificate,
+  XrdIconAddCertificate,
+  XrdIconSecurityServer,
+  XrdIconError,
+  XrdIconChecked,
+} from '@niis/shared-ui';
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestType } from '@/openapi-types';
 import { managementTypeToText } from '@/util/helpers';
+import { Colors } from '@/global';
 
-export default Vue.extend({
+export default defineComponent({
+  components: {
+    XrdIconChecked,
+    XrdIconError,
+    XrdIconAddCertificate,
+    XrdIconRemoveCertificate,
+    XrdIconRemoveUser,
+    XrdIconAddUser,
+    XrdIconChangeOwner,
+    XrdIconSecurityServer,
+  },
   props: {
     type: {
       type: String as PropType<ManagementRequestType>,
       default: undefined,
     },
   },
-
+  data() {
+    return {
+      colors: Colors,
+    };
+  },
   computed: {
     typeText() {
       return managementTypeToText(this.type);
@@ -71,7 +107,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .status-wrapper {
   display: flex;

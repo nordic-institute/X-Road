@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.rest.api.converter.model;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.ValueMapping;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 
@@ -36,17 +35,7 @@ import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 @Mapper(componentModel = SPRING)
 public interface ManagementRequestDtoTypeConverter {
 
-    @ValueMapping(source = "AUTH_CERT_REGISTRATION_REQUEST", target = "AUTH_CERT_REGISTRATION_REQUEST")
-    @ValueMapping(source = "CLIENT_REGISTRATION_REQUEST", target = "CLIENT_REGISTRATION_REQUEST")
-    @ValueMapping(source = "OWNER_CHANGE_REQUEST", target = "OWNER_CHANGE_REQUEST")
-    @ValueMapping(source = "CLIENT_DELETION_REQUEST", target = "CLIENT_DELETION_REQUEST")
-    @ValueMapping(source = "AUTH_CERT_DELETION_REQUEST", target = "AUTH_CERT_DELETION_REQUEST")
     ManagementRequestTypeDto convert(ManagementRequestType source);
 
-    @ValueMapping(source = "AUTH_CERT_REGISTRATION_REQUEST", target = "AUTH_CERT_REGISTRATION_REQUEST")
-    @ValueMapping(source = "CLIENT_REGISTRATION_REQUEST", target = "CLIENT_REGISTRATION_REQUEST")
-    @ValueMapping(source = "OWNER_CHANGE_REQUEST", target = "OWNER_CHANGE_REQUEST")
-    @ValueMapping(source = "CLIENT_DELETION_REQUEST", target = "CLIENT_DELETION_REQUEST")
-    @ValueMapping(source = "AUTH_CERT_DELETION_REQUEST", target = "AUTH_CERT_DELETION_REQUEST")
     ManagementRequestType convert(ManagementRequestTypeDto source);
 }

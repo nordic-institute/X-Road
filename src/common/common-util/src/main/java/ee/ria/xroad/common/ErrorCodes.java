@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -25,12 +25,11 @@
  */
 package ee.ria.xroad.common;
 
-import com.sun.xml.bind.api.AccessorException;
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.soap.SOAPException;
 import org.apache.james.mime4j.MimeException;
+import org.glassfish.jaxb.runtime.api.AccessorException;
 import org.xml.sax.SAXException;
-
-import javax.xml.bind.UnmarshalException;
-import javax.xml.soap.SOAPException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -126,6 +125,7 @@ public final class ErrorCodes {
     public static final String X_INVALID_CLIENT_IDENTIFIER =
             "InvalidClientIdentifier";
     public static final String X_INVALID_SERVICE_TYPE = "ServiceType";
+    public static final String X_CLIENT_PROXY_VERSION_NOT_SUPPORTED = "ClientProxyVersionNotSupported";
 
     // ASiC container related errors
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -37,11 +37,10 @@ import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
+import jakarta.servlet.ServletOutputStream;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-
-import javax.servlet.ServletOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -325,13 +324,13 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
                 .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
+                .header("Accept", "application/json;charset=utf-8")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
                 .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/json");
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -343,7 +342,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/json");
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -354,7 +353,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/json");
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -414,7 +413,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/json");
 
         given()
                 .baseUri("http://127.0.0.1")

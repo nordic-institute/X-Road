@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -34,9 +34,9 @@ import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.conf.globalconf.FileConsumer;
+import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -45,7 +45,6 @@ import ee.ria.xroad.common.messagelog.archive.EncryptionConfig;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GPGOutputStream;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
@@ -53,12 +52,12 @@ import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -75,6 +74,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.METADATA_SUFFIX;
 import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
 import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
 import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
@@ -158,7 +158,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void handleVerificationConfRequest() throws Exception {
         // GlobalConf.verifyValidity() is not necessary here.
 
-        ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(SystemProperties.getConfigurationPath());
+        VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(SystemProperties.getConfigurationPath());
 
         servletResponse.setContentType(MimeTypes.ZIP);
         servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
@@ -429,11 +429,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         return paramValue;
     }
 
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        return null; // nothing to return
-    }
-
     private static class VerificationConfWriter implements FileConsumer, Closeable {
 
         private static final String PREFIX = "verificationconf/";
@@ -452,11 +447,22 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 zos.putNextEntry(new ZipEntry(buildPath(metadata)));
                 IOUtils.copy(contents, zos);
                 zos.closeEntry();
+
+                zos.putNextEntry(new ZipEntry(buildPath(metadata) + METADATA_SUFFIX));
+                var verificationConfMetaData = toVerificationConfMetaData(metadata);
+                IOUtils.copy(new ByteArrayInputStream(verificationConfMetaData.toJson()), zos);
+                zos.closeEntry();
             }
         }
 
         private String buildPath(ConfigurationPartMetadata metadata) {
             return PREFIX + metadata.getInstanceIdentifier() + "/" + ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
+        }
+
+        private ConfigurationPartMetadata toVerificationConfMetaData(ConfigurationPartMetadata source) {
+            var metaData = new ConfigurationPartMetadata();
+            metaData.setConfigurationVersion(source.getConfigurationVersion());
+            return metaData;
         }
 
         @Override

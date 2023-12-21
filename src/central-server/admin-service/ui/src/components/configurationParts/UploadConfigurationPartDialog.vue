@@ -44,11 +44,11 @@
         >
           <v-text-field
             v-model="partFileTitle"
-            outlined
+            variant="outlined"
             :label="
               $t('globalConf.cfgParts.dialog.upload.uploadConfigurationPart')
             "
-            append-icon="icon-Upload"
+            append-inner-icon="icon-Upload"
             data-test="timestamping-service-file-input"
             @click="upload"
           ></v-text-field>
@@ -59,29 +59,29 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { FileUploadResult } from '@niis/shared-ui';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapStores } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
-import { useConfigurationSourceStore } from '@/store/modules/configuration-sources';
-import { Prop } from 'vue/types/options';
+import { useNotifications } from '@/store/modules/notifications';
+import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import {
   ConfigurationPartContentIdentifier,
   ConfigurationType,
 } from '@/openapi-types';
+import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
 
-export default Vue.extend({
-  name: 'UploadConfigurationPartDialog',
+export default defineComponent({
+  components: { XrdFileUpload },
   props: {
     configurationType: {
-      type: String as Prop<ConfigurationType>,
+      type: String as PropType<ConfigurationType>,
       required: true,
     },
     contentIdentifier: {
-      type: String as Prop<ConfigurationPartContentIdentifier>,
+      type: String as PropType<ConfigurationPartContentIdentifier>,
       required: true,
     },
   },
+  emits: ['save', 'cancel'],
   data() {
     return {
       partFile: null as File | null,
@@ -90,10 +90,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapStores(useConfigurationSourceStore),
+    ...mapStores(useConfigurationSource),
   },
   methods: {
-    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     onFileUploaded(result: FileUploadResult): void {
       this.partFile = result.file;
       this.partFileTitle = result.file.name;

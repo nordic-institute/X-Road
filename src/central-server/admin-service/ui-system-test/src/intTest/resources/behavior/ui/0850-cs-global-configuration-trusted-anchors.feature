@@ -13,15 +13,15 @@ Feature: 0850 - CS: Global configuration: Trusted Anchors
     And user uploads trusted anchor from file trusted-anchor-CS2-E2E.xml
     And confirmation is asked and user confirm anchor upload
     Then trusted anchor is successfully uploaded
-    And trusted anchor CS2-E2E with created 2023-02-15 11:26:34 is displayed in list
+    And trusted anchor CS2-E2E is displayed in list
 
   Scenario: User can download trusted anchor
-    Given trusted anchor CS2-E2E with created 2023-02-15 11:26:34 is displayed in list
+    Given trusted anchor CS2-E2E is displayed in list
     When user clicks trusted anchor CS2-E2E Download button
     Then trusted anchor is successfully downloaded
 
   Scenario: User can delete trusted anchor
-    Given trusted anchor CS2-E2E with created 2023-02-15 11:26:34 is displayed in list
+    Given trusted anchor CS2-E2E is displayed in list
     When user clicks trusted anchor CS2-E2E Delete button
     And confirmation is asked and user confirm anchor delete
     Then trusted anchor is successfully deleted

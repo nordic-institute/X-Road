@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -60,6 +60,12 @@ public class CertificateConverter {
         return certificateDetails;
     }
 
+    public CertificateDetails toCertificateDetails(final X509Certificate certificate) {
+        CertificateDetails certificateDetails = new CertificateDetails();
+        populateCertificateDetails(certificateDetails, certificate);
+        return certificateDetails;
+    }
+
     public SecurityServerAuthenticationCertificateDetails toCertificateDetails(final AuthCertEntity authCert) {
         SecurityServerAuthenticationCertificateDetails authCertificateDetails =
                 new SecurityServerAuthenticationCertificateDetails(authCert.getId());
@@ -68,10 +74,21 @@ public class CertificateConverter {
     }
 
     @SneakyThrows
+    private void populateCertificateDetails(final CertificateDetails certificateDetails, final X509Certificate certificate) {
+
+        populateCertificateDetails(certificateDetails, certificate, certificate.getEncoded());
+    }
+
+    @SneakyThrows
     private void populateCertificateDetails(final CertificateDetails certificateDetails, byte[] cert) {
         final X509Certificate[] certificates = CertUtils.readCertificateChain(cert);
         final X509Certificate certificate = certificates[0];
 
+        populateCertificateDetails(certificateDetails, certificate, cert);
+    }
+
+    @SneakyThrows
+    private void populateCertificateDetails(final CertificateDetails certificateDetails, final X509Certificate certificate, byte[] cert) {
         certificateDetails
                 .setHash(CryptoUtils.calculateCertHexHash(certificate.getEncoded()).toUpperCase())
                 .setVersion(certificate.getVersion())

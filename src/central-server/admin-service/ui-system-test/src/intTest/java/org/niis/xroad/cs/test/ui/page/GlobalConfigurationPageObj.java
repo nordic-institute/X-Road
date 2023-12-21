@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -86,7 +86,7 @@ public class GlobalConfigurationPageObj {
 
     public class TokenLoginDialog {
         public SelenideElement inputPin() {
-            return $x("//input[@data-test='token-pin-input']");
+            return $x("//div[@data-test='token-pin-input']");
         }
 
         public SelenideElement btnLogin() {
@@ -96,7 +96,7 @@ public class GlobalConfigurationPageObj {
 
     public class AddSigningKeyDialog {
         public SelenideElement inputLabel() {
-            return $x("//input[@data-test='signing-key-label-input']");
+            return $x("//div[@data-test='signing-key-label-input']");
         }
 
         public SelenideElement btnSave() {

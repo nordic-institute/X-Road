@@ -52,12 +52,12 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue, { defineComponent, PropType } from 'vue';
 import { ManagementRequestDetailedView } from '@/openapi-types';
 import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: { DataBlock, DataLine },
   props: {
     managementRequest: {

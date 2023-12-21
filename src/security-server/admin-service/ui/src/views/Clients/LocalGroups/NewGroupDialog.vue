@@ -25,18 +25,19 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     title="localGroup.addLocalGroup"
-    :disable-save="!formReady"
+    :disable-save="!meta.valid"
     width="620"
     @save="save"
     @cancel="cancel"
   >
-    <div slot="content">
+    <template #content>
       <div class="dlg-input-width">
         <v-text-field
           v-model="code"
-          outlined
+          v-bind="codeAttrs"
+          variant="outlined"
           :label="$t('localGroup.code')"
           autofocus
           data-test="add-local-group-code-input"
@@ -46,24 +47,45 @@
       <div class="dlg-input-width">
         <v-text-field
           v-model="description"
-          hint
+          v-bind="descriptionAttrs"
           :label="$t('localGroup.description')"
-          outlined
+          variant="outlined"
           data-test="add-local-group-description-input"
         ></v-text-field>
       </div>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
+import { PublicPathState, useForm } from "vee-validate";
 
-export default Vue.extend({
+export default defineComponent({
+  setup() {
+    const { meta, defineField, resetForm } = useForm({
+      validationSchema: {
+        code: 'required|max:255',
+        description: 'required|max:255',
+      },
+      initialValues: {
+        code: '',
+        description: '',
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const [code, codeAttrs] = defineField('code', componentConfig);
+    const [description, descriptionAttrs] = defineField('description', componentConfig);
+    return { meta, code, codeAttrs, description, descriptionAttrs, resetForm };
+  },
   props: {
     id: {
       type: String,
@@ -74,26 +96,11 @@ export default Vue.extend({
       required: true,
     },
   },
-
-  data() {
-    return {
-      code: '',
-      description: '',
-    };
-  },
-  computed: {
-    formReady(): boolean {
-      if (this.code && this.code.length > 0 && this.description.length > 0) {
-        return true;
-      }
-      return false;
-    },
-  },
-
+  emits: ['cancel', 'group-added'],
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
-      this.clearForm();
+      this.resetForm();
       this.$emit('cancel');
     },
     save(): void {
@@ -108,13 +115,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.showError(error);
+          this.$emit('cancel');
         })
-        .finally(() => this.clearForm());
-    },
-
-    clearForm(): void {
-      this.code = '';
-      this.description = '';
+        .finally(() => this.resetForm());
     },
   },
 });

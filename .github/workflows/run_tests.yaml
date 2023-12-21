@@ -1,0 +1,155 @@
+name: X-Road tests
+on: 
+  # Capture this event so that gradle caches are updated when a PR is merged to develop
+  # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
+  push:
+    branches:
+      - develop
+    paths:
+      - 'src/**'
+      - '.github/**'
+      - 'ansible/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/**'
+      - '.github/**'
+      - 'ansible/**'
+jobs:
+  BuildAndPackageWithUnitTests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
+      - name: Ensure required packages
+        run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          gradle-home-cache-cleanup: true
+      - name: Build and test source
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: ./src
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Unit and integration tests
+          path: src/**/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+          list-suites: 'failed'
+          list-tests: 'failed'
+      - name: Build Jammy packages
+        env:
+          DEBEMAIL: 'info@niis.org'
+          DEBFULLNAME: 'NIIS'
+        run: ./src/packages/build-deb.sh jammy -release
+      - name: Store deb files for system tests
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-packages
+          path: src/packages/build/ubuntu22.04/*.deb
+  RunCSSystemTests:
+    needs: BuildAndpackageWithUnitTests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          gradle-home-cache-cleanup: true
+      - name: Initialize docker setup
+        working-directory: ./.github/docker/centralserver
+        run: ./init_context.sh
+      - name: Download debian packages
+        uses: actions/download-artifact@v3
+        with:
+          name: debian-packages
+          path: ./.github/docker/centralserver/build/packages/develop/debian
+      - name: List docker build files
+        run: ls -lah .github/docker/centralserver/build
+      - name: Run Central Server system tests
+        working-directory: ./src
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/docker/centralserver
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Central Server system test
+          path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+      - name: Upload CS screenshots
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: CS System Test screenshots
+          path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
+  RunSSSystemTests:
+    needs: BuildAndpackageWithUnitTests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          gradle-home-cache-cleanup: true
+      - name: Download debian packages
+        uses: actions/download-artifact@v3
+        with:
+          name: debian-packages
+          path: ./src/security-server/system-test/src/intTest/resources/container-files/packages/develop/debian
+      - name: Run Security Server system tests
+        working-directory: ./src
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver
+      - name: Test report
+        env:
+          NODE_OPTIONS: '--max-old-space-size=6144'
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Security Server system tests
+          path: src/security-server/system-test/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+      - name: Fix system-test build dir permissions
+        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/
+        if: failure()
+      - name: Upload SS report
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: SS System Test report
+          path: |
+            src/security-server/system-test/build/allure-report/
+            src/security-server/system-test/build/ss-container-logs/

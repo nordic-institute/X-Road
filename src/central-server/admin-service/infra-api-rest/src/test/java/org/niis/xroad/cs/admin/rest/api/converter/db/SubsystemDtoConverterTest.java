@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -49,8 +49,8 @@ import org.niis.xroad.cs.openapi.model.UsedSecurityServersDto;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -80,21 +80,12 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
 
     @Nested
     @DisplayName("toDto(Subsystem source)")
-    public class ToDtoMethod implements WithInOrder {
+    class ToDtoMethod implements WithInOrder {
 
         @Test
         @DisplayName("should check for sanity")
-        public void shouldCheckForSanity() {
-            Set<ServerClient> serverClients = Set.of(serverClient);
-            SubsystemId clientId = SubsystemId.create(INSTANCE_ID, MEMBER_CLASS_CODE,
-                    MEMBER_CODE, SUBSYSTEM_CODE);
-            ClientIdDto clientIdDto = new ClientIdDto().subsystemCode(SUBSYSTEM_CODE);
-            doReturn(clientId).when(subsystem).getIdentifier();
-            doReturn(clientIdDto).when(clientIdDtoConverter).toDto(clientId);
-            doReturn(serverClients).when(subsystem).getServerClients();
-
-            when(serverClient.getServerOwner()).thenReturn(MEMBER_NAME);
-            when(serverClient.getServerCode()).thenReturn(SERVER_CODE);
+        void shouldCheckForSanity() {
+            setupMocks();
 
             doReturn(ManagementRequestStatus.APPROVED).when(securityServerService)
                     .findSecurityServerClientRegistrationStatus(any(), any());
@@ -107,16 +98,48 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
             UsedSecurityServersDto convertedServerClient = converted.getUsedSecurityServers().get(0);
             assertEquals(SERVER_CODE, convertedServerClient.getServerCode());
             assertEquals(MEMBER_NAME, convertedServerClient.getServerOwner());
+            assertEquals(ManagementRequestStatus.APPROVED.name(), convertedServerClient.getStatus());
+        }
+
+        @Test
+        @DisplayName("should convert server_client in disabled state")
+        void disabledServerClient() {
+            setupMocks();
+            when(serverClient.isEnabled()).thenReturn(false);
+
+            SubsystemDto converted = converter.toDto(subsystem);
+
+            assertNotNull(converted);
+            assertEquals(SUBSYSTEM_CODE, converted.getSubsystemId().getSubsystemCode());
+            assertEquals(1, converted.getUsedSecurityServers().size());
+            UsedSecurityServersDto convertedServerClient = converted.getUsedSecurityServers().get(0);
+            assertEquals(SERVER_CODE, convertedServerClient.getServerCode());
+            assertEquals(MEMBER_NAME, convertedServerClient.getServerOwner());
+            assertEquals("DISABLED", convertedServerClient.getStatus());
+        }
+
+        private void setupMocks() {
+            Set<ServerClient> serverClients = Set.of(serverClient);
+            SubsystemId clientId = SubsystemId.create(INSTANCE_ID, MEMBER_CLASS_CODE,
+                    MEMBER_CODE, SUBSYSTEM_CODE);
+            ClientIdDto clientIdDto = new ClientIdDto().subsystemCode(SUBSYSTEM_CODE);
+            doReturn(clientId).when(subsystem).getIdentifier();
+            doReturn(clientIdDto).when(clientIdDtoConverter).toDto(clientId);
+            doReturn(serverClients).when(subsystem).getServerClients();
+
+            when(serverClient.getServerOwner()).thenReturn(MEMBER_NAME);
+            when(serverClient.getServerCode()).thenReturn(SERVER_CODE);
+            when(serverClient.isEnabled()).thenReturn(true);
         }
     }
 
     @Nested
     @DisplayName("fromDto(SubsystemDto source)")
-    public class FromDtoMethod implements WithInOrder {
+    class FromDtoMethod implements WithInOrder {
 
         @Test
         @DisplayName("should use persisted entity if present")
-        public void shouldUsePersistedEntityIfPresent() {
+        void shouldUsePersistedEntityIfPresent() {
             ClientIdDto clientIdDto = new ClientIdDto();
             SubsystemId clientId = SubsystemId.create(INSTANCE_ID, MEMBER_CLASS_CODE,
                     MEMBER_CODE, SUBSYSTEM_CODE);

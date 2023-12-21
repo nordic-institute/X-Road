@@ -25,84 +25,72 @@
  -->
 <template>
   <div>
-    <ValidationObserver ref="form2" v-slot="{ invalid }">
-      <div class="wizard-step-form-content">
-        <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
-          <div class="wizard-label">
-            {{ $t(`certificateProfile.${item.label_key}`) }}
-          </div>
-
-          <div>
-            <ValidationProvider
-              v-slot="{ errors }"
-              :name="item.id"
-              :rules="item.required && 'required'"
-            >
-              <v-text-field
-                v-model="item.default_value"
-                class="wizard-form-input"
-                :name="item.id"
-                type="text"
-                outlined
-                :disabled="item.read_only"
-                :error-messages="errors"
-                data-test="dynamic-csr-input"
-                autofocus
-              ></v-text-field>
-            </ValidationProvider>
-          </div>
+    <div class="wizard-step-form-content">
+      <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
+        <div class="wizard-label">
+          {{ $t(`certificateProfile.${item.label_key}`) }}
         </div>
-        <div class="generate-row">
-          <div>{{ $t('csr.saveInfo') }}</div>
-          <xrd-button
-            :disabled="invalid || !disableDone"
-            data-test="generate-csr-button"
-            @click="generateCsr"
-            >{{ $t('csr.generateCsr') }}</xrd-button
-          >
+
+        <div>
+          <v-text-field
+            v-bind="componentRef(item.id)"
+            class="wizard-form-input"
+            :name="item.id"
+            type="text"
+            variant="outlined"
+            :disabled="item.read_only"
+            :data-test="`dynamic-csr-input_${item.id}`"
+            autofocus
+          ></v-text-field>
         </div>
       </div>
-      <div class="button-footer">
+      <div class="generate-row">
+        <div>{{ $t('csr.saveInfo') }}</div>
         <xrd-button
-          outlined
-          :disabled="!disableDone"
-          data-test="cancel-button"
-          @click="cancel"
-          >{{ $t('action.cancel') }}</xrd-button
-        >
-
-        <xrd-button
-          outlined
-          class="previous-button"
-          data-test="previous-button"
-          :disabled="!disableDone"
-          @click="previous"
-          >{{ $t('action.previous') }}</xrd-button
-        >
-        <xrd-button
-          :disabled="disableDone"
-          data-test="save-button"
-          @click="done"
-          >{{ $t(saveButtonText) }}</xrd-button
+          :disabled="!meta.valid || !disableDone"
+          data-test="generate-csr-button"
+          @click="generateCsr"
+          >{{ $t('csr.generateCsr') }}</xrd-button
         >
       </div>
-    </ValidationObserver>
+    </div>
+    <div class="button-footer">
+      <xrd-button
+        outlined
+        :disabled="!disableDone"
+        data-test="cancel-button"
+        @click="cancel"
+        >{{ $t('action.cancel') }}</xrd-button
+      >
+
+      <xrd-button
+        outlined
+        class="previous-button"
+        data-test="previous-button"
+        :disabled="!disableDone"
+        @click="previous"
+        >{{ $t('action.previous') }}</xrd-button
+      >
+      <xrd-button
+        :disabled="disableDone"
+        data-test="save-button"
+        @click="done"
+        >{{ $t(saveButtonText) }}</xrd-button
+      >
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { defineComponent, Ref } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useCsr } from '@/store/modules/certificateSignRequest';
 import { AxiosError } from 'axios';
+import { PublicPathState, useForm } from 'vee-validate';
+import { CsrSubjectFieldDescription } from '@/openapi-types';
 
-export default Vue.extend({
-  components: {
-    ValidationObserver,
-    ValidationProvider,
-  },
+export default defineComponent({
   props: {
     saveButtonText: {
       type: String,
@@ -114,17 +102,53 @@ export default Vue.extend({
       default: false,
     },
   },
+  emits: ['cancel', 'previous', 'done'],
+  setup() {
+    const { csrForm }: { csrForm: CsrSubjectFieldDescription[] } = useCsr();
+    const validationSchema: Record<string, string> = csrForm.reduce(
+      (acc, cur) => ({ ...acc, [cur.id]: cur.required && 'required' }),
+      {},
+    );
+    const initialValues: Record<string, string> = csrForm.reduce(
+      (acc, cur) => ({ ...acc, [cur.id]: cur.default_value }),
+      {},
+    );
+    const { meta, values, defineComponentBinds } = useForm({
+      validationSchema,
+      initialValues,
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const componentBinds: Record<string, Ref> = csrForm.reduce(
+      (acc, cur) => ({
+        ...acc,
+        [cur.id]: defineComponentBinds(cur.id, componentConfig),
+      }),
+      {},
+    );
+    return { meta, values, ...componentBinds, csrForm };
+  },
   data() {
     return {
       disableDone: true,
     };
   },
   computed: {
-    ...mapState(useCsrStore, ['csrForm', 'csrTokenId']),
+    ...mapState(useCsr, ['csrTokenId']),
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsrStore, ['requestGenerateCsr', 'generateKeyAndCsr']),
+    ...mapActions(useCsr, [
+      'setCsrForm',
+      'requestGenerateCsr',
+      'generateKeyAndCsr',
+    ]),
+    componentRef(id: string): Ref {
+      return (this as never)[id];
+    },
     cancel(): void {
       this.$emit('cancel');
     },
@@ -135,6 +159,12 @@ export default Vue.extend({
       this.$emit('done');
     },
     async generateCsr(): Promise<void> {
+      this.setCsrForm(
+        this.csrForm.map((field: CsrSubjectFieldDescription) => ({
+          ...field,
+          default_value: this.values[field.id],
+        })),
+      );
       if (this.keyAndCsr) {
         // Create Key AND CSR
 
@@ -142,11 +172,10 @@ export default Vue.extend({
           // Should not happen
           throw new Error('Token id does not exist');
         }
-        const tokenId = this.csrTokenId;
 
         // Create key and CSR
         try {
-          await this.generateKeyAndCsr(tokenId);
+          await this.generateKeyAndCsr(this.csrTokenId);
           this.disableDone = false;
         } catch (error) {
           this.disableDone = true;

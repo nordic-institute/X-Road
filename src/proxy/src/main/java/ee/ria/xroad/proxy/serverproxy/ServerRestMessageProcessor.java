@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -39,9 +39,6 @@ import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -54,6 +51,8 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -78,9 +77,6 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.OutputStream;
 import java.security.cert.X509Certificate;
@@ -418,36 +414,11 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
             }
             opMonitoringData.setFaultCodeAndString(exception);
-            monitorAgentNotifyFailure(exception);
             encoder.fault(SoapFault.createFaultXml(exception));
             encoder.close();
         } else {
             throw ex;
         }
-    }
-
-    private void monitorAgentNotifyFailure(CodedException ex) {
-        MessageInfo info = null;
-
-        boolean requestIsComplete = requestMessage != null && requestMessage.getRest() != null
-                && requestMessage.getSignature() != null;
-
-        // Include the request message only if the error was caused while
-        // exchanging information with the adapter server.
-        if (requestIsComplete && ex.getFaultCode().startsWith(SERVER_SERVERPROXY_X + "." + X_SERVICE_FAILED_X)) {
-            info = createRequestMessageInfo();
-        }
-
-        MonitorAgent.failure(info, ex.getFaultCode(), ex.getFaultString());
-    }
-
-    @Override
-    public MessageInfo createRequestMessageInfo() {
-        if (requestMessage == null) {
-            return null;
-        }
-        final RestRequest rest = requestMessage.getRest();
-        return new MessageInfo(Origin.SERVER_PROXY, rest.getClientId(), requestServiceId, null, rest.getQueryId());
     }
 
     private X509Certificate getClientAuthCert() {
@@ -514,35 +485,17 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 address += "?" + query;
             }
 
-            HttpRequestBase req;
-            switch (requestProxyMessage.getRest().getVerb()) {
-                case GET:
-                    req = new HttpGet(address);
-                    break;
-                case POST:
-                    req = new HttpPost(address);
-                    break;
-                case PUT:
-                    req = new HttpPut(address);
-                    break;
-                case DELETE:
-                    req = new HttpDelete(address);
-                    break;
-                case PATCH:
-                    req = new HttpPatch(address);
-                    break;
-                case OPTIONS:
-                    req = new HttpOptions(address);
-                    break;
-                case HEAD:
-                    req = new HttpHead(address);
-                    break;
-                case TRACE:
-                    req = new HttpTrace(address);
-                    break;
-                default:
-                    throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
-            }
+            HttpRequestBase req = switch (requestProxyMessage.getRest().getVerb()) {
+                case GET -> new HttpGet(address);
+                case POST -> new HttpPost(address);
+                case PUT -> new HttpPut(address);
+                case DELETE -> new HttpDelete(address);
+                case PATCH -> new HttpPatch(address);
+                case OPTIONS -> new HttpOptions(address);
+                case HEAD -> new HttpHead(address);
+                case TRACE -> new HttpTrace(address);
+                default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
+            };
 
             int timeout = TimeUtils.secondsToMillis(ServerConf
                     .getServiceTimeout(requestProxyMessage.getRest().getServiceId()));

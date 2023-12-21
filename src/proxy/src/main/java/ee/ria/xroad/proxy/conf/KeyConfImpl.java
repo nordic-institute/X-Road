@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -33,14 +33,8 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
-import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
-import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.GetAuthKey;
-import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
-import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
-import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
-import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -53,8 +47,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.util.CertUtils.getCertHashes;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
@@ -74,7 +68,7 @@ class KeyConfImpl implements KeyConfProvider {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
         try {
-            MemberSigningInfo signingInfo = SignerClient.execute(new GetMemberSigningInfo(clientId));
+            SignerProxy.MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
 
             return createSigningCtx(clientId, signingInfo.getKeyId(), signingInfo.getCert().getCertificateBytes(),
                     signingInfo.getSignMechanismName());
@@ -93,8 +87,7 @@ class KeyConfImpl implements KeyConfProvider {
             log.debug("Retrieving authentication info for security "
                     + "server '{}'", serverId);
 
-            AuthKeyInfo keyInfo =
-                    SignerClient.execute(new GetAuthKey(serverId));
+            AuthKeyInfo keyInfo = SignerProxy.getAuthKey(serverId);
 
             pkey = loadAuthPrivateKey(keyInfo);
             if (pkey == null) {
@@ -115,16 +108,14 @@ class KeyConfImpl implements KeyConfProvider {
 
     @Override
     public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
-        return getOcspResponse(calculateCertHexHash(cert));
+        return getOcspResponse(calculateCertSha1HexHash(cert));
     }
 
     @Override
     public OCSPResp getOcspResponse(String certHash) throws Exception {
-        GetOcspResponsesResponse response =
-                SignerClient.execute(
-                        new GetOcspResponses(new String[] {certHash}));
+        String[] responses = SignerProxy.getOcspResponses(new String[] {certHash});
 
-        for (String base64Encoded : response.getBase64EncodedResponses()) {
+        for (String base64Encoded : responses) {
             return base64Encoded != null
                     ? new OCSPResp(decodeBase64(base64Encoded)) : null;
         }
@@ -135,12 +126,10 @@ class KeyConfImpl implements KeyConfProvider {
     @Override
     public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
             throws Exception {
-        GetOcspResponsesResponse response =
-                SignerClient.execute(
-                        new GetOcspResponses(getCertHashes(certs)));
+        String[] responses = SignerProxy.getOcspResponses(getSha1Hashes(certs));
 
         List<OCSPResp> ocspResponses = new ArrayList<>();
-        for (String base64Encoded : response.getBase64EncodedResponses()) {
+        for (String base64Encoded : responses) {
             if (base64Encoded != null) {
                 ocspResponses.add(new OCSPResp(decodeBase64(base64Encoded)));
             } else {
@@ -161,17 +150,16 @@ class KeyConfImpl implements KeyConfProvider {
                     encodeBase64(responses.get(i).getEncoded());
         }
 
-        SignerClient.execute(new SetOcspResponses(getCertHashes(certs),
-                base64EncodedResponses));
+        SignerProxy.setOcspResponses(getSha1Hashes(certs), base64EncodedResponses);
     }
 
     static SigningCtx createSigningCtx(ClientId subject, String keyId,
-            byte[] certBytes, String signMechanismName) throws Exception {
+            byte[] certBytes, String signMechanismName) {
         return new SigningCtxImpl(subject, new SignerSigningKey(keyId, signMechanismName), readCertificate(certBytes));
     }
 
     static CertChain getAuthCertChain(String instanceIdentifier,
-            byte[] authCertBytes) throws Exception {
+            byte[] authCertBytes) {
         X509Certificate authCert = readCertificate(authCertBytes);
         try {
             return GlobalConf.getCertChain(instanceIdentifier, authCert);

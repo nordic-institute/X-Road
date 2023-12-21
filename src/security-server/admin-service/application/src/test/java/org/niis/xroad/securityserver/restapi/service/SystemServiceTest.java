@@ -1,20 +1,21 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,7 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -42,9 +43,12 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.exception.util.CommonDeviationMessage;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
@@ -58,6 +62,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -66,6 +71,7 @@ public class SystemServiceTest {
     private static final String TSA_1_NAME = "TSA 1";
     private static final String TSA_2_URL = "https://example.com";
     private static final String TSA_2_NAME = "TSA 2";
+    private static final String SERVER_ADDRESS = "new.address";
 
     @Mock
     private ServerConfService serverConfService;
@@ -78,7 +84,10 @@ public class SystemServiceTest {
     @Mock
     private CurrentSecurityServerId currentSecurityServerId;
     @Mock
+    private ManagementRequestSenderService managementRequestSenderService;
+    @Mock
     private AuditDataHelper auditDataHelper;
+    private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -97,7 +106,8 @@ public class SystemServiceTest {
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
         systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
-                configurationVerifier, currentSecurityServerId, auditDataHelper);
+                configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper,
+                addressChangeStatus);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
         systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }
@@ -199,13 +209,10 @@ public class SystemServiceTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     public void replaceAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        try {
-            systemService.replaceAnchor(anchorBytes);
-        } catch (Exception e) {
-            fail("Should not fail");
-        }
+        systemService.replaceAnchor(anchorBytes);
     }
 
     @Test
@@ -230,14 +237,11 @@ public class SystemServiceTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     public void uploadInitialAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         when(anchorRepository.readAnchorFile()).thenThrow(new NoSuchFileException(""));
-        try {
-            systemService.uploadInitialAnchor(anchorBytes);
-        } catch (Exception e) {
-            fail("Should not fail");
-        }
+        systemService.uploadInitialAnchor(anchorBytes);
     }
 
     @Test(expected = SystemService.AnchorAlreadyExistsException.class)
@@ -245,7 +249,43 @@ public class SystemServiceTest {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         when(anchorRepository.readAnchorFile()).thenReturn(anchorBytes);
         when(anchorRepository.loadAnchorFromFile())
-                .thenReturn(new ConfigurationAnchorV2("src/test/resources/internal-configuration-anchor.xml"));
+                .thenReturn(new ConfigurationAnchor("src/test/resources/internal-configuration-anchor.xml"));
         systemService.uploadInitialAnchor(anchorBytes);
+    }
+
+    @Test
+    public void changeSecurityServerAddress() throws Exception {
+        when(globalConfService.getSecurityServerAddress(any())).thenReturn("ss.address");
+
+        systemService.changeSecurityServerAddress(SERVER_ADDRESS);
+
+        verify(auditDataHelper).put(RestApiAuditProperty.ADDRESS, SERVER_ADDRESS);
+        verify(managementRequestSenderService).sendAddressChangeRequest(SERVER_ADDRESS);
+    }
+
+    @Test
+    public void changeSecurityServerAddressAlreadySubmitted() throws Exception {
+        addressChangeStatus.setAddress(SERVER_ADDRESS);
+
+        try {
+            systemService.changeSecurityServerAddress("another address");
+            fail();
+        } catch (ConflictException e) {
+            assertEquals("Address change request already submitted.", e.getMessage());
+            // ok
+        }
+    }
+
+    @Test
+    public void changeSecurityServerAddressSameAddress() throws Exception {
+        when(globalConfService.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
+
+        try {
+            systemService.changeSecurityServerAddress(SERVER_ADDRESS);
+            fail();
+        } catch (ConflictException e) {
+            assertEquals("Can not change to the same address.", e.getMessage());
+            // ok
+        }
     }
 }
