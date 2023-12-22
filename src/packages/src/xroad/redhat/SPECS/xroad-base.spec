@@ -134,6 +134,39 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
+%define set_default_java_version()                                                                                         \
+  if [ $1 -ge 1 ] ; then                                                                                                \
+    `# 7.4.0. Check that the default java version is at least 17`                                                       \
+    java_version_supported() {                                                                                          \
+      local java_exec=$1                                                                                                \
+      local java_version=$("$java_exec" -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)                 \
+      [[ $java_version -ge 17 ]]                                                                                        \
+    }                                                                                                                   \
+    if ! java_version_supported /etc/alternatives/java; then                                                            \
+      if [ -x /etc/alternatives/jre_17/bin/java ] && java_version_supported /etc/alternatives/jre_17/bin/java; then     \
+        echo "Configuring Java 17 as the default version..."                                                            \
+        alternatives --set java $(readlink -f /etc/alternatives/jre_17)/bin/java                                        \
+      else                                                                                                              \
+        echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2   \
+      fi                                                                                                                 \
+    fi                                                                                                                   \
+                                                                                                                         \
+    `# restart is required to trigger any changes within xroad-base.sh`                                                  \
+    echo "Restarting xroad-base service.."                                                                               \
+    %systemd_try_restart xroad-base.service                                                                              \
+  fi
+
+%define restart_xroad_services()                                                                                                                                 \
+  services_to_restart=$(find %{_localstatedir}/lib/rpm-state -type f -name "active" -exec dirname {} \\; | xargs -I {} basename {} | grep xroad- | tr '\\n' ' ') \
+  if [ -n "$services_to_restart" ]; then                                                                                                                         \
+    echo "Restarting services: $services_to_restart"                                                                                                             \
+    for service_name in $services_to_restart; do                                                                                                                 \
+      systemctl reset-failed "$service_name" > /dev/null 2>&1 || :                                                                                               \
+      systemctl --quiet restart "$service_name" > /dev/null 2>&1 || :                                                                                            \
+      rm -f "%{_localstatedir}/lib/rpm-state/$service_name/active" > /dev/null 2>&1 || :                                                                         \
+    done                                                                                                                                                         \
+  fi
+
 %verifyscript
 # check validity of xroad user and group
 if [ "`id -u xroad`" -eq 0 ]; then
@@ -176,25 +209,15 @@ chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 
-if [ $1 -ge 1 ] ; then
-  # 7.4.0. Check that the default java version is at least 17
-  java_version_supported() {
-    local java_exec=$1
-    local java_version=$("$java_exec" -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)
-    [[ $java_version -ge 17 ]]
-  }
-  if ! java_version_supported /etc/alternatives/java; then
-    if [ -x /etc/alternatives/jre_17/bin/java ] && java_version_supported /etc/alternatives/jre_17/bin/java; then
-      echo "Configuring Java 17 as the default version..."
-      alternatives --set java $(readlink -f /etc/alternatives/jre_17)/bin/java
-    else
-      echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2
-    fi
-  fi
+%if 0%{?el7}
+%set_default_java_version
+%restart_xroad_services
+%endif
 
-  # restart is required to trigger any changes within xroad-base.sh
-  echo "Restarting xroad-base service.."
-  %systemd_try_restart xroad-base.service
-fi
+%posttrans -p /bin/bash
+%if 0%{?el8}
+%set_default_java_version
+%restart_xroad_services
+%endif
 
 %changelog

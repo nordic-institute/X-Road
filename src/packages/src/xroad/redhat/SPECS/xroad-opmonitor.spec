@@ -96,6 +96,11 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
+mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+if systemctl is-active %{name} &> /dev/null; then
+  touch "%{_localstatedir}/lib/rpm-state/%{name}/active"
+fi
+
 %define init_xroad_opmonitor_db()                       \
     /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
 

@@ -1,6 +1,8 @@
 # Change Log
 
-## 7.4.0 - 2023-11-27
+## 7.5.0 - UNRELEASED
+
+## 7.4.0 - 2023-12-21
 - XRDDEV-851: As an Architect I want to study alternatives how to make global configuration more flexible so that it is easier to add new configuration items.
 - XRDDEV-1520: As an Architect I want to investigate how ACME could be supported in the X-Road ecosystem so that onboarding would be faster
 - XRDDEV-331: As an X-Road operator I want to rotate Central Server sign keys without having to send a new configuration anchor to all Security Server administrators so that rotating sign keys could be done regularly.
@@ -60,7 +62,26 @@
 - XRDDEV-2512: Management service API key creation fails silently during Central Server installation/upgrade
 - XRDDEV-2519: As a Security Server Administrator i want the configuration signing keys to rotate without manual intervention
 - XRDDEV-227: As a Security Server Administrator I want to be able to change my Security Server's address in the global configuration from the UI
+- XRDDEV-2520: As an X-Road user I would like to be able to use OpenAPI 3.1 so that I can use the latest version of the specifications
+- XRDDEV-2465: As a Security Server Administrator I want the initialization process to provide me with helptext that clarifies what rules are in effect for the pin code so that I know how to set it
+- XRDDEV-2528: As a Developer I want to check and fix a potential issue with long strings in the Security Server so that security is improved
 - XRDDEV-2521: As a Developer I want to update the Ubuntu packaging so that new installations use ports 8080 and 8443 by default similar to RHEL so that we open up port 80 and 443 to be used for ACME
+- XRDDEV-2529: As a Developer I want to check and fix a potential issue with cookies in the Security Server so that security is improved
+- XRDDEV-2525: As a Central Server Administrator I want to be able to set up a trusted CA without having a separate certificate for the OCSP responder so that I can use it as I did in the previous version of the Central Server
+- XRDDEV-2457: As a Central Server Administrator I want the usability of the filtering input to be improved so that I don't have to double click it
+- XRDDEV-445: As a Product Owner I want to use of better certificate hashing algorithms such as SHA-256, so that insecurities of SHA-1 do not cause problems
+- XRDDEV-2531: Security server edit token view crashes when refreshing page
+- XRDDEV-2545: The UI layout is broken in the Management Service TLS certificate view on the Central Server
+- XRDDEV-2526: As a Security Expert I want to verify that the allowed-hostnames parameter works correctly in the Security Server so that security is improved
+- XRDDEV-2538: As a Security Server Administrator I want the proxy_ui_api_access.log to be rolled in the same way as all other logs so that it is consitent
+- XRDDEV-1203: As a Central Server Administrator I want to be able to export management service TLS certificate using the Central Server UI so that I can verify the TLS connection between management Security Server and management services.
+- XRDDEV-2473: As a Security Server Administrator I want to have information on how to configure LDAP role mapping in the user guide so that I can configure it
+- XRDDEV-50: As a service provider I want to disable a subsystem temporarily so that I can do maintenance on all the services under the subsystem.
+- XRDDEV-2547: Configuration client fails to download global conf over HTTPS and switches to HTTP
+- XRDDEV-2548: Federated instance's configuration distribution will remain stuck at v2 after upgrading CS from an older version
+- XRDDEV-2546: When upgrading to X-Road 7.4.0 on RHEL8 Java 17 is not set as default automatically.
+- XRDDEV-2543: Central Server security officer sees Permission denied in Settings tab
+- XRDDEV-2549: After upgrading to version 7.4.0 or doing a clean 7.4.0 install the client information system port on the Security Server is sometimes 443 and other times 8443 with the Estonian meta package.
 
 ## 7.3.2 - 2023-08-07
 - XRDDEV-2447: The securityServerType property value is stored in the operational monitoring database using capital letters.
