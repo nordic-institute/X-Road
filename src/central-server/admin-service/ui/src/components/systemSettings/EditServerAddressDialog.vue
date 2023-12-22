@@ -76,7 +76,7 @@ export default defineComponent({
   setup(props) {
     const { meta, values, errors, setFieldError, defineComponentBinds } =
       useForm({
-        validationSchema: { serviceAddress: 'required' },
+        validationSchema: { serviceAddress: 'required|address' },
         initialValues: { serviceAddress: props.serviceAddress },
       });
     const renewedServerAddress = defineComponentBinds('serviceAddress');
