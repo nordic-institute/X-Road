@@ -107,7 +107,7 @@ fi
 %post
 %systemd_post xroad-opmonitor.service
 
-# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+# RHEL7 java-17-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %init_xroad_opmonitor_db
 %endif
@@ -119,8 +119,8 @@ fi
 %systemd_postun_with_restart xroad-opmonitor.service
 
 %posttrans
-# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8}
+# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8} || 0%{?el9}
 %init_xroad_opmonitor_db
 %endif
 

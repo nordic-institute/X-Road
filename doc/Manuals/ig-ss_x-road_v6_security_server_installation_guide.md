@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.47  
+Version: 2.48  
 Doc. ID: IG-SS
 
 ---
@@ -67,6 +67,7 @@ Doc. ID: IG-SS
 | 01.06.2023 | 2.45    | Update references                                                                                                                                                                                                    | Petteri Kivimäki   |
 | 20.11.2023 | 2.46    | Update firewall configuration documentation                                                                                                                                                                          | Taavi Meinberg     |
 | 27.11.2023 | 2.47    | Updated default proxy client http(s) ports                                                                                                                                                                           | Mikk-Erik Bachmann |
+| 19.12.2023 | 2.48    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis    |
 
 ## License
 
@@ -161,7 +162,7 @@ There are multiple alternatives how the Security Server can be deployed. The opt
 The Security Server is officially supported on the following platforms:
 
 * Ubuntu Server 20.04 or 22.04 Long-Term Support (LTS) operating system on a x86-64 platform.
-* Red Hat Enterprise Linux (RHEL) 7 and 8 (x86-64). See [IG-SS-RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md) for more information.
+* Red Hat Enterprise Linux (RHEL) 7, 8, 9 (x86-64). See [IG-SS-RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
