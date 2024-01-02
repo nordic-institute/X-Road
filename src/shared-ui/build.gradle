@@ -4,7 +4,6 @@ configurations {
     yarn { canBeConsumed(true); canBeResolved(false) }
 }
 
-var archive = 'niis-shared-ui-3.0.0.tgz'
 
 tasks.register('yarnBuild', RunYarn) {
     dependsOn installFrontend
@@ -24,22 +23,12 @@ tasks.register('yarnBuild', RunYarn) {
     script = 'run build'
 }
 
-tasks.register('yarnPack', RunYarn) {
-    dependsOn yarnBuild
-    inputs.files("dist")
-    outputs.file(archive)
-    script = "pack --out ${archive}"
-}
+
 
 clean {
-    delete file(archive)
     delete file('dist')
 }
 
-assembleFrontend.dependsOn yarnPack
+assembleFrontend.dependsOn yarnBuild
 
-artifacts {
-    yarn(file(archive)) {
-        builtBy(yarnPack)
-    }
-}
+

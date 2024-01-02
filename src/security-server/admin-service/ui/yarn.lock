@@ -760,9 +760,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@niis/shared-ui@file:../../../shared-ui::locator=frontend%40workspace%3A.":
+"@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz::locator=frontend%40workspace%3A.":
   version: 3.0.0
-  resolution: "@niis/shared-ui@file:../../../shared-ui#../../../shared-ui::hash=d30b31&locator=frontend%40workspace%3A."
+  resolution: "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz#../../../shared-ui/niis-shared-ui-3.0.0.tgz::hash=bd2153&locator=frontend%40workspace%3A."
   dependencies:
     "@fontsource/open-sans": "npm:^5.0.12"
     "@mdi/font": "npm:^7.2.96"
@@ -771,7 +771,7 @@ __metadata:
     vue: ^3.3.4
     vue-i18n: ^9.4.0
     vuetify: ^3.3.19
-  checksum: 1700d63a338d7d4749d8e9176ca9974b018a7a8b77f190b06b584acff108fc6989a67133655cdee9d5bc85e8004c56681ac38672fd0a396364742c98c6200477
+  checksum: f4a48b9c7621724e588b7f567a6d0ef6b019e5aff87b2edec18c895a79a56f1ee040735fe7db73bff16c1c8588b99862ec4fda18829e44b4c6222abb0ddd7153
   languageName: node
   linkType: hard
 
@@ -2873,7 +2873,7 @@ __metadata:
     "@fontsource/open-sans": "npm:~4.5.0"
     "@intlify/eslint-plugin-vue-i18n": "npm:^2.0.0"
     "@mdi/font": "npm:~6.5.95"
-    "@niis/shared-ui": ../../../shared-ui
+    "@niis/shared-ui": "file:../../../shared-ui/niis-shared-ui-3.0.0.tgz"
     "@rushstack/eslint-patch": "npm:^1.3.3"
     "@types/jest": "npm:^27.0.0"
     "@types/node": "npm:^18.16.17"
