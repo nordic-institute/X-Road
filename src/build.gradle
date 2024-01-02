@@ -14,7 +14,7 @@ buildscript {
 plugins {
     id 'org.sonarqube' version '4.4.1.3373'
     id 'org.owasp.dependencycheck' version '9.0.7'
-    id 'jacoco'
+    id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
     id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
@@ -34,7 +34,7 @@ sonarqube {
         property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
         property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
-        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.buildDir}/reports/jacoco/test/jacocoAggregatedReport.xml"
 
         property "sonar.issue.ignore.multicriteria", "e1"
         //# ignore 'Local-Variable Type Inference should be used"
@@ -98,10 +98,6 @@ allprojects {
     }
 
     version = '1.0'
-
-    jacoco {
-        toolVersion = "0.8.11"
-    }
 
     tasks.register('allDependencies', DependencyReportTask) {}
 }
@@ -240,7 +236,11 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
         }
     }
 
-    jacocoTestReport {
+    jacoco {
+        toolVersion = "0.8.11"
+    }
+    // Do not generate reports for individual projects
+    tasks.named("jacocoTestReport") {
         enabled = false
     }
 
@@ -312,25 +312,31 @@ configure(subprojects.findAll { ["shared-ui", "ui"].contains(it.name) }) {
 
 clean.delete << "${rootDir}/packages/build"
 
-jacocoTestReport {
-    def javaProjects = subprojects.findAll { it.plugins.hasPlugin(JavaPlugin) }
-    def buildTasks = javaProjects.collect { it.tasks.matching { ["build"].contains(it.name) } }.flatten()
-
-    dependsOn buildTasks
-
-    reports {
-        xml.required = true
+dependencies {
+    subprojects {
+        pluginManager.withPlugin('java') {
+            jacocoAggregation project
+        }
     }
+}
 
-    classDirectories.setFrom(files(javaProjects.collect {
-        it.extensions.getByType(JavaPluginExtension).sourceSets.main.output.classesDirs
-    }))
-    sourceDirectories.setFrom(files(javaProjects.collect {
-        it.extensions.getByType(JavaPluginExtension).sourceSets.main.allSource.srcDirs
-    }))
-
-    executionData.setFrom(fileTree(dir: '.', includes: ['**/build/jacoco/*.exec', '**/build/jacoco/*.jacoco']))
-
+reporting {
+    reports {
+        jacocoAggregatedReport(JacocoCoverageReport) {
+            testType = 'full'
+            reportTask.configure {
+                description = 'Build a full test coverage report including test and integrationTest results'
+                project.subprojects {
+                    pluginManager.withPlugin('jacoco') {
+                        executionData tasks.withType(Test)
+                    }
+                }
+                reports {
+                    xml.required = true
+                }
+            }
+        }
+    }
 }
 
 tasks.withType(Jar).configureEach {
