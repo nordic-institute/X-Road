@@ -66,9 +66,6 @@ public final class PortNumbers {
     /** Port for Configuration Admin Port. */
     public static final int CONFIGURATION_CLIENT_ADMIN_PORT = 5675;
 
-    /** Admin port for monitor agents. */
-    public static final int MONITOR_AGENT_ADMIN_PORT = 5588;
-
     /** Port of the operational monitoring daemon. */
     public static final int OP_MONITOR_DAEMON_PORT = 2080;
 
