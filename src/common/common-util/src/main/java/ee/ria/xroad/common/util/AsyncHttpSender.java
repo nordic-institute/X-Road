@@ -51,6 +51,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  * Asynchronous HTTP sender.
  */
 @Slf4j
+@SuppressWarnings("squid:S1192")
 public class AsyncHttpSender extends AbstractHttpSender {
     private final CloseableHttpAsyncClient client;
     private Future<HttpResponse> futureResponse;
@@ -158,9 +159,9 @@ public class AsyncHttpSender extends AbstractHttpSender {
     }
 
     private void consumeEntity() {
-        if (request instanceof HttpPost) {
+        if (request instanceof HttpPost httpPost) {
             try {
-                EntityUtils.consume(((HttpPost) request).getEntity());
+                EntityUtils.consume((httpPost).getEntity());
             } catch (IOException e) {
                 log.error("Error when consuming entity", e);
             }

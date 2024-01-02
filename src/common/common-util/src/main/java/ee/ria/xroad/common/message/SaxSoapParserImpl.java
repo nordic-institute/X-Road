@@ -915,10 +915,6 @@ public class SaxSoapParserImpl implements SoapParser {
             return representedPartyValues.get(key);
         }
 
-        private void setValue(QName key, String value) {
-            representedPartyValues.put(key, value);
-        }
-
         private List<QName> getAllowedChildElements() {
             return REPRESENTED_PARTY_PARTS;
         }
@@ -945,7 +941,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
             @Override
             protected void value(String val) {
-                setValue(key, val);
+                representedPartyValues.put(key, val);
             }
         }
 

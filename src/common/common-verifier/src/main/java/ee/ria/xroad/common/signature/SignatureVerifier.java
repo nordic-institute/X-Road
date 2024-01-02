@@ -424,11 +424,10 @@ public class SignatureVerifier {
             implements HashChainReferenceResolver {
 
         @Override
-        public InputStream resolve(String uri) throws IOException {
-            if (uri.equals(MessageFileNames.SIG_HASH_CHAIN)) {
-                if (hashChain != null) {
+        public InputStream resolve(String uri) {
+            if (uri.equals(MessageFileNames.SIG_HASH_CHAIN) && (hashChain != null)) {
                     return is(hashChain);
-                } // $FALL-THROUGH$
+                 // $FALL-THROUGH$
             }
             return null;
         }
