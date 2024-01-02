@@ -23,4 +23,14 @@ dependencies {
     implementation 'io.swagger.parser.v3:swagger-parser:2.1.18'
     implementation 'org.openapitools.empoa:empoa-swagger-core:2.0.0'
     testImplementation group: 'junit', name: 'junit', version: '4.12'
+
+    dependencies {
+        constraints {
+            // org.owasp.dependencycheck needs at least this version of jackson.
+            add("implementation", "com.fasterxml.jackson:jackson-bom:2.16.0")
+            // org.owasp.dependencycheck needs these versions.
+            add("implementation", "org.apache.commons:commons-lang3:3.14.0")
+            add("implementation", "org.apache.commons:commons-text:1.11.0")
+        }
+    }
 }
