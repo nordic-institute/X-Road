@@ -916,14 +916,11 @@
     "Positive": "numeric value should be greater that zero",
     "PositiveOrZero": "numeric value should be greater or equal to zero",
     "Size": "value does not meet length requirements",
-    "SizeField": "value does not meet length requirements",
-    "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
-    "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
+    "SizeField": "value does not meet length requirements"
   },
 
   "validation": {
     "messages": {
-      "address" : "The {field} field contains invalid characters",
       "is": "The {field} field must have a value of \"{other}\""
     }
   },

@@ -106,18 +106,17 @@ export default defineComponent({
         this.showSuccess(
           this.$t('systemSettings.editCentralServerAddressSuccess'),
         );
-        this.saving = false;
         this.$emit(Event.Edit);
       } catch (updateError: unknown) {
         const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
         if (isFieldError(errorInfo)) {
           // backend validation error
           let fieldErrors = errorInfo.error?.validation_errors;
-          if (fieldErrors && this.$refs?.serverAddressVP) {
+          if (fieldErrors) {
             this.setFieldError(
               'serviceAddress',
               getTranslatedFieldErrors(
-                'serverAddressUpdateBody.centralServerAddress',
+                'centralServerAddressDto.centralServerAddress',
                 fieldErrors,
               ),
             );
@@ -127,6 +126,8 @@ export default defineComponent({
           this.$emit(Event.Cancel);
         }
         return;
+      } finally {
+        this.saving = false;
       }
     },
     onCancelAddressEdit(): void {
