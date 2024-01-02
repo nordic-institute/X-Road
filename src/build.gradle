@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '4.2.1.3168'
-    id 'org.owasp.dependencycheck' version '9.0.5'
+    id 'org.owasp.dependencycheck' version '9.0.7'
     id 'jacoco'
     id 'java'
     id 'idea'
