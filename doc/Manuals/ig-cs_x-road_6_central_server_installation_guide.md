@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.37
+Version: 2.38
 Doc. ID: IG-CS
 
 ---
@@ -55,6 +55,7 @@ Doc. ID: IG-CS
 | 13.09.2023 | 2.35    | Database integrity check errors before center upgrade                                                                                                                                         | Eneli Reimets      |
 | 14.10.2023 | 2.36    | Add Global configuration distribution over https                                                                                                                                              | Eneli Reimets      |
 | 08.12.2023 | 2.37    | Minor updates                                                                                                                                                                                 | Petteri Kivimäki   |
+| 02.01.2024 | 2.38    | Loopback ports added                                                                                                                                                                          | Justas Samuolis    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -181,17 +182,23 @@ The network diagram below provides an example of a basic Central Server setup.
 
 The table below lists the required connections between different components. Please note that required connections between Security Servers and trust services (OCSP service, time-stamping service) have been omitted from the diagram and the table below. Their configuration is described in [IG-SS](#Ref_IG-SS).
 
-**Connection Type** | **Source**                        | **Target**                    | **Target Ports** | **Protocol** | **Note**                                                                                    |
------------|-----------------------------------|-------------------------------|------------------|-----------|---------------------------------------------------------------------------------------------|
-Out | Monitoring Security Server        | X-Road Member Security Server | 5500, 5577       | tcp | Operational and environmental monitoring data collection                                    |
-In  | X-Road Member Security Server     | Central Server                | 80, 443          | tcp | Global configuration distribution                                                           |
-In  | X-Road Member Security Server     | Central Server                | 4001             | tcp | Authentication certificate registration requests from X-Road Members' Security Servers      |
-In  | Management Security Server        | Central Server                | 4002             | tcp | Source in the internal network. Management service requests from Management Security Server |
-In  | X-Road Member Security Server     | Management Security Server    | 5500, 5577       | tcp | Management service requests from X-Road Members' Security Servers                           |
-In  | Central Monitoring Client         | Monitoring Security Server    | 8080, 8443       | tcp | Source in the internal network                                                              |
-In  | Admin, management REST API client | Central Server                | 4000             | tcp | Source in the internal network                                                              |
-In  | Admin                             | Management Security Server    | 4000             | tcp | Source in the internal network                                                              |
-In  | Admin                             | Monitoring Security Server    | 4000             | tcp | Source in the internal network                                                              |
+| **Connection Type** | **Source**                          | **Target**                    | **Target Ports** | **Protocol** | **Note**                                                                                    |
+|---------------------|-------------------------------------|-------------------------------|------------------|--------------|---------------------------------------------------------------------------------------------|
+| Out                 | Monitoring Security Server          | X-Road Member Security Server | 5500, 5577       | tcp          | Operational and environmental monitoring data collection                                    |
+| In                  | X-Road Member Security Server       | Central Server                | 80, 443          | tcp          | Global configuration distribution                                                           |
+| In                  | X-Road Member Security Server       | Central Server                | 4001             | tcp          | Authentication certificate registration requests from X-Road Members' Security Servers      |
+| In                  | Management Security Server          | Central Server                | 4002             | tcp          | Source in the internal network. Management service requests from Management Security Server |
+| In                  | X-Road Member Security Server       | Management Security Server    | 5500, 5577       | tcp          | Management service requests from X-Road Members' Security Servers                           |
+| In                  | Central Monitoring Client           | Monitoring Security Server    | 8080, 8443       | tcp          | Source in the internal network                                                              |
+| In                  | Admin, management REST API client   | Central Server                | 4000             | tcp          | Source in the internal network                                                              |
+| In                  | Admin                               | Management Security Server    | 4000             | tcp          | Source in the internal network                                                              |
+| In                  | Admin                               | Monitoring Security Server    | 4000             | tcp          | Source in the internal network                                                              |
+| loopback            | Central Server Registration Service | Central Server                | 8084             | tcp          |                                                                                             |
+| loopback            | Central Server Management Service   | Central Server                | 8085             | tcp          |                                                                                             |
+| loopback            |                                     | PostgreSQL database           | 5432             | tcp          | Default PostgreSQL database port                                                            |
+| loopback            |                                     | Signer                        | 5560             | tcp          | Signer gRPC port                                                                            |
+| loopback            |                                     | Audit log                     | 514              | udp          |                                                                                             |
+
 
 ### 2.3 Requirements to the Central Server
 

@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.48  
+Version: 2.49  
 Doc. ID: IG-SS
 
 ---
@@ -68,6 +68,7 @@ Doc. ID: IG-SS
 | 20.11.2023 | 2.46    | Update firewall configuration documentation                                                                                                                                                                          | Taavi Meinberg     |
 | 27.11.2023 | 2.47    | Updated default proxy client http(s) ports                                                                                                                                                                           | Mikk-Erik Bachmann |
 | 19.12.2023 | 2.48    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis    |
+| 02.01.2024 | 2.49    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis    |
 
 ## License
 
@@ -208,18 +209,27 @@ The network diagram below provides an example of a basic Security Server setup. 
 
 The table below lists the required connections between different components.
 
-| **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                       |
-|---------------------|----------------------------------------------------------|----------------------------------------------------------|------------------|--------------|--------------------------------|
-| Out                 | Security Server                                          | Central Server                                           | 80, 4001         | tcp          |                                |
-| Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                |
-| Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                |
-| Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443         | tcp          |                                |
-| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577       | tcp          |                                |
-| Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network |
-| In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                |
-| In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                |
-| In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network |
-| In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network |
+| **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                        |
+|---------------------|----------------------------------------------------------|----------------------------------------------------------|------------------|--------------|---------------------------------|
+| Out                 | Security Server                                          | Central Server                                           | 80, 4001         | tcp          |                                 |
+| Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                 |
+| Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                 |
+| Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443         | tcp          |                                 |
+| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577       | tcp          |                                 |
+| Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network  |
+| In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                 |
+| In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                 |
+| In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network  |
+| In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network  |
+| loopback            |                                                          | PostgreSQL database                                      | 5432             | tcp          | Default PostgreSQL port         |
+| loopback            |                                                          | OP Monitoring daemon                                     | 2080             | tcp          |                                 |
+| loopback            |                                                          | Environmental monitoring                                 | 2552             | tcp          |                                 |
+| loopback            |                                                          | Signer                                                   | 5559             | tcp          | Signer admin port               |
+| loopback            |                                                          | Signer                                                   | 5560             | tcp          | Signer gRPC port                |
+| loopback            |                                                          | Proxy                                                    | 5566             | tcp          | Proxy admin port                |
+| loopback            |                                                          | Proxy                                                    | 5567             | tcp          | Proxy gRPC server port          |
+| loopback            |                                                          | Configuration Client                                     | 5675             | tcp          | Configuration Client admin port |
+| loopback            |                                                          | Audit Log                                                | 514              | udp          |                                 |
 
 
 ### 2.3 Requirements for the Security Server
