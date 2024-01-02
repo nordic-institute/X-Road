@@ -1,29 +1,30 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.17 
+Version: 1.18 
 Doc. ID: IG-XLB
 
 
-| Date       | Version | Description                                                                                                              | Author                       |
-|------------|---------|--------------------------------------------------------------------------------------------------------------------------|------------------------------|
-| 22.3.2017  | 1.0     | Initial version                                                                                                          | Jarkko Hyöty, Olli Lindgren  |
-| 27.4.2017  | 1.1     | Added slave node user group instructions                                                                                 | Tatu Repo                    |
-| 15.6.2017  | 1.2     | Added health check interface maintenance mode                                                                            | Tatu Repo                    |
-| 21.6.2017  | 1.3     | Added chapter 7 on [upgrading the security server cluster](#7-upgrading-a-clustered-x-road-security-server-installation) | Olli Lindgren                |
-| 02.03.2018 | 1.4     | Added uniform terms and conditions reference                                                                             | Tatu Repo                    |
-| 15.11.2018 | 1.5     | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                 |
-| 20.12.2018 | 1.6     | Update upgrade instructions                                                                                              | Jarkko Hyöty                 |
-| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                 |
-| 08.10.2020 | 1.8     | Added notes about API keys and caching                                                                                   | Janne Mattila                |
-| 19.10.2020 | 1.9     | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki               |
-| 19.10.2020 | 1.10    | Added information about management REST API permissions                                                                  | Petteri Kivimäki             |
-| 23.12.2020 | 1.11    | Updates for Ubuntu 20.04 support                                                                                         | Jarkko Hyöty                 |
-| 02.07.2021 | 1.12    | Updates for state sync                                                                                                   | Jarkko Hyöty                 |
-| 25.08.2021 | 1.13    | Update X-Road references from version 6 to 7                                                                             | Caro Hautamäki               |
-| 17.09.2021 | 1.14    | Add note about the proxy health check now also checking global conf validity                                             | Caro Hautamäki               |
-| 17.06.2022 | 1.15    | Replace the word "replica" with "secondary"                                                                              | Petteri Kivimäki             |
-| 26.09.2022 | 1.16    | Remove Ubuntu 18.04 support                                                                                              | Andres Rosenthal             |
-| 01.03.2023 | 1.17    | Updates for user groups in secondary nodes                                                                               | Petteri Kivimäki             |
+| Date       | Version | Description                                                                                                              | Author                      |
+|------------|---------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------|
+| 22.3.2017  | 1.0     | Initial version                                                                                                          | Jarkko Hyöty, Olli Lindgren |
+| 27.4.2017  | 1.1     | Added slave node user group instructions                                                                                 | Tatu Repo                   |
+| 15.6.2017  | 1.2     | Added health check interface maintenance mode                                                                            | Tatu Repo                   |
+| 21.6.2017  | 1.3     | Added chapter 7 on [upgrading the security server cluster](#7-upgrading-a-clustered-x-road-security-server-installation) | Olli Lindgren               |
+| 02.03.2018 | 1.4     | Added uniform terms and conditions reference                                                                             | Tatu Repo                   |
+| 15.11.2018 | 1.5     | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                |
+| 20.12.2018 | 1.6     | Update upgrade instructions                                                                                              | Jarkko Hyöty                |
+| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                |
+| 08.10.2020 | 1.8     | Added notes about API keys and caching                                                                                   | Janne Mattila               |
+| 19.10.2020 | 1.9     | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki              |
+| 19.10.2020 | 1.10    | Added information about management REST API permissions                                                                  | Petteri Kivimäki            |
+| 23.12.2020 | 1.11    | Updates for Ubuntu 20.04 support                                                                                         | Jarkko Hyöty                |
+| 02.07.2021 | 1.12    | Updates for state sync                                                                                                   | Jarkko Hyöty                |
+| 25.08.2021 | 1.13    | Update X-Road references from version 6 to 7                                                                             | Caro Hautamäki              |
+| 17.09.2021 | 1.14    | Add note about the proxy health check now also checking global conf validity                                             | Caro Hautamäki              |
+| 17.06.2022 | 1.15    | Replace the word "replica" with "secondary"                                                                              | Petteri Kivimäki            |
+| 26.09.2022 | 1.16    | Remove Ubuntu 18.04 support                                                                                              | Andres Rosenthal            |
+| 01.03.2023 | 1.17    | Updates for user groups in secondary nodes                                                                               | Petteri Kivimäki            |
+| 20.12.2023 | 1.18    | Added RHEL 9                                                                                                             | Justas Samuolis             |
 ## Table of Contents
 
 <!-- toc -->
@@ -439,7 +440,7 @@ Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 For technical details on the PostgreSQL replication, refer to the [official documentation](https://www.postgresql.org/docs/10/high-availability.html).
 Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. At the time of writing, RHEL 7
 distributes PostgreSQL version 9.2, and RHEL 8 version 10; the replication configuration is the same
-for these versions. On Ubuntu 20.04 using PostgreSQL version 12 and on 22.04 using version 14, the configuration has some differences.
+for these versions. On RHEL 9 using PostgreSQL 13, Ubuntu 20.04 using PostgreSQL version 12 and on 22.04 using version 14, the configuration has some differences.
 
 ### 4.1 Setting up TLS certificates for database authentication
 
@@ -553,7 +554,7 @@ wal_level = replica
 max_wal_senders   = 3   # should be ~ number of secondaries plus some small number. Here, we assume there are two secondaries.
 wal_keep_segments = 8   # keep some wal segments so that secondaries that are offline can catch up.
 
-# PostgreSQL >=14 (Ubuntu 22.04)
+# PostgreSQL >=13 (RHEL 9, Ubuntu 22.04)
 wal_level = replica
 
 max_wal_senders = 3   # should be ~ number of secondaries plus some small number. Here, we assume there are two secondaries.
@@ -653,7 +654,7 @@ trigger_file = '/var/lib/xroad/postgresql.trigger'
 ```
 Where, as above, `<primary>` is the DNS or IP address of the primary node and `<nodename>` is the node name (the replication user name added to the primary database).
 
-On *Ubuntu 20.04 & 22.04 (PostgreSQL >=12)*, create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
+On *Ubuntu 20.04 & 22.04, RHEL 9 (PostgreSQL >=12)*, create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
 
 Next, modify `postgresql.conf`:
 >On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.  
@@ -675,7 +676,7 @@ hot_standby = on
 hot_standby_feedback = on
 ```
 
-*On Ubuntu 20.04 & 22.04 (PostgreSQL >=12) only*, add the primary_conninfo to postgresql.conf:
+*On Ubuntu 20.04 & 22.04, RHEL 9 (PostgreSQL >=12) only*, add the primary_conninfo to postgresql.conf:
 ```properties
 primary_conninfo = 'host=<primary> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
 ```

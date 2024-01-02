@@ -30,29 +30,11 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import { RouteName } from '@/global';
-import { mapStores } from 'pinia';
-import { useSettingsTabs } from '@/store/modules/settings-tabs';
+import { defineComponent } from 'vue';
 
 /**
  * Main view wrapping content all from 'Global resources' main tab.
  * The tab is the default tab of Settings section.
  */
-export default defineComponent({
-  computed: {
-    ...mapStores(useSettingsTabs, ['getAvailableTabs']),
-  },
-  created() {
-    this.redirectToFirstAllowedTab();
-  },
-  methods: {
-    redirectToFirstAllowedTab(): void {
-      let firstTab = this.settingsTabsStore.getAvailableTabs()[0].to;
-      if (firstTab.name != RouteName.GlobalResources) {
-        this.$router.push(firstTab);
-      }
-    },
-  },
-});
+export default defineComponent({});
 </script>

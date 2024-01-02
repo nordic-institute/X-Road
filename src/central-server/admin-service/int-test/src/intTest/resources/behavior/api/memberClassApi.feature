@@ -3,7 +3,7 @@
 Feature: Member Class Api
 
   Background:
-    Given Authentication header is set to SYSTEM_ADMINISTRATOR
+    Given Authentication header is set to SECURITY_OFFICER
 
  Scenario: Create duplicate member class is not allowed
    Given member class 'TEST' is created
@@ -20,7 +20,7 @@ Feature: Member Class Api
     Given member class 'TEST' is created
     And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member' is added
-    And Authentication header is set to SYSTEM_ADMINISTRATOR
+    And Authentication header is set to SECURITY_OFFICER
     When member class 'TEST' is deleted
     Then Response is of status code 409 and error code 'member_class_is_in_use'
     And member class list contains 1 items

@@ -28,13 +28,15 @@ dependencies {
     schema project(':common:common-util')
     schema "org.apache.ant:ant:1.10.11"
     schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"
-    schema "org.hibernate:hibernate-tools:$hibernateVersion"
+    schema "org.hibernate.tool:hibernate-tools-ant:$hibernateVersion"
     schema 'commons-collections:commons-collections:3.2.2'
     schema "ch.qos.logback:logback-classic:${logbackVersion}"
     schema "org.hsqldb:hsqldb:$hsqldbVersion"
 }
 
 task schemaExport() {
+    dependsOn configurations.schema
+
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
