@@ -52,7 +52,6 @@ import org.w3c.dom.Node;
 import javax.xml.transform.dom.DOMSource;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
@@ -426,8 +425,8 @@ public class SignatureVerifier {
         @Override
         public InputStream resolve(String uri) {
             if (uri.equals(MessageFileNames.SIG_HASH_CHAIN) && (hashChain != null)) {
-                    return is(hashChain);
-                 // $FALL-THROUGH$
+                return is(hashChain);
+                // $FALL-THROUGH$
             }
             return null;
         }
