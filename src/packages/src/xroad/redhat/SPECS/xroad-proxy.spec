@@ -119,6 +119,11 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
+mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+if systemctl is-active %{name} &> /dev/null; then
+  touch "%{_localstatedir}/lib/rpm-state/%{name}/active"
+fi
+
 if [ $1 -gt 1 ] ; then
     # upgrade
     # remove the previous port forwarding rules (if any)
@@ -126,7 +131,6 @@ if [ $1 -gt 1 ] ; then
         source /etc/sysconfig/xroad-proxy
     fi
 
-    mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
     rpm -q xroad-proxy --queryformat="%%{version}" &> %{_localstatedir}/lib/rpm-state/%{name}/prev-version
 
 fi
@@ -229,7 +233,7 @@ function migrate_conf_value {
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
-# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+# RHEL7 java-17-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %execute_init_or_update_resources
 %endif
@@ -244,8 +248,8 @@ migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy si
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
 %systemd_try_restart nginx.service
 
-# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8}
+# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8} || 0%{?el9}
 %execute_init_or_update_resources
 %endif
 

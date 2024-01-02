@@ -2,9 +2,11 @@
 Feature: Management requests API
 
   Background:
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'E2E' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:E2E:member-1' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
 
   @Modifying
   Scenario: Add/delete Authentication certificate

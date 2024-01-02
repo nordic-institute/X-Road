@@ -96,13 +96,18 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
+mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+if systemctl is-active %{name} &> /dev/null; then
+  touch "%{_localstatedir}/lib/rpm-state/%{name}/active"
+fi
+
 %define init_xroad_opmonitor_db()                       \
     /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
 
 %post
 %systemd_post xroad-opmonitor.service
 
-# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+# RHEL7 java-17-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %init_xroad_opmonitor_db
 %endif
@@ -114,8 +119,8 @@ rm -rf %{buildroot}
 %systemd_postun_with_restart xroad-opmonitor.service
 
 %posttrans
-# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8}
+# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8} || 0%{?el9}
 %init_xroad_opmonitor_db
 %endif
 

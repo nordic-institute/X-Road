@@ -3,6 +3,7 @@
 if [ "$1" = configure ]; then
   invoke-rc.d --quiet xroad-proxy try-restart || true
   invoke-rc.d --quiet xroad-signer try-restart || true
+  invoke-rc.d --quiet xroad-proxy-ui-api try-restart || true
 fi
 
 #DEBHELPER#

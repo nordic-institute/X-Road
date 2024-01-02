@@ -3,9 +3,10 @@
 Feature: Clients API
 
   Background:
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
     And member class 'TEST2' is created
+    And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member' is added with name 'name first'
     And new member 'CS:TEST:another' is added with name 'name second'
     And new member 'CS:TEST2:member' is added with name 'name third'
@@ -16,6 +17,7 @@ Feature: Clients API
     When members are added to group 'test-group'
       | $identifier         |
       | CS:TEST:member:sub3 |
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     And new security server 'CS:TEST:member:SS-2' authentication certificate registered with origin 'SECURITY_SERVER' and approved
     And new security server 'CS:TEST2:member:SS-3' authentication certificate registered with origin 'SECURITY_SERVER' and approved

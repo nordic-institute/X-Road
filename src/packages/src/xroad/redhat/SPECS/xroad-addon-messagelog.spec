@@ -85,8 +85,12 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
+mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+if systemctl is-active %{name} &> /dev/null; then
+  touch "%{_localstatedir}/lib/rpm-state/%{name}/active"
+fi
+
 if [ "$1" -gt 1 ] ; then
-  mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
   rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
 fi
 
@@ -105,7 +109,7 @@ fi
 %post -p /bin/bash
 %systemd_post xroad-addon-messagelog.service
 
-# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+# RHEL7 java-17-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %manage_messagelog_activation
 %endif
@@ -133,8 +137,8 @@ fi
 %systemd_postun_with_restart xroad-proxy.service xroad-addon-messagelog.service
 
 %posttrans -p /bin/bash
-# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8}
+# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8} || 0%{?el9}
 %manage_messagelog_activation
 %endif
 
