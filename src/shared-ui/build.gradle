@@ -10,6 +10,8 @@ frontend {
     cacheDirectory = file("${projectDir}/.gradle/pnpm-cache")
     nodeDistributionUrlRoot = 'https://artifactory.niis.org/artifactory/nodejs-dist-remote/'
     maxDownloadAttempts = 3
+
+    packageJsonDirectory = file("${rootDir}/")
     if (System.getenv().containsKey("CI")) {
         installScript = 'install --frozen-lockfile'
     }
@@ -34,15 +36,10 @@ if (project.hasProperty('frontend-npm-audit')) {
 }
 
 //check that pnpm run license-check passes
-tasks.register('checkFrontSharedUiLicense', RunPnpm) {
-    dependsOn installFrontend
-    script = 'run license-check'
-}
 tasks.register('checkFrontWorkspaceLicense', RunPnpm) {
     dependsOn installFrontend
     script = ' run -r license-check'
 }
-checkFrontend.dependsOn checkFrontSharedUiLicense
 checkFrontend.dependsOn checkFrontWorkspaceLicense
 
 clean {
