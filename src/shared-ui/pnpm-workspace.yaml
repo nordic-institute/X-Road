@@ -1,0 +1,4 @@
+packages:
+  - "../central-server/admin-service/ui"
+  - "../security-server/admin-service/ui"
+

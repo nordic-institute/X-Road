@@ -1,34 +1,50 @@
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunPnpm
 
-configurations {
-    yarn { canBeConsumed(true); canBeResolved(false) }
+plugins {
+    id("org.siouan.frontend-jdk17")
 }
 
+frontend {
+    nodeVersion = frontendNodeVersion
+    nodeInstallDirectory = file("${rootDir}/.gradle/pnpm-node/${frontendNodeVersion}")
+    cacheDirectory = file("${projectDir}/.gradle/pnpm-cache")
+    nodeDistributionUrlRoot = 'https://artifactory.niis.org/artifactory/nodejs-dist-remote/'
+    maxDownloadAttempts = 3
+    if (System.getenv().containsKey("CI")) {
+        installScript = 'install --frozen-lockfile'
+    }
+}
 
-tasks.register('yarnBuild', RunYarn) {
+tasks.register('build-pnpm-workspace', RunPnpm) {
     dependsOn installFrontend
-    inputs.files(
-        'src/',
-        'public/',
-        'svg-icons/',
-        'package.json',
-        'yarn.lock',
-        'vite.config.js',
-        'tsconfig.json',
-        fileTree('node_modules') {
-            exclude '.cache'
-        }
-    )
-    outputs.dir('dist')
-    script = 'run build'
+    script = 'run build-workspace'
 }
 
+tasks.named("cleanFrontend").configure {
+    enabled(false)
+}
 
+tasks.register('checkFrontAudit', RunPnpm) {
+    dependsOn assembleFrontend
+
+    script = 'run npx-check-audit'
+}
+if (project.hasProperty('frontend-npm-audit')) {
+    assemble.dependsOn checkFrontAudit
+}
+
+//check that pnpm run license-check passes
+tasks.register('checkFrontSharedUiLicense', RunPnpm) {
+    dependsOn installFrontend
+    script = 'run license-check'
+}
+tasks.register('checkFrontWorkspaceLicense', RunPnpm) {
+    dependsOn installFrontend
+    script = ' run -r license-check'
+}
+checkFrontend.dependsOn checkFrontSharedUiLicense
+checkFrontend.dependsOn checkFrontWorkspaceLicense
 
 clean {
     delete file('dist')
 }
-
-assembleFrontend.dependsOn yarnBuild
-
-

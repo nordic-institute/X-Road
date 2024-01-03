@@ -12,8 +12,6 @@ selenium-debug.log
 
 # Log files
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 chromedriver.log*
 
 # Generated type definitions
@@ -28,10 +26,3 @@ build/
 *.njsproj
 *.sln
 *.sw*
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*

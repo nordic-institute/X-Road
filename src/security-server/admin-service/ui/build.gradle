@@ -1,44 +1,24 @@
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
+plugins {
+    id('base')
+}
 
 configurations {
     dist
 }
 
-tasks.register('yarnBuild', RunYarn) {
-    dependsOn(":shared-ui:assembleFrontend")
-    dependsOn assembleFrontend
-    inputs.files(
-        'src/',
-        'public/',
-        'package.json',
-        'yarn.lock',
-        'tsconfig.js',
-        'vite.config.js',
-        fileTree('node_modules') {
-            exclude '.cache'
-            exclude 'webpack-dev-server/ssl'
-        }
-    )
-    outputs.dir('dist')
-    script = 'run build'
-}
-
-tasks.register('frontendUnitTests', RunYarn) {
-    dependsOn assembleFrontend
-    inputs.files("dist", "test", "public")
-    outputs.upToDateWhen { true }
-    script = 'run test:unit'
+tasks.register('assembleArtifacts') {
+    dependsOn ":shared-ui:build-pnpm-workspace"
 }
 
 clean {
     delete file('dist')
 }
 
-// checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
-assemble.dependsOn yarnBuild
+// This is pnpm workspace project, it is built from root.
+assemble.dependsOn assembleArtifacts
 
 artifacts {
     dist(file("dist/")) {
-        builtBy(yarnBuild)
+        builtBy(assembleArtifacts)
     }
 }
