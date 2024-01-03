@@ -20,8 +20,7 @@
             VALUES (1000001, 1, 'XROAD_SYSTEM_ADMINISTRATOR'),
                    (1000002, 2, 'XROAD_REGISTRATION_OFFICER'),
                    (1000003, 3, 'XROAD_SECURITY_OFFICER'),
-                   (1000004, 4, 'XROAD_REGISTRATION_OFFICER'),
-                   (1000005, 4, 'XROAD_SYSTEM_ADMINISTRATOR');
+                   (1000004, 4, 'XROAD_SERVICE_ADMINISTRATOR');
             ALTER SEQUENCE apikey_roles_id_seq RESTART WITH 1001000;
         </sql>
     </changeSet>
