@@ -29,8 +29,6 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.commonui.OptionalConfPart;
-import ee.ria.xroad.commonui.OptionalPartsConf;
 
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
@@ -45,6 +43,8 @@ import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
+import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
@@ -150,7 +150,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         for (OptionalConfPart part : allParts) {
             final ConfigurationParts configurationPart = distributedFileRepository
-                    .findFirstByContentIdentifierAndHaNodeName(part.getContentIdentifier(), haNodeName)
+                    .findFirstByContentIdentifierAndHaNodeName(part.contentIdentifier(), haNodeName)
                     .map(file -> optionalConfigurationPart(part, file))
                     .orElse(optionalConfigurationPart(part));
             configurationParts.add(configurationPart);
@@ -159,11 +159,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private ConfigurationParts optionalConfigurationPart(OptionalConfPart part, DistributedFileEntity file) {
-        return new ConfigurationParts(part.getContentIdentifier(), part.getFileName(), file.getVersion(), file.getFileUpdatedAt(), true);
+        return new ConfigurationParts(part.contentIdentifier(), part.fileName(), file.getVersion(), file.getFileUpdatedAt(), true);
     }
 
     private ConfigurationParts optionalConfigurationPart(OptionalConfPart part) {
-        return new ConfigurationParts(part.getContentIdentifier(), part.getFileName(), null, null, true);
+        return new ConfigurationParts(part.contentIdentifier(), part.fileName(), null, null, true);
     }
 
     private Set<ConfigurationParts> getRequiredConfigurationParts(String haNode, String... contentIdentifiers) {
@@ -187,14 +187,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private String resolveFileName(String contentIdentifier) {
-        switch (contentIdentifier) {
-            case CONTENT_ID_PRIVATE_PARAMETERS:
-                return FILE_NAME_PRIVATE_PARAMETERS;
-            case CONTENT_ID_SHARED_PARAMETERS:
-                return FILE_NAME_SHARED_PARAMETERS;
-            default:
-                throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
-        }
+        return switch (contentIdentifier) {
+            case CONTENT_ID_PRIVATE_PARAMETERS -> FILE_NAME_PRIVATE_PARAMETERS;
+            case CONTENT_ID_SHARED_PARAMETERS -> FILE_NAME_SHARED_PARAMETERS;
+            default -> throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
+        };
     }
 
     @Override

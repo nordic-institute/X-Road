@@ -293,7 +293,7 @@ public class ProxyMessageDecoderTest {
         return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
     }
 
-    private static class DummyMessageConsumer implements ProxyMessageConsumer {
+    private static final class DummyMessageConsumer implements ProxyMessageConsumer {
 
         private SoapMessageImpl soapMessage;
         private boolean hasAttachments;

@@ -74,7 +74,7 @@ public final class ConfigurationClientMain {
 
     private static final String APP_NAME = "xroad-confclient";
 
-    private static ConfigurationClientJobListener listener;
+    private static final ConfigurationClientJobListener LISTENER;
 
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
@@ -85,7 +85,7 @@ public final class ConfigurationClientMain {
                 .with(CONF_FILE_PROXY, "configuration-client")
                 .load();
 
-        listener = new ConfigurationClientJobListener();
+        LISTENER = new ConfigurationClientJobListener();
     }
 
     private static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS = "verifyPrivateParamsExists";
@@ -304,7 +304,7 @@ public final class ConfigurationClientMain {
         adminPort.start();
 
         jobManager = new JobManager();
-        jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
+        jobManager.getJobScheduler().getListenerManager().addJobListener(LISTENER);
 
         JobDataMap data = new JobDataMap();
         data.put("client", client);
@@ -345,7 +345,7 @@ public final class ConfigurationClientMain {
      * Listens for daemon job completions and collects results.
      */
     @Slf4j
-    private static class ConfigurationClientJobListener implements JobListener {
+    private static final class ConfigurationClientJobListener implements JobListener {
         public static final String LISTENER_NAME = "confClientJobListener";
 
         // Access only via synchronized getter/setter.

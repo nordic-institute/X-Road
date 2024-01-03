@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,42 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.restapi.openapi.validator;
 
-import org.apache.commons.lang3.tuple.Pair;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-/**
- * Encapsulates necessary information about a simple request.
- */
-public class RequestInputDataSimple extends RequestInputData {
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    private String contentType;
-
-    /**
-     * Creates a simple request.
-     * @param clientUrl the client URL
-     * @param testRequest the test request
-     * @param contentType content type of the request
-     */
-    public RequestInputDataSimple(String clientUrl, TestRequest testRequest,
-            String contentType) {
-        super(clientUrl, testRequest);
-        this.contentType = contentType;
-    }
-
-    @Override
-    public Pair<String, InputStream> getRequestInput() {
-        try {
-            return Pair.of(contentType, getRequestContentInputStream());
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot create request input", e);
-        }
-    }
-
-    private InputStream getRequestContentInputStream() throws Exception {
-        return new ByteArrayInputStream(testRequest.getContent().getBytes());
-    }
+@Documented
+@Target({METHOD, FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = HostAddressValidator.class)
+public @interface ValidHostAddress {
+    String message() default "valid internet domain name or IP address is required. Without control characters.";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
 }

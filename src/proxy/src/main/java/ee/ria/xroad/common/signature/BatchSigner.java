@@ -228,7 +228,7 @@ public class BatchSigner {
      * and algorithm id.
      */
     @Data
-    private static class SigningRequestWrapper {
+    private static final class SigningRequestWrapper {
         private final long createdOn = System.currentTimeMillis();
         private final CompletableFuture<SignatureData> clientFuture;
         private final String keyId;

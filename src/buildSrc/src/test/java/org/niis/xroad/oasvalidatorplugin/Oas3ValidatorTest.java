@@ -25,35 +25,41 @@
  */
 package org.niis.xroad.oasvalidatorplugin;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.openapi4j.core.exception.ResolutionException;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-public class Oas3ValidatorTest {
+class Oas3ValidatorTest {
 
-    @Test(expected = ResolutionException.class)
-    public void validateApiSpecNotFound() throws ResolutionException {
-        Oas3Validator.validate("src/test/resources/not-found.yaml");
+    @Test
+    void validateApiSpecNotFound() {
+        try {
+            Oas3Validator.validate("src/test/resources/not-found.yaml");
+            fail("Should throw exception");
+        } catch (ResolutionException e) {
+            //success
+        }
     }
 
     @Test
-    public void validateApiSpecSuccess() throws Exception {
+    void validateApiSpecSuccess() throws Exception {
         ApiValidationResults results = Oas3Validator.validate("src/test/resources/petstore-validation-success.yaml");
         assertTrue(results.getSpecificationValidationResult().isSuccess());
         assertTrue(results.getStyleValidationResult().isSuccess());
     }
 
     @Test
-    public void validateApiSpecFail() throws Exception {
+    void validateApiSpecFail() throws Exception {
         ApiValidationResults results = Oas3Validator.validate("src/test/resources/petstore-validation-fail.yaml");
         assertFalse(results.getSpecificationValidationResult().isSuccess());
         assertTrue(results.getStyleValidationResult().isSuccess());
     }
 
     @Test
-    public void validateApiSpecStyleFail() throws Exception {
+    void validateApiSpecStyleFail() throws Exception {
         ApiValidationResults results = Oas3Validator.validate("src/test/resources/petstore-validation-style-fail.yaml");
         assertTrue(results.getSpecificationValidationResult().isSuccess());
         assertFalse(results.getStyleValidationResult().isSuccess());

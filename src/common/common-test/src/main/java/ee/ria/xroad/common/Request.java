@@ -31,9 +31,8 @@ import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.util.XmlUtils;
 
 import lombok.Data;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.apache.commons.lang3.StringUtils;
+import org.stringtemplate.v4.ST;
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,29 +55,31 @@ public class Request {
     /**
      * Constructs a new request with the given template, data and a boundary
      * to use in case of a multipart template.
+     *
      * @param template XML template of this request
-     * @param client ID of the client that makes this request
-     * @param service ID of the service this request is for
-     * @param id request ID string
-     * @param content list of request tags that should be placed in the body
+     * @param client   ID of the client that makes this request
+     * @param service  ID of the service this request is for
+     * @param id       request ID string
+     * @param content  list of request tags that should be placed in the body
      * @param boundary boundary to use in case of a multipart template
      */
     public Request(String template, ClientId client, ServiceId service,
-            String id, List<RequestTag> content, String boundary) {
+                   String id, List<RequestTag> content, String boundary) {
         this(template, client, service, id, content);
         this.boundary = boundary;
     }
 
     /**
      * Constructs a new request with the given template and data.
+     *
      * @param template XML template of this request
-     * @param client ID of the client that makes this request
-     * @param service ID of the service this request is for
-     * @param id request ID string
-     * @param content list of request tags that should be placed in the body
+     * @param client   ID of the client that makes this request
+     * @param service  ID of the service this request is for
+     * @param id       request ID string
+     * @param content  list of request tags that should be placed in the body
      */
     public Request(String template, ClientId client, ServiceId service,
-            String id, List<RequestTag> content) {
+                   String id, List<RequestTag> content) {
         this.template = template;
         this.client = client;
         this.service = service;
@@ -89,23 +90,23 @@ public class Request {
     /**
      * Populates this requests's template with the encapsulated data and returns
      * it as a string.
+     *
      * @return String
      */
     public String toRawContent() {
-        StringTemplate stringTemplate = new StringTemplate(template,
-                DefaultTemplateLexer.class);
+        var stringTemplate = new ST(template, '$', '$');
 
         Map<String, Object> header = new HashMap<>();
         header.put("client", client);
         header.put("service", service);
         header.put("id", id);
 
-        stringTemplate.setAttribute("xroadNamespace", SoapHeader.NS_XROAD);
-        stringTemplate.setAttribute("header", header);
-        stringTemplate.setAttribute("request", content);
-        stringTemplate.setAttribute("boundary", boundary);
+        stringTemplate.add("xroadNamespace", SoapHeader.NS_XROAD);
+        stringTemplate.add("header", header);
+        stringTemplate.add("request", content);
+        stringTemplate.add("boundary", boundary);
 
-        return stringTemplate.toString();
+        return stringTemplate.render();
     }
 
     /**
@@ -122,6 +123,7 @@ public class Request {
 
     /**
      * Converts the given SOAP message string to a pretty-printed format.
+     *
      * @param soap the SOAP XML to convert
      * @return pretty-printed String of the SOAP XML
      */
@@ -144,8 +146,9 @@ public class Request {
 
         /**
          * Constructs a new request tag with the given tag name and value.
+         *
          * @param tagName name of the tag
-         * @param value value of the tag
+         * @param value   value of the tag
          */
         public RequestTag(String tagName, String value) {
             this.tagName = tagName;

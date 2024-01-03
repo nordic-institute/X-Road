@@ -105,7 +105,7 @@ class ManagementRequestServiceImplTest {
         verify(ownerChangeRequestHandler, never()).add(any());
     }
 
-    private static class IncorrectRequest extends RequestWithProcessing {
+    private static final class IncorrectRequest extends RequestWithProcessing {
         @Override
         public ManagementRequestType getManagementRequestType() {
             return null;

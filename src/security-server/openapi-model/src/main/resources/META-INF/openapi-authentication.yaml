@@ -112,11 +112,13 @@ components:
           example: username
           minLength: 4
           maxLength: 255
+          description: Username of the user.
         password:
           type: string
           format: password
           example: Password123
           minLength: 4
           maxLength: 255
+          description: Password of the user.
 security:
   - CookieAuth: []

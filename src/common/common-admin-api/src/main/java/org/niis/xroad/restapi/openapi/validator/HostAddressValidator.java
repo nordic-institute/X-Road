@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,22 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.restapi.openapi.validator;
 
-/**
- * Contains constants of test request names.
- *
- * FUTURE Only 'extra' project uses it (subprojects 'testclient' and 'systemtest')
- */
-public final class RequestNames {
-    public static final String TEST_QUERY = "testQuery";
-    public static final String EXAM_REPORT = "examReport";
-    public static final String CRIMINAL_OFFENSES = "criminalOffenses";
-    public static final String BODY_MASS_INDEX = "bodyMassIndex";
-    public static final String WSDL = "wsdl";
-    public static final String WSDL_CENTRAL = "wsdlcentral";
-    public static final String GET_RANDOM = "getRandom";
+import com.google.common.net.InetAddresses;
+import com.google.common.net.InternetDomainName;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
-    private RequestNames() {
+public class HostAddressValidator implements ConstraintValidator<ValidHostAddress, String> {
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        return  null == value
+                || InternetDomainName.isValid(value)
+                || InetAddresses.isInetAddress(value);
     }
 }

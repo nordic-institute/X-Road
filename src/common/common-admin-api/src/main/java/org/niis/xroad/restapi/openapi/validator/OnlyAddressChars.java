@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,48 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.commonui.jaas;
+package org.niis.xroad.restapi.openapi.validator;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 
-import java.security.Principal;
-import java.util.Set;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-/**
- * JAAS principal.
- */
-@RequiredArgsConstructor
-@AllArgsConstructor
-public class JAASPrincipal implements Principal {
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    private final String name;
-
-    @Getter
-    private Set<String> roles;
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof JAASPrincipal)) {
-            return false;
-        }
-
-        return name.equals(((JAASPrincipal) other).getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
+@Documented
+@Target({METHOD, FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = AddressCharsValidator.class)
+public @interface OnlyAddressChars {
+    String message() default "must not contain invalid characters for hostname or IP address";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
 }

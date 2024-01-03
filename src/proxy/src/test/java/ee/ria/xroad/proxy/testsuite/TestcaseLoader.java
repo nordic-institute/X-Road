@@ -115,7 +115,7 @@ final class TestcaseLoader {
         return classes;
     }
 
-    private static class SortTestCasesAlphabetically
+    private static final class SortTestCasesAlphabetically
             implements Comparator<MessageTestCase> {
         @Override
         public int compare(MessageTestCase a, MessageTestCase b) {

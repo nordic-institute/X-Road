@@ -71,7 +71,7 @@ public class SchemaValidatorTest {
         fail("Should fail to parse XML containing XXE. But it passed validation.");
     }
 
-    private static class TestValidator extends SchemaValidator {
+    private static final class TestValidator extends SchemaValidator {
 
         private static Schema schema;
 

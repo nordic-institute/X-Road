@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
+    compileOnly("jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
 
     api("com.google.guava:guava:$guavaVersion")
     api("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")

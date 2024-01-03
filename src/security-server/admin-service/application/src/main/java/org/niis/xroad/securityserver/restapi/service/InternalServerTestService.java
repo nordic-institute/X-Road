@@ -67,8 +67,9 @@ public class InternalServerTestService {
     /**
      * Tests if a HTTPS connection can be established to the given URL using
      * the specified certificates.
+     *
      * @param trustedCerts certificates used for authentication
-     * @param url the URL for opening the connection
+     * @param url          the URL for opening the connection
      * @throws Exception in case connection fails
      */
     public void testHttpsConnection(
@@ -81,10 +82,10 @@ public class InternalServerTestService {
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(createServiceKeyManager(),
-                new TrustManager[] {new ServiceTrustManager(trustedX509Certs)},
+                new TrustManager[]{new ServiceTrustManager(trustedX509Certs)},
                 new SecureRandom());
 
-        HttpsURLConnection con = (HttpsURLConnection)(new URL(url).openConnection());
+        HttpsURLConnection con = (HttpsURLConnection) (new URL(url).openConnection());
 
         con.setSSLSocketFactory(ctx.getSocketFactory());
         con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
@@ -96,14 +97,14 @@ public class InternalServerTestService {
         InternalSSLKey key = ServerConf.getSSLKey();
 
         if (key != null) {
-            return new KeyManager[] {new ServiceKeyManager(key)};
+            return new KeyManager[]{new ServiceKeyManager(key)};
         }
 
         return null;
     }
 
     @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-    private class ServiceKeyManager extends X509ExtendedKeyManager {
+    private static final class ServiceKeyManager extends X509ExtendedKeyManager {
 
         private static final String ALIAS = "AuthKeyManager";
 
@@ -131,7 +132,7 @@ public class InternalServerTestService {
 
         @Override
         public X509Certificate[] getCertificateChain(String alias) {
-            log.trace("getCertificateChain: {}", (Object)sslKey.getCertChain());
+            log.trace("getCertificateChain: {}", (Object) sslKey.getCertChain());
             return sslKey.getCertChain();
         }
 
@@ -187,7 +188,7 @@ public class InternalServerTestService {
         @Override
         public X509Certificate[] getAcceptedIssuers() {
             log.trace("getAcceptedIssuers()");
-            return new X509Certificate[] {};
+            return new X509Certificate[]{};
         }
     }
 }

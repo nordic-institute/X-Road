@@ -20,3 +20,4 @@ Feature: System API
     Given Authentication header is set to SECURITY_OFFICER
     Then updating central server address with 'valid.url' should succeed
     And updating central server address with url 'invalid...address.c' should fail
+    And updating central server address with url 'invalid_address.c' should fail

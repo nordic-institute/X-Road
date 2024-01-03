@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation 'commons-cli:commons-cli:1.4'
+    implementation "commons-cli:commons-cli:$commonsCliVersion"
     implementation 'com.googlecode.clichemaven:cliche:110413'
 
     implementation project(':common:common-util')
@@ -29,9 +29,12 @@ shadowJar {
 }
 
 jar.enabled = false
-build.dependsOn shadowJar
 
-task runSignerConsole(type: JavaExec) {
+build {
+    dependsOn shadowJar
+}
+
+tasks.register('runSignerConsole', JavaExec) {
     jvmArgs '-Djava.library.path=../passwordstore'
     mainClass = 'ee.ria.xroad.signer.console.SignerCLI'
     classpath = sourceSets.test.runtimeClasspath

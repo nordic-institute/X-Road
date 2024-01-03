@@ -76,6 +76,7 @@ public class OcspVerifierTest {
 
     /**
      * Test that verifying OCSP response against an invalid certificate fails.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -93,6 +94,7 @@ public class OcspVerifierTest {
     /**
      * Test that verifying OCSP response against an invalid response signature
      * fails.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -108,6 +110,7 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying fails if signer info mismatches.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -123,6 +126,7 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying fails if signer is unauthorized.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -145,6 +149,7 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying fails if OCSP response thisUpdate is newer than now
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -162,6 +167,7 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying fails if OCSP response nextUpdate is older than now
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -180,6 +186,7 @@ public class OcspVerifierTest {
     /**
      * Tests that verifying does not fail if OCSP response nextUpdate is before now and nextUpdate
      * verification is turned off.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -195,6 +202,7 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying succeeds if certificate status is good.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -211,6 +219,7 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying succeeds if certificate status is revoked.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -229,6 +238,7 @@ public class OcspVerifierTest {
 
     /**
      * Tests that verifying succeeds if certificate status is unknown.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -256,13 +266,14 @@ public class OcspVerifierTest {
         verifier.verifyValidity(ocsp, subject, issuer);
         Field field = OcspVerifier.class.getDeclaredField("RESPONSE_VALIDITY_CACHE");
         field.setAccessible(true);
-        Cache<String, SingleResp> cache = (Cache<String, SingleResp>)field.get(verifier);
+        Cache<String, SingleResp> cache = (Cache<String, SingleResp>) field.get(verifier);
         assertTrue("Cache should be filled", cache != null && cache.size() > 0);
 
     }
 
     /**
      * Loads the test certificates.
+     *
      * @throws Exception if an error occurs
      */
     @Before
@@ -284,7 +295,7 @@ public class OcspVerifierTest {
         }
     }
 
-    private class TestGlobalConf extends EmptyGlobalConf {
+    private final class TestGlobalConf extends EmptyGlobalConf {
 
         @Override
         public boolean isOcspResponderCert(X509Certificate ca, X509Certificate ocspCert) {

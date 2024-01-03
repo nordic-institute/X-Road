@@ -24,26 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi.validator;
+package org.niis.xroad.restapi.openapi.validator;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import java.util.regex.Pattern;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+public class AddressCharsValidator implements ConstraintValidator<OnlyAddressChars, String> {
+    private static final Pattern INVALID_CHAR_REGEX = Pattern.compile("[^a-zA-Z\\d-.]");
 
-@Documented
-@Target({METHOD, FIELD, PARAMETER})
-@Retention(RUNTIME)
-@Constraint(validatedBy = HostAddressValidator.class)
-public @interface ValidHostAddress {
-    String message() default "valid internet domain name or IP address is required. Without control characters.";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        return value == null || !INVALID_CHAR_REGEX.matcher(value).find();
+    }
 }

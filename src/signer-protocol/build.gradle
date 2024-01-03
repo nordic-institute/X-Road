@@ -29,7 +29,3 @@ protobuf {
 }
 
 compileJava.dependsOn generateProto
-
-test {
-    useJUnitPlatform()
-}
