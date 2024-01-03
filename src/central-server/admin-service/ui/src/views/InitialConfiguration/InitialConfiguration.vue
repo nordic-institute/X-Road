@@ -160,7 +160,7 @@ export default defineComponent({
     } = useForm({
       validationSchema: {
         'init.identifier': 'required',
-        'init.address': 'required',
+        'init.address': 'required|address',
         'init.pin': 'required',
         'init.confirmPin': 'required|confirmed:@init.pin',
       },

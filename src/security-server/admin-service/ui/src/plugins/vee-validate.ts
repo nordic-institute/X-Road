@@ -118,6 +118,20 @@ export function createValidators() {
         }
         return i18n.global.t('customValidation.invalidEndpoint');
       });
+
+      defineRule(
+        'address',
+        (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
+          if (!value) {
+            return true;
+          }
+          if (/[^a-zA-Z\d-.]/.test(value)) {
+            const field = i18n.global.t('fields.' + ctx.field);
+            return i18n.global.t('validation.messages.address', { field });
+          }
+          return true;
+        },
+      );
     },
   };
 }

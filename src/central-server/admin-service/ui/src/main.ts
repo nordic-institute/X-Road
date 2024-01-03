@@ -33,7 +33,6 @@ Initialises the app root component.
 */
 import { createApp } from 'vue';
 import axios from 'axios';
-import './plugins/vee-validate';
 import { createFilters } from '@/filters';
 import App from './App.vue';
 import router from './router/router';

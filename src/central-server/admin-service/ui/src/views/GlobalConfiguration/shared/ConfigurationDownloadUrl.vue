@@ -40,10 +40,15 @@
         <data-table-toolbar title-key="globalConf.downloadUrl.title" />
       </template>
       <template #[`item.url`]="{ item }">
-        <div class="xrd-clickable" @click="openInNewTab(item.url)">
+        <a
+          class="xrd-clickable"
+          target="_blank"
+          rel="noreferrer"
+          :href="item.url"
+        >
           <v-icon class="internal-conf-icon" icon="mdi-link" />
           {{ item.url }}
-        </div>
+        </a>
       </template>
       <template #bottom>
         <custom-data-table-footer />
@@ -119,5 +124,9 @@ export default defineComponent({
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
+}
+
+.xrd-clickable {
+  text-decoration-line: none;
 }
 </style>

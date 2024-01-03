@@ -28,6 +28,7 @@ import { configure, defineRule } from 'vee-validate';
 import { between, is, max, min, required, url } from '@vee-validate/rules';
 import { App } from 'vue';
 import i18n from '@/plugins/i18n';
+import { FieldValidationMetaInfo } from "@vee-validate/i18n";
 
 export function createValidators(i18nMessages = {}) {
   const { t } = i18n.global;
@@ -78,6 +79,20 @@ export function createValidators(i18nMessages = {}) {
       defineRule('is', is);
 
       defineRule('url', url);
+
+      defineRule(
+        'address',
+        (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
+          if (!value) {
+            return true;
+          }
+          if (/[^a-zA-Z\d-.]/.test(value)) {
+            const field = t('fields.' + ctx.field);
+            return t("validation.messages.address", { field });
+          }
+          return true;
+        },
+      );
     },
   };
 }
