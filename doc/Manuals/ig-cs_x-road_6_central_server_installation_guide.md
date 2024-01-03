@@ -193,12 +193,16 @@ The table below lists the required connections between different components. Ple
 | In                  | Admin, management REST API client   | Central Server                | 4000             | tcp          | Source in the internal network                                                              |
 | In                  | Admin                               | Management Security Server    | 4000             | tcp          | Source in the internal network                                                              |
 | In                  | Admin                               | Monitoring Security Server    | 4000             | tcp          | Source in the internal network                                                              |
-| loopback            | Central Server Registration Service | Central Server                | 8084             | tcp          |                                                                                             |
-| loopback            | Central Server Management Service   | Central Server                | 8085             | tcp          |                                                                                             |
-| loopback            |                                     | PostgreSQL database           | 5432             | tcp          | Default PostgreSQL database port                                                            |
-| loopback            |                                     | Signer                        | 5560             | tcp          | Signer gRPC port                                                                            |
-| loopback            |                                     | Audit log                     | 514              | udp          |                                                                                             |
 
+The table below lists the open ports for Central Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
+
+| **Component**       | **Ports** | **Protocol** | **Note**                                        |
+|---------------------|-----------|--------------|-------------------------------------------------|
+| Central Server      | 8084      | tcp          | For incoming requests from Registration Service |
+| Central Server      | 8085      | tcp          | For incoming requests from Management Service   |
+| PostgreSQL database | 5432      | tcp          | Default PostgreSQL database port                |
+| Signer              | 5560      | tcp          | Signer gRPC port                                |
+| Audit log           | 514       | udp          |                                                 |
 
 ### 2.3 Requirements to the Central Server
 

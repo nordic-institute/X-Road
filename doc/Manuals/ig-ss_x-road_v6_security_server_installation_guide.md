@@ -221,16 +221,20 @@ The table below lists the required connections between different components.
 | In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                 |
 | In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network  |
 | In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network  |
-| loopback            |                                                          | PostgreSQL database                                      | 5432             | tcp          | Default PostgreSQL port         |
-| loopback            |                                                          | OP Monitoring daemon                                     | 2080             | tcp          |                                 |
-| loopback            |                                                          | Environmental monitoring                                 | 2552             | tcp          |                                 |
-| loopback            |                                                          | Signer                                                   | 5559             | tcp          | Signer admin port               |
-| loopback            |                                                          | Signer                                                   | 5560             | tcp          | Signer gRPC port                |
-| loopback            |                                                          | Proxy                                                    | 5566             | tcp          | Proxy admin port                |
-| loopback            |                                                          | Proxy                                                    | 5567             | tcp          | Proxy gRPC server port          |
-| loopback            |                                                          | Configuration Client                                     | 5675             | tcp          | Configuration Client admin port |
-| loopback            |                                                          | Audit Log                                                | 514              | udp          |                                 |
 
+The table below lists the open ports for Security Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
+
+| **Component**            | **Ports** | **Protocol** | **Note**                        |
+|--------------------------|-----------|--------------|---------------------------------|
+| PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         |
+| OP Monitoring daemon     | 2080      | tcp          |                                 |
+| Environmental monitoring | 2552      | tcp          |                                 |
+| Signer                   | 5559      | tcp          | Signer admin port               |
+| Signer                   | 5560      | tcp          | Signer gRPC port                |
+| Proxy                    | 5566      | tcp          | Proxy admin port                |
+| Proxy                    | 5567      | tcp          | Proxy gRPC server port          |
+| Configuration Client     | 5675      | tcp          | Configuration Client admin port |
+| Audit Log                | 514       | udp          |                                 |
 
 ### 2.3 Requirements for the Security Server
 
