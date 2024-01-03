@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi.validator;
+package org.niis.xroad.restapi.openapi.validator;
 
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;

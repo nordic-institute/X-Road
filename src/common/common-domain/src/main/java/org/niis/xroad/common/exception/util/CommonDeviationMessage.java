@@ -52,6 +52,7 @@ public enum CommonDeviationMessage implements DeviationProvider {
     BACKUP_DELETION_FAILED("backup_deletion_failed", "Failed to delete backup"),
 
     ERROR_RESOURCE_READ("resource_read_failed", "Failed to read resource"),
+    ERROR_INVALID_ADDRESS_CHAR("invalid_address_char", "Address contains invalid characters"),
 
     ANCHOR_NOT_FOR_EXTERNAL_SOURCE("conf_verification.anchor_not_for_external_source",
             "Configuration verification failed: anchor_not_for_external_source"),
