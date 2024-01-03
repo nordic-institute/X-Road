@@ -831,7 +831,7 @@ __metadata:
 
 "@niis/shared-ui@file:../../../shared-ui::locator=xroad-centralserver-admin-ui%40workspace%3A.":
   version: 3.0.0
-  resolution: "@niis/shared-ui@file:../../../shared-ui/niis-shared-ui-3.0.0.tgz#../../../shared-ui/niis-shared-ui-3.0.0.tgz::hash=bd2153&locator=xroad-centralserver-admin-ui%40workspace%3A."
+  resolution: "@niis/shared-ui@file:../../../shared-ui#../../../shared-ui::hash=b09ffd&locator=xroad-centralserver-admin-ui%40workspace%3A."
   dependencies:
     "@fontsource/open-sans": "npm:^5.0.12"
     "@mdi/font": "npm:^7.2.96"
@@ -840,7 +840,7 @@ __metadata:
     vue: ^3.3.4
     vue-i18n: ^9.4.0
     vuetify: ^3.3.19
-  checksum: f4a48b9c7621724e588b7f567a6d0ef6b019e5aff87b2edec18c895a79a56f1ee040735fe7db73bff16c1c8588b99862ec4fda18829e44b4c6222abb0ddd7153
+  checksum: 59bcf882758a4e650d492087f34406cca101c2d8bca0522ad4e1b6eb2c8f67f9fc3d2be2666375860cc54841fe02b0eaf4869350ad257c1c3a98c4bcc5b39341
   languageName: node
   linkType: hard
 
@@ -1615,14 +1615,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:~1.4.0":
-  version: 1.4.0
-  resolution: "axios@npm:1.4.0"
+"axios@npm:~1.6.0":
+  version: 1.6.3
+  resolution: "axios@npm:1.6.3"
   dependencies:
     follow-redirects: "npm:^1.15.0"
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
-  checksum: b987e4259e5cfc93e95ee306c267a44380bbc045789a91b716e8434a75e22987344605eb4e133482fe285dd3a2e0b7e791ba26999965f04a5ecdde25f56930cb
+  checksum: 78e72ec40ee49b85f076758e65d04dd966361cbf82f3789e53c5a1b6814ef57825098f8a997ec1846cf004fb7407655c7b96c496d8133d88ca0f73a98a9c452b
   languageName: node
   linkType: hard
 
@@ -5845,7 +5845,7 @@ __metadata:
     "@vue/eslint-config-prettier": "npm:^8.0.0"
     "@vue/eslint-config-typescript": "npm:^11.0.3"
     "@vue/tsconfig": "npm:^0.4.0"
-    axios: "npm:~1.4.0"
+    axios: "npm:~1.6.0"
     dayjs: "npm:^1.11.10"
     eslint: "npm:^8.48.0"
     eslint-config-prettier: "npm:^9.0.0"
