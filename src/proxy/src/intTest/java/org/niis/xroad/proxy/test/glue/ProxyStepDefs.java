@@ -41,7 +41,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import io.cucumber.java.en.Step;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -176,13 +175,13 @@ public class ProxyStepDefs extends BaseStepDefs {
             try {
                 var signResult = result.get();
 
-                assertThat(signResult.getSignatureData()).isNotNull();
+                assertThat(signResult.signatureData()).isNotNull();
 
                 verify(signResult);
 
-                assertThat(signResult.getSignatureData().getSignatureXml()).isNotEmpty();
+                assertThat(signResult.signatureData().getSignatureXml()).isNotEmpty();
 
-                if (signResult.getSignatureData().isBatchSignature()) {
+                if (signResult.signatureData().isBatchSignature()) {
                     batchSignatureDetectCounter.incrementAndGet();
                 }
             } catch (Exception e) {
@@ -208,27 +207,22 @@ public class ProxyStepDefs extends BaseStepDefs {
         }
     }
 
-    @Value
-    private static class BatchSignResult {
-        ClientId.Conf clientId;
-        String message;
-        SignatureData signatureData;
-        List<MessagePart> messageParts;
+    private record BatchSignResult(ClientId.Conf clientId, String message, SignatureData signatureData, List<MessagePart> messageParts) {
     }
 
     private static void verify(final BatchSignResult batchSignResult)
             throws Exception {
-        SignatureVerifier verifier = new SignatureVerifier(batchSignResult.getSignatureData());
-        verifier.addParts(batchSignResult.getMessageParts());
+        SignatureVerifier verifier = new SignatureVerifier(batchSignResult.signatureData());
+        verifier.addParts(batchSignResult.messageParts());
 
         HashChainReferenceResolver resolver = new HashChainReferenceResolver() {
             @Override
             public InputStream resolve(String uri) {
                 switch (uri) {
                     case MessageFileNames.SIG_HASH_CHAIN:
-                        return new ByteArrayInputStream(batchSignResult.getSignatureData().getHashChain().getBytes(StandardCharsets.UTF_8));
+                        return new ByteArrayInputStream(batchSignResult.signatureData().getHashChain().getBytes(StandardCharsets.UTF_8));
                     case MessageFileNames.MESSAGE:
-                        return new ByteArrayInputStream(batchSignResult.getMessage().getBytes(StandardCharsets.UTF_8));
+                        return new ByteArrayInputStream(batchSignResult.message().getBytes(StandardCharsets.UTF_8));
                     default:
                         return null;
                 }
@@ -240,11 +234,11 @@ public class ProxyStepDefs extends BaseStepDefs {
             }
         };
 
-        if (batchSignResult.getSignatureData().getHashChainResult() != null) {
+        if (batchSignResult.signatureData().getHashChainResult() != null) {
             verifier.setHashChainResourceResolver(resolver);
         }
 
-        verifier.verify(batchSignResult.getClientId(), new Date());
+        verifier.verify(batchSignResult.clientId(), new Date());
     }
 
     private ClientId.Conf getClientId(String client) {

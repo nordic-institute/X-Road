@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.commonui.OptionalConfPart;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -37,7 +36,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
+import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
@@ -56,7 +57,6 @@ import static ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory;
 import static ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
-import static ee.ria.xroad.commonui.OptionalPartsConf.getOptionalPartsConf;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
@@ -242,8 +242,8 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
 
     private static Set<String> getInternalSourceContentIdentifiers() {
         return concat(INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS.stream(),
-                getOptionalPartsConf().getAllParts().stream()
-                        .map(OptionalConfPart::getContentIdentifier))
+                OptionalPartsConf.getOptionalPartsConf().getAllParts().stream()
+                        .map(OptionalConfPart::contentIdentifier))
                 .collect(toSet());
     }
 

@@ -17,13 +17,13 @@ dependencies {
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
 }
 
-task createDirs() {
+tasks.register('createDirs') {
     doLast {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
 
-task xjc() {
+tasks.register('xjc') {
     inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
     outputs.dir schemaTargetDir
 
@@ -42,21 +42,6 @@ task xjc() {
     }
 
 }
-
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc

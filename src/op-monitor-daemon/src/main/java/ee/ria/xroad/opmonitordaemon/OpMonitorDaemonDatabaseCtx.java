@@ -64,7 +64,7 @@ final class OpMonitorDaemonDatabaseCtx {
         return CTX.doInTransaction(callback);
     }
 
-    private static class StringValueTruncator extends EmptyInterceptor {
+    private static final class StringValueTruncator extends EmptyInterceptor {
         private static final long serialVersionUID = 1L;
 
         private static final String SOAP_FAULT_STRING = "faultString";

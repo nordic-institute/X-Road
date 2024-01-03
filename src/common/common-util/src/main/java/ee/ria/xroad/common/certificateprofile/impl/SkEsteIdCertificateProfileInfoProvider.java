@@ -85,13 +85,13 @@ public class SkEsteIdCertificateProfileInfoProvider
 
     }
 
-    private static class SkEsteidAuthCertificateProfile
+    private static final class SkEsteidAuthCertificateProfile
             extends SkEsteidCertificateProfileInfo
             implements AuthCertificateProfileInfo {
     }
 
     @RequiredArgsConstructor
-    private static class SkEsteidSignCertificateProfile
+    private static final class SkEsteidSignCertificateProfile
             extends SkEsteidCertificateProfileInfo
             implements SignCertificateProfileInfo {
 

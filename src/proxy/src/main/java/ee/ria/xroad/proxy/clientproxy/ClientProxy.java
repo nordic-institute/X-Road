@@ -323,7 +323,7 @@ public class ClientProxy implements StartStop {
         HibernateUtil.closeSessionFactories();
     }
 
-    private static class ClientSslTrustManager implements X509TrustManager {
+    private static final class ClientSslTrustManager implements X509TrustManager {
 
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {

@@ -6,11 +6,9 @@ dependencies {
     implementation project(':common:common-util')
     implementation project(':common:common-verifier')
 
-    implementation 'commons-cli:commons-cli:1.4'
+    implementation "commons-cli:commons-cli:$commonsCliVersion"
 
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation project(':common:common-test')
-    testImplementation('org.xmlunit:xmlunit-assertj3:2.9.0')
 }
 
 ext {
@@ -25,14 +23,17 @@ jar {
 
 shadowJar {
     exclude('**/module-info.class')
-    classifier = ''
+    archiveClassifier = ''
     mergeServiceFiles()
 }
 
 jar.enabled = false
-build.dependsOn shadowJar
 
-task runConfigurationClient(type: JavaExec) {
+build {
+    dependsOn shadowJar
+}
+
+tasks.register('runConfigurationClient', JavaExec) {
     jvmArgs '-Dxroad.conf.path=build/',
         '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
     mainClass = mainClassName

@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.commonui;
+package org.niis.xroad.cs.admin.api.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
@@ -35,6 +35,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -151,9 +152,9 @@ public class OptionalPartsConf {
      */
     public String getPartFileName(String contentIdentifier) {
         final String partFileName = getAllParts().stream()
-                .filter(part -> part.getContentIdentifier().equals(contentIdentifier))
+                .filter(part -> part.contentIdentifier().equals(contentIdentifier))
                 .findFirst()
-                .map(OptionalConfPart::getFileName)
+                .map(OptionalConfPart::fileName)
                 .orElseThrow(() -> new CodedException(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF,
                         "Part file name not found for content identifier " + contentIdentifier));
 

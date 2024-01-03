@@ -124,7 +124,7 @@ class DummyService extends Server implements StartStop {
         return new ServerConnector(this, cf);
     }
 
-    private class ServiceHandler extends AbstractHandler {
+    private static final class ServiceHandler extends AbstractHandler {
         @Override
         public void handle(String target, Request baseRequest,
                 HttpServletRequest request, HttpServletResponse response)
@@ -158,8 +158,7 @@ class DummyService extends Server implements StartStop {
                     try {
                         sendResponseFromFile(responseFile, response);
                     } catch (Exception e) {
-                        log.error("An error has occurred when sending response"
-                                + " from file '{}': {}", responseFile, e);
+                        log.error("An error has occurred when sending response from file '{}'", responseFile, e);
                     }
                 } else {
                     log.error("Unknown request {}", target);
@@ -226,7 +225,7 @@ class DummyService extends Server implements StartStop {
         return ProxyTestSuite.currentTestCase;
     }
 
-    private static class DummyServiceKeyManager extends X509ExtendedKeyManager {
+    private static final class DummyServiceKeyManager extends X509ExtendedKeyManager {
 
         private static final String ALIAS = "AuthKeyManager";
 
@@ -282,7 +281,7 @@ class DummyService extends Server implements StartStop {
         }
     }
 
-    private static class DummyServiceTrustManager implements X509TrustManager {
+    private static final class DummyServiceTrustManager implements X509TrustManager {
 
         @Override
         public X509Certificate[] getAcceptedIssuers() {

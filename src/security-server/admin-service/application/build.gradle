@@ -12,7 +12,7 @@ configurations {
     }
 }
 
-configurations.all {
+configurations.configureEach {
     exclude(module: 'jetty-jakarta-servlet-api')
 }
 
@@ -29,7 +29,6 @@ dependencies {
     implementation project(":signer-protocol")
     implementation project(":serverconf")
     implementation project(":common:common-admin-api")
-    implementation project(":common:common-ui")
     implementation project(":common:common-management-request")
     implementation project(':common:common-api-throttling')
     implementation project(":common:common-verifier")
@@ -41,9 +40,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
-    implementation("org.kohsuke:libpam4j:1.11")
-    implementation("org.apache.commons:commons-compress:1.21")
-    implementation("wsdl4j:wsdl4j:1.6.3")
+    implementation("org.kohsuke:libpam4j:$libpam4jVersion")
+    implementation("org.apache.commons:commons-compress:$commonsCompressVersion")
+    implementation("wsdl4j:wsdl4j:$wsdl4jVersion")
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
     implementation("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -59,7 +58,8 @@ dependencies {
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
 
-task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
+tasks.register('copyUi', ProcessResources) {
+    dependsOn(configurations.dist)
     from configurations.dist
     into "${buildDir}/admin-service/ui/public"
 }
@@ -90,26 +90,10 @@ bootJar {
     }
 }
 
-task copyDeps(type: Copy) {
+tasks.register('copyDeps', Copy) {
     into "$buildDir/unpacked-libs"
     from configurations.runtimeClasspath.find { it.name.startsWith("postgresql") }
 }
-
-// set license format to ignore generated java sources
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/test/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
 
 assemble.dependsOn copyDeps
 

@@ -1,7 +1,6 @@
 dependencies {
     intTestImplementation project(":security-server:openapi-model")
     intTestImplementation project(":addons:proxymonitor-common")
-    intTestImplementation project(":op-monitor-daemon")
 
     intTestImplementation project(":common:common-int-test")
     intTestImplementation("com.nortal.test:test-automation-assert:$testAutomationFrameworkVersion")
@@ -12,7 +11,7 @@ dependencies {
     intTestImplementation("org.postgresql:postgresql:$postgresqlVersion")
 }
 
-task systemTest(type: Test) {
+tasks.register('systemTest', Test) {
     useJUnitPlatform()
 
     setDescription("Runs system ui tests.")
@@ -44,6 +43,4 @@ task systemTest(type: Test) {
         showCauses(true)
         showStandardStreams(true)
     }
-
-    shouldRunAfter test
 }

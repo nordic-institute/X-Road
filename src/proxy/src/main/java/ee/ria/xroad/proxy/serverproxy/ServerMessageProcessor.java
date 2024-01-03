@@ -532,7 +532,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return hashAlgoId;
     }
 
-    private class DefaultServiceHandlerImpl implements ServiceHandler {
+    private final class DefaultServiceHandlerImpl implements ServiceHandler {
 
         private HttpSender sender;
 
@@ -598,7 +598,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private class SoapMessageHandler implements SoapMessageDecoder.Callback {
+    private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             responseSoap = (SoapMessageImpl) message;
@@ -639,7 +639,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     /**
      * Soap parser that adds the request message hash to the response message header.
      */
-    private class ResponseSoapParserImpl extends SaxSoapParserImpl {
+    private final class ResponseSoapParserImpl extends SaxSoapParserImpl {
 
         private boolean inHeader;
         private boolean inBody;

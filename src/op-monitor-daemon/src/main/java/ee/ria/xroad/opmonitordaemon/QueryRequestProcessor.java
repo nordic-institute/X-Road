@@ -54,18 +54,22 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY
 @Slf4j
 class QueryRequestProcessor {
 
-    /** The servlet request. */
+    /**
+     * The servlet request.
+     */
     private final HttpServletRequest servletRequest;
 
-    /** The servlet response. */
+    /**
+     * The servlet response.
+     */
     private final HttpServletResponse servletResponse;
 
     private final OperationalDataRequestHandler operationalDataHandler;
     private final HealthDataRequestHandler healthDataHandler;
 
     QueryRequestProcessor(HttpServletRequest servletRequest,
-            HttpServletResponse servletResponse,
-            MetricRegistry healthMetricRegistry) {
+                          HttpServletResponse servletResponse,
+                          MetricRegistry healthMetricRegistry) {
         this.servletRequest = servletRequest;
         this.servletResponse = servletResponse;
 
@@ -78,6 +82,7 @@ class QueryRequestProcessor {
 
     /**
      * Processes the incoming message.
+     *
      * @throws Exception in case of any errors
      */
     void process() throws Exception {
@@ -90,7 +95,7 @@ class QueryRequestProcessor {
         }
     }
 
-    private class QueryRequestHandler implements SoapMessageDecoder.Callback {
+    private final class QueryRequestHandler implements SoapMessageDecoder.Callback {
         @Override
         public void soap(SoapMessage message, Map<String, String> headers)
                 throws Exception {
@@ -121,7 +126,7 @@ class QueryRequestProcessor {
 
         @Override
         public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
+                               Map<String, String> additionalHeaders) throws Exception {
             // Discard.
         }
 

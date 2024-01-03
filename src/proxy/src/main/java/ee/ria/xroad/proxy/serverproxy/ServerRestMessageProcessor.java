@@ -435,7 +435,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         return hashAlgoId;
     }
 
-    private static class DefaultRestServiceHandlerImpl implements RestServiceHandler {
+    private static final class DefaultRestServiceHandlerImpl implements RestServiceHandler {
 
         private RestResponse restResponse;
         private CachingStream restResponseBody;

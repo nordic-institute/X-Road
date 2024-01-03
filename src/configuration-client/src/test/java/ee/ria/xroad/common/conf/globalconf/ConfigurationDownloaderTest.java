@@ -28,10 +28,10 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.Getter;
-import lombok.Value;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 
@@ -46,9 +46,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -165,6 +164,7 @@ public class ConfigurationDownloaderTest {
     /**
      * Checks that ConfigurationDownloader uses connections that timeout
      * after a period of time.
+     *
      * @throws IOException
      */
     @Test
@@ -199,13 +199,13 @@ public class ConfigurationDownloaderTest {
     private void verifySuccessfulLocation(ConfigurationDownloader downloader, String expectedUrl, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(expectedUrl, expectedLocationVersion));
+        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(expectedUrl, expectedLocationVersion));
     }
 
     private void verifySuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
+        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
     }
 
     private Matcher<List<String>> hasOnlyOneSuccessfulUrl(String url, int version) {
@@ -245,8 +245,8 @@ public class ConfigurationDownloaderTest {
 
         assertTrue(locationUrls.get(0).startsWith("http:"));
         assertTrue(urlsParsedInOrder.get(0).startsWith("https"));
-        assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
-        assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
+        MatcherAssert.assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
+        MatcherAssert.assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
     }
 
     private TestConfigurationParser getParser(ConfigurationDownloader downloader) {
@@ -262,7 +262,7 @@ public class ConfigurationDownloaderTest {
         return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(List<String> parsedUrls) {
-                return  locationUrls.size() == parsedUrls.size()
+                return locationUrls.size() == parsedUrls.size()
                         && locationUrls.containsAll(parsedUrls);
             }
 
@@ -341,10 +341,8 @@ public class ConfigurationDownloaderTest {
         };
     }
 
-    @Value
-    private static class TestConfigurationSource implements ConfigurationSource {
 
-        private final List<String> locationUrls;
+    private record TestConfigurationSource(List<String> locationUrls) implements ConfigurationSource {
 
         @Override
         public String getInstanceIdentifier() {
@@ -383,7 +381,7 @@ public class ConfigurationDownloaderTest {
 
         @Override
         public Configuration parse(ConfigurationLocation location,
-                               String... contentIdentifiersToBeHandled) {
+                                   String... contentIdentifiersToBeHandled) {
             // For checking the order later.
             String downloadUrl = location.getDownloadURL();
             configurationUrls.add(downloadUrl);

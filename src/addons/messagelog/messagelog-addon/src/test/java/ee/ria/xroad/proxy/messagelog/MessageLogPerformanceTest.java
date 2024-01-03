@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
@@ -54,6 +53,7 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
 
     /**
      * Main program access point.
+     *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
@@ -106,10 +106,8 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
         initLogManager();
     }
 
-    @RequiredArgsConstructor
-    private static class Logger implements Runnable {
 
-        private final MessageLogPerformanceTest test;
+    private record Logger(MessageLogPerformanceTest test) implements Runnable {
 
         @Override
         public void run() {
@@ -131,7 +129,7 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
             HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
 
             for (int i = 0; i < 10; ++i) {
-                builder.addInputHash(new byte[] {(byte) i });
+                builder.addInputHash(new byte[]{(byte) i});
             }
 
             builder.finishBuilding();

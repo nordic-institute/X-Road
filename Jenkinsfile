@@ -48,8 +48,9 @@ pipeline {
                 GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dsonar.host.url=https://sonarqube.niis.org'
             }
             steps {
-                withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
-                    sh 'cd src && ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube -Pfrontend-unit-tests -Pfrontend-npm-audit -PintTestProfilesInclude="ci"'
+                withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN'),
+                                 string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+                    sh 'cd src && ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} -PnvdApiKey=${NVD_API_KEY} --stacktrace --no-daemon build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoAggregatedReport dependencyCheckAggregate sonarqube -Pfrontend-unit-tests -Pfrontend-npm-audit -PintTestProfilesInclude="ci"'
                 }
             }
         }
