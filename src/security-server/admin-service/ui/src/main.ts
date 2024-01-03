@@ -66,7 +66,6 @@ import router from './router';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
-import '@niis/shared-ui/dist/style.css';
 import i18n from './plugins/i18n';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';

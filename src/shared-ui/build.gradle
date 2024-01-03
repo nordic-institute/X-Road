@@ -1,45 +1,47 @@
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunPnpm
 
-configurations {
-    yarn { canBeConsumed(true); canBeResolved(false) }
+plugins {
+    id("org.siouan.frontend-jdk17")
 }
 
-var archive = 'niis-shared-ui-3.0.0.tgz'
+frontend {
+    nodeVersion = frontendNodeVersion
+    nodeInstallDirectory = file("${rootDir}/.gradle/pnpm-node/${frontendNodeVersion}")
+    cacheDirectory = file("${projectDir}/.gradle/pnpm-cache")
+    nodeDistributionUrlRoot = 'https://artifactory.niis.org/artifactory/nodejs-dist-remote/'
+    maxDownloadAttempts = 3
 
-tasks.register('yarnBuild', RunYarn) {
+    packageJsonDirectory = file("${rootDir}/")
+    if (System.getenv().containsKey("CI")) {
+        installScript = 'install --frozen-lockfile'
+    }
+}
+
+tasks.register('build-pnpm-workspace', RunPnpm) {
     dependsOn installFrontend
-    inputs.files(
-        'src/',
-        'public/',
-        'svg-icons/',
-        'package.json',
-        'yarn.lock',
-        'vite.config.js',
-        'tsconfig.json',
-        fileTree('node_modules') {
-            exclude '.cache'
-        }
-    )
-    outputs.dir('dist')
-    script = 'run build'
+    script = 'run build-workspace'
 }
 
-tasks.register('yarnPack', RunYarn) {
-    dependsOn yarnBuild
-    inputs.files("dist")
-    outputs.file(archive)
-    script = "pack --out ${archive}"
+tasks.named("cleanFrontend").configure {
+    enabled(false)
 }
+
+tasks.register('checkFrontAudit', RunPnpm) {
+    dependsOn assembleFrontend
+
+    script = 'run npx-check-audit'
+}
+if (project.hasProperty('frontend-npm-audit')) {
+    assemble.dependsOn checkFrontAudit
+}
+
+//check that pnpm run license-check passes
+tasks.register('checkFrontWorkspaceLicense', RunPnpm) {
+    dependsOn installFrontend
+    script = ' run -r license-check'
+}
+checkFrontend.dependsOn checkFrontWorkspaceLicense
 
 clean {
-    delete file(archive)
     delete file('dist')
-}
-
-assembleFrontend.dependsOn yarnPack
-
-artifacts {
-    yarn(file(archive)) {
-        builtBy(yarnPack)
-    }
 }

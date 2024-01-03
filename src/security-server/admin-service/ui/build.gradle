@@ -1,68 +1,24 @@
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunYarn
+plugins {
+    id('base')
+}
 
 configurations {
-    yarn
     dist
 }
 
-dependencies {
-    yarn project(path: ":shared-ui", configuration: "yarn")
-}
-
-tasks.register('yarnUpdateDeps', RunYarn) {
-    var currentDir = java.nio.file.Path.of("${projectDir}")
-    inputs.files('package.json')
-    outputs.files('yarn.lock')
-
-    var packages = configurations.yarn.files
-        .collect { it.toPath() }
-        .collect { currentDir.relativize(it) }
-        .collect { '@niis/shared-ui@file:' + it }
-        .join(' ')
-
-    script = 'add --mode=update-lockfile ' + packages
-}
-
-installFrontend.dependsOn("yarnUpdateDeps")
-
-tasks.register('yarnBuild', RunYarn) {
-    dependsOn assembleFrontend
-    inputs.files(
-        'src/',
-        'public/',
-        'package.json',
-        'yarn.lock',
-        'tsconfig.js',
-        'vite.config.js',
-        fileTree('node_modules') {
-            exclude '.cache'
-            exclude 'webpack-dev-server/ssl'
-        }
-    )
-    outputs.dir('dist')
-    script = 'run build'
-}
-
-tasks.register('frontendUnitTests', RunYarn) {
-    dependsOn assembleFrontend
-    inputs.files("dist", "test", "public")
-    outputs.upToDateWhen { true }
-    script = 'run test:unit'
+tasks.register('assembleArtifacts') {
+    dependsOn ":shared-ui:build-pnpm-workspace"
 }
 
 clean {
     delete file('dist')
 }
 
-// checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
-assemble.dependsOn yarnBuild
-
-tasks.named("installFrontend") {
-    dependsOn(":shared-ui:yarnPack")
-}
+// This is pnpm workspace project, it is built from root.
+assemble.dependsOn assembleArtifacts
 
 artifacts {
     dist(file("dist/")) {
-        builtBy(yarnBuild)
+        builtBy(assembleArtifacts)
     }
 }

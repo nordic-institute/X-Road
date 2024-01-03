@@ -44,7 +44,6 @@ import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createValidators } from '@/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify';
 import i18n from '@/plugins/i18n';
-import '@niis/shared-ui/dist/style.css';
 import {
   XrdButton,
   XrdCloseButton,
