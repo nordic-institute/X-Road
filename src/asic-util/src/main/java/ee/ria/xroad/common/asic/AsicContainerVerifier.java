@@ -113,6 +113,7 @@ public class AsicContainerVerifier {
     /**
      * Constructs a new ASiC container verifier for the ZIP file with the
      * given filename. Attempts to verify it's contents.
+     *
      * @param filename name of the ASiC container ZIP file
      * @throws Exception if the file could not be read
      */
@@ -124,6 +125,7 @@ public class AsicContainerVerifier {
 
     /**
      * Attempts to verify the ASiC container's signature and timestamp.
+     *
      * @throws Exception if verification was unsuccessful
      */
     public void verify() throws Exception {
@@ -266,7 +268,7 @@ public class AsicContainerVerifier {
         return null;
     }
 
-    private class HashChainReferenceResolverImpl
+    private final class HashChainReferenceResolverImpl
             implements HashChainReferenceResolver {
 
         @Override

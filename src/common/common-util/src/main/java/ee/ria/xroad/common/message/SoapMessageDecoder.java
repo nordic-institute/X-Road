@@ -159,8 +159,8 @@ public class SoapMessageDecoder {
 
         //Soap soap = parser.parse(baseContentType, getCharset(contentType), is);
         Soap soap = parser.parse(contentType, is);
-        if (soap instanceof SoapFault) {
-            callback.fault((SoapFault) soap);
+        if (soap instanceof SoapFault fault) {
+            callback.fault(fault);
             return;
         }
 
@@ -191,7 +191,7 @@ public class SoapMessageDecoder {
         }
     }
 
-    private class MultipartHandler extends AbstractContentHandler {
+    private final class MultipartHandler extends AbstractContentHandler {
         private Map<String, String> headers;
         private String partContentType;
         private Soap soapBody;

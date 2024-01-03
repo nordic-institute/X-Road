@@ -155,7 +155,7 @@ public final class ProxyTestSuite {
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
     }
 
-    private static class PropsSolver {
+    private static final class PropsSolver {
         private final Set<String> setProperties = System.getProperties().stringPropertyNames();
 
         void setIfNotSet(String property, String defaultValue) {

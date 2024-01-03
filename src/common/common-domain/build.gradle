@@ -4,7 +4,6 @@ plugins {
     id 'io.spring.dependency-management'
 }
 
-
 dependencies {
     implementation project(':common:common-util')
     implementation project(':serverconf')
@@ -16,8 +15,4 @@ dependencies {
 
 bootJar {
     enabled = false
-}
-
-test {
-    useJUnitPlatform()
 }

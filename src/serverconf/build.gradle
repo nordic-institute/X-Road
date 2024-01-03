@@ -34,9 +34,8 @@ dependencies {
     schema "org.hsqldb:hsqldb:$hsqldbVersion"
 }
 
-task schemaExport() {
+tasks.register('schemaExport') {
     dependsOn configurations.schema
-
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
 
@@ -60,7 +59,7 @@ task schemaExport() {
     }
 }
 
-task runServerConfCRUDTest(type: JavaExec) {
+tasks.register('runServerConfCRUDTest', JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/resources/logback-crudtest.xml'
     mainClass = 'ee.ria.xroad.proxy.conf.ServerConfCRUDTest'
     classpath = sourceSets.test.runtimeClasspath
@@ -68,19 +67,3 @@ task runServerConfCRUDTest(type: JavaExec) {
 }
 
 schemaExport.dependsOn compileJava
-
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
-

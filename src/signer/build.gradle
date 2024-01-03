@@ -34,7 +34,6 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
 
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 
 
@@ -64,13 +63,14 @@ shadowJar {
 
 jar.finalizedBy shadowJar
 
-task createDirs() {
+tasks.register('createDirs') {
     doLast {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
 
-task xjc(dependsOn: [':common:common-util:xjc', ':common:common-verifier:xjc']) {
+tasks.register('xjc') {
+    dependsOn(':common:common-util:xjc', ':common:common-verifier:xjc')
     inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
@@ -90,7 +90,7 @@ task xjc(dependsOn: [':common:common-util:xjc', ':common:common-verifier:xjc']) 
 // gradle cannot handle parallel runs if each task invokes a long-running server process.
 // Instead, use the .jar in the build/libs directory:
 // java -Djava.library.path=/home/iks2/core/passwordstore -jar signer-1.0.jar
-task runSignerMain(type: JavaExec) {
+tasks.register('runSignerMain', JavaExec) {
     jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
         '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
         '-Dxroad.common.configuration-path=../common/common-util/src/test/resources/globalconf_good_v2',
@@ -112,21 +112,6 @@ task runSignerMain(type: JavaExec) {
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc
-
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
 
 tasks.register('intTest', Test) {
     useJUnitPlatform()

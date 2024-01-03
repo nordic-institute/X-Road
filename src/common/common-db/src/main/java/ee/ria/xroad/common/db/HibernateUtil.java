@@ -29,14 +29,14 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PrefixedProperties;
 
-import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.Environment;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 
 import java.io.FileInputStream;
@@ -54,17 +54,12 @@ import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
  * Hibernate utility methods.
  */
 @Slf4j
+@NoArgsConstructor
 public final class HibernateUtil {
+    private static final Map<String, SessionFactoryCtx> SESSION_FACTORY_CACHE = new HashMap<>();
 
-    @Data
-    private static class SessionFactoryCtx {
-        private final SessionFactory sessionFactory;
+    private record SessionFactoryCtx(SessionFactory sessionFactory) {
     }
-
-    private HibernateUtil() {
-    }
-
-    private static Map<String, SessionFactoryCtx> sessionFactoryCache = new HashMap<>();
 
     /**
      * Returns the session factory for the given session factory name.
@@ -86,14 +81,14 @@ public final class HibernateUtil {
      * @return the session factory
      */
     public static synchronized SessionFactory getSessionFactory(String name, Interceptor interceptor) {
-        if (sessionFactoryCache.containsKey(name)) {
-            return sessionFactoryCache.get(name).getSessionFactory();
+        if (SESSION_FACTORY_CACHE.containsKey(name)) {
+            return SESSION_FACTORY_CACHE.get(name).sessionFactory();
         } else {
             try {
                 SessionFactoryCtx ctx = createSessionFactoryCtx(name, interceptor);
-                sessionFactoryCache.put(name, ctx);
+                SESSION_FACTORY_CACHE.put(name, ctx);
 
-                return ctx.getSessionFactory();
+                return ctx.sessionFactory();
             } catch (Exception e) {
                 log.error("Failed to create session factory", e);
 
@@ -110,9 +105,9 @@ public final class HibernateUtil {
     public static synchronized void closeSessionFactory(String name) {
         log.trace("closeSessionFactory({})", name);
 
-        if (sessionFactoryCache.containsKey(name)) {
-            closeSessionFactory(sessionFactoryCache.get(name));
-            sessionFactoryCache.remove(name);
+        if (SESSION_FACTORY_CACHE.containsKey(name)) {
+            closeSessionFactory(SESSION_FACTORY_CACHE.get(name));
+            SESSION_FACTORY_CACHE.remove(name);
         }
     }
 
@@ -122,24 +117,24 @@ public final class HibernateUtil {
     public static synchronized void closeSessionFactories() {
         log.trace("closeSessionFactories()");
 
-        Collection<SessionFactoryCtx> sessionFactories = new ArrayList<>(sessionFactoryCache.values());
+        Collection<SessionFactoryCtx> sessionFactories = new ArrayList<>(SESSION_FACTORY_CACHE.values());
 
         for (SessionFactoryCtx ctx : sessionFactories) {
             closeSessionFactory(ctx);
         }
 
-        sessionFactoryCache.clear();
+        SESSION_FACTORY_CACHE.clear();
     }
 
     private static void closeSessionFactory(SessionFactoryCtx ctx) {
         try {
-            ctx.getSessionFactory().getCurrentSession().close();
+            ctx.sessionFactory().getCurrentSession().close();
         } catch (HibernateException e) {
             log.error("Error closing session", e);
         }
 
         try {
-            ctx.getSessionFactory().close();
+            ctx.sessionFactory().close();
         } catch (HibernateException e) {
             log.error("Error closing session factory", e);
         }
@@ -191,7 +186,7 @@ public final class HibernateUtil {
      */
     public static int getConfiguredBatchSize(Session session, int defaultBatchSize) {
         final Map<String, Object> props = session.getSessionFactory().getProperties();
-        int configuredBatchSize = ConfigurationHelper.getInt(Environment.STATEMENT_BATCH_SIZE, props, defaultBatchSize);
+        int configuredBatchSize = ConfigurationHelper.getInt(AvailableSettings.STATEMENT_BATCH_SIZE, props, defaultBatchSize);
 
         log.trace("Configured JDBC batch size is {}", configuredBatchSize);
 

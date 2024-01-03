@@ -22,5 +22,6 @@ shadowJar {
     exclude('**/module-info.class')
 }
 
-build.finalizedBy shadowJar
-
+build {
+    finalizedBy shadowJar
+}

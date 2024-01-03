@@ -133,7 +133,7 @@ public class AdminPort implements StartStop {
         server.setHandler(handlerCollection);
     }
 
-    private class AdminHandler extends AbstractHandler {
+    private final class AdminHandler extends AbstractHandler {
         @Override
         public void handle(String target, Request baseRequest,
                 HttpServletRequest request, HttpServletResponse response)

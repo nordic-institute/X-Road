@@ -27,6 +27,7 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.CodedException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -34,8 +35,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,19 +50,15 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 /**
  * Asynchronous HTTP sender.
  */
+@Slf4j
+@SuppressWarnings("squid:S1192")
 public class AsyncHttpSender extends AbstractHttpSender {
-
-    public static final int DEFAULT_TIMEOUT_SEC = 60;
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AsyncHttpSender.class);
-
     private final CloseableHttpAsyncClient client;
-
     private Future<HttpResponse> futureResponse;
 
     /**
      * Configures an asynchronous HTTP sender using the given HTTP client.
+     *
      * @param client asynchronous closeable HTTP client this sender should use
      */
     public AsyncHttpSender(CloseableHttpAsyncClient client) {
@@ -77,20 +72,20 @@ public class AsyncHttpSender extends AbstractHttpSender {
      * response handled after which you can use {@link #getResponseContent()}
      * and {@link #getResponseContentType()} to retrieve the response.
      *
-     * @param address the address to send
-     * @param content the content to send
+     * @param address     the address to send
+     * @param content     the content to send
      * @param contentType the content type of the input data
      * @throws Exception if an error occurs
      */
     @Override
     public void doPost(URI address, String content, String contentType)
             throws Exception {
-        LOG.trace("doPost({})", address);
+        log.trace("doPost({})", address);
 
         HttpPost post = new HttpPost(address);
         post.setEntity(createStringEntity(content, contentType));
 
-        PerformanceLogger.log(LOG, "doPost(" + address + ") done");
+        PerformanceLogger.log(log, "doPost(" + address + ") done");
 
         doRequest(post);
     }
@@ -101,37 +96,38 @@ public class AsyncHttpSender extends AbstractHttpSender {
      * response handled after which you can use {@link #getResponseContent()}
      * and {@link #getResponseContentType()} to retrieve the response.
      *
-     * @param address the address to send
-     * @param content the content to send
+     * @param address       the address to send
+     * @param content       the content to send
      * @param contentLength length of the content in bytes
-     * @param contentType the content type of the input data
+     * @param contentType   the content type of the input data
      * @throws Exception if an error occurs
      */
     @Override
     public void doPost(URI address, InputStream content, long contentLength,
-            String contentType) throws Exception {
-        LOG.trace("doPost({})", address);
+                       String contentType) throws Exception {
+        log.trace("doPost({})", address);
 
         HttpPost post = new HttpPost(address);
         post.setEntity(createInputStreamEntity(content, contentLength,
                 contentType));
 
-        PerformanceLogger.log(LOG, "doPost(" + address + ") done");
+        PerformanceLogger.log(log, "doPost(" + address + ") done");
 
         doRequest(post);
     }
 
     @Override
     public void doGet(URI address) throws Exception {
-        LOG.trace("doGet({})", address);
+        log.trace("doGet({})", address);
 
-        PerformanceLogger.log(LOG, "doGet(" + address + ") done");
+        PerformanceLogger.log(log, "doGet(" + address + ") done");
 
         doRequest(new HttpGet(address));
     }
 
     /**
      * Will block until response becomes available in the future.
+     *
      * @param timeoutSec number of seconds before a timeout exception is thrown
      * @throws Exception if response could not be retrieved in the alloted time
      */
@@ -140,7 +136,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
             throw new CodedException(X_INTERNAL_ERROR, "Request uninitialized");
         }
 
-        LOG.trace("waitForResponse()");
+        log.trace("waitForResponse()");
         try {
             HttpResponse response =
                     futureResponse.get(timeoutSec, TimeUnit.SECONDS);
@@ -153,7 +149,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
         } finally {
             futureResponse = null;
 
-            PerformanceLogger.log(LOG, "waitForResponse() done");
+            PerformanceLogger.log(log, "waitForResponse() done");
         }
     }
 
@@ -163,11 +159,11 @@ public class AsyncHttpSender extends AbstractHttpSender {
     }
 
     private void consumeEntity() {
-        if (request instanceof HttpPost) {
+        if (request instanceof HttpPost httpPost) {
             try {
-                EntityUtils.consume(((HttpPost) request).getEntity());
+                EntityUtils.consume((httpPost).getEntity());
             } catch (IOException e) {
-                LOG.error("Error when consuming entity", e);
+                log.error("Error when consuming entity", e);
             }
         }
     }
@@ -179,7 +175,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
         try {
             futureResponse = client.execute(request, context, new Callback());
         } catch (Exception ex) {
-            LOG.debug("Request failed", ex);
+            log.debug("Request failed", ex);
             request.abort();
             throw ex;
         }
@@ -191,7 +187,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
         }
     }
 
-    private class Callback implements FutureCallback<HttpResponse> {
+    private final class Callback implements FutureCallback<HttpResponse> {
 
         @Override
         public void cancelled() {
@@ -205,7 +201,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
 
         @Override
         public void failed(Exception e) {
-            LOG.trace("failed()", e);
+            log.trace("failed()", e);
             consumeEntity();
         }
     }

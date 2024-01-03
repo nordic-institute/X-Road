@@ -293,7 +293,7 @@ public class MetadataServiceHandlerTest {
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                DescriptionType descriptionType) {
+                                                                     DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
             }
@@ -353,7 +353,7 @@ public class MetadataServiceHandlerTest {
 
             @Override
             public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                       DescriptionType descriptionType) {
+                                                                            DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClient));
 
@@ -500,7 +500,7 @@ public class MetadataServiceHandlerTest {
                 httpClientMock, mock(OpMonitoringData.class));
     }
 
-    private static class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
+    private static final class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
         private OverwriteAttributeFilter filter;
 
         @Override
@@ -698,7 +698,7 @@ public class MetadataServiceHandlerTest {
     }
 
 
-    private static class TestMimeContentHandler extends AbstractContentHandler {
+    private static final class TestMimeContentHandler extends AbstractContentHandler {
 
         @Getter
         private SoapHeader xrHeader;
@@ -709,21 +709,17 @@ public class MetadataServiceHandlerTest {
         private List<String> endpointUrls;
 
         private String partContentType;
-
+        @Getter
         private String contentAsString;
 
-        public String getContentAsString() {
-            return contentAsString;
-        }
-
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             partContentType = null;
         }
 
         @Override
-        public void field(Field field) throws MimeException {
-            if (field.getName().toLowerCase().equals(HEADER_CONTENT_TYPE)) {
+        public void field(Field field) {
+            if (field.getName().equalsIgnoreCase(HEADER_CONTENT_TYPE)) {
                 partContentType = field.getBody();
             }
         }

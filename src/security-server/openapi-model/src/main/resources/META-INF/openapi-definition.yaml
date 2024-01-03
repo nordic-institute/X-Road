@@ -5453,6 +5453,7 @@ components:
         messagelog_enabled:
           type: boolean
           readOnly: true
+          description: MessageLog status
     BackupEncryptionStatus:
       type: object
       description: backup encryption statuses
@@ -5462,11 +5463,14 @@ components:
         backup_encryption_status:
           type: boolean
           readOnly: true
+          description: backup encryption status
         backup_encryption_keys:
           type: array
+          description: backup encryption keys
           items:
             type: string
             format: text
+            description: backup encryption key
     MessageLogEncryptionStatus:
       type: object
       description: message log encryption statuses
@@ -5478,14 +5482,18 @@ components:
         message_log_archive_encryption_status:
           type: boolean
           readOnly: true
+          description: message log archive encryption status
         message_log_database_encryption_status:
           type: boolean
           readOnly: true
+          description: message log database encryption status
         message_log_grouping_rule:
           type: string
           readOnly: true
+          description: message log grouping rule
         members:
           type: array
+          description: message log encryption members
           items:
             $ref: '#/components/schemas/MessageLogArchiveEncryptionMember'
     MessageLogArchiveEncryptionMember:
@@ -5497,9 +5505,11 @@ components:
         member_id:
           type: string
           readOnly: true
+          description: member id
         keys:
           type: array
           uniqueItems: true
+          description: array of keys
           items:
             type: string
             format: text
@@ -5507,6 +5517,7 @@ components:
         default_key_used:
           type: boolean
           readOnly: true
+          description: default key used
     Anchor:
       type: object
       description: security server anchor
@@ -5559,6 +5570,7 @@ components:
       properties:
         local_conf_present:
           type: boolean
+          description: if local configuration is present in the backup
     BackupArchive:
       type: object
       description: security server backup archive file
@@ -5566,6 +5578,7 @@ components:
         file:
           type: string
           format: binary
+          description: backup archive file
     TokenCertificateSigningRequest:
       type: object
       description: CSR for certificate that is stored in a Token. Also includes the possible actions that can be
@@ -6260,10 +6273,12 @@ components:
       properties:
         status_class:
           readOnly: true
+          description: diagnostics status class
           allOf:
             - $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
           readOnly: true
+          description: diagnostics status code
           allOf:
             - $ref: '#/components/schemas/ConfigurationStatus'
         prev_update_at:
@@ -6507,6 +6522,7 @@ components:
         member_name:
           type: string
           format: text
+          description: member's name
     Members:
       type: object
       description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
@@ -6599,6 +6615,7 @@ components:
         orphans_exist:
           type: boolean
           default: false
+          description: whether or not orphans exist in the database
     SecurityServer:
       type: object
       description: security server information
@@ -6794,6 +6811,7 @@ components:
         service_code:
           type: string
           example: example_service_code
+          description: service code
         method:
           type: string
           description: http method mapped to this endpoint

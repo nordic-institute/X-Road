@@ -52,7 +52,6 @@ import org.w3c.dom.Node;
 import javax.xml.transform.dom.DOMSource;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
@@ -76,31 +75,46 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 @Slf4j
 public class SignatureVerifier {
 
-    /** The signature object. */
+    /**
+     * The signature object.
+     */
     private final Signature signature;
 
-    /** The parts to be verified. */
+    /**
+     * The parts to be verified.
+     */
     private final List<MessagePart> parts = new ArrayList<>();
 
-    /** The hash chain result. */
+    /**
+     * The hash chain result.
+     */
     private final String hashChainResult;
 
-    /** The hash chain. */
+    /**
+     * The hash chain.
+     */
     private final String hashChain;
 
-    /** The instance of Asic resource resolver to use
-     * during manifest verification.*/
+    /**
+     * The instance of Asic resource resolver to use
+     * during manifest verification.
+     */
     private ResourceResolverSpi resourceResolver;
 
-    /** The instance of hash chain reference resolver. */
+    /**
+     * The instance of hash chain reference resolver.
+     */
     private HashChainReferenceResolver hashChainReferenceResolver;
 
-    /** Indicates whether to verify against Xades schema or not. */
+    /**
+     * Indicates whether to verify against Xades schema or not.
+     */
     private boolean verifySchema = true;
 
     /**
      * Constructs a new signature verifier using the specified string
      * containing the signature xml.
+     *
      * @param signatureData the signature data
      */
     public SignatureVerifier(SignatureData signatureData) {
@@ -111,6 +125,7 @@ public class SignatureVerifier {
 
     /**
      * Constructs a new signature verifier for the specified signature.
+     *
      * @param signature the signature
      */
     public SignatureVerifier(Signature signature) {
@@ -119,12 +134,13 @@ public class SignatureVerifier {
 
     /**
      * Constructs a new signature verifier for the specified signature.
-     * @param signature the signature
+     *
+     * @param signature       the signature
      * @param hashChainResult the hash chain result
-     * @param hashChain the hash chain
+     * @param hashChain       the hash chain
      */
     public SignatureVerifier(Signature signature, String hashChainResult,
-            String hashChain) {
+                             String hashChain) {
         this.signature = signature;
         this.hashChainResult = hashChainResult;
         this.hashChain = hashChain;
@@ -139,6 +155,7 @@ public class SignatureVerifier {
 
     /**
      * Adds parts to be signed or verifier.
+     *
      * @param messageParts the parts to add
      */
     public void addParts(List<MessagePart> messageParts) {
@@ -147,14 +164,18 @@ public class SignatureVerifier {
 
     /**
      * Adds part to be signed or verified.
+     *
      * @param part the part to add
      */
     public void addPart(MessagePart part) {
         this.parts.add(part);
     }
 
-    /** Sets whether to use AsicResourceResolver when verifying signature.
-     * @param resolver the resource resolver */
+    /**
+     * Sets whether to use AsicResourceResolver when verifying signature.
+     *
+     * @param resolver the resource resolver
+     */
     public void setSignatureResourceResolver(ResourceResolverSpi resolver) {
         this.resourceResolver = resolver;
     }
@@ -162,6 +183,7 @@ public class SignatureVerifier {
     /**
      * Sets the hash chain resource resolver to be used when verifying
      * hash chain.
+     *
      * @param resolver the resource resolver
      */
     public void setHashChainResourceResolver(
@@ -171,8 +193,10 @@ public class SignatureVerifier {
 
     /**
      * Sets whether to verify the signature XML against the Xades schema.
+     *
      * @param shouldVerifySchema if true, the signature XML will be verified
-     * against the schema */
+     *                           against the schema
+     */
     public void setVerifySchema(boolean shouldVerifySchema) {
         this.verifySchema = shouldVerifySchema;
     }
@@ -199,6 +223,7 @@ public class SignatureVerifier {
 
     /**
      * Returns the OCSP response for the signing certificate
+     *
      * @param instanceIdentifier the instance identifier
      * @return the OCSP response of the signing certificate
      * @throws Exception if an error occurs
@@ -212,7 +237,8 @@ public class SignatureVerifier {
         return CertHelper.getOcspResponseForCert(cert, issuer, responses);
     }
 
-    /** Verifies the signature. The verification process is as follows:
+    /**
+     * Verifies the signature. The verification process is as follows:
      * <ol>
      * <li>Verify schema, if schema verification
      * is enabled.</li>
@@ -227,8 +253,9 @@ public class SignatureVerifier {
      * responses and any extra certificates.</li>
      * </ol>
      * This method is not reentrant.
+     *
      * @param signer names the subject that claims to have been signed
-     *                   the message.
+     *               the message.
      * @param atDate Date that is used to check validity of the certificates.
      * @throws Exception if verification fails
      */
@@ -275,10 +302,10 @@ public class SignatureVerifier {
     }
 
     private static void verifySignerName(ClientId signer,
-            X509Certificate signingCert) throws Exception {
+                                         X509Certificate signingCert) throws Exception {
         ClientId cn = GlobalConf.getSubjectName(
                 new SignCertificateProfileInfoParameters(
-                    signer, signer.getMemberCode()
+                        signer, signer.getMemberCode()
                 ),
                 signingCert);
         if (!signer.memberEquals(cn)) {
@@ -362,17 +389,14 @@ public class SignatureVerifier {
         return null;
     }
 
-    private class SignatureResourceResolverImpl extends ResourceResolverSpi {
+    private final class SignatureResourceResolverImpl extends ResourceResolverSpi {
 
         @Override
         public boolean engineCanResolveURI(ResourceResolverContext context) {
-            switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE:
-                case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                    return true;
-                default:
-                    return false;
-            }
+            return switch (context.attr.getValue()) {
+                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
+                default -> false;
+            };
         }
 
         @Override
@@ -395,19 +419,16 @@ public class SignatureVerifier {
         }
     }
 
-    private class HashChainReferenceResolverImpl
+    private final class HashChainReferenceResolverImpl
             implements HashChainReferenceResolver {
 
         @Override
-        public InputStream resolve(String uri) throws IOException {
-            switch (uri) {
-                case MessageFileNames.SIG_HASH_CHAIN:
-                    if (hashChain != null) {
-                        return is(hashChain);
-                    } // $FALL-THROUGH$
-                default:
-                    return null;
+        public InputStream resolve(String uri) {
+            if (uri.equals(MessageFileNames.SIG_HASH_CHAIN) && (hashChain != null)) {
+                return is(hashChain);
+                // $FALL-THROUGH$
             }
+            return null;
         }
 
         @Override

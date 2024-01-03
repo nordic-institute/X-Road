@@ -138,7 +138,7 @@ abstract class SharedParametersV2Converter {
         return clientMap;
     }
 
-    private static class IdSequence {
+    private static final class IdSequence {
         int nextId = 0;
 
         String nextValue() {

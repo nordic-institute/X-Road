@@ -166,7 +166,7 @@ public class CertHashBasedOcspResponder implements StartStop {
         mpResponse.close();
     }
 
-    private class RequestHandler extends AbstractHandler {
+    private final class RequestHandler extends AbstractHandler {
         @Override
         public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
