@@ -21,6 +21,12 @@ mkdir -p 1750 /var/tmp/xroad
 chown xroad:xroad /var/lib/xroad /var/tmp/xroad
 chown -R xroad:xroad /etc/xroad
 
+log "Generating internal gRPC TLS keys and certificate"
+rm -rf /var/run/xroad
+mkdir -p -m0750 /var/run/xroad
+chown xroad:xroad /var/run/xroad
+su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
+
 #Try rsync until success
 log "Syncing configuration from ${XROAD_PRIMARY_DNS}..."
 
