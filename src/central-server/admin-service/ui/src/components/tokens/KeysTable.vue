@@ -86,7 +86,6 @@
 import { defineComponent, PropType } from 'vue';
 import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
@@ -100,7 +99,6 @@ export default defineComponent({
     DateTime,
     SigningKeyActivateDialog,
     SigningKeyDeleteDialog,
-    VDataTable,
     XrdIconKey,
   },
   props: {

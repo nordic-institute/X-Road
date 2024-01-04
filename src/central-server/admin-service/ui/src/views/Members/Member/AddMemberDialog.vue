@@ -26,36 +26,39 @@
  -->
 <template>
   <xrd-simple-dialog
-    :disable-save="!formReady"
+    :disable-save="!meta.valid"
     :loading="loading"
     cancel-button-text="action.cancel"
     title="members.addMember"
-    z-index="1999"
+    submittable
     @cancel="cancel"
     @save="add"
   >
     <template #content>
       <v-text-field
         v-model="memberName"
-        :label="$t('global.memberName')"
+        v-bind="memberNameAttrs"
         variant="outlined"
         autofocus
         data-test="add-member-name-input"
+        class="space-out-bottom"
+        :label="$t('global.memberName')"
       />
       <v-select
         v-model="memberClass"
+        v-bind="memberClassAttrs"
         :items="memberClasses"
         :label="$t('global.memberClass')"
         item-title="code"
         item-value="code"
         variant="outlined"
         data-test="add-member-class-input"
-        z-index="2410"
+        class="space-out-bottom"
       />
       <v-text-field
-        v-bind="memberCode"
+        v-model="memberCode"
+        v-bind="memberCodeAttrs"
         :label="$t('global.memberCode')"
-        :error-messages="errors.memberCode"
         variant="outlined"
         data-test="add-member-code-input"
       />
@@ -63,115 +66,94 @@
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
-import { ErrorInfo, MemberClass } from '@/openapi-types';
-import { useClient } from '@/store/modules/clients';
+<script lang="ts" setup>
+import { computed, ref } from 'vue';
+import { ErrorInfo } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
-import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import { useMemberClass } from '@/store/modules/member-class';
 import {
   getErrorInfo,
   getTranslatedFieldErrors,
   isFieldError,
+  useErrorMapping,
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
+import { Event, SaveAndCancel } from '@niis/shared-ui';
+import i18n from '@/plugins/i18n';
 
-export default defineComponent({
-  emits: ['save', 'cancel'],
-  setup() {
-    const {
-      defineComponentBinds,
-      values,
-      meta,
-      errors,
-      setFieldError,
-      resetForm,
-    } = useForm({ validationSchema: { memberCode: 'required' } });
-    const memberCode = defineComponentBinds('memberCode');
-    return {
-      values,
-      meta,
-      errors,
-      setFieldError,
-      memberCode,
-      resetForm,
-    };
-  },
-  data() {
-    return {
-      loading: false,
-      memberName: '',
-      memberClass: '',
-    };
-  },
-  computed: {
-    ...mapStores(useClient, useMember, useMemberClass),
-    ...mapState(useSystem, ['getSystemStatus']),
-    memberClasses(): MemberClass[] {
-      return this.memberClassStore.memberClasses;
-    },
-    formReady(): boolean {
-      return !!(this.memberName && this.memberClass && this.meta.valid);
-    },
-  },
-  created() {
-    this.memberClassStore.fetchAll();
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancel(): void {
-      this.$emit('cancel');
-      this.clearForm();
-    },
-    clearForm(): void {
-      this.memberName = '';
-      this.memberClass = '';
-      this.resetForm();
-    },
-    add(): void {
-      this.loading = true;
-      this.memberStore
-        .add({
-          member_name: this.memberName,
-          member_id: {
-            member_class: this.memberClass,
-            member_code: this.values.memberCode,
-          },
-        })
-        .then(() => {
-          this.showSuccess(
-            this.$t('members.memberSuccessfullyAdded', {
-              memberName: this.memberName,
-            }),
-          );
-          this.$emit('save');
-          this.clearForm();
-        })
-        .catch((error) => {
-          const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
-          if (isFieldError(errorInfo)) {
-            let fieldErrors = errorInfo.error?.validation_errors;
-            if (fieldErrors) {
-              this.setFieldError(
-                'memberCode',
-                getTranslatedFieldErrors(
-                  'memberAddDto.memberId.memberCode',
-                  fieldErrors,
-                ),
-              );
-            }
-          } else {
-            this.showError(error);
-          }
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
+const emits = defineEmits(SaveAndCancel);
+const { defineField, setFieldError, meta, resetForm, handleSubmit } = useForm({
+  validationSchema: {
+    memberCode: 'required',
+    memberName: 'required',
+    memberClass: 'required',
   },
 });
+const [memberCode, memberCodeAttrs] = defineField(
+  'memberCode',
+  useErrorMapping(),
+);
+const [memberName, memberNameAttrs] = defineField(
+  'memberName',
+  useErrorMapping(),
+);
+const [memberClass, memberClassAttrs] = defineField(
+  'memberClass',
+  useErrorMapping(),
+);
+
+const { add: addMember } = useMember();
+const memberClassStore = useMemberClass();
+const { showError, showSuccess } = useNotifications();
+
+const memberClasses = computed(() => memberClassStore.memberClasses);
+
+function cancel() {
+  emits(Event.Cancel);
+  resetForm();
+}
+
+const loading = ref(false);
+const { t } = i18n.global;
+const add = handleSubmit((values) => {
+  loading.value = true;
+  addMember({
+    member_name: values.memberName,
+    member_id: {
+      member_class: values.memberClass,
+      member_code: values.memberCode,
+    },
+  })
+    .then(() => {
+      showSuccess(
+        t('members.memberSuccessfullyAdded', {
+          memberName: values.memberName,
+        }),
+      );
+      emits(Event.Save);
+      resetForm();
+    })
+    .catch((error) => {
+      const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
+      if (isFieldError(errorInfo)) {
+        let fieldErrors = errorInfo.error?.validation_errors;
+        if (fieldErrors) {
+          setFieldError(
+            'memberCode',
+            getTranslatedFieldErrors(
+              'memberAddDto.memberId.memberCode',
+              fieldErrors,
+            ),
+          );
+        }
+      } else {
+        showError(error);
+      }
+    })
+    .finally(() => (loading.value = false));
+});
+
+memberClassStore.fetchAll();
 </script>

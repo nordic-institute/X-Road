@@ -162,7 +162,6 @@ import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { XrdIconKey } from '@niis/shared-ui';
 import TitledView from '@/components/ui/TitledView.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
@@ -171,7 +170,6 @@ export default defineComponent({
   components: {
     CustomDataTableFooter,
     TitledView,
-    VDataTable,
     XrdIconKey,
   },
   data() {

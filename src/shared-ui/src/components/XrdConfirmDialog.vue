@@ -31,61 +31,65 @@
     :save-button-text="acceptButtonText"
     :show-close="false"
     :loading="loading"
-    @save="$emit('accept')"
-    @cancel="$emit('cancel')"
+    :focus-on-save="focusOnAccept"
+    @save="$emit(Event.Accept)"
+    @cancel="$emit(Event.Cancel)"
   >
     <template #text>
-        <slot name="text">{{ $t(text, data) }}</slot>
+      <slot name="text">{{ $t(text, data) }}</slot>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 /**
  * A dialog for simple "accept or cancel" functions
  */
 
 import type { PropType } from 'vue';
-import { defineComponent } from "vue";
 import XrdSimpleDialog from "./XrdSimpleDialog.vue";
+import { Event } from '../event';
 
-export default defineComponent({
-  components: { XrdSimpleDialog },
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    title: {
-      type: String,
-      required: true,
-    },
-    text: {
-      type: String,
-      default: '',
-    },
-    cancelButtonText: {
-      type: String,
-      default: 'action.cancel',
-    },
-    acceptButtonText: {
-      type: String,
-      default: 'action.yes',
-    },
-    // Set save button loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    // In case the confirmation text requires additional data
-    data: {
-      type: Object as PropType<Record<string, unknown>>,
-      required: false,
-      default: {} as Record<string, unknown>,
-    },
+defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['cancel', 'accept'],
+  title: {
+    type: String,
+    required: true,
+  },
+  text: {
+    type: String,
+    default: '',
+  },
+  cancelButtonText: {
+    type: String,
+    default: 'action.cancel',
+  },
+  acceptButtonText: {
+    type: String,
+    default: 'action.yes',
+  },
+  // Set save button loading spinner
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  // In case the confirmation text requires additional data
+  data: {
+    type: Object as PropType<Record<string, unknown>>,
+    required: false,
+    default: {} as Record<string, unknown>,
+  },
+  focusOnAccept: {
+    type: Boolean,
+    default: false
+  },
 });
+
+defineEmits([Event.Accept, Event.Cancel]);
+
 </script>
 <style lang="scss" scoped>
 </style>

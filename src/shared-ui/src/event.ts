@@ -25,14 +25,17 @@
  * THE SOFTWARE.
  */
 
-//resources&assets
-import '@fontsource/open-sans';
-import '@mdi/font/css/materialdesignicons.css';
-import './assets/icons.css';
+export enum Event {
+  Save = 'save',
+  Delete = 'delete',
+  Cancel = 'cancel',
+  Select = 'select',
+  Accept = 'accept',
+  Generate = 'generate',
+  Confirm = 'confirm',
+  Upload = 'upload',
+  UpdateModelValue = 'update:model-value',
+}
 
-export * from './components';
-export * from './components/icons';
-export * from './components/backups-and-restore';
-export * from './types';
-export * from './plugins/i18n';
-export * from './event';
+export const SaveAndCancel = [Event.Save, Event.Cancel];
+export const DeleteAndCancel = [Event.Delete, Event.Cancel];

@@ -28,6 +28,7 @@
   <xrd-confirm-dialog
     title="members.member.subsystems.deleteSubsystem"
     accept-button-text="action.delete"
+    focus-on-accept
     @cancel="cancel"
     @accept="deleteSubsystem"
   >
@@ -59,7 +60,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { ClientId } from '@/openapi-types';
 import { toIdentifier, toShortMemberId } from '@/util/helpers';
-import { Event } from '@/ui-types';
+import { DeleteAndCancel, Event } from '@niis/shared-ui';
 
 export default defineComponent({
   props: {
@@ -72,7 +73,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Cancel, Event.Delete],
+  emits: DeleteAndCancel,
   data() {
     return {
       loading: false,

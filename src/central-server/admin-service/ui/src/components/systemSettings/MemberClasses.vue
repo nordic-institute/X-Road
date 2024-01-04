@@ -100,7 +100,6 @@ import { useMemberClass } from '@/store/modules/member-class';
 import EditMemberClassDialog from '@/components/systemSettings/EditMemberClassDialog.vue';
 import DeleteMemberClassDialog from '@/components/systemSettings/DeleteMemberClassDialog.vue';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import { toPagingOptions } from '@/util/helpers';
 
@@ -109,7 +108,6 @@ export default defineComponent({
     DataTableToolbar,
     EditMemberClassDialog,
     DeleteMemberClassDialog,
-    VDataTable,
   },
   data: () => ({
     sortBy: [{ key: 'code', order: 'asc' }],

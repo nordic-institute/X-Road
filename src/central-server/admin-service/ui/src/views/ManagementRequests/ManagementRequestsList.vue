@@ -97,7 +97,6 @@
 </template>
 
 <script lang="ts">
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
@@ -129,7 +128,6 @@ export default defineComponent({
     MrStatusCell,
     MrActionsCell,
     ManagementRequestIdCell,
-    VDataTableServer,
   },
   data() {
     return {

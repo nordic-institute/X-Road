@@ -162,7 +162,6 @@ import { debounce } from '@/util/helpers';
 import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
 import DeleteGroupMemberDialog from './DeleteGroupMemberDialog.vue';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import DateTime from '@/components/ui/DateTime.vue';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 
@@ -177,7 +176,6 @@ export default defineComponent({
     DeleteGroupMemberDialog,
     AddGroupMembersDialog,
     GroupMembersFilterDialog,
-    VDataTableServer,
   },
   props: {
     groupCode: {

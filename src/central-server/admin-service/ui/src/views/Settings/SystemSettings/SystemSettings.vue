@@ -88,7 +88,7 @@
     v-if="showEditServerAddressDialog"
     :service-address="serverAddress || ''"
     @cancel="showEditServerAddressDialog = false"
-    @edit="refreshData"
+    @save="refreshData"
   />
   <!-- Management Services -->
 </template>

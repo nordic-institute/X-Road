@@ -135,7 +135,6 @@ import { DataTableHeader } from '@/ui-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import {
   ApprovedCertificationService,
   CertificateAuthority,
@@ -153,7 +152,6 @@ export default defineComponent({
     CustomDataTableFooter,
     DateTime,
     AddIntermediateCaDialog,
-    VDataTable,
   },
   props: {
     cs: {

@@ -128,7 +128,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapActions } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
@@ -149,7 +148,6 @@ export default defineComponent({
     DataTableToolbar,
     EditOcspResponderDialog,
     AddOcspResponderDialog,
-    VDataTable,
   },
   props: {
     ca: {

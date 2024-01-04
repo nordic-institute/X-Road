@@ -84,7 +84,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { DataQuery, DataTableHeader, Event } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { useManagementServices } from '@/store/modules/management-services';
 
 // To provide the Vue instance to debounce
@@ -92,7 +91,6 @@ import { useManagementServices } from '@/store/modules/management-services';
 let that: any;
 
 export default defineComponent({
-  components: { VDataTableServer },
   props: {
     currentSubsystemId: {
       type: String,

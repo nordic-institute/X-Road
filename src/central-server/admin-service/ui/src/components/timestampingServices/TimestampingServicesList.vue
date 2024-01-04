@@ -141,7 +141,6 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { DataTableHeader } from '@/ui-types';
 import TitledView from '@/components/ui/TitledView.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
@@ -152,7 +151,6 @@ export default defineComponent({
     TitledView,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
-    VDataTable,
   },
   props: {},
   data() {

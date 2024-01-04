@@ -91,7 +91,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
@@ -106,7 +105,7 @@ import DateTime from '@/components/ui/DateTime.vue';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
-  components: { DateTime, DeleteAuthenticationCertificateDialog, VDataTable },
+  components: { DateTime, DeleteAuthenticationCertificateDialog },
   props: {
     serverId: {
       type: String,

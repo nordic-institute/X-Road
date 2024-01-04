@@ -87,7 +87,6 @@ import { debounce } from '@/util/helpers';
 import { DataQuery, DataTableHeader, Event } from '@/ui-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { TranslateResult } from 'vue-i18n';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { useManagementServices } from '@/store/modules/management-services';
 
@@ -96,9 +95,6 @@ import { useManagementServices } from '@/store/modules/management-services';
 let that: any;
 
 export default defineComponent({
-  components: {
-    VDataTableServer,
-  },
   props: {
     currentSecurityServer: {
       type: String,

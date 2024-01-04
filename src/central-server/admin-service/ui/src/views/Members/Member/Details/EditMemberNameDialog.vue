@@ -31,6 +31,7 @@
     title="members.member.details.editMemberName"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
+    submittable
     :disable-save="!meta.valid || !meta.dirty"
     @cancel="cancelEdit"
     @save="saveNewMemberName"
@@ -41,6 +42,7 @@
           v-bind="memberName"
           variant="outlined"
           data-test="edit-member-name"
+          autofocus
           :error-messages="errors.memberName"
         ></v-text-field>
       </div>
@@ -48,63 +50,51 @@
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
 import { useMember } from '@/store/modules/members';
 import { Client } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
-import { defineComponent, PropType } from 'vue';
+import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
+import { SaveAndCancel, Event } from '@niis/shared-ui';
+import i18n from '@/plugins/i18n';
 
-export default defineComponent({
-  props: {
-    member: {
-      type: Object as PropType<Client>,
-      required: true,
-    },
+const props = defineProps({
+  member: {
+    type: Object as PropType<Client>,
+    required: true,
   },
-  emits: ['cancel', 'name-changed'],
-  setup(props) {
-    const { defineComponentBinds, values, errors, meta, setFieldError } =
-      useForm({
-        validationSchema: { memberName: 'required' },
-        initialValues: { memberName: props.member.member_name },
-      });
-    const memberName = defineComponentBinds('memberName');
-    return { values, errors, setFieldError, meta, memberName };
-  },
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useMember),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancelEdit(): void {
-      this.$emit('cancel');
-    },
-    saveNewMemberName(): void {
-      this.loading = true;
-      this.memberStore
-        .editMemberName(toIdentifier(this.member.client_id), {
-          member_name: this.values.memberName,
-        })
-        .then(() => {
-          this.showSuccess(this.$t('members.member.details.memberNameSaved'));
-          this.$emit('name-changed');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-  },
+});
+
+const emits = defineEmits(SaveAndCancel);
+
+const { defineComponentBinds, errors, meta, handleSubmit } = useForm({
+  validationSchema: { memberName: 'required' },
+  initialValues: { memberName: props.member.member_name },
+});
+const memberName = defineComponentBinds('memberName');
+
+const { editMemberName } = useMember();
+const { showError, showSuccess } = useNotifications();
+const loading = ref(false);
+
+function cancelEdit() {
+  emits(Event.Cancel);
+}
+
+const { t } = i18n.global;
+const saveNewMemberName = handleSubmit((values) => {
+  loading.value = true;
+  editMemberName(toIdentifier(props.member.client_id), {
+    member_name: values.memberName,
+  })
+    .then(() => {
+      showSuccess(t('members.member.details.memberNameSaved'));
+      emits(Event.Save);
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
 });
 </script>
 

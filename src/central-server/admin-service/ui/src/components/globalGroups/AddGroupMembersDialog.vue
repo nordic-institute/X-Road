@@ -103,7 +103,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import { DataTableHeader, Event, PagingOptions } from '@/ui-types';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { debounce } from '@/util/helpers';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 
 // To provide the Vue instance to debounce
@@ -111,7 +110,6 @@ import { defaultItemsPerPageOptions } from '@/util/defaults';
 let that: any;
 
 export default defineComponent({
-  components: { VDataTableServer },
   props: {
     groupCode: {
       type: String,

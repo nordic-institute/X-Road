@@ -100,7 +100,6 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { debounce, toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { Client } from '@/openapi-types';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { DataQuery, DataTableHeader } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
@@ -113,7 +112,6 @@ export default defineComponent({
   components: {
     SearchableTitledView,
     AddMemberDialog,
-    VDataTableServer,
   },
   data() {
     return {

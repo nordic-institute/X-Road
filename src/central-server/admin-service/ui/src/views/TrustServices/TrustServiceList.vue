@@ -95,7 +95,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import AddCertificationServiceDialog from '@/components/certificationServices/AddCertificationServiceDialog.vue';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCertificationService } from '@/store/modules/trust-services';
@@ -120,7 +119,6 @@ export default defineComponent({
     DateTime,
     AddCertificationServiceDialog,
     TimestampingServicesList,
-    VDataTable,
   },
   data() {
     return {

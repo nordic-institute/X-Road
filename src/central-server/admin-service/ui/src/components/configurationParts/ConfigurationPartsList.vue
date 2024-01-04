@@ -88,7 +88,6 @@ import { mapState, mapStores } from 'pinia';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { useUser } from '@/store/modules/user';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
@@ -101,7 +100,6 @@ export default defineComponent({
     DataTableToolbar,
     DateTime,
     CustomDataTableFooter,
-    VDataTable,
     ConfigurationPartUploadButton,
     ConfigurationPartDownloadButton,
   },

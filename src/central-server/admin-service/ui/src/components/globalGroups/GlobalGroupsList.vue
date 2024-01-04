@@ -90,7 +90,6 @@ import TitledView from '@/components/ui/TitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { XrdIconFolder } from '@niis/shared-ui';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 
 export default defineComponent({
   name: 'GlobalResourcesList',
@@ -100,7 +99,6 @@ export default defineComponent({
     TitledView,
     AddGroupDialog,
     XrdIconFolder,
-    VDataTable,
   },
   data() {
     return {

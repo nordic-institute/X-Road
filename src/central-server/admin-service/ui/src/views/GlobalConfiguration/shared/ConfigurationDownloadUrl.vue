@@ -66,12 +66,11 @@ import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 
 export default defineComponent({
-  components: { CustomDataTableFooter, DataTableToolbar, VDataTable },
+  components: { CustomDataTableFooter, DataTableToolbar },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,

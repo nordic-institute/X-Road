@@ -168,7 +168,7 @@
       :member="memberStore.currentMember"
       data-test="add-member-to-group"
       @cancel="cancel"
-      @added-subsystem="addedSubsystem"
+      @save="addedSubsystem"
     />
 
     <delete-member-subsystem-dialog

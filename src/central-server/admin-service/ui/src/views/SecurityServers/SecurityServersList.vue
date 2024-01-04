@@ -71,7 +71,6 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { DataQuery, DataTableHeader } from '@/ui-types';
 import { XrdIconSecurityServer } from '@niis/shared-ui';
@@ -82,7 +81,7 @@ import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 let that: any;
 
 export default defineComponent({
-  components: { SearchableTitledView, XrdIconSecurityServer, VDataTableServer },
+  components: { SearchableTitledView, XrdIconSecurityServer },
   data() {
     return {
       search: '',
