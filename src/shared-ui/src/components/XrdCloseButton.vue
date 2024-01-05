@@ -30,20 +30,13 @@
   </v-btn>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 
 /**
  * Component for close action with X icon.
  */
-export default defineComponent({
-  emits: ['click'],
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
-    },
-  },
-});
+
+defineEmits(['click']);
 </script>
 
 <style lang="scss" scoped>

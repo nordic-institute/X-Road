@@ -60,7 +60,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { ClientId } from '@/openapi-types';
 import { toIdentifier, toShortMemberId } from '@/util/helpers';
-import { DeleteAndCancel, Event } from '@niis/shared-ui';
 
 export default defineComponent({
   props: {
@@ -73,7 +72,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: DeleteAndCancel,
+  emits: ['delete','cancel'],
   data() {
     return {
       loading: false,
@@ -89,7 +88,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     deleteSubsystem(): void {
       this.loading = true;
@@ -103,11 +102,11 @@ export default defineComponent({
               subsystemCode: this.subsystemCode,
             }),
           );
-          this.$emit(Event.Delete);
+          this.$emit('delete');
         })
         .catch((error) => {
           this.showError(error);
-          this.$emit(Event.Cancel);
+          this.$emit('cancel');
         })
         .finally(() => {
           this.loading = false;

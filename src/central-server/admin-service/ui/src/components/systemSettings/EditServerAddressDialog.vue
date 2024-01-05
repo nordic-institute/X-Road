@@ -64,7 +64,6 @@ import { AxiosError } from 'axios';
 import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import i18n from '@/plugins/i18n';
-import { Event, SaveAndCancel } from '@niis/shared-ui';
 
 const props = defineProps({
   serviceAddress: {
@@ -73,7 +72,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(SaveAndCancel);
+const emits = defineEmits(['save', 'cancel']);
 
 const { updateCentralServerAddress } = useSystem();
 const { showError, showSuccess } = useNotifications();
@@ -94,7 +93,7 @@ const onServerAddressSave = handleSubmit((values) => {
   })
     .then(() => {
       showSuccess(t('systemSettings.editCentralServerAddressSuccess'));
-      emits(Event.Save);
+      emits('save');
     })
     .catch((error) => {
       const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
@@ -112,13 +111,13 @@ const onServerAddressSave = handleSubmit((values) => {
         }
       } else {
         showError(error);
-        emits(Event.Cancel);
+        emits('cancel');
       }
     })
     .finally(() => (saving.value = false));
 });
 
 function onCancelAddressEdit() {
-  emits(Event.Cancel);
+  emits('cancel');
 }
 </script>

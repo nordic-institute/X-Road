@@ -57,7 +57,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { SaveAndCancel, Event } from '@niis/shared-ui';
 import i18n from '@/plugins/i18n';
 
 const props = defineProps({
@@ -67,7 +66,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(SaveAndCancel);
+const emits = defineEmits(['save','cancel']);
 
 const { defineComponentBinds, errors, meta, handleSubmit } = useForm({
   validationSchema: { memberName: 'required' },
@@ -80,7 +79,7 @@ const { showError, showSuccess } = useNotifications();
 const loading = ref(false);
 
 function cancelEdit() {
-  emits(Event.Cancel);
+  emits('cancel');
 }
 
 const { t } = i18n.global;
@@ -91,7 +90,7 @@ const saveNewMemberName = handleSubmit((values) => {
   })
     .then(() => {
       showSuccess(t('members.member.details.memberNameSaved'));
-      emits(Event.Save);
+      emits('save');
     })
     .catch((error) => showError(error))
     .finally(() => (loading.value = false));

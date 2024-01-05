@@ -55,7 +55,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Delete, Event.Cancel],
+  emits: ['delete', 'cancel'],
   data() {
     return {
       loading: false,
@@ -67,7 +67,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelDelete(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     proceedWithDelete(): void {
       this.loading = true;

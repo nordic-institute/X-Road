@@ -32,8 +32,8 @@
     :show-close="false"
     :loading="loading"
     :focus-on-save="focusOnAccept"
-    @save="$emit(Event.Accept)"
-    @cancel="$emit(Event.Cancel)"
+    @save="$emit('accept')"
+    @cancel="$emit('cancel')"
   >
     <template #text>
       <slot name="text">{{ $t(text, data) }}</slot>
@@ -48,7 +48,6 @@
 
 import type { PropType } from 'vue';
 import XrdSimpleDialog from "./XrdSimpleDialog.vue";
-import { Event } from '../event';
 
 defineProps({
   modelValue: {
@@ -88,7 +87,7 @@ defineProps({
   },
 });
 
-defineEmits([Event.Accept, Event.Cancel]);
+defineEmits(['accept', 'cancel']);
 
 </script>
 <style lang="scss" scoped>

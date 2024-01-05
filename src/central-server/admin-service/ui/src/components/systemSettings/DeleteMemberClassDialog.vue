@@ -50,7 +50,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Cancel, Event.Delete],
+  emits: ['cancel', 'delete'],
   setup(props) {
     const { meta, values, errors, setFieldError, defineComponentBinds } =
       useForm({
@@ -77,7 +77,7 @@ export default defineComponent({
   },
   methods: {
     cancelDelete() {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     async acceptDelete() {
       this.deleting = true;
@@ -86,10 +86,10 @@ export default defineComponent({
         this.notificationsStore.showSuccess(
           this.$t('systemSettings.memberClassDeleted'),
         );
-        this.$emit(Event.Delete);
+        this.$emit('delete');
       } catch (error: unknown) {
         this.notificationsStore.showError(error);
-        this.$emit(Event.Cancel);
+        this.$emit('cancel');
       }
       this.deleting = false;
     },

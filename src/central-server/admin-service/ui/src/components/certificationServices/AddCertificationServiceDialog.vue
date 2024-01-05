@@ -124,7 +124,7 @@ import i18n from '@/plugins/i18n';
 
 export default defineComponent({
   components: { XrdFileUpload },
-  emits: [Event.Cancel, Event.Add],
+  emits: ['cancel', 'add'],
   setup() {
     const isAcme = ref(false);
     const validationSchema = computed(() => {
@@ -213,7 +213,7 @@ export default defineComponent({
           acme_server_directory_url: this.values.acmeServerDirectoryUrl,
           acme_server_ip_address: this.values.acmeServerIpAddress,
         };
-        this.$emit(Event.Add, certService, {
+        this.$emit('add', certService, {
           done: () => {
             this.loading = false;
             this.clearForm();
@@ -222,7 +222,7 @@ export default defineComponent({
       }
     },
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
       this.clearForm();
     },
     clearForm(): void {

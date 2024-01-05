@@ -95,7 +95,6 @@
 
 import XrdButton from "./XrdButton.vue";
 import { computed, onMounted, ref, useSlots } from "vue";
-import { Event } from '../event';
 
 const props = defineProps({
   // Title of the dialog
@@ -168,7 +167,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits([Event.Cancel, Event.Save]);
+const emits = defineEmits(['cancel', 'save']);
 
 const slots = useSlots();
 
@@ -179,19 +178,19 @@ const canEscape = computed(() => props.escapable ? cancelDisabled.value : false)
 
 function submit() {
   if (props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
-    emits(Event.Save);
+    emits('save');
   }
 }
 
 function save() {
   if (!props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
-    emits(Event.Save);
+    emits('save');
   }
 }
 
 function cancel() {
   if (!cancelDisabled.value) {
-    emits(Event.Cancel);
+    emits('cancel');
     showDialog.value = true;
   }
 }

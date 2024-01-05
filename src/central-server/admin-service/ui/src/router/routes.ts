@@ -307,6 +307,7 @@ const routes: RouteRecordRaw[] = [
                 },
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+                  backOnEscape: true
                 },
               },
               {

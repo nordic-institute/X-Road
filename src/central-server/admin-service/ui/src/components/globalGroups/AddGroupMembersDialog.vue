@@ -116,7 +116,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Add, Event.Cancel],
+  emits: ['save', 'cancel'],
   data() {
     return {
       loading: false,
@@ -215,14 +215,14 @@ export default defineComponent({
       if (this.adding) {
         return;
       }
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     addMembers(): void {
       this.adding = true;
 
       this.globalGroupStore
         .addGroupMembers(this.groupCode, this.selectedClients)
-        .then((resp) => this.$emit(Event.Add, resp.data.items))
+        .then((resp) => this.$emit('save', resp.data.items))
         .then(() => this.showSuccessMessage(this.selectedClients))
         .catch((error) => this.showError(error))
         .finally(() => (this.adding = false));

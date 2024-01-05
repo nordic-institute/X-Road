@@ -65,7 +65,7 @@ import { useManagementServices } from "@/store/modules/management-services";
 
 export default defineComponent({
   components: { XrdFileUpload },
-  emits: [Event.Cancel, Event.Upload],
+  emits: ['cancel', 'upload'],
   data() {
     return {
       certFile: null as File | null,
@@ -94,16 +94,16 @@ export default defineComponent({
           this.showSuccess(
             this.$t('tlsCertificates.managementService.uploadCertificate.success'),
           );
-          this.$emit(Event.Upload);
+          this.$emit('upload');
         })
         .catch((error) => {
           this.showError(error);
-          this.$emit(Event.Cancel);
+          this.$emit('cancel');
         })
         .finally(() => (this.loading = false));
     },
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
   },
 });

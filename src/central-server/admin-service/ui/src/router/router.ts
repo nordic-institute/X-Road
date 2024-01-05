@@ -42,6 +42,12 @@ const router = createRouter({
   routes: routes,
 });
 
+function backOnEscape (event:KeyboardEvent){
+  if(event.key === 'Escape'){
+    router.go(-1);
+  }
+}
+
 router.beforeEach(
   async (
     to: RouteLocationNormalized,
@@ -58,6 +64,12 @@ router.beforeEach(
     const user = useUser();
     const notifications = useNotifications();
     const system = useSystem();
+
+    if(to.meta.backOnEscape){
+      window.addEventListener('keyup', backOnEscape)
+    } else {
+      window.removeEventListener('keyup', backOnEscape)
+    }
 
     // User is allowed to access any other view than login only after authenticated information has been fetched
     // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing

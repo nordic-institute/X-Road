@@ -64,7 +64,6 @@ import { toIdentifier, useErrorMapping } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
-import { Event } from '@niis/shared-ui';
 import i18n from '@/plugins/i18n';
 
 const props = defineProps({
@@ -74,7 +73,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits([Event.Cancel]);
+const emits = defineEmits(['cancel']);
 
 const { meta, handleSubmit, defineField, resetForm } = useForm({
   validationSchema: {
@@ -92,7 +91,7 @@ const { showError, showSuccess } = useNotifications();
 
 function cancelDelete() {
   resetForm();
-  emits(Event.Cancel);
+  emits('cancel');
 }
 
 const loading = ref(false);

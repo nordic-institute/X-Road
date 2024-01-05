@@ -83,7 +83,7 @@ export default defineComponent({
       default: undefined,
     },
   },
-  emits: [Event.Cancel, Event.Edit],
+  emits: ['cancel', 'save'],
   setup(props) {
     const { meta, values, errors, setFieldError, defineComponentBinds } =
       useForm({
@@ -118,7 +118,7 @@ export default defineComponent({
   },
   methods: {
     onCancel() {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     async onSaveMemberClass() {
       this.saving = true;
@@ -135,7 +135,7 @@ export default defineComponent({
         this.notificationsStore.showSuccess(
           this.$t('systemSettings.memberClassSaved'),
         );
-        this.$emit(Event.Edit);
+        this.$emit('save');
       } catch (error: unknown) {
         const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
         if (isFieldError(errorInfo)) {

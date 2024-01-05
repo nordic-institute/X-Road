@@ -54,7 +54,6 @@ import { PropType, ref } from 'vue';
 import { ClientId } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
-import { SaveAndCancel, Event } from '@niis/shared-ui';
 import { useForm } from 'vee-validate';
 import { useErrorMapping } from '@/util/helpers';
 import i18n from '@/plugins/i18n';
@@ -66,7 +65,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(SaveAndCancel);
+const emits = defineEmits(['save','cancel']);
 
 const { defineField, meta, handleSubmit, resetForm } = useForm({
   validationSchema: { subsystemCode: 'required' },
@@ -84,7 +83,7 @@ const [subsystemCode, subsystemCodeAttrs] = defineField(
 const loading = ref(false);
 
 function cancel() {
-  emits(Event.Cancel);
+  emits('cancel');
   resetForm();
 }
 
@@ -104,12 +103,12 @@ const add = handleSubmit((values) => {
           subsystemCode: values.subsystemCode,
         }),
       );
-      emits(Event.Save);
+      emits('save');
       resetForm();
     })
     .catch((error) => {
       showError(error);
-      emits(Event.Cancel);
+      emits('cancel');
     })
     .finally(() => (loading.value = false));
 });

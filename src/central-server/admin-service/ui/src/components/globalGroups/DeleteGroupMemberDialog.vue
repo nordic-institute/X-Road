@@ -79,7 +79,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Cancel, Event.Delete],
+  emits: ['cancel', 'delete'],
   setup(props) {
     const { meta, errors, defineComponentBinds } = useForm({
       validationSchema: {
@@ -109,7 +109,7 @@ export default defineComponent({
           this.groupCode,
           this.groupMember.client_id.encoded_id || '',
         )
-        .then(() => this.$emit(Event.Delete))
+        .then(() => this.$emit('delete'))
         .then(() =>
           this.showSuccess(
             this.$t('globalGroup.dialog.deleteMember.success', {

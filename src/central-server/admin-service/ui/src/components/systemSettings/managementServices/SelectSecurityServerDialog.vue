@@ -101,7 +101,7 @@ export default defineComponent({
       default: '',
     },
   },
-  emits: [Event.Cancel, Event.Select],
+  emits: ['cancel', 'select'],
   data() {
     const options = defaultItemsPerPageOptions();
     return {
@@ -189,7 +189,7 @@ export default defineComponent({
       await this.findServers();
     },
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     registerServiceProvider(): void {
       this.loading = true;
@@ -206,7 +206,7 @@ export default defineComponent({
                 this.managementServicesConfiguration.security_server_id,
             }),
           );
-          this.$emit(Event.Select, this.selectedSecurityServers);
+          this.$emit('select', this.selectedSecurityServers);
         })
         .catch((error) => {
           this.showError(error);

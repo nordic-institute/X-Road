@@ -65,7 +65,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Cancel, Event.Edit],
+  emits: ['cancel', 'save'],
   setup(props) {
     const { values, errors, meta, defineComponentBinds } = useForm({
       validationSchema: { description: 'required' },
@@ -85,7 +85,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelEdit(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     saveDescription(): void {
       this.loading = true;
@@ -95,7 +95,7 @@ export default defineComponent({
         })
         .then((resp) => {
           this.showSuccess(this.$t('globalGroup.descriptionSaved'));
-          this.$emit(Event.Edit, resp.data);
+          this.$emit('save', resp.data);
         })
         .catch((error) => {
           this.showError(error);

@@ -57,7 +57,7 @@
       v-if="showEditDescriptionDialog"
       :group-code="globalGroup.code"
       :group-description="globalGroup.description"
-      @edit="
+      @save="
         globalGroup = $event;
         showEditDescriptionDialog = false;
       "

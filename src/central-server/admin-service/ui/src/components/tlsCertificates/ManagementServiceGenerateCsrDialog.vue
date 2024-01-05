@@ -59,7 +59,7 @@ import { useManagementServices } from "@/store/modules/management-services";
 import { Event } from "@/ui-types";
 
 export default defineComponent({
-  emits: [Event.Cancel, Event.Generate],
+  emits: ['cancel', 'generate'],
   data() {
     return {
       distinguishedName: '',
@@ -76,17 +76,17 @@ export default defineComponent({
       this.managementServicesStore
         .generateCsr(this.distinguishedName)
         .then(() => {
-          this.$emit(Event.Generate);
+          this.$emit('generate');
         })
         .catch((error) => {
           this.showError(error);
-          this.$emit(Event.Cancel);
+          this.$emit('cancel');
         })
         .finally(() => (
           this.loading = false));
     },
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
   },
 });

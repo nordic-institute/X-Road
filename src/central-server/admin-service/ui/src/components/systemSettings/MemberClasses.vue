@@ -86,7 +86,7 @@
       v-if="showAddEditMemberClassDialog"
       :member-class="selectedMemberClass"
       @cancel="closeEditMemberClassDialog"
-      @edit="closeEditMemberClassDialog"
+      @save="closeEditMemberClassDialog"
     />
   </div>
 </template>

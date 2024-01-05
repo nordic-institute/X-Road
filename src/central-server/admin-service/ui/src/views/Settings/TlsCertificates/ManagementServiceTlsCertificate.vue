@@ -123,7 +123,7 @@
 
   <management-service-generate-key-dialog
     v-if="showGenerateKeyDialog"
-    @confirm="closeGenerateKeyDialog"
+    @accept="closeGenerateKeyDialog"
     @cancel="showGenerateKeyDialog = false"
   >
   </management-service-generate-key-dialog>

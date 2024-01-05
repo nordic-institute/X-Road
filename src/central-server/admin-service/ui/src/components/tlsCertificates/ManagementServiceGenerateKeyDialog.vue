@@ -52,7 +52,7 @@ import { Event } from "@/ui-types";
 import { useManagementServices } from "@/store/modules/management-services";
 
 export default defineComponent({
-  emits: [Event.Cancel, Event.Confirm],
+  emits: ['cancel', 'accept'],
   data() {
     return {
       loading: false,
@@ -70,18 +70,18 @@ export default defineComponent({
           this.showSuccess(
             this.$t('tlsCertificates.managementService.generateKey.success'),
           );
-          this.$emit(Event.Confirm);
+          this.$emit('accept');
         })
         .catch((error) => {
           this.showError(error);
-          this.$emit(Event.Cancel);
+          this.$emit('cancel');
         })
         .finally(() => (
           this.loading = false
         ));
     },
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
   },
 });

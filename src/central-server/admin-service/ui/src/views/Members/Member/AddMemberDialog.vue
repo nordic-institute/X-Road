@@ -80,10 +80,9 @@ import {
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
-import { Event, SaveAndCancel } from '@niis/shared-ui';
 import i18n from '@/plugins/i18n';
 
-const emits = defineEmits(SaveAndCancel);
+const emits = defineEmits(['save','cancel']);
 const { defineField, setFieldError, meta, resetForm, handleSubmit } = useForm({
   validationSchema: {
     memberCode: 'required',
@@ -111,7 +110,7 @@ const { showError, showSuccess } = useNotifications();
 const memberClasses = computed(() => memberClassStore.memberClasses);
 
 function cancel() {
-  emits(Event.Cancel);
+  emits('cancel');
   resetForm();
 }
 
@@ -132,7 +131,7 @@ const add = handleSubmit((values) => {
           memberName: values.memberName,
         }),
       );
-      emits(Event.Save);
+      emits('save');
       resetForm();
     })
     .catch((error) => {

@@ -97,7 +97,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Cancel, Event.Select],
+  emits: ['cancel', 'select'],
   data() {
     const itemsPerPageOptions = defaultItemsPerPageOptions(50);
     return {
@@ -204,7 +204,7 @@ export default defineComponent({
       this.fetchClients();
     },
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     updateServiceProvider(): void {
       this.loading = true;
@@ -216,7 +216,7 @@ export default defineComponent({
           this.showSuccess(
             this.$t('systemSettings.serviceProvider.changedSuccess'),
           );
-          this.$emit(Event.Select, this.selectedSubsystems);
+          this.$emit('select', this.selectedSubsystems);
         })
         .catch((error) => {
           this.showError(error);

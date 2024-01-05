@@ -133,7 +133,7 @@
     <add-group-members-dialog
       v-if="showAddMemberDialog"
       :group-code="groupCode"
-      @add="refreshList"
+      @save="refreshList"
       @cancel="showAddMemberDialog = false"
     />
     <delete-group-member-dialog

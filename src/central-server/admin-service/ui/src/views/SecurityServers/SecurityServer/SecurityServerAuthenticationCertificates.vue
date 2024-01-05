@@ -45,9 +45,9 @@
           class="icon-cell"
           @click="navigateToCertificateDetails(item.id)"
         >
-          <xrd-icon-base icon-name="certificate" class="mr-4"
-            ><XrdIconCertificate
-          /></xrd-icon-base>
+          <xrd-icon-base icon-name="certificate" class="mr-4">
+            <xrd-icon-certificate />
+          </xrd-icon-base>
           {{ item.issuer_common_name }}
         </div>
       </template>
@@ -103,9 +103,10 @@ import { useSecurityServerAuthCert } from '@/store/modules/security-servers-auth
 import { useSecurityServer } from '@/store/modules/security-servers';
 import DateTime from '@/components/ui/DateTime.vue';
 import { DataTableHeader } from '@/ui-types';
+import { XrdIconCertificate } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { DateTime, DeleteAuthenticationCertificateDialog },
+  components: { DateTime, DeleteAuthenticationCertificateDialog, XrdIconCertificate },
   props: {
     serverId: {
       type: String,

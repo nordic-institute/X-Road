@@ -96,15 +96,3 @@ export interface DataTableHeader {
   key: string;
   sortable?: boolean;
 }
-
-export enum Event {
-  Add = 'add',
-  Edit = 'edit',
-  Delete = 'delete',
-  Cancel = 'cancel',
-  Select = 'select',
-  Generate = 'generate',
-  Confirm = 'confirm',
-  Upload = 'upload',
-  ModelValue = 'update:model-value',
-}
