@@ -38,7 +38,7 @@
           outlined
           class="mr-4"
           data-test="approve-button"
-          @click="$refs.approveDialog.openDialog()"
+          @click="showApproveDialog = true"
         >
           {{ $t('action.approve') }}
         </xrd-button>
@@ -46,7 +46,7 @@
           outlined
           class="mr-4"
           data-test="decline-button"
-          @click="$refs.declineDialog.openDialog()"
+          @click="showDeclineDialog = true"
         >
           {{ $t('action.decline') }}
         </xrd-button>
@@ -66,16 +66,18 @@
         />
       </div>
       <mr-confirm-dialog
-        ref="approveDialog"
+        v-if="showApproveDialog"
         :request-id="managementRequest.id"
         :security-server-id="managementRequest.security_server_id.encoded_id"
-        @approve="fetchData"
+        @approve="approve"
+        @cancel="showApproveDialog = false"
       />
       <mr-decline-dialog
-        ref="declineDialog"
+        v-if="showDeclineDialog"
         :request-id="managementRequest.id"
         :security-server-id="managementRequest.security_server_id.encoded_id"
-        @decline="fetchData"
+        @decline="decline"
+        @cancel="showDeclineDialog = false"
       />
     </titled-view>
   </details-view>
@@ -125,6 +127,8 @@ export default defineComponent({
   data() {
     return {
       loading: false,
+      showApproveDialog: false,
+      showDeclineDialog: false,
       backTo: {
         name: RouteName.ManagementRequests,
       },
@@ -170,6 +174,14 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
+    approve(){
+      this.showApproveDialog = false;
+      this.fetchData();
+    },
+    decline(){
+      this.showDeclineDialog = false;
+      this.fetchData();
+    },
     fetchData: async function () {
       this.loading = true;
       try {

@@ -35,7 +35,7 @@
         :outlined="false"
         data-test="approve-button"
         text
-        @click="$refs.approveDialog.openDialog()"
+        @click="showApproveDialog = true"
       >
         {{ $t('action.approve') }}
       </xrd-button>
@@ -45,22 +45,24 @@
         :outlined="false"
         data-test="decline-button"
         text
-        @click="$refs.declineDialog.openDialog()"
+        @click="showDeclineDialog = true"
       >
         {{ $t('action.decline') }}
       </xrd-button>
     </div>
     <mr-confirm-dialog
-      ref="approveDialog"
+      v-if="showApproveDialog"
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
-      @approve="$emit('approve')"
+      @approve="approve"
+      @cancel="showApproveDialog = false"
     />
     <mr-decline-dialog
-      ref="declineDialog"
+      v-if="showDeclineDialog"
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
-      @decline="$emit('decline')"
+      @decline="decline"
+      @cancel="showDeclineDialog = false"
     />
   </div>
 </template>
@@ -92,6 +94,7 @@ export default defineComponent({
   data() {
     return {
       showApproveDialog: false,
+      showDeclineDialog: false,
     };
   },
   computed: {
@@ -103,8 +106,16 @@ export default defineComponent({
       return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
     },
   },
-
-  methods: {},
+  methods: {
+    approve(){
+      this.showApproveDialog = false;
+      this.$emit('approve');
+    },
+    decline(){
+      this.showDeclineDialog = false;
+      this.$emit('decline');
+    },
+  },
 });
 </script>
 
