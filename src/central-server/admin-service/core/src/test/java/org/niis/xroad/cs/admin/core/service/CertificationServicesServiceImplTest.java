@@ -53,6 +53,8 @@ import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
+import org.niis.xroad.cs.admin.core.validation.IpAddressValidator;
+import org.niis.xroad.cs.admin.core.validation.UrlValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.security.cert.CertificateEncodingException;
@@ -92,6 +94,8 @@ class CertificationServicesServiceImplTest {
     private static final Instant VALID_TO = TimeUtils.now().plus(1, DAYS);
     private static final String CA_NAME = "X-Road Test CA";
     private static final String CERT_PROFILE = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
+    private static final String ACME_SERVER_DIRECTORY_URL = "http://ca-for-test/acme-server";
+    private static final String ACME_SERVER_IP_ADDRESS = "1:2:3:4:aa:bb:cd:fff";
 
     @Mock
     private ApprovedCaRepository approvedCaRepository;
@@ -110,6 +114,8 @@ class CertificationServicesServiceImplTest {
         CertificateConverter certConverter = new CertificateConverter(new KeyUsageConverter());
         CaInfoConverter caInfoConverter = new CaInfoConverter(certConverter, ocspResponderConverter);
         ApprovedCaConverter approvedCaConverter = new ApprovedCaConverter(ocspResponderConverter, caInfoConverter);
+        UrlValidator urlValidator = new UrlValidator();
+        IpAddressValidator ipAddressValidator = new IpAddressValidator();
 
         service = new CertificationServicesServiceImpl(
                 approvedCaRepository,
@@ -119,7 +125,9 @@ class CertificationServicesServiceImplTest {
                 approvedCaConverter,
                 ocspResponderConverter,
                 caInfoConverter,
-                certConverter);
+                certConverter,
+                urlValidator,
+                ipAddressValidator);
     }
 
 
@@ -146,6 +154,8 @@ class CertificationServicesServiceImplTest {
         assertEquals(CA_NAME, certificationService.getName());
         assertEquals(VALID_FROM, certificationService.getNotBefore());
         assertEquals(VALID_TO, certificationService.getNotAfter());
+        assertEquals(ACME_SERVER_DIRECTORY_URL, certificationService.getAcmeServerDirectoryUrl());
+        assertEquals(ACME_SERVER_IP_ADDRESS, certificationService.getAcmeServerIpAddress());
         assertTrue(certificationService.getTlsAuth());
     }
 
@@ -260,6 +270,8 @@ class CertificationServicesServiceImplTest {
         ca.setAuthenticationOnly(true);
         ca.setCertProfileInfo(CERT_PROFILE);
         ca.setCaInfo(caInfo());
+        ca.setAcmeServerDirectoryUrl(ACME_SERVER_DIRECTORY_URL);
+        ca.setAcmeServerIpAddress(ACME_SERVER_IP_ADDRESS);
         ca.setIntermediateCaInfos(Set.of(caInfo(), caInfo()));
         return ca;
     }

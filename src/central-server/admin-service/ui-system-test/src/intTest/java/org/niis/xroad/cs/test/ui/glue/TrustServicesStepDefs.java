@@ -73,6 +73,48 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
+    @Step("new ca certificate is uploaded")
+    public void newCaCertificateIsUploaded() throws Exception {
+        trustServicesPageObj.btnAddCertificationService().click();
+        certificationServiceName = "e2e-test-acme-cert-service-" + UUID.randomUUID();
+        final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + certificationServiceName);
+        testCertificate = CertificateUtils.readCertificate(certificate);
+        trustServicesPageObj.addDialog.inputFile().uploadFile(CertificateUtils.getAsFile(certificate));
+        commonPageObj.dialog.btnSave().click();
+    }
+
+    @Step("new acme certification service fields dont allow invalid values")
+    public void newAcmeCertificationServiceFieldsDontAllowInvalidValues() {
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile())
+                .setValue(CERTIFICATE_PROFILE);
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled);
+        vCheckbox(trustServicesPageObj.addCaSettingsDialog.checkboxAcme()).shouldBeUnchecked().click();
+        commonPageObj.dialog.btnSave().shouldBe(Condition.disabled);
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputAcmeServerDirectoryUrl())
+                .setValue("httpss://new-test-ca/acme");
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputAcmeServerIpAddress())
+                .setValue("198.7.6.X");
+
+        commonPageObj.dialog.btnSave().shouldBe(Condition.disabled);
+        vCheckbox(trustServicesPageObj.addCaSettingsDialog.checkboxAcme()).shouldBeChecked().click();
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled);
+    }
+
+    @Step("new acme certification service is added with valid values")
+    public void newAcmeCertificationServiceIsAddedWithValidValues() {
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile()).clear()
+                .setValue(CERTIFICATE_PROFILE);
+        vCheckbox(trustServicesPageObj.addCaSettingsDialog.checkboxAcme()).shouldBeUnchecked().click();
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputAcmeServerDirectoryUrl()).clear()
+                .setValue("https://test-ca/acme");
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputAcmeServerIpAddress()).clear()
+                .setValue("192.3.4.5");
+        commonPageObj.dialog.btnSave().click();
+
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
 
     @Step("new certification service is visible in the Certification Services list")
     public void newCertificationServiceIsVisibleInTheList() {
@@ -165,6 +207,56 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
 
         trustServicesPageObj.certServiceDetails.caSettings.cardTlsAuth().shouldHave(text("True"));
+    }
+
+    @Step("user can change the acme settings")
+    public void userCanChangeTheAcmeSettings() {
+        trustServicesPageObj.certServiceDetails.caSettings.btnEditAcme().click();
+
+        String newDirectoryUrl = "https://new-test-ca/acme";
+        String newIpAddress = "198.7.6.5";
+        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerDirectoryUrl())
+                .clear()
+                .setValue(newDirectoryUrl);
+        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerIpAddress())
+                .clear()
+                .setValue(newIpAddress);
+
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
+
+        trustServicesPageObj.certServiceDetails.caSettings.acmeServerDirectoryUrl().shouldHave(text(newDirectoryUrl));
+        trustServicesPageObj.certServiceDetails.caSettings.acmeServerIpAddress().shouldHave(text(newIpAddress));
+    }
+
+    @Step("changed acme settings fields are validated")
+    public void changedAcmeSettingsFieldsAreValidated() {
+        trustServicesPageObj.certServiceDetails.caSettings.btnEditAcme().click();
+
+        String newDirectoryUrl = "httpss://new-test-ca/acme";
+        String newIpAddress = "198.7.6.X";
+        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerDirectoryUrl())
+                .clear()
+                .setValue(newDirectoryUrl);
+        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerIpAddress())
+                .clear()
+                .setValue(newIpAddress);
+
+        commonPageObj.dialog.btnSave().shouldBe(Condition.disabled);
+    }
+
+    @Step("user can remove ca acme capability")
+    public void userCanRemoceCaAcmeCapability() {
+        vCheckbox(trustServicesPageObj.addCaSettingsDialog.checkboxAcme()).shouldBeChecked().click();
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
+
+        trustServicesPageObj.certServiceDetails.caSettings.acmeServerDirectoryUrl().shouldHave(text("-"));
+        trustServicesPageObj.certServiceDetails.caSettings.acmeServerIpAddress().shouldHave(text("-"));
     }
 
     @Step("user clicks on delete trust service")

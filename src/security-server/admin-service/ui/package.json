@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "vite --host",
-    "serve": "rm -rf src/openapi-types && npm run generate-types && vite preview",
-    "build": "rm -rf src/openapi-types && npm run generate-types && vite build",
+    "build": "pnpm run generate-types && vitest --run && vite build",
+    "preview": "vite preview",
     "build-only": "vite build",
+    "test": "vitest",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts  --fix --ignore-path .gitignore",
-    "generate-types": "openapi --input ../../openapi-model/src/main/resources/META-INF/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
+    "generate-types": "rm -rf src/openapi-types && openapi --input ../../openapi-model/src/main/resources/META-INF/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json"
   },

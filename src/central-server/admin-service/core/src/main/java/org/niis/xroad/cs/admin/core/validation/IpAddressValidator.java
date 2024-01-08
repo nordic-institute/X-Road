@@ -1,21 +1,21 @@
 /*
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,50 +25,29 @@
  * THE SOFTWARE.
  */
 
-import { defineConfig, loadEnv } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import vueJsx from '@vitejs/plugin-vue-jsx';
-import vuetify from 'vite-plugin-vuetify';
-import basicSsl from '@vitejs/plugin-basic-ssl';
+package org.niis.xroad.cs.admin.core.validation;
 
-// https://vitejs.dev/config/
-const path = require('path');
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  return {
-    plugins: [vue(), vueJsx(), vuetify({ autoImport: true }), basicSsl()],
-    build: {
-      cssCodeSplit: false,
-    },
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, './src'),
-        'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
-      },
-    },
-    test: {
-      globals: true,
-      environment: 'happy-dom',
-      server: {
-        deps: {
-          inline: ['vuetify'],
-        },
-      },
-    },
-    server: {
-      https: true,
-      port: 8080,
-      host: 'localhost',
-      proxy: {
-        '/api': {
-          secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4100',
-        },
-        '/login': {
-          secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4100',
-        },
-      },
-    },
-  };
-});
+import com.google.common.net.InetAddresses;
+import org.niis.xroad.common.exception.ValidationFailureException;
+import org.springframework.stereotype.Component;
+
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_IP_ADDRESS;
+
+@Component
+public class IpAddressValidator {
+
+    public void validateIpAddress(String ipAddress) {
+        if (!InetAddresses.isInetAddress(ipAddress)) {
+            throw new ValidationFailureException(INVALID_IP_ADDRESS);
+        }
+    }
+
+
+    public void validateCommaSeparatedIpAddresses(String commaSeparatedIpAddresses) {
+        String[] ipAddresses = commaSeparatedIpAddresses.split(",");
+        for (String ipAddress : ipAddresses) {
+            validateIpAddress(ipAddress.trim());
+        }
+    }
+
+}

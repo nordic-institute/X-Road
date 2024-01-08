@@ -23,20 +23,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-//
-// package.json has a section that instructs jest to
-// read this setup file.
-//
+import { useUser } from '@/store/modules/user';
+import { InitializationStatus, TokenInitStatus } from '@/openapi-types';
+import { createPinia } from 'pinia';
+import { setActivePinia } from 'pinia';
 
-import Vue from 'vue';
+describe('Initialize store', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
 
-// DON'T DO THIS or you'll have problems like <v-btn :to="..."> rendering
-// to <router-link> instead of <a href="..."> on the unit tests.
-//import Vuetify from 'vuetify';
-//Vue.use(Vuetify); // NO, DON'T DO THIS.
+  it('Needs initialization', () => {
+    const store = useUser();
+    // Anchor is ok
+    let mockInitStatus: InitializationStatus = {
+      is_anchor_imported: true,
+      is_server_code_initialized: false,
+      is_server_owner_initialized: false,
+      software_token_init_status: TokenInitStatus.UNKNOWN,
+    };
 
-// Because of the regeneratorRuntime error.
-//import 'babel-polyfill';
+    store.storeInitStatus(mockInitStatus);
+    expect(store.needsInitialization).toBe(true);
 
-//Vue.use(Vuetify);
-Vue.config.productionTip = false;
+    // Nothing is done
+    mockInitStatus = {
+      is_anchor_imported: false,
+      is_server_code_initialized: false,
+      is_server_owner_initialized: false,
+      software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
+    };
+
+    store.storeInitStatus(mockInitStatus);
+    expect(store.needsInitialization).toBe(true);
+
+    // Fully initialized
+    mockInitStatus = {
+      is_anchor_imported: true,
+      is_server_code_initialized: true,
+      is_server_owner_initialized: true,
+      software_token_init_status: TokenInitStatus.INITIALIZED,
+    };
+
+    store.storeInitStatus(mockInitStatus);
+    expect(store.needsInitialization).toBe(false);
+  });
+});

@@ -23,31 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/**
- * This is a hack to suppress the Vuetify Multiple instances of Vue detected warning.
- * See https://github.com/vuetifyjs/vuetify/issues/4068#issuecomment-446988490 for more information.
- */
-export class SilenceWarnHack {
-  /* tslint:disable */
-  public originalLogError: any;
+import mockJson from './mockClients.json';
+import compareJson from './mockClientsResult.json';
+import { useClients } from '@/store/modules/clients';
+import { Client } from '@/openapi-types';
+import { createPinia, setActivePinia } from 'pinia';
 
-  constructor() {
-    this.originalLogError = console.error;
-  }
-  public enable(): void {
-    console.error = (...args: any) => {
-      if (
-        args[0].includes('[Vuetify]') &&
-        args[0].includes('https://github.com/vuetifyjs/vuetify/issues/4068')
-      ) {
-        return;
-      }
-      this.originalLogError(...args);
-    };
-  }
-  public disable(): void {
-    console.error = this.originalLogError;
-  }
+describe('Clients store', () => {
+  beforeEach(() => {
+    // creates a fresh pinia and make it active so it's automatically picked
+    // up by any useStore() call without having to pass it to it:
+    // `useStore(pinia)`
+    setActivePinia(createPinia());
+  });
 
-  /* tslint:enable */
-}
+  it('Get clients', () => {
+    const store = useClients();
+    store.storeClients(mockJson as Client[]);
+
+    const result = store.getClients;
+    // Check that the array has correct length
+    expect(result).toHaveLength(8);
+
+    // Compare the array to a correct result
+    expect(result).toEqual(expect.arrayContaining(compareJson));
+  });
+});

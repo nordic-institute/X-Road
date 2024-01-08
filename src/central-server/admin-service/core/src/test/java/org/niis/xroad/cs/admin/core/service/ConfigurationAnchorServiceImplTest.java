@@ -47,11 +47,11 @@ import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.springframework.util.Base64Utils;
 import org.xmlunit.assertj3.XmlAssert;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -238,34 +238,34 @@ public class ConfigurationAnchorServiceImplTest {
                     .isEqualTo("http://cs/internalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[1]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT1.getBytes(UTF_8)));
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[1]/verificationCert[2]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT2.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT2.getBytes(UTF_8)));
 
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[2]/downloadURL")
                     .isEqualTo("http://cs2/internalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[2]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT3.getBytes(UTF_8)));
 
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[3]/downloadURL")
                     .isEqualTo("https://cs/internalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT1.getBytes(UTF_8)));
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[2]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT2.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT2.getBytes(UTF_8)));
 
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[4]/downloadURL")
                     .isEqualTo("https://cs2/internalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[4]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT3.getBytes(UTF_8)));
         }
 
         @Test
@@ -312,34 +312,34 @@ public class ConfigurationAnchorServiceImplTest {
                     .isEqualTo("http://cs/externalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[1]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT1.getBytes(UTF_8)));
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[1]/verificationCert[2]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT2.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT2.getBytes(UTF_8)));
 
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[2]/downloadURL")
                     .isEqualTo("http://cs2/externalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[2]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT3.getBytes(UTF_8)));
 
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[3]/downloadURL")
                     .isEqualTo("https://cs/externalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT1.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT1.getBytes(UTF_8)));
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[3]/verificationCert[2]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT2.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT2.getBytes(UTF_8)));
 
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[4]/downloadURL")
                     .isEqualTo("https://cs2/externalconf");
             XmlAssert.assertThat(xml).withNamespaceContext(namespace)
                     .valueByXPath("//ns3:configurationAnchor/source[4]/verificationCert[1]")
-                    .isEqualTo(Base64Utils.encodeToString(CERT3.getBytes(UTF_8)));
+                    .isEqualTo(Base64.getEncoder().encodeToString(CERT3.getBytes(UTF_8)));
         }
 
         @Test

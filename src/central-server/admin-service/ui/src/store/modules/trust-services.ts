@@ -77,6 +77,14 @@ export const useCertificationService = defineStore('certificationService', {
       );
       formData.append('tls_auth', newCas.tls_auth || '');
       formData.append('certificate', newCas.certificate);
+      formData.append(
+        'acme_server_directory_url',
+        newCas.acme_server_directory_url || '',
+      );
+      formData.append(
+        'acme_server_ip_address',
+        newCas.acme_server_ip_address || '',
+      );
       return axios
         .post('/certification-services', formData)
         .finally(() => this.fetchAll());
@@ -223,7 +231,7 @@ export const useIntermediateCasService = defineStore('intermediateCasService', {
   },
 });
 
-export interface TimestampingServiceStoreState {
+export interface TimestampingServicesStoreState {
   timestampingServices: TimestampingService[];
 }
 
