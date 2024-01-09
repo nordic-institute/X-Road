@@ -3,7 +3,9 @@ plugins {
     id 'org.springframework.boot'
 }
 
-archivesBaseName = 'proxy-ui-api'
+base {
+    archivesName = 'proxy-ui-api'
+}
 
 configurations {
     dist {
