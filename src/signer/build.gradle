@@ -2,7 +2,7 @@ plugins {
     id 'com.github.johnrengelman.shadow'
 }
 
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = new File("${layout.buildDirectory}/generated-sources")
 
 configurations {
     xjc
@@ -10,7 +10,7 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
+        java.srcDirs = ['src/main/java', "${layout.buildDirectory}/generated-sources"]
     }
     intTest {
         resources {
@@ -94,14 +94,14 @@ tasks.register('runSignerMain', JavaExec) {
     jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
         '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
         '-Dxroad.common.configuration-path=../common/common-util/src/test/resources/globalconf_good_v2',
-        "-Dxroad.common.temp-files-path=${buildDir}/tmp/",
+        "-Dxroad.common.temp-files-path=${layout.buildDirectory}/tmp/",
         '-Dxroad.proxy.configuration-anchor-file=../common/common-util/src/test/resources/configuration-anchor1.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
         '-Djava.library.path=../passwordstore:../libs',
         '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'
     mainClass = 'ee.ria.xroad.signer.SignerMain'
     classpath = sourceSets.main.runtimeClasspath
-    classpath += files("../addons/hwtoken/${buildDir}/libs/hwtoken-1.0.jar")
+    classpath += files("../addons/hwtoken/${layout.buildDirectory}/libs/hwtoken-1.0.jar")
 
     description = "Starts signer main program.\nNote: " +
         "Be sure that appropriate libpkcs11wrapper.so is installed to the " +

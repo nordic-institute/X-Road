@@ -21,7 +21,7 @@ jar {
 
 tasks.register('copyGpg', Copy) {
     from 'src/test/gpg'
-    into "${buildDir}/gpg"
+    into "${layout.buildDirectory}/gpg"
 }
 
 test.dependsOn copyGpg
