@@ -107,9 +107,9 @@
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
       v-if="selectedTimestampingService && confirmDelete"
-      :dialog="confirmDelete"
       title="trustServices.trustService.timestampingService.delete.dialog.title"
       text="trustServices.trustService.timestampingService.delete.dialog.message"
+      focus-on-accept
       :data="{ url: selectedTimestampingService.url }"
       :loading="deletingTimestampingService"
       @cancel="confirmDelete = false"

@@ -25,77 +25,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <input
-      v-show="false"
-      ref="fileInput"
-      type="file"
-      :accept="accepts"
-      @change="onUploadFileChanged"
-
+  <xrd-file-upload
+    v-slot="{ upload }"
+    accepts=".der, .crt, .pem, .cer"
+    @file-changed="onFileSelected"
+  >
+    <v-text-field
+      variant="outlined"
+      append-inner-icon="icon-Upload"
+      :model-value="certFileTitle"
+      :label="$t(labelKey)"
+      :autofocus="autofocus"
+      @click="upload"
+      @keyup.space="upload"
     />
-    <slot :upload="upload" @drop.prevent="console.log($event)"/>
-  </div>
+  </xrd-file-upload>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { FileUploadResult } from '../types';
-
-type FileUploadEvent = Event | DragEvent;
-
-// https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
-const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
-  return !!(event as DragEvent).dataTransfer;
-};
+import { computed } from 'vue';
+import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
 
 defineProps({
-  accepts: {
+  labelKey: {
     type: String,
     required: true,
   },
+  autofocus: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emits = defineEmits<{
-  (e: 'file-changed', value: FileUploadResult): void
-}>();
-const fileInput = ref(null);
+const certFile = defineModel<File>();
+const certFileTitle = computed(() => certFile.value?.name || '');
 
-function upload() {
-  if (fileInput.value) {
-    (fileInput.value as HTMLInputElement).click();
-  }
-}
-
-function onUploadFileChanged(event: FileUploadEvent) {
-  const files = isDragEvent(event)
-    ? event.dataTransfer?.files
-    : (event.target as HTMLInputElement).files;
-  if (!files) {
-    return; // No files uploaded
-  }
-  const file = files[0];
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    if (!e?.target?.result || !files) {
-      return;
-    }
-    emits('file-changed', {
-      buffer: e.target.result as ArrayBuffer,
-      file,
-    });
-  };
-  reader.readAsArrayBuffer(file);
-  if (fileInput.value) {
-    (fileInput.value as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
-  }
-
+function onFileSelected(result: FileUploadResult) {
+  certFile.value = result.file;
 }
 </script>
 
-<style scoped lang="scss">
-div {
-  display: inline;
-}
-</style>
+<style lang="scss" scoped></style>

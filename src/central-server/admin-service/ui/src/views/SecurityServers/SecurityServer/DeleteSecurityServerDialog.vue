@@ -72,7 +72,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
 import i18n from '@/plugins/i18n';
-import { useErrorMapping } from '@/util/helpers';
 
 /**
  * Component for a Security server details view
@@ -92,15 +91,15 @@ const props = defineProps({
 const emits = defineEmits(['cancel']);
 
 const { meta, handleSubmit, defineField } = useForm({
-    validationSchema: {
-      serverCode: 'required|is:' + props.serverCode
-    }
-  }
-);
-const [enteredCode, enteredCodeAttrs] = defineField('serverCode', useErrorMapping())
+  validationSchema: {
+    serverCode: 'required|is:' + props.serverCode,
+  },
+});
+const [enteredCode, enteredCodeAttrs] = defineField('serverCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 const { delete: deleteSS } = useSecurityServer();
 const { showError, showSuccess } = useNotifications();
-
 
 function close() {
   emits('cancel');

@@ -55,7 +55,6 @@ import { ClientId } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
-import { useErrorMapping } from '@/util/helpers';
 import i18n from '@/plugins/i18n';
 
 const props = defineProps({
@@ -65,7 +64,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(['save','cancel']);
+const emits = defineEmits(['save', 'cancel']);
 
 const { defineField, meta, handleSubmit, resetForm } = useForm({
   validationSchema: { subsystemCode: 'required' },
@@ -75,10 +74,9 @@ const { defineField, meta, handleSubmit, resetForm } = useForm({
 const { addSubsystem } = useSubsystem();
 const { showError, showSuccess } = useNotifications();
 
-const [subsystemCode, subsystemCodeAttrs] = defineField(
-  'subsystemCode',
-  useErrorMapping(),
-);
+const [subsystemCode, subsystemCodeAttrs] = defineField('subsystemCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
 const loading = ref(false);
 

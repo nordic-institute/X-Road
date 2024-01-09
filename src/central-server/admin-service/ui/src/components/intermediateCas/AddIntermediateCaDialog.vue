@@ -26,97 +26,55 @@
  -->
 <template>
   <xrd-simple-dialog
-    :disable-save="!formReady"
-    :loading="loading"
     title="trustServices.trustService.intermediateCas.add.dialog.title"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
-    @cancel="cancel"
-    @save="add"
+    submittable
+    :disable-save="!certFile"
+    :loading="loading"
+    @cancel="$emit('cancel')"
+    @save="uploadCertificate"
   >
     <template #content>
       <div class="dlg-input-width">
-        <xrd-file-upload
-          v-slot="{ upload }"
-          accepts=".der, .crt, .pem, .cer"
-          @file-changed="onFileUploaded"
-        >
-          <v-text-field
-            v-model="certFileTitle"
-            variant="outlined"
-            autofocus
-            :label="$t('trustServices.uploadCertificate')"
-            append-inner-icon="icon-Upload"
-            data-test="add-intermediate-ca-cert-input"
-            @click="upload"
-          />
-        </xrd-file-upload>
+        <CertificateFileUpload
+          v-model="certFile"
+          data-test="add-intermediate-ca-cert-input"
+          label-key="trustServices.uploadCertificate"
+          autofocus
+        />
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { ref } from 'vue';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
-import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
+import i18n from '@/plugins/i18n';
+import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
 
-export default defineComponent({
-  components: { XrdFileUpload },
-  props: {
-    caId: {
-      type: Number,
-      required: true,
-    },
-  },
-  emits: ['cancel', 'save'],
-  data() {
-    return {
-      loading: false,
-      certFile: null as File | null,
-      certFileTitle: '',
-    };
-  },
-  computed: {
-    ...mapStores(useIntermediateCasService),
-    formReady(): boolean {
-      return !!(this.certFile && this.certFileTitle);
-    },
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancelEdit(): void {
-      this.$emit('cancel');
-    },
-    onFileUploaded(result: FileUploadResult): void {
-      this.certFile = result.file;
-      this.certFileTitle = result.file.name;
-    },
-    add(): void {
-      this.loading = true;
-      if (!this.certFile) {
-        throw new Error('Certificate is null');
-      }
-      this.intermediateCasServiceStore
-        .addIntermediateCa(this.certFile)
-        .then(() => {
-          this.showSuccess(
-            this.$t('trustServices.trustService.intermediateCas.add.success'),
-          );
-          this.$emit('save');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-    cancel(): void {
-      this.$emit('cancel');
-    },
-  },
-});
+const emits = defineEmits(['save', 'cancel']);
+
+const { addIntermediateCa } = useIntermediateCasService();
+const { showSuccess, showError } = useNotifications();
+
+const loading = ref(false);
+const certFile = ref(null as File | null);
+const { t } = i18n.global;
+
+function uploadCertificate() {
+  loading.value = true;
+  if (!certFile.value) {
+    throw new Error('Certificate is null');
+  }
+  addIntermediateCa(certFile.value)
+    .then(() => {
+      showSuccess(t('trustServices.trustService.intermediateCas.add.success'));
+      emits('save');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
+}
 </script>

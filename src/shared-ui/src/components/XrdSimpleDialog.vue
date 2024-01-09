@@ -94,7 +94,7 @@
 <script lang="ts" setup>/** Base component for simple dialogs */
 
 import XrdButton from "./XrdButton.vue";
-import { computed, onMounted, ref, useSlots } from "vue";
+import { computed, onBeforeMount, onMounted, ref, useSlots } from "vue";
 
 const props = defineProps({
   // Title of the dialog
@@ -205,11 +205,29 @@ function modelValueUpdated(displayed: boolean) {
 
 const saveButton = ref(null);
 
+function blur() {
+  if (document.activeElement && document.activeElement.blur) {
+    document.activeElement.blur();
+  }
+}
+
+defineExpose({
+  focusOnSave() {
+
+    if (saveButton.value) {
+      blur();console.log('dialog', saveButton.value)
+      saveButton.value.focus();
+    }
+  }
+});
+
 onMounted(() => {
   if (saveButton.value && props.focusOnSave) {
     saveButton.value.focus();
   }
 });
+
+onBeforeMount(() => blur());
 
 </script>
 

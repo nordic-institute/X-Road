@@ -60,7 +60,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Client } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
-import { toIdentifier, useErrorMapping } from '@/util/helpers';
+import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
@@ -81,10 +81,9 @@ const { meta, handleSubmit, defineField, resetForm } = useForm({
   },
 });
 
-const [memberCode, memberCodeAttrs] = defineField(
-  'memberCode',
-  useErrorMapping(),
-);
+const [memberCode, memberCodeAttrs] = defineField('memberCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
 const { deleteById: deleteMember } = useMember();
 const { showError, showSuccess } = useNotifications();

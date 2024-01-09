@@ -26,11 +26,12 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="true"
     title="trustServices.caSettings"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
+    submittable
     :loading="loading"
+    :disable-save="!meta.valid || !meta.dirty"
     @cancel="cancelEdit"
     @save="updateCertificationServiceSettings"
   >
@@ -38,7 +39,10 @@
       <div class="dlg-input-width">
         <v-checkbox
           v-model="tlsAuth"
+          v-bind="tlsAuthAttrs"
           data-test="tls-auth-checkbox"
+          tabindex="0"
+          autofocus
           :label="$t('trustServices.addCASettingsCheckbox')"
         />
       </div>
@@ -46,55 +50,55 @@
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { ref } from 'vue';
+import { useForm } from 'vee-validate';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
+import i18n from '@/plugins/i18n';
 
-export default defineComponent({
-  name: 'EditTlsAuthDialog',
-  props: {
-    certificationService: {
-      type: Object as PropType<ApprovedCertificationService>,
-      required: true,
-    },
+const props = defineProps({
+  certificationService: {
+    type: Object as PropType<ApprovedCertificationService>,
+    required: true,
   },
-  emits: ['cancel', 'tls-auth-changed'],
-  data() {
-    return {
-      tlsAuth: this.certificationService.tls_auth,
-      loading: false,
-    };
+});
+
+const emits = defineEmits(['save', 'cancel']);
+
+const { handleSubmit, meta, defineField } = useForm({
+  validationSchema: {
+    tlsAuth: {},
   },
-  computed: {
-    ...mapStores(useCertificationService),
+  initialValues: {
+    tlsAuth: props.certificationService.tls_auth,
   },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancelEdit(): void {
-      this.$emit('cancel');
-    },
-    updateCertificationServiceSettings(): void {
-      this.loading = true;
-      this.certificationServiceStore
-        .update(this.certificationService.id, {
-          certificate_profile_info:
-            this.certificationService.certificate_profile_info,
-          tls_auth: `${this.tlsAuth}`,
-        })
-        .then(() => {
-          this.showSuccess(
-            this.$t('trustServices.trustService.settings.saveSuccess'),
-          );
-          this.$emit('tls-auth-changed');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => (this.loading = false));
-    },
-  },
+});
+
+const [tlsAuth, tlsAuthAttrs] = defineField('tlsAuth');
+
+const { showSuccess, showError } = useNotifications();
+
+const { update: updateCertificationService } = useCertificationService();
+
+function cancelEdit() {
+  emits('cancel');
+}
+
+const loading = ref(false);
+const { t } = i18n.global;
+const updateCertificationServiceSettings = handleSubmit((values) => {
+  loading.value = true;
+  updateCertificationService(props.certificationService.id, {
+    certificate_profile_info: props.certificationService.certificate_profile_info,
+    tls_auth: values.tlsAuth.toString(),
+  })
+    .then(() => {
+      showSuccess(t('trustServices.trustService.settings.saveSuccess'));
+      emits('save');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
 });
 </script>

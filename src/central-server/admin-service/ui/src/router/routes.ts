@@ -25,7 +25,8 @@
  * THE SOFTWARE.
  */
 
-import SecurityServerAuthenticationCertificate from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
+import SecurityServerAuthenticationCertificate
+  from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
 import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 import TabsBase from '@/components/layout/TabsBase.vue';
 
@@ -59,7 +60,8 @@ import SecurityServersList from '@/views/SecurityServers/SecurityServersList.vue
 import SecurityServer from '@/views/SecurityServers/SecurityServer/SecurityServer.vue';
 import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/SecurityServerDetails.vue';
 import SecurityServerClients from '@/views/SecurityServers/SecurityServer/SecurityServerClients.vue';
-import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
+import SecurityServerAuthenticationCertificates
+  from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
 
 import GlobalResources from '@/views/GlobalResources/GlobalResources.vue';
 import GlobalResourcesList from '@/views/GlobalResources/GlobalResourcesList.vue';
@@ -79,10 +81,13 @@ import CertificationService from '@/views/TrustServices/CertificationService/Cer
 import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
 import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
 import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
-import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
-import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
+import CertificationServiceOcspResponders
+  from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceIntermediateCas
+  from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
 import OcspResponderCertificate from '@/views/TrustServices/CertificationService/OcspResponderCertificate.vue';
-import CertificationServiceCertificate from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
+import CertificationServiceCertificate
+  from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
 import IntermediateCACertificate from '@/views/TrustServices/CertificationService/IntermediateCACertificate.vue';
 import IntermediateCa from '@/views/TrustServices/CertificationService/IntermediateCa.vue';
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
@@ -307,7 +312,7 @@ const routes: RouteRecordRaw[] = [
                 },
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
-                  backOnEscape: true
+                  backOnEscape: true,
                 },
               },
               {
@@ -342,7 +347,10 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.TimestampingServiceCertificateDetails,
             path: '/timestamping-service-certificate/:timestampingServiceId',
             component: TimestampingServiceCertificate,
-            meta: { permissions: [Permissions.VIEW_APPROVED_TSAS] },
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_TSAS],
+              backOnEscape: true,
+            },
             props(route: RouteLocationNormalized): {
               timestampingServiceId: number;
             } {
@@ -422,7 +430,10 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.CertificationServiceCertificateDetails,
             path: '/certification-services/:certificationServiceId/certificate-details',
             component: CertificationServiceCertificate,
-            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
+              backOnEscape: true,
+            },
             props: (
               route: RouteLocationNormalized,
             ): { certificationServiceId: number } => {
@@ -436,7 +447,10 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.OcspResponderCertificateDetails,
             path: 'ocsp-responder/:ocspResponderId/certificate-details',
             component: OcspResponderCertificate,
-            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
+              backOnEscape: true,
+            },
             props: (
               route: RouteLocationNormalized,
             ): { ocspResponderId: number } => {

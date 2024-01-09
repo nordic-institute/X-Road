@@ -26,25 +26,26 @@
  -->
 <template>
   <xrd-simple-dialog
-    :disable-save="!meta.valid"
+    :disable-save="!canUpdate"
     title="trustServices.timestampingService.dialog.edit.title"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
+    submittable
     :loading="loading"
-    @cancel="cancel"
+    @cancel="$emit('cancel')"
     @save="update"
   >
     <template #content>
       <div class="dlg-input-width">
         <v-text-field
-          v-bind="tasUrl"
-          :label="$t('trustServices.timestampingService.url')"
-          :error-messages="errors.url"
+          v-model="tasUrl"
+          v-bind="tasUrlAttrs"
           variant="outlined"
+          data-test="timestamping-service-url-input"
           autofocus
           persistent-hint
-          data-test="timestamping-service-url-input"
-        ></v-text-field>
+          :label="$t('trustServices.timestampingService.url')"
+        />
       </div>
 
       <div v-if="!certUploadActive">
@@ -73,103 +74,72 @@
       </div>
       <div v-else>
         <div class="dlg-input-width">
-          <xrd-file-upload
-            v-slot="{ upload }"
-            accepts=".der, .crt, .pem, .cer"
-            @file-changed="onFileUploaded"
-          >
-            <v-text-field
-              v-model="certFileTitle"
-              variant="outlined"
-              autofocus
-              :label="$t('trustServices.uploadCertificate')"
-              append-inner-icon="icon-Upload"
-              @click="upload"
-            ></v-text-field>
-          </xrd-file-upload>
+          <CertificateFileUpload
+            v-model="certFile"
+            label-key="trustServices.uploadCertificate"
+          />
         </div>
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { FileUploadResult, XrdFileUpload} from '@niis/shared-ui';
+<script lang="ts" setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { TimestampingService } from '@/openapi-types';
 import { RouteName } from '@/global';
-import { mapActions, mapStores } from 'pinia';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import { useNotifications } from '@/store/modules/notifications';
+import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
+import i18n from '@/plugins/i18n';
 
-export default defineComponent({
-  components: {
-    XrdFileUpload,
-  },
-  props: {
-    tsaService: {
-      type: Object as () => TimestampingService,
-      required: true,
-    },
-  },
-  emits: ['save', 'cancel'],
-  setup(props) {
-    const { defineComponentBinds, errors, values, meta } = useForm({
-      validationSchema: { url: 'required|url' },
-      initialValues: { url: props.tsaService.url },
-    });
-    const tasUrl = defineComponentBinds('url');
-    return { defineComponentBinds, errors, values, tasUrl, meta };
-  },
-  data() {
-    return {
-      certFile: null as File | null,
-      certFileTitle: '',
-      certUploadActive: false,
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useTimestampingServicesStore),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    onFileUploaded(result: FileUploadResult): void {
-      this.certFile = result.file;
-      this.certFileTitle = result.file.name;
-    },
-    update(): void {
-      this.loading = true;
-
-      this.timestampingServicesStore
-        .updateTimestampingService(
-          this.tsaService.id,
-          this.values.url,
-          this.certFile,
-        )
-        .then(() => {
-          this.showSuccess(
-            this.$t('trustServices.timestampingService.dialog.edit.success'),
-          );
-          this.$emit('save');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => (this.loading = false));
-    },
-    navigateToTsaDetails() {
-      this.$router.push({
-        name: RouteName.TimestampingServiceCertificateDetails,
-        params: {
-          timestampingServiceId: '' + this.tsaService.id,
-        },
-      });
-    },
-    cancel(): void {
-      this.$emit('cancel');
-    },
+const props = defineProps({
+  tsaService: {
+    type: Object as () => TimestampingService,
+    required: true,
   },
 });
+
+const emits = defineEmits(['save', 'cancel']);
+
+const { defineField, handleSubmit, meta } = useForm({
+  validationSchema: { url: 'required|url' },
+  initialValues: { url: props.tsaService.url },
+});
+const [tasUrl, tasUrlAttrs] = defineField('url', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const { updateTimestampingService } = useTimestampingServicesStore();
+const { showSuccess, showError } = useNotifications();
+const router = useRouter();
+const { t } = i18n.global;
+
+const certFile = ref(null as File | null);
+const certUploadActive = ref(false);
+const loading = ref(false);
+const canUpdate = computed(() => meta.value.valid && (meta.value.dirty || certFile.value));
+
+const update = handleSubmit((values) => {
+  loading.value = true;
+
+  updateTimestampingService(props.tsaService.id, values.url, certFile.value)
+    .then(() => {
+      showSuccess(t('trustServices.timestampingService.dialog.edit.success'));
+      emits('save');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
+});
+
+function navigateToTsaDetails() {
+  router.push({
+    name: RouteName.TimestampingServiceCertificateDetails,
+    params: {
+      timestampingServiceId: '' + props.tsaService.id,
+    },
+  });
+}
 </script>

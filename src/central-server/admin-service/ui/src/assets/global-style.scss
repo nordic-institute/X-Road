@@ -170,7 +170,7 @@ body,
 }
 
 // Override for Vuetify text input style
-.v-text-field {
+.v-text-field, .v-file-input {
   font-weight: 600 !important;
 
   .v-input__details {

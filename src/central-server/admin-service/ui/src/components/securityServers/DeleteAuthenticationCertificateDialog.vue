@@ -62,7 +62,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { ref, PropType } from 'vue';
 import { useForm } from 'vee-validate';
-import { useErrorMapping } from '@/util/helpers';
 import i18n from '@/plugins/i18n';
 
 const props = defineProps({
@@ -80,14 +79,18 @@ const emits = defineEmits(['delete', 'cancel']);
 
 const { meta, defineField, handleSubmit } = useForm({
   validationSchema: {
-    securityServerCode:
-      {
-        required: true,
-        is: props.securityServerId.server_code,
-      }
-  }
+    securityServerCode: {
+      required: true,
+      is: props.securityServerId.server_code,
+    },
+  },
 });
-const [securityServerCode, securityServerCodeAttrs] = defineField('securityServerCode', useErrorMapping());
+const [securityServerCode, securityServerCodeAttrs] = defineField(
+  'securityServerCode',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+  },
+);
 
 const { deleteAuthenticationCertificate } = useSecurityServerAuthCert();
 const { showSuccess, showError } = useNotifications();

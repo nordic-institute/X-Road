@@ -26,33 +26,35 @@
  -->
 <template>
   <xrd-simple-dialog
-    :disable-save="!meta.valid"
     title="trustServices.trustService.ocspResponders.edit.dialog.title"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
+    submittable
+    :disable-save="!canUpdate"
     :loading="loading"
     @cancel="cancel"
     @save="update"
   >
     <template #content>
-      <div class="oscp-url dlg-input-width">
+      <div class="space-out-bottom dlg-input-width">
         <v-text-field
-          v-bind="ocspUrl"
-          :label="$t('trustServices.trustService.ocspResponders.url')"
-          :error-messages="errors.url"
+          v-model="ocspUrl"
+          v-bind="ocspUrlAttrs"
           variant="outlined"
-          persistent-hint
           data-test="ocsp-responder-url-input"
+          persistent-hint
+          autofocus
+          :label="$t('trustServices.trustService.ocspResponders.url')"
         />
       </div>
 
       <div v-if="!certUploadActive">
         <div class="dlg-input-width mb-6">
           <xrd-button
-            outlined
+            v-if="ocspResponder.has_certificate"
             class="mr-3"
             data-test="view-ocsp-responder-certificate"
-            v-if="ocspResponder.has_certificate"
+            outlined
             @click="navigateToCertificateDetails()"
           >
             {{ $t('trustServices.viewCertificate') }}
@@ -73,111 +75,84 @@
       </div>
       <div v-else>
         <div class="dlg-input-width">
-          <xrd-file-upload
-            v-slot="{ upload }"
-            accepts=".der, .crt, .pem, .cer"
-            @file-changed="onFileUploaded"
-          >
-            <v-text-field
-              v-model="certFileTitle"
-              variant="outlined"
-              autofocus
-              :label="$t('trustServices.uploadCertificate')"
-              append-inner-icon="icon-Upload"
-              @click="upload"
-            />
-          </xrd-file-upload>
+          <CertificateFileUpload
+            v-model="certFile"
+            label-key="trustServices.uploadCertificate"
+          />
         </div>
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
-import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
 import { OcspResponder } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useForm } from 'vee-validate';
+import i18n from '@/plugins/i18n';
+import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
 
-export default defineComponent({
-  components: {
-    XrdFileUpload,
-  },
-  props: {
-    ocspResponder: {
-      type: Object as () => OcspResponder,
-      required: true,
-    },
-  },
-  emits: ['cancel', 'save'],
-  setup(props) {
-    const { defineComponentBinds, errors, values, meta } = useForm({
-      validationSchema: { url: 'required|url' },
-      initialValues: { url: props.ocspResponder.url },
-    });
-    const ocspUrl = defineComponentBinds('url');
-
-    return { errors, values, meta, ocspUrl };
-  },
-  data() {
-    return {
-      certFile: null as File | null,
-      certFileTitle: '',
-      certUploadActive: false,
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useOcspResponderService),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancelEdit(): void {
-      this.$emit('cancel');
-    },
-    navigateToCertificateDetails() {
-      this.$router.push({
-        name: RouteName.OcspResponderCertificateDetails,
-        params: {
-          ocspResponderId: String(this.ocspResponder.id),
-        },
-      });
-    },
-    onFileUploaded(result: FileUploadResult): void {
-      this.certFile = result.file;
-      this.certFileTitle = result.file.name;
-    },
-    update(): void {
-      this.loading = true;
-      this.ocspResponderServiceStore
-        .updateOcspResponder(
-          this.ocspResponder.id,
-          this.values.url,
-          this.certFile,
-        )
-        .then(() => {
-          this.showSuccess(
-            this.$t('trustServices.trustService.ocspResponders.edit.success'),
-          );
-          this.$emit('save');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => (this.loading = false));
-    },
-    cancel(): void {
-      this.$emit('cancel');
-    },
+const props = defineProps({
+  ocspResponder: {
+    type: Object as () => OcspResponder,
+    required: true,
   },
 });
-</script>
-<style lang="scss" scoped>
-.oscp-url {
-  margin-bottom: 8px;
+
+const emits = defineEmits(['save', 'cancel']);
+
+interface Form {
+  url: string;
+  certFile: File[];
 }
-</style>
+
+const { defineField, handleSubmit, meta } = useForm<Form>({
+  validationSchema: {
+    url: 'required|url',
+  },
+  initialValues: {
+    url: props.ocspResponder.url,
+  },
+});
+const [ocspUrl, ocspUrlAttrs] = defineField('url', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const { showSuccess, showError } = useNotifications();
+const { updateOcspResponder } = useOcspResponderService();
+const { t } = i18n.global;
+const router = useRouter();
+
+const loading = ref(false);
+const certUploadActive = ref(false);
+const certFile = ref(null as File | null);
+const canUpdate = computed(() => meta.value.valid && (meta.value.dirty || certFile.value));
+
+function navigateToCertificateDetails() {
+  router.push({
+    name: RouteName.OcspResponderCertificateDetails,
+    params: {
+      ocspResponderId: String(props.ocspResponder.id),
+    },
+  });
+}
+
+const update = handleSubmit((values) => {
+  loading.value = true;
+  updateOcspResponder(props.ocspResponder.id, values.url, certFile.value)
+    .then(() => {
+      showSuccess(t('trustServices.trustService.ocspResponders.edit.success'));
+      emits('save');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
+});
+
+function cancel() {
+  emits('cancel');
+}
+</script>

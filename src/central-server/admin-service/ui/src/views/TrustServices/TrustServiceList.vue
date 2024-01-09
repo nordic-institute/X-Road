@@ -86,7 +86,7 @@
     <!-- Dialogs -->
     <add-certification-service-dialog
       v-if="showAddCSDialog"
-      @add="addCertificationService"
+      @save="hideAddCSDialog"
       @cancel="hideAddCSDialog"
     />
   </div>
@@ -103,7 +103,6 @@ import { Permissions, RouteName } from '@/global';
 import {
   ApprovedCertificationService,
   ApprovedCertificationServiceListItem,
-  CertificationServiceFileAndSettings,
 } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
 import DateTime from '@/components/ui/DateTime.vue';
@@ -184,19 +183,6 @@ export default defineComponent({
         name: RouteName.CertificationServiceDetails,
         params: { certificationServiceId: String(certificationService.id) },
       });
-    },
-    addCertificationService(
-      addCertificationService: CertificationServiceFileAndSettings,
-    ): void {
-      this.certificationServiceStore
-        .add(addCertificationService)
-        .then(() => {
-          this.showSuccess(this.$t('trustServices.certImportedSuccessfully'));
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => this.hideAddCSDialog());
     },
   },
 });

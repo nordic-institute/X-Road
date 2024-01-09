@@ -60,7 +60,11 @@ import { ref } from 'vue';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import { ErrorInfo } from '@/openapi-types';
-import { getErrorInfo, getTranslatedFieldErrors, isFieldError, useErrorMapping, } from '@/util/helpers';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
 import i18n from '@/plugins/i18n';
@@ -94,7 +98,12 @@ const {
   },
   initialValues: { securityServerAddress: props.address },
 });
-const [securityServerAddress, securityServerAddressAttrs] = defineField('securityServerAddress', useErrorMapping());
+const [securityServerAddress, securityServerAddressAttrs] = defineField(
+  'securityServerAddress',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+  },
+);
 
 const { updateAddress } = useSecurityServer();
 const { showError, showSuccess } = useNotifications();

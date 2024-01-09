@@ -79,14 +79,14 @@
       v-if="showEditTlsAuthDialog"
       :certification-service="currentCertificationService"
       @cancel="hideEditTlsAuthDialog"
-      @tls-auth-changed="hideEditTlsAuthDialog"
+      @save="hideEditTlsAuthDialog"
     ></EditTlsAuthDialog>
 
     <EditCertProfileDialog
       v-if="showEditCertProfileDialog"
       :certification-service="currentCertificationService"
       @cancel="hideEditCertProfileDialog"
-      @tls-auth-changed="hideEditCertProfileDialog"
+      @save="hideEditCertProfileDialog"
     ></EditCertProfileDialog>
 
     <EditAcmeServerDialog

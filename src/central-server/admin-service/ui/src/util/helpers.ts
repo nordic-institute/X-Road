@@ -31,7 +31,6 @@ import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
 import { AxiosError, AxiosResponse } from 'axios';
 import i18n from '@/plugins/i18n';
 import dayjs from 'dayjs';
-import { PublicPathState } from 'vee-validate';
 
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
@@ -283,10 +282,3 @@ export function toPagingOptions(
   });
 }
 
-export function useErrorMapping() {
-  return (state: PublicPathState) => ({
-    props: {
-      'error-messages': state.errors,
-    },
-  });
-}

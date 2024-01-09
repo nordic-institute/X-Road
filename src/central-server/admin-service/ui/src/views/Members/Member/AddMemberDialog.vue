@@ -76,13 +76,12 @@ import {
   getErrorInfo,
   getTranslatedFieldErrors,
   isFieldError,
-  useErrorMapping,
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
 import i18n from '@/plugins/i18n';
 
-const emits = defineEmits(['save','cancel']);
+const emits = defineEmits(['save', 'cancel']);
 const { defineField, setFieldError, meta, resetForm, handleSubmit } = useForm({
   validationSchema: {
     memberCode: 'required',
@@ -90,18 +89,15 @@ const { defineField, setFieldError, meta, resetForm, handleSubmit } = useForm({
     memberClass: 'required',
   },
 });
-const [memberCode, memberCodeAttrs] = defineField(
-  'memberCode',
-  useErrorMapping(),
-);
-const [memberName, memberNameAttrs] = defineField(
-  'memberName',
-  useErrorMapping(),
-);
-const [memberClass, memberClassAttrs] = defineField(
-  'memberClass',
-  useErrorMapping(),
-);
+const [memberCode, memberCodeAttrs] = defineField('memberCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [memberName, memberNameAttrs] = defineField('memberName', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [memberClass, memberClassAttrs] = defineField('memberClass', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
 const { add: addMember } = useMember();
 const memberClassStore = useMemberClass();

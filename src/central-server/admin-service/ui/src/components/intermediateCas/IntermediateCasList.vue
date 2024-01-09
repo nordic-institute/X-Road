@@ -108,7 +108,6 @@
       v-if="
         intermediateCasServiceStore.currentCs && showAddIntermediateCaDialog
       "
-      :ca-id="intermediateCasServiceStore.currentCs.id"
       @cancel="hideAddIntermediateCaDialog"
       @save="hideAddIntermediateCaDialog"
     />
@@ -122,6 +121,7 @@
       :data="{
         name: selectedIntermediateCa?.ca_certificate.subject_common_name,
       }"
+      focus-on-accept
       :loading="deletingIntermediateCa"
       @cancel="confirmDelete = false"
       @accept="deleteIntermediateCa"

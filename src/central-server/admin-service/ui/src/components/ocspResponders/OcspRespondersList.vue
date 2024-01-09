@@ -98,7 +98,6 @@
       v-if="
         ocspResponderServiceStore.currentCa?.id && showAddOcspResponderDialog
       "
-      :ca-id="ocspResponderServiceStore.currentCa.id"
       @cancel="hideAddOcspResponderDialog"
       @save="hideAddOcspResponderDialog"
     />
@@ -114,9 +113,9 @@
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
       v-if="confirmDelete"
-      :dialog="confirmDelete"
       title="trustServices.trustService.ocspResponders.delete.confirmationDialog.title"
       text="trustServices.trustService.ocspResponders.delete.confirmationDialog.message"
+      focus-on-accept
       :data="{ url: selectedOcspResponder?.url }"
       :loading="deletingOcspResponder"
       @cancel="confirmDelete = false"
