@@ -30,95 +30,70 @@
     title="globalConf.cfgParts.dialog.upload.title"
     save-button-text="action.upload"
     cancel-button-text="action.cancel"
+    submittable
     :loading="loading"
-    :disable-save="!partFile || !partFileTitle"
+    :disable-save="!partFile"
     @save="save"
     @cancel="$emit('cancel')"
   >
     <template #content>
       <div class="dlg-input-width">
-        <xrd-file-upload
-          v-slot="{ upload }"
-          accepts=".xml"
-          @file-changed="onFileUploaded"
-        >
-          <v-text-field
-            v-model="partFileTitle"
-            variant="outlined"
-            :label="
-              $t('globalConf.cfgParts.dialog.upload.uploadConfigurationPart')
-            "
-            append-inner-icon="icon-Upload"
-            data-test="timestamping-service-file-input"
-            @click="upload"
-          ></v-text-field>
-        </xrd-file-upload>
+        <XrdFileUploadField
+          v-model:file="partFile"
+          accept=".xml"
+          label-key="globalConf.cfgParts.dialog.upload.uploadConfigurationPart"
+          data-test="timestamping-service-file-input"
+          autofocus
+        />
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { mapActions, mapStores } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+<script lang="ts" setup>
+import { PropType } from 'vue';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import {
   ConfigurationPartContentIdentifier,
   ConfigurationType,
 } from '@/openapi-types';
-import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
+import { XrdFileUploadField } from '@niis/shared-ui';
+import { useBasicForm, useFileRef } from '@/util/composables';
 
-export default defineComponent({
-  components: { XrdFileUpload },
-  props: {
-    configurationType: {
-      type: String as PropType<ConfigurationType>,
-      required: true,
-    },
-    contentIdentifier: {
-      type: String as PropType<ConfigurationPartContentIdentifier>,
-      required: true,
-    },
+const props = defineProps({
+  configurationType: {
+    type: String as PropType<ConfigurationType>,
+    required: true,
   },
-  emits: ['save', 'cancel'],
-  data() {
-    return {
-      partFile: null as File | null,
-      partFileTitle: '',
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useConfigurationSource),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    onFileUploaded(result: FileUploadResult): void {
-      this.partFile = result.file;
-      this.partFileTitle = result.file.name;
-    },
-    save(): void {
-      if (!this.partFile) return;
-
-      this.loading = true;
-      this.configurationSourceStore
-        .uploadConfigurationFile(
-          this.configurationType,
-          this.contentIdentifier,
-          this.partFile,
-        )
-        .then(() => {
-          this.showSuccess(
-            this.$t('globalConf.cfgParts.dialog.upload.success'),
-          );
-          this.$emit('save');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => (this.loading = false));
-    },
+  contentIdentifier: {
+    type: String as PropType<ConfigurationPartContentIdentifier>,
+    required: true,
   },
 });
+
+const { uploadConfigurationFile } = useConfigurationSource();
+const { loading, showSuccess, t, showError } = useBasicForm();
+
+const emit = defineEmits(['save', 'cancel']);
+
+const partFile = useFileRef();
+
+function save() {
+  if (!partFile.value) {
+    return;
+  }
+
+  loading.value = true;
+  uploadConfigurationFile(
+    props.configurationType,
+    props.contentIdentifier,
+    partFile.value,
+  )
+    .then(() => {
+      showSuccess(t('globalConf.cfgParts.dialog.upload.success'));
+      emit('save');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
+}
 </script>

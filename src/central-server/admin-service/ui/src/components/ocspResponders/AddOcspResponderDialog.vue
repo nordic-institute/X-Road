@@ -50,7 +50,7 @@
 
       <div class="dlg-input-width">
         <CertificateFileUpload
-          v-model="certFile"
+          v-model:file="certFile"
           data-test="ocsp-responder-file-input"
           label-key="trustServices.uploadCertificate"
         />

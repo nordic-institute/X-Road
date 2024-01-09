@@ -31,35 +31,45 @@
       ref="fileInput"
       type="file"
       :accept="accepts"
-      @change="onUploadFileChanged"
-
+      @change="onFileInputChange"
     />
-    <slot :upload="upload" @drop.prevent="console.log($event)"/>
+    <slot :upload="upload" :filedrop="onFileDrop" :errors="errors" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { FileUploadResult } from '../types';
 
-type FileUploadEvent = Event | DragEvent;
-
 // https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
-const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
-  return !!(event as DragEvent).dataTransfer;
-};
 
-defineProps({
+const props = defineProps({
   accepts: {
     type: String,
     required: true,
   },
 });
 
-const emits = defineEmits<{
+const emit = defineEmits<{
   (e: 'file-changed', value: FileUploadResult): void
 }>();
 const fileInput = ref(null);
+const errors = ref([] as string[]);
+
+function _asRegexPart(fragment: string): string {
+  if (fragment.includes('/')) {
+    return fragment.replace('*', '\\w*')
+  } else if (fragment.startsWith('.')) {
+    return '.+\\' + fragment + '$';
+  }
+  return '';
+}
+
+const typesRg = computed(() => new RegExp(props.accepts
+  .split(',')
+  .map(item => _asRegexPart(item.trim()))
+  .filter(item => item)
+  .join('|')));
 
 function upload() {
   if (fileInput.value) {
@@ -67,21 +77,13 @@ function upload() {
   }
 }
 
-function onUploadFileChanged(event: FileUploadEvent) {
-  const files = isDragEvent(event)
-    ? event.dataTransfer?.files
-    : (event.target as HTMLInputElement).files;
-  if (!files) {
-    return; // No files uploaded
-  }
-  const file = files[0];
-
+function _handleFile(file: File) {
   const reader = new FileReader();
   reader.onload = (e) => {
-    if (!e?.target?.result || !files) {
+    if (!e?.target?.result) {
       return;
     }
-    emits('file-changed', {
+    emit('file-changed', {
       buffer: e.target.result as ArrayBuffer,
       file,
     });
@@ -90,7 +92,34 @@ function onUploadFileChanged(event: FileUploadEvent) {
   if (fileInput.value) {
     (fileInput.value as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
   }
+}
 
+function onFileDrop(event: DragEvent) {
+  errors.value = [];
+
+  if (!event.dataTransfer?.files.length) {
+    return;
+  }
+
+  const files = [...event.dataTransfer.files]
+    .filter(item => typesRg.value.test(item.type) || typesRg.value.test(item.name));
+
+  if (!files.length) {
+    errors.value.push('not-allowed-type');
+    return;
+  }
+
+  _handleFile(files[0]);
+}
+
+function onFileInputChange(event: Event) {
+  errors.value = [];
+
+  const files = (event.target as HTMLInputElement).files;
+  if (!files) {
+    return; // No files uploaded
+  }
+  _handleFile(files[0])
 }
 </script>
 

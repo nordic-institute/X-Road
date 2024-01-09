@@ -75,7 +75,7 @@
       <div v-else>
         <div class="dlg-input-width">
           <CertificateFileUpload
-            v-model="certFile"
+            v-model:file="certFile"
             label-key="trustServices.uploadCertificate"
           />
         </div>

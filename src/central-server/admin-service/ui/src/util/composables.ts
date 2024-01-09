@@ -25,42 +25,26 @@
  * THE SOFTWARE.
  */
 
-import XrdAlert from './XrdAlert.vue';
-import XrdButton from './XrdButton.vue';
-import XrdCloseButton from './XrdCloseButton.vue';
-import XrdConfirmDialog from './XrdConfirmDialog.vue';
-import XrdEmptyPlaceholder from './XrdEmptyPlaceholder.vue';
-import XrdEmptyPlaceholderRow from './XrdEmptyPlaceholderRow.vue';
-import XrdExpandable from './XrdExpandable.vue';
-import XrdFileUpload from './XrdFileUpload.vue';
-import XrdFileUploadField from './XrdFileUploadField.vue';
-import XrdFormLabel from './XrdFormLabel.vue';
-import XrdHelpDialog from './XrdHelpDialog.vue';
-import XrdHelpIcon from './XrdHelpIcon.vue';
-import XrdSearch from './XrdSearch.vue';
-import XrdSimpleDialog from './XrdSimpleDialog.vue';
-import XrdStatusIcon from './XrdStatusIcon.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
-import XrdSubViewTitle from './XrdSubViewTitle.vue';
-import XrdTable from './XrdTable.vue';
+import { ref, Ref } from 'vue';
+import { TranslateResult, useI18n } from 'vue-i18n';
+import { useNotifications } from '@/store/modules/notifications';
 
-export {
-  XrdAlert,
-  XrdButton,
-  XrdCloseButton,
-  XrdConfirmDialog,
-  XrdEmptyPlaceholder,
-  XrdEmptyPlaceholderRow,
-  XrdExpandable,
-  XrdFileUpload,
-  XrdFileUploadField,
-  XrdFormLabel,
-  XrdHelpDialog,
-  XrdHelpIcon,
-  XrdSearch,
-  XrdSimpleDialog,
-  XrdStatusIcon,
-  XrdSubViewContainer,
-  XrdSubViewTitle,
-  XrdTable
+type BasicForm = {
+  loading: Ref<boolean>;
+  t: (key: string) => string;
+  showSuccess: (text: string | TranslateResult, preserve?: boolean) => void;
+  showError: (error: unknown) => void;
 };
+
+export function useBasicForm(): BasicForm {
+  const { showSuccess, showError } = useNotifications();
+  const { t } = useI18n();
+  const loading = ref(false);
+  return { showSuccess, showError, loading, t };
+}
+
+type FileN = File | null;
+
+export function useFileRef(file: FileN = null): Ref<FileN> {
+  return ref(file);
+}

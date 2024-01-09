@@ -43,7 +43,7 @@
             @file-changed="onFileUploaded"
           >
             <v-text-field
-              v-model="certFileTitle"
+              v-model:file="certFileTitle"
               variant="outlined"
               autofocus
               :label="$t('trustServices.uploadCertificate')"

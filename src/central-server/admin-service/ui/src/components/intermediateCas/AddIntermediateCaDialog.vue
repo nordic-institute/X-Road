@@ -38,7 +38,7 @@
     <template #content>
       <div class="dlg-input-width">
         <CertificateFileUpload
-          v-model="certFile"
+          v-model:file="certFile"
           data-test="add-intermediate-ca-cert-input"
           label-key="trustServices.uploadCertificate"
           autofocus

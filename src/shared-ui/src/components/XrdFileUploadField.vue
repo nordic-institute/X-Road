@@ -24,62 +24,56 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <xrd-confirm-dialog
-    accept-button-text="tokens.logout.confirmButton"
-    title="tokens.logout.title"
-    text="tokens.logout.text"
-    focus-on-accept
-    :loading="loading"
-    @cancel="cancel"
-    @accept="confirmLogout"
-  />
+  <XrdFileUpload
+    v-slot="{ upload, filedrop,errors }"
+    :accepts="accept"
+    @file-changed="onFileSelected"
+  >
+    <v-text-field
+      variant="outlined"
+      append-inner-icon="icon-Upload"
+      :model-value="fileTitle"
+      :label="$t(labelKey)"
+      :autofocus="autofocus"
+
+      @click="upload"
+      @keyup.space="upload"
+      @drop.stop.prevent="filedrop" @dragenter.prevent @dragover.prevent
+    />
+  </XrdFileUpload>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
-import { useToken } from '@/store/modules/tokens';
-import { Token } from '@/openapi-types';
+<script lang="ts" setup>
+import XrdFileUpload from './XrdFileUpload.vue';
+import { PropType, computed } from 'vue';
 
-export default defineComponent({
-  props: {
-    token: {
-      type: Object as PropType<Token>,
-      required: true,
-    },
+const props = defineProps({
+  labelKey: {
+    type: String,
+    required: true,
   },
-  emits: ['cancel', 'token-logout'],
-  data() {
-    return {
-      showConfirmLogout: false,
-      loading: false,
-    };
+  autofocus: {
+    type: Boolean,
+    default: false,
   },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useToken, ['logoutToken']),
-    cancel(): void {
-      this.$emit('cancel');
-    },
-    confirmLogout(): void {
-      this.loading = true;
-      this.logoutToken(this.token.id)
-        .then(() => {
-          this.showSuccess(this.$t('tokens.logout.success'));
-          this.$emit('token-logout');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
+  accept: {
+    type: String,
+    required: true,
+  },
+  file: {
+    type: Object as PropType<File>,
+    default: null,
   },
 });
+
+const emit = defineEmits<{ (e: 'update:file', file: File): void }>();
+
+const fileTitle = computed(() => props?.file?.name || '');
+
+function onFileSelected(result: { file: File }) {
+  emit('update:file', result.file);
+}
 </script>
 
 <style lang="scss" scoped></style>

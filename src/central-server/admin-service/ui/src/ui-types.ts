@@ -96,5 +96,3 @@ export interface DataTableHeader {
   key: string;
   sortable?: boolean;
 }
-
-export type NFile = File | null;

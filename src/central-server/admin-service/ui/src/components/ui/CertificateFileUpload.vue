@@ -25,26 +25,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-file-upload
-    v-slot="{ upload }"
-    accepts=".der, .crt, .pem, .cer"
-    @file-changed="onFileSelected"
-  >
-    <v-text-field
-      variant="outlined"
-      append-inner-icon="icon-Upload"
-      :model-value="certFileTitle"
-      :label="$t(labelKey)"
-      :autofocus="autofocus"
-      @click="upload"
-      @keyup.space="upload"
-    />
-  </xrd-file-upload>
+  <XrdFileUploadField
+    accept=".der, .crt, .pem, .cer"
+    :file="file"
+    :label-key="labelKey"
+    :autofocus="autofocus"
+    @update:file="$emit('update:file', $event)"
+  />
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
+import { XrdFileUploadField } from '@niis/shared-ui';
+import { ref, PropType } from 'vue';
 
 defineProps({
   labelKey: {
@@ -55,14 +47,13 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  file: {
+    type: Object as PropType<File>,
+    default: null,
+  },
 });
 
-const certFile = defineModel<File>();
-const certFileTitle = computed(() => certFile.value?.name || '');
-
-function onFileSelected(result: FileUploadResult) {
-  certFile.value = result.file;
-}
+defineEmits<{ (e: 'update:file', file: File): void }>();
 </script>
 
 <style lang="scss" scoped></style>
