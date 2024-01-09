@@ -1,4 +1,6 @@
-archivesBaseName = 'centralserver-admin-service'
+base {
+    archivesName = 'centralserver-admin-service'
+}
 
 configurations {
     dist {

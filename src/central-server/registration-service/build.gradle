@@ -12,7 +12,9 @@ bootJar {
     }
 }
 
-archivesBaseName = 'centralserver-registration-service'
+base {
+    archivesName = 'centralserver-registration-service'
+}
 
 dependencyManagement {
     imports {
