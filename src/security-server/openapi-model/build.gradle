@@ -16,7 +16,7 @@ sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            "${buildDir}/generated-sources/openapi/src/main/java",
+            "${layout.buildDirectory}/generated-sources/openapi/src/main/java",
         ]
     }
 }
@@ -24,7 +24,7 @@ sourceSets {
 openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/META-INF/openapi-definition.yaml".toString()
-    outputDir = "$buildDir/generated-sources/openapi".toString()
+    outputDir = "${layout.buildDirectory}/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
     modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
     globalProperties = [

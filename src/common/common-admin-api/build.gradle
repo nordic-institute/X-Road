@@ -59,7 +59,7 @@ jar {
 openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
-    outputDir = "$buildDir/generated-sources/openapi".toString()
+    outputDir = "${layout.buildDirectory}/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.restapi.openapi"
     modelPackage = "org.niis.xroad.restapi.openapi.model"
     globalProperties = [
