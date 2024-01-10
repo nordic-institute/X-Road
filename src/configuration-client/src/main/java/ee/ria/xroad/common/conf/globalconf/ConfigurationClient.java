@@ -130,11 +130,16 @@ class ConfigurationClient {
         handleResult(downloader.download(configurationAnchor), true);
     }
 
-
     private PrivateParameters loadPrivateParameters() {
         try {
             Path privateParamsPath = Path.of(globalConfigurationDir, configurationAnchor.getInstanceIdentifier(),
                     ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
+
+            if (!Files.exists(privateParamsPath)) {
+                log.debug("Skipping reading private parameters as {} does not exist", privateParamsPath);
+                return null;
+            }
+
             PrivateParametersProvider p = isCurrentVersion(privateParamsPath)
                     ? new PrivateParametersV3(privateParamsPath, OffsetDateTime.MAX)
                     : new PrivateParametersV2(privateParamsPath, OffsetDateTime.MAX);

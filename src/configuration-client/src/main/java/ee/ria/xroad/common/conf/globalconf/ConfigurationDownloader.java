@@ -171,7 +171,7 @@ class ConfigurationDownloader {
             throws CertificateEncodingException, IOException {
         Path sharedParamsPath = fileNameProvider.getConfigurationDirectory(location.getInstanceIdentifier())
                 .resolve(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
-        if (sharedParamsPath.toFile().exists() && isCurrentVersion(sharedParamsPath)) {
+        if (Files.exists(sharedParamsPath) && isCurrentVersion(sharedParamsPath)) {
             SharedParameters sharedParams = new SharedParametersV3(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
             return sharedParams.getSources().stream()
                     .filter(source -> location.getDownloadURL().contains(source.getAddress()))
