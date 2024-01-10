@@ -90,31 +90,29 @@
             text
             :outlined="false"
             @click="groupMemberToDelete = item"
-            >{{ $t('action.remove') }}
+          >{{ $t('action.remove') }}
           </xrd-button>
         </div>
       </template>
 
       <template #[`item.type`]="{ item }">
-        <div>{{ item.client_id.type }}</div>
+        {{ item.client_id.type }}
       </template>
 
       <template #[`item.instance`]="{ item }">
-        <span data-test="instance">{{ item.client_id.instance_id }}</span>
+        {{ item.client_id.instance_id }}
       </template>
 
       <template #[`item.class`]="{ item }">
-        <span data-test="class">{{ item.client_id.member_class }}</span>
+        {{ item.client_id.member_class }}
       </template>
 
       <template #[`item.code`]="{ item }">
-        <span data-test="code">{{ item.client_id.member_code }}</span>
+        {{ item.client_id.member_code }}
       </template>
 
       <template #[`item.subsystem`]="{ item }">
-        <span data-test="subsystem">{{
-          item.client_id.subsystem_code
-        }}</span>
+        {{ item.client_id.subsystem_code }}
       </template>
 
       <template #[`item.created_at`]="{ item }">
@@ -123,7 +121,7 @@
     </v-data-table-server>
 
     <!-- Dialogs -->
-    <group-members-filter-dialog
+    <FilterGroupMembersDialog
       v-if="showFilterDialog"
       :group-code="groupCode"
       cancel-button-text="action.cancel"
@@ -157,7 +155,7 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { GroupMemberListView, GroupMembersFilter } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import GroupMembersFilterDialog from './GroupMembersFilterDialog.vue';
+import FilterGroupMembersDialog from './FilterGroupMembersDialog.vue';
 import { debounce } from '@/util/helpers';
 import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
 import DeleteGroupMemberDialog from './DeleteGroupMemberDialog.vue';
@@ -175,7 +173,7 @@ export default defineComponent({
     SearchableTitledView,
     DeleteGroupMemberDialog,
     AddGroupMembersDialog,
-    GroupMembersFilterDialog,
+    FilterGroupMembersDialog,
   },
   props: {
     groupCode: {
@@ -221,21 +219,25 @@ export default defineComponent({
           title: this.$t('globalGroup.instance') as string,
           align: 'start',
           key: 'instance',
+          cellProps: { 'data-test': 'instance' },
         },
         {
           title: this.$t('globalGroup.class') as string,
           align: 'start',
           key: 'class',
+          cellProps: { 'data-test': 'class' },
         },
         {
           title: this.$t('globalGroup.code') as string,
           align: 'start',
           key: 'code',
+          cellProps: { 'data-test': 'code' },
         },
         {
           title: this.$t('globalGroup.subsystem') as string,
           align: 'start',
           key: 'subsystem',
+          cellProps: { 'data-test': 'subsystem' },
         },
         {
           title: this.$t('globalGroup.added') as string,
@@ -305,8 +307,5 @@ export default defineComponent({
   font-size: 14px;
   display: flex;
   align-items: center;
-}
-
-.filter-button {
 }
 </style>

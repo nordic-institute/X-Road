@@ -64,7 +64,7 @@
         <date-time :value="item.updated_at" />
       </template>
 
-      <template #footer>
+      <template #bottom>
         <custom-data-table-footer />
       </template>
     </v-data-table>
@@ -72,7 +72,7 @@
     <add-group-dialog
       v-if="showAddGroupDialog"
       @cancel="closeAddGroupDialog()"
-      @group-added="groupAdded()"
+      @save="groupAdded()"
     />
   </titled-view>
 </template>

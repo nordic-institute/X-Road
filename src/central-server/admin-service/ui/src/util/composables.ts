@@ -31,7 +31,7 @@ import { useNotifications } from '@/store/modules/notifications';
 
 type BasicForm = {
   loading: Ref<boolean>;
-  t: (key: string) => string;
+  t: (key: string, props?: Record<string, unknown>) => string;
   showSuccess: (text: string | TranslateResult, preserve?: boolean) => void;
   showError: (error: unknown) => void;
 };

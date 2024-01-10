@@ -29,10 +29,11 @@
     title="globalGroup.dialog.deleteMember.title"
     save-button-text="action.delete"
     cancel-button-text="action.cancel"
-    :loading="deleting"
+    submittable
+    :loading="loading"
     :disable-save="!meta.valid"
     @cancel="$emit('cancel')"
-    @save="deleteGroupMember"
+    @save="deleteMember"
   >
     <template #text>
       <i18n-t
@@ -46,81 +47,68 @@
     </template>
     <template #content>
       <v-text-field
-        v-bind="memberCode"
+        v-model="memberCode"
+        v-bind="memberCodeAttrs"
         data-test="verify-member-code"
         variant="outlined"
         autofocus
         :placeholder="$t('globalGroup.dialog.deleteMember.placeholder')"
         :label="$t('fields.memberCode')"
-        :error-messages="errors.memberCode"
       >
       </v-text-field>
     </template>
   </xrd-simple-dialog>
 </template>
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { mapActions, mapStores } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+<script lang="ts" setup>
+import { computed, PropType } from 'vue';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { GroupMemberListView } from '@/openapi-types';
 import { toIdentifier } from '@/util/helpers';
 import { useForm } from 'vee-validate';
-import { Event } from '@/ui-types';
+import { useBasicForm } from '@/util/composables';
 
-export default defineComponent({
-  props: {
-    groupCode: {
-      type: String,
-      required: true,
-    },
-    groupMember: {
-      type: Object as PropType<GroupMemberListView>,
-      required: true,
-    },
+const props = defineProps({
+  groupCode: {
+    type: String,
+    required: true,
   },
-  emits: ['cancel', 'delete'],
-  setup(props) {
-    const { meta, errors, defineComponentBinds } = useForm({
-      validationSchema: {
-        memberCode: `required|is:${props.groupMember.client_id.member_code}`,
-      },
-    });
-    const memberCode = defineComponentBinds('memberCode');
-    return { meta, errors, memberCode };
+  groupMember: {
+    type: Object as PropType<GroupMemberListView>,
+    required: true,
   },
-  data() {
-    return {
-      deleting: false,
-    };
+});
+
+const emit = defineEmits(['delete', 'cancel']);
+
+const { meta, defineField, handleSubmit } = useForm({
+  validationSchema: {
+    memberCode: `required|is:${props.groupMember.client_id.member_code}`,
   },
-  computed: {
-    ...mapStores(useGlobalGroups),
-    identifier(): string {
-      return toIdentifier(this.groupMember.client_id);
-    },
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    deleteGroupMember() {
-      this.deleting = true;
-      this.globalGroupStore
-        .deleteGroupMember(
-          this.groupCode,
-          this.groupMember.client_id.encoded_id || '',
-        )
-        .then(() => this.$emit('delete'))
-        .then(() =>
-          this.showSuccess(
-            this.$t('globalGroup.dialog.deleteMember.success', {
-              identifier: this.identifier,
-            }),
-          ),
-        )
-        .catch((error) => this.showError(error))
-        .finally(() => (this.deleting = false));
-    },
-  },
+});
+const [memberCode, memberCodeAttrs] = defineField('memberCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const { loading, showSuccess, t, showError } = useBasicForm();
+const { deleteGroupMember } = useGlobalGroups();
+const identifier = computed(() => toIdentifier(props.groupMember.client_id));
+
+const deleteMember = handleSubmit(() => {
+  loading.value = true;
+  deleteGroupMember(
+    props.groupCode,
+    props.groupMember.client_id.encoded_id || '',
+  )
+    .then(() => emit('delete'))
+    .then(() =>
+      showSuccess(
+        t('globalGroup.dialog.deleteMember.success', {
+          identifier: identifier.value,
+        }),
+      ),
+    )
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
 });
 </script>
 <style lang="scss" scoped></style>

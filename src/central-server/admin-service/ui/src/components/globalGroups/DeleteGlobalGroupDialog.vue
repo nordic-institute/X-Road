@@ -26,10 +26,11 @@
  -->
 <template>
   <xrd-confirm-dialog
-    :loading="loading"
     accept-button-text="action.yes"
     title="globalGroup.deleteGroup"
     text="globalGroup.areYouSure"
+    focus-on-accept
+    :loading="loading"
     :data="{ group: groupCode }"
     @save="proceedWithDelete"
     @cancel="cancelDelete"

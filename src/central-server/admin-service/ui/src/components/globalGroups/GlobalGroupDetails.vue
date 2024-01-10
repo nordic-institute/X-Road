@@ -53,7 +53,7 @@
     />
 
     <!-- Edit Description Dialog -->
-    <global-group-edit-description-dialog
+    <EditGlobalGroupDescriptionDialog
       v-if="showEditDescriptionDialog"
       :group-code="globalGroup.code"
       :group-description="globalGroup.description"
@@ -65,7 +65,7 @@
     />
 
     <!-- Delete Group Dialog -->
-    <global-group-delete-dialog
+    <delete-global-group-dialog
       v-if="showDeleteGroupDialog"
       :group-code="globalGroup.code"
       @cancel="showDeleteGroupDialog = false"
@@ -83,8 +83,8 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { GlobalGroupResource } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import GlobalGroupDeleteDialog from './GlobalGroupDeleteDialog.vue';
-import GlobalGroupEditDescriptionDialog from './GlobalGroupEditDescriptionDialog.vue';
+import DeleteGlobalGroupDialog from './DeleteGlobalGroupDialog.vue';
+import EditGlobalGroupDescriptionDialog from './EditGlobalGroupDescriptionDialog.vue';
 import TitledView from '@/components/ui/TitledView.vue';
 
 /**
@@ -93,8 +93,8 @@ import TitledView from '@/components/ui/TitledView.vue';
 export default defineComponent({
   components: {
     TitledView,
-    GlobalGroupEditDescriptionDialog,
-    GlobalGroupDeleteDialog,
+    EditGlobalGroupDescriptionDialog,
+    DeleteGlobalGroupDialog,
     InfoCard,
   },
   props: {

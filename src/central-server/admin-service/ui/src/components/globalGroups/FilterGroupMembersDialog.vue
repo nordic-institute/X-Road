@@ -30,7 +30,7 @@
     data-test="group-members-filter-dialog"
     save-button-text="filters.apply"
     width="824"
-    z-index="1999"
+    submittable
     @save="apply"
     @cancel="cancel"
   >
@@ -136,7 +136,6 @@ const initialState = () => {
 
 export default defineComponent({
   name: 'GroupMembersFilterDialog',
-  components: { },
   props: {
     groupCode: {
       type: String,

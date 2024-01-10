@@ -90,9 +90,15 @@ export interface PagingOptions {
   sortBy: { key: string; order?: boolean | 'asc' | 'desc' }[];
 }
 
+/**
+ * Mirrors vuetify header type
+ * @link https://vuetifyjs.com/en/api/v-data-table/#props-headers
+ */
 export interface DataTableHeader {
   title: string;
   align?: string;
-  key: string;
+  key?: string;
+  value?: string;
   sortable?: boolean;
+  cellProps?: { readonly [x: string]: unknown };
 }

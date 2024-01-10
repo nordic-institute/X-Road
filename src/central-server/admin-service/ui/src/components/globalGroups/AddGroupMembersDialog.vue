@@ -29,23 +29,24 @@
     width="824"
     title="globalGroup.dialog.addMembers.title"
     save-button-text="action.add"
-    :loading="adding"
+    :loading="loading"
     :disable-save="anyClientsSelected"
-    z-index="1999"
     scrollable
+    submittable
     @save="addMembers"
-    @cancel="cancel"
+    @cancel="$emit('cancel')"
   >
     <template #content>
-      <div style="height: 500px">
+      <div>
         <!-- Table -->
         <v-data-table-server
+          height="500"
           v-model="selectedClients"
           class="xrd-table elevation-0"
           data-test="select-members-list"
           item-value="client_id.encoded_id"
           show-select
-          :loading="loading"
+          :loading="fetchingClients"
           :headers="headers"
           :items="selectableClients"
           :items-length="totalItems"
@@ -68,174 +69,131 @@
               @update:model-value="debouncedFetchItems"
             />
           </template>
-          <template #[`item.client_id.member_code`]="{ item }">
-            <span data-test="code">
-              {{ item.client_id.member_code }}
-            </span>
-          </template>
-          <template #[`item.client_id.member_class`]="{ item }">
-            <span data-test="class">
-              {{ item.client_id.member_class }}
-            </span>
-          </template>
-          <template #[`item.client_id.subsystem_code`]="{ item }">
-            <span data-test="subsystem">
-              {{ item.client_id.subsystem_code }}
-            </span>
-          </template>
-          <template #[`item.client_id.instance_id`]="{ item }">
-            <span data-test="instance">
-              {{ item.client_id.instance_id }}
-            </span>
-          </template>
         </v-data-table-server>
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { Client, PagedClients } from '@/openapi-types';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { computed, ref } from 'vue';
+import { PagedClients } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
-import { useNotifications } from '@/store/modules/notifications';
-import { DataTableHeader, Event, PagingOptions } from '@/ui-types';
+import { PagingOptions } from '@/ui-types';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
+import { useBasicForm } from '@/util/composables';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let that: any;
 
-export default defineComponent({
-  props: {
-    groupCode: {
-      type: String,
-      required: true,
-    },
-  },
-  emits: ['save', 'cancel'],
-  data() {
-    return {
-      loading: false,
-      adding: false,
-      pagingOptions: { itemsPerPage: 10, page: 1 } as PagingOptions,
-      itemsPerPageOptions: defaultItemsPerPageOptions(50),
-      clients: {} as PagedClients,
-      search: '',
-      selectedClients: [],
-    };
-  },
-  computed: {
-    ...mapStores(useClient),
-    ...mapStores(useGlobalGroups),
-    anyClientsSelected(): boolean {
-      return !this.selectedClients || this.selectedClients.length === 0;
-    },
-    totalItems(): number {
-      return this.clients.paging_metadata?.total_items || 0;
-    },
-    selectableClients(): Client[] {
-      return this.clients.clients || [];
-    },
-    headers(): DataTableHeader[] {
-      return [
-        {
-          title: this.$t('systemSettings.selectSubsystem.name') as string,
-          align: 'start',
-          key: 'member_name',
-          sortable: false,
-        },
-        {
-          title: this.$t('systemSettings.selectSubsystem.memberCode') as string,
-          align: 'start',
-          key: 'client_id.member_code',
-          sortable: false,
-        },
-        {
-          title: this.$t(
-            'systemSettings.selectSubsystem.memberClass',
-          ) as string,
-          align: 'start',
-          key: 'client_id.member_class',
-          sortable: false,
-        },
-        {
-          title: this.$t(
-            'systemSettings.selectSubsystem.subsystemCode',
-          ) as string,
-          align: 'start',
-          key: 'client_id.subsystem_code',
-          sortable: false,
-        },
-        {
-          title: this.$t(
-            'systemSettings.selectSubsystem.xroadInstance',
-          ) as string,
-          align: 'start',
-          key: 'client_id.instance_id',
-          sortable: false,
-        },
-        {
-          title: this.$t('systemSettings.selectSubsystem.type') as string,
-          align: 'start',
-          key: 'client_id.type',
-          sortable: false,
-        },
-      ];
-    },
-  },
-  created() {
-    that = this;
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    debouncedFetchItems: debounce(() => {
-      // Debounce is used to reduce unnecessary api calls
-      that.pagingOptions.page = 1;
-      that.fetchClients();
-    }, 600),
-    async fetchClients() {
-      this.loading = true;
-      return this.clientStore
-        .getByExcludingGroup(this.groupCode, this.search, this.pagingOptions)
-        .then((resp) => {
-          this.clients = resp;
-        })
-        .catch((error) => this.showError(error))
-        .finally(() => (this.loading = false));
-    },
-    changeOptions(options: PagingOptions) {
-      this.pagingOptions = options;
-      this.fetchClients();
-    },
-    cancel(): void {
-      if (this.adding) {
-        return;
-      }
-      this.$emit('cancel');
-    },
-    addMembers(): void {
-      this.adding = true;
-
-      this.globalGroupStore
-        .addGroupMembers(this.groupCode, this.selectedClients)
-        .then((resp) => this.$emit('save', resp.data.items))
-        .then(() => this.showSuccessMessage(this.selectedClients))
-        .catch((error) => this.showError(error))
-        .finally(() => (this.adding = false));
-    },
-    showSuccessMessage(identifiers: string[]) {
-      this.showSuccess(
-        this.$t('globalGroup.dialog.addMembers.success', {
-          identifiers: identifiers.join(', '),
-        }),
-      );
-    },
+const props = defineProps({
+  groupCode: {
+    type: String,
+    required: true,
   },
 });
+
+const emit = defineEmits(['save', 'cancel']);
+
+const { t, loading, showError, showSuccess } = useBasicForm();
+const { getByExcludingGroup } = useClient();
+const { addGroupMembers } = useGlobalGroups();
+
+const fetchingClients = ref(false);
+const pagingOptions = ref({ itemsPerPage: 10, page: 1 } as PagingOptions);
+const itemsPerPageOptions = ref(defaultItemsPerPageOptions(50));
+const clients = ref({} as PagedClients);
+const search = ref('');
+const selectedClients = ref([]);
+
+const anyClientsSelected = computed(
+  () => !selectedClients.value || selectedClients.value.length === 0,
+);
+const totalItems = computed(
+  () => clients.value.paging_metadata?.total_items || 0,
+);
+const selectableClients = computed(() => clients.value.clients || []);
+const headers = computed(() => [
+  {
+    title: t('systemSettings.selectSubsystem.name') as string,
+    align: 'start',
+    value: 'member_name',
+    sortable: false,
+  },
+  {
+    title: t('systemSettings.selectSubsystem.memberCode') as string,
+    align: 'start',
+    value: 'client_id.member_code',
+    sortable: false,
+    cellProps: { 'data-test': 'code' },
+  },
+  {
+    title: t('systemSettings.selectSubsystem.memberClass') as string,
+    align: 'start',
+    value: 'client_id.member_class',
+    sortable: false,
+    cellProps: { 'data-test': 'class' },
+  },
+  {
+    title: t('systemSettings.selectSubsystem.subsystemCode') as string,
+    align: 'start',
+    value: 'client_id.subsystem_code',
+    sortable: false,
+    cellProps: { 'data-test': 'subsystem' },
+  },
+  {
+    title: t('systemSettings.selectSubsystem.xroadInstance') as string,
+    align: 'start',
+    value: 'client_id.instance_id',
+    sortable: false,
+    cellProps: { 'data-test': 'instance' },
+  },
+  {
+    title: t('systemSettings.selectSubsystem.type') as string,
+    align: 'start',
+    value: 'client_id.type',
+    sortable: false,
+  },
+]);
+
+const debouncedFetchItems = debounce(() => {
+  // Debounce is used to reduce unnecessary api calls
+  pagingOptions.value.page = 1;
+  fetchClients();
+}, 600);
+
+function fetchClients() {
+  fetchingClients.value = true;
+  getByExcludingGroup(props.groupCode, search.value, pagingOptions.value)
+    .then((resp) => (clients.value = resp))
+    .catch((error) => showError(error))
+    .finally(() => (fetchingClients.value = false));
+}
+
+function changeOptions(options: PagingOptions) {
+  pagingOptions.value = options;
+  fetchClients();
+}
+
+function addMembers() {
+  loading.value = true;
+
+  addGroupMembers(props.groupCode, selectedClients.value)
+    .then((resp) => emit('save', resp.data.items))
+    .then(() => showSuccessMessage(selectedClients.value))
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
+}
+
+function showSuccessMessage(identifiers: string[]) {
+  showSuccess(
+    t('globalGroup.dialog.addMembers.success', {
+      identifiers: identifiers.join(', '),
+    }),
+  );
+}
 </script>
 
 <style lang="scss" scoped>
