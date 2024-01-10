@@ -192,6 +192,8 @@ class ConfigurationClient {
                     throw e; // re-throw
                 }
             }
+        } else {
+            log.info("Successfully downloaded configuration from: {}", result.getConfiguration().getLocation().getDownloadURL());
         }
     }
 
