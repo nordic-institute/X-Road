@@ -29,14 +29,14 @@
     title="systemSettings.selectSecurityServer.title"
     save-button-text="action.select"
     width="824"
-    z-index="1999"
+    submittable
     scrollable
     :disable-save="!selected || !changed"
     @cancel="cancel"
     @save="registerServiceProvider"
   >
     <template #content>
-      <div style="height: 500px">
+      <div>
         <v-text-field
           v-model="pagingOptions.search"
           :label="$t('systemSettings.selectSecurityServer.search')"
@@ -55,6 +55,7 @@
           v-model="selectedSecurityServers"
           class="elevation-0 xrd-table"
           item-value="server_id.encoded_id"
+          max-height="420"
           show-select
           select-strategy="single"
           :loading="loading"
@@ -84,7 +85,7 @@ import {
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { DataQuery, DataTableHeader, Event } from '@/ui-types';
+import { DataQuery, DataTableHeader } from '@/ui-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { TranslateResult } from 'vue-i18n';
 import { defaultItemsPerPageOptions } from '@/util/defaults';

@@ -26,7 +26,7 @@
  -->
 <template>
   <searchable-titled-view
-    v-model="filter.query"
+    v-model="query"
     @update:model-value="debouncedFetchItems"
   >
     <template #title>
@@ -185,6 +185,7 @@ export default defineComponent({
     return {
       itemsPerPageOptions: defaultItemsPerPageOptions(),
       paging: { itemsPerPage: 10, page: 1 } as PagingOptions,
+      query: '',
       filter: { query: '' } as GroupMembersFilter,
       loading: false,
       showFilterDialog: false,
@@ -260,6 +261,7 @@ export default defineComponent({
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.paging.page = 1;
+      that.filter.query = that.query;
       that.fetchItems();
     }, 600),
     changeOptions: async function (options: PagingOptions) {
@@ -284,6 +286,7 @@ export default defineComponent({
       this.showFilterDialog = false;
     },
     applyFilter(filter: GroupMembersFilter): void {
+      this.query = '';
       this.filter = filter;
       this.fetchItems();
       this.showFilterDialog = false;

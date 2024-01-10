@@ -28,16 +28,15 @@
   <xrd-simple-dialog
     width="824"
     scrollable
-    persistent
     title="systemSettings.selectSubsystem.title"
     save-button-text="action.select"
-    z-index="1999"
+    submittable
     :disable-save="!selected || !changed"
     @cancel="cancel"
     @save="updateServiceProvider"
   >
     <template #content>
-      <div style="height: 500px">
+      <div>
         <v-text-field
           v-model="search"
           :label="$t('systemSettings.selectSubsystem.search')"
@@ -57,8 +56,10 @@
           data-test="subsystems-table"
           class="elevation-0 data-table xrd-table"
           item-value="client_id.encoded_id"
-          show-select
+          max-height="420"
           select-strategy="single"
+          fixed-header
+          show-select
           :loading="loading"
           :headers="headers"
           :items="selectableSubsystems"
@@ -82,7 +83,7 @@ import { mapActions, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { DataQuery, DataTableHeader, Event } from '@/ui-types';
+import { DataQuery, DataTableHeader } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { useManagementServices } from '@/store/modules/management-services';
 

@@ -28,31 +28,30 @@
   <xrd-simple-dialog
     title="systemSettings.editCentralServerAddressTitle"
     data-test="system-settings-central-server-address-edit-dialog"
+    save-button-text="action.save"
+    submittable
     :scrollable="false"
     :show-close="true"
-    :loading="saving"
+    :loading="loading"
     :disable-save="!meta.valid || !meta.dirty"
-    save-button-text="action.save"
-    as-form
     @save="onServerAddressSave"
     @cancel="onCancelAddressEdit"
   >
     <template #content>
       <v-text-field
-        v-bind="renewedServerAddress"
+        v-model="address"
+        v-bind="addressAttrs"
         data-test="system-settings-central-server-address-edit-field"
         variant="outlined"
         class="dlg-row-input"
         name="serviceAddress"
         autofocus
         :label="$t('systemSettings.centralServerAddress')"
-        :error-messages="errors.serviceAddress"
-      ></v-text-field>
+      />
     </template>
   </xrd-simple-dialog>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { ErrorInfo } from '@/openapi-types';
 import {
@@ -62,8 +61,7 @@ import {
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useSystem } from '@/store/modules/system';
-import { useNotifications } from '@/store/modules/notifications';
-import i18n from '@/plugins/i18n';
+import { useBasicForm } from '@/util/composables';
 
 const props = defineProps({
   serviceAddress: {
@@ -72,28 +70,27 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(['save', 'cancel']);
+const emit = defineEmits(['save', 'cancel']);
 
 const { updateCentralServerAddress } = useSystem();
-const { showError, showSuccess } = useNotifications();
+const { showError, showSuccess, t, loading } = useBasicForm();
 
-const saving = ref(false);
+const { meta, setFieldError, defineField, handleSubmit } = useForm({
+  validationSchema: { serviceAddress: 'required' },
+  initialValues: { serviceAddress: props.serviceAddress },
+});
+const [address, addressAttrs] = defineField('serviceAddress', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
-const { meta, errors, setFieldError, defineComponentBinds, handleSubmit } =
-  useForm({
-    validationSchema: { serviceAddress: 'required' },
-    initialValues: { serviceAddress: props.serviceAddress },
-  });
-const renewedServerAddress = defineComponentBinds('serviceAddress');
-const { t } = i18n.global;
 const onServerAddressSave = handleSubmit((values) => {
-  saving.value = true;
+  loading.value = true;
   updateCentralServerAddress({
     central_server_address: values.serviceAddress,
   })
     .then(() => {
       showSuccess(t('systemSettings.editCentralServerAddressSuccess'));
-      emits('save');
+      emit('save');
     })
     .catch((error) => {
       const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
@@ -111,13 +108,13 @@ const onServerAddressSave = handleSubmit((values) => {
         }
       } else {
         showError(error);
-        emits('cancel');
+        emit('cancel');
       }
     })
-    .finally(() => (saving.value = false));
+    .finally(() => (loading.value = false));
 });
 
 function onCancelAddressEdit() {
-  emits('cancel');
+  emit('cancel');
 }
 </script>

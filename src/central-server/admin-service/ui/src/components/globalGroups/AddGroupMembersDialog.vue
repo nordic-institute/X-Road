@@ -40,11 +40,12 @@
       <div>
         <!-- Table -->
         <v-data-table-server
-          height="500"
           v-model="selectedClients"
+          max-height="420"
           class="xrd-table elevation-0"
           data-test="select-members-list"
           item-value="client_id.encoded_id"
+          fixed-header
           show-select
           :loading="fetchingClients"
           :headers="headers"

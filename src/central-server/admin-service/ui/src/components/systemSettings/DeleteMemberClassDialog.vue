@@ -27,17 +27,16 @@
 <template>
   <xrd-confirm-dialog
     data-test="system-settings-member-class-delete-confirm-dialog"
-    :loading="deleting"
     title="action.confirm"
     text="systemSettings.deleteMemberClass"
+    focus-on-accept
+    :loading="deleting"
     @cancel="cancelDelete"
     @accept="acceptDelete"
   />
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { useForm } from 'vee-validate';
-import { Event } from '@/ui-types';
 import { MemberClass } from '@/openapi-types';
 import { mapStores } from 'pinia';
 import { useMemberClass } from '@/store/modules/member-class';
@@ -51,22 +50,6 @@ export default defineComponent({
     },
   },
   emits: ['cancel', 'delete'],
-  setup(props) {
-    const { meta, values, errors, setFieldError, defineComponentBinds } =
-      useForm({
-        validationSchema: {
-          code: 'required|min:1|max:255',
-          description: 'required|min:1',
-        },
-        initialValues: {
-          code: props.memberClass?.code || '',
-          description: props.memberClass?.description || '',
-        },
-      });
-    const classCode = defineComponentBinds('code');
-    const classDescription = defineComponentBinds('description');
-    return { meta, values, errors, setFieldError, classCode, classDescription };
-  },
   data() {
     return {
       deleting: false,
