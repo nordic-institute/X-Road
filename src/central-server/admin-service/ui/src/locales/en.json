@@ -278,7 +278,8 @@
     "securityServerCode": "Security server code",
     "serviceAddress": "Central Server address",
     "certProfile": "Certificate Profile Info",
-    "certFile": "Certificate File"
+    "certFile": "Certificate File",
+    "distinguishedName": "Distinguished Name"
   },
   "filters": {
     "apply": "Apply",

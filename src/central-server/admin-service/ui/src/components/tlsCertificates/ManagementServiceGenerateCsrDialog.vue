@@ -26,13 +26,14 @@
  -->
 <template>
   <xrd-simple-dialog
-    :disable-save="distinguishedName.length === 0"
-    :loading="loading"
     title="tlsCertificates.managementService.generateCsr.title"
     save-button-text="action.generateCsr"
     cancel-button-text="action.cancel"
-    @cancel="cancel"
-    @save="generateCsr"
+    submittable
+    :loading="loading"
+    :disable-save="!meta.valid"
+    @cancel="emit('cancel')"
+    @save="submit"
   >
     <template #text>
       {{ $t('tlsCertificates.managementService.generateCsr.content') }}
@@ -40,6 +41,7 @@
     <template #content>
       <v-text-field
         v-model="distinguishedName"
+        v-bind="distinguishedNameAttrs"
         variant="outlined"
         autofocus
         data-test="enter-distinguished-name"
@@ -51,51 +53,41 @@
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
-import { useManagementServices } from "@/store/modules/management-services";
-import { Event } from "@/ui-types";
+<script lang="ts" setup>
+import { useManagementServices } from '@/store/modules/management-services';
+import { useBasicForm } from '@/util/composables';
+import { useForm } from 'vee-validate';
 
-export default defineComponent({
-  emits: ['cancel', 'generate'],
-  data() {
-    return {
-      distinguishedName: '',
-      loading: false,
-    };
+const emit = defineEmits(['cancel', 'generate']);
+
+const { handleSubmit, defineField, meta } = useForm({
+  validationSchema: { distinguishedName: 'required' },
+});
+
+const [distinguishedName, distinguishedNameAttrs] = defineField(
+  'distinguishedName',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
   },
-  computed: {
-    ...mapStores(useManagementServices),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError']),
-    generateCsr() {
-      this.loading = true;
-      this.managementServicesStore
-        .generateCsr(this.distinguishedName)
-        .then(() => {
-          this.$emit('generate');
-        })
-        .catch((error) => {
-          this.showError(error);
-          this.$emit('cancel');
-        })
-        .finally(() => (
-          this.loading = false));
-    },
-    cancel(): void {
-      this.$emit('cancel');
-    },
-  },
+);
+
+const { generateCsr } = useManagementServices();
+const { loading, showError } = useBasicForm();
+
+const submit = handleSubmit((values) => {
+  loading.value = true;
+  generateCsr(values.distinguishedName)
+    .then(() => emit('generate'))
+    .catch((error) => {
+      showError(error);
+      emit('cancel');
+    })
+    .finally(() => (loading.value = false));
 });
 </script>
 
 <style lang="scss" scoped>
-
 $spacing: 12rem;
-
 
 .icon-wrapper {
   display: flex;

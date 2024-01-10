@@ -30,81 +30,49 @@
     title="tlsCertificates.managementService.uploadCertificate.title"
     save-button-text="action.upload"
     cancel-button-text="action.cancel"
+    submittable
     :loading="loading"
-    :disable-save="!certFile || !certFileTitle"
+    :disable-save="!certFile"
     @save="upload"
-    @cancel="cancel"
+    @cancel="emit('cancel')"
   >
     <template #content>
       <div class="dlg-input-width">
-        <xrd-file-upload
-          v-slot="{ upload }"
-          accepts=".der, .crt, .pem, .cer"
-          @file-changed="onFileUploaded"
-        >
-          <v-text-field
-            v-model="certFileTitle"
-            variant="outlined"
-            :label="$t('tlsCertificates.managementService.uploadCertificate.label')"
-            append-inner-icon="icon-Upload"
-            @click="upload"
-          ></v-text-field>
-        </xrd-file-upload>
+        <CertificateFileUpload
+          v-model:file="certFile"
+          autofocus
+          label-key="tlsCertificates.managementService.uploadCertificate.label" />
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
-import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
-import { Event } from "@/ui-types";
-import { useManagementServices } from "@/store/modules/management-services";
+<script lang="ts" setup>
+import { ref } from 'vue';
+import { useManagementServices } from '@/store/modules/management-services';
+import { useBasicForm } from '@/util/composables';
+import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
 
-export default defineComponent({
-  components: { XrdFileUpload },
-  emits: ['cancel', 'upload'],
-  data() {
-    return {
-      certFile: null as File | null,
-      certFileTitle: '',
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useManagementServices),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    onFileUploaded(result: FileUploadResult): void {
-      this.certFile = result.file;
-      this.certFileTitle = result.file.name;
-    },
-    upload(): void {
-      if (!this.certFile)
-        return;
-      this.loading = true;
-      this.managementServicesStore
-        .uploadCertificate(
-          this.certFile,
-        )
-        .then(() => {
-          this.showSuccess(
-            this.$t('tlsCertificates.managementService.uploadCertificate.success'),
-          );
-          this.$emit('upload');
-        })
-        .catch((error) => {
-          this.showError(error);
-          this.$emit('cancel');
-        })
-        .finally(() => (this.loading = false));
-    },
-    cancel(): void {
-      this.$emit('cancel');
-    },
-  },
-});
+const emit = defineEmits(['cancel', 'upload']);
+
+const { uploadCertificate } = useManagementServices();
+const { loading, showError, showSuccess, t } = useBasicForm();
+const certFile = ref(undefined as File | undefined);
+
+function upload(): void {
+  if (!certFile.value) {
+    return;
+  }
+  loading.value = true;
+  uploadCertificate(certFile.value)
+    .then(() => {
+      showSuccess(t('tlsCertificates.managementService.uploadCertificate.success'));
+      emit('upload');
+    })
+    .catch((error) => {
+      showError(error);
+      emit('cancel');
+    })
+    .finally(() => (loading.value = false));
+}
 </script>

@@ -203,7 +203,7 @@ const routes: RouteRecordRaw[] = [
         props: {
           default: true,
         },
-        meta: { permissions: [Permissions.CREATE_API_KEY] },
+        meta: { permissions: [Permissions.CREATE_API_KEY], backOnEscape: true },
       },
 
       {

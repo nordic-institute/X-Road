@@ -95,6 +95,7 @@
       v-if="selectedKey && showEditDialog"
       save-button-text="action.save"
       title=""
+      submittable
       :disable-save="selectedRoles.length === 0"
       :loading="savingChanges"
       @save="save"
@@ -139,9 +140,10 @@
     <!-- Confirm revoke dialog -->
     <xrd-confirm-dialog
       v-if="selectedKey && confirmRevoke"
-      :data-test="`api-key-row-${selectedKey.id}-revoke-confirmation`"
       title="apiKey.table.action.revoke.confirmationDialog.title"
       text="apiKey.table.action.revoke.confirmationDialog.message"
+      focus-on-accept
+      :data-test="`api-key-row-${selectedKey.id}-revoke-confirmation`"
       :data="{ id: selectedKey.id }"
       :loading="removingApiKey"
       @cancel="confirmRevoke = false"

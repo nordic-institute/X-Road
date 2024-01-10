@@ -25,15 +25,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-simple-dialog
+  <xrd-confirm-dialog
     title="tlsCertificates.managementService.generateKey.title"
     save-button-text="action.confirm"
     :show-close="false"
     :loading="loading"
-    @save="generate"
+    focus-on-accept
+    @accept="generate"
     @cancel="cancel"
   >
-    <template #content>
+    <template #text>
       <p data-test="generate-tls-and-certificate-dialog-explanation-text">
         {{ $t('tlsCertificates.managementService.generateKey.explanation') }}
       </p>
@@ -41,17 +42,18 @@
         {{ $t('tlsCertificates.managementService.generateKey.confirmation') }}
       </p>
     </template>
-  </xrd-simple-dialog>
+  </xrd-confirm-dialog>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { Event } from "@/ui-types";
-import { useManagementServices } from "@/store/modules/management-services";
+import { useManagementServices } from '@/store/modules/management-services';
+import { XrdConfirmDialog } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdConfirmDialog },
   emits: ['cancel', 'accept'],
   data() {
     return {
