@@ -80,7 +80,7 @@
 import { computed, ref } from 'vue';
 import { PagedClients } from '@/openapi-types';
 import { useClient } from '@/store/modules/clients';
-import { PagingOptions } from '@/ui-types';
+import { DataTableHeader, PagingOptions } from '@/ui-types';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
@@ -116,7 +116,7 @@ const totalItems = computed(
   () => clients.value.paging_metadata?.total_items || 0,
 );
 const selectableClients = computed(() => clients.value.clients || []);
-const headers = computed(() => [
+const headers = computed<DataTableHeader[]>(() => [
   {
     title: t('systemSettings.selectSubsystem.name') as string,
     align: 'start',

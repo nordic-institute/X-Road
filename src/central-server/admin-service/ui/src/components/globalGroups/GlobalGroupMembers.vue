@@ -90,7 +90,7 @@
             text
             :outlined="false"
             @click="groupMemberToDelete = item"
-          >{{ $t('action.remove') }}
+            >{{ $t('action.remove') }}
           </xrd-button>
         </div>
       </template>

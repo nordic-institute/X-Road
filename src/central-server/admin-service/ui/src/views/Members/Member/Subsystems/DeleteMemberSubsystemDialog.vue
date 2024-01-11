@@ -72,7 +72,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['delete','cancel'],
+  emits: ['delete', 'cancel'],
   data() {
     return {
       loading: false,

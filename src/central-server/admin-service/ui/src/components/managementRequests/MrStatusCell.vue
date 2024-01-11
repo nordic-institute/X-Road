@@ -67,7 +67,7 @@ export default defineComponent({
   },
 
   methods: {
-    getStatusText(status: ManagementRequestStatus): string {
+    getStatusText(status?: ManagementRequestStatus): string {
       if (status) {
         switch (status) {
           case ManagementRequestStatus.WAITING:

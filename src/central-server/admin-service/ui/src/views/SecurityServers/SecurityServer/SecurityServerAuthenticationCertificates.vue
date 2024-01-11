@@ -41,10 +41,7 @@
       :loader-height="2"
     >
       <template #[`item.issuer_common_name`]="{ item }">
-        <div
-          class="icon-cell"
-          @click="navigateToCertificateDetails(item.id)"
-        >
+        <div class="icon-cell" @click="navigateToCertificateDetails(item.id)">
           <xrd-icon-base icon-name="certificate" class="mr-4">
             <xrd-icon-certificate />
           </xrd-icon-base>
@@ -102,11 +99,15 @@ import {
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import DateTime from '@/components/ui/DateTime.vue';
-import { DataTableHeader } from '@/ui-types';
 import { XrdIconCertificate } from '@niis/shared-ui';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
-  components: { DateTime, DeleteAuthenticationCertificateDialog, XrdIconCertificate },
+  components: {
+    DateTime,
+    DeleteAuthenticationCertificateDialog,
+    XrdIconCertificate,
+  },
   props: {
     serverId: {
       type: String,
@@ -177,7 +178,7 @@ export default defineComponent({
     hasDeletePermission(): boolean {
       return this.hasPermission(Permissions.DELETE_SECURITY_SERVER_AUTH_CERT);
     },
-    openDeleteConfirmationDialog(authCertId: number): void {
+    openDeleteConfirmationDialog(authCertId?: number): void {
       this.authCertIdForDeletion = authCertId;
       this.showDeleteConfirmationDialog = true;
     },
@@ -188,7 +189,10 @@ export default defineComponent({
       this.showDeleteConfirmationDialog = false;
       this.fetchSecurityServerAuthenticationCertificates();
     },
-    navigateToCertificateDetails(authCertId: number): void {
+    navigateToCertificateDetails(authCertId?: number): void {
+      if (!authCertId) {
+        return;
+      }
       this.$router.push({
         name: RouteName.SecurityServerAuthenticationCertificate,
         params: {

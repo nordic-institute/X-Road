@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app class="xrd-app" >
+  <v-app class="xrd-app">
     <!-- Dont show toolbar or footer in login view -->
     <app-toolbar v-if="loginView" />
     <v-main app>

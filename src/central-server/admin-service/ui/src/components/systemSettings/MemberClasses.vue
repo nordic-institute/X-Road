@@ -99,9 +99,9 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useMemberClass } from '@/store/modules/member-class';
 import EditMemberClassDialog from '@/components/systemSettings/EditMemberClassDialog.vue';
 import DeleteMemberClassDialog from '@/components/systemSettings/DeleteMemberClassDialog.vue';
-import { DataTableHeader } from '@/ui-types';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import { toPagingOptions } from '@/util/helpers';
+import { DataTableHeader, SortItem } from '@/ui-types';
 
 export default defineComponent({
   components: {
@@ -110,7 +110,7 @@ export default defineComponent({
     DeleteMemberClassDialog,
   },
   data: () => ({
-    sortBy: [{ key: 'code', order: 'asc' }],
+    sortBy: [{ key: 'code', order: 'asc' }] as SortItem[],
     selectedMemberClass: undefined as MemberClass | undefined,
     showAddEditMemberClassDialog: false,
     showDeleteMemberClassDialog: false,

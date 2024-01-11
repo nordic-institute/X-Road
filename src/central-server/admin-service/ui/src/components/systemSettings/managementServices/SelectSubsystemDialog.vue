@@ -197,6 +197,7 @@ export default defineComponent({
           this.loading = false;
         });
     },
+    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;

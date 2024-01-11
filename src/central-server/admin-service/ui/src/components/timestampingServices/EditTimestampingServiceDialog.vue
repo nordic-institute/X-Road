@@ -94,6 +94,7 @@ import { useForm } from 'vee-validate';
 import { useNotifications } from '@/store/modules/notifications';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
 import i18n from '@/plugins/i18n';
+import { useFileRef } from '@/util/composables';
 
 const props = defineProps({
   tsaService: {
@@ -117,10 +118,12 @@ const { showSuccess, showError } = useNotifications();
 const router = useRouter();
 const { t } = i18n.global;
 
-const certFile = ref(null as File | null);
+const certFile = useFileRef();
 const certUploadActive = ref(false);
 const loading = ref(false);
-const canUpdate = computed(() => meta.value.valid && (meta.value.dirty || certFile.value));
+const canUpdate = computed(
+  () => meta.value.valid && (meta.value.dirty || certFile.value),
+);
 
 const update = handleSubmit((values) => {
   loading.value = true;

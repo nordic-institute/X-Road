@@ -25,26 +25,18 @@
  * THE SOFTWARE.
  */
 
-import { ref, Ref } from 'vue';
-import { TranslateResult, useI18n } from 'vue-i18n';
-import { useNotifications } from '@/store/modules/notifications';
+import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
-type BasicForm = {
-  loading: Ref<boolean>;
-  t: (key: string, props?: Record<string, unknown>) => string;
-  showSuccess: (text: string | TranslateResult, preserve?: boolean) => void;
-  showError: (error: unknown) => void;
+type XrdMeta = {
+  permissions?: string[];
+  backOnEscape?: boolean;
 };
 
-export function useBasicForm(): BasicForm {
-  const { showSuccess, showError } = useNotifications();
-  const { t } = useI18n();
-  const loading = ref(false);
-  return { showSuccess, showError, loading, t };
-}
+export type XrdLocation = RouteLocationNormalized & {
+  meta?: XrdMeta;
+};
 
-type FileN = File | undefined;
-
-export function useFileRef(file: FileN = undefined): Ref<FileN> {
-  return ref(file);
-}
+export type XrdRoute = RouteRecordRaw & {
+  meta?: XrdMeta | undefined;
+  children?: XrdRoute[];
+};

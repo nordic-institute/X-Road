@@ -45,8 +45,12 @@
         variant="outlined"
         autofocus
         data-test="enter-distinguished-name"
-        :placeholder="$t('tlsCertificates.managementService.generateCsr.example')"
-        :label="$t('tlsCertificates.managementService.generateCsr.distinguishedName')"
+        :placeholder="
+          $t('tlsCertificates.managementService.generateCsr.example')
+        "
+        :label="
+          $t('tlsCertificates.managementService.generateCsr.distinguishedName')
+        "
       >
       </v-text-field>
     </template>

@@ -51,14 +51,22 @@
       </xrd-button>
     </div>
     <mr-confirm-dialog
-      v-if="showApproveDialog"
+      v-if="
+        showApproveDialog &&
+        managementRequest.id &&
+        managementRequest.security_server_id.encoded_id
+      "
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
       @approve="approve"
       @cancel="showApproveDialog = false"
     />
     <mr-decline-dialog
-      v-if="showDeclineDialog"
+      v-if="
+        showDeclineDialog &&
+        managementRequest.id &&
+        managementRequest.security_server_id.encoded_id
+      "
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
       @decline="decline"
@@ -107,11 +115,11 @@ export default defineComponent({
     },
   },
   methods: {
-    approve(){
+    approve() {
       this.showApproveDialog = false;
       this.$emit('approve');
     },
-    decline(){
+    decline() {
       this.showDeclineDialog = false;
       this.$emit('decline');
     },

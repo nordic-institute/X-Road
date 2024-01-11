@@ -62,11 +62,11 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { DataTableHeader } from '@/ui-types';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import { XrdIconCertificate } from '@niis/shared-ui';
+import { DataTableHeader } from '@/ui-types';
 
 export interface Anchor {
   title: string;
@@ -75,7 +75,12 @@ export interface Anchor {
 }
 
 export default defineComponent({
-  components: { CustomDataTableFooter, DataTableToolbar, DateTime, XrdIconCertificate },
+  components: {
+    CustomDataTableFooter,
+    DataTableToolbar,
+    DateTime,
+    XrdIconCertificate,
+  },
   props: {
     loading: {
       type: Boolean,

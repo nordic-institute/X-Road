@@ -32,16 +32,16 @@
     />
     <data-line
       label-text-key="managementRequestDetails.ownerClass"
-      :value="managementRequest.client_id.member_class"
+      :value="managementRequest.client_id?.member_class"
     />
     <data-line
       label-text-key="managementRequestDetails.ownerCode"
-      :value="managementRequest.client_id.member_code"
+      :value="managementRequest.client_id?.member_code"
     />
     <data-line
       v-if="!isOwnerChange"
       label-text-key="managementRequestDetails.subsystemCode"
-      :value="managementRequest.client_id.subsystem_code"
+      :value="managementRequest.client_id?.subsystem_code"
     />
   </data-block>
 </template>
@@ -73,9 +73,15 @@ export default defineComponent({
     clientInfoTitle(): string {
       if (this.isOwnerChange) {
         return 'managementRequestDetails.ownerChangeInformation';
-      } else if (this.managementRequest.type === ManagementRequestType.CLIENT_DISABLE_REQUEST) {
+      } else if (
+        this.managementRequest.type ===
+        ManagementRequestType.CLIENT_DISABLE_REQUEST
+      ) {
         return 'managementRequestDetails.clientDisableInformation';
-      } else if (this.managementRequest.type === ManagementRequestType.CLIENT_ENABLE_REQUEST) {
+      } else if (
+        this.managementRequest.type ===
+        ManagementRequestType.CLIENT_ENABLE_REQUEST
+      ) {
         return 'managementRequestDetails.clientEnableInformation';
       }
       return 'managementRequestDetails.clientInformation';

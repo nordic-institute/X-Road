@@ -141,9 +141,9 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import { DataTableHeader } from '@/ui-types';
 import TitledView from '@/components/ui/TitledView.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
@@ -152,7 +152,6 @@ export default defineComponent({
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
   },
-  props: {},
   data() {
     return {
       loading: false,

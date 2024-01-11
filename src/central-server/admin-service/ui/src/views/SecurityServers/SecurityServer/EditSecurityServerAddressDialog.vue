@@ -86,13 +86,7 @@ const props = defineProps({
 
 const emits = defineEmits(['save', 'cancel']);
 
-const {
-  meta,
-  resetForm,
-  setFieldError,
-  defineField,
-  handleSubmit
-} = useForm({
+const { meta, resetForm, setFieldError, defineField, handleSubmit } = useForm({
   validationSchema: {
     securityServerAddress: 'required|address',
   },
@@ -116,36 +110,33 @@ function close() {
 const loading = ref(false);
 const { t } = i18n.global;
 const saveAddress = handleSubmit((values) => {
-    loading.value = true;
-    updateAddress(
-      props.securityServerId,
-      values.securityServerAddress,
-    ).then(() => {
+  loading.value = true;
+  updateAddress(props.securityServerId, values.securityServerAddress)
+    .then(() => {
       showSuccess(t('securityServers.dialogs.editAddress.success'));
       emits('save');
     })
-      .catch((updateError) => {
-        const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
-        if (isFieldError(errorInfo)) {
-          // backend validation error
-          let fieldErrors = errorInfo.error?.validation_errors;
-          if (fieldErrors) {
-            setFieldError(
-              'securityServerAddress',
-              getTranslatedFieldErrors(
-                'securityServerAddressDto.serverAddress',
-                fieldErrors,
-              ),
-            );
-          }
-        } else {
-          showError(updateError);
-          close();
+    .catch((updateError) => {
+      const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
+      if (isFieldError(errorInfo)) {
+        // backend validation error
+        let fieldErrors = errorInfo.error?.validation_errors;
+        if (fieldErrors) {
+          setFieldError(
+            'securityServerAddress',
+            getTranslatedFieldErrors(
+              'securityServerAddressDto.serverAddress',
+              fieldErrors,
+            ),
+          );
         }
-      })
-      .finally(() => (loading.value = false));
-  }
-);
+      } else {
+        showError(updateError);
+        close();
+      }
+    })
+    .finally(() => (loading.value = false));
+});
 </script>
 
 <style lang="scss" scoped></style>

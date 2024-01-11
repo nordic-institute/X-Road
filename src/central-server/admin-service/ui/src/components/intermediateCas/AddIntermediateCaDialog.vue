@@ -49,20 +49,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
-import { useNotifications } from '@/store/modules/notifications';
-import i18n from '@/plugins/i18n';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
+import { useBasicForm, useFileRef } from '@/util/composables';
 
 const emits = defineEmits(['save', 'cancel']);
 
 const { addIntermediateCa } = useIntermediateCasService();
-const { showSuccess, showError } = useNotifications();
+const { showSuccess, showError, t, loading } = useBasicForm();
 
-const loading = ref(false);
-const certFile = ref(null as File | null);
-const { t } = i18n.global;
+const certFile = useFileRef();
 
 function uploadCertificate() {
   loading.value = true;

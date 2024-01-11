@@ -106,7 +106,7 @@ import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vu
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
 import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
-import { DataQuery, DataTableHeader } from '@/ui-types';
+import { DataQuery, DataTableHeader, SortItem } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import DateTime from '@/components/ui/DateTime.vue';
 import { defineComponent } from 'vue';
@@ -131,7 +131,7 @@ export default defineComponent({
   },
   data() {
     return {
-      sortBy: [{ key: 'id', order: 'desc' }],
+      sortBy: [{ key: 'id', order: 'desc' }] as SortItem[],
       loading: false, //is data being loaded
       dataQuery: {} as DataQuery,
       itemsPerPageOptions: defaultItemsPerPageOptions(50),
@@ -147,7 +147,6 @@ export default defineComponent({
         );
       },
       set(value: boolean) {
-        this.managementRequestsStore.pagingSortingOptions.page = 1;
         this.managementRequestsStore.currentFilter.status = value
           ? ManagementRequestStatus.WAITING
           : undefined;
@@ -158,7 +157,6 @@ export default defineComponent({
         return this.managementRequestsStore.currentFilter.query || '';
       },
       set(value: string) {
-        this.managementRequestsStore.pagingSortingOptions.page = 1;
         this.managementRequestsStore.currentFilter.query = value;
       },
     },
@@ -220,6 +218,7 @@ export default defineComponent({
       // Debounce is used to reduce unnecessary api calls
       that.fetchItems();
     }, 600),
+    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;

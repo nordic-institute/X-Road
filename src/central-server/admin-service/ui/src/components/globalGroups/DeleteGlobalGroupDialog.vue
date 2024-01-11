@@ -42,7 +42,6 @@
 
 import { defineComponent } from 'vue';
 import { XrdConfirmDialog } from '@niis/shared-ui';
-import { Event } from '@/ui-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';

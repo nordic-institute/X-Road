@@ -130,8 +130,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { DataTableHeader } from '@/ui-types';
+import { defineComponent, PropType } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
@@ -145,6 +144,7 @@ import { useUser } from '@/store/modules/user';
 import DateTime from '@/components/ui/DateTime.vue';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
@@ -155,7 +155,7 @@ export default defineComponent({
   },
   props: {
     cs: {
-      type: Object as () => ApprovedCertificationService,
+      type: Object as PropType<ApprovedCertificationService>,
       required: true,
     },
   },

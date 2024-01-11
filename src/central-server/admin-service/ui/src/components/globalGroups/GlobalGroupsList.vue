@@ -78,7 +78,6 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { DataTableHeader } from '@/ui-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { useNotifications } from '@/store/modules/notifications';
@@ -90,6 +89,7 @@ import TitledView from '@/components/ui/TitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { XrdIconFolder } from '@niis/shared-ui';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   name: 'GlobalResourcesList',

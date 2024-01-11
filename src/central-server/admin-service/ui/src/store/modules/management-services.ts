@@ -33,8 +33,8 @@ import {
   ServiceProviderId,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
-import axios from "axios";
-import { saveResponseAsFile } from "@/util/helpers";
+import axios from 'axios';
+import { saveResponseAsFile } from '@/util/helpers';
 
 interface ManagementServicesState {
   managementServicesConfiguration: ManagementServicesConfiguration;
@@ -122,7 +122,11 @@ export const useManagementServices = defineStore('managementServices', {
     },
     async generateCsr(distinguishedName: String) {
       return axios
-        .post(`/management-services-configuration/generate-csr`, {name: distinguishedName}, {responseType: 'json'})
+        .post(
+          `/management-services-configuration/generate-csr`,
+          { name: distinguishedName },
+          { responseType: 'json' },
+        )
         .then((res) => {
           saveResponseAsFile(res, 'request.csr');
         })

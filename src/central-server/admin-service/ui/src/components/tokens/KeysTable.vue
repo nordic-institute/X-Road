@@ -85,7 +85,6 @@
  */
 import { defineComponent, PropType } from 'vue';
 import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
-import { DataTableHeader } from '@/ui-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
@@ -93,6 +92,7 @@ import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDia
 import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import { XrdIconKey } from '@niis/shared-ui';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {

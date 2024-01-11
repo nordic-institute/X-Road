@@ -91,7 +91,8 @@ const { t } = i18n.global;
 const updateCertificationServiceSettings = handleSubmit((values) => {
   loading.value = true;
   updateCertificationService(props.certificationService.id, {
-    certificate_profile_info: props.certificationService.certificate_profile_info,
+    certificate_profile_info:
+      props.certificationService.certificate_profile_info,
     tls_auth: values.tlsAuth.toString(),
   })
     .then(() => {

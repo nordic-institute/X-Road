@@ -76,14 +76,20 @@
     </info-card>
 
     <EditTlsAuthDialog
-      v-if="showEditTlsAuthDialog"
+      v-if="
+        showEditTlsAuthDialog &&
+        certificationServiceStore.currentCertificationService
+      "
       :certification-service="currentCertificationService"
       @cancel="hideEditTlsAuthDialog"
       @save="hideEditTlsAuthDialog"
     ></EditTlsAuthDialog>
 
     <EditCertProfileDialog
-      v-if="showEditCertProfileDialog"
+      v-if="
+        showEditCertProfileDialog &&
+        certificationServiceStore.currentCertificationService
+      "
       :certification-service="currentCertificationService"
       @cancel="hideEditCertProfileDialog"
       @save="hideEditCertProfileDialog"

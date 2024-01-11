@@ -100,10 +100,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { useUser } from '@/store/modules/user';
 import { Permissions, RouteName } from '@/global';
-import {
-  ApprovedCertificationService,
-  ApprovedCertificationServiceListItem,
-} from '@/openapi-types';
+import { ApprovedCertificationServiceListItem } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import { DataTableHeader } from '@/ui-types';
@@ -178,7 +175,9 @@ export default defineComponent({
     hideAddCSDialog(): void {
       this.showAddCSDialog = false;
     },
-    toDetails(certificationService: ApprovedCertificationService): void {
+    toDetails(
+      certificationService: ApprovedCertificationServiceListItem,
+    ): void {
       this.$router.push({
         name: RouteName.CertificationServiceDetails,
         params: { certificationServiceId: String(certificationService.id) },

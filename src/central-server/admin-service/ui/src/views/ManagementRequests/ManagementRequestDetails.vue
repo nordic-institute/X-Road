@@ -66,14 +66,22 @@
         />
       </div>
       <mr-confirm-dialog
-        v-if="showApproveDialog"
+        v-if="
+          showApproveDialog &&
+          managementRequest.id &&
+          managementRequest.security_server_id.encoded_id
+        "
         :request-id="managementRequest.id"
         :security-server-id="managementRequest.security_server_id.encoded_id"
         @approve="approve"
         @cancel="showApproveDialog = false"
       />
       <mr-decline-dialog
-        v-if="showDeclineDialog"
+        v-if="
+          showDeclineDialog &&
+          managementRequest.id &&
+          managementRequest.security_server_id.encoded_id
+        "
         :request-id="managementRequest.id"
         :security-server-id="managementRequest.security_server_id.encoded_id"
         @decline="decline"
@@ -174,11 +182,11 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
-    approve(){
+    approve() {
       this.showApproveDialog = false;
       this.fetchData();
     },
-    decline(){
+    decline() {
       this.showDeclineDialog = false;
       this.fetchData();
     },

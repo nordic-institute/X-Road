@@ -73,15 +73,15 @@ function approve() {
   loading.value = true;
   approveManagementRequest(props.requestId)
     .then(() => {
-      showSuccess(t(
-        'managementRequests.dialog.approve.successMessage',
-        messageData.value,
-      ));
+      showSuccess(
+        t(
+          'managementRequests.dialog.approve.successMessage',
+          messageData.value,
+        ),
+      );
       emits('approve');
     })
     .catch((error) => showError(error))
     .finally(() => (loading.value = false));
 }
-
-
 </script>

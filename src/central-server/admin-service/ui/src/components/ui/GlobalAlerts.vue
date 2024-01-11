@@ -42,26 +42,11 @@
         {{ $t(item.errorCode, reformatDates(item.metadata)) }}
       </span>
     </v-alert>
-    <v-alert
-      v-if="showRestoreInProgress"
-      data-test="global-alert-restore"
-      border="start"
-      variant="outlined"
-      class="alert"
-      icon="icon-Error-notification"
-      type="error"
-    >
-      <span class="alert-text">{{
-        $t('globalAlert.backupRestoreInProgress', {
-          startTime: formatDateTime(restoreStartTime),
-        })
-      }}</span>
-    </v-alert>
   </v-container>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { formatDateTime, formatDateTimeSeconds } from '@/filters';
 import { mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
@@ -75,21 +60,13 @@ export default defineComponent({
     ...mapState(useUser, ['isAuthenticated']),
     ...mapState(useSystem, ['isServerInitialized']),
     hasAlerts(): boolean {
-      return this.showRestoreInProgress || this.alerts?.length > 0;
-    },
-    showRestoreInProgress(): boolean {
-      // Mock. Add vuex getter later.
-      return false;
-    },
-    restoreStartTime(): boolean {
-      // Mock. Add vuex getter later.
-      return true;
+      return this.alerts?.length > 0;
     },
   },
   methods: {
     formatDateTime,
-    reformatDates(metadata: string[]): string[] {
-      return metadata.map((item) => {
+    reformatDates(metadata?: string[]): string[] {
+      return (metadata || []).map((item) => {
         if (isNaN(Date.parse(item))) {
           return item;
         }

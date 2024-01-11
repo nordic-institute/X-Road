@@ -64,7 +64,7 @@ const { showSuccess, showError } = useNotifications();
 const messageData = computed(() => ({
   id: props.requestId,
   serverId: props.securityServerId,
-}))
+}));
 const loading = ref(false);
 const { t } = i18n.global;
 
@@ -72,10 +72,12 @@ function decline(): void {
   loading.value = true;
   declineManagementRequest(props.requestId)
     .then(() => {
-      showSuccess(t(
-        'managementRequests.dialog.decline.successMessage',
-        messageData.value,
-      ));
+      showSuccess(
+        t(
+          'managementRequests.dialog.decline.successMessage',
+          messageData.value,
+        ),
+      );
       emits('decline');
     })
     .catch((error) => showError(error))

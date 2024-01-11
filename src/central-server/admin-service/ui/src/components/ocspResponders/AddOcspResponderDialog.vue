@@ -60,12 +60,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
 import { useOcspResponderService } from '@/store/modules/trust-services';
-import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
+import { useBasicForm, useFileRef } from '@/util/composables';
 
 const emits = defineEmits(['save', 'cancel']);
 
@@ -78,12 +76,10 @@ const [ocspUrl, ocspUrlAttrs] = defineField('url', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { showSuccess, showError } = useNotifications();
+const { showSuccess, showError, t, loading } = useBasicForm();
 const { addOcspResponder } = useOcspResponderService();
 
-const loading = ref(false);
-const { t } = i18n.global;
-const certFile = ref(null as File | null);
+const certFile = useFileRef();
 
 const add = handleSubmit((values) => {
   loading.value = true;

@@ -60,12 +60,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
-import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
+import { useBasicForm, useFileRef } from '@/util/composables';
 
 const emits = defineEmits(['save', 'cancel']);
 
@@ -76,13 +75,11 @@ const [tasUrl, tasUrlAttrs] = defineField('url', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { showSuccess, showError } = useNotifications();
+const { showSuccess, showError, t, loading } = useBasicForm();
 const { addTimestampingService } = useTimestampingServicesStore();
-const { t } = i18n.global;
 
-const certFile = ref(null as File | null);
+const certFile = useFileRef();
 const canAdd = computed(() => meta.value.valid && certFile.value);
-const loading = ref(false);
 
 const save = handleSubmit((values) => {
   if (!certFile.value) {

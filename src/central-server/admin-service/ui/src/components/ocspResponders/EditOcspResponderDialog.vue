@@ -86,15 +86,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useOcspResponderService } from '@/store/modules/trust-services';
-import { useNotifications } from '@/store/modules/notifications';
 import { OcspResponder } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
+import { useBasicForm, useFileRef } from '@/util/composables';
 
 const props = defineProps({
   ocspResponder: {
@@ -122,15 +121,15 @@ const [ocspUrl, ocspUrlAttrs] = defineField('url', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { showSuccess, showError } = useNotifications();
+const { showSuccess, showError, loading, t } = useBasicForm();
 const { updateOcspResponder } = useOcspResponderService();
-const { t } = i18n.global;
 const router = useRouter();
 
-const loading = ref(false);
 const certUploadActive = ref(false);
-const certFile = ref(null as File | null);
-const canUpdate = computed(() => meta.value.valid && (meta.value.dirty || certFile.value));
+const certFile = useFileRef();
+const canUpdate = computed(
+  () => meta.value.valid && (meta.value.dirty || certFile.value),
+);
 
 function navigateToCertificateDetails() {
   router.push({

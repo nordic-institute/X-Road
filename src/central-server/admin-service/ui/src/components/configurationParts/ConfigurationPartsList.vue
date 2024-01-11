@@ -31,7 +31,7 @@
       :headers="headers"
       :items="configurationParts"
       :search="search"
-      :sort-by="['file_name']"
+      :sort-by="sortBy"
       :must-sort="true"
       :items-per-page="-1"
       item-value="content_identifier"
@@ -87,7 +87,7 @@ import { defineComponent, PropType } from 'vue';
 import { mapState, mapStores } from 'pinia';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
-import { DataTableHeader } from '@/ui-types';
+import { DataTableHeader, SortItem } from '@/ui-types';
 import { useUser } from '@/store/modules/user';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
@@ -111,6 +111,7 @@ export default defineComponent({
   },
   data() {
     return {
+      sortBy: [{ key: 'file_name' }] as SortItem[],
       loading: false,
       search: '' as string,
     };

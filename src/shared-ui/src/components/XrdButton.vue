@@ -26,6 +26,7 @@
  -->
 <template>
   <v-btn
+    ref="button"
     height="40"
     class="large-button"
     rounded
@@ -38,7 +39,6 @@
     :large="large"
     :color="color"
     :type="submit ? 'submit' : 'button'"
-    ref="button"
     @click="click"
   >
     <slot>{{ text }}</slot>
@@ -48,7 +48,8 @@
 <script lang="ts" setup>/**
  * Wrapper for vuetify button with x-road look
  * */
-import { computed, onMounted, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
+import { VBtn } from 'vuetify/components';
 
 const props = defineProps({
   // Button color
@@ -93,8 +94,12 @@ const props = defineProps({
   },
   submit: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
+  autofocus: {
+    type: Boolean,
+    default: false,
+  },
 });
 const emits = defineEmits(['click']);
 const showGradient = computed(() => props.disabled ? false : props.gradient);
@@ -104,7 +109,7 @@ function click(event: MouseEvent): void {
   emits('click', event);
 }
 
-const button = ref(null)
+const button = ref<VBtn>()
 
 function focus() {
   if (button.value && button.value.$el) {
@@ -112,7 +117,13 @@ function focus() {
   }
 }
 
-defineExpose({ focus })
+onMounted(() => {
+  if (props.autofocus) {
+    focus();
+  }
+});
+
+defineExpose({ focus });
 </script>
 
 <style lang="scss" scoped>

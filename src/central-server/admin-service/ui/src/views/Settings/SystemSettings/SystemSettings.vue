@@ -147,7 +147,11 @@ export default defineComponent({
     refreshData() {
       this.showEditServerAddressDialog = false;
       this.fetchSystemStatus();
-      this.$refs.managementServices.fetchManagementServicesConfiguration();
+      (
+        this.$refs.managementServices as {
+          fetchManagementServicesConfiguration: () => void;
+        }
+      ).fetchManagementServicesConfiguration();
     },
   },
 });

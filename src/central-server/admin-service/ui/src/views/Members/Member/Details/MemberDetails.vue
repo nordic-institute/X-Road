@@ -167,6 +167,7 @@ import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameD
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { DataTableHeader } from '@/ui-types';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,7 +213,7 @@ export default defineComponent({
           align: 'start',
           key: 'server_id.server_code',
         },
-      ],
+      ] as DataTableHeader[],
       groupsHeaders: [
         {
           key: 'group_code',
@@ -229,7 +230,7 @@ export default defineComponent({
           title: this.$t('members.member.details.addedToGroup') as string,
           align: 'start',
         },
-      ],
+      ] as DataTableHeader[],
     };
   },
   computed: {
@@ -324,6 +325,7 @@ export default defineComponent({
   cursor: pointer;
   display: flex;
   flex-direction: row;
+
   .action-text {
     margin-top: 2px;
   }

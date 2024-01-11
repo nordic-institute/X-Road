@@ -35,6 +35,7 @@ import { RouteName } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
+import { XrdLocation } from '@/router/types';
 
 // Create the router
 const router = createRouter({
@@ -42,15 +43,15 @@ const router = createRouter({
   routes: routes,
 });
 
-function backOnEscape (event:KeyboardEvent){
-  if(event.key === 'Escape'){
+function backOnEscape(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
     router.go(-1);
   }
 }
 
 router.beforeEach(
   async (
-    to: RouteLocationNormalized,
+    to: XrdLocation,
     from: RouteLocationNormalized,
     next: NavigationGuardNext,
   ) => {
@@ -65,10 +66,10 @@ router.beforeEach(
     const notifications = useNotifications();
     const system = useSystem();
 
-    if(to.meta.backOnEscape){
-      window.addEventListener('keyup', backOnEscape)
+    if (to.meta.backOnEscape) {
+      window.addEventListener('keyup', backOnEscape);
     } else {
-      window.removeEventListener('keyup', backOnEscape)
+      window.removeEventListener('keyup', backOnEscape);
     }
 
     // User is allowed to access any other view than login only after authenticated information has been fetched

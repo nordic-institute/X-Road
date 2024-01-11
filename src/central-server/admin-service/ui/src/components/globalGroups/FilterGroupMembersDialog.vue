@@ -104,10 +104,10 @@
             </div>
             <v-autocomplete
               v-model="subsystemsModel"
+              variant="underlined"
               clearable
               multiple
               :items="subsystems"
-              variant="underlined"
             />
           </v-col>
         </v-row>
@@ -156,10 +156,10 @@ export default defineComponent({
   data() {
     return {
       opened: true,
-      instances: [] as string[] | null | undefined,
-      memberClasses: [] as string[] | null | undefined,
-      subsystems: [] as string[] | null | undefined,
-      codes: [] as string[] | null | undefined,
+      instances: [] as string[] | undefined,
+      memberClasses: [] as string[] | undefined,
+      subsystems: [] as string[] | undefined,
+      codes: [] as string[] | undefined,
       ...initialState(),
     };
   },
@@ -169,10 +169,10 @@ export default defineComponent({
   },
   created() {
     this.globalGroupStore.getMembersFilterModel(this.groupCode).then((resp) => {
-      this.instances = resp.instances;
-      this.memberClasses = resp.member_classes;
-      this.subsystems = resp.subsystems;
-      this.codes = resp.codes;
+      this.instances = resp.instances || undefined;
+      this.memberClasses = resp.member_classes || undefined;
+      this.subsystems = resp.subsystems || undefined;
+      this.codes = resp.codes || undefined;
     });
   },
   methods: {

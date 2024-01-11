@@ -25,8 +25,7 @@
  * THE SOFTWARE.
  */
 
-import SecurityServerAuthenticationCertificate
-  from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
+import SecurityServerAuthenticationCertificate from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
 import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 import TabsBase from '@/components/layout/TabsBase.vue';
 
@@ -60,8 +59,7 @@ import SecurityServersList from '@/views/SecurityServers/SecurityServersList.vue
 import SecurityServer from '@/views/SecurityServers/SecurityServer/SecurityServer.vue';
 import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/SecurityServerDetails.vue';
 import SecurityServerClients from '@/views/SecurityServers/SecurityServer/SecurityServerClients.vue';
-import SecurityServerAuthenticationCertificates
-  from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
+import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
 
 import GlobalResources from '@/views/GlobalResources/GlobalResources.vue';
 import GlobalResourcesList from '@/views/GlobalResources/GlobalResourcesList.vue';
@@ -81,13 +79,10 @@ import CertificationService from '@/views/TrustServices/CertificationService/Cer
 import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
 import TrustServiceList from '@/views/TrustServices/TrustServiceList.vue';
 import CertificationServiceSettings from '@/views/TrustServices/CertificationService/CertificationServiceSettings.vue';
-import CertificationServiceOcspResponders
-  from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
-import CertificationServiceIntermediateCas
-  from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
+import CertificationServiceOcspResponders from '@/views/TrustServices/CertificationService/CertificationServiceOcspResponders.vue';
+import CertificationServiceIntermediateCas from '@/views/TrustServices/CertificationService/CertificationServiceIntermediateCas.vue';
 import OcspResponderCertificate from '@/views/TrustServices/CertificationService/OcspResponderCertificate.vue';
-import CertificationServiceCertificate
-  from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
+import CertificationServiceCertificate from '@/views/TrustServices/CertificationService/CertificationServiceCertificate.vue';
 import IntermediateCACertificate from '@/views/TrustServices/CertificationService/IntermediateCACertificate.vue';
 import IntermediateCa from '@/views/TrustServices/CertificationService/IntermediateCa.vue';
 import IntermediateCaDetails from '@/views/TrustServices/CertificationService/IntermediateCaDetails.vue';
@@ -95,11 +90,12 @@ import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationSer
 import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
 import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
 import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
-import ManagementServiceTlsKey from "@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue";
-import ManagementServiceCertificate from "@/components/tlsCertificates/ManagementServiceCertificate.vue";
-import { useSettingsTabs } from "@/store/modules/settings-tabs";
+import ManagementServiceTlsKey from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue';
+import ManagementServiceCertificate from '@/components/tlsCertificates/ManagementServiceCertificate.vue';
+import { useSettingsTabs } from '@/store/modules/settings-tabs';
+import { XrdRoute } from '@/router/types';
 
-const routes: RouteRecordRaw[] = [
+const routes: XrdRoute[] = [
   {
     path: '/',
     component: AppBase,
@@ -147,7 +143,6 @@ const routes: RouteRecordRaw[] = [
                 props: true,
               },
               {
-                name: RouteName.GlobalGroup,
                 path: 'globalgroup/:groupCode',
                 component: GlobalGroup,
                 props: true,
@@ -181,7 +176,9 @@ const routes: RouteRecordRaw[] = [
             path: 'tls-certificates',
             component: ManagementServiceTlsKey,
             props: true,
-            meta: { permissions: [Permissions.VIEW_MANAGEMENT_SERVICE_TLS_CERT] },
+            meta: {
+              permissions: [Permissions.VIEW_MANAGEMENT_SERVICE_TLS_CERT],
+            },
           },
           {
             name: RouteName.ManagementServiceCertificateDetails,
@@ -189,7 +186,6 @@ const routes: RouteRecordRaw[] = [
             component: ManagementServiceCertificate,
             meta: { permissions: [Permissions.VIEW_TLS_CERTIFICATES] },
           },
-
         ],
       },
 
@@ -295,7 +291,7 @@ const routes: RouteRecordRaw[] = [
                 props: (
                   route: RouteLocationNormalized,
                 ): { serverId: string } => {
-                  return { serverId: route.params.serverId };
+                  return { serverId: route.params.serverId as string };
                 },
               },
               {

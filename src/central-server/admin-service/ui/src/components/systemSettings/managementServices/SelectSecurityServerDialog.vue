@@ -182,6 +182,7 @@ export default defineComponent({
         this.loading = false;
       }
     },
+    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;
@@ -226,6 +227,7 @@ export default defineComponent({
 .checkbox-column {
   width: 50px;
 }
+
 .search-input {
   width: 300px;
 }

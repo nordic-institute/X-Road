@@ -61,10 +61,10 @@
       <template #[`item.button`]="{ item }">
         <div class="cs-table-actions-wrap">
           <xrd-button
+            v-if="item.has_certificate"
             text
             :outlined="false"
             data-test="view-ocsp-responder-certificate"
-            v-if="item.has_certificate"
             @click="navigateToCertificateDetails(item)"
           >
             {{ $t('trustServices.viewCertificate') }}
@@ -125,8 +125,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { DataTableHeader } from '@/ui-types';
+import { defineComponent, PropType } from 'vue';
 import { mapActions } from 'pinia';
 import { useOcspResponderService } from '@/store/modules/trust-services';
 import { useNotifications } from '@/store/modules/notifications';
@@ -140,6 +139,7 @@ import EditOcspResponderDialog from '@/components/ocspResponders/EditOcspRespond
 import { RouteName } from '@/global';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
@@ -150,10 +150,9 @@ export default defineComponent({
   },
   props: {
     ca: {
-      type: [
-        Object as () => ApprovedCertificationService,
-        Object as () => CertificateAuthority,
-      ],
+      type: Object as PropType<
+        ApprovedCertificationService | CertificateAuthority
+      >,
       required: true,
     },
   },

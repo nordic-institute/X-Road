@@ -78,9 +78,7 @@ export default defineComponent({
           this.showError(error);
           this.$emit('cancel');
         })
-        .finally(() => (
-          this.loading = false
-        ));
+        .finally(() => (this.loading = false));
     },
     cancel(): void {
       this.$emit('cancel');

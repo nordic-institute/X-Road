@@ -66,7 +66,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(['save','cancel']);
+const emits = defineEmits(['save', 'cancel']);
 
 const { defineComponentBinds, errors, meta, handleSubmit } = useForm({
   validationSchema: { memberName: 'required' },

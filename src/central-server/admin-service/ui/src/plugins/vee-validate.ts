@@ -26,15 +26,14 @@
  */
 import { configure, defineRule } from 'vee-validate';
 import { between, is, max, min, required, url } from '@vee-validate/rules';
-import { App } from 'vue';
 import { isIP } from 'is-ip';
 import i18n from '@/plugins/i18n';
-import { FieldValidationMetaInfo } from "@vee-validate/i18n";
+import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 
 export function createValidators(i18nMessages = {}) {
   const { t } = i18n.global;
   return {
-    install(app: App) {
+    install() {
       configure({
         generateMessage: (ctx: FieldVlidationMetaInfo) => {
           // override the field name.
@@ -45,22 +44,29 @@ export function createValidators(i18nMessages = {}) {
           switch (ctx.rule?.name) {
             case 'max':
             case 'min': {
-              args.length = ctx.rule?.params[0];
+              args.length = _param(ctx.rule.params, 0);
               break;
             }
             case 'is': {
-              args.other = ctx.rule?.params[0];
+              args.other = _param(ctx.rule.params, 0);
               break;
             }
             case 'between': {
-              args.min = ctx.rule?.params[0];
-              args.max = ctx.rule?.params[1];
+              args.min = _param(ctx.rule.params, 0);
+              args.max = _param(ctx.rule.params, 1);
               break;
             }
           }
           return t(`validation.messages.${ctx.rule?.name}`, args) as string;
         },
       });
+
+      function _param(params: unknown, idx: number): unknown {
+        if (params) {
+          return (params as unknown[])[idx];
+        }
+        return undefined;
+      }
 
       // Install required rule and message.
       defineRule('required', required);
@@ -99,7 +105,7 @@ export function createValidators(i18nMessages = {}) {
           }
           if (/[^a-zA-Z\d-.]/.test(value)) {
             const field = t('fields.' + ctx.field);
-            return t("validation.messages.address", { field });
+            return t('validation.messages.address', { field });
           }
           return true;
         },

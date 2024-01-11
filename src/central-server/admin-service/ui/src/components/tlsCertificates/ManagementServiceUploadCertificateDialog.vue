@@ -41,23 +41,23 @@
         <CertificateFileUpload
           v-model:file="certFile"
           autofocus
-          label-key="tlsCertificates.managementService.uploadCertificate.label" />
+          label-key="tlsCertificates.managementService.uploadCertificate.label"
+        />
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
 import { useManagementServices } from '@/store/modules/management-services';
-import { useBasicForm } from '@/util/composables';
+import { useBasicForm, useFileRef } from '@/util/composables';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
 
 const emit = defineEmits(['cancel', 'upload']);
 
 const { uploadCertificate } = useManagementServices();
 const { loading, showError, showSuccess, t } = useBasicForm();
-const certFile = ref(undefined as File | undefined);
+const certFile = useFileRef();
 
 function upload(): void {
   if (!certFile.value) {
@@ -66,7 +66,9 @@ function upload(): void {
   loading.value = true;
   uploadCertificate(certFile.value)
     .then(() => {
-      showSuccess(t('tlsCertificates.managementService.uploadCertificate.success'));
+      showSuccess(
+        t('tlsCertificates.managementService.uploadCertificate.success'),
+      );
       emit('upload');
     })
     .catch((error) => {

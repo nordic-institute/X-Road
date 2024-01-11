@@ -38,7 +38,9 @@
   >
     <template #text>
       {{
-        $t('securityServers.securityServer.dialog.deleteAuthCertificate.content')
+        $t(
+          'securityServers.securityServer.dialog.deleteAuthCertificate.content',
+        )
       }}
     </template>
     <template #content>
@@ -48,7 +50,11 @@
         data-test="verify-server-code"
         variant="outlined"
         autofocus
-        :placeholder="$t('securityServers.securityServer.dialog.deleteAuthCertificate.securityServerCode')"
+        :placeholder="
+          $t(
+            'securityServers.securityServer.dialog.deleteAuthCertificate.securityServerCode',
+          )
+        "
         :label="$t('fields.securityServerCode')"
       >
       </v-text-field>
@@ -95,7 +101,6 @@ const [securityServerCode, securityServerCodeAttrs] = defineField(
 const { deleteAuthenticationCertificate } = useSecurityServerAuthCert();
 const { showSuccess, showError } = useNotifications();
 
-
 function cancel() {
   emits('cancel');
 }
@@ -103,13 +108,17 @@ function cancel() {
 const loading = ref(false);
 const { t } = i18n.global;
 const deleteCert = handleSubmit(() => {
-  loading.value = true
+  loading.value = true;
   deleteAuthenticationCertificate(
     props.securityServerId.encoded_id as string,
     props.authenticationCertificateId,
   )
     .then(() => {
-      showSuccess(t('securityServers.securityServer.dialog.deleteAuthCertificate.success'));
+      showSuccess(
+        t(
+          'securityServers.securityServer.dialog.deleteAuthCertificate.success',
+        ),
+      );
       emits('delete');
     })
     .catch((error) => {

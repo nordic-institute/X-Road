@@ -144,6 +144,7 @@ export default defineComponent({
         params: { serverId: securityServer.server_id.encoded_id || '' },
       });
     },
+    // @ts-expect-error
     findServers: async function ({ itemsPerPage, page, sortBy }) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;

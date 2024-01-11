@@ -110,7 +110,7 @@ const props = defineProps({
   // Disable save button
   disableSave: {
     type: Boolean,
-    default: false
+    default: false,
   },
   //  cancel button
   allowLoadingCancellation: {
@@ -151,19 +151,19 @@ const props = defineProps({
   },
   zIndex: {
     type: [Number, String],
-    default: 2400
+    default: 2400,
   },
   submittable: {
     type: Boolean,
-    default: false
+    default: false,
   },
   escapable: {
     type: Boolean,
-    default: true
+    default: true,
   },
   focusOnSave: {
     type: Boolean,
-    default: false
+    default: false,
   },
 });
 
@@ -203,11 +203,12 @@ function modelValueUpdated(displayed: boolean) {
   }
 }
 
-const saveButton = ref(null);
+const saveButton = ref<{ focus: () => void }>();
 
 function blur() {
-  if (document.activeElement && document.activeElement.blur) {
-    document.activeElement.blur();
+  const activeElement = document.activeElement as HTMLElement | undefined;
+  if (activeElement && activeElement.blur) {
+    activeElement.blur();
   }
 }
 
@@ -215,10 +216,11 @@ defineExpose({
   focusOnSave() {
 
     if (saveButton.value) {
-      blur();console.log('dialog', saveButton.value)
+      blur();
+      console.log('dialog', saveButton.value)
       saveButton.value.focus();
     }
-  }
+  },
 });
 
 onMounted(() => {
