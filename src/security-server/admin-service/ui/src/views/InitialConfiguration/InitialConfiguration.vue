@@ -123,21 +123,9 @@ import { useAlerts } from '@/store/modules/alerts';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useInitializeServer } from '@/store/modules/initializeServer';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/VStepper';
 
 export default defineComponent({
   components: {
-    VStepper,
-    VStepperHeader,
-    VStepperItem,
-    VStepperWindow,
-    VStepperWindowItem,
     TokenPinStep,
     ConfigurationAnchorStep,
     OwnerMemberStep,

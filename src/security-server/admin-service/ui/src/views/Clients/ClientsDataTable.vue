@@ -211,7 +211,6 @@
  */
 import { defineComponent } from 'vue';
 import ClientStatus from './ClientStatus.vue';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { DataTableHeader, ExtendedClient } from '@/ui-types';
@@ -229,7 +228,6 @@ export default defineComponent({
     XrdIconFolder,
     XrdIconFolderOutline,
     ClientStatus,
-    VDataTable,
   },
 
   data: () => ({
