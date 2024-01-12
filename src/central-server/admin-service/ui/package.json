@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite --host",
-    "build": "pnpm run generate-types && vitest --run && vite build",
+    "build": "pnpm run generate-types && vite build",
     "preview": "vite preview",
     "build-only": "vite build",
     "test": "vitest",

@@ -32,7 +32,7 @@ import {
   between,
   confirmed,
 } from '@vee-validate/rules';
-import i18n from './i18n';
+import { i18n } from './i18n';
 import * as Helpers from '@/util/helpers';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 

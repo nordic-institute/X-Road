@@ -79,7 +79,7 @@ import {
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 const emits = defineEmits(['save', 'cancel']);
 const { defineField, setFieldError, meta, resetForm, handleSubmit } = useForm({

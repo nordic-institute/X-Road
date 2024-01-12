@@ -71,7 +71,7 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 /**
  * Component for a Security server details view

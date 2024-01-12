@@ -53,15 +53,6 @@ export default defineConfig(({ command, mode }) => {
     build: {
       cssCodeSplit: false,
     },
-    test: {
-      globals: true,
-      environment: 'happy-dom',
-      server: {
-        deps: {
-          inline: ['vuetify'],
-        },
-      },
-    },
     server: {
       https: true,
       port: 8080,

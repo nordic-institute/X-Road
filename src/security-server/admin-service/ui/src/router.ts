@@ -35,7 +35,7 @@ import InitialConfiguration from '@/views/InitialConfiguration/InitialConfigurat
 import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import { Permissions, RouteName } from '@/global';
 import routes from '@/routes';
-import i18n from './plugins/i18n';
+import { i18n } from './plugins/i18n';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 

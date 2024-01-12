@@ -115,7 +115,7 @@ import { useUser } from '@/store/modules/user';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { defineRule, PublicPathState, useForm } from 'vee-validate';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 defineRule(
   'requiredIfSigning',

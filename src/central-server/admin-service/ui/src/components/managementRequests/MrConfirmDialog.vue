@@ -40,7 +40,7 @@
 import { ref, computed } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useNotifications } from '@/store/modules/notifications';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 /**
  * General component for Management request actions

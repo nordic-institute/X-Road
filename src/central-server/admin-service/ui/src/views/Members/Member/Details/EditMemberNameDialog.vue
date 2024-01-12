@@ -57,7 +57,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 const props = defineProps({
   member: {

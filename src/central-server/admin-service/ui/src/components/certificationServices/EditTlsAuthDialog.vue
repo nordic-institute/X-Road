@@ -51,12 +51,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 const props = defineProps({
   certificationService: {

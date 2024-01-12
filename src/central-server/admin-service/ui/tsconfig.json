@@ -15,7 +15,7 @@
     "baseUrl": ".",
     "types": [
       "vite/client",
-      "vuetify"
+      "vuetify",
     ],
     "paths": {
       "@/*": [

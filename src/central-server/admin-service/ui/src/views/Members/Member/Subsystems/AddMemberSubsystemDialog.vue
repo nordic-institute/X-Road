@@ -55,7 +55,7 @@ import { ClientId } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 const props = defineProps({
   member: {

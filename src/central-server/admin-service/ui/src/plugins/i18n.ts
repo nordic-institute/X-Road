@@ -36,12 +36,11 @@ const validation = { validation: veeEn };
 type Shared = typeof messages.en;
 type Vee = typeof validation;
 type En = typeof en;
-type MessageSchema = Vee & Shared & En;
+export type MessageSchema = Vee & Shared & En;
 
 let common = merge(validation, messages.en);
 common = merge(common, en);
-
-export default createI18n<[MessageSchema], 'en'>({
+export const i18n = createI18n<[MessageSchema], 'en'>({
   legacy: false,
   locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
   fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',

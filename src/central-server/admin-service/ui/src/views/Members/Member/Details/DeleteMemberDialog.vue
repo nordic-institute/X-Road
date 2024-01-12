@@ -64,7 +64,7 @@ import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 const props = defineProps({
   member: {

@@ -67,7 +67,7 @@ import {
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 /**
  * Component for a Security server details view

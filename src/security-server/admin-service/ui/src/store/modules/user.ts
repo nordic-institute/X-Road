@@ -35,7 +35,7 @@ import {
   User,
 } from '@/openapi-types';
 import { SessionStatus, Tab } from '@/ui-types';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 import { routePermissions } from '@/routePermissions';
 import { useSystem } from './system';
 import { RouteRecordName } from 'vue-router';

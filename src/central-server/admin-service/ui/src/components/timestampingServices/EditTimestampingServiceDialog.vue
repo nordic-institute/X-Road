@@ -93,7 +93,7 @@ import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import { useNotifications } from '@/store/modules/notifications';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 import { useFileRef } from '@/util/composables';
 
 const props = defineProps({

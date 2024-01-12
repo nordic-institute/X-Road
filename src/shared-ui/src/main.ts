@@ -37,7 +37,7 @@ import App from './App.vue';
 import { createApp } from 'vue';
 
 // Plugins
-import i18n from './plugins/i18n';
+import { i18n } from './plugins/i18n';
 
 createApp(App)
   .use(i18n)

@@ -26,13 +26,13 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="true"
     title="trustServices.caSettings"
     save-button-text="action.save"
     cancel-button-text="action.cancel"
+    submittable
     :loading="loading"
-    :disable-save="!meta.valid"
-    @cancel="cancelEdit"
+    :disable-save="!meta.valid || !meta.dirty"
+    @cancel="$emit('cancel')"
     @save="updateCertificationServiceSettings"
   >
     <template #content>
@@ -46,132 +46,94 @@
         />
         <v-sheet v-show="isAcme">
           <v-text-field
-            v-bind="acmeServerDirectoryUrlRef"
-            variant="outlined"
-            :label="
-              $t('trustServices.trustService.settings.acmeServerDirectoryUrl')
-            "
-            :hint="$t('trustServices.acmeServerDirectoryUrlExplanation')"
-            persistent-hint
+            v-model="acmeServerDirectoryUrl"
+            v-bind="acmeServerDirectoryUrlAttrs"
             class="py-4"
             data-test="acme-server-directory-url-input"
-          ></v-text-field>
-          <v-text-field
-            v-bind="acmeServerIpAddressRef"
             variant="outlined"
-            :label="
-              $t('trustServices.trustService.settings.acmeServerIpAddress')
-            "
+            autofocus
+            persistent-hint
+            :label="$t('fields.acmeServerDirectoryUrl')"
+            :hint="$t('trustServices.acmeServerDirectoryUrlExplanation')"
+          />
+          <v-text-field
+            v-model="acmeServerIpAddress"
+            v-bind="acmeServerIpAddressAttrs"
+            variant="outlined"
+            :label="$t('fields.acmeServerIpAddress')"
             :hint="$t('trustServices.acmeServerIpAddressExplanation')"
             persistent-hint
             data-test="acme-server-ip-address-input"
-          ></v-text-field>
+          />
         </v-sheet>
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, ref } from 'vue';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { computed, PropType, ref } from 'vue';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
-import { useNotifications } from '@/store/modules/notifications';
-import { PublicPathState, useField, useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
+import { useForm } from 'vee-validate';
+import { useBasicForm } from '@/util/composables';
 
-export default defineComponent({
-  props: {
-    certificationService: {
-      type: Object as null | (() => ApprovedCertificationService),
-      required: true,
-    },
+const props = defineProps({
+  certificationService: {
+    type: Object as PropType<ApprovedCertificationService>,
+    required: true,
   },
-  emits: ['cancel', 'tls-auth-changed'],
-  setup(props) {
-    const isAcme = ref(!!props.certificationService.acme_server_directory_url);
-    const validationSchema = computed(() => {
-      return isAcme.value
-        ? {
-            acmeServerDirectoryUrl: 'required|url',
-            acmeServerIpAddress: 'ipAddresses',
-          }
-        : {};
-    });
-    const { meta, values, defineComponentBinds, resetForm } = useForm({
-      validationSchema,
-      initialValues: {
-        acmeServerDirectoryUrl:
-          props.certificationService.acme_server_directory_url,
-        acmeServerIpAddress: props.certificationService.acme_server_ip_address,
-      },
-    });
-    useField('acmeServerDirectoryUrl', undefined, {
-      label: i18n.global.t(
-        'trustServices.trustService.settings.acmeServerDirectoryUrl',
-      ),
-    });
-    useField('acmeServerIpAddress', undefined, {
-      label: i18n.global.t('trustServices.trustService.settings.acmeServerIpAddress'),
-    });
-    const componentConfig = {
-      mapProps: (state: PublicPathState) => ({
-        'error-messages': state.errors,
-      }),
-    };
-    const acmeServerDirectoryUrlRef = defineComponentBinds(
-      'acmeServerDirectoryUrl',
-      componentConfig,
-    );
-    const acmeServerIpAddressRef = defineComponentBinds(
-      'acmeServerIpAddress',
-      componentConfig,
-    );
-    return {
-      meta,
-      values,
-      isAcme,
-      acmeServerDirectoryUrlRef,
-      acmeServerIpAddressRef,
-      resetForm,
-    };
+});
+
+const emit = defineEmits(['cancel', 'tls-auth-changed']);
+const { loading, t, showSuccess, showError } = useBasicForm();
+const isAcme = ref(!!props.certificationService.acme_server_directory_url);
+const validationSchema = computed(() => {
+  return isAcme.value
+    ? {
+        acmeServerDirectoryUrl: 'required|url',
+        acmeServerIpAddress: 'ipAddresses',
+      }
+    : {};
+});
+
+const { meta, defineField, handleSubmit } = useForm({
+  validationSchema,
+  initialValues: {
+    acmeServerDirectoryUrl:
+      props.certificationService.acme_server_directory_url,
+    acmeServerIpAddress: props.certificationService.acme_server_ip_address,
   },
-  data() {
-    return {
-      loading: false,
-    };
+});
+
+const [acmeServerDirectoryUrl, acmeServerDirectoryUrlAttrs] = defineField(
+  'acmeServerDirectoryUrl',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
   },
-  computed: {
-    ...mapStores(useCertificationService),
+);
+const [acmeServerIpAddress, acmeServerIpAddressAttrs] = defineField(
+  'acmeServerIpAddress',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
   },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancelEdit(): void {
-      this.$emit('cancel');
-    },
-    updateCertificationServiceSettings(): void {
-      this.loading = true;
-      this.certificationServiceStore
-        .update(this.certificationService.id, {
-          acme_server_directory_url: this.isAcme
-            ? this.values.acmeServerDirectoryUrl
-            : '',
-          acme_server_ip_address: this.isAcme
-            ? this.values.acmeServerIpAddress
-            : '',
-        })
-        .then(() => {
-          this.showSuccess(
-            this.$t('trustServices.trustService.settings.saveSuccess'),
-          );
-          this.$emit('tls-auth-changed');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => (this.loading = false));
-    },
-  },
+);
+
+const { update } = useCertificationService();
+
+const updateCertificationServiceSettings = handleSubmit((values) => {
+  loading.value = true;
+  update(props.certificationService.id, {
+    acme_server_directory_url: isAcme.value
+      ? values.acmeServerDirectoryUrl
+      : '',
+    acme_server_ip_address: isAcme.value ? values.acmeServerIpAddress : '',
+  })
+    .then(() => {
+      showSuccess(t('trustServices.trustService.settings.saveSuccess'));
+      emit('tls-auth-changed');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
 });
 </script>

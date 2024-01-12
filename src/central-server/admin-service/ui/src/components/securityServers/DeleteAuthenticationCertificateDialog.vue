@@ -68,7 +68,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { ref, PropType } from 'vue';
 import { useForm } from 'vee-validate';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 
 const props = defineProps({
   authenticationCertificateId: {

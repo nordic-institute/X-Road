@@ -28,6 +28,7 @@
 import { ref, Ref } from 'vue';
 import { TranslateResult, useI18n } from 'vue-i18n';
 import { useNotifications } from '@/store/modules/notifications';
+import { MessageSchema } from '@/plugins/i18n';
 
 type BasicForm = {
   loading: Ref<boolean>;
@@ -38,8 +39,9 @@ type BasicForm = {
 
 export function useBasicForm(): BasicForm {
   const { showSuccess, showError } = useNotifications();
-  const { t } = useI18n();
+  const { t } = useI18n<{ message: MessageSchema }>({ useScope: 'global' });
   const loading = ref(false);
+
   return { showSuccess, showError, loading, t };
 }
 

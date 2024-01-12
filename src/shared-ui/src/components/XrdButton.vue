@@ -41,7 +41,7 @@
     :type="submit ? 'submit' : 'button'"
     @click="click"
   >
-    <slot>{{ text }}</slot>
+    <slot>T</slot>
   </v-btn>
 </template>
 
