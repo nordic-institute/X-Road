@@ -25,8 +25,11 @@
  */
 package ee.ria.xroad.confproxy.util;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
+import ee.ria.xroad.common.conf.globalconf.SharedParametersV3;
+import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -40,6 +43,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.eclipse.jetty.util.MultiPartWriter;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -54,7 +58,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 
+import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
@@ -69,6 +76,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import static java.lang.String.valueOf;
 
 /**
  * Utility class that encapsulates the process of signing the downloaded
@@ -81,7 +89,7 @@ public class OutputBuilder implements AutoCloseable {
     private static final DateTimeFormatter DATETIME_FORMAT =
             DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"));
 
-    private final ConfigurationDirectory confDir;
+    private final VersionedConfigurationDirectory confDir;
     private final ConfProxyProperties conf;
     private final int version;
 
@@ -101,8 +109,8 @@ public class OutputBuilder implements AutoCloseable {
      * @param configuration configuration proxy instance configuration
      * @throws IOException in case of errors when a temporary directory
      */
-    public OutputBuilder(final ConfigurationDirectory confDirectory, final ConfProxyProperties configuration,
-            int version) throws IOException {
+    public OutputBuilder(final VersionedConfigurationDirectory confDirectory, final ConfProxyProperties configuration, int version)
+            throws IOException {
         this.confDir = confDirectory;
         this.conf = configuration;
         this.version = version;
@@ -119,7 +127,7 @@ public class OutputBuilder implements AutoCloseable {
         try (ByteArrayOutputStream mimeContent = new ByteArrayOutputStream()) {
             build(mimeContent);
 
-            log.debug("Generated directory content:\n{}\n", mimeContent.toString());
+            log.debug("Generated directory content:\n{}\n", mimeContent);
 
             byte[] contentBytes = mimeContent.toByteArray();
             mimeContent.reset();
@@ -204,11 +212,45 @@ public class OutputBuilder implements AutoCloseable {
 
             confDir.eachFile((metadata, inputStream) -> {
                 try (FileOutputStream fos = createFileOutputStream(tempDirPath, metadata)) {
+                    if (shouldOverrideConfigurationSources(metadata)) {
+                        inputStream = toInputStreamWithOverriddenConfigurationSources(inputStream);
+                    }
                     TeeInputStream tis = new TeeInputStream(inputStream, fos);
                     appendFileContent(encoder, instance, metadata, tis);
                 }
             });
         }
+    }
+
+    private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
+        boolean isVersion3 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(metadata.getConfigurationVersion());
+        boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());
+        boolean isMainInstance = confDir.getInstanceIdentifier().equals(metadata.getInstanceIdentifier());
+        return isVersion3 && isSharedParams && isMainInstance;
+    }
+
+    private InputStream toInputStreamWithOverriddenConfigurationSources(InputStream sharedParamsInputStream) throws Exception {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        try (sharedParamsInputStream) {
+            SharedParametersV3 sharedParameters = new SharedParametersV3(sharedParamsInputStream.readAllBytes());
+            List<ConfigurationSourceType> sources = sharedParameters.getConfType().getSource();
+            sources.clear();
+            sources.add(buildConfProxyConfigurationSource());
+            sharedParameters.save(os);
+            return new ByteArrayInputStream(os.toByteArray());
+        }
+    }
+
+    private ConfigurationSourceType buildConfProxyConfigurationSource() {
+        ConfigurationSourceType confProxySource = new ConfigurationSourceType();
+        confProxySource.setAddress(SystemProperties.getConfigurationProxyAddress());
+        // PS! Need to allocate both external & internal in order not to break 7.4.0 versioned clients of confproxy
+        // as their shared-parameters.xsd requires at least 1 internal & 1 external verification cert to be present.
+        // If 7.4.0 is no longer supported we can decide the configuration type from whether private-params
+        // configuration part is present & then add the verification certs just to the matching type.
+        confProxySource.getExternalVerificationCert().addAll(conf.getVerificationCerts());
+        confProxySource.getInternalVerificationCert().addAll(conf.getVerificationCerts());
+        return confProxySource;
     }
 
     /**

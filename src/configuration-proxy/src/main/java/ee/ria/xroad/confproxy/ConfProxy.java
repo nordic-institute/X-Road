@@ -26,7 +26,7 @@
 package ee.ria.xroad.confproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 
@@ -70,7 +70,7 @@ public class ConfProxy {
                     version, SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion());
 
             try {
-                ConfigurationDirectory confDir = download(version);
+                VersionedConfigurationDirectory confDir = download(version);
                 log.debug("Create output builder");
                 try (OutputBuilder output = new OutputBuilder(confDir, conf, version)) {
                     log.debug("Build signed directory");
@@ -97,7 +97,7 @@ public class ConfProxy {
      * @return downloaded configuration directory
      * @throws Exception if configuration client script encounters errors
      */
-    private ConfigurationDirectory download(int version) throws Exception {
+    private VersionedConfigurationDirectory download(int version) throws Exception {
         log.debug("Create directories");
         Files.createDirectories(Paths.get(conf.getConfigurationDownloadPath(version)));
         return ConfProxyHelper.downloadConfiguration(

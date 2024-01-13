@@ -124,11 +124,7 @@ class ConfigurationDownloader {
 
         for (ConfigurationLocation location : getLocations(source)) {
             try {
-                if (source instanceof ConfigurationAnchor) {
-                    supplementInternalVerificationCerts(location);
-                } else if (source instanceof PrivateParameters.ConfigurationAnchor) {
-                    supplementExternalVerificationCerts(location);
-                }
+                supplementWithVerificationCerts(location);
             } catch (Exception e) {
                 log.error("Unable to acquire additional verification certificates for instance " + location.getInstanceIdentifier(), e);
             }
@@ -149,22 +145,13 @@ class ConfigurationDownloader {
         return result.failure();
     }
 
-    private void supplementInternalVerificationCerts(ConfigurationLocation location)
+    private void supplementWithVerificationCerts(ConfigurationLocation location)
             throws CertificateEncodingException, IOException {
         var sources = getAdditionalSources(location);
-        var internalVerificationCerts = sources.stream()
-                .flatMap(src -> src.getInternalVerificationCerts().stream())
+        var verificationCerts = sources.stream()
+                .flatMap(src -> Stream.concat(src.getInternalVerificationCerts().stream(), src.getExternalVerificationCerts().stream()))
                 .toList();
-        addSupplementaryVerificationCerts(location, internalVerificationCerts);
-    }
-
-    private void supplementExternalVerificationCerts(ConfigurationLocation location)
-            throws CertificateEncodingException, IOException {
-        var sources = getAdditionalSources(location);
-        var externalVerificationCerts = sources.stream()
-                .flatMap(src -> src.getExternalVerificationCerts().stream())
-                .toList();
-        addSupplementaryVerificationCerts(location, externalVerificationCerts);
+        addSupplementaryVerificationCerts(location, verificationCerts);
     }
 
     private List<SharedParameters.ConfigurationSource> getAdditionalSources(ConfigurationLocation location)
@@ -183,7 +170,7 @@ class ConfigurationDownloader {
     private void addSupplementaryVerificationCerts(ConfigurationLocation location, List<byte[]> potentialCertsToBeAdded) {
         List<byte[]> certsToBeAdded = new ArrayList<>();
         potentialCertsToBeAdded.forEach(potentialCert -> {
-            if (location.getVerificationCerts().stream().noneMatch(cert -> Arrays.equals(cert, potentialCert))) {
+            if (!contains(location.getVerificationCerts(), potentialCert) && !contains(certsToBeAdded, potentialCert)) {
                 certsToBeAdded.add(potentialCert);
             }
         });
@@ -192,6 +179,10 @@ class ConfigurationDownloader {
             log.info("Adding supplementary verification certificates from shared parameters configuration file");
             location.getVerificationCerts().addAll(certsToBeAdded);
         }
+    }
+
+    private boolean contains(List<byte[]> bytearrayList, byte[] bytearray) {
+        return bytearrayList.stream().anyMatch(item -> Arrays.equals(item, bytearray));
     }
 
     private void rememberLastSuccessfulLocation(ConfigurationLocation location) {
