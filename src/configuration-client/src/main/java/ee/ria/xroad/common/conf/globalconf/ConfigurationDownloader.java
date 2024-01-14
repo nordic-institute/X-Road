@@ -57,6 +57,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -92,7 +93,7 @@ class ConfigurationDownloader {
 
     protected final FileNameProvider fileNameProvider;
 
-    private final Map<ConfigurationSource, ConfigurationLocation> lastSuccessfulLocation = new HashMap<>();
+    private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
 
     @Getter
     private final Integer configurationVersion;
@@ -122,30 +123,51 @@ class ConfigurationDownloader {
     DownloadResult download(ConfigurationSource source, String... contentIdentifiers) {
         DownloadResult result = new DownloadResult();
 
-        for (ConfigurationLocation location : getLocations(source)) {
+        List<ConfigurationLocation> locations = new ArrayList<>();
+        Optional<String> cachedUrl = findLocationWithPreviousSuccess(source)
+                .map(locationWithPreviousSuccess -> {
+                    locations.add(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
+                    return locationWithPreviousSuccess.getDownloadURL();
+                });
+        locations.addAll(getLocations(source));
+
+        for (ConfigurationLocation location : locations) {
             try {
-                supplementWithVerificationCerts(location);
-            } catch (Exception e) {
+                supplementVerificationCerts(location);
+            } catch (CertificateEncodingException | IOException e) {
                 log.error("Unable to acquire additional verification certificates for instance " + location.getInstanceIdentifier(), e);
             }
 
+            String url = cachedUrl.isPresent() ? cachedUrl.get() : location.getDownloadURL();
             try {
                 location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
-                rememberLastSuccessfulLocation(location);
+                rememberLastSuccessfulLocation(url, location);
                 return result.success(config);
             } catch (SSLHandshakeException e) {
                 log.warn("The Security Server can't download Global Configuration over HTTPS. Because " + e);
+                successfulLocations.remove(url);
                 result.addFailure(location, e);
             } catch (Exception e) {
+                successfulLocations.remove(url);
                 result.addFailure(location, e);
             }
         }
-
         return result.failure();
     }
 
-    private void supplementWithVerificationCerts(ConfigurationLocation location)
+    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(ConfigurationSource source) {
+        for (ConfigurationLocation location : source.getLocations()) {
+            ConfigurationLocation successfulLocation = successfulLocations.get(location.getDownloadURL());
+            if (successfulLocation != null) {
+                log.trace("Found location={} which corresponds to previously successful location={}", location, successfulLocation);
+                return Optional.of(location);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void supplementVerificationCerts(ConfigurationLocation location)
             throws CertificateEncodingException, IOException {
         var sources = getAdditionalSources(location);
         var verificationCerts = sources.stream()
@@ -185,21 +207,14 @@ class ConfigurationDownloader {
         return bytearrayList.stream().anyMatch(item -> Arrays.equals(item, bytearray));
     }
 
-    private void rememberLastSuccessfulLocation(ConfigurationLocation location) {
-        log.trace("rememberLastSuccessfulLocation source={} location={}", location.getSource(), location);
-        lastSuccessfulLocation.put(location.getSource(), location);
+    private void rememberLastSuccessfulLocation(String url, ConfigurationLocation location) {
+        log.trace("rememberLastSuccessfulLocation url={} location={}", url, location);
+        successfulLocations.put(url, location);
     }
 
     private List<ConfigurationLocation> getLocations(ConfigurationSource source) {
-        List<ConfigurationLocation> result = new ArrayList<>();
-
-        preferLastSuccessLocation(source, result);
-
-        List<ConfigurationLocation> randomized = new ArrayList<>(getLocationsPreferHttps(source));
-        result.addAll(randomized);
-
+        List<ConfigurationLocation> result = new ArrayList<>(getLocationsPreferHttps(source));
         result.removeIf(Objects::isNull);
-
         return result;
     }
 
@@ -220,15 +235,6 @@ class ConfigurationDownloader {
 
     private boolean assertStartWithHttps(String url, boolean expectedResult) {
         return url.startsWith(HTTPS) == expectedResult;
-    }
-
-    private void preferLastSuccessLocation(ConfigurationSource source, List<ConfigurationLocation> result) {
-        if (!lastSuccessfulLocation.isEmpty()) {
-            log.trace("preferLastSuccessLocation source={} location={}", source, lastSuccessfulLocation.get(source));
-            result.add(lastSuccessfulLocation.get(source));
-        } else {
-            log.trace("preferLastSuccessLocation lastSuccessfulLocation is empty");
-        }
     }
 
     Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {
