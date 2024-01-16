@@ -7,10 +7,10 @@ Feature: Security Server API
     And member class 'TEST' is created
     And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member-1' is added
-    And Authentication header is set to MANAGEMENT_SERVICE
+    When Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     Then security servers list contains 'CS:TEST:member-1:SS-X'
     And security servers list sorting by unknown field fails
 
@@ -24,10 +24,12 @@ Feature: Security Server API
     And new member 'CS:ANOTHER:member-2' is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is approved
-    And new security server 'CS:ANOTHER:member-2:SS-A' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:ANOTHER:member-2:SS-A' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     When user requests security servers list sorted by '<$sortField>' '<$sortDirection>'
     Then the list is sorted by '<$responseFieldExpression>' '<$sortDirection>'
     Examples:
@@ -50,10 +52,15 @@ Feature: Security Server API
     And new member 'CS:TEST:another' is added with name 'name second'
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member:SS-1' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member:SS-3' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:another:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     Then security servers list, queried with '' paged by 2, page 1 contains 2 entries, 3 in total
     And security servers list, queried with '' paged by 2, page 2 contains 1 entries, 3 in total
@@ -78,8 +85,8 @@ Feature: Security Server API
     And new member 'CS:TEST:member-1' is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     Then user can get security server 'CS:TEST:member-1:SS-X' details
     And getting non existing security server details fails
 
@@ -91,12 +98,14 @@ Feature: Security Server API
     And new member 'CS:TEST:member-2' is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-2:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     Then security server 'CS:TEST:member-2:SS-2' has no clients
     When new member 'CS:TEST:member-7' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:TEST:member-7' is registered as security server 'CS:TEST:member-2:SS-2' client from 'SECURITY_SERVER'
-    And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     Then security server 'CS:TEST:member-2:SS-2' clients contains 'CS:TEST:member-7'
 
   @Modifying
@@ -107,8 +116,8 @@ Feature: Security Server API
     And new member 'CS:TEST:member-1' is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     Then security server 'CS:TEST:member-1:SS-X' address is updated
     And updating the address of a non-existing security server fails
 
@@ -120,8 +129,8 @@ Feature: Security Server API
     And new member 'CS:TEST:member-1' is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     Then user can get security server 'CS:TEST:member-1:SS-X' authentication certificates
 
   @Modifying
@@ -132,14 +141,19 @@ Feature: Security Server API
     And new member 'CS:TEST:member-1' is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     And new member 'CS:TEST:member-2' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:TEST:member-2' is registered as security server 'CS:TEST:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     And new member 'CS:TEST:member-3' is added
+    And Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:TEST:member-3' is registered as security server 'CS:TEST:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
-    Then security servers list contains 'CS:TEST:member-1:SS-X'
+    And security servers list contains 'CS:TEST:member-1:SS-X'
     When user deletes security server 'CS:TEST:member-1:SS-X'
     Then security servers list does not contain 'CS:TEST:member-1:SS-X'
     And management request list contains requests of given type
@@ -156,7 +170,7 @@ Feature: Security Server API
     And new member 'CS:TEST:member-1' is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:TEST:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
-    And management request is approved
     And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     Then user can delete security server 'CS:TEST:member-1:SS-X' authentication certificate
     And security server 'CS:TEST:member-1:SS-X' has no authentication certificates

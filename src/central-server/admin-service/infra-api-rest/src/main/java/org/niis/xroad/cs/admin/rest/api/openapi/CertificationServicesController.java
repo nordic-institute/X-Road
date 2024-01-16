@@ -84,11 +84,14 @@ public class CertificationServicesController implements CertificationServicesApi
     @AuditEventMethod(event = ADD_CERTIFICATION_SERVICE)
     public ResponseEntity<ApprovedCertificationServiceDto> addCertificationService(MultipartFile certificate,
                                                                                    String certificateProfileInfo,
-                                                                                   String tlsAuth) {
+                                                                                   String tlsAuth,
+                                                                                   String acmeServerDirectoryUrl,
+                                                                                   String acmeServerIpAddress) {
         var isForTlsAuth = parseBoolean(tlsAuth);
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
         fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
-        var approvedCa = new ApprovedCertificationService(fileBytes, certificateProfileInfo, isForTlsAuth);
+        var approvedCa = new ApprovedCertificationService(
+                fileBytes, certificateProfileInfo, isForTlsAuth, acmeServerDirectoryUrl, acmeServerIpAddress);
 
         CertificationService persistedApprovedCa = certificationServicesService.add(approvedCa);
         return status(CREATED).body(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
@@ -173,7 +176,9 @@ public class CertificationServicesController implements CertificationServicesApi
         CertificationService approvedCa = new CertificationService()
                 .setId(id)
                 .setCertificateProfileInfo(settings.getCertificateProfileInfo())
-                .setTlsAuth(parseBoolean(settings.getTlsAuth()));
+                .setTlsAuth(parseBoolean(settings.getTlsAuth()))
+                .setAcmeServerDirectoryUrl(settings.getAcmeServerDirectoryUrl())
+                .setAcmeServerIpAddress(settings.getAcmeServerIpAddress());
 
         return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.update(approvedCa)));
     }

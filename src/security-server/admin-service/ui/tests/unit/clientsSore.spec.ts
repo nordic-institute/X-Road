@@ -23,20 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-//
-// package.json has a section that instructs jest to
-// read this setup file.
-//
+import mockJson from './mockClients.json';
+import compareJson from './mockClientsResult.json';
+import { useClients } from '@/store/modules/clients';
+import { Client } from '@/openapi-types';
+import { createPinia, setActivePinia } from 'pinia';
 
-import Vue from 'vue';
+describe('Clients store', () => {
+  beforeEach(() => {
+    // creates a fresh pinia and make it active so it's automatically picked
+    // up by any useStore() call without having to pass it to it:
+    // `useStore(pinia)`
+    setActivePinia(createPinia());
+  });
 
-// DON'T DO THIS or you'll have problems like <v-btn :to="..."> rendering
-// to <router-link> instead of <a href="..."> on the unit tests.
-//import Vuetify from 'vuetify';
-//Vue.use(Vuetify); // NO, DON'T DO THIS.
+  it('Get clients', () => {
+    const store = useClients();
+    store.storeClients(mockJson as Client[]);
 
-// Because of the regeneratorRuntime error.
-//import 'babel-polyfill';
+    const result = store.getClients;
+    // Check that the array has correct length
+    expect(result).toHaveLength(8);
 
-//Vue.use(Vuetify);
-Vue.config.productionTip = false;
+    // Compare the array to a correct result
+    expect(result).toEqual(expect.arrayContaining(compareJson));
+  });
+});

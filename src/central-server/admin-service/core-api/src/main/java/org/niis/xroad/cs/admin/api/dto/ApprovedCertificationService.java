@@ -35,4 +35,6 @@ public class ApprovedCertificationService {
     private final byte[] certificate;
     private final String certificateProfileInfo;
     private final Boolean tlsAuth;
+    private final String acmeServerDirectoryUrl;
+    private final String acmeServerIpAddress;
 }

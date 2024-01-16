@@ -33,7 +33,6 @@ Initialises the app root component.
 */
 import { createApp } from 'vue';
 import axios from 'axios';
-import './plugins/vee-validate';
 import { createFilters } from '@/filters';
 import App from './App.vue';
 import router from './router/router';
@@ -45,7 +44,6 @@ import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createValidators } from '@/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify';
 import i18n from '@/plugins/i18n';
-import '@niis/shared-ui/dist/style.css';
 import {
   XrdButton,
   XrdCloseButton,

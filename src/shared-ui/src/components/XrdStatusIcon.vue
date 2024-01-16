@@ -91,7 +91,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { XrdIconCancel, XrdIconChecked, XrdIconCheckmark, XrdIconError, XrdIconInProgress } from "@/components/icons";
+import { XrdIconCancel, XrdIconChecked, XrdIconCheckmark, XrdIconError, XrdIconInProgress } from "./icons";
 
 /**
  * General purpose component for status icon with color

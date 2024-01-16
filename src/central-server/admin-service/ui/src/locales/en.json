@@ -131,7 +131,8 @@
     }
   },
   "customValidation": {
-    "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'"
+    "invalidUrl": "URL is invalid, examples of valid URL formats: 'http://www.example.com', 'https://www.example.com'",
+    "invalidIpAddress": "Field must contain IP address or multiple addresses separated by comma"
   },
   "error_code": {
     "certificate_profile_info_class_not_found": "Certificate profile info class was not found",
@@ -158,6 +159,7 @@
     "invalid_sort_properties": "Invalid sort parameter",
     "invalid_subsystem_id": "Invalid subsystem id",
     "invalid_url": "Invalid url",
+    "invalid_ip_address": "Invalid ip address",
     "key_generation_failed": "Signing key generation failed",
     "management_request_cannot_register_owner": "Cannot register owner as a client",
     "management_request_client_already_owner": "Client is already owner of the security server",
@@ -247,7 +249,8 @@
     "cannot_read_certificate": "Cannot read TLS certificate",
     "key_not_found": "The imported certificate does not match the TLS key",
     "certificate_already_exists": "The imported certificate already exists",
-    "certificate_import_failed": "Cannot import TLS certificate"
+    "certificate_import_failed": "Cannot import TLS certificate",
+    "invalid_address_char": "Address field contains invalid characters"
   },
   "fields": {
     "init": {
@@ -269,7 +272,8 @@
     "memberCode": "Member Code",
     "securityServerAddress": "Security server address",
     "serverCode": "Server code",
-    "securityServerCode": "Security server code"
+    "securityServerCode": "Security server code",
+    "serviceAddress": "Central Server address"
   },
   "filters": {
     "apply": "Apply",
@@ -780,6 +784,8 @@
     "certImportedSuccessfully": "Certificate imported successfully",
     "certProfileInput": "Certificate profile info",
     "certProfileInputExplanation": "Fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
+    "acmeServerDirectoryUrlExplanation": "Used by the Security Servers to do certificate related operations via the ACME Server API.",
+    "acmeServerIpAddressExplanation": "A list of ACME Server source IPs that are used to complete the ACME HTTP challenge with the Security Server. Multiple addresses are separated by a comma. This information is shown in the Security Server UI.",
     "timestampingServices": "Timestamping Services",
     "validFrom": "Valid from",
     "validTo": "Valid to",
@@ -816,7 +822,11 @@
       "settings": {
         "tlsAuth": "This CA can only be used for TLS authentication",
         "certProfile": "Certificate profile info (fully qualified class name that implements the ee.ria.xroad.common.CertificateProfileInfoProvider interface)",
-        "saveSuccess": "CA Settings successfully saved"
+        "saveSuccess": "CA Settings successfully saved",
+        "acmeCapable": "This CA can be used for ACME",
+        "acmeNotCapable": "This CA can not be used for ACME",
+        "acmeServerDirectoryUrl": "ACME server directory URL",
+        "acmeServerIpAddress": "ACME server IP address(es)"
       },
       "ocspResponders": {
         "url": "URL",
@@ -914,9 +924,7 @@
     "Positive": "numeric value should be greater that zero",
     "PositiveOrZero": "numeric value should be greater or equal to zero",
     "Size": "value does not meet length requirements",
-    "SizeField": "value does not meet length requirements",
-    "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
-    "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
+    "SizeField": "value does not meet length requirements"
   },
 
   "validation": {

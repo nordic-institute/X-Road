@@ -50,6 +50,8 @@ import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
 import org.niis.xroad.cs.admin.core.validation.CertificateProfileInfoValidator;
+import org.niis.xroad.cs.admin.core.validation.IpAddressValidator;
+import org.niis.xroad.cs.admin.core.validation.UrlValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +63,7 @@ import java.util.Optional;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
@@ -86,6 +89,8 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     private final OcspResponderConverter ocspResponderConverter;
     private final CaInfoConverter caInfoConverter;
     private final CertificateConverter certConverter;
+    private final UrlValidator urlValidator;
+    private final IpAddressValidator ipAddressValidator;
 
     @Override
     public CertificationService add(ApprovedCertificationService certificationService) {
@@ -96,6 +101,8 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         approvedCaEntity.setAuthenticationOnly(certificationService.getTlsAuth());
         X509Certificate certificate = handledCertificationChainRead(certificationService.getCertificate());
         approvedCaEntity.setName(CertUtils.getSubjectCommonName(certificate));
+        approvedCaEntity.setAcmeServerDirectoryUrl(certificationService.getAcmeServerDirectoryUrl());
+        approvedCaEntity.setAcmeServerIpAddress(certificationService.getAcmeServerIpAddress());
 
         final var caInfo = new CaInfoEntity();
         caInfo.setCert(certificationService.getCertificate());
@@ -140,6 +147,19 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
                     persistedApprovedCa.setCertProfileInfo(certProfile);
                 });
         Optional.ofNullable(approvedCa.getTlsAuth()).ifPresent(persistedApprovedCa::setAuthenticationOnly);
+        Optional.ofNullable(approvedCa.getAcmeServerDirectoryUrl())
+                .ifPresent(acmeServerDirectoryUrl -> {
+                    if (isNotBlank(acmeServerDirectoryUrl)) {
+                        urlValidator.validateUrl(acmeServerDirectoryUrl);
+                    }
+                    persistedApprovedCa.setAcmeServerDirectoryUrl(acmeServerDirectoryUrl);
+                });
+        Optional.ofNullable(approvedCa.getAcmeServerIpAddress()).ifPresent(acmeServerIpAddress -> {
+            if (isNotBlank(acmeServerIpAddress)) {
+                ipAddressValidator.validateCommaSeparatedIpAddresses(acmeServerIpAddress);
+            }
+            persistedApprovedCa.setAcmeServerIpAddress(acmeServerIpAddress);
+        });
         final ApprovedCaEntity updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
         addAuditData(updatedApprovedCa);
 

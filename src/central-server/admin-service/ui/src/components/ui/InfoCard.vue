@@ -26,7 +26,7 @@
  -->
 <template>
   <v-card class="details-card" flat>
-    <v-card-title class="card-title">{{ titleText }}</v-card-title>
+    <v-card-title data-test="info-card-title" class="card-title">{{ titleText }}</v-card-title>
     <v-divider></v-divider>
     <v-card-text class="card-content">
       <div>
@@ -42,9 +42,9 @@
           data-test="info-card-edit-button"
           @click="$emit('actionClicked')"
           >{{ actionText }}
-        </xrd-button></slot
-      ></v-card-text
-    >
+        </xrd-button>
+      </slot>
+    </v-card-text>
     <v-divider class="pb-4"></v-divider>
   </v-card>
 </template>

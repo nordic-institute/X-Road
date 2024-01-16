@@ -110,6 +110,14 @@ public class TrustServicesPageObj {
                 return $x("//div[@data-test='cert-profile-card']/div[contains(@class, 'v-card-text')]/div");
             }
 
+            public SelenideElement acmeServerDirectoryUrl() {
+                return $x("//div[@data-test='cert-acme-card']//div[@data-test='acme-server-directory-url']");
+            }
+
+            public SelenideElement acmeServerIpAddress() {
+                return $x("//div[@data-test='cert-acme-card']//div[@data-test='acme-server-ip-address']");
+            }
+
             public SelenideElement btnEditTlsAuth() {
                 return $x("//div[@data-test='tls-auth-card']//button[@data-test='info-card-edit-button']");
             }
@@ -118,12 +126,24 @@ public class TrustServicesPageObj {
                 return $x("//div[@data-test='cert-profile-card']//button[@data-test='info-card-edit-button']");
             }
 
+            public SelenideElement btnEditAcme() {
+                return $x("//div[@data-test='cert-acme-card']//button[@data-test='info-card-edit-button']");
+            }
+
             public SelenideElement checkboxTlsAuth() {
                 return $x("//div[@data-test='dialog-simple']//div[@data-test='tls-auth-checkbox']");
             }
 
             public SelenideElement inputCertProfile() {
                 return $x("//div[@data-test='dialog-simple']//div[@data-test='cert-profile-input']");
+            }
+
+            public SelenideElement inputAcmeServerDirectoryUrl() {
+                return $x("//div[@data-test='dialog-simple']//div[@data-test='acme-server-directory-url-input']");
+            }
+
+            public SelenideElement inputAcmeServerIpAddress() {
+                return $x("//div[@data-test='dialog-simple']//div[@data-test='acme-server-ip-address-input']");
             }
         }
 
@@ -138,6 +158,18 @@ public class TrustServicesPageObj {
     public class AddCaSettingsDialog {
         public SelenideElement inputCertificateProfile() {
             return $x("//div[@data-test='cert-profile-input']");
+        }
+
+        public SelenideElement checkboxAcme() {
+            return $x("//div[@data-test='acme-checkbox']");
+        }
+
+        public SelenideElement inputAcmeServerDirectoryUrl() {
+            return $x("//div[@data-test='acme-server-directory-url-input']");
+        }
+
+        public SelenideElement inputAcmeServerIpAddress() {
+            return $x("//div[@data-test='acme-server-ip-address-input']");
         }
     }
 }

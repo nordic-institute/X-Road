@@ -46,6 +46,15 @@ export default defineConfig(({ mode }) => {
         'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
       },
     },
+    test: {
+      globals: true,
+      environment: 'happy-dom',
+      server: {
+        deps: {
+          inline: ['vuetify'],
+        },
+      },
+    },
     server: {
       https: true,
       port: 8080,

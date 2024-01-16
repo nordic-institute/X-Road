@@ -13,15 +13,23 @@
             </constraint>
         </field>
         <field name="centralServerAddress">
-            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidHostAddress">
-            </constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.ValidHostAddress"/>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.OnlyAddressChars"/>
         </field>
     </bean>
 
     <bean class="CentralServerAddressDto" ignore-annotations="false">
         <field name="centralServerAddress">
-            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidHostAddress">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.ValidHostAddress">
             </constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.OnlyAddressChars"/>
+        </field>
+    </bean>
+
+    <bean class="SecurityServerAddressDto" ignore-annotations="false">
+        <field name="serverAddress">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.ValidHostAddress"/>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.OnlyAddressChars"/>
         </field>
     </bean>
 
@@ -36,7 +44,8 @@
             <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidX509Certificate"/>
         </field>
         <field name="serverAddress">
-            <constraint annotation="org.niis.xroad.cs.admin.rest.api.openapi.validator.ValidHostAddress"/>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.ValidHostAddress"/>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.OnlyAddressChars"/>
         </field>
     </bean>
 

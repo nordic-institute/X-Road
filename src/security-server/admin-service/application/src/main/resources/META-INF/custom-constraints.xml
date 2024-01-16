@@ -114,4 +114,10 @@ http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
             </constraint>
         </field>
     </bean>
+    <bean class="SecurityServerAddress" ignore-annotations="false">
+        <field name="address">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.ValidHostAddress"/>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.OnlyAddressChars"/>
+        </field>
+    </bean>
 </constraint-mappings>

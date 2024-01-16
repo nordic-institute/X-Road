@@ -36,11 +36,7 @@
       :title-text="$t('trustServices.trustService.settings.tlsAuth')"
       :action-text="$t('action.edit')"
       :show-action="allowEditSettings"
-      :info-text="
-        certificationServiceStore.currentCertificationService.tls_auth
-          ? 'True'
-          : 'False'
-      "
+      :info-text="currentCertificationService?.tls_auth ? 'True' : 'False'"
       data-test="tls-auth-card"
       @action-clicked="showEditTlsAuthDialog = true"
     />
@@ -50,33 +46,55 @@
       :title-text="$t('trustServices.trustService.settings.certProfile')"
       :action-text="$t('action.edit')"
       :show-action="allowEditSettings"
-      :info-text="
-        certificationServiceStore.currentCertificationService
-          .certificate_profile_info || ''
-      "
+      :info-text="currentCertificationService?.certificate_profile_info || ''"
       data-test="cert-profile-card"
       @action-clicked="showEditCertProfileDialog = true"
     />
 
-    <!-- Edit TLS auth dialog -->
+    <info-card
+      class="mb-6"
+      :title-text="acmeCardTitle"
+      :action-text="$t('action.edit')"
+      :show-action="allowEditSettings"
+      data-test="cert-acme-card"
+      @action-clicked="showEditAcmeServerDialog = true"
+    >
+      <v-row>
+        <v-col cols="6">
+          {{ $t('trustServices.trustService.settings.acmeServerDirectoryUrl') }}
+        </v-col>
+        <v-col cols="6" data-test="acme-server-directory-url">
+          {{ currentCertificationService?.acme_server_directory_url || '-' }}
+        </v-col>
+        <v-col cols="6">
+          {{ $t('trustServices.trustService.settings.acmeServerIpAddress') }}
+        </v-col>
+        <v-col cols="6" data-test="acme-server-ip-address">
+          {{ currentCertificationService?.acme_server_ip_address || '-' }}
+        </v-col>
+      </v-row>
+    </info-card>
+
     <EditTlsAuthDialog
       v-if="showEditTlsAuthDialog"
-      :certification-service="
-        certificationServiceStore.currentCertificationService
-      "
+      :certification-service="currentCertificationService"
       @cancel="hideEditTlsAuthDialog"
       @tls-auth-changed="hideEditTlsAuthDialog"
     ></EditTlsAuthDialog>
 
-    <!-- Edit cert profile dialog -->
     <EditCertProfileDialog
       v-if="showEditCertProfileDialog"
-      :certification-service="
-        certificationServiceStore.currentCertificationService
-      "
+      :certification-service="currentCertificationService"
       @cancel="hideEditCertProfileDialog"
       @tls-auth-changed="hideEditCertProfileDialog"
     ></EditCertProfileDialog>
+
+    <EditAcmeServerDialog
+      v-if="showEditAcmeServerDialog"
+      :certification-service="currentCertificationService"
+      @cancel="hideEditAcmeServerDialog"
+      @tls-auth-changed="hideEditAcmeServerDialog"
+    ></EditAcmeServerDialog>
   </main>
 </template>
 
@@ -86,31 +104,39 @@
  */
 import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import { mapState, mapStores } from 'pinia';
+import { mapState } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { Permissions } from '@/global';
 import { useUser } from '@/store/modules/user';
 import EditCertProfileDialog from '@/components/certificationServices/EditCertProfileDialog.vue';
 import EditTlsAuthDialog from '@/components/certificationServices/EditTlsAuthDialog.vue';
+import EditAcmeServerDialog from '@/components/certificationServices/EditAcmeServerDialog.vue';
 
 export default defineComponent({
   name: 'CertificationServiceSettings',
   components: {
     EditTlsAuthDialog,
     EditCertProfileDialog,
+    EditAcmeServerDialog,
     InfoCard,
   },
   data() {
     return {
       showEditTlsAuthDialog: false,
       showEditCertProfileDialog: false,
+      showEditAcmeServerDialog: false,
     };
   },
   computed: {
-    ...mapStores(useCertificationService),
     ...mapState(useUser, ['hasPermission']),
+    ...mapState(useCertificationService, ['currentCertificationService']),
     allowEditSettings(): boolean {
       return this.hasPermission(Permissions.EDIT_APPROVED_CA);
+    },
+    acmeCardTitle() {
+      return this.currentCertificationService?.acme_server_directory_url
+        ? this.$t('trustServices.trustService.settings.acmeCapable')
+        : this.$t('trustServices.trustService.settings.acmeNotCapable');
     },
   },
   methods: {
@@ -119,6 +145,9 @@ export default defineComponent({
     },
     hideEditCertProfileDialog() {
       this.showEditCertProfileDialog = false;
+    },
+    hideEditAcmeServerDialog() {
+      this.showEditAcmeServerDialog = false;
     },
   },
 });

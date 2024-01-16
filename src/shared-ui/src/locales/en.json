@@ -59,5 +59,14 @@
       },
       "success": "Backup {file} uploaded successfully"
     }
+  },
+  "validationError": {
+    "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
+    "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
+  },
+  "validation": {
+    "messages": {
+      "address" : "The {field} field contains invalid characters"
+    }
   }
 }

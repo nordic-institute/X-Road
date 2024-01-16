@@ -61,9 +61,7 @@ export default defineComponent({
   setup() {
     const { meta, errors, value, resetField } = useField(
       'dns',
-      {
-        required: true,
-      },
+      'required|address',
       { initialValue: '' },
     );
     return { meta, errors, address: value, resetField };

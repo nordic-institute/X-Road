@@ -1,0 +1,61 @@
+{
+  "name": "@niis/workspace-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev-cs": "pnpm run --filter xroad-centralserver-admin-ui dev",
+    "test-cs": "pnpm run --filter xroad-centralserver-admin-ui test",
+    "dev-ss": "pnpm run --filter xroad-securityserver-admin-ui dev",
+    "test-ss": "pnpm run --filter xroad-securityserver-admin-ui test",
+    "build-workspace": "pnpm -r run build",
+    "prepReportDirs": "mkdirp ./build && mkdirp ./build/reports",
+    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^6 --config shared-ui/audit-ci-shared.json >build/reports/audit-ci.txt"
+  },
+  "devDependencies": {
+    "@intlify/eslint-plugin-vue-i18n": "^2.0.0",
+    "@pinia/testing": "^0.1.3",
+    "@rushstack/eslint-patch": "^1.3.3",
+    "@tsconfig/node18": "^2.0.1",
+    "@types/node": "^18.16.17",
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
+    "@vitejs/plugin-vue": "^4.3.4",
+    "@vitejs/plugin-vue-jsx": "^3.0.2",
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "@vue/eslint-config-typescript": "^11.0.3",
+    "@vue/test-utils": "^2.4.2",
+    "@vue/tsconfig": "^0.4.0",
+    "eslint": "^8.48.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-vue": "^9.17.0",
+    "eslint-plugin-vuetify": "^2.0.5",
+    "happy-dom": "^12.10.3",
+    "license-check-and-add": "~4.0.5",
+    "mkdirp": "^3.0.1",
+    "openapi-typescript-codegen": "^0.25.0",
+    "path": "^0.12.7",
+    "prettier": "^3.0.3",
+    "sass": "^1.66.1",
+    "typescript": "~5.1.6",
+    "vite": "^4.4.12",
+    "vite-plugin-dts": "^3.5.3",
+    "vite-plugin-vuetify": "^1.0.2",
+    "vitest": "^0.34.6",
+    "vue-eslint-parser": "^9.3.1",
+    "vue-i18n": "^9.4.1",
+    "vue-tsc": "^1.8.8",
+    "wait-for-expect": "^3.0.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "semver": "^7.5.3"
+    }
+  },
+  "packageManager": "pnpm@8.13.1",
+  "engines": {
+    "npm": "use-pnpm",
+    "yarn": "use-pnpm",
+    "node": ">=18 <=20",
+    "pnpm": ">=8"
+  }
+}

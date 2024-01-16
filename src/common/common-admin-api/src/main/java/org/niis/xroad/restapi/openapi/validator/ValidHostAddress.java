@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,31 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/**
- * This is a hack to suppress the Vuetify Multiple instances of Vue detected warning.
- * See https://github.com/vuetifyjs/vuetify/issues/4068#issuecomment-446988490 for more information.
- */
-export class SilenceWarnHack {
-  /* tslint:disable */
-  public originalLogError: any;
+package org.niis.xroad.restapi.openapi.validator;
 
-  constructor() {
-    this.originalLogError = console.error;
-  }
-  public enable(): void {
-    console.error = (...args: any) => {
-      if (
-        args[0].includes('[Vuetify]') &&
-        args[0].includes('https://github.com/vuetifyjs/vuetify/issues/4068')
-      ) {
-        return;
-      }
-      this.originalLogError(...args);
-    };
-  }
-  public disable(): void {
-    console.error = this.originalLogError;
-  }
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 
-  /* tslint:enable */
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+@Documented
+@Target({METHOD, FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = HostAddressValidator.class)
+public @interface ValidHostAddress {
+    String message() default "valid internet domain name or IP address is required. Without control characters.";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
 }

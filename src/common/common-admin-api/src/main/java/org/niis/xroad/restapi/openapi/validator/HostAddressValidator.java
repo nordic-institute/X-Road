@@ -24,26 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.openapi.validator;
+package org.niis.xroad.restapi.openapi.validator;
 
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
+import com.google.common.net.InetAddresses;
+import com.google.common.net.InternetDomainName;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+public class HostAddressValidator implements ConstraintValidator<ValidHostAddress, String> {
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-@Documented
-@Target({METHOD, FIELD, PARAMETER})
-@Retention(RUNTIME)
-@Constraint(validatedBy = HostAddressValidator.class)
-public @interface ValidHostAddress {
-    String message() default "valid internet domain name or IP address is required. Without control characters.";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
+    @SuppressWarnings("UnstableApiUsage")
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        return  null == value
+                || InternetDomainName.isValid(value)
+                || InetAddresses.isInetAddress(value);
+    }
 }
