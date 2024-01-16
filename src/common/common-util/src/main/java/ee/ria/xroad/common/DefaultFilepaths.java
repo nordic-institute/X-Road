@@ -69,19 +69,13 @@ public final class DefaultFilepaths {
 
     static final String DISTRIBUTED_GLOBALCONF_PATH = "/var/lib/xroad/public";
 
-    static final String SECURE_LOG_FILE = SECURE_LOG_PATH + "slog";
-
     static final String TEMP_FILES_PATH = "/var/tmp/xroad/";
-
-    static final String MONITOR_AGENT_CONFIGURATION_FILE = "monitor-agent.ini";
 
     static final String JETTY_SERVERPROXY_CONFIGURATION_FILE = "jetty/serverproxy.xml";
 
     static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE = "jetty/clientproxy.xml";
 
     static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE = "jetty/ocsp-responder.xml";
-
-    static final String OP_MONITOR_DAEMON_CONFIGURATION_FILE = "op-monitor-daemon.ini";
 
     private static FileAttribute<Set<PosixFilePermission>> permissions =
             PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, GROUP_WRITE));
