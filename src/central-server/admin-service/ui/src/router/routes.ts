@@ -143,6 +143,7 @@ const routes: XrdRoute[] = [
                 props: true,
               },
               {
+                name: RouteName.GlobalGroup,
                 path: 'globalgroup/:groupCode',
                 component: GlobalGroup,
                 props: true,
