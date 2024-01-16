@@ -196,13 +196,13 @@ The table below lists the required connections between different components. Ple
 
 The table below lists the open ports for Central Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
 
-| **Component**       | **Ports** | **Protocol** | **Note**                                        |
-|---------------------|-----------|--------------|-------------------------------------------------|
-| Central Server      | 8084      | tcp          | For incoming requests from Registration Service |
-| Central Server      | 8085      | tcp          | For incoming requests from Management Service   |
-| PostgreSQL database | 5432      | tcp          | Default PostgreSQL database port                |
-| Signer              | 5560      | tcp          | Signer gRPC port                                |
-| Audit log           | 514       | udp          |                                                 |
+| **Component**        | **Ports** | **Protocol** | **Note**                                      |
+|----------------------|-----------|--------------|-----------------------------------------------|
+| Registration Service | 8084      | tcp          | For incoming requests to Registration Service |
+| Management Service   | 8085      | tcp          | For incoming requests to Management Service   |
+| PostgreSQL database  | 5432      | tcp          | Default PostgreSQL database port              |
+| Signer               | 5560      | tcp          | Signer gRPC port                              |
+| Audit log            | 514       | udp          |                                               |
 
 ### 2.3 Requirements to the Central Server
 
