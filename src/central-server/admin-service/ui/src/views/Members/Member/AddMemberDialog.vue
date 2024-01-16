@@ -47,13 +47,13 @@
       <v-select
         v-model="memberClass"
         v-bind="memberClassAttrs"
-        :items="memberClasses"
-        :label="$t('global.memberClass')"
         item-title="code"
         item-value="code"
         variant="outlined"
         data-test="add-member-class-input"
         class="space-out-bottom"
+        :items="memberClasses"
+        :label="$t('global.memberClass')"
       />
       <v-text-field
         v-model="memberCode"

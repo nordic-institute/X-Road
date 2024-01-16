@@ -64,8 +64,8 @@
             <v-select
               v-model="instanceModel"
               :items="instances"
-              :label="$t('filters.groupMembers.instance')"
               variant="outlined"
+              :label="$t('filters.groupMembers.instance')"
             />
           </v-col>
 
@@ -75,8 +75,8 @@
             </div>
             <v-select
               v-model="memberClassModel"
-              :items="memberClasses"
               variant="outlined"
+              :items="memberClasses"
               :label="$t('filters.groupMembers.class')"
             />
           </v-col>

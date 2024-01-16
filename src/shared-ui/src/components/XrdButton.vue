@@ -41,7 +41,7 @@
     :type="submit ? 'submit' : 'button'"
     @click="click"
   >
-    <slot>T</slot>
+    <slot />
   </v-btn>
 </template>
 
@@ -49,7 +49,6 @@
  * Wrapper for vuetify button with x-road look
  * */
 import { computed, ref, onMounted } from "vue";
-import { VBtn } from 'vuetify/components';
 
 const props = defineProps({
   // Button color

@@ -34,6 +34,7 @@ import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
@@ -130,7 +131,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     @Step("User is able change the URL to new URL {}")
     public void userIsAbleEditTheUrl(String newUrl) {
         commonPageObj.dialog.btnCancel().should(enabled);
-        commonPageObj.dialog.btnSave().should(enabled);
+        commonPageObj.dialog.btnSave().should(disabled);
 
         vTextField(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl())
                 .clear();
