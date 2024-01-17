@@ -176,12 +176,10 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import helpImg from '@/assets/api_keys.png';
 
 export default defineComponent({
   components: {
-    VDataTable,
     HelpButton,
   },
   data() {

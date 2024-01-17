@@ -30,7 +30,7 @@
     data-test="group-members-filter-dialog"
     save-button-text="filters.apply"
     width="824"
-    z-index="1999"
+    submittable
     @save="apply"
     @cancel="cancel"
   >
@@ -64,8 +64,8 @@
             <v-select
               v-model="instanceModel"
               :items="instances"
-              :label="$t('filters.groupMembers.instance')"
               variant="outlined"
+              :label="$t('filters.groupMembers.instance')"
             />
           </v-col>
 
@@ -75,8 +75,8 @@
             </div>
             <v-select
               v-model="memberClassModel"
-              :items="memberClasses"
               variant="outlined"
+              :items="memberClasses"
               :label="$t('filters.groupMembers.class')"
             />
           </v-col>
@@ -104,10 +104,10 @@
             </div>
             <v-autocomplete
               v-model="subsystemsModel"
+              variant="underlined"
               clearable
               multiple
               :items="subsystems"
-              variant="underlined"
             />
           </v-col>
         </v-row>
@@ -136,7 +136,6 @@ const initialState = () => {
 
 export default defineComponent({
   name: 'GroupMembersFilterDialog',
-  components: { },
   props: {
     groupCode: {
       type: String,
@@ -157,10 +156,10 @@ export default defineComponent({
   data() {
     return {
       opened: true,
-      instances: [] as string[] | null | undefined,
-      memberClasses: [] as string[] | null | undefined,
-      subsystems: [] as string[] | null | undefined,
-      codes: [] as string[] | null | undefined,
+      instances: [] as string[] | undefined,
+      memberClasses: [] as string[] | undefined,
+      subsystems: [] as string[] | undefined,
+      codes: [] as string[] | undefined,
       ...initialState(),
     };
   },
@@ -170,10 +169,10 @@ export default defineComponent({
   },
   created() {
     this.globalGroupStore.getMembersFilterModel(this.groupCode).then((resp) => {
-      this.instances = resp.instances;
-      this.memberClasses = resp.member_classes;
-      this.subsystems = resp.subsystems;
-      this.codes = resp.codes;
+      this.instances = resp.instances || undefined;
+      this.memberClasses = resp.member_classes || undefined;
+      this.subsystems = resp.subsystems || undefined;
+      this.codes = resp.codes || undefined;
     });
   },
   methods: {

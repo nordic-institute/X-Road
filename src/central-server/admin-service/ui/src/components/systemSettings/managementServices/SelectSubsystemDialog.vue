@@ -28,16 +28,15 @@
   <xrd-simple-dialog
     width="824"
     scrollable
-    persistent
     title="systemSettings.selectSubsystem.title"
     save-button-text="action.select"
-    z-index="1999"
+    submittable
     :disable-save="!selected || !changed"
     @cancel="cancel"
     @save="updateServiceProvider"
   >
     <template #content>
-      <div style="height: 500px">
+      <div>
         <v-text-field
           v-model="search"
           :label="$t('systemSettings.selectSubsystem.search')"
@@ -57,8 +56,10 @@
           data-test="subsystems-table"
           class="elevation-0 data-table xrd-table"
           item-value="client_id.encoded_id"
-          show-select
+          max-height="420"
           select-strategy="single"
+          fixed-header
+          show-select
           :loading="loading"
           :headers="headers"
           :items="selectableSubsystems"
@@ -82,9 +83,8 @@ import { mapActions, mapStores } from 'pinia';
 import { useClient } from '@/store/modules/clients';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { DataQuery, DataTableHeader, Event } from '@/ui-types';
+import { DataQuery, DataTableHeader } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { useManagementServices } from '@/store/modules/management-services';
 
 // To provide the Vue instance to debounce
@@ -92,14 +92,13 @@ import { useManagementServices } from '@/store/modules/management-services';
 let that: any;
 
 export default defineComponent({
-  components: { VDataTableServer },
   props: {
     currentSubsystemId: {
       type: String,
       required: true,
     },
   },
-  emits: [Event.Cancel, Event.Select],
+  emits: ['cancel', 'select'],
   data() {
     const itemsPerPageOptions = defaultItemsPerPageOptions(50);
     return {
@@ -198,6 +197,7 @@ export default defineComponent({
           this.loading = false;
         });
     },
+    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;
@@ -206,7 +206,7 @@ export default defineComponent({
       this.fetchClients();
     },
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     updateServiceProvider(): void {
       this.loading = true;
@@ -218,7 +218,7 @@ export default defineComponent({
           this.showSuccess(
             this.$t('systemSettings.serviceProvider.changedSuccess'),
           );
-          this.$emit(Event.Select, this.selectedSubsystems);
+          this.$emit('select', this.selectedSubsystems);
         })
         .catch((error) => {
           this.showError(error);

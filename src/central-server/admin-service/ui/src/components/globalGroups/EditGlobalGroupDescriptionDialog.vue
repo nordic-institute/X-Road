@@ -26,85 +26,70 @@
  -->
 <template>
   <xrd-simple-dialog
-    :loading="loading"
     cancel-button-text="action.cancel"
     save-button-text="action.save"
     title="globalGroup.editDescription"
+    submittable
+    :loading="loading"
     :disable-save="!meta.valid || !meta.dirty"
     @save="saveDescription"
-    @cancel="cancelEdit"
+    @cancel="$emit('cancel')"
   >
     <template #content>
       <v-text-field
-        v-bind="newDescription"
+        v-model="description"
+        v-bind="descriptionAttrs"
         variant="outlined"
-        :label="$t('globalGroup.description')"
-        :error-messages="errors.description"
+        autofocus
         persistent-hint
+        :label="$t('globalGroup.description')"
       />
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 import { useForm } from 'vee-validate';
-import { Event } from '@/ui-types';
-import { mapActions, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
-import { useNotifications } from '@/store/modules/notifications';
+import { useBasicForm } from '@/util/composables';
 
-export default defineComponent({
-  props: {
-    groupCode: {
-      type: String,
-      required: true,
-    },
-    groupDescription: {
-      type: String,
-      required: true,
-    },
+const props = defineProps({
+  groupCode: {
+    type: String,
+    required: true,
   },
-  emits: [Event.Cancel, Event.Edit],
-  setup(props) {
-    const { values, errors, meta, defineComponentBinds } = useForm({
-      validationSchema: { description: 'required' },
-      initialValues: { description: props.groupDescription },
-    });
-    const newDescription = defineComponentBinds('description');
-    return { values, errors, meta, newDescription };
+  groupDescription: {
+    type: String,
+    required: true,
   },
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useGlobalGroups),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancelEdit(): void {
-      this.$emit(Event.Cancel);
-    },
-    saveDescription(): void {
-      this.loading = true;
-      this.globalGroupStore
-        .editGroupDescription(this.groupCode, {
-          description: this.values.description,
-        })
-        .then((resp) => {
-          this.showSuccess(this.$t('globalGroup.descriptionSaved'));
-          this.$emit(Event.Edit, resp.data);
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-  },
+});
+
+const emit = defineEmits(['save', 'cancel']);
+
+const { meta, defineField, handleSubmit } = useForm({
+  validationSchema: { description: 'required' },
+  initialValues: { description: props.groupDescription },
+});
+const [description, descriptionAttrs] = defineField('description', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const { editGroupDescription } = useGlobalGroups();
+const { loading, showSuccess, t, showError } = useBasicForm();
+
+const saveDescription = handleSubmit((values) => {
+  loading.value = true;
+  editGroupDescription(props.groupCode, {
+    description: values.description,
+  })
+    .then((resp) => {
+      showSuccess(t('globalGroup.descriptionSaved'));
+      emit('save', resp.data);
+    })
+    .catch((error) => {
+      showError(error);
+    })
+    .finally(() => (loading.value = false));
 });
 </script>
 

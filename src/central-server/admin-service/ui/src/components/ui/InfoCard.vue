@@ -26,7 +26,9 @@
  -->
 <template>
   <v-card class="details-card" flat>
-    <v-card-title data-test="info-card-title" class="card-title">{{ titleText }}</v-card-title>
+    <v-card-title data-test="info-card-title" class="card-title">{{
+      titleText
+    }}</v-card-title>
     <v-divider></v-divider>
     <v-card-text class="card-content">
       <div>

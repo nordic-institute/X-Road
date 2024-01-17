@@ -29,84 +29,72 @@
   <xrd-simple-dialog
     title="tokens.loginDialog.title"
     save-button-text="tokens.logIn"
+    submittable
     :disable-save="!meta.valid"
     :loading="loading"
     @save="login"
-    @cancel="cancel"
+    @cancel="$emit('cancel')"
   >
     <template #content>
       <v-text-field
-        v-bind="tokenPin"
-        :label="$t('tokens.pin')"
-        :error-messages="errors.tokenPin"
+        v-model="tokenPin"
+        v-bind="tokenPinAttrs"
         type="password"
         name="tokenPin"
         data-test="token-pin-input"
         variant="outlined"
         autofocus
+        :label="$t('tokens.pin')"
       />
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+<script lang="ts" setup>
+import { PropType } from 'vue';
 import { useToken } from '@/store/modules/tokens';
 import { Token } from '@/openapi-types';
 import { useForm } from 'vee-validate';
+import { useBasicForm } from '@/util/composables';
 
-export default defineComponent({
-  props: {
-    token: {
-      type: Object as PropType<Token>,
-      required: true,
-    },
+const props = defineProps({
+  token: {
+    type: Object as PropType<Token>,
+    required: true,
   },
-  emits: ['token-login', 'cancel'],
-  setup() {
-    const { errors, values, meta, defineComponentBinds, setFieldError } =
-      useForm({ validationSchema: { tokenPin: 'required' } });
-    const tokenPin = defineComponentBinds('tokenPin');
-    return { errors, values, meta, tokenPin, setFieldError };
-  },
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useToken, ['loginToken']),
-    login(): void {
-      this.loading = true;
-      this.loginToken(this.token.id, { password: this.values.tokenPin })
-        .then(() => {
-          this.showSuccess(this.$t('tokens.loginDialog.success'));
-          this.$emit('token-login');
-        })
-        .catch((error) => {
-          const metadata: string[] = error.response?.data?.error?.metadata;
-          if (metadata && metadata.length > 0) {
-            this.setFieldError(
-              'tokenPin',
-              metadata.map(
-                (code) => this.$t('tokens.errors.' + code) as string,
-              ),
-            );
-          }
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-    cancel(): void {
-      this.loading = false;
-      this.$emit('cancel');
-    },
-  },
+});
+
+const emit = defineEmits(['token-login', 'cancel']);
+
+const { meta, defineField, setFieldError, handleSubmit } = useForm({
+  validationSchema: { tokenPin: 'required' },
+});
+
+const [tokenPin, tokenPinAttrs] = defineField('tokenPin', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const { loginToken } = useToken();
+const { showSuccess, showError, t, loading } = useBasicForm();
+
+const login = handleSubmit((values) => {
+  loading.value = true;
+  loginToken(props.token.id, { password: values.tokenPin })
+    .then(() => {
+      showSuccess(t('tokens.loginDialog.success'));
+      emit('token-login');
+    })
+    .catch((error) => {
+      const metadata: string[] = error.response?.data?.error?.metadata;
+      if (metadata && metadata.length > 0) {
+        setFieldError(
+          'tokenPin',
+          metadata.map((code) => t('tokens.errors.' + code) as string),
+        );
+      }
+      showError(error);
+    })
+    .finally(() => (loading.value = false));
 });
 </script>
 

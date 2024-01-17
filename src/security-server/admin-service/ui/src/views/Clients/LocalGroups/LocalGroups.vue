@@ -104,12 +104,10 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 
 export default defineComponent({
   components: {
     NewGroupDialog,
-    VDataTable,
   },
   props: {
     id: {

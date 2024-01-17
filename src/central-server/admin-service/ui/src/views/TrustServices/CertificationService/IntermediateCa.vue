@@ -28,12 +28,7 @@
   <div id="intermediate-ca-view">
     <div class="table-toolbar mt-0 pl-0">
       <div class="xrd-view-title">
-        {{
-          intermediateCasServiceStore.currentCs.name +
-          ' / ' +
-          intermediateCasServiceStore.currentSelectedIntermediateCa
-            .ca_certificate.subject_common_name
-        }}
+        {{ title }}
       </div>
       <xrd-button
         outlined
@@ -96,6 +91,14 @@ export default defineComponent({
           permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
         },
       ];
+    },
+    title(): string {
+      return (
+        this.intermediateCasServiceStore.currentCs?.name +
+        ' / ' +
+        this.intermediateCasServiceStore.currentSelectedIntermediateCa
+          ?.ca_certificate.subject_common_name
+      );
     },
   },
   created() {

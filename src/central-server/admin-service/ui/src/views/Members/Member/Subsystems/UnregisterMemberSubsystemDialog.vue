@@ -28,6 +28,7 @@
   <xrd-confirm-dialog
     :loading="loading"
     title="members.member.subsystems.deleteSubsystem"
+    focus-on-accept
     @cancel="cancel"
     @accept="unregisterSubsystem"
   >

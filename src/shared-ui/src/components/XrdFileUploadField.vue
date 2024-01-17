@@ -25,36 +25,55 @@
    THE SOFTWARE.
  -->
 <template>
-  <main id="management-service-certificate-details" class="mt-8">
-    <certificate-details
-      v-if="certificateDetails"
-      :certificate-details="certificateDetails"
+  <XrdFileUpload
+    v-slot="{ upload, filedrop,errors }"
+    :accepts="accept"
+    @file-changed="onFileSelected"
+  >
+    <v-text-field
+      variant="outlined"
+      append-inner-icon="icon-Upload"
+      :model-value="fileTitle"
+      :label="$t(labelKey)"
+      :autofocus="autofocus"
+
+      @click="upload"
+      @keyup.space="upload"
+      @drop.stop.prevent="filedrop" @dragenter.prevent @dragover.prevent
     />
-  </main>
+  </XrdFileUpload>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapStores } from 'pinia';
-import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
-import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
-import { useManagementServices } from '@/store/modules/management-services';
+<script lang="ts" setup>
+import XrdFileUpload from './XrdFileUpload.vue';
+import { PropType, computed } from 'vue';
 
-export default defineComponent({
-  name: 'ManagementServiceCertificate',
-  components: { CertificateDetails },
-  data() {
-    return {
-      certificateDetails: null as CertificateDetailsType | null,
-    };
+const props = defineProps({
+  labelKey: {
+    type: String,
+    required: true,
   },
-  computed: {
-    ...mapStores(useManagementServices),
+  autofocus: {
+    type: Boolean,
+    default: false,
   },
-  created() {
-    this.managementServicesStore
-      .getCertificate()
-      .then((resp) => (this.certificateDetails = resp.data));
+  accept: {
+    type: String,
+    required: true,
+  },
+  file: {
+    type: Object as PropType<File>,
+    default: null,
   },
 });
+
+const emit = defineEmits<{ (e: 'update:file', file: File): void }>();
+
+const fileTitle = computed(() => props?.file?.name || '');
+
+function onFileSelected(result: { file: File }) {
+  emit('update:file', result.file);
+}
 </script>
+
+<style lang="scss" scoped></style>

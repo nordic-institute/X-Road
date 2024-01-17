@@ -26,7 +26,10 @@
  -->
 <template>
   <main id="certification-service-certificate-details" class="mt-8">
-    <CertificateDetails :certificate-details="certificateDetails" />
+    <CertificateDetails
+      v-if="certificateDetails"
+      :certificate-details="certificateDetails"
+    />
   </main>
 </template>
 

@@ -26,6 +26,11 @@
  -->
 <template>
   <v-btn
+    ref="button"
+    height="40"
+    class="large-button"
+    rounded
+    :class="{ gradient: showGradient }"
     :variant="variant"
     :disabled="disabled"
     :min-width="minWidth"
@@ -33,93 +38,91 @@
     :block="block"
     :large="large"
     :color="color"
-    height="40"
-    rounded
-    class="large-button"
-    :class="{ gradient: showGradient }"
+    :type="submit ? 'submit' : 'button'"
     @click="click"
   >
-    <slot>{{ text }}</slot>
+    <slot />
   </v-btn>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-/**
+<script lang="ts" setup>/**
  * Wrapper for vuetify button with x-road look
  * */
-export default defineComponent({
-  props: {
-    // Button color
-    color: {
-      type: String,
-      default: 'primary',
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    // Block buttons extend the full available width
-    block: {
-      type: Boolean,
-      default: false,
-    },
-    large: {
-      type: Boolean,
-      default: false,
-    },
-    minWidth: {
-      type: [Number, String],
-      default: 90,
-    },
-    gradient: {
-      type: Boolean,
-      default: false,
-    },
-    outlined: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    text: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-  },
-  emits: ['click'],
-  computed: {
-    showGradient() {
-      if (this.disabled) {
-        return false;
-      }
-      return this.gradient;
-    },
-    variant() {
-      if (this.outlined) {
-        return 'outlined';
-      }
-      if (this.text) {
-        return 'text';
-      }
-      return 'flat';
-    },
-  },
+import { computed, ref, onMounted } from "vue";
 
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
-    }
+const props = defineProps({
+  // Button color
+  color: {
+    type: String,
+    default: 'primary',
+  },
+  // Set button disabled state
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  // Show loading spinner
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  // Block buttons extend the full available width
+  block: {
+    type: Boolean,
+    default: false,
+  },
+  large: {
+    type: Boolean,
+    default: false,
+  },
+  minWidth: {
+    type: [Number, String],
+    default: 90,
+  },
+  gradient: {
+    type: Boolean,
+    default: false,
+  },
+  outlined: {
+    type: Boolean,
+    default: false,
+  },
+  text: {
+    type: Boolean,
+    default: false,
+  },
+  submit: {
+    type: Boolean,
+    default: false,
+  },
+  autofocus: {
+    type: Boolean,
+    default: false,
+  },
+});
+const emits = defineEmits(['click']);
+const showGradient = computed(() => props.disabled ? false : props.gradient);
+const variant = computed(() => props.outlined ? 'outlined' : (props.text ? 'text' : 'flat'));
+
+function click(event: MouseEvent): void {
+  emits('click', event);
+}
+
+const button = ref<VBtn>()
+
+function focus() {
+  if (button.value && button.value.$el) {
+    (button.value.$el as HTMLButtonElement).focus();
+  }
+}
+
+onMounted(() => {
+  if (props.autofocus) {
+    focus();
   }
 });
 
+defineExpose({ focus });
 </script>
 
 <style lang="scss" scoped>

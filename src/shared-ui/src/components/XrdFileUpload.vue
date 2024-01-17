@@ -31,59 +31,96 @@
       ref="fileInput"
       type="file"
       :accept="accepts"
-      @change="onUploadFileChanged"
+      @change="onFileInputChange"
     />
-    <slot :upload="upload" />
+    <slot :upload="upload" :filedrop="onFileDrop" :errors="errors" />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { ref, computed } from 'vue';
 import { FileUploadResult } from '../types';
 
-type FileUploadEvent = Event | DragEvent;
-
 // https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
-const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
-  return (event as DragEvent).dataTransfer !== undefined;
-};
 
-export default defineComponent({
-  props: {
-    accepts: {
-      type: String,
-      required: true,
-    },
-  },
-  emits: ['file-changed'],
-  methods: {
-    upload() {
-      (this.$refs.fileInput as HTMLInputElement).click();
-    },
-    onUploadFileChanged(event: FileUploadEvent) {
-      const files = isDragEvent(event)
-        ? event.dataTransfer?.files
-        : (event.target as HTMLInputElement).files;
-      if (!files) {
-        return; // No files uploaded
-      }
-      const file = files[0];
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (!e?.target?.result || !files) {
-          return;
-        }
-        this.$emit('file-changed', {
-          buffer: e.target.result as ArrayBuffer,
-          file: file,
-        } as FileUploadResult);
-      };
-      reader.readAsArrayBuffer(file);
-      (this.$refs.fileInput as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
-    },
+const props = defineProps({
+  accepts: {
+    type: String,
+    required: true,
   },
 });
+
+const emit = defineEmits<{
+  (e: 'file-changed', value: FileUploadResult): void
+}>();
+const fileInput = ref(null);
+const errors = ref([] as string[]);
+
+function _asRegexPart(fragment: string): string {
+  if (fragment.includes('/')) {
+    return fragment.replace('*', '\\w*')
+  } else if (fragment.startsWith('.')) {
+    return '.+\\' + fragment + '$';
+  }
+  return '';
+}
+
+const typesRg = computed(() => new RegExp(props.accepts
+  .split(',')
+  .map(item => _asRegexPart(item.trim()))
+  .filter(item => item)
+  .join('|')));
+
+function upload() {
+  if (fileInput.value) {
+    (fileInput.value as HTMLInputElement).click();
+  }
+}
+
+function _handleFile(file: File) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    if (!e?.target?.result) {
+      return;
+    }
+    emit('file-changed', {
+      buffer: e.target.result as ArrayBuffer,
+      file,
+    });
+  };
+  reader.readAsArrayBuffer(file);
+  if (fileInput.value) {
+    (fileInput.value as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
+  }
+}
+
+function onFileDrop(event: DragEvent) {
+  errors.value = [];
+
+  if (!event.dataTransfer?.files.length) {
+    return;
+  }
+
+  const files = [...event.dataTransfer.files]
+    .filter(item => typesRg.value.test(item.type) || typesRg.value.test(item.name));
+
+  if (!files.length) {
+    errors.value.push('not-allowed-type');
+    return;
+  }
+
+  _handleFile(files[0]);
+}
+
+function onFileInputChange(event: Event) {
+  errors.value = [];
+
+  const files = (event.target as HTMLInputElement).files;
+  if (!files) {
+    return; // No files uploaded
+  }
+  _handleFile(files[0])
+}
 </script>
 
 <style scoped lang="scss">

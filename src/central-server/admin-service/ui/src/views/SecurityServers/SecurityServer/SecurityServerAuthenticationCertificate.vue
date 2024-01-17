@@ -28,6 +28,7 @@
 <template>
   <main id="security-server-authentication-certificate" class="mt-8">
     <CertificateDetails
+      v-if="securityServerAuthenticationCertificate"
       :certificate-details="securityServerAuthenticationCertificate"
     />
   </main>

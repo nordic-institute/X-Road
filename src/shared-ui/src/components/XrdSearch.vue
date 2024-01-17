@@ -26,7 +26,7 @@
  -->
 <template>
   <v-text-field
-    v-model="value"
+    :model-value="modelValue"
     data-test="search-input"
     class="expanding-search"
     single-line
@@ -64,15 +64,14 @@ export default defineComponent({
   data() {
     return {
       hide: true,
-      value: this.modelValue
     };
   },
   computed: {
     closed() {
-      return this.hide && !this.value;
-    }
+      return this.hide && !this.modelValue;
+    },
   },
-  methods: {}
+  methods: {},
 });
 </script>
 
@@ -84,7 +83,7 @@ export default defineComponent({
   min-width: 220px;
   max-width: 220px;
 
-  :deep(.v-field__input){
+  :deep(.v-field__input) {
     margin-bottom: 0;
   }
 }

@@ -28,6 +28,7 @@ import compareJson from './mockClientsResult.json';
 import { useClients } from '@/store/modules/clients';
 import { Client } from '@/openapi-types';
 import { createPinia, setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('Clients store', () => {
   beforeEach(() => {

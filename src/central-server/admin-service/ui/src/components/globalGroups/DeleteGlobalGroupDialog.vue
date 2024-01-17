@@ -26,10 +26,11 @@
  -->
 <template>
   <xrd-confirm-dialog
-    :loading="loading"
     accept-button-text="action.yes"
     title="globalGroup.deleteGroup"
     text="globalGroup.areYouSure"
+    focus-on-accept
+    :loading="loading"
     :data="{ group: groupCode }"
     @save="proceedWithDelete"
     @cancel="cancelDelete"
@@ -41,7 +42,6 @@
 
 import { defineComponent } from 'vue';
 import { XrdConfirmDialog } from '@niis/shared-ui';
-import { Event } from '@/ui-types';
 import { RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
@@ -55,7 +55,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Delete, Event.Cancel],
+  emits: ['delete', 'cancel'],
   data() {
     return {
       loading: false,
@@ -67,7 +67,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancelDelete(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     proceedWithDelete(): void {
       this.loading = true;

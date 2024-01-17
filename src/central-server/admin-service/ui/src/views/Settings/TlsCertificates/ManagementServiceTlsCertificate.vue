@@ -25,7 +25,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view title-key="tlsCertificates.managementService.title" data-test="tls-certificates-view">
+  <titled-view
+    title-key="tlsCertificates.managementService.title"
+    data-test="tls-certificates-view"
+  >
     <template #header-buttons>
       <xrd-button
         v-if="hasPermissionToDownloadCertificate"
@@ -34,7 +37,7 @@
         @click="download"
       >
         <xrd-icon-base class="xrd-large-button-icon">
-          <XrdIconDownload/>
+          <XrdIconDownload />
         </xrd-icon-base>
         {{ $t('tlsCertificates.managementService.downloadCertificate') }}
       </xrd-button>
@@ -44,77 +47,84 @@
       <v-card class="pb-4">
         <table class="xrd-table mt-0 pb-3">
           <tbody>
-          <tr>
-            <td class="title-cell">
-              <div class="key-row">
-                <div class="key-wrap">
-                  <i class="icon-Key icon"/>
-                  {{ $t('tlsCertificates.managementService.key') }}
+            <tr>
+              <td class="title-cell">
+                <div class="key-row">
+                  <div class="key-wrap">
+                    <i class="icon-Key icon" />
+                    {{ $t('tlsCertificates.managementService.key') }}
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td class="action-cell">
-              <div class="button-wrap">
-                <xrd-button
-                  v-if="hasPermissionToGenerateKey"
-                  class="button-spacing"
-                  outlined
-                  data-test="management-service-certificate-generateKey"
-                  @click="generateKey"
-                >
-                  <xrd-icon-base class="xrd-large-button-icon">
-                    <XrdIconAdd/>
-                  </xrd-icon-base>
-                  {{ $t('tlsCertificates.managementService.generateKey.button') }}
-                </xrd-button
-                >
-                <xrd-button
-                  v-if="hasPermissionToUploadCertificate"
-                  class="button-spacing"
-                  outlined
-                  data-test="upload-management-service-certificate"
-                  @click="uploadCertificate"
-                >
-                  <xrd-icon-base class="xrd-large-button-icon">
-                    <XrdIconUpload/>
-                  </xrd-icon-base>
-                  {{ $t('tlsCertificates.managementService.uploadCertificate.button') }}
-                </xrd-button>
-              </div>
-            </td>
-          </tr>
+              </td>
+              <td class="action-cell">
+                <div class="button-wrap">
+                  <xrd-button
+                    v-if="hasPermissionToGenerateKey"
+                    class="button-spacing"
+                    outlined
+                    data-test="management-service-certificate-generateKey"
+                    @click="generateKey"
+                  >
+                    <xrd-icon-base class="xrd-large-button-icon">
+                      <XrdIconAdd />
+                    </xrd-icon-base>
+                    {{
+                      $t('tlsCertificates.managementService.generateKey.button')
+                    }}
+                  </xrd-button>
+                  <xrd-button
+                    v-if="hasPermissionToUploadCertificate"
+                    class="button-spacing"
+                    outlined
+                    data-test="upload-management-service-certificate"
+                    @click="uploadCertificate"
+                  >
+                    <xrd-icon-base class="xrd-large-button-icon">
+                      <XrdIconUpload />
+                    </xrd-icon-base>
+                    {{
+                      $t(
+                        'tlsCertificates.managementService.uploadCertificate.button',
+                      )
+                    }}
+                  </xrd-button>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
         <table class="xrd-table mt-0 pb-3">
           <tbody>
-          <tr>
-            <td>
-              <div >
-                <div
-                  class="xrd-clickable"
-                  data-test="view-management-service-certificate"
-                  @click="navigateToCertificateDetails"
-                >
-                  <xrd-icon-base class="internal-conf-icon">
-                    <XrdIconCertificate/>
-                  </xrd-icon-base>
-                  <hash-value :value="hash" />
+            <tr>
+              <td>
+                <div>
+                  <div
+                    class="xrd-clickable"
+                    data-test="view-management-service-certificate"
+                    @click="navigateToCertificateDetails"
+                  >
+                    <xrd-icon-base class="internal-conf-icon">
+                      <XrdIconCertificate />
+                    </xrd-icon-base>
+                    <hash-value :value="hash" />
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td>
-              <div class="button-wrap">
-                <xrd-button
-                  v-if="hasPermissionToGenerateCsr"
-                  class="button-spacing"
-                  text
-                  data-test="management-service-certificate-generateCsr"
-                  @click="generateCsr"
-                >{{ $t('tlsCertificates.managementService.generateCsr.button') }}
-                </xrd-button>
-              </div>
-            </td>
-          </tr>
+              </td>
+              <td>
+                <div class="button-wrap">
+                  <xrd-button
+                    v-if="hasPermissionToGenerateCsr"
+                    class="button-spacing"
+                    text
+                    data-test="management-service-certificate-generateCsr"
+                    @click="generateCsr"
+                    >{{
+                      $t('tlsCertificates.managementService.generateCsr.button')
+                    }}
+                  </xrd-button>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </v-card>
@@ -123,7 +133,7 @@
 
   <management-service-generate-key-dialog
     v-if="showGenerateKeyDialog"
-    @confirm="closeGenerateKeyDialog"
+    @accept="closeGenerateKeyDialog"
     @cancel="showGenerateKeyDialog = false"
   >
   </management-service-generate-key-dialog>
@@ -142,7 +152,6 @@
 </template>
 
 <script lang="ts">
-
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -153,14 +162,13 @@ import {
   XrdIconUpload,
   XrdIconCertificate,
 } from '@niis/shared-ui';
-import TitledView from "@/components/ui/TitledView.vue";
-import { useManagementServices } from "@/store/modules/management-services";
-import ManagementServiceUploadCertificateDialog
-  from "@/components/tlsCertificates/ManagementServiceUploadCertificateDialog.vue";
-import ManagementServiceGenerateKeyDialog from "@/components/tlsCertificates/ManagementServiceGenerateKeyDialog.vue";
-import ManagementServiceGenerateCsrDialog from "@/components/tlsCertificates/ManagementServiceGenerateCsrDialog.vue";
-import { useUser } from "@/store/modules/user";
-import HashValue from "@/components/ui/HashValue.vue";
+import TitledView from '@/components/ui/TitledView.vue';
+import { useManagementServices } from '@/store/modules/management-services';
+import ManagementServiceUploadCertificateDialog from '@/components/tlsCertificates/ManagementServiceUploadCertificateDialog.vue';
+import ManagementServiceGenerateKeyDialog from '@/components/tlsCertificates/ManagementServiceGenerateKeyDialog.vue';
+import ManagementServiceGenerateCsrDialog from '@/components/tlsCertificates/ManagementServiceGenerateCsrDialog.vue';
+import { useUser } from '@/store/modules/user';
+import HashValue from '@/components/ui/HashValue.vue';
 
 export default defineComponent({
   components: {
@@ -171,14 +179,14 @@ export default defineComponent({
     XrdIconCertificate,
     ManagementServiceGenerateKeyDialog,
     ManagementServiceGenerateCsrDialog,
-    HashValue
+    HashValue,
   },
   data() {
     return {
       loading: false,
       loadingDownload: false,
-      certificateDetails: null as CertificateDetailsType | null,
-      hash: "",
+      certificateDetails: {} as CertificateDetailsType,
+      hash: '',
       showGenerateKeyDialog: false,
       showGenerateCsrDialog: false,
       showUploadtCertificateDialog: false,
@@ -188,16 +196,22 @@ export default defineComponent({
     ...mapStores(useManagementServices),
     ...mapState(useUser, ['hasPermission']),
     hasPermissionToDownloadCertificate(): boolean {
-      return this.hasPermission(Permissions.DOWNLOAD_MANAGEMENT_SERVICE_TLS_CERT);
+      return this.hasPermission(
+        Permissions.DOWNLOAD_MANAGEMENT_SERVICE_TLS_CERT,
+      );
     },
     hasPermissionToViewCertificate(): boolean {
       return this.hasPermission(Permissions.VIEW_MANAGEMENT_SERVICE_TLS_CERT);
     },
     hasPermissionToGenerateKey(): boolean {
-      return this.hasPermission(Permissions.GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT);
+      return this.hasPermission(
+        Permissions.GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT,
+      );
     },
     hasPermissionToGenerateCsr(): boolean {
-      return this.hasPermission(Permissions.GENERATE_MANAGEMENT_SERVICE_TLS_CSR);
+      return this.hasPermission(
+        Permissions.GENERATE_MANAGEMENT_SERVICE_TLS_CSR,
+      );
     },
     hasPermissionToUploadCertificate(): boolean {
       return this.hasPermission(Permissions.UPLOAD_MANAGEMENT_SERVICE_TLS_CERT);
@@ -213,7 +227,7 @@ export default defineComponent({
       this.managementServicesStore
         .getCertificate()
         .then((resp) => (this.certificateDetails = resp.data))
-        .then(() => this.hash = this.certificateDetails?.hash)
+        .then(() => (this.hash = this.certificateDetails.hash))
         .catch((error) => this.showError(error))
         .finally(() => (this.loading = false));
     },

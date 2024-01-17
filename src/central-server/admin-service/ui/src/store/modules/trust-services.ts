@@ -143,10 +143,10 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath)
         .then((resp) => (this.currentOcspResponders = resp.data));
     },
-    addOcspResponder(url: string, certificate: File | null) {
+    addOcspResponder(url: string, certificate: File | undefined) {
       const formData = new FormData();
       formData.append('url', url);
-      if(certificate){
+      if (certificate) {
         formData.append('certificate', certificate);
       }
 
@@ -154,7 +154,11 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         .post(this.getCurrentCaOcspRespondersPath, formData)
         .finally(() => this.fetchOcspResponders());
     },
-    updateOcspResponder(id: number, url: string, certificate: File | null) {
+    updateOcspResponder(
+      id: number,
+      url: string,
+      certificate: File | undefined,
+    ) {
       const formData = new FormData();
       formData.append('url', url);
       if (certificate) {
@@ -264,7 +268,7 @@ export const useTimestampingServicesStore = defineStore(
       updateTimestampingService(
         id: number,
         url: string,
-        certificate: File | null,
+        certificate: File | undefined,
       ) {
         const formData = new FormData();
         formData.append('url', url || '');

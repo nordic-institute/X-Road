@@ -25,36 +25,35 @@
    THE SOFTWARE.
  -->
 <template>
-  <main id="management-service-certificate-details" class="mt-8">
-    <certificate-details
-      v-if="certificateDetails"
-      :certificate-details="certificateDetails"
-    />
-  </main>
+  <XrdFileUploadField
+    accept=".der, .crt, .pem, .cer"
+    :file="file"
+    :label-key="labelKey"
+    :autofocus="autofocus"
+    @update:file="$emit('update:file', $event)"
+  />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapStores } from 'pinia';
-import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
-import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
-import { useManagementServices } from '@/store/modules/management-services';
+<script lang="ts" setup>
+import { XrdFileUploadField } from '@niis/shared-ui';
+import { ref, PropType } from 'vue';
 
-export default defineComponent({
-  name: 'ManagementServiceCertificate',
-  components: { CertificateDetails },
-  data() {
-    return {
-      certificateDetails: null as CertificateDetailsType | null,
-    };
+defineProps({
+  labelKey: {
+    type: String,
+    required: true,
   },
-  computed: {
-    ...mapStores(useManagementServices),
+  autofocus: {
+    type: Boolean,
+    default: false,
   },
-  created() {
-    this.managementServicesStore
-      .getCertificate()
-      .then((resp) => (this.certificateDetails = resp.data));
+  file: {
+    type: Object as PropType<File>,
+    default: null,
   },
 });
+
+defineEmits<{ (e: 'update:file', file: File): void }>();
 </script>
+
+<style lang="scss" scoped></style>

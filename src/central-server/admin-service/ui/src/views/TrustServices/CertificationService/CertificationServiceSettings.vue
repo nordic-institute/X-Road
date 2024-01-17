@@ -61,13 +61,13 @@
     >
       <v-row>
         <v-col cols="6">
-          {{ $t('trustServices.trustService.settings.acmeServerDirectoryUrl') }}
+          {{ $t('fields.acmeServerDirectoryUrl') }}
         </v-col>
         <v-col cols="6" data-test="acme-server-directory-url">
           {{ currentCertificationService?.acme_server_directory_url || '-' }}
         </v-col>
         <v-col cols="6">
-          {{ $t('trustServices.trustService.settings.acmeServerIpAddress') }}
+          {{ $t('fields.acmeServerIpAddress') }}
         </v-col>
         <v-col cols="6" data-test="acme-server-ip-address">
           {{ currentCertificationService?.acme_server_ip_address || '-' }}
@@ -76,21 +76,21 @@
     </info-card>
 
     <EditTlsAuthDialog
-      v-if="showEditTlsAuthDialog"
+      v-if="showEditTlsAuthDialog && currentCertificationService"
       :certification-service="currentCertificationService"
       @cancel="hideEditTlsAuthDialog"
-      @tls-auth-changed="hideEditTlsAuthDialog"
+      @save="hideEditTlsAuthDialog"
     ></EditTlsAuthDialog>
 
     <EditCertProfileDialog
-      v-if="showEditCertProfileDialog"
+      v-if="showEditCertProfileDialog && currentCertificationService"
       :certification-service="currentCertificationService"
       @cancel="hideEditCertProfileDialog"
-      @tls-auth-changed="hideEditCertProfileDialog"
+      @save="hideEditCertProfileDialog"
     ></EditCertProfileDialog>
 
     <EditAcmeServerDialog
-      v-if="showEditAcmeServerDialog"
+      v-if="showEditAcmeServerDialog && currentCertificationService"
       :certification-service="currentCertificationService"
       @cancel="hideEditAcmeServerDialog"
       @tls-auth-changed="hideEditAcmeServerDialog"
@@ -133,7 +133,7 @@ export default defineComponent({
     allowEditSettings(): boolean {
       return this.hasPermission(Permissions.EDIT_APPROVED_CA);
     },
-    acmeCardTitle() {
+    acmeCardTitle(): string {
       return this.currentCertificationService?.acme_server_directory_url
         ? this.$t('trustServices.trustService.settings.acmeCapable')
         : this.$t('trustServices.trustService.settings.acmeNotCapable');

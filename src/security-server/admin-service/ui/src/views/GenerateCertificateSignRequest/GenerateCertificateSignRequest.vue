@@ -76,21 +76,9 @@ import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/VStepper';
 
 export default defineComponent({
   components: {
-    VStepper,
-    VStepperHeader,
-    VStepperItem,
-    VStepperWindow,
-    VStepperWindowItem,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
   },
