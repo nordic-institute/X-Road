@@ -57,6 +57,11 @@ public final class VuetifyHelper {
         return new Radio(vuetifyRadioField);
     }
 
+    public static Select vSelect(final SelenideElement vuetifySelectField) {
+        return new Select(vuetifySelectField);
+    }
+
+
     public static SelenideElement selectorOptionOf(String value) {
         var xpath = "//div[@role='listbox']//div[contains(@class, 'v-list-item') and contains(./descendant-or-self::*/text(),'%s')]";
         return $x(format(xpath, value));
@@ -64,7 +69,6 @@ public final class VuetifyHelper {
 
     private VuetifyHelper() {
     }
-
 
     public static final class Checkbox {
         private final SelenideElement controlElement;
@@ -171,6 +175,29 @@ public final class VuetifyHelper {
             controlElement.shouldBe(visible)
                     .$x(INPUT_XPATH)
                     .click();
+        }
+    }
+
+    public static final class Select {
+        private final SelenideElement controlElement;
+
+        private Select(final SelenideElement vuetifyTextField) {
+            this.controlElement = vuetifyTextField;
+        }
+
+        public Select click() {
+            this.controlElement
+                    .shouldBe(visible, enabled)
+                    .click();
+            return this;
+        }
+
+        public void select(final String val) {
+            selectorOptionOf(val).click();
+        }
+
+        public void clickAndSelect(final String val) {
+            click().select(val);
         }
     }
 }

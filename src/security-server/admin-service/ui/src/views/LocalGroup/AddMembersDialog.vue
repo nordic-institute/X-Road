@@ -62,24 +62,26 @@
 
                 <v-select
                   v-model="instance"
+                  class="flex-input"
+                  variant="outlined"
+                  data-test="select-member-instance"
+                  hide-details
+                  clearable
                   :items="xroadInstances"
                   :label="$t('general.instance')"
-                  class="flex-input"
-                  clearable
-                  variant="outlined"
-                  hide-details
                 ></v-select>
               </div>
 
               <div class="input-row px-2 pb-4">
                 <v-select
                   v-model="memberClass"
+                  class="flex-input"
+                  variant="outlined"
+                  data-test="select-member-class"
+                  clearable
+                  hide-details
                   :items="memberClasses"
                   :label="$t('general.memberClass')"
-                  class="flex-input"
-                  clearable
-                  variant="outlined"
-                  hide-details
                 ></v-select>
                 <v-text-field
                   v-model="memberCode"
