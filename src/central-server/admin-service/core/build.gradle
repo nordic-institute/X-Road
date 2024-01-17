@@ -39,7 +39,7 @@ sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            "${layout.buildDirectory}/generated/sources/annotationProcessor/java/main"
+            layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
         ]
     }
 }

@@ -15,7 +15,7 @@ sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            "${layout.buildDirectory}/generated-sources/openapi/src/main/java",
+            layout.buildDirectory.dir("generated-sources/openapi/src/main/java"),
         ]
     }
 }
@@ -23,7 +23,7 @@ sourceSets {
 openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml"
-    outputDir = "${layout.buildDirectory}/generated-sources/openapi"
+    outputDir = "${layout.buildDirectory.get().asFile}/generated-sources/openapi"
     apiPackage = "org.niis.xroad.cs.openapi"
     modelPackage = "org.niis.xroad.cs.openapi.model"
     modelNameSuffix = "Dto"

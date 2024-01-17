@@ -1,4 +1,4 @@
-project.ext.schemaTargetDir = new File("${layout.buildDirectory}/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 
 configurations {
     xjc
@@ -6,7 +6,7 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ["src/main/java", "${layout.buildDirectory}/generated-sources"]
+        java.srcDirs = ["src/main/java", schemaTargetDir]
     }
 }
 

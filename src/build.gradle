@@ -32,7 +32,7 @@ sonarqube {
         property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
         property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
-        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.layout.buildDirectory}/reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml"
 
         property "sonar.issue.ignore.multicriteria", "e1"
         //# ignore 'Local-Variable Type Inference should be used"
@@ -42,7 +42,7 @@ sonarqube {
 }
 
 dependencyCheck {
-    outputDirectory = "${project.layout.buildDirectory}/reports/owasp-dependency-check"
+    outputDirectory = "${project.layout.buildDirectory.get().asFile}/reports/owasp-dependency-check"
     suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
     format = "ALL"
     skipProjects = [

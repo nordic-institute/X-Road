@@ -3,11 +3,11 @@ plugins {
     id 'com.github.johnrengelman.shadow'
 }
 
-project.ext.schemaTargetDir = new File("${layout.buildDirectory}/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 
 sourceSets {
     main {
-        java.srcDirs = ["src/main/java", "${layout.buildDirectory}/generated-sources"]
+        java.srcDirs = ["src/main/java", schemaTargetDir]
         resources.srcDirs = ['src/main/resources', '../../../common/common-util/src/main/resources']
     }
 }

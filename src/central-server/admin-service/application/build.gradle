@@ -40,7 +40,7 @@ bootRun {
 tasks.register('copyUi', ProcessResources) {
     dependsOn(configurations.dist)
     from configurations.dist
-    into "${layout.buildDirectory}/admin-service/ui/public"
+    into layout.buildDirectory.dir("admin-service/ui/public")
 }
 
 jar {
@@ -52,7 +52,7 @@ bootJar {
 
     if (!project.hasProperty('skip-frontend-build')) {
         dependsOn copyUi
-        classpath += file("${layout.buildDirectory}/admin-service/ui")
+        classpath += layout.buildDirectory.dir("admin-service/ui/public")
     } else {
         println("Warning: Excluding frontend from boot jar")
     }
@@ -65,10 +65,10 @@ bootJar {
 }
 
 tasks.register('moveLiquibaseLibs', Copy) {
-    mkdir "${layout.buildDirectory}/libs/"
+    mkdir layout.buildDirectory.dir("libs")
 
     from configurations.liquibaseLibs
-    into "${layout.buildDirectory}/libs"
+    into layout.buildDirectory.dir("libs")
 }
 
 build {
