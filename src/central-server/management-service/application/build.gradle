@@ -2,7 +2,9 @@ plugins {
     id 'org.springframework.boot'
 }
 
-archivesBaseName = 'centralserver-management-service'
+base {
+    archivesName = 'centralserver-management-service'
+}
 
 jar {
     enabled = false

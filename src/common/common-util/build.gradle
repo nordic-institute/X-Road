@@ -5,7 +5,7 @@ plugins {
     id 'java-library'
 }
 
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 testJar.enabled = true
 
 configurations {
@@ -14,7 +14,7 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
+        java.srcDirs = ['src/main/java', schemaTargetDir]
     }
 }
 
