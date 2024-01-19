@@ -1,0 +1,41 @@
+plugins {
+    id("java")
+    id("application")
+    id("com.github.johnrengelman.shadow")
+}
+
+dependencies {
+    implementation("org.eclipse.edc:control-plane-api-client:$edcVersion")
+    implementation("org.eclipse.edc:control-plane-api:$edcVersion")
+    implementation("org.eclipse.edc:control-plane-core:$edcVersion")
+    implementation("org.eclipse.edc:dsp:$edcVersion")
+    implementation("org.eclipse.edc:configuration-filesystem:$edcVersion")
+    implementation("org.eclipse.edc:vault-filesystem:$edcVersion")
+    implementation("org.eclipse.edc:iam-mock:$edcVersion")
+    implementation("org.eclipse.edc:management-api:$edcVersion")
+    implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
+    implementation("org.eclipse.edc:transfer-pull-http-receiver:$edcVersion")
+
+    implementation("org.eclipse.edc:data-plane-selector-api:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-selector-core:$edcVersion")
+//    implementation("org.eclipse.edc:data-plane-selector-client:$edcVersion")
+
+    implementation("org.eclipse.edc:data-plane-control-api:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-public-api:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-core:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-http:$edcVersion")
+}
+
+application {
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+}
+
+
+var distTar = tasks.named("distTar")
+var distZip = tasks.named("distZip")
+
+shadowJar {
+    mergeServiceFiles()
+    archiveFileName.set("connector.jar")
+    dependsOn(distTar, distZip)
+}

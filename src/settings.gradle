@@ -65,6 +65,8 @@ include "security-server:admin-service:application"
 include 'security-server:admin-service:infra-jpa'
 include "security-server:admin-service:ui"
 include "security-server:admin-service:int-test"
+include 'security-server:edc'
+include 'security-server:edc-client'
 include "security-server:system-test"
 
 // Utils
