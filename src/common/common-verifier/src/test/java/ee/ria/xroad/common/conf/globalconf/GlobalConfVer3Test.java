@@ -98,16 +98,20 @@ public class GlobalConfVer3Test {
     @Test
     public void isSubjectInGlobalGroup() {
         assertTrue(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member1", "subsys"),
+                GlobalGroupId.Conf.create("EE", "Test group"))
+        );
+        assertTrue(GlobalConf.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
+                GlobalGroupId.Conf.create("EE", "Test group"))
+        );
+        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member2", "subsys"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
         assertFalse(GlobalConf.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
-        );
-        assertTrue(GlobalConf.isSubjectInGlobalGroup(
-                ClientId.Conf.create("EE", "BUSINESS", "member1", "subsys"),
-                GlobalGroupId.Conf.create("EE", "Test group"))
         );
     }
 }
