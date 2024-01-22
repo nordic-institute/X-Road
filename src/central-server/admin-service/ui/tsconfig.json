@@ -14,7 +14,8 @@
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
-      "vuetify"
+      "vite/client",
+      "vuetify",
     ],
     "paths": {
       "@/*": [

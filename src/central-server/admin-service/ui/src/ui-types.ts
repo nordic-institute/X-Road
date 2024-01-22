@@ -28,13 +28,14 @@
  TypeScript typings that are used in UI, but not in backend.
  These are not in openapi definitions.
 */
-import { Location } from 'vue-router';
+import { RouteLocationRaw } from 'vue-router';
+import { VDataTable } from 'vuetify/components';
 
 // Interface for Tab data
 export interface Tab {
   key: string; // Unique key needed for v-for looping
   name: string; // Localisation key for the name
-  to: Location; // Contains the path or path name for router. Same type as https://router.vuejs.org/api/#to
+  to: RouteLocationRaw & { name: string }; // Contains the path or path name for router. Same type as https://router.vuejs.org/api/#to
   permissions?: string[]; // Permissions needed to view this tab
 }
 
@@ -90,21 +91,19 @@ export interface PagingOptions {
   sortBy: { key: string; order?: boolean | 'asc' | 'desc' }[];
 }
 
-export interface DataTableHeader {
-  title: string;
-  align?: string;
-  key: string;
-  sortable?: boolean;
-}
+/**
+ * Mirrors vuetify header type
+ * @link https://vuetifyjs.com/en/api/v-data-table/#props-headers
+ * @link https://github.com/vuetifyjs/vuetify/issues/16680#issuecomment-1724721582
+ */
+export type DataTableHeader = Exclude<
+  NonNullable<VDataTable['$props']['headers']>[number],
+  Readonly<unknown[]>
+>;
 
-export enum Event {
-  Add = 'add',
-  Edit = 'edit',
-  Delete = 'delete',
-  Cancel = 'cancel',
-  Select = 'select',
-  Generate = 'generate',
-  Confirm = 'confirm',
-  Upload = 'upload',
-  ModelValue = 'update:model-value',
-}
+/**
+ * Mirrors vuetify SortBy type
+ * @link https://vuetifyjs.com/en/api/v-data-table/#props-sort-by
+ * @link https://github.com/vuetifyjs/vuetify/issues/16680#issuecomment-1724721582
+ */
+export type SortItem = NonNullable<VDataTable['$props']['sortBy']>[number];

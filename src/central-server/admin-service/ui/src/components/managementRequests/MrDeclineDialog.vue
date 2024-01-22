@@ -26,79 +26,61 @@
  -->
 <template>
   <xrd-confirm-dialog
-    v-if="showDialog"
-    :dialog="true"
     title="managementRequests.dialog.decline.title"
     text="managementRequests.dialog.decline.bodyMessage"
+    focus-on-accept
     :data="messageData"
     :loading="loading"
-    @cancel="showDialog = false"
+    @cancel="$emit('cancel')"
     @accept="decline"
   />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { ref, computed } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useNotifications } from '@/store/modules/notifications';
+import { i18n } from '@/plugins/i18n';
 
 /**
  * General component for Management request actions
  */
-export default defineComponent({
-  props: {
-    requestId: {
-      type: Number,
-      required: true,
-    },
-    securityServerId: {
-      type: String,
-      required: true,
-    },
+
+const props = defineProps({
+  requestId: {
+    type: Number,
+    required: true,
   },
-  emits: ['decline'],
-  data() {
-    return {
-      loading: false,
-      showDialog: false,
-    };
-  },
-  computed: {
-    ...mapStores(useManagementRequests),
-    messageData(): Record<string, unknown> {
-      return {
-        id: this.requestId,
-        serverId: this.securityServerId,
-      };
-    },
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    decline(): void {
-      this.loading = true;
-      this.managementRequestsStore
-        .decline(this.requestId)
-        .then(() => {
-          this.showSuccess(
-            this.$t(
-              'managementRequests.dialog.decline.successMessage',
-              this.messageData,
-            ),
-          );
-          this.$emit('decline');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-          this.showDialog = false;
-        });
-    },
-    openDialog() {
-      this.showDialog = true;
-    },
+  securityServerId: {
+    type: String,
+    required: true,
   },
 });
+const emits = defineEmits(['decline', 'cancel']);
+
+const { decline: declineManagementRequest } = useManagementRequests();
+const { showSuccess, showError } = useNotifications();
+
+const messageData = computed(() => ({
+  id: props.requestId,
+  serverId: props.securityServerId,
+}));
+const loading = ref(false);
+const { t } = i18n.global;
+
+function decline(): void {
+  loading.value = true;
+  declineManagementRequest(props.requestId)
+    .then(() => {
+      showSuccess(
+        t(
+          'managementRequests.dialog.decline.successMessage',
+          messageData.value,
+        ),
+      );
+      emits('decline');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = true));
+}
 </script>

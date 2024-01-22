@@ -65,14 +65,14 @@
               <div v-if="notification.errorCode === 'token_weak_pin'">
                 <div>
                   {{
-                    $t(`error_code.${notification.metaData[0]}`) +
-                    `: ${notification.metaData[1]}`
+                    $t(`error_code.${notification.metaData?.[0]}`) +
+                    `: ${notification.metaData?.[1]}`
                   }}
                 </div>
                 <div>
                   {{
-                    $t(`error_code.${notification.metaData[2]}`) +
-                    `: ${notification.metaData[3]}`
+                    $t(`error_code.${notification.metaData?.[2]}`) +
+                    `: ${notification.metaData?.[3]}`
                   }}
                 </div>
               </div>

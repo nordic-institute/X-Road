@@ -27,7 +27,6 @@
 
 import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import vueJsx from '@vitejs/plugin-vue-jsx';
 import vuetify from 'vite-plugin-vuetify';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
@@ -36,7 +35,7 @@ const path = require('path');
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    plugins: [vue(), vueJsx(), vuetify({ autoImport: true }), basicSsl()],
+    plugins: [vue(), vuetify({ autoImport: false }), basicSsl()],
     build: {
       cssCodeSplit: false,
     },

@@ -41,9 +41,9 @@ import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
-import { createValidators } from '@/plugins/vee-validate';
+import validation from '@/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 import {
   XrdButton,
   XrdCloseButton,
@@ -77,8 +77,8 @@ app.use(pinia);
 app.use(router);
 app.use(vuetify);
 app.use(i18n);
+app.use(validation);
 app.use(createFilters());
-app.use(createValidators());
 //icons
 app.component('XrdIconFolderOutline', XrdIconFolderOutline);
 app.component('XrdIconBase', XrdIconBase);

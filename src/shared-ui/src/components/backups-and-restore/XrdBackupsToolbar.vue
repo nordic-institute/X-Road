@@ -60,6 +60,7 @@
       data-test="backup-upload-confirm-overwrite-dialog"
       title="backup.uploadBackup.confirmationDialog.title"
       text="backup.uploadBackup.confirmationDialog.confirmation"
+      focus-on-accept
       :data="{ name: uploadedFile.name }"
       :loading="uploading"
       @cancel="needsConfirmation = false"

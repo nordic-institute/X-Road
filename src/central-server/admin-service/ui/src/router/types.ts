@@ -24,21 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/**
- * main.ts
- *
- * Bootstraps Vuetify and other plugins then mounts the App`
- */
 
-// Components
-import App from './App.vue';
+import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
-// Composables
-import { createApp } from 'vue';
+type XrdMeta = {
+  permissions?: string[];
+  backOnEscape?: boolean;
+};
 
-// Plugins
-import { i18n } from './plugins/i18n';
+export type XrdLocation = RouteLocationNormalized & {
+  meta?: XrdMeta;
+};
 
-createApp(App)
-  .use(i18n)
-  .mount('#app');
+export type XrdRoute = RouteRecordRaw & {
+  meta?: XrdMeta | undefined;
+  children?: XrdRoute[];
+};

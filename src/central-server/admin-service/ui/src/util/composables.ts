@@ -24,21 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/**
- * main.ts
- *
- * Bootstraps Vuetify and other plugins then mounts the App`
- */
 
-// Components
-import App from './App.vue';
+import { ref, Ref } from 'vue';
+import { TranslateResult, useI18n } from 'vue-i18n';
+import { useNotifications } from '@/store/modules/notifications';
+import { MessageSchema } from '@/plugins/i18n';
 
-// Composables
-import { createApp } from 'vue';
+type BasicForm = {
+  loading: Ref<boolean>;
+  t: (key: string, props?: Record<string, unknown>) => string;
+  showSuccess: (text: string | TranslateResult, preserve?: boolean) => void;
+  showError: (error: unknown) => void;
+};
 
-// Plugins
-import { i18n } from './plugins/i18n';
+export function useBasicForm(): BasicForm {
+  const { showSuccess, showError } = useNotifications();
+  const { t } = useI18n<{ message: MessageSchema }>({ useScope: 'global' });
+  const loading = ref(false);
 
-createApp(App)
-  .use(i18n)
-  .mount('#app');
+  return { showSuccess, showError, loading, t };
+}
+
+type FileN = File | undefined;
+
+export function useFileRef(file: FileN = undefined): Ref<FileN> {
+  return ref(file);
+}

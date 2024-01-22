@@ -158,23 +158,11 @@ import { mapActions, mapState } from 'pinia';
 import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/VStepper';
 
 const NO_SELECTION = 999;
 
 export default defineComponent({
   components: {
-    VStepper,
-    VStepperHeader,
-    VStepperItem,
-    VStepperWindow,
-    VStepperWindowItem,
     ClientDetailsPage,
     TokenPage,
     SignKeyPage,

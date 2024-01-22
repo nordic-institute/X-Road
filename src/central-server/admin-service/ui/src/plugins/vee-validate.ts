@@ -26,84 +26,86 @@
  */
 import { configure, defineRule } from 'vee-validate';
 import { between, is, max, min, required, url } from '@vee-validate/rules';
-import { App } from 'vue';
 import { isIP } from 'is-ip';
-import i18n from '@/plugins/i18n';
-import { FieldValidationMetaInfo } from "@vee-validate/i18n";
+import { i18n } from '@/plugins/i18n';
+import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 
-export function createValidators(i18nMessages = {}) {
-  const { t } = i18n.global;
-  return {
-    install(app: App) {
-      configure({
-        generateMessage: (ctx: FieldVlidationMetaInfo) => {
-          // override the field name.
+function _param(params: unknown, idx: number): unknown {
+  if (params) {
+    return (params as unknown[])[idx];
+  }
+  return undefined;
+}
 
-          const field =
-            ctx.label || (i18n.global.t(`fields.${ctx.field}`) as string);
-          const args: Record<string, unknown> = { field };
-          switch (ctx.rule?.name) {
-            case 'max':
-            case 'min': {
-              args.length = ctx.rule?.params[0];
-              break;
-            }
-            case 'is': {
-              args.other = ctx.rule?.params[0];
-              break;
-            }
-            case 'between': {
-              args.min = ctx.rule?.params[0];
-              args.max = ctx.rule?.params[1];
-              break;
-            }
+export default {
+  install() {
+    const { t } = i18n.global;
+    configure({
+      generateMessage: (ctx: FieldValidationMetaInfo) => {
+        // override the field name.
+        const field = ctx.label || (t(`fields.${ctx.field}`) as string);
+        const args: Record<string, unknown> = { field };
+        switch (ctx.rule?.name) {
+          case 'max':
+          case 'min': {
+            args.length = _param(ctx.rule.params, 0);
+            break;
           }
-          return t(`validation.messages.${ctx.rule?.name}`, args) as string;
-        },
-      });
+          case 'is': {
+            args.other = _param(ctx.rule.params, 0);
+            break;
+          }
+          case 'between': {
+            args.min = _param(ctx.rule.params, 0);
+            args.max = _param(ctx.rule.params, 1);
+            break;
+          }
+        }
+        return t(`validation.messages.${ctx.rule?.name}`, args) as string;
+      },
+    });
 
-      // Install required rule and message.
-      defineRule('required', required);
+    // Install required rule and message.
+    defineRule('required', required);
 
-      // Install min rule and message.
-      defineRule('min', min);
+    // Install min rule and message.
+    defineRule('min', min);
 
-      // Install max rule and message.
-      defineRule('max', max);
+    // Install max rule and message.
+    defineRule('max', max);
 
-      // Install between rule and message.
-      defineRule('between', between);
+    // Install between rule and message.
+    defineRule('between', between);
 
-      // Install is rule and message.
-      defineRule('is', is);
+    // Install is rule and message.
+    defineRule('is', is);
 
-      defineRule('url', url);
+    defineRule('url', url);
 
-      defineRule('ipAddresses', (value: string) => {
+    defineRule('ipAddresses', (value: string) => {
+      if (!value) {
+        return true;
+      }
+      for (const ipAddress of value.split(',')) {
+        if (!isIP(ipAddress.trim())) {
+          return t('customValidation.invalidIpAddress');
+        }
+      }
+      return true;
+    });
+
+    defineRule(
+      'address',
+      (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
         if (!value) {
           return true;
         }
-        for (const ipAddress of value.split(',')) {
-          if (!isIP(ipAddress.trim())) {
-            return i18n.global.t('customValidation.invalidIpAddress');
-          }
+        if (/[^a-zA-Z\d-.]/.test(value)) {
+          const field = t('fields.' + ctx.field);
+          return t('validation.messages.address', { field });
         }
         return true;
-      });
-
-      defineRule(
-        'address',
-        (value: string, params: unknown, ctx: FieldValidationMetaInfo) => {
-          if (!value) {
-            return true;
-          }
-          if (/[^a-zA-Z\d-.]/.test(value)) {
-            const field = t('fields.' + ctx.field);
-            return t("validation.messages.address", { field });
-          }
-          return true;
-        },
-      );
-    },
-  };
-}
+      },
+    );
+  },
+};

@@ -2,7 +2,7 @@ plugins {
     id 'com.github.johnrengelman.shadow'
 }
 
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 
 configurations {
     xjc
@@ -10,7 +10,7 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
+        java.srcDirs = ['src/main/java', schemaTargetDir]
         resources.srcDirs = ['src/main/resources', '../common/common-util/src/main/resources']
     }
 }
@@ -53,8 +53,8 @@ tasks.register('xjc') {
         ant.xjc(
             destdir: project.ext.schemaTargetDir,
             package: 'ee.ria.xroad.opmonitordaemon.message',
-            schema: "${buildDir}/resources/main/op-monitoring.xsd",
-            binding: "${buildDir}/resources/main/identifiers-bindings.xml"
+            schema: "${layout.buildDirectory.get().asFile}/resources/main/op-monitoring.xsd",
+            binding: "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
         )
     }
 }

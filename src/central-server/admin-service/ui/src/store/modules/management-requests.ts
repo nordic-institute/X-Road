@@ -26,7 +26,6 @@
  */
 
 import { defineStore } from 'pinia';
-import { DataOptions } from 'vuetify';
 import axios, { AxiosRequestConfig } from 'axios';
 import {
   ManagementRequest,
@@ -45,7 +44,6 @@ export interface State {
   items: ManagementRequestListView[];
   pagingOptions: PagingMetadata;
   currentFilter: ManagementRequestsFilter;
-  pagingSortingOptions: DataOptions;
 }
 
 export const useManagementRequests = defineStore('managementRequests', {
@@ -62,11 +60,6 @@ export const useManagementRequests = defineStore('managementRequests', {
       status: ManagementRequestStatus.WAITING,
       query: '',
     },
-    pagingSortingOptions: {
-      sortBy: ['id'],
-      sortDesc: [true],
-      itemsPerPage: 10,
-    } as DataOptions,
   }),
   actions: {
     async find(dataOptions: DataQuery, filter: ManagementRequestsFilter) {

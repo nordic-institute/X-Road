@@ -90,21 +90,9 @@ import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useNotifications } from '@/store/modules/notifications';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/VStepper';
 
 export default defineComponent({
   components: {
-    VStepper,
-    VStepperHeader,
-    VStepperItem,
-    VStepperWindow,
-    VStepperWindowItem,
     WizardPageKeyLabel,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,

@@ -41,13 +41,10 @@
       :loader-height="2"
     >
       <template #[`item.issuer_common_name`]="{ item }">
-        <div
-          class="icon-cell"
-          @click="navigateToCertificateDetails(item.id)"
-        >
-          <xrd-icon-base icon-name="certificate" class="mr-4"
-            ><XrdIconCertificate
-          /></xrd-icon-base>
+        <div class="icon-cell" @click="navigateToCertificateDetails(item.id)">
+          <xrd-icon-base icon-name="certificate" class="mr-4">
+            <xrd-icon-certificate />
+          </xrd-icon-base>
           {{ item.issuer_common_name }}
         </div>
       </template>
@@ -91,7 +88,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import DeleteAuthenticationCertificateDialog from '@/components/securityServers/DeleteAuthenticationCertificateDialog.vue';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
@@ -103,10 +99,15 @@ import {
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import DateTime from '@/components/ui/DateTime.vue';
+import { XrdIconCertificate } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
-  components: { DateTime, DeleteAuthenticationCertificateDialog, VDataTable },
+  components: {
+    DateTime,
+    DeleteAuthenticationCertificateDialog,
+    XrdIconCertificate,
+  },
   props: {
     serverId: {
       type: String,
@@ -177,7 +178,7 @@ export default defineComponent({
     hasDeletePermission(): boolean {
       return this.hasPermission(Permissions.DELETE_SECURITY_SERVER_AUTH_CERT);
     },
-    openDeleteConfirmationDialog(authCertId: number): void {
+    openDeleteConfirmationDialog(authCertId?: number): void {
       this.authCertIdForDeletion = authCertId;
       this.showDeleteConfirmationDialog = true;
     },
@@ -188,7 +189,10 @@ export default defineComponent({
       this.showDeleteConfirmationDialog = false;
       this.fetchSecurityServerAuthenticationCertificates();
     },
-    navigateToCertificateDetails(authCertId: number): void {
+    navigateToCertificateDetails(authCertId?: number): void {
+      if (!authCertId) {
+        return;
+      }
       this.$router.push({
         name: RouteName.SecurityServerAuthenticationCertificate,
         params: {

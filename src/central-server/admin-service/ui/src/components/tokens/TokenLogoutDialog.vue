@@ -27,11 +27,11 @@
 
 <template>
   <xrd-confirm-dialog
-    :dialog="true"
-    :loading="loading"
     accept-button-text="tokens.logout.confirmButton"
     title="tokens.logout.title"
     text="tokens.logout.text"
+    focus-on-accept
+    :loading="loading"
     @cancel="cancel"
     @accept="confirmLogout"
   />

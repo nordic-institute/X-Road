@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 import { App } from 'vue';
-import i18n from './plugins/i18n';
+import { i18n } from './plugins/i18n';
 
 export class Filters {
   capitalize(value: string): string {

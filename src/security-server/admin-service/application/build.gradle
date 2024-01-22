@@ -3,7 +3,9 @@ plugins {
     id 'org.springframework.boot'
 }
 
-archivesBaseName = 'proxy-ui-api'
+base {
+    archivesName = 'proxy-ui-api'
+}
 
 configurations {
     dist {
@@ -61,7 +63,7 @@ dependencies {
 tasks.register('copyUi', ProcessResources) {
     dependsOn(configurations.dist)
     from configurations.dist
-    into "${buildDir}/admin-service/ui/public"
+    into layout.buildDirectory.dir("admin-service/ui/public")
 }
 
 bootRun {
@@ -80,7 +82,7 @@ bootJar {
     enabled = true
 
     dependsOn copyUi
-    classpath += file("${buildDir}/admin-service/ui")
+    classpath += layout.buildDirectory.dir("admin-service/ui")
 
     manifest {
         attributes(
@@ -91,7 +93,7 @@ bootJar {
 }
 
 tasks.register('copyDeps', Copy) {
-    into "$buildDir/unpacked-libs"
+    into layout.buildDirectory.dir("unpacked-libs")
     from configurations.runtimeClasspath.find { it.name.startsWith("postgresql") }
 }
 

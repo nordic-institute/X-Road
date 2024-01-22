@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <configuration-anchor-item :anchor="anchor" :loading="loading">
+  <configuration-anchor-item v-if="anchor" :anchor="anchor" :loading="loading">
     <xrd-button
       v-if="showRecreateAnchorButton"
       data-test="re-create-anchor-button"
@@ -67,7 +67,7 @@ import { DataTableHeader } from '@/ui-types';
 import ConfigurationAnchorItem, {
   Anchor,
 } from '@/views/GlobalConfiguration/shared/ConfigurationAnchorItem.vue';
-import {XrdIconDownload} from '@niis/shared-ui';
+import { XrdIconDownload } from '@niis/shared-ui';
 
 export default defineComponent({
   components: { ConfigurationAnchorItem, XrdIconDownload },

@@ -95,6 +95,7 @@
       v-if="selectedKey && showEditDialog"
       save-button-text="action.save"
       title=""
+      submittable
       :disable-save="selectedRoles.length === 0"
       :loading="savingChanges"
       @save="save"
@@ -139,9 +140,10 @@
     <!-- Confirm revoke dialog -->
     <xrd-confirm-dialog
       v-if="selectedKey && confirmRevoke"
-      :data-test="`api-key-row-${selectedKey.id}-revoke-confirmation`"
       title="apiKey.table.action.revoke.confirmationDialog.title"
       text="apiKey.table.action.revoke.confirmationDialog.message"
+      focus-on-accept
+      :data-test="`api-key-row-${selectedKey.id}-revoke-confirmation`"
       :data="{ id: selectedKey.id }"
       :loading="removingApiKey"
       @cancel="confirmRevoke = false"
@@ -155,28 +157,26 @@
  * View for 'API keys' tab
  */
 import { defineComponent } from 'vue';
-import { DataTableHeader } from '@/ui-types';
 import { ApiKey } from '@/api-types';
 import { Permissions, Roles, RouteName } from '@/global';
 import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { XrdIconKey } from '@niis/shared-ui';
 import TitledView from '@/components/ui/TitledView.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { DataTableHeader, SortItem } from '@/ui-types';
 
 export default defineComponent({
   components: {
     CustomDataTableFooter,
     TitledView,
-    VDataTable,
     XrdIconKey,
   },
   data() {
     return {
-      sortBy: [{ key: 'id', order: 'asc' }],
+      sortBy: [{ key: 'id', order: 'asc' }] as SortItem[],
       search: '' as string,
       loading: false,
       showOnlyPending: false,

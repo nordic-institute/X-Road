@@ -269,11 +269,19 @@
     "url": "URL",
     "tokenPin": "Token PIN",
     "keyLabel": "Key friendly name",
+    "subsystemCode": "Subsystem Code",
     "memberCode": "Member Code",
+    "memberName": "Member Name",
+    "memberClass": "Member Class",
     "securityServerAddress": "Security server address",
     "serverCode": "Server code",
     "securityServerCode": "Security server code",
-    "serviceAddress": "Central Server address"
+    "serviceAddress": "Central Server address",
+    "certProfile": "Certificate Profile Info",
+    "certFile": "Certificate File",
+    "distinguishedName": "Distinguished Name",
+    "acmeServerDirectoryUrl": "ACME server directory URL",
+    "acmeServerIpAddress": "ACME server IP address(es)"
   },
   "filters": {
     "apply": "Apply",
@@ -824,9 +832,7 @@
         "certProfile": "Certificate profile info (fully qualified class name that implements the ee.ria.xroad.common.CertificateProfileInfoProvider interface)",
         "saveSuccess": "CA Settings successfully saved",
         "acmeCapable": "This CA can be used for ACME",
-        "acmeNotCapable": "This CA can not be used for ACME",
-        "acmeServerDirectoryUrl": "ACME server directory URL",
-        "acmeServerIpAddress": "ACME server IP address(es)"
+        "acmeNotCapable": "This CA can not be used for ACME"
       },
       "ocspResponders": {
         "url": "URL",

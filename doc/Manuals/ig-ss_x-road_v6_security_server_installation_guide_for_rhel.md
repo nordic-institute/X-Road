@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.26  
+Version: 1.27  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -10,35 +10,36 @@ Doc. ID: IG-SS-RHEL
 
 ## Version history <!-- omit in toc -->
 
-| Date       | Version | Description                                                                                                                                                                                                          | Author            |
-|------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-| 25.10.2018 | 1.0     | Initial version                                                                                                                                                                                                      | Petteri Kivimäki  |
-| 16.11.2018 | 1.1     | Update link to Ubuntu installation guide                                                                                                                                                                             | Jarkko Hyöty      |
-| 28.01.2018 | 1.2     | Update port 2080 documentation                                                                                                                                                                                       | Petteri Kivimäki  |
-| 11.09.2019 | 1.3     | Remove Ubuntu 14.04 from supported platforms                                                                                                                                                                         | Jarkko Hyöty      |
-| 12.09.2019 | 1.4     | Add instruction for remote database usage                                                                                                                                                                            | Ilkka Seppälä     |
-| 10.10.2019 | 1.5     | Add instructions for binding xroad-proxy to ports 80,443                                                                                                                                                             | Jarkko Hyöty      |
-| 30.04.2020 | 1.6     | Add instructions how to use remote database located in Microsoft Azure                                                                                                                                               | Ilkka Seppälä     |
-| 12.06.2020 | 1.7     | Update reference data regarding JMX listening ports                                                                                                                                                                  | Petteri Kivimäki  |
-| 24.06.2020 | 1.8     | Add repository sign key details in section [2.2 Reference data](#22-reference-data)                                                                                                                                  | Petteri Kivimäki  |
-| 24.06.2020 | 1.9     | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data)                                                                                     | Petteri Kivimäki  |
-| 09.08.2020 | 1.10    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram)                                                                              | Petteri Kivimäki  |
-| 17.08.2020 | 1.11    | Update for RHEL 8. Document id and name changed.                                                                                                                                                                     | Jarkko Hyöty      |
-| 16.09.2020 | 1.12    | Describe deployment options and database customization options.                                                                                                                                                      | Ilkka Seppälä     |
-| 29.09.2020 | 1.13    | Add instructions for creating database structure and roles manually.                                                                                                                                                 | Ilkka Seppälä     |
-| 16.04.2021 | 1.14    | Update remote database installation instructions                                                                                                                                                                     | Jarkko Hyöty      |
-| 18.05.2021 | 1.15    | Add error handling section                                                                                                                                                                                           | Ilkka Seppälä     |
-| 01.07.2021 | 1.16    | Update 3rd party key server                                                                                                                                                                                          | Petteri Kivimäki  |
-| 11.08.2021 | 1.17    | Add backup encryption information                                                                                                                                                                                    | Petteri Kivimäki  |
-| 18.08.2021 | 1.18    | Minor updates to Annex D                                                                                                                                                                                             | Ilkka Seppälä     |
-| 25.08.2021 | 1.19    | Update X-Road references from version 6 to 7                                                                                                                                                                         | Caro Hautamäki    |
-| 26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki    |
-| 03.09.2021 | 1.21    | Minor fixes                                                                                                                                                                                                          | Ilkka Seppälä     |
-| 06.09.2021 | 1.22    | Update list of running services                                                                                                                                                                                      | Jarkko Hyöty      |
-| 23.05.2023 | 1.23    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets     |
-| 09.10.2023 | 1.24    | Java 17 installation instructions for RHEL 7                                                                                                                                                                         | Justas Samuolis   |
-| 13.12.2023 | 1.25    | Remove Java 17 manual installation instructions for RHEL 8                                                                                                                                                           | Justas Samuolis   |
-| 19.12.2023 | 1.26    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis   |
+| Date       | Version | Description                                                                                                                                                                                                          | Author           |
+|------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|
+| 25.10.2018 | 1.0     | Initial version                                                                                                                                                                                                      | Petteri Kivimäki |
+| 16.11.2018 | 1.1     | Update link to Ubuntu installation guide                                                                                                                                                                             | Jarkko Hyöty     |
+| 28.01.2018 | 1.2     | Update port 2080 documentation                                                                                                                                                                                       | Petteri Kivimäki |
+| 11.09.2019 | 1.3     | Remove Ubuntu 14.04 from supported platforms                                                                                                                                                                         | Jarkko Hyöty     |
+| 12.09.2019 | 1.4     | Add instruction for remote database usage                                                                                                                                                                            | Ilkka Seppälä    |
+| 10.10.2019 | 1.5     | Add instructions for binding xroad-proxy to ports 80,443                                                                                                                                                             | Jarkko Hyöty     |
+| 30.04.2020 | 1.6     | Add instructions how to use remote database located in Microsoft Azure                                                                                                                                               | Ilkka Seppälä    |
+| 12.06.2020 | 1.7     | Update reference data regarding JMX listening ports                                                                                                                                                                  | Petteri Kivimäki |
+| 24.06.2020 | 1.8     | Add repository sign key details in section [2.2 Reference data](#22-reference-data)                                                                                                                                  | Petteri Kivimäki |
+| 24.06.2020 | 1.9     | Remove environmental and operational monitoring daemon JMX listening ports from section [2.2 Reference data](#22-reference-data)                                                                                     | Petteri Kivimäki |
+| 09.08.2020 | 1.10    | Update ports information in section [2.2 Reference data](#22-reference-data), add section [2.2.1 Network Diagram](#221-network-diagram)                                                                              | Petteri Kivimäki |
+| 17.08.2020 | 1.11    | Update for RHEL 8. Document id and name changed.                                                                                                                                                                     | Jarkko Hyöty     |
+| 16.09.2020 | 1.12    | Describe deployment options and database customization options.                                                                                                                                                      | Ilkka Seppälä    |
+| 29.09.2020 | 1.13    | Add instructions for creating database structure and roles manually.                                                                                                                                                 | Ilkka Seppälä    |
+| 16.04.2021 | 1.14    | Update remote database installation instructions                                                                                                                                                                     | Jarkko Hyöty     |
+| 18.05.2021 | 1.15    | Add error handling section                                                                                                                                                                                           | Ilkka Seppälä    |
+| 01.07.2021 | 1.16    | Update 3rd party key server                                                                                                                                                                                          | Petteri Kivimäki |
+| 11.08.2021 | 1.17    | Add backup encryption information                                                                                                                                                                                    | Petteri Kivimäki |
+| 18.08.2021 | 1.18    | Minor updates to Annex D                                                                                                                                                                                             | Ilkka Seppälä    |
+| 25.08.2021 | 1.19    | Update X-Road references from version 6 to 7                                                                                                                                                                         | Caro Hautamäki   |
+| 26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki   |
+| 03.09.2021 | 1.21    | Minor fixes                                                                                                                                                                                                          | Ilkka Seppälä    |
+| 06.09.2021 | 1.22    | Update list of running services                                                                                                                                                                                      | Jarkko Hyöty     |
+| 23.05.2023 | 1.23    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets    |
+| 09.10.2023 | 1.24    | Java 17 installation instructions for RHEL 7                                                                                                                                                                         | Justas Samuolis  |
+| 13.12.2023 | 1.25    | Remove Java 17 manual installation instructions for RHEL 8                                                                                                                                                           | Justas Samuolis  |
+| 19.12.2023 | 1.26    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis  |
+| 02.01.2024 | 1.27    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis  |
 
 ## License
 
@@ -172,19 +173,32 @@ The network diagram below provides an example of a basic Security Server setup. 
 
 The table below lists the required connections between different components.
 
-| Connection Type | Source | Target | Target Ports | Protocol | Note |
-|-----------|------------|-----------|-----------|-----------|-----------|
-| Out | Security Server | Central Server | 80, 4001 | tcp | |
-| Out | Security Server | Management Security Server | 5500, 5577 | tcp | |
-| Out | Security Server | OCSP Service | 80 / 443 | tcp | |
-| Out | Security Server | Timestamping Service | 80 / 443 | tcp | |
-| Out | Security Server | Data Exchange Partner Security Server (Service Producer) | 5500, 5577 | tcp | |
-| Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in the internal network |
-| In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
-| In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
-| In | Consumer Information System | Security Server | 8080, 8443 | tcp | Source in the internal network |
-| In | Admin | Security Server | 4000 | tcp | Source in the internal network |
+| Connection Type | Source                                                   | Target                                                   | Target Ports   | Protocol | Note                           |
+|-----------------|----------------------------------------------------------|----------------------------------------------------------|----------------|----------|--------------------------------|
+| Out             | Security Server                                          | Central Server                                           | 80, 4001       | tcp      |                                |
+| Out             | Security Server                                          | Management Security Server                               | 5500, 5577     | tcp      |                                |
+| Out             | Security Server                                          | OCSP Service                                             | 80 / 443       | tcp      |                                |
+| Out             | Security Server                                          | Timestamping Service                                     | 80 / 443       | tcp      |                                |
+| Out             | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577     | tcp      |                                |
+| Out             | Security Server                                          | Producer Information System                              | 80, 443, other | tcp      | Target in the internal network |
+| In              | Monitoring Security Server                               | Security Server                                          | 5500, 5577     | tcp      |                                |
+| In              | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577     | tcp      |                                |
+| In              | Consumer Information System                              | Security Server                                          | 8080, 8443     | tcp      | Source in the internal network |
+| In              | Admin                                                    | Security Server                                          | 4000           | tcp      | Source in the internal network |
 
+The table below lists the open ports for Security Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
+
+| **Component**            | **Ports** | **Protocol** | **Note**                        |
+|--------------------------|-----------|--------------|---------------------------------|
+| PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         | 
+| OP Monitoring daemon     | 2080      | tcp          |                                 | 
+| Environmental monitoring | 2552      | tcp          |                                 | 
+| Signer                   | 5559      | tcp          | Signer admin port               | 
+| Signer                   | 5560      | tcp          | Signer gRPC port                | 
+| Proxy                    | 5566      | tcp          | Proxy admin port                | 
+| Proxy                    | 5567      | tcp          | Proxy gRPC server port          | 
+| Configuration Client     | 5675      | tcp          | Configuration Client admin port | 
+| Audit Log                | 514       | udp          |                                 | 
 
 ### 2.3 Requirements for the Security Server
 

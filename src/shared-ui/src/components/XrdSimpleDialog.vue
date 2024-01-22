@@ -28,155 +28,208 @@
   <v-dialog
     v-model="showDialog"
     :width="width"
-    :persistent="true"
+    :persistent="canEscape"
     :scrollable="scrollable"
-    :z-index="zIndex"
     class="xrd-dialog-simple"
+    @update:model-value="modelValueUpdated"
   >
-<!-- TODO vue3 should work just fine without z-index (AddMemberDialog)   -->
-    <v-card class="xrd-card " data-test="dialog-simple">
-      <template #title>
-        <slot name="title">
-          <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
-        </slot>
-      </template>
-      <template #append>
-        <v-icon
-          v-if="showClose" icon="mdi-close"
-          data-test="dlg-close-x"
-          color="primary"
-          size="default"
-          @click="$emit('cancel')"
+    <v-form @submit.prevent="submit">
+      <v-card class="xrd-card " data-test="dialog-simple">
+        <template #title>
+          <slot name="title">
+            <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
+          </slot>
+        </template>
+        <template #append>
+          <v-icon
+            v-if="showClose" icon="mdi-close"
+            data-test="dlg-close-x"
+            color="primary"
+            size="default"
+            @click="cancel"
+          />
+        </template>
+        <v-progress-linear
+          v-if="showProgressBar"
+          height="10"
+          :indeterminate="true"
         />
-      </template>
-      <v-progress-linear
-        v-if="showProgressBar"
-        height="10"
-        :indeterminate="true"
-      />
-      <div class="alert-slot">
-        <slot name="alert" />
-      </div>
-      <v-card-text v-if="hasText" class="content-wrapper xrd-card-text" :class="{'no-content': !hasContent }">
-        <slot name="text" />
-      </v-card-text>
-      <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
-        <slot name="content" />
-      </v-card-item>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer />
-        <xrd-button
-          data-test="dialog-cancel-button"
-          class="mr-3"
-          variant="outlined"
-          :disabled="cancelDisabled"
-          @click="$emit('cancel')"
-        >
-          {{ $t(cancelButtonText) }}
-        </xrd-button>
-        <xrd-button
-          v-if="!hideSaveButton"
-          data-test="dialog-save-button"
-          :disabled="saveDisabled"
-          :loading="loading"
-          @click="$emit('save')"
-        >
-          {{ $t(saveButtonText) }}
-        </xrd-button>
-      </v-card-actions>
-    </v-card>
+        <div class="alert-slot">
+          <slot name="alert" />
+        </div>
+        <v-card-text v-if="hasText" class="content-wrapper xrd-card-text" :class="{'no-content': !hasContent }">
+          <slot name="text" />
+        </v-card-text>
+        <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
+          <slot name="content" />
+        </v-card-item>
+        <v-card-actions class="xrd-card-actions">
+          <v-spacer />
+          <xrd-button
+            data-test="dialog-cancel-button"
+            class="mr-3"
+            variant="outlined"
+            :disabled="cancelDisabled"
+            @click="cancel"
+          >
+            {{ $t(cancelButtonText) }}
+          </xrd-button>
+          <xrd-button
+            v-if="!hideSaveButton"
+            ref="saveButton"
+            data-test="dialog-save-button"
+            :disabled="disableSave"
+            :loading="loading"
+            :submit="submittable"
+            @click="save"
+          >
+            {{ $t(saveButtonText) }}
+          </xrd-button>
+        </v-card-actions>
+      </v-card>
+    </v-form>
   </v-dialog>
 </template>
 
-<script lang="ts">/** Base component for simple dialogs */
+<script lang="ts" setup>/** Base component for simple dialogs */
 
-import { defineComponent } from "vue";
 import XrdButton from "./XrdButton.vue";
+import { computed, onBeforeMount, onMounted, ref, useSlots } from "vue";
 
-export default defineComponent({
-  components: { XrdButton },
-  props: {
-    // Title of the dialog
-    title: {
-      type: String,
-      required: true,
-    },
-    // Is the content scrollable
-    scrollable: {
-      type: Boolean,
-      default: false,
-    },
-    // Disable save button
-    disableSave: {
-      type: Boolean,
-    },
-    //  cancel button
-    allowLoadingCancellation: {
-      type: Boolean,
-      default: false,
-    },
-    // Hide save button
-    hideSaveButton: {
-      type: Boolean,
-      default: false,
-    },
-    cancelButtonText: {
-      type: String,
-      default: 'action.cancel',
-    },
-    // Text of the save button
-    saveButtonText: {
-      type: String,
-      default: 'action.add',
-    },
-    width: {
-      type: [Number, String],
-      default: 620,
-    },
-    showClose: {
-      type: Boolean,
-      default: true,
-    },
-    // Set save button loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    // Show indeterminate progress bar at the top
-    showProgressBar: {
-      type: Boolean,
-      default: false,
-    },
-    zIndex:{
-      type: [Number, String],
-      default: 2400
+const props = defineProps({
+  // Title of the dialog
+  title: {
+    type: String,
+    required: true,
+  },
+  // Is the content scrollable
+  scrollable: {
+    type: Boolean,
+    default: false,
+  },
+  // Disable save button
+  disableSave: {
+    type: Boolean,
+    default: false,
+  },
+  //  cancel button
+  allowLoadingCancellation: {
+    type: Boolean,
+    default: false,
+  },
+  // Hide save button
+  hideSaveButton: {
+    type: Boolean,
+    default: false,
+  },
+  cancelButtonText: {
+    type: String,
+    default: 'action.cancel',
+  },
+  // Text of the save button
+  saveButtonText: {
+    type: String,
+    default: 'action.add',
+  },
+  width: {
+    type: [Number, String],
+    default: 620,
+  },
+  showClose: {
+    type: Boolean,
+    default: true,
+  },
+  // Set save button loading spinner
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  // Show indeterminate progress bar at the top
+  showProgressBar: {
+    type: Boolean,
+    default: false,
+  },
+  zIndex: {
+    type: [Number, String],
+    default: 2400,
+  },
+  submittable: {
+    type: Boolean,
+    default: false,
+  },
+  escapable: {
+    type: Boolean,
+    default: true,
+  },
+  focusOnSave: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emits = defineEmits(['cancel', 'save']);
+
+const slots = useSlots();
+
+const hasText = computed(() => !!slots['text']);
+const hasContent = computed(() => !!slots['content']);
+const cancelDisabled = computed(() => props.allowLoadingCancellation ? false : props.loading);
+const canEscape = computed(() => props.escapable ? cancelDisabled.value : false);
+
+function submit() {
+  if (props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
+    emits('save');
+  }
+}
+
+function save() {
+  if (!props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
+    emits('save');
+  }
+}
+
+function cancel() {
+  if (!cancelDisabled.value) {
+    emits('cancel');
+    showDialog.value = true;
+  }
+}
+
+const showDialog = ref(true);
+
+function modelValueUpdated(displayed: boolean) {
+  if (!displayed) {
+    cancel();
+  }
+}
+
+const saveButton = ref<{ focus: () => void }>();
+
+function blur() {
+  const activeElement = document.activeElement as HTMLElement | undefined;
+  if (activeElement && activeElement.blur) {
+    activeElement.blur();
+  }
+}
+
+defineExpose({
+  focusOnSave() {
+
+    if (saveButton.value) {
+      blur();
+      console.log('dialog', saveButton.value)
+      saveButton.value.focus();
     }
   },
-  emits: ['cancel', 'save'],
-  data() {
-    return {
-      showDialog: true
-    }
-  },
-  computed: {
-    hasText() {
-      return !!this.$slots['text']
-    },
-    hasContent() {
-      return !!this.$slots['content']
-    },
-    saveDisabled() {
-      if (this.disableSave !== undefined && this.disableSave !== null) {
-        return this.disableSave;
-      }
+});
 
-      return false;
-    },
-    cancelDisabled() {
-      return this.allowLoadingCancellation ? false : this.loading
-    }
+onMounted(() => {
+  if (saveButton.value && props.focusOnSave) {
+    saveButton.value.focus();
   }
 });
+
+onBeforeMount(() => blur());
 
 </script>
 
@@ -202,6 +255,7 @@ export default defineComponent({
       letter-spacing: normal;
       color: rgba(0, 0, 0, .6);
       padding: 16px 24px 8px;
+
       &.no-content {
         padding-bottom: 16px;
       }
@@ -216,8 +270,6 @@ export default defineComponent({
       }
     }
   }
-}
-.content-wrapper {
 }
 
 .dlg-button-margin {

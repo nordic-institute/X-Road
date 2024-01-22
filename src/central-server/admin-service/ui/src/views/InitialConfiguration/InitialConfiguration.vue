@@ -135,8 +135,17 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Colors, RouteName } from '@/global';
-import { ErrorInfo, InitializationStatus, InitialServerConf, TokenInitStatus, } from '@/openapi-types';
-import { getTranslatedFieldErrors, isFieldError, swallowRedirectedNavigationError, } from '@/util/helpers';
+import {
+  ErrorInfo,
+  InitializationStatus,
+  InitialServerConf,
+  TokenInitStatus,
+} from '@/openapi-types';
+import {
+  getTranslatedFieldErrors,
+  isFieldError,
+  swallowRedirectedNavigationError,
+} from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSystem } from '@/store/modules/system';

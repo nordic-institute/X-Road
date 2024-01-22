@@ -25,13 +25,14 @@
  * THE SOFTWARE.
  */
 
-import { createValidators } from '@/plugins/vee-validate';
+import createValidators from '@/plugins/vee-validate';
 import { validate } from 'vee-validate';
 import en from '@/locales/en.json';
+import { describe, expect, it } from 'vitest';
 
 describe('vee-validate', () => {
   describe('ipAddresses', () => {
-    createValidators().install({});
+    createValidators.install();
 
     it('should validate ip v4 correctly', async () => {
       let result = await validate('192.3.4.XX', 'ipAddresses');

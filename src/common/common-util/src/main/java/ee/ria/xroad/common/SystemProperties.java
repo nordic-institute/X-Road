@@ -413,16 +413,6 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
 
-    public static final String SIGNER_CLIENT_HEARTBEAT_INTERVAL =
-            PREFIX + "signer.client.heartbeat-interval";
-
-    private static final String DEFAULT_SIGNER_CLIENT_HEARTBEAT_INTERVAL = "1";
-
-    public static final String SIGNER_CLIENT_FAILURE_THRESHOLD =
-            PREFIX + "signer.client.failure-threshold";
-
-    private static final String DEFAULT_SIGNER_CLIENT_FAILURE_THRESHOLD = "7";
-
     // AntiDos ----------------------------------------------------------------
 
     /** Property name of the AntiDos on/off switch */
@@ -542,37 +532,12 @@ public final class SystemProperties {
 
     // Proxy & Central monitor agent ------------------------------------------
 
-    /** Property name of the proxy monitor agent configuration file. */
-    public static final String MONITOR_AGENT_CONFIGURATION_FILE =
-            PREFIX + "monitor-agent.monitoring-conf-file";
-
-    /** Property of the monitor agent admin port. **/
-    public static final String MONITOR_AGENT_ADMIN_PORT =
-            PREFIX + "monitor-agent.admin-port";
-
-    /** Property of the proxy monitor agent sending interval in seconds. */
-    public static final String PROXY_MONITOR_AGENT_SENDING_INTERVAL =
-            PREFIX + "proxy-monitor-agent.sending-interval";
-
     /** Property name of the proxy monitor info collection interval. */
     public static final String PROXY_PARAMS_COLLECTING_INTERVAL =
             PREFIX + "proxy-monitor-agent.params-collecting-interval";
 
     public static final String NET_STATS_FILE =
             PREFIX + "proxy-monitor-agent.net-stats-file";
-
-    public static final String MONITORING_AGENT_URI =
-            PREFIX + "monitoringagent.uri";
-
-    /** Property of the central monitor agent HTTPS port. */
-    public static final String CENTRAL_MONITOR_AGENT_HTTPS_PORT =
-            PREFIX + "central-monitor-agent.https-port";
-
-    // Zabbix configurator agent ----------------------------------------------
-
-    /** Property name of the Zabbix configurator client's timeout (milliseconds). */
-    public static final String ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT =
-            PREFIX + "monitoring.zabbix-configurator-client-timeout";
 
     // Configuration proxy ------------------------------------------------- //
 
@@ -1044,23 +1009,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the signer client heartbeat interval in seconds
-     */
-    public static int getSignerClientHeartbeatInterval() {
-        return Integer.parseInt(
-                System.getProperty(SIGNER_CLIENT_HEARTBEAT_INTERVAL, DEFAULT_SIGNER_CLIENT_HEARTBEAT_INTERVAL));
-    }
-
-    /**
-     * @return the signer client failure threshold (how many lost heartbeat messages until signer is considered
-     * unreachable).
-     */
-    public static int getSignerClientFailureThreshold() {
-        return Integer.parseInt(
-                System.getProperty(SIGNER_CLIENT_FAILURE_THRESHOLD, DEFAULT_SIGNER_CLIENT_FAILURE_THRESHOLD));
-    }
-
-    /**
      * @return the HTTP port on which the configuration client is listening, '5665' by default.
      */
     public static int getConfigurationClientPort() {
@@ -1204,37 +1152,7 @@ public final class SystemProperties {
                 DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS));
     }
 
-    /**
-     * @return the HTTP port on which the monitor agent listens for administrative commands, '5588' by default.
-     */
-    public static int getMonitorAgentAdminPort() {
-        return Integer.parseInt(System.getProperty(MONITOR_AGENT_ADMIN_PORT,
-                Integer.toString(PortNumbers.MONITOR_AGENT_ADMIN_PORT)));
-    }
-
-    /**
-     * @return the interval in seconds at which monitor agent sends collected monitoring data, '180' by default.
-     */
-    public static int getProxyMonitorAgentSendingInterval() {
-        return Integer.parseInt(System.getProperty(PROXY_MONITOR_AGENT_SENDING_INTERVAL, "180"));
-    }
-
-    /**
-     * @return path to the monitor agent configuration file, '/etc/xroad/monitor-agent.ini' by default.
-     */
-    public static String getMonitorAgentConfFile() {
-        return System.getProperty(MONITOR_AGENT_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.MONITOR_AGENT_CONFIGURATION_FILE);
-    }
-
-    /**
-     * @return the Zabbix configurator client connection timeout in milliseconds, '300000' by default.
-     */
-    public static int getZabbixConfiguratorClientTimeout() {
-        return Integer.parseInt(System.getProperty(ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT, "300000"));
-    }
-
-    /**
+     /**
      * @return path to the directory containing configuration proxy configuration files,
      * '/etc/xroad/confproxy' by default.
      */
@@ -1401,15 +1319,6 @@ public final class SystemProperties {
      */
     public static boolean isAntiDosEnabled() {
         return "true".equalsIgnoreCase(System.getProperty(ANTIDOS_ENABLED, "true"));
-    }
-
-    /**
-     * @return the HTTPS port at which the central monitor agent listens for
-     * incoming monitoring data, '443' by default.
-     */
-    public static int getCentralMonitorAgentPort() {
-        return Integer.parseInt(System.getProperty(CENTRAL_MONITOR_AGENT_HTTPS_PORT,
-                Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
     }
 
     /**
@@ -1716,7 +1625,7 @@ public final class SystemProperties {
 
     /**
      * @return Whether encryption to security server backup files using server's OpenPGP key is enabled,
-     * 'false' by default..
+     * 'false' by default.
      */
     public static boolean isBackupEncryptionEnabled() {
         return "true".equalsIgnoreCase(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,

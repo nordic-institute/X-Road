@@ -1,4 +1,6 @@
-archivesBaseName = 'centralserver-admin-service'
+base {
+    archivesName = 'centralserver-admin-service'
+}
 
 configurations {
     dist {
@@ -38,7 +40,7 @@ bootRun {
 tasks.register('copyUi', ProcessResources) {
     dependsOn(configurations.dist)
     from configurations.dist
-    into "${buildDir}/admin-service/ui/public"
+    into layout.buildDirectory.dir("admin-service/ui/public")
 }
 
 jar {
@@ -50,7 +52,7 @@ bootJar {
 
     if (!project.hasProperty('skip-frontend-build')) {
         dependsOn copyUi
-        classpath += file("${buildDir}/admin-service/ui")
+        classpath += layout.buildDirectory.dir("admin-service/ui")
     } else {
         println("Warning: Excluding frontend from boot jar")
     }
@@ -63,10 +65,10 @@ bootJar {
 }
 
 tasks.register('moveLiquibaseLibs', Copy) {
-    mkdir "${buildDir}/libs/"
+    mkdir layout.buildDirectory.dir("libs")
 
     from configurations.liquibaseLibs
-    into "${buildDir}/libs"
+    into layout.buildDirectory.dir("libs")
 }
 
 build {

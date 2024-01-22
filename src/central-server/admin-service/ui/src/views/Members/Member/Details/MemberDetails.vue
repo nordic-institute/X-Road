@@ -141,7 +141,7 @@
       v-if="showEditNameDialog"
       :member="memberStore.currentMember"
       @cancel="cancelEditMemberName"
-      @name-changed="memberNameChanged"
+      @save="memberNameChanged"
     />
 
     <!-- Delete member - Check member code dialog -->
@@ -164,10 +164,10 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
 import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { DataTableHeader } from '@/ui-types';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -185,7 +185,6 @@ export default defineComponent({
     EditMemberNameDialog,
     MemberDeleteDialog,
     InfoCard,
-    VDataTable,
   },
   props: {
     memberid: {
@@ -214,7 +213,7 @@ export default defineComponent({
           align: 'start',
           key: 'server_id.server_code',
         },
-      ],
+      ] as DataTableHeader[],
       groupsHeaders: [
         {
           key: 'group_code',
@@ -231,7 +230,7 @@ export default defineComponent({
           title: this.$t('members.member.details.addedToGroup') as string,
           align: 'start',
         },
-      ],
+      ] as DataTableHeader[],
     };
   },
   computed: {
@@ -326,6 +325,7 @@ export default defineComponent({
   cursor: pointer;
   display: flex;
   flex-direction: row;
+
   .action-text {
     margin-top: 2px;
   }

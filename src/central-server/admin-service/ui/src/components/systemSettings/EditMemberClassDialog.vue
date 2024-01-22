@@ -28,43 +28,43 @@
   <xrd-simple-dialog
     :title="title"
     data-test="system-settings-member-class-edit-dialog"
+    save-button-text="action.save"
+    submittable
     :scrollable="false"
     :show-close="true"
-    :loading="saving"
-    save-button-text="action.save"
+    :loading="loading"
     :disable-save="!meta.valid || !meta.dirty"
     @save="onSaveMemberClass"
-    @cancel="onCancel"
+    @cancel="$emit('cancel')"
   >
     <template #content>
       <v-text-field
-        v-bind="classCode"
+        v-model="code"
+        v-bind="codeAttrs"
         data-test="system-settings-member-class-code-edit-field"
         :disabled="!modeAdd"
         :label="$t('systemSettings.code')"
         :autofocus="modeAdd"
         variant="outlined"
-        class="dlg-row-input"
+        class="dlg-row-input space-out-bottom"
         name="code"
-        :error-messages="errors.code"
       />
       <v-text-field
-        v-bind="classDescription"
+        v-model="description"
+        v-bind="descriptionAttrs"
         data-test="system-settings-member-class-description-edit-field"
         :label="$t('systemSettings.description')"
         :autofocus="!modeAdd"
         variant="outlined"
         class="dlg-row-input"
         name="memberClass"
-        :error-messages="errors.description"
       />
     </template>
   </xrd-simple-dialog>
 </template>
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script lang="ts" setup>
+import { computed, PropType } from 'vue';
 import { useForm } from 'vee-validate';
-import { Event } from '@/ui-types';
 import { ErrorInfo, MemberClass } from '@/openapi-types';
 import {
   getErrorInfo,
@@ -72,95 +72,85 @@ import {
   isFieldError,
 } from '@/util/helpers';
 import { AxiosError } from 'axios';
-import { mapStores } from 'pinia';
 import { useMemberClass } from '@/store/modules/member-class';
-import { useNotifications } from '@/store/modules/notifications';
+import { useBasicForm } from '@/util/composables';
 
-export default defineComponent({
-  props: {
-    memberClass: {
-      type: Object as PropType<MemberClass>,
-      default: undefined,
-    },
+const props = defineProps({
+  memberClass: {
+    type: Object as PropType<MemberClass>,
+    default: undefined,
   },
-  emits: [Event.Cancel, Event.Edit],
-  setup(props) {
-    const { meta, values, errors, setFieldError, defineComponentBinds } =
-      useForm({
-        validationSchema: {
-          code: 'required|min:1|max:255',
-          description: 'required|min:1',
-        },
-        initialValues: {
-          code: props.memberClass?.code || '',
-          description: props.memberClass?.description || '',
-        },
-      });
-    const classCode = defineComponentBinds('code');
-    const classDescription = defineComponentBinds('description');
-    return { meta, values, errors, setFieldError, classCode, classDescription };
+});
+
+const emit = defineEmits(['save', 'cancel']);
+
+const { meta, setFieldError, defineField, handleSubmit } = useForm({
+  validationSchema: {
+    code: 'required|min:1|max:255',
+    description: 'required|min:1',
   },
-  data() {
-    return {
-      saving: false,
-    };
+  initialValues: {
+    code: props.memberClass?.code || '',
+    description: props.memberClass?.description || '',
   },
-  computed: {
-    ...mapStores(useMemberClass, useNotifications),
-    modeAdd(): boolean {
-      return !this.memberClass;
-    },
-    title(): string {
-      return this.modeAdd
-        ? 'systemSettings.addMemberClassTitle'
-        : 'systemSettings.editMemberClassTitle';
-    },
-  },
-  methods: {
-    onCancel() {
-      this.$emit(Event.Cancel);
-    },
-    async onSaveMemberClass() {
-      this.saving = true;
-      try {
-        await (this.modeAdd
-          ? this.memberClassStore.add({
-              code: this.values.code,
-              description: this.values.description,
-            })
-          : this.memberClassStore.update(
-              this.values.code,
-              this.values.description,
-            ));
-        this.notificationsStore.showSuccess(
-          this.$t('systemSettings.memberClassSaved'),
-        );
-        this.$emit(Event.Edit);
-      } catch (error: unknown) {
-        const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
-        if (isFieldError(errorInfo)) {
-          let fieldErrors = errorInfo.error?.validation_errors;
-          if (fieldErrors) {
-            this.setFieldError(
-              'code',
-              getTranslatedFieldErrors('memberClassDto.code', fieldErrors),
-            );
-            this.setFieldError(
-              'description',
-              getTranslatedFieldErrors(
-                'memberClassDto.description',
-                fieldErrors,
-              ),
-            );
-            return;
-          }
-        } else {
-          this.notificationsStore.showError(error);
+});
+const [code, codeAttrs] = defineField('code', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [description, descriptionAttrs] = defineField('description', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const { loading, showSuccess, showError, t } = useBasicForm();
+const { add, update } = useMemberClass();
+
+const modeAdd = computed(() => !props.memberClass?.code);
+const title = computed(() =>
+  modeAdd.value
+    ? 'systemSettings.addMemberClassTitle'
+    : 'systemSettings.editMemberClassTitle',
+);
+
+function _save(
+  values: { code: string; description: string },
+  classCode?: string,
+) {
+  if (classCode) {
+    return update(classCode, values.description);
+  } else {
+    return add({
+      code: values.code,
+      description: values.description,
+    });
+  }
+}
+
+const onSaveMemberClass = handleSubmit((values) => {
+  loading.value = true;
+  _save(values, props.memberClass?.code)
+    .then(() => {
+      showSuccess(t('systemSettings.memberClassSaved'));
+      emit('save');
+    })
+    .catch((error) => {
+      const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
+      if (isFieldError(errorInfo)) {
+        let fieldErrors = errorInfo.error?.validation_errors;
+        if (fieldErrors) {
+          setFieldError(
+            'code',
+            getTranslatedFieldErrors('memberClassDto.code', fieldErrors),
+          );
+          setFieldError(
+            'description',
+            getTranslatedFieldErrors('memberClassDto.description', fieldErrors),
+          );
+          return;
         }
-      } finally {
-        this.saving = false;
+      } else {
+        showError(error);
       }
-    },
-  },
+    })
+    .finally(() => (loading.value = false));
 });
 </script>
