@@ -98,6 +98,21 @@ public class SecurityServerEntity extends AuditableEntity {
     @Setter
     private boolean dsEnabled;
 
+    @Column(name = "ds_management_url")
+    @Getter
+    @Setter
+    private String dsManagementUrl;
+
+    @Column(name = "ds_protocol_url")
+    @Getter
+    @Setter
+    private String dsProtocolUrl;
+
+    @Column(name = "ds_public_url")
+    @Getter
+    @Setter
+    private String dsPublicUrl;
+
     public SecurityServerEntity(XRoadMemberEntity owner, String serverCode) {
         this.owner = owner;
         this.serverCode = serverCode;

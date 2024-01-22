@@ -50,9 +50,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.function.Function.identity;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class SharedParametersV3Converter {
@@ -63,8 +63,8 @@ public class SharedParametersV3Converter {
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
         List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source.getApprovedTSA());
         List<SharedParameters.Member> members = getMembers(source.getMember());
-        Set<SecurityServerId> dsEnabledServers = getDataspacesEnabledServers(source.getDataspacesSettings());
-        List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source, dsEnabledServers);
+        Map<SecurityServerId, DataspaceSettingsType.SecurityServer> dsServers = getDataspacesServers(source.getDataspacesSettings());
+        List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source, dsServers);
         List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
         SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
 
@@ -72,13 +72,15 @@ public class SharedParametersV3Converter {
                 members, securityServers, globalGroups, globalSettings);
     }
 
-    private Set<SecurityServerId> getDataspacesEnabledServers(DataspaceSettingsType dataspacesSettings) {
-        if (dataspacesSettings != null && !dataspacesSettings.getSecurityServerId().isEmpty()) {
-            return dataspacesSettings.getSecurityServerId().stream()
-                    .map(this::parseSecurityServerId)
-                    .collect(Collectors.toSet());
+    private Map<SecurityServerId, DataspaceSettingsType.SecurityServer> getDataspacesServers(DataspaceSettingsType dataspacesSettings) {
+        if (dataspacesSettings != null && !dataspacesSettings.getSecurityServer().isEmpty()) {
+            return dataspacesSettings.getSecurityServer().stream()
+                    .collect(Collectors.toMap(
+                            ss -> parseSecurityServerId(ss.getServerId()),
+                            identity()
+                    ));
         }
-        return Set.of();
+        return Map.of();
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
@@ -122,8 +124,9 @@ public class SharedParametersV3Converter {
         return members;
     }
 
-    private List<SharedParameters.SecurityServer> getSecurityServers(SharedParametersTypeV3 source,
-                                                                     Set<SecurityServerId> dsServers) {
+    private List<SharedParameters.SecurityServer> getSecurityServers(
+            SharedParametersTypeV3 source,
+            Map<SecurityServerId, DataspaceSettingsType.SecurityServer> dsServers) {
         List<SharedParameters.SecurityServer> securityServers = new ArrayList<>();
         if (source.getSecurityServer() != null) {
             Map<String, ClientId> clientIds = getClientIds(source);
@@ -243,13 +246,22 @@ public class SharedParametersV3Converter {
 
     private SharedParameters.SecurityServer toSecurityServer(
             Map<String, ClientId> clientIds, SecurityServerType source, String instanceIdentifier,
-            Set<SecurityServerId> dsServers) {
+            Map<SecurityServerId, DataspaceSettingsType.SecurityServer> dsServers) {
         var target = new SharedParameters.SecurityServer();
         target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
         target.setServerCode(source.getServerCode());
         if (isNotBlank(source.getAddress())) {
-            target.setServerAddress(new SharedParameters.ServerAddress(source.getAddress(),
-                    dsServers.contains(SecurityServerId.Conf.create(target.getOwner(), target.getServerCode()))));
+            var serverAddress = new SharedParameters.ServerAddress(source.getAddress());
+            DataspaceSettingsType.SecurityServer dsServer = dsServers
+                    .get(SecurityServerId.Conf.create(target.getOwner(), target.getServerCode()));
+            if (dsServer != null) {
+                serverAddress.setDsSupported(true);
+                serverAddress.setDsManagementUrl(dsServer.getManagementUrl());
+                serverAddress.setDsProtocolUrl(dsServer.getProtocolUrl());
+                serverAddress.setDsPublicUrl(dsServer.getPublicUrl());
+            }
+
+            target.setServerAddress(serverAddress);
         }
         target.setAuthCertHashes(source.getAuthCertHash());
         if (source.getClient() != null) {

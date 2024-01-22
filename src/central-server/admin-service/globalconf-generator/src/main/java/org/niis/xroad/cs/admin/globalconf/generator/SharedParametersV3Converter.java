@@ -53,7 +53,6 @@ import org.mapstruct.factory.Mappers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
@@ -80,14 +79,21 @@ abstract class SharedParametersV3Converter {
     @Named("mapDataspacesSettings")
     protected DataspaceSettingsType mapDataspacesSettings(SharedParameters sharedParameters) {
         if (sharedParameters.getSecurityServers() != null) {
-            Set<String> servers = sharedParameters.getSecurityServers().stream()
+            var servers = sharedParameters.getSecurityServers().stream()
                     .filter(SharedParameters.SecurityServer::isDsEnabled)
-                    .map(s -> SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId())
+                    .map(s -> {
+                        var securityServer = new DataspaceSettingsType.SecurityServer();
+                        securityServer.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
+                        securityServer.setManagementUrl(s.getDsManagementUrl());
+                        securityServer.setProtocolUrl(s.getDsProtocolUrl());
+                        securityServer.setPublicUrl(s.getDsPublicUrl());
+                        return securityServer;
+                    })
                     .collect(Collectors.toSet());
 
             if (!servers.isEmpty()) {
                 DataspaceSettingsType result = new DataspaceSettingsType();
-                result.getSecurityServerId().addAll(servers);
+                result.getSecurityServer().addAll(servers);
                 return result;
             }
         }

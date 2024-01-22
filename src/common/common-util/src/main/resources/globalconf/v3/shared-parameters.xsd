@@ -195,12 +195,15 @@
 
     <complexType name="DataspaceSettingsType">
         <sequence>
-            <element name="securityServerId" type="string" minOccurs="0" maxOccurs="unbounded">
-                <annotation>
-                    <documentation>
-                        Security Server ID.
-                    </documentation>
-                </annotation>
+            <element name="securityServer" minOccurs="0" maxOccurs="unbounded">
+                <complexType>
+                    <sequence>
+                        <element name="serverId" type="string"/>
+                        <element name="managementUrl" type="string" minOccurs="0"/>
+                        <element name="protocolUrl" type="string" minOccurs="0"/>
+                        <element name="publicUrl" type="string" minOccurs="0"/>
+                    </sequence>
+                </complexType>
             </element>
         </sequence>
     </complexType>

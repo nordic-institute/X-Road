@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.DataspaceSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -84,7 +85,6 @@ class SharedParametersV3ConverterTest {
                 .withIgnoredFields("securityServers.owner",
                         "securityServers.clients",
                         "securityServers.authCerts",
-//                        "securityServers.dsEnabled",
                         "members.id",
                         "members.subsystems.id",
                         "centralService",
@@ -109,12 +109,20 @@ class SharedParametersV3ConverterTest {
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
                 .isEqualTo(CryptoUtils.certHash(sharedParameters.getSecurityServers().get(0).getAuthCerts().get(0)));
 
-        List<String> dsSupportedServers =
+        List<DataspaceSettingsType.SecurityServer> dsSupportedServers =
                 sharedParameters.getSecurityServers().stream()
                         .filter(SharedParameters.SecurityServer::isDsEnabled)
-                        .map(s -> SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId())
+                        .map(s -> {
+                            var ss = new DataspaceSettingsType.SecurityServer();
+                            ss.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
+                            ss.setManagementUrl(s.getDsManagementUrl());
+                            ss.setProtocolUrl(s.getDsProtocolUrl());
+                            ss.setPublicUrl(s.getDsPublicUrl());
+                            return ss;
+                        })
                         .toList();
-        assertThat(xmlType.getDataspacesSettings().getSecurityServerId())
+        assertThat(xmlType.getDataspacesSettings().getSecurityServer())
+                .usingRecursiveFieldByFieldElementComparator()
                 .containsExactlyInAnyOrderElementsOf(dsSupportedServers);
     }
 
@@ -226,6 +234,9 @@ class SharedParametersV3ConverterTest {
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCerts(List.of("ss-auth-cert".getBytes(UTF_8)));
         securityServer.setDsEnabled(true);
+        securityServer.setDsManagementUrl("ds-management-url");
+        securityServer.setDsProtocolUrl("ds-protocol-url");
+        securityServer.setDsPublicUrl("ds-public-url");
         return securityServer;
     }
 

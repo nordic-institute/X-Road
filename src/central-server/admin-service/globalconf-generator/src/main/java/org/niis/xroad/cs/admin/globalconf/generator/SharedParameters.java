@@ -114,6 +114,9 @@ class SharedParameters {
         private List<byte[]> authCerts;
         private List<ClientId> clients;
         private boolean dsEnabled;
+        private String dsManagementUrl;
+        private String dsProtocolUrl;
+        private String dsPublicUrl;
     }
 
     @Data

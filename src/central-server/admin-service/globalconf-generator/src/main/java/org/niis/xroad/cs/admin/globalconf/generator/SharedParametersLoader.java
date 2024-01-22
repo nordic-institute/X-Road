@@ -175,6 +175,9 @@ class SharedParametersLoader {
                 .map(AuthCert::getCert)
                 .toList());
         result.setDsEnabled(ss.isDsEnabled());
+        result.setDsManagementUrl(ss.getDsManagementUrl());
+        result.setDsProtocolUrl(ss.getDsProtocolUrl());
+        result.setDsPublicUrl(ss.getDsPublicUrl());
         return result;
     }
 

@@ -28,7 +28,6 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -275,10 +274,12 @@ public class SharedParameters {
     }
 
     @Data
-    @AllArgsConstructor
     public static class ServerAddress {
         private String address;
         private boolean dsSupported;
+        private String dsManagementUrl;
+        private String dsProtocolUrl;
+        private String dsPublicUrl;
 
         public ServerAddress(String address) {
             this.address = address;

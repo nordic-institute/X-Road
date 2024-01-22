@@ -2,14 +2,17 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
-                   logicalFilePath="centerui/202401221113-ds-enabled.xml">
+                   logicalFilePath="centerui/202401221113-ds-properties.xml">
 
-    <changeSet author="niis" id="202401221113-ds-enabled">
-        <comment>Add dataspaces enabled column for Security Server.</comment>
+    <changeSet author="niis" id="202401221113-ds-properties">
+        <comment>Add dataspaces related columns for Security Server.</comment>
         <addColumn tableName="security_servers">
             <column name="ds_enabled" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="ds_management_url" type="VARCHAR(255)"/>
+            <column name="ds_protocol_url" type="VARCHAR(255)"/>
+            <column name="ds_public_url" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>
