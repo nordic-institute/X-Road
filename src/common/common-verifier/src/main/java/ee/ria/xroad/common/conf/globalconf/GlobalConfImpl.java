@@ -66,6 +66,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.certHash;
 import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static java.util.Optional.ofNullable;
 
 /**
  * Global configuration implementation
@@ -227,19 +228,33 @@ public class GlobalConfImpl implements GlobalConfProvider {
         }
 
         SharedParameters p = getSharedParameters(clientId.getXRoadInstance());
-        return p.getMemberAddresses().get(clientId);
+        return ofNullable(p.getMemberAddresses().get(clientId))
+                .map(addresses -> addresses.stream().map(SharedParameters.ServerAddress::getAddress).collect(Collectors.toSet()))
+                .orElse(Set.of());
     }
 
     @Override
     public String getSecurityServerAddress(SecurityServerId serverId) {
-        if (serverId == null) {
-            return null;
+        if (serverId != null) {
+            SharedParameters p = getSharedParameters(serverId.getXRoadInstance());
+            final SharedParameters.SecurityServer server = p.getSecurityServersById().get(serverId);
+            if (server != null && server.getServerAddress() != null) {
+                return server.getServerAddress().getAddress();
+            }
         }
 
-        SharedParameters p = getSharedParameters(serverId.getXRoadInstance());
-        final SharedParameters.SecurityServer server = p.getSecurityServersById().get(serverId);
-        if (server != null) {
-            return server.getAddress();
+        return null;
+    }
+
+    @Override
+    public ServerAddressInfo getSecurityServerAddressInfo(SecurityServerId serverId) {
+         if (serverId != null) {
+            SharedParameters p = getSharedParameters(serverId.getXRoadInstance());
+
+            final SharedParameters.SecurityServer server = p.getSecurityServersById().get(serverId);
+            if (server != null && server.getServerAddress() != null) {
+                return new ServerAddressInfo(server.getServerAddress().getAddress(), server.getServerAddress().isDsSupported());
+            }
         }
 
         return null;
@@ -449,7 +464,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             throws CertificateEncodingException, IOException, OperatorCreationException {
         for (SharedParameters p : getSharedParameters()) {
             byte[] inputCertHash = calculateCertHash(p, cert);
-            boolean match = Optional.ofNullable(p.getMemberAuthCerts().get(memberId)).stream()
+            boolean match = ofNullable(p.getMemberAuthCerts().get(memberId)).stream()
                     .flatMap(Collection::stream)
                     .anyMatch(h -> Arrays.equals(inputCertHash, h));
             if (match) {

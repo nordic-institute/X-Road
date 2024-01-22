@@ -39,6 +39,7 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBElement;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -188,7 +189,9 @@ public class SharedParametersV2Converter {
         var target = new SharedParameters.SecurityServer();
         target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
         target.setServerCode(source.getServerCode());
-        target.setAddress(source.getAddress());
+        if (StringUtils.isNotBlank(source.getAddress())) {
+            target.setServerAddress(new SharedParameters.ServerAddress(source.getAddress()));
+        }
         target.setAuthCertHashes(source.getAuthCertHash());
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();

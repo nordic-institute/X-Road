@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedTSAType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.CaInfoType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.DataspaceSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.MemberClassType;
@@ -39,6 +40,7 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SecurityServerTyp
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.xml.bind.JAXBElement;
 
@@ -48,6 +50,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class SharedParametersV3Converter {
 
@@ -57,11 +63,30 @@ public class SharedParametersV3Converter {
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
         List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source.getApprovedTSA());
         List<SharedParameters.Member> members = getMembers(source.getMember());
-        List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source);
+        Set<SecurityServerId> dsEnabledServers = getDataspacesEnabledServers(source.getDataspacesSettings());
+        List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source, dsEnabledServers);
         List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
         SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
+
         return new SharedParameters(instanceIdentifier, configurationSources, approvedCAs, approvedTSAs,
                 members, securityServers, globalGroups, globalSettings);
+    }
+
+    private Set<SecurityServerId> getDataspacesEnabledServers(DataspaceSettingsType dataspacesSettings) {
+        if (dataspacesSettings != null && !dataspacesSettings.getSecurityServerId().isEmpty()) {
+            return dataspacesSettings.getSecurityServerId().stream()
+                    .map(this::parseSecurityServerId)
+                    .collect(Collectors.toSet());
+        }
+        return Set.of();
+    }
+
+    @SuppressWarnings("checkstyle:magicnumber")
+    private SecurityServerId parseSecurityServerId(String idString) {
+        // todo: dataspaces. Maybe more intelligent transformation with validations would be nice.
+        String[] parts = idString.split(":");
+        assert parts.length == 4;
+        return SecurityServerId.Conf.create(parts[0], parts[1], parts[2], parts[3]);
     }
 
     private List<SharedParameters.ConfigurationSource> getConfigurationSources(List<ConfigurationSourceType> sources) {
@@ -97,13 +122,14 @@ public class SharedParametersV3Converter {
         return members;
     }
 
-    private List<SharedParameters.SecurityServer> getSecurityServers(SharedParametersTypeV3 source) {
+    private List<SharedParameters.SecurityServer> getSecurityServers(SharedParametersTypeV3 source,
+                                                                     Set<SecurityServerId> dsServers) {
         List<SharedParameters.SecurityServer> securityServers = new ArrayList<>();
         if (source.getSecurityServer() != null) {
             Map<String, ClientId> clientIds = getClientIds(source);
             securityServers.addAll(
                     source.getSecurityServer().stream()
-                            .map(s -> toSecurityServer(clientIds, s, source.getInstanceIdentifier()))
+                            .map(s -> toSecurityServer(clientIds, s, source.getInstanceIdentifier(), dsServers))
                             .toList()
             );
         }
@@ -216,11 +242,15 @@ public class SharedParametersV3Converter {
     }
 
     private SharedParameters.SecurityServer toSecurityServer(
-            Map<String, ClientId> clientIds, SecurityServerType source, String instanceIdentifier) {
+            Map<String, ClientId> clientIds, SecurityServerType source, String instanceIdentifier,
+            Set<SecurityServerId> dsServers) {
         var target = new SharedParameters.SecurityServer();
         target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
         target.setServerCode(source.getServerCode());
-        target.setAddress(source.getAddress());
+        if (isNotBlank(source.getAddress())) {
+            target.setServerAddress(new SharedParameters.ServerAddress(source.getAddress(),
+                    dsServers.contains(SecurityServerId.Conf.create(target.getOwner(), target.getServerCode()))));
+        }
         target.setAuthCertHashes(source.getAuthCertHash());
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();

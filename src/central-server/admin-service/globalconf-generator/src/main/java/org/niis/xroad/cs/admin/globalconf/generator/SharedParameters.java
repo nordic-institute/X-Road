@@ -113,6 +113,7 @@ class SharedParameters {
         private String address;
         private List<byte[]> authCerts;
         private List<ClientId> clients;
+        private boolean dsEnabled;
     }
 
     @Data

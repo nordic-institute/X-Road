@@ -29,6 +29,7 @@
     <include file="centerui/202311161611-server-clients-unique.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202312121722-truncate-version-from-anchor-urls.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202312141700-approved-cas-acme.xml" relativeToChangelogFile="true"/>
+    <include file="centerui/202401221113-ds-enabled.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

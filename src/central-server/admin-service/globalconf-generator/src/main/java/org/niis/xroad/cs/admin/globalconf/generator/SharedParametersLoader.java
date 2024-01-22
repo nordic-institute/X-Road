@@ -174,6 +174,7 @@ class SharedParametersLoader {
         result.setAuthCerts(ss.getAuthCerts().stream()
                 .map(AuthCert::getCert)
                 .toList());
+        result.setDsEnabled(ss.isDsEnabled());
         return result;
     }
 

@@ -109,7 +109,13 @@
                     </documentation>
                 </annotation>
             </element>
-            <any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            <element name="dataspacesSettings" type="tns:DataspaceSettingsType" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Contains Dataspaces related settings.
+                    </documentation>
+                </annotation>
+            </element>
         </sequence>
     </complexType>
 
@@ -186,4 +192,17 @@
             </element>
         </sequence>
     </complexType>
+
+    <complexType name="DataspaceSettingsType">
+        <sequence>
+            <element name="securityServerId" type="string" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Security Server ID.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
 </schema>
+

@@ -93,6 +93,11 @@ public class SecurityServerEntity extends AuditableEntity {
     @Getter
     private Set<ServerClientEntity> serverClients = new HashSet<>(0);
 
+    @Column(name = "ds_enabled")
+    @Getter
+    @Setter
+    private boolean dsEnabled;
+
     public SecurityServerEntity(XRoadMemberEntity owner, String serverCode) {
         this.owner = owner;
         this.serverCode = serverCode;

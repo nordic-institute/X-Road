@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.DataspaceSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.MemberType;
@@ -37,6 +38,7 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SecurityServerTyp
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.xml.bind.JAXBElement;
@@ -51,6 +53,8 @@ import org.mapstruct.factory.Mappers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 
@@ -69,9 +73,26 @@ abstract class SharedParametersV3Converter {
     @Mapping(source = "securityServers", target = "securityServer")
     @Mapping(source = "globalGroups", target = "globalGroup")
     @Mapping(target = "centralService", ignore = true)
-    @Mapping(target = "any", ignore = true)
+    @Mapping(target = "dataspacesSettings", source = "sharedParameters", qualifiedByName = "mapDataspacesSettings")
     abstract SharedParametersTypeV3 convert(SharedParameters sharedParameters,
                                             @Context Map<ClientId, Object> clientMap);
+
+    @Named("mapDataspacesSettings")
+    protected DataspaceSettingsType mapDataspacesSettings(SharedParameters sharedParameters) {
+        if (sharedParameters.getSecurityServers() != null) {
+            Set<String> servers = sharedParameters.getSecurityServers().stream()
+                    .filter(SharedParameters.SecurityServer::isDsEnabled)
+                    .map(s -> SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId())
+                    .collect(Collectors.toSet());
+
+            if (!servers.isEmpty()) {
+                DataspaceSettingsType result = new DataspaceSettingsType();
+                result.getSecurityServerId().addAll(servers);
+                return result;
+            }
+        }
+        return null;
+    }
 
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);

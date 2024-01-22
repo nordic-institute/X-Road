@@ -28,9 +28,9 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 
@@ -43,12 +43,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Getter
 public class SharedParameters {
@@ -67,7 +67,7 @@ public class SharedParameters {
     private final Map<X509Certificate, ApprovedCA> caCertsAndApprovedCAData = new HashMap<>();
     private final Map<X509Certificate, List<OcspInfo>> caCertsAndOcspData = new HashMap<>();
     private final List<X509Certificate> verificationCaCerts = new ArrayList<>();
-    private final Map<ClientId, Set<String>> memberAddresses = new HashMap<>();
+    private final Map<ClientId, Set<ServerAddress>> memberAddresses = new HashMap<>();
     private final Map<ClientId, Set<byte[]>> memberAuthCerts = new HashMap<>();
     private final Map<String, SecurityServer> serverByAuthCert = new HashMap<>();
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
@@ -141,8 +141,9 @@ public class SharedParameters {
     }
 
     private void cacheKnownAddresses() {
-        securityServers.stream().map(SecurityServer::getAddress)
-                .filter(StringUtils::isNotBlank)
+        securityServers.stream().map(SecurityServer::getServerAddress)
+                .filter(Objects::nonNull)
+                .map(ServerAddress::getAddress)
                 .forEach(knownAddresses::add);
     }
 
@@ -168,8 +169,8 @@ public class SharedParameters {
 
     private void addServerClient(ClientId client, SecurityServer server) {
         // Add the mapping from client to security server address.
-        if (isNotBlank(server.getAddress())) {
-            addToMap(memberAddresses, client, server.getAddress());
+        if (server.getServerAddress() != null) {
+            addToMap(memberAddresses, client, server.getServerAddress());
         }
 
         // Add the mapping from client to authentication certificate.
@@ -255,9 +256,9 @@ public class SharedParameters {
     public static class SecurityServer {
         private ClientId owner;
         private String serverCode;
-        private String address;
         private List<byte[]> authCertHashes;
         private List<ClientId> clients;
+        private ServerAddress serverAddress;
     }
 
     @Data
@@ -271,5 +272,16 @@ public class SharedParameters {
     public static class GlobalSettings {
         private List<MemberClass> memberClasses;
         private BigInteger ocspFreshnessSeconds;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class ServerAddress {
+        private String address;
+        private boolean dsSupported;
+
+        public ServerAddress(String address) {
+            this.address = address;
+        }
     }
 }
