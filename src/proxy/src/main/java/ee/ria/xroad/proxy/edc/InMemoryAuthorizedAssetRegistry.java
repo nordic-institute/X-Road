@@ -13,8 +13,14 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
     * */
     private final HashMap<String, GrantedAssetInfo> registry = new HashMap<>();
 
+    @Override
     public Optional<GrantedAssetInfo> getAssetInfoById(String id) {
         return Optional.ofNullable(registry.get(id));
+    }
+
+    @Override
+    public void registerAsset(GrantedAssetInfo assetInfo) {
+        registry.put(assetInfo.id, assetInfo);
     }
 
     public record GrantedAssetInfo(String id,

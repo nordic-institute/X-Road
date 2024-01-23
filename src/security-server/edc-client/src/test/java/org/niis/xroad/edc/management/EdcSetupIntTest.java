@@ -297,6 +297,7 @@ class EdcSetupIntTest {
         }
     }
 
+    @Deprecated
     @SneakyThrows
     private JsonObject transform(Object content) {
         var jsonObject = jsonLd.compact(context.transform(content, JsonObject.class)).getContent();
