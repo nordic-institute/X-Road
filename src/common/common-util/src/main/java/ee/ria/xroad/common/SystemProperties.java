@@ -1695,4 +1695,8 @@ public final class SystemProperties {
     public static String getGrpcInternalTruststorePassword() {
         return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
     }
+
+    public static boolean isDataspacesEnabled(){
+        return true; //TODO xroad8 create config
+    }
 }

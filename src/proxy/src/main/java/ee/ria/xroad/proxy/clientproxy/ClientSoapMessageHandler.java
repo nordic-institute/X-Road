@@ -37,6 +37,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.client.HttpClient;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
@@ -46,20 +48,20 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * the next handler (i.e. throws exception instead), if it cannot process
  * the request itself.
  */
-class ClientMessageHandler extends AbstractClientProxyHandler {
+class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
-    ClientMessageHandler(HttpClient client) {
+    ClientSoapMessageHandler(HttpClient client) {
         super(client, true);
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
+    Optional<MessageProcessorBase> createRequestProcessor(String target,
+                                                          HttpServletRequest request, HttpServletResponse response,
+                                                          OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
-        return new ClientMessageProcessor(request, response, client,
-                getIsAuthenticationData(request), opMonitoringData);
+        return Optional.of(new ClientSoapMessageProcessor(request, response, client,
+                getIsAuthenticationData(request), opMonitoringData));
     }
 
     private void verifyCanProcess(HttpServletRequest request) {

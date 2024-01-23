@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.message.RestMessage;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -41,17 +42,24 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
+import org.apache.http.message.BasicHeader;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Request;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
@@ -75,15 +83,44 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
+    Optional<MessageProcessorBase> createRequestProcessor(String target,
+                                                          HttpServletRequest request, HttpServletResponse response,
+                                                          OpMonitoringData opMonitoringData) throws Exception {
+
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
-            return new ClientRestMessageProcessor(request, response, client,
-                    getIsAuthenticationData(request), opMonitoringData);
+
+            var restRequest = createRestRequest(request);
+            var proxyCtx = new ProxyRequestCtx(target, request, response, opMonitoringData,
+                    resolveTargetSecurityServers(restRequest.getClientId()));
+
+            if (proxyCtx.targetSecurityServers().dsEnabledServers()) {
+                return Optional.of(new ClientRestMessageDsProcessor(proxyCtx, restRequest, client,
+                        getIsAuthenticationData(request)));
+            } else {
+                return Optional.of(new ClientRestMessageProcessor(proxyCtx, restRequest, client,
+                        getIsAuthenticationData(request)));
+            }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    private RestRequest createRestRequest(HttpServletRequest request) {
+        return new RestRequest(
+                request.getMethod(),
+                request.getRequestURI(),
+                request.getQueryString(),
+                headers(request),
+                UUID.randomUUID().toString()
+        );
+    }
+
+    private List<Header> headers(HttpServletRequest req) {
+        //Use jetty request to keep the original order
+        Request jrq = (Request) req;
+        return jrq.getHttpFields().stream()
+                .map(f -> new BasicHeader(f.getName(), f.getValue()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private void verifyCanProcess() {
@@ -102,8 +139,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     public void sendErrorResponse(HttpServletRequest request,
-            HttpServletResponse response,
-            CodedException ex) throws IOException {
+                                  HttpServletResponse response,
+                                  CodedException ex) throws IOException {
         if (ex.getFaultCode().startsWith("Server.")) {
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         } else {

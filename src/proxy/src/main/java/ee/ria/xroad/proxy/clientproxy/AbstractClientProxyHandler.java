@@ -28,7 +28,10 @@ package ee.ria.xroad.proxy.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.ServerAddressInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.PerformanceLogger;
@@ -45,6 +48,8 @@ import org.eclipse.jetty.server.Request;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
@@ -52,7 +57,7 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerTy
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 /**
- * Base class for client proxy handlers.
+ * Base class for client proxy handlers. These handlers are responsible for processing the incoming requests, usually consumer IS.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -64,7 +69,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     protected final boolean storeOpMonitoringData;
     private final long idleTimeout = SystemProperties.getClientProxyConnectorMaxIdleTime();
 
-    abstract MessageProcessorBase createRequestProcessor(String target,
+    abstract Optional<MessageProcessorBase> createRequestProcessor(String target,
             HttpServletRequest request, HttpServletResponse response,
             OpMonitoringData opMonitoringData) throws Exception;
 
@@ -83,7 +88,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         MessageProcessorBase processor = null;
 
         try {
-            processor = createRequestProcessor(target, request, response, opMonitoringData);
+            //TODO xroad8 do proper optional handling
+            processor = createRequestProcessor(target, request, response, opMonitoringData).orElse(null);
 
             if (processor != null) {
                 baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
@@ -147,6 +153,39 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         }
     }
 
+    protected TargetSecurityServers resolveTargetSecurityServers(ClientId clientId) {
+        // Resolve available security servers
+        var allServers = GlobalConf.getProviderSecurityServers(clientId);
+        if (SystemProperties.isDataspacesEnabled()) {
+            var dsEnabledServers = allServers.stream().filter(ServerAddressInfo::isDsSupported).toList();
+            if (dsEnabledServers.isEmpty()) {
+                log.trace("Falling back to legacy protocol, there are no DataSpace compliant Security Servers for this service.");
+                return new TargetSecurityServers(allServers, false);
+            } else {
+                return new TargetSecurityServers(dsEnabledServers, true);
+            }
+        } else {
+            return new TargetSecurityServers(allServers, false);
+        }
+    }
+
+    //TODO xroad8 this has an overlap with RestRequest object, possibly merge these
+    record ProxyRequestCtx(
+            String clientRequestUrl,
+            HttpServletRequest clientRequest,
+            HttpServletResponse clientResponse,
+            OpMonitoringData opMonitoringData,
+
+            TargetSecurityServers targetSecurityServers
+    ) {
+    }
+
+    record TargetSecurityServers(
+            Collection<ServerAddressInfo> servers,
+            boolean dsEnabledServers
+    ) {
+    }
+
     private static void success(MessageProcessorBase processor, long start, OpMonitoringData opMonitoringData) {
         final boolean success = processor.verifyMessageExchangeSucceeded();
 
@@ -162,7 +201,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     protected void failure(HttpServletResponse response, CodedExceptionWithHttpStatus e,
-            OpMonitoringData opMonitoringData) throws IOException {
+                           OpMonitoringData opMonitoringData) throws IOException {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 

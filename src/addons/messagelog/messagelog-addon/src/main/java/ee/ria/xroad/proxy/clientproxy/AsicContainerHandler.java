@@ -34,6 +34,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
 /**
@@ -50,15 +52,15 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
+    Optional<MessageProcessorBase> createRequestProcessor(String target,
+                                                          HttpServletRequest request, HttpServletResponse response,
+                                                          OpMonitoringData opMonitoringData) throws Exception {
         log.trace("createRequestProcessor({})", target);
 
         // opMonitoringData is null, do not use it.
 
         if (!isGetRequest(request)) {
-            return null;
+            return Optional.empty();
         }
 
         if (target == null) {
@@ -73,9 +75,9 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
         if (processor.canProcess()) {
             log.trace("Processing with AsicContainerRequestProcessor");
 
-            return processor;
+            return Optional.of(processor);
         }
 
-        return null;
+        return Optional.empty();
     }
 }

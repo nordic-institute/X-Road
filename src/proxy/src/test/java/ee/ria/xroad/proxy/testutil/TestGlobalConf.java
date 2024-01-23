@@ -31,6 +31,7 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
+import ee.ria.xroad.common.conf.globalconf.ServerAddressInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Test globalconf implementation.
@@ -57,6 +59,12 @@ public class TestGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
+    public Collection<ServerAddressInfo> getProviderSecurityServers(ClientId clientId) {
+        return Set.of(
+                new ServerAddressInfo("127.0.0.1", true));
+    }
+
+    @Override
     public List<X509Certificate> getOcspResponderCertificates() {
         try {
             return Arrays.asList(TestCertUtil.getOcspSigner().certChain[0]);
@@ -67,7 +75,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public X509Certificate[] getAuthTrustChain() {
-        return new X509Certificate[] {TestCertUtil.getCaCert()};
+        return new X509Certificate[]{TestCertUtil.getCaCert()};
     }
 
     @Override
@@ -92,7 +100,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public SignCertificateProfileInfo getSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) throws Exception {
         return new EjbcaSignCertificateProfileInfo(parameters) {
             @Override
             public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
@@ -111,7 +119,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) throws Exception {
         return null;
     }
 

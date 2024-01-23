@@ -34,6 +34,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
 /**
@@ -50,15 +52,15 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) {
+    Optional<MessageProcessorBase> createRequestProcessor(String target,
+                                                          HttpServletRequest request, HttpServletResponse response,
+                                                          OpMonitoringData opMonitoringData) {
         log.trace("createRequestProcessor({})", target);
 
         // opMonitoringData is null, do not use it.
 
         if (!isGetRequest(request)) {
-            return null;
+            return Optional.empty();
         }
 
         if (target == null) {
@@ -69,8 +71,8 @@ public class MetadataHandler extends AbstractClientProxyHandler {
         MetadataClientRequestProcessor processor = new MetadataClientRequestProcessor(target, request, response);
         if (processor.canProcess()) {
             log.trace("Processing with MetadataClientRequestProcessor");
-            return processor;
+            return Optional.of(processor);
         }
-        return null;
+        return Optional.empty();
     }
 }
