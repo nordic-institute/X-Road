@@ -76,8 +76,7 @@ import static ee.ria.xroad.common.util.MimeUtils.getBoundary;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
-class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
-
+class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private ServiceId requestServiceId;
     /**
      * Holds the response from server proxy.
@@ -89,10 +88,13 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private byte[] restBodyDigest;
 
-    ClientRestMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
-                               final RestRequest restRequest,
-                               final HttpClient httpClient, final IsAuthenticationData clientCert) {
+    private final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx;
+
+    ClientRestMessageDsProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
+                                 final RestRequest restRequest,
+                                 final HttpClient httpClient, final IsAuthenticationData clientCert) {
         super(proxyRequestCtx, httpClient, clientCert);
+        this.proxyRequestCtx = proxyRequestCtx;
         this.restRequest = restRequest;
     }
 
@@ -151,7 +153,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         if (restRequest.getQueryId() == null) {
             restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
+        //TODO: op monitoring should know about DataSpace
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
+
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender);
             parseResponse(httpSender);
@@ -163,7 +167,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private void sendRequest(HttpSender httpSender) throws Exception {
         log.trace("sendRequest()");
 
-        //TODO xroad8 use calculated target security servers from ctx
         final URI[] addresses = prepareRequest(httpSender, requestServiceId, restRequest.getTargetSecurityServer());
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
 
@@ -253,9 +256,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void sendResponse() throws Exception {
         final RestResponse rest = response.getRestResponse();
-        if (servletResponse instanceof Response jettyResponse) {
+        if (servletResponse instanceof Response) {
             // the standard API for setting reason and code is deprecated
-            jettyResponse.setStatusWithReason(
+            ((Response) servletResponse).setStatusWithReason(
                     rest.getResponseCode(),
                     rest.getReason());
         } else {

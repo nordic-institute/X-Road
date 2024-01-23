@@ -84,7 +84,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
-class ClientMessageProcessor extends AbstractClientMessageProcessor {
+class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
 
     /**
      * Timeout for waiting for the SOAP message to be read from the request.
@@ -142,8 +142,8 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         });
     }
 
-    ClientMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+    ClientSoapMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
+                               HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
         super(servletRequest, servletResponse, httpClient, clientCert, opMonitoringData);
         this.reqIns = new PipedInputStream();

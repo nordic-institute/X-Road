@@ -93,6 +93,14 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         this.opMonitoringData = opMonitoringData;
     }
 
+    protected AbstractClientMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
+                                             HttpClient httpClient, IsAuthenticationData clientCert){
+        super(proxyRequestCtx.clientRequest(), proxyRequestCtx.clientResponse(), httpClient);
+
+        this.clientCert = clientCert;
+        this.opMonitoringData = proxyRequestCtx.opMonitoringData();
+    }
+
     protected static URI getServiceAddress(URI[] addresses) {
         if (addresses.length == 1 || !isSslEnabled()) {
             return addresses[0];

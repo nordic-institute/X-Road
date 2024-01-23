@@ -67,6 +67,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -135,6 +136,9 @@ public final class ProxyMain {
             startup();
             loadConfigurations();
             startServices();
+
+           var springCtx = new AnnotationConfigApplicationContext(ProxyConfiguration.class);
+            springCtx.registerShutdownHook();
         } catch (Exception ex) {
             log.error("Proxy failed to start", ex);
             throw ex;

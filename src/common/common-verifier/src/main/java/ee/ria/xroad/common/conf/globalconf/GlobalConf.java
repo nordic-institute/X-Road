@@ -254,6 +254,12 @@ public final class GlobalConf {
         return getInstance().getSecurityServerAddress(serverId);
     }
 
+    public static Collection<ServerAddressInfo> getProviderSecurityServers(ClientId serviceProvider) {
+        log.trace("getProviderSecurityServers({})", serviceProvider);
+
+        return getInstance().getProviderSecurityServers(serviceProvider);
+    }
+
     /**
      * Returns address of the given security server with additional information.
      * IP address converted to string, such as "192.168.2.2"

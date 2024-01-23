@@ -12,13 +12,17 @@ sourceSets {
 }
 
 dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+
     implementation project(':common:common-util')
     implementation project(':common:common-verifier')
     implementation project(':serverconf')
     implementation project(':signer-protocol')
     implementation project(':common:common-messagelog')
     implementation project(':common:common-op-monitoring')
+    implementation project(':security-server:edc-client')
 
+    implementation('org.springframework:spring-context')
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
     implementation "xerces:xercesImpl:$xercesVersion"
 
