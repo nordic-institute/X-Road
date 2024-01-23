@@ -55,6 +55,12 @@ COPY --chown=xroad:xroad etc /etc
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# dataspaces
+COPY build/connector.jar /usr/share/xroad/jlib/
+COPY files/edc /etc/xroad-edc/
+ENV EDC_HOSTNAME=localhost
+
 CMD ["/root/entrypoint.sh"]
 
 EXPOSE 8080 8443 4000 5500 5577
