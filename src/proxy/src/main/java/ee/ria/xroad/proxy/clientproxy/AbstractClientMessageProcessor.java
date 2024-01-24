@@ -85,7 +85,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     protected AbstractClientMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+                                             HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
         super(servletRequest, servletResponse, httpClient);
 
@@ -94,7 +94,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     protected AbstractClientMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
-                                             HttpClient httpClient, IsAuthenticationData clientCert){
+                                             HttpClient httpClient, IsAuthenticationData clientCert) {
         super(proxyRequestCtx.clientRequest(), proxyRequestCtx.clientResponse(), httpClient);
 
         this.clientCert = clientCert;

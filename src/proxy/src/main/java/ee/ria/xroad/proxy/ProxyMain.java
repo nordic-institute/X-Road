@@ -137,7 +137,7 @@ public final class ProxyMain {
             loadConfigurations();
             startServices();
 
-           var springCtx = new AnnotationConfigApplicationContext(ProxyConfiguration.class);
+            var springCtx = new AnnotationConfigApplicationContext(ProxyConfiguration.class);
             springCtx.registerShutdownHook();
         } catch (Exception ex) {
             log.error("Proxy failed to start", ex);
