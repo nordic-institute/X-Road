@@ -112,7 +112,11 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     @Override
     public void reload() {
         log.info("Reloading {}", module);
-        stop();
+        try {
+            stop();
+        } catch (Exception e) {
+            log.warn("Failed to stop module {}.", module.getType());
+        }
         start();
 
         super.reload();
@@ -121,6 +125,11 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     @Override
     protected List<TokenType> listTokens() throws Exception {
         log.trace("Listing tokens on module '{}'", module.getType());
+
+        if (pkcs11Module == null) {
+            log.warn("Module {} not initialized before listTokens(). Reinitializing module.", module.getType());
+            throw new PKCS11Exception(PKCS11Constants.CKR_CRYPTOKI_NOT_INITIALIZED);
+        }
 
         Slot[] slots = pkcs11Module.getSlotList(Module.SlotRequirement.TOKEN_PRESENT);
 
