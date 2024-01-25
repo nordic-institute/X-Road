@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.4.1 - UNRELEASED
+
 ## 7.4.0 - 2023-12-21
 - XRDDEV-851: As an Architect I want to study alternatives how to make global configuration more flexible so that it is easier to add new configuration items.
 - XRDDEV-1520: As an Architect I want to investigate how ACME could be supported in the X-Road ecosystem so that onboarding would be faster
