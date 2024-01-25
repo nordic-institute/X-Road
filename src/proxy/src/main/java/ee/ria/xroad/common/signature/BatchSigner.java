@@ -68,11 +68,12 @@ public class BatchSigner {
 
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
-    public static void init() {
+    public static BatchSigner init() {
         instance = new BatchSigner();
+        return instance;
     }
 
-    public static void shutdown() {
+    public void shutdown() {
         if (instance != null) {
             instance.workers.values().forEach(WorkerImpl::stop);
         }
