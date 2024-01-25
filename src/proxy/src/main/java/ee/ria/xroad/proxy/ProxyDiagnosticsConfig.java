@@ -57,7 +57,7 @@ public class ProxyDiagnosticsConfig {
         return new AddOnStatusDiagnostics(messageLogEnabledStatus);
     }
 
-    @Bean
+    @Bean(initMethod = "start", destroyMethod = "stop")
     @Conditional(HealthCheckEnabledCondition.class)
     HealthCheckPort healthCheckPort() {
         return new HealthCheckPort();
