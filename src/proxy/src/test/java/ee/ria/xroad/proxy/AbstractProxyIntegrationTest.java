@@ -96,9 +96,7 @@ public abstract class AbstractProxyIntegrationTest {
 
     static class TestProxyMain extends ProxyMain {
         @Override
-        protected void loadConfigurations() {
-            super.loadConfigurations();
-
+        protected void loadSystemProperties() {
             System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
             System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
             System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
@@ -117,14 +115,21 @@ public abstract class AbstractProxyIntegrationTest {
             System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
             System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
 
-            KeyConf.reload(new TestKeyConf());
-            ServerConf.reload(TEST_SERVER_CONF);
-            GlobalConf.reload(TEST_GLOBAL_CONF);
-
             System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
             System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
+            System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
+            System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
+
             System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
+            super.loadSystemProperties();
+        }
+
+        @Override
+        protected void loadGlobalConf() {
+            KeyConf.reload(new TestKeyConf());
+            ServerConf.reload(TEST_SERVER_CONF);
+            GlobalConf.reload(TEST_GLOBAL_CONF);
         }
     }
 

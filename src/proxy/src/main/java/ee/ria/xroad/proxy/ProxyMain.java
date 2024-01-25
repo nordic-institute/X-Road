@@ -68,11 +68,11 @@ public class ProxyMain {
         Version.outputVersionInfo(APP_NAME);
         log.info("Starting proxy ({})...", readProxyVersion());
 
+        log.trace("Loading global bean dependencies");
+        loadSystemProperties();
+        loadGlobalConf();
+
         var springCtx = new AnnotationConfigApplicationContext();
-        springCtx.addBeanFactoryPostProcessor(beanFactory -> {
-            log.trace("Loading global bean dependencies");
-            loadConfigurations();
-        });
         springCtx.register(ProxyConfig.class);
         if (ctxExtension.length > 0) {
             springCtx.register(ctxExtension);
@@ -83,20 +83,21 @@ public class ProxyMain {
         return springCtx;
     }
 
-    protected void loadConfigurations() {
-        log.trace("loadConfigurations()");
+    protected void loadSystemProperties() {
+        SystemPropertiesLoader.create()
+                .withCommonAndLocal()
+                .withAddOn()
+                .with(CONF_FILE_PROXY)
+                .with(CONF_FILE_SIGNER)
+                .withLocalOptional(CONF_FILE_NODE)
+                .load();
 
+        org.apache.xml.security.Init.init();
+    }
+
+    protected void loadGlobalConf() {
         try {
-            SystemPropertiesLoader.create()
-                    .withCommonAndLocal()
-                    .withAddOn()
-                    .with(CONF_FILE_PROXY)
-                    .with(CONF_FILE_SIGNER)
-                    .withLocalOptional(CONF_FILE_NODE)
-                    .load();
-
-            org.apache.xml.security.Init.init();
-
+            log.trace("loadConfigurations()");
             if (SystemProperties.getServerConfCachePeriod() > 0) {
                 ServerConf.reload(new CachingServerConfImpl());
             }

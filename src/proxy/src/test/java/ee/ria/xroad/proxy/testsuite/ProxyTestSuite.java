@@ -121,21 +121,24 @@ public final class ProxyTestSuite {
 
     static class TestProxyMain extends ProxyMain {
         @Override
-        protected void loadConfigurations() {
-            super.loadConfigurations();
+        protected void loadSystemProperties() {
+            super.loadSystemProperties();
 
             setPropsIfNotSet();
 
             System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
             System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
 
-            KeyConf.reload(new TestSuiteKeyConf());
-            ServerConf.reload(new TestSuiteServerConf());
-            GlobalConf.reload(new TestSuiteGlobalConf());
 
             System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
             System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
+        }
 
+        @Override
+        protected void loadGlobalConf() {
+            KeyConf.reload(new TestSuiteKeyConf());
+            ServerConf.reload(new TestSuiteServerConf());
+            GlobalConf.reload(new TestSuiteGlobalConf());
         }
     }
 
