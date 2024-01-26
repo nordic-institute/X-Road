@@ -279,7 +279,7 @@ public final class SystemProperties {
 
     private static final String PROXY_HEALTH_CHECK_INTERFACE = PREFIX + "proxy.health-check-interface";
 
-    private static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
+    public static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
 
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";

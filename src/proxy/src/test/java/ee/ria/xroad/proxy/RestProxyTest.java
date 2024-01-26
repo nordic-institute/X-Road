@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,7 +60,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
 
     @Test
-    public void shouldFailIfClientHeaderMissing() throws IOException {
+    public void shouldFailIfClientHeaderMissing() {
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -73,7 +72,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldFailIfMalformedRequestURI() throws IOException {
+    public void shouldFailIfMalformedRequestURI() {
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -86,7 +85,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldHandleSimplePost() throws IOException {
+    public void shouldHandleSimplePost() {
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -161,7 +160,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldHaveOnlyOneDateHeader() throws IOException {
+    public void shouldHaveOnlyOneDateHeader() {
         assertEquals(1, given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -173,7 +172,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldAcceptPercentEncodedIdentifiers() throws IOException {
+    public void shouldAcceptPercentEncodedIdentifiers() {
         service.setHandler((target, request, response) -> assertEquals("/path%3B/", request.getRequestURI()));
         given()
                 .baseUri("http://127.0.0.1")
@@ -185,7 +184,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldAcceptEmptyPath() throws IOException {
+    public void shouldAcceptEmptyPath() {
         service.setHandler((target, request, response) -> assertEquals("/", request.getRequestURI()));
         given()
                 .baseUri("http://127.0.0.1")
@@ -286,7 +285,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldSelectResolvableAddress() throws IOException {
+    public void shouldSelectResolvableAddress() {
 
         GlobalConf.reload(new TestGlobalConf() {
             @Override
@@ -308,7 +307,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldRespectAcceptHeaderInErrorResponse() throws IOException {
+    public void shouldRespectAcceptHeaderInErrorResponse() {
 
         ServerConf.reload(new TestServerConf(servicePort) {
             @Override
@@ -455,12 +454,10 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     private static final TestService.Handler LARGE_OBJECT_HANDLER = (target, request, response) -> {
         response.setStatus(200);
         response.setContentType("application/octet-stream");
-        final int bytes = Integer.valueOf(request.getParameter("bytes"));
+        final int bytes = Integer.parseInt(request.getParameter("bytes"));
         final ServletOutputStream output = response.getOutputStream();
         byte[] buf = new byte[8192];
-        for (int i = 0; i < buf.length; i++) {
-            buf[i] = (byte)(bytes % 256);
-        }
+        Arrays.fill(buf, (byte) (bytes % 256));
         int i = bytes;
         for (; i > buf.length; i -= buf.length) {
             output.write(buf);
