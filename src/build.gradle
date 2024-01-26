@@ -91,8 +91,8 @@ subprojects {
 allprojects {
 
     repositories {
-        mavenLocal()
         mavenCentral()
+        mavenLocal()
     }
 
     version = '1.0'
