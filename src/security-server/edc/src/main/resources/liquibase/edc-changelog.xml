@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet id="1" author="niis">
+        <sqlFile path="edc/asset-index-sql.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc/data-plane-instance-store-sql.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc/contract-definition-store-sql.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc/contract-negotiation-store-sql.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc/policy-definition-store-sql.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
+    <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
+        <sql splitStatements="false"><![CDATA[
+            grant usage on schema "${db_schema}" to "${db_user}";
+            grant select,update,insert,delete on all tables in schema "${db_schema}" to "${db_user}";
+            grant select,usage on all sequences in schema "${db_schema}" to "${db_user}";
+            grant execute on all functions in schema "${db_schema}" to "${db_user}";
+            revoke insert,update,delete on databasechangelog, databasechangeloglock from "${db_user}";
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

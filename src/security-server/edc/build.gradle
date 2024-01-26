@@ -24,6 +24,15 @@ dependencies {
     implementation("org.eclipse.edc:data-plane-public-api:$edcVersion")
     implementation("org.eclipse.edc:data-plane-core:$edcVersion")
     implementation("org.eclipse.edc:data-plane-http:$edcVersion")
+
+    // sql store
+    runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
+    runtimeOnly("org.eclipse.edc:sql-pool-apache-commons:$edcVersion")
+    implementation("org.eclipse.edc:asset-index-sql:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-instance-store-sql:$edcVersion")
+    implementation("org.eclipse.edc:contract-definition-store-sql:$edcVersion")
+    implementation("org.eclipse.edc:contract-negotiation-store-sql:$edcVersion")
+    implementation("org.eclipse.edc:policy-definition-store-sql:$edcVersion")
 }
 
 application {

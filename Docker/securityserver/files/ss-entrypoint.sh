@@ -40,5 +40,10 @@ su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
 # dataspaces
 sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-configuration.properties
 
+chmod +x /usr/share/xroad/bin/xroad-edc
+# end of dataspaces
+
+
+
 
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
