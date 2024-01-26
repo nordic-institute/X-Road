@@ -58,8 +58,13 @@ COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
 # dataspaces
 COPY build/connector.jar /usr/share/xroad/jlib/
-COPY files/edc /etc/xroad-edc/
+COPY build/liquibase/ /usr/share/xroad/db
+
+COPY files/edc/etc /etc/xroad-edc/
+COPY files/edc/setup_edc_db.sh /usr/share/xroad/scripts/setup_edc_db.sh
+COPY files/edc/xroad-edc /usr/share/xroad/bin/xroad-edc
 ENV EDC_HOSTNAME=localhost
+# end of dataspaces
 
 CMD ["/root/entrypoint.sh"]
 
