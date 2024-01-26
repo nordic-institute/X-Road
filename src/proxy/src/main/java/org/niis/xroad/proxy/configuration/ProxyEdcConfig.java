@@ -25,7 +25,9 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.proxy;
+package org.niis.xroad.proxy.configuration;
+
+import ee.ria.xroad.common.SystemProperties;
 
 import org.eclipse.edc.connector.api.management.asset.v3.AssetApi;
 import org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi;
@@ -33,14 +35,17 @@ import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.niis.xroad.edc.management.client.configuration.EdcManagementApiFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@ComponentScan("ee.ria.xroad.proxy.edc")
-public class ProxyConfiguration {
+@Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
+public class ProxyEdcConfig {
 
     @Bean
     EdcManagementApiFactory edcManagementApiFactory() {
@@ -65,6 +70,13 @@ public class ProxyConfiguration {
     @Bean
     ContractDefinitionApi contractDefinitionApi(EdcManagementApiFactory edcManagementApiFactory) {
         return edcManagementApiFactory.contractDefinitionApi();
+    }
+
+    public static class DataspacesEnabledCondition implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return SystemProperties.isDataspacesEnabled();
+        }
     }
 
 }

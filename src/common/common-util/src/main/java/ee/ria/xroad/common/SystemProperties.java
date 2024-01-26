@@ -644,6 +644,8 @@ public final class SystemProperties {
             PREFIX + "common.grpc-internal-truststore-password";
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
             GRPC_INTERNAL_TRUSTSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
+
+    public static final String DATASPACES_ENABLED = PREFIX + "dataspaces.enabled";
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -1696,7 +1698,10 @@ public final class SystemProperties {
         return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
     }
 
+    /**
+     * @return whether dataspaces connector is enabled, 'false' by default.
+     */
     public static boolean isDataspacesEnabled(){
-        return true; //TODO xroad8 create config
+        return Boolean.parseBoolean(System.getProperty(DATASPACES_ENABLED, Boolean.FALSE.toString()));
     }
 }

@@ -42,6 +42,8 @@ import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -72,6 +74,7 @@ import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_NAME;
 
 @RequiredArgsConstructor
 @Component
+@Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
 @Slf4j
 public class AssetsRegistrationJob {
 

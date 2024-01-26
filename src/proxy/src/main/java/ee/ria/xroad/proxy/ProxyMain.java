@@ -57,9 +57,6 @@ public class ProxyMain {
     public static void main(String[] args) throws Exception {
         try {
             new ProxyMain().createApplicationContext();
-
-            var springCtx = new AnnotationConfigApplicationContext(ProxyConfiguration.class);
-            springCtx.registerShutdownHook();
         } catch (Exception ex) {
             log.error("Proxy failed to start", ex);
             throw ex;
