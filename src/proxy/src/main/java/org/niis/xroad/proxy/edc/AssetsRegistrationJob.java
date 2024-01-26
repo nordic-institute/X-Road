@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.proxy.edc;
+package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;

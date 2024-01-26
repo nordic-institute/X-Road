@@ -23,16 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy;
+package org.niis.xroad.proxy.configuration;
 
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.proxy.ProxyAddonConfig;
+import ee.ria.xroad.proxy.ProxyAdminPortConfig;
+import ee.ria.xroad.proxy.ProxyDiagnosticsConfig;
+import ee.ria.xroad.proxy.ProxyJobConfig;
+import ee.ria.xroad.proxy.ProxyMessageLogConfig;
+import ee.ria.xroad.proxy.ProxyRpcConfig;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -44,6 +51,7 @@ import org.springframework.context.annotation.Import;
         ProxyJobConfig.class,
         ProxyMessageLogConfig.class
 })
+@ComponentScan(basePackages = {"org.niis.xroad.proxy"})
 @Configuration
 public class ProxyConfig {
 

@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.proxy.edc;
+package org.niis.xroad.proxy.edc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.proxy.configuration.ProxyConfig;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
