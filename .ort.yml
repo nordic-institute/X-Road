@@ -137,6 +137,14 @@ excludes:
       reason: "TEST_OF"
       comment: "This directory contains tests."
 
+    - pattern: "src/gradlew"
+      reason: "BUILD_TOOL_OF"
+      comment: "This is a build tool."
+
+    - pattern: "src/gradlew.bat"
+      reason: "BUILD_TOOL_OF"
+      comment: "This is a build tool."
+
     - pattern: "src/monitor/src/test/**"
       reason: "TEST_OF"
       comment: "This directory contains tests."
