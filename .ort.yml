@@ -1,0 +1,240 @@
+---
+excludes:
+  paths:
+    - pattern: "ansible/**"
+      reason: "OTHER"
+      comment: "This directory contains Ansible scripts."
+
+    - pattern: "doc/**"
+      reason: "DOCUMENTATION_OF"
+      comment: "This directory contains documentation."
+
+    - pattern: "Docker/**"
+      reason: "OTHER"
+      comment: "This directory contains Docker image files."
+
+    - pattern: "img/**"
+      reason: "DATA_FILE_OF"
+      comment: "This directory contains images."
+
+    - pattern: "sidecar/**"
+      reason: "OTHER"
+      comment: "This directory contains Sidecar Docker image files."
+
+    - pattern: "src/3RD-PARTY-NOTICES.txt"
+      reason: "OTHER"
+      comment: "File including 3rd party license notices."
+
+    - pattern: "src/addons/messagelog/messagelog-addon/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/addons/metaservice/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/addons/op-monitoring/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/addons/proxymonitor/metaservice/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/addons/wsdlvalidator/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/asic-util/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/asic-verifier/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/buildSrc/**"
+      reason: "OPTIONAL_COMPONENT_OF"
+      comment: "Not included in distributed build artifacts."
+
+    - pattern: "src/central-server/admin-service/int-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/central-server/admin-service/ui/tests/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/central-server/admin-service/ui-system-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/central-server/management-service/int-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/central-server/registration-service/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-admin-api/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-api-throttling/src/testFixtures/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-domain/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-management-request/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-management-request/src/testFixtures/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-messagelog/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-ui/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-util/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-verifier/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/config/**"
+      reason: "OTHER"
+      comment: "This directory contains configuration files."
+
+    - pattern: "src/configuration-client/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/configuration-proxy/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/gradle/**"
+      reason: "BUILD_TOOL_OF"
+      comment: "This directory contains Gradle build tool."
+
+    - pattern: "src/e2e-tests/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/monitor/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/monitor-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/monitoring-conf/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/op-monitor-daemon/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/packages/**"
+      reason: "BUILD_TOOL_OF"
+      comment: "This directory contains packaging scripts."
+
+    - pattern: "src/proxy/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/security-server/admin-service/int-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/security-server/admin-service/ui/tests/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/security-server/system-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/serverconf/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/shared-ui/.storybook/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/shared-ui/tests/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/signer/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/signer-protocol/src/intTest/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/systemtest/op-monitoring/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+  scopes:
+    - pattern: "checkstyle"
+      reason: "BUILD_DEPENDENCY_OF"
+      comment: "Packages for code styling checks (testing) only."
+
+    - pattern: "devDependencies"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "jacocoAgent"
+      reason: "TEST_DEPENDENCY_OF"
+      comment: "Packages for code coverage (testing) only."
+
+    - pattern: "jacocoAnt"
+      reason: "TEST_DEPENDENCY_OF"
+      comment: "Packages for code coverage (testing) only."
+
+    - pattern: "test.*"
+      reason: "TEST_DEPENDENCY_OF"
+      comment: "Packages for testing only."
+
+    - pattern: "annotationProcessor"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "compileClasspath"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "compileOnly"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+license_choices:
+  repository_license_choices:
+    - given: "GPL-2.0-only OR Apache-2.0"
+      choice: "Apache-2.0"
+    - given: "GPL-2.0-only OR BSD-3-Clause"
+      choice: "BSD-3-Clause"
+    - given: "GPL-2.0-only OR CDDL-1.1"
+      choice: "CDDL-1.1"
