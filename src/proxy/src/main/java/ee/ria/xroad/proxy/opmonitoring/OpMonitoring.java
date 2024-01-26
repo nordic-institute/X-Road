@@ -46,20 +46,16 @@ public final class OpMonitoring {
     private static AbstractOpMonitoringBuffer opMonitoringBuffer;
 
     /**
-     * Initializes the operational monitoring using the provided actor system.
+     * Creates non initialized the operational monitoring using the provided actor system.
      *
      * @throws Exception if initialization fails
      */
-    public static void init() throws Exception {
+    public static AbstractOpMonitoringBuffer init() throws Exception {
         Class<? extends AbstractOpMonitoringBuffer> clazz = getOpMonitoringManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
         opMonitoringBuffer = clazz.getDeclaredConstructor().newInstance();
-        opMonitoringBuffer.start();
-    }
-
-    public static void shutdown() throws Exception {
-        opMonitoringBuffer.stop();
+        return opMonitoringBuffer;
     }
 
     /**
