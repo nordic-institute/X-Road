@@ -73,6 +73,8 @@ public final class DefaultFilepaths {
 
     static final String JETTY_SERVERPROXY_CONFIGURATION_FILE = "jetty/serverproxy.xml";
 
+    static final String JETTY_EDCPROXY_CONFIGURATION_FILE = "jetty/edcproxy.xml";
+
     static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE = "jetty/clientproxy.xml";
 
     static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE = "jetty/ocsp-responder.xml";

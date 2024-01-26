@@ -105,10 +105,12 @@ public abstract class AbstractProxyIntegrationTest {
             final String serverPort = String.valueOf(getFreePort());
             System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
             System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
+            System.setProperty(SystemProperties.PROXY_EDC_LISTEN_PORT, String.valueOf(getFreePort()));
 
             System.setProperty(SystemProperties.OCSP_RESPONDER_PORT, String.valueOf(getFreePort()));
             System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
             System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
+            System.setProperty(SystemProperties.JETTY_EDCPROXY_CONFIGURATION_FILE, "src/test/edcproxy.xml");
             System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
             System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 

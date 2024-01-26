@@ -63,6 +63,7 @@ COPY build/liquibase/ /usr/share/xroad/db
 COPY files/edc/etc /etc/xroad-edc/
 COPY files/edc/setup_edc_db.sh /usr/share/xroad/scripts/setup_edc_db.sh
 COPY files/edc/xroad-edc /usr/share/xroad/bin/xroad-edc
+COPY --chown=xroad:xroad files/edc/edcproxy.xml /etc/xroad/jetty/edcproxy.xml
 ENV EDC_HOSTNAME=localhost
 # end of dataspaces
 
