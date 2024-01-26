@@ -9,9 +9,11 @@
     <changeSet id="1" author="niis">
         <sqlFile path="edc/asset-index-sql.sql" relativeToChangelogFile="true"/>
         <sqlFile path="edc/data-plane-instance-store-sql.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc/data-plane-store-sql.sql" relativeToChangelogFile="true"/>
         <sqlFile path="edc/contract-definition-store-sql.sql" relativeToChangelogFile="true"/>
         <sqlFile path="edc/contract-negotiation-store-sql.sql" relativeToChangelogFile="true"/>
         <sqlFile path="edc/policy-definition-store-sql.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc/transfer-process-store-sql.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

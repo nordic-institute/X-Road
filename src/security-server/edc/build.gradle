@@ -30,9 +30,11 @@ dependencies {
     runtimeOnly("org.eclipse.edc:sql-pool-apache-commons:$edcVersion")
     implementation("org.eclipse.edc:asset-index-sql:$edcVersion")
     implementation("org.eclipse.edc:data-plane-instance-store-sql:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-store-sql:$edcVersion")
     implementation("org.eclipse.edc:contract-definition-store-sql:$edcVersion")
     implementation("org.eclipse.edc:contract-negotiation-store-sql:$edcVersion")
     implementation("org.eclipse.edc:policy-definition-store-sql:$edcVersion")
+    implementation("org.eclipse.edc:transfer-process-store-sql:$edcVersion")
 }
 
 application {
