@@ -1,7 +1,13 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("java")
     id("application")
     id("com.github.johnrengelman.shadow")
+}
+
+configurations {
+    sqlDependencies
 }
 
 dependencies {
@@ -26,17 +32,16 @@ dependencies {
     implementation("org.eclipse.edc:data-plane-http:$edcVersion")
 
     // sql store
-    //TODO xroad8-unittest
-//    runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
-//    runtimeOnly("org.eclipse.edc:sql-pool-apache-commons:$edcVersion")
-//    runtimeOnly("org.eclipse.edc:transaction-local:$edcVersion")
-//    implementation("org.eclipse.edc:asset-index-sql:$edcVersion")
-//    implementation("org.eclipse.edc:data-plane-instance-store-sql:$edcVersion")
-//    implementation("org.eclipse.edc:data-plane-store-sql:$edcVersion")
-//    implementation("org.eclipse.edc:contract-definition-store-sql:$edcVersion")
-//    implementation("org.eclipse.edc:contract-negotiation-store-sql:$edcVersion")
-//    implementation("org.eclipse.edc:policy-definition-store-sql:$edcVersion")
-//    implementation("org.eclipse.edc:transfer-process-store-sql:$edcVersion")
+    sqlDependencies("org.postgresql:postgresql:$postgresqlVersion")
+    sqlDependencies("org.eclipse.edc:sql-pool-apache-commons:$edcVersion")
+    sqlDependencies("org.eclipse.edc:transaction-local:$edcVersion")
+    sqlDependencies("org.eclipse.edc:asset-index-sql:$edcVersion")
+    sqlDependencies("org.eclipse.edc:data-plane-instance-store-sql:$edcVersion")
+    sqlDependencies("org.eclipse.edc:data-plane-store-sql:$edcVersion")
+    sqlDependencies("org.eclipse.edc:contract-definition-store-sql:$edcVersion")
+    sqlDependencies("org.eclipse.edc:contract-negotiation-store-sql:$edcVersion")
+    sqlDependencies("org.eclipse.edc:policy-definition-store-sql:$edcVersion")
+    sqlDependencies("org.eclipse.edc:transfer-process-store-sql:$edcVersion")
 }
 
 application {
@@ -49,6 +54,15 @@ var distZip = tasks.named("distZip")
 
 shadowJar {
     mergeServiceFiles()
+    archiveFileName.set("connector-inmemory.jar")
+    dependsOn(distTar, distZip)
+}
+
+tasks.register('shadowJarWithSql', ShadowJar) {
+    configurations = [project.configurations.runtimeClasspath, project.configurations.sqlDependencies]
+    mergeServiceFiles()
     archiveFileName.set("connector.jar")
     dependsOn(distTar, distZip)
 }
+
+assemble.dependsOn("shadowJarWithSql")

@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
-import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestGlobalConfWithDs;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
@@ -222,7 +221,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         Thread t = new Thread(() -> {
             try {
-                ProcessBuilder pb = new ProcessBuilder("./run-consumer.sh");
+                ProcessBuilder pb = new ProcessBuilder("./run-consumer.sh", "--in-memory");
                 pb.directory(new File("../security-server/edc/"));
                 consumerProcess = pb.start();
                 // Redirect output and error streams to SLF4J
@@ -248,7 +247,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         Thread t = new Thread(() -> {
             try {
-                ProcessBuilder pb = new ProcessBuilder("./run-provider.sh");
+                ProcessBuilder pb = new ProcessBuilder("./run-provider.sh", "--in-memory");
                 pb.directory(new File("../security-server/edc/"));
 
                 providerProcess = pb.start();
