@@ -157,7 +157,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         // Resolve available security servers
         var allServers = GlobalConf.getProviderSecurityServers(clientId);
         if (SystemProperties.isDataspacesEnabled()) {
-            var dsEnabledServers = allServers.stream().filter(ServerAddressInfo::isDsSupported).toList();
+            var dsEnabledServers = allServers.stream().filter(ServerAddressInfo::dsSupported).toList();
             if (dsEnabledServers.isEmpty()) {
                 log.trace("Falling back to legacy protocol, there are no DataSpace compliant Security Servers for this service.");
                 return new TargetSecurityServers(allServers, false);

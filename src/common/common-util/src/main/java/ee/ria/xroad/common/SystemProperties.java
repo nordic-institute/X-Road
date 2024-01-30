@@ -1724,7 +1724,15 @@ public final class SystemProperties {
     /**
      * @return whether dataspaces connector is enabled, 'false' by default.
      */
-    public static boolean isDataspacesEnabled(){
+    public static boolean isDataspacesEnabled() {
         return Boolean.parseBoolean(System.getProperty(DATASPACES_ENABLED, Boolean.FALSE.toString()));
+    }
+
+    public static String dataspacesManagementListenAddress() {
+        return "localhost";
+    }
+
+    public static String dataspacesManagementListenPort() {
+        return "29193";
     }
 }

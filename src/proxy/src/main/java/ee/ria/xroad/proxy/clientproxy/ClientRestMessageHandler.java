@@ -45,8 +45,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.message.BasicHeader;
+import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
+import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
+import org.niis.xroad.edc.management.client.FeignCatalogApi;
+import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -70,7 +74,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * the request itself.
  */
 @Slf4j
-class ClientRestMessageHandler extends AbstractClientProxyHandler {
+public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     private static final String TEXT_XML = "text/xml";
     private static final String APPLICATION_XML = "application/xml";
@@ -78,8 +82,20 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    ClientRestMessageHandler(HttpClient client) {
+    private AuthorizedAssetRegistry authorizedAssetRegistry;
+    private FeignCatalogApi catalogApi;
+    private ContractNegotiationApi contractNegotiationApi;
+    private TransferProcessApi transferProcessApi;
+
+    public ClientRestMessageHandler(HttpClient client, AuthorizedAssetRegistry authorizedAssetRegistry,
+                                    FeignCatalogApi catalogApi,
+                                    ContractNegotiationApi contractNegotiationApi,
+                                    TransferProcessApi transferProcessApi) {
         super(client, true);
+        this.authorizedAssetRegistry = authorizedAssetRegistry;
+        this.catalogApi = catalogApi;
+        this.contractNegotiationApi = contractNegotiationApi;
+        this.transferProcessApi = transferProcessApi;
     }
 
     @Override
@@ -95,8 +111,9 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                     resolveTargetSecurityServers(restRequest.getClientId()));
 
             if (proxyCtx.targetSecurityServers().dsEnabledServers()) {
+                //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
                 return Optional.of(new ClientRestMessageDsProcessor(proxyCtx, restRequest, client,
-                        getIsAuthenticationData(request)));
+                        getIsAuthenticationData(request), authorizedAssetRegistry, catalogApi, contractNegotiationApi, transferProcessApi));
             } else {
                 return Optional.of(new ClientRestMessageProcessor(proxyCtx, restRequest, client,
                         getIsAuthenticationData(request)));

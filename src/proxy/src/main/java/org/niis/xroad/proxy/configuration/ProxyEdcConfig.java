@@ -31,8 +31,11 @@ import ee.ria.xroad.common.SystemProperties;
 
 import org.eclipse.edc.connector.api.management.asset.v3.AssetApi;
 import org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi;
+import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
 import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
+import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
+import org.niis.xroad.edc.management.client.FeignCatalogApi;
 import org.niis.xroad.edc.management.client.configuration.EdcManagementApiFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -49,7 +52,9 @@ public class ProxyEdcConfig {
 
     @Bean
     EdcManagementApiFactory edcManagementApiFactory() {
-        return new EdcManagementApiFactory("http://localhost:9193");
+        return new EdcManagementApiFactory(String.format("http://%s:%s",
+                SystemProperties.dataspacesManagementListenAddress(),
+                SystemProperties.dataspacesManagementListenPort()));
     }
 
     @Bean
@@ -70,6 +75,22 @@ public class ProxyEdcConfig {
     @Bean
     ContractDefinitionApi contractDefinitionApi(EdcManagementApiFactory edcManagementApiFactory) {
         return edcManagementApiFactory.contractDefinitionApi();
+    }
+
+    @Bean
+    ContractNegotiationApi contractNegotiationApi(EdcManagementApiFactory edcManagementApiFactory) {
+        return edcManagementApiFactory.contractNegotiationApi();
+    }
+
+
+    @Bean
+    FeignCatalogApi feignCatalogApi(EdcManagementApiFactory edcManagementApiFactory) {
+        return edcManagementApiFactory.catalogApi();
+    }
+
+    @Bean
+    TransferProcessApi transferProcessApi(EdcManagementApiFactory edcManagementApiFactory) {
+        return edcManagementApiFactory.transferProcessApi();
     }
 
     public static class DataspacesEnabledCondition implements Condition {

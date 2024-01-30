@@ -37,16 +37,12 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Test globalconf implementation.
  */
-public class TestGlobalConf extends EmptyGlobalConf {
+public class TestGlobalConfWithDs extends EmptyGlobalConf {
 
     @Override
     public String getInstanceIdentifier() {
@@ -61,7 +57,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
     @Override
     public Collection<ServerAddressInfo> getProviderSecurityServers(ClientId clientId) {
         return Set.of(
-                new ServerAddressInfo("127.0.0.1", false, "", "", ""));
+                new ServerAddressInfo("127.0.0.1", true, "", "http://127.0.0.1:19194/protocol", ""));
     }
 
     @Override

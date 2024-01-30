@@ -53,7 +53,7 @@ public class TestServerConf extends EmptyServerConf {
 
     @Override
     public String getServiceAddress(ServiceId service) {
-        return "http://127.0.0.1:" + String.valueOf(servicePort);
+        return "http://127.0.0.1:" + servicePort;
     }
 
     @Override

@@ -67,7 +67,7 @@ import static ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier.verify;
  * that address is selected immediately without previous selection algorithm.
  */
 @Slf4j
-class FastestConnectionSelectingSSLSocketFactory
+public class FastestConnectionSelectingSSLSocketFactory
         extends SSLConnectionSocketFactory {
 
     /**
@@ -88,7 +88,7 @@ class FastestConnectionSelectingSSLSocketFactory
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
 
-    FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext) {
+    public FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext) {
         super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier)null);
         this.socketfactory = sslContext.getSocketFactory();
         this.selectedHosts = CacheBuilder.newBuilder()

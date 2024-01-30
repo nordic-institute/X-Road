@@ -92,7 +92,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .body("{\"value\" : 42}")
-                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
+                .post(PREFIX + "/EE/GOV/1234TEST_CLIENT/SUBCODE5/SERVICE2")
                 .then()
                 .statusCode(200)
                 .body("value", Matchers.equalTo(42));

@@ -255,7 +255,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         SharedParameters p = getSharedParameters(clientId.getXRoadInstance());
         return ofNullable(p.getMemberAddresses().get(clientId))
                 .map(addresses -> addresses.stream()
-                        .map(server -> new ServerAddressInfo(server.getAddress(), server.isDsSupported()))
+                        .map(this::mapServerAddressInfo)
                         .collect(Collectors.toSet()))
                 .orElse(Set.of());
     }
@@ -267,11 +267,21 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
             final SharedParameters.SecurityServer server = p.getSecurityServersById().get(serverId);
             if (server != null && server.getServerAddress() != null) {
-                return new ServerAddressInfo(server.getServerAddress().getAddress(), server.getServerAddress().isDsSupported());
+                return mapServerAddressInfo(server.getServerAddress());
             }
         }
 
         return null;
+    }
+
+    //TODO xroad8 use mapstruct? maybe move to a different place in any case.
+    private ServerAddressInfo mapServerAddressInfo(SharedParameters.ServerAddress serverAddress) {
+        return new ServerAddressInfo(serverAddress.getAddress(),
+                serverAddress.isDsSupported(),
+                serverAddress.getDsManagementUrl(),
+                serverAddress.getDsProtocolUrl(),
+                serverAddress.getDsPublicUrl()
+        );
     }
 
     @Override

@@ -29,23 +29,10 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
-import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -85,27 +72,26 @@ public class ClientProxy implements StartStop {
     // SSL session timeout
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getClientProxyConnectorSoLinger() * 1000;
-
     private static final String CLIENTPROXY_HANDLERS = SystemProperties.PREFIX + "proxy.clientHandlers";
 
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
-    private Server server = new Server();
+    private final Server server = new Server();
 
-    private CloseableHttpClient client;
-    private IdleConnectionMonitorThread connectionMonitor;
+    private final HttpClient client;
+private final ClientRestMessageHandler clientRestMessageHandler;
 
     /**
      * Constructs and configures a new client proxy.
      *
      * @throws Exception in case of any errors
      */
-    public ClientProxy() throws Exception {
-        configureServer();
+    public ClientProxy(HttpClient httpClient, ClientRestMessageHandler clientRestMessageHandler) throws Exception {
+        this.client = httpClient;
+        this.clientRestMessageHandler = clientRestMessageHandler;
 
-        createClient();
+        configureServer();
         createConnectors();
         createHandlers();
     }
@@ -119,64 +105,6 @@ public class ClientProxy implements StartStop {
         new XmlConfiguration(Resource.newResource(file)).configure(server);
     }
 
-    private void createClient() throws Exception {
-        log.trace("createClient()");
-
-        int timeout = SystemProperties.getClientProxyTimeout();
-        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
-        RequestConfig.Builder rb = RequestConfig.custom();
-        rb.setConnectTimeout(timeout);
-        rb.setConnectionRequestTimeout(timeout);
-        rb.setSocketTimeout(socketTimeout);
-
-        HttpClientBuilder cb = HttpClients.custom();
-
-        HttpClientConnectionManager connectionManager = getClientConnectionManager();
-        cb.setConnectionManager(connectionManager);
-
-        if (SystemProperties.isClientUseIdleConnectionMonitor()) {
-            connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
-            connectionMonitor.setIntervalMilliseconds(SystemProperties.getClientProxyIdleConnectionMonitorInterval());
-            connectionMonitor.setConnectionIdleTimeMilliseconds(
-                    SystemProperties.getClientProxyIdleConnectionMonitorIdleTime());
-        }
-
-        cb.setDefaultRequestConfig(rb.build());
-
-        // Disable request retry
-        cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
-
-        client = cb.build();
-    }
-
-    private HttpClientConnectionManager getClientConnectionManager() throws Exception {
-        RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
-
-        sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
-
-        if (SystemProperties.isSslEnabled()) {
-            sfr.register("https", createSSLSocketFactory());
-        }
-
-        SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
-        sockBuilder.setSoLinger(SystemProperties.getClientProxyHttpClientSoLinger());
-        sockBuilder.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
-        SocketConfig socketConfig = sockBuilder.build();
-
-        PoolingHttpClientConnectionManager poolingManager = new PoolingHttpClientConnectionManager(sfr.build());
-        poolingManager.setMaxTotal(SystemProperties.getClientProxyPoolTotalMaxConnections());
-        poolingManager.setDefaultMaxPerRoute(SystemProperties.getClientProxyPoolDefaultMaxConnectionsPerRoute());
-        poolingManager.setDefaultSocketConfig(socketConfig);
-        poolingManager.setValidateAfterInactivity(
-                SystemProperties.getClientProxyValidatePoolConnectionsAfterInactivityMs());
-
-        return poolingManager;
-    }
-
-    private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(SSLContextUtil.createXroadSSLContext()
-        );
-    }
 
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
@@ -215,7 +143,7 @@ public class ClientProxy implements StartStop {
         cf.setIncludeCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {new ClientSslKeyManager()}, new TrustManager[] {new ClientSslTrustManager()},
+        ctx.init(new KeyManager[]{new ClientSslKeyManager()}, new TrustManager[]{new ClientSslTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
@@ -269,7 +197,7 @@ public class ClientProxy implements StartStop {
         List<Handler> handlers = new ArrayList<>();
         String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
 
-        handlers.add(new ClientRestMessageHandler(client));
+        handlers.add(clientRestMessageHandler);
 
         if (!StringUtils.isBlank(handlerClassNames)) {
             for (String handlerClassName : handlerClassNames.split(",")) {
@@ -294,10 +222,6 @@ public class ClientProxy implements StartStop {
         log.trace("start()");
 
         server.start();
-
-        if (connectionMonitor != null) {
-            connectionMonitor.start();
-        }
     }
 
     @Override
@@ -313,11 +237,6 @@ public class ClientProxy implements StartStop {
     public void stop() throws Exception {
         log.trace("stop()");
 
-        if (connectionMonitor != null) {
-            connectionMonitor.shutdown();
-        }
-
-        client.close();
         server.stop();
 
         HibernateUtil.closeSessionFactories();

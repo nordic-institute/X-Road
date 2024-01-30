@@ -26,105 +26,216 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.ServerAddressInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
-import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.protocol.ProxyMessage;
-import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
-import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
+import jakarta.json.JsonObject;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.bouncycastle.operator.DigestCalculator;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.util.io.TeeInputStream;
+import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
+import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.eclipse.jetty.server.Response;
+import org.niis.xroad.edc.management.client.FeignCatalogApi;
+import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
+import org.niis.xroad.proxy.edc.InMemoryAuthorizedAssetRegistry;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.List;
 import java.util.UUID;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
-import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
-import static ee.ria.xroad.common.util.MimeUtils.getBoundary;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
+import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
+import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
+import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
+import static org.eclipse.edc.spi.query.Criterion.CRITERION_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.spi.types.domain.DataAddress.SIMPLE_TYPE;
 
 @Slf4j
 class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
-    private ServiceId requestServiceId;
-    /**
-     * Holds the response from server proxy.
-     */
-    private ProxyMessage response;
 
-    private ClientId senderId;
     private final RestRequest restRequest;
 
-    private byte[] restBodyDigest;
 
+    private final AuthorizedAssetRegistry authorizedAssetRegistry;
+    private final FeignCatalogApi catalogApi;
+    private final ContractNegotiationApi contractNegotiationApi;
+    private final TransferProcessApi transferProcessApi;
     private final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx;
 
     ClientRestMessageDsProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
                                  final RestRequest restRequest,
-                                 final HttpClient httpClient, final IsAuthenticationData clientCert) {
+                                 final HttpClient httpClient, final IsAuthenticationData clientCert,
+                                 AuthorizedAssetRegistry authorizedAssetRegistry,
+                                 FeignCatalogApi catalogApi,
+                                 ContractNegotiationApi contractNegotiationApi,
+                                 TransferProcessApi transferProcessApi) {
         super(proxyRequestCtx, httpClient, clientCert);
         this.proxyRequestCtx = proxyRequestCtx;
         this.restRequest = restRequest;
+
+        this.authorizedAssetRegistry = authorizedAssetRegistry;
+        this.catalogApi = catalogApi;
+        this.contractNegotiationApi = contractNegotiationApi;
+        this.transferProcessApi = transferProcessApi;
     }
 
     //TODO: rethink what should happen in constructor and what in process..
     @Override
     public void process() throws Exception {
-        opMonitoringData.setXRequestId(restRequest.getXRequestId());
+//        opMonitoringData.setXRequestId(restRequest.getXRequestId());
         updateOpMonitoringClientSecurityServerAddress();
 
         try {
-            // Check that incoming identifiers do not contain illegal characters
-            checkRequestIdentifiers();
-
-            senderId = restRequest.getClientId();
-            requestServiceId = restRequest.getServiceId();
+            ClientId senderId = restRequest.getClientId();
 
             verifyClientStatus(senderId);
             verifyClientAuthentication(senderId);
 
-            processRequest();
-            if (response != null) {
-                sendResponse();
-            }
+
+            //TODO xroad8 in POC we're not selecting fastest server, neither handle failure with fallbacks
+            var targetServerInfo = proxyRequestCtx.targetSecurityServers().servers().stream().findFirst().orElseThrow();
+
+            var policy = fetchPolicy(targetServerInfo);
+            var contractNegotiationId = initiateContractNegotiation(policy, targetServerInfo);
+
+            var contractAgreementId = getContractAgreementId(contractNegotiationId);
+
+            var transferId = initiateTransfer(contractAgreementId);
+
+            pollTransferCompletion(transferId);
+
+            InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo = authorizedAssetRegistry.getAssetInfoById(transferId).orElseThrow();
+
+            processRequest(assetInfo);
+
         } finally {
-            if (response != null) {
-                response.consume();
-            }
+
+
         }
     }
 
+    private JsonObject fetchPolicy(ServerAddressInfo targetServerInfo) {
+        var catalogFetchRequest = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add(VOCAB, EDC_NAMESPACE)
+                        .add(ODRL_PREFIX, ODRL_SCHEMA))
+                .add(TYPE, CATALOG_REQUEST_TYPE)
+                .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
+                .add(CATALOG_REQUEST_PROTOCOL, "dataspace-protocol-http")
+                .add(CATALOG_REQUEST_QUERY_SPEC, createArrayBuilder(List.of(createObjectBuilder()
+                        .add(TYPE, EDC_QUERY_SPEC_TYPE)
+                        .add(EDC_QUERY_SPEC_FILTER_EXPRESSION, createObjectBuilder()
+                                .add(TYPE, CRITERION_TYPE)
+                                .add(CRITERION_OPERAND_LEFT, Asset.PROPERTY_ID)
+                                .add(CRITERION_OPERAND_RIGHT, restRequest.getServiceId().asEncodedId())
+                                .add(CRITERION_OPERATOR, "=")))))
+                .build();
+        var requestCatalogResult = catalogApi.requestCatalogExt(catalogFetchRequest);
+
+        return requestCatalogResult.get("dcat:dataset").asJsonObject().get("odrl:hasPolicy").asJsonObject();
+    }
+
+    private String initiateContractNegotiation(JsonObject policy, ServerAddressInfo targetServerInfo) {
+        var request = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add(VOCAB, EDC_NAMESPACE)
+                        .add(ODRL_PREFIX, ODRL_SCHEMA))
+                .add(TYPE, CONTRACT_REQUEST_TYPE)
+                .add(PROVIDER_ID, "providerId")
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
+                .add(PROTOCOL, "dataspace-protocol-http")
+                .add(POLICY, policy)
+                .build();
+
+        var initiateContractNegotiationResult = contractNegotiationApi.initiateContractNegotiation(request);
+        return initiateContractNegotiationResult.getString(ID);
+    }
+
+    @SneakyThrows
+    private String getContractAgreementId(String contractNegotiationId) {
+        int pollCounter = 0;
+
+        while (pollCounter++ <= 10) {
+            var getNegotiationResponse = contractNegotiationApi.getNegotiation(contractNegotiationId);
+            log.info("======== getNegotiation: {}", getNegotiationResponse);
+            if ("VERIFIED".equalsIgnoreCase(getNegotiationResponse.getString("state"))) {
+                return getNegotiationResponse.getString("contractAgreementId");
+            }
+
+            Thread.sleep(1000L);
+        }
+        throw new RuntimeException("Failed fetch contractId");
+    }
+
+    private String initiateTransfer(String contractAgreementId) {
+        var initTransferRequest = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder()
+                        .add(VOCAB, EDC_NAMESPACE))
+                .add(TYPE, TRANSFER_REQUEST_TYPE)
+//                .add(TRANSFER_REQUEST_CONNECTOR_ID, "provider")
+                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "http://localhost:19194/protocol")
+                .add(TRANSFER_REQUEST_CONTRACT_ID, contractAgreementId)
+                .add(TRANSFER_REQUEST_ASSET_ID, restRequest.getServiceId().asEncodedId())
+                .add(TRANSFER_REQUEST_PROTOCOL, "dataspace-protocol-http")
+                .add(TRANSFER_REQUEST_DATA_DESTINATION, createObjectBuilder().add(SIMPLE_TYPE, "HttpProxy").build())
+                .build();
+
+        var initiateTransferProcessResponse = transferProcessApi.initiateTransferProcess(initTransferRequest);
+        log.info("======== initiateTransferProcess: {}", initiateTransferProcessResponse);
+        return initiateTransferProcessResponse.getString(ID);
+    }
+
+    @SneakyThrows
+    private void pollTransferCompletion(String transferId) {
+        int pollCounter = 0;
+
+        while (pollCounter++ <= 60) {
+            var transferProcess = transferProcessApi.getTransferProcess(transferId);
+            log.info("======== getTransferProcess: {}", transferProcess);
+            var status = transferProcess.getString("state");
+            if ("FINISHED".equalsIgnoreCase(status) || "STARTED".equalsIgnoreCase(status)) {
+                return;
+            }
+
+            Thread.sleep(1000L);
+        }
+        throw new RuntimeException("Download failed");
+    }
 
     private void checkRequestIdentifiers() {
         checkIdentifier(restRequest.getClientId());
@@ -141,15 +252,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
-        if (response.getRestResponse() != null) {
-            opMonitoringData.setResponseAttachmentCount(0);
-            opMonitoringData.setResponseSize(response.getRestResponse().getMessageBytes().length
-                    + decoder.getAttachmentsByteCount());
-        }
-    }
-
-    private void processRequest() throws Exception {
+    private void processRequest(InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
         if (restRequest.getQueryId() == null) {
             restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
@@ -157,196 +260,40 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
 
         try (HttpSender httpSender = createHttpSender()) {
-            sendRequest(httpSender);
-            parseResponse(httpSender);
-            checkConsistency(getHashAlgoId(httpSender));
+            sendRequest(httpSender, assetInfo);
+
+            if (servletResponse instanceof Response) {
+                // the standard API for setting reason and code is deprecated
+//                ((Response) servletResponse).setStatusWithReason(
+//                        rest.getResponseCode(),
+//                        httpSender.st.getReason());
+//                httpSender.ent
+            } else {
+            }
+            servletResponse.setStatus(200);//todo
+            //TODO also headers..
+            IOUtils.copy(httpSender.getResponseContent(), servletResponse.getOutputStream());
+
+            httpSender.getResponseHeaders().forEach(servletResponse::addHeader);
         }
-        logResponseMessage();
+
     }
 
-    private void sendRequest(HttpSender httpSender) throws Exception {
-        log.trace("sendRequest()");
+    private void sendRequest(HttpSender httpSender, InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+        httpSender.addHeader(assetInfo.authKey(), assetInfo.authCode());
 
-        final URI[] addresses = prepareRequest(httpSender, requestServiceId, restRequest.getTargetSecurityServer());
-        httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
+        var url = URI.create(assetInfo.endpoint());
 
-        // Add unique id to distinguish request/response pairs
-        httpSender.addHeader(HEADER_REQUEST_ID, restRequest.getXRequestId());
+        switch (restRequest.getVerb()) {
+            case GET -> httpSender.doGet(url);
+            case POST -> httpSender.doPost(url,
+                    servletRequest.getInputStream(),
+                    servletRequest.getContentLength(),
+                    servletRequest.getContentType());
+            default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported verb");
+        }
 
-        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
-        opMonitoringData.setRequestOutTs(getEpochMillisecond());
-        httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
         opMonitoringData.setResponseInTs(getEpochMillisecond());
-    }
-
-    private void parseResponse(HttpSender httpSender) throws Exception {
-        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(response, httpSender.getResponseContentType(),
-                getHashAlgoId(httpSender));
-        try {
-            decoder.parse(httpSender.getResponseContent());
-        } catch (CodedException ex) {
-            throw ex.withPrefix(X_SERVICE_FAILED_X);
-        }
-        updateOpMonitoringDataByResponse(decoder);
-        // Ensure we have the required parts.
-        checkResponse();
-        opMonitoringData.setRestResponseStatusCode(response.getRestResponse().getResponseCode());
-        decoder.verify(requestServiceId.getClientId(), response.getSignature());
-    }
-
-    @Override
-    public boolean verifyMessageExchangeSucceeded() {
-        return response != null
-                && response.getRestResponse() != null
-                && !response.getRestResponse().isErrorResponse();
-    }
-
-    private void checkResponse() {
-        if (response.getFault() != null) {
-            throw response.getFault().toCodedException();
-        }
-        if (response.getRestResponse() == null) {
-            throw new CodedException(X_MISSING_REST, "Response does not have REST message");
-        }
-        if (response.getSignature() == null) {
-            throw new CodedException(X_MISSING_SIGNATURE, "Response does not have signature");
-        }
-    }
-
-    private void checkConsistency(String hashAlgoId) throws IOException, OperatorCreationException {
-        if (!Objects.equals(restRequest.getClientId(), response.getRestResponse().getClientId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response client id does not match request message");
-        }
-        if (!Objects.equals(restRequest.getQueryId(), response.getRestResponse().getQueryId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message id does not match request message");
-        }
-        if (!Objects.equals(restRequest.getServiceId(), response.getRestResponse().getServiceId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response service id does not match request message");
-        }
-        if (!Objects.equals(restRequest.getXRequestId(), response.getRestResponse().getXRequestId())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE,
-                    "Response message request id does not match request message");
-        }
-
-        //calculate request hash
-        byte[] requestDigest;
-        if (restBodyDigest != null) {
-            final DigestCalculator dc = CryptoUtils.createDigestCalculator(hashAlgoId);
-            try (OutputStream out = dc.getOutputStream()) {
-                out.write(restRequest.getHash());
-                out.write(restBodyDigest);
-            }
-            requestDigest = dc.getDigest();
-        } else {
-            requestDigest = restRequest.getHash();
-        }
-
-        if (!Arrays.equals(requestDigest, response.getRestResponse().getRequestHash())) {
-            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
-        }
-    }
-
-    private void logResponseMessage() {
-        MessageLog.log(restRequest,
-                response.getRestResponse(),
-                response.getSignature(),
-                response.getRestBody(), true, restRequest.getXRequestId());
-    }
-
-    private void sendResponse() throws Exception {
-        final RestResponse rest = response.getRestResponse();
-        if (servletResponse instanceof Response) {
-            // the standard API for setting reason and code is deprecated
-            ((Response) servletResponse).setStatusWithReason(
-                    rest.getResponseCode(),
-                    rest.getReason());
-        } else {
-            servletResponse.setStatus(rest.getResponseCode());
-        }
-        servletResponse.setHeader("Date", null);
-        for (Header h : rest.getHeaders()) {
-            servletResponse.addHeader(h.getName(), h.getValue());
-        }
-        if (response.hasRestBody()) {
-            IOUtils.copy(response.getRestBody(), servletResponse.getOutputStream());
-        }
-    }
-
-    class ProxyMessageEntity extends AbstractHttpEntity {
-
-        ProxyMessageEntity(String contentType) {
-            super();
-            setContentType(contentType);
-        }
-
-        @Override
-        public boolean isRepeatable() {
-            return false;
-        }
-
-        @Override
-        public long getContentLength() {
-            return -1;
-        }
-
-        @Override
-        public InputStream getContent() throws UnsupportedOperationException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void writeTo(OutputStream outstream) {
-            try {
-                final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
-                        CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, getBoundary(contentType.getValue()));
-
-                final CertChain chain = KeyConf.getAuthKey().getCertChain();
-                KeyConf.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
-                        .forEach(resp -> enc.ocspResponse(resp));
-
-                enc.restRequest(restRequest);
-
-                //Optimize the case without request body (e.g. simple get requests)
-                //TBD: Optimize the case without body logging
-                try (InputStream in = servletRequest.getInputStream()) {
-                    @SuppressWarnings("checkstyle:magicnumber")
-                    byte[] buf = new byte[4096];
-                    int count = in.read(buf);
-                    if (count >= 0) {
-                        final CachingStream cache = new CachingStream();
-                        try (TeeInputStream tee = new TeeInputStream(in, cache)) {
-                            cache.write(buf, 0, count);
-                            enc.restBody(buf, count, tee);
-                            enc.sign(KeyConf.getSigningCtx(senderId));
-                            MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
-                                    restRequest.getXRequestId());
-                        } finally {
-                            cache.consume();
-                        }
-                    } else {
-                        enc.sign(KeyConf.getSigningCtx(senderId));
-                        MessageLog.log(restRequest, enc.getSignature(), null, true, restRequest.getXRequestId());
-                    }
-                }
-
-                opMonitoringData.setRequestAttachmentCount(0);
-                opMonitoringData.setRequestSize(restRequest.getMessageBytes().length
-                        + enc.getAttachmentsByteCount());
-
-                restBodyDigest = enc.getRestBodyDigest();
-                enc.writeSignature();
-                enc.close();
-
-            } catch (Exception e) {
-                throw new CodedException(X_IO_ERROR, e);
-            }
-        }
-
-        @Override
-        public boolean isStreaming() {
-            return true;
-        }
     }
 
 }

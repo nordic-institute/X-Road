@@ -45,12 +45,10 @@ import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;
 import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
@@ -88,14 +86,14 @@ public class AssetsRegistrationJob {
     private final String allAllowedPolicyId = "allow-all-policy";
 
     @PostConstruct
-    private void registerDataPlane() {
+    public void registerDataPlane() {
         // todo: recheck
         log.info("Creating dataplane");
         dataplaneSelectorApi.addEntry(createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, DATAPLANE_INSTANCE_TYPE)
                 .add(ID, providerDataplaneId)
-                .add(DataPlaneInstance.URL, "http://localhost:9192/control/transfer")
+                .add(DataPlaneInstance.URL, "http://127.0.0.1:19192/control/transfer")
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder()
                         .add("HttpData")
                         .build())
@@ -104,13 +102,13 @@ public class AssetsRegistrationJob {
                         .add("HttpProxy")
                         .build())
                 .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
-                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://localhost:9291/public/")
+                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://127.0.0.1:19291/public/")
                         .build())
                 .build()
         );
     }
 
-    @Scheduled(initialDelay = 1, fixedDelay = 5 * 60, timeUnit = SECONDS) //every 5 minutes;
+    //    @Scheduled(initialDelay = 1, fixedDelay = 5 * 60, timeUnit = SECONDS) //every 5 minutes;
     public void registerAssets() throws Exception {
         createAllowAllPolicy();
         createAssets();
@@ -124,14 +122,14 @@ public class AssetsRegistrationJob {
         } catch (FeignException.NotFound notFound) {
             // policy does not exist, create new
             log.info("Creating new policy definition {}", allAllowedPolicyId);
-            policyDefinitionApi.createPolicyDefinition(createObjectBuilder()
+            var createPolicyDefitinionResponse = policyDefinitionApi.createPolicyDefinition(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, EDC_POLICY_DEFINITION_TYPE)
                     .add(ID, allAllowedPolicyId)
                     .add(EDC_POLICY_DEFINITION_POLICY, createObjectBuilder()
                             .add("type", PolicyType.SET.getType()))
                     .build());
-            log.info("Policy definition {} created", allAllowedPolicyId);
+            log.info("Policy definition {} created. Api response: {}", allAllowedPolicyId, createPolicyDefitinionResponse);
         }
     }
 
@@ -162,6 +160,9 @@ public class AssetsRegistrationJob {
                 .add(EDC_ASSET_DATA_ADDRESS, createObjectBuilder()
                         .add("type", "HttpData")
                         .add("proxyPath", Boolean.TRUE.toString())
+                        .add("proxyMethod", Boolean.TRUE.toString())
+                        .add("proxyBody", Boolean.TRUE.toString())
+                        .add("proxyQueryParams", Boolean.TRUE.toString())
                         .add("baseUrl", ServerConf.getServiceAddress(service))
                         .build())
                 .build());

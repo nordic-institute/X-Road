@@ -33,7 +33,6 @@ import ee.ria.xroad.proxy.ProxyDiagnosticsConfig;
 import ee.ria.xroad.proxy.ProxyJobConfig;
 import ee.ria.xroad.proxy.ProxyMessageLogConfig;
 import ee.ria.xroad.proxy.ProxyRpcConfig;
-import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
@@ -49,7 +48,8 @@ import org.springframework.context.annotation.Import;
         ProxyAddonConfig.class,
         ProxyDiagnosticsConfig.class,
         ProxyJobConfig.class,
-        ProxyMessageLogConfig.class
+        ProxyMessageLogConfig.class,
+        ProxyClientConfig.class
 })
 @ComponentScan(basePackages = {"org.niis.xroad.proxy"})
 @Configuration
@@ -60,10 +60,6 @@ public class ProxyConfig {
         return BatchSigner.init();
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    ClientProxy clientProxy() throws Exception {
-        return new ClientProxy();
-    }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     ServerProxy serverProxy() throws Exception {

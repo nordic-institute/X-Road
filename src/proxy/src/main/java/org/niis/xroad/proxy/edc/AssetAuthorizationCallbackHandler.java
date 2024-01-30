@@ -38,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -68,6 +67,12 @@ public class AssetAuthorizationCallbackHandler extends AbstractHandler {
 
             var requestBody = objectMapper.readValue(request.getInputStream(), JsonObject.class);
             log.trace("Received asset callback request: {}", requestBody);
+            authorizedAssetRegistry.registerAsset(new InMemoryAuthorizedAssetRegistry.GrantedAssetInfo(
+                    requestBody.getString("id"),
+                    requestBody.getString("contractId"),
+                    requestBody.getString("endpoint"),
+                    requestBody.getString("authKey"),
+                    requestBody.getString("authCode")));
         }
     }
 }

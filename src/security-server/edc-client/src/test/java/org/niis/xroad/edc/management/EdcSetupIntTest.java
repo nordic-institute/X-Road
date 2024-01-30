@@ -102,6 +102,7 @@ class EdcSetupIntTest {
     private final AssetApi assetApi = providerApiFactory.assetsApi();
     private final PolicyDefinitionApi policyDefinitionApi = providerApiFactory.policyDefinitionApi();
     private final ContractDefinitionApi contractDefinitionApi = providerApiFactory.contractDefinitionApi();
+
     private final ContractNegotiationApi consumerContractNegotiationApi = consumerApiFactory.contractNegotiationApi();
     private final FeignCatalogApi consumerCatalogApi = consumerApiFactory.catalogApi();
     private final TransferProcessApi consumerTransferProcessApi = consumerApiFactory.transferProcessApi();
