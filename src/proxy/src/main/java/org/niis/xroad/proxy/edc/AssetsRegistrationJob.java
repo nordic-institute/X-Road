@@ -42,6 +42,7 @@ import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -175,7 +176,7 @@ public class AssetsRegistrationJob {
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, allAllowedPolicyId)
                 .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createArrayBuilder()
                         .add(createObjectBuilder()
-                                .add(CRITERION_OPERAND_LEFT, ID)
+                                .add(CRITERION_OPERAND_LEFT, Asset.PROPERTY_ID)
                                 .add(CRITERION_OPERATOR, "=")
                                 .add(CRITERION_OPERAND_RIGHT, assetId)))
                 .build());
