@@ -38,6 +38,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -63,6 +64,7 @@ public class ApiWebSecurityConfig {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
         filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
         filter.setAuthenticationManager(apiKeyAuthenticationManager);
+        filter.setSecurityContextRepository(new RequestAttributeSecurityContextRepository());
         filter.setExceptionIfHeaderMissing(false); // exception at this point
         // would cause http 500, we want http 401
 
