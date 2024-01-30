@@ -122,7 +122,7 @@ public class AssetsRegistrationJob {
             log.info("Policy definition {} exists.", allAllowedPolicyId);
         } catch (FeignException.NotFound notFound) {
             // policy does not exist, create new
-            log.info("Creating new olicy definition {}", allAllowedPolicyId);
+            log.info("Creating new policy definition {}", allAllowedPolicyId);
             policyDefinitionApi.createPolicyDefinition(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, EDC_POLICY_DEFINITION_TYPE)
@@ -130,7 +130,7 @@ public class AssetsRegistrationJob {
                     .add(EDC_POLICY_DEFINITION_POLICY, createObjectBuilder()
                             .add("type", PolicyType.SET.getType()))
                     .build());
-            log.info("POlicy definition {} created", allAllowedPolicyId);
+            log.info("Policy definition {} created", allAllowedPolicyId);
         }
     }
 
@@ -167,7 +167,7 @@ public class AssetsRegistrationJob {
     }
 
     private void createContractDefinitionForAsset(String assetId) {
-        log.info("Creting contract definition for asset {}", assetId);
+        log.info("Creating contract definition for asset {}", assetId);
         contractDefinitionApi.createContractDefinition(createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(ID, "%s-contract-definition".formatted(assetId))

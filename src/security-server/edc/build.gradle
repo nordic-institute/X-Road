@@ -28,6 +28,7 @@ dependencies {
     // sql store
     runtimeOnly("org.postgresql:postgresql:$postgresqlVersion")
     runtimeOnly("org.eclipse.edc:sql-pool-apache-commons:$edcVersion")
+    runtimeOnly("org.eclipse.edc:transaction-local:$edcVersion")
     implementation("org.eclipse.edc:asset-index-sql:$edcVersion")
     implementation("org.eclipse.edc:data-plane-instance-store-sql:$edcVersion")
     implementation("org.eclipse.edc:data-plane-store-sql:$edcVersion")
