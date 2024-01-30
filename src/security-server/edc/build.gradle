@@ -60,8 +60,12 @@ shadowJar {
 
 tasks.register('shadowJarWithSql', ShadowJar) {
     configurations = [project.configurations.runtimeClasspath, project.configurations.sqlDependencies]
-    mergeServiceFiles()
+    exclude('META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA')
     archiveFileName.set("connector.jar")
+    manifest {
+        attributes 'Main-Class': 'org.eclipse.edc.boot.system.runtime.BaseRuntime'
+    }
+    mergeServiceFiles()
     dependsOn(distTar, distZip)
 }
 
