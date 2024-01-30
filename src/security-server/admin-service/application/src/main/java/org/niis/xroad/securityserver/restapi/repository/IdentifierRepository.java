@@ -87,6 +87,10 @@ public class IdentifierRepository {
         }
     }
 
+    public void remove(XRoadId.Conf identifier) {
+        persistenceUtils.getCurrentSession().remove(identifier);
+    }
+
     /**
      * return all identifiers
      */

@@ -825,11 +825,15 @@ public class ClientService {
         if (!allowedStatuses.contains(clientType.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
         }
+        removeLocalClient(clientType);
+    }
 
+    private void removeLocalClient(ClientType clientType) {
         ServerConfType serverConfType = serverConfService.getServerConf();
         if (!serverConfType.getClient().remove(clientType)) {
-            throw new RuntimeException("client to be deleted was somehow missing from serverconf");
+            throw new RuntimeException("client to be deleted was somehow missing from server conf");
         }
+        identifierRepository.remove(clientType.getIdentifier());
     }
 
     /**
