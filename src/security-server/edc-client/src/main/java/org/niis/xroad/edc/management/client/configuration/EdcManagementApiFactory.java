@@ -105,7 +105,8 @@ public class EdcManagementApiFactory {
                 .requestInterceptor(requestTemplate -> {
                     requestTemplate.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                     if (requestTemplate.body() != null) {
-                        log.info("Request: [{}] Body: [{}]", baseUrl + requestTemplate.request().url(), new String(requestTemplate.request().body()));
+                        log.info("Request: [{}] Body: [{}]", baseUrl + requestTemplate.request().url(),
+                                new String(requestTemplate.request().body()));
                     }
                 })
 
