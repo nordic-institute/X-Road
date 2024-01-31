@@ -135,7 +135,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
             var contractAgreementId = getContractAgreementId(contractNegotiationId);
 
-            var transferId = initiateTransfer(contractAgreementId);
+            var transferId = initiateTransfer(contractAgreementId, targetServerInfo);
 
             pollTransferCompletion(transferId);
 
@@ -167,6 +167,9 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                 .build();
         var requestCatalogResult = catalogApi.requestCatalogExt(catalogFetchRequest);
 
+        log.info("EDC: Result for request catalog: {}", requestCatalogResult);
+
+        //TODO xroad8 make a safer selection, it changes from object to array if dataset is empty..
         return requestCatalogResult.get("dcat:dataset").asJsonObject().get("odrl:hasPolicy").asJsonObject();
     }
 
@@ -176,7 +179,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                         .add(VOCAB, EDC_NAMESPACE)
                         .add(ODRL_PREFIX, ODRL_SCHEMA))
                 .add(TYPE, CONTRACT_REQUEST_TYPE)
-                .add(PROVIDER_ID, "providerId")
+                .add(PROVIDER_ID, "ss1")
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
                 .add(PROTOCOL, "dataspace-protocol-http")
                 .add(POLICY, policy)
@@ -190,25 +193,26 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private String getContractAgreementId(String contractNegotiationId) {
         int pollCounter = 0;
 
-        while (pollCounter++ <= 10) {
+        while (pollCounter++ <= 600) {
             var getNegotiationResponse = contractNegotiationApi.getNegotiation(contractNegotiationId);
             log.info("======== getNegotiation: {}", getNegotiationResponse);
-            if ("VERIFIED".equalsIgnoreCase(getNegotiationResponse.getString("state"))) {
+            var status = getNegotiationResponse.getString("state");
+            if ("VERIFIED".equalsIgnoreCase(status) || "ACCEPTED".equalsIgnoreCase(status) || "FINALIZED".equalsIgnoreCase(status)) {
                 return getNegotiationResponse.getString("contractAgreementId");
             }
 
-            Thread.sleep(1000L);
+            Thread.sleep(100L);
         }
         throw new RuntimeException("Failed fetch contractId");
     }
 
-    private String initiateTransfer(String contractAgreementId) {
+    private String initiateTransfer(String contractAgreementId, ServerAddressInfo targetServerInfo) {
         var initTransferRequest = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder()
                         .add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, TRANSFER_REQUEST_TYPE)
 //                .add(TRANSFER_REQUEST_CONNECTOR_ID, "provider")
-                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "http://localhost:19194/protocol")
+                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
                 .add(TRANSFER_REQUEST_CONTRACT_ID, contractAgreementId)
                 .add(TRANSFER_REQUEST_ASSET_ID, restRequest.getServiceId().asEncodedId())
                 .add(TRANSFER_REQUEST_PROTOCOL, "dataspace-protocol-http")
@@ -224,7 +228,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private void pollTransferCompletion(String transferId) {
         int pollCounter = 0;
 
-        while (pollCounter++ <= 60) {
+        while (pollCounter++ <= 600) {
             var transferProcess = transferProcessApi.getTransferProcess(transferId);
             log.info("======== getTransferProcess: {}", transferProcess);
             var status = transferProcess.getString("state");
@@ -232,7 +236,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                 return;
             }
 
-            Thread.sleep(1000L);
+            Thread.sleep(100L);
         }
         throw new RuntimeException("Download failed");
     }
@@ -282,8 +286,13 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private void sendRequest(HttpSender httpSender, InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
         httpSender.addHeader(assetInfo.authKey(), assetInfo.authCode());
 
-        var url = URI.create(assetInfo.endpoint());
+        var path = assetInfo.endpoint();
+        if (restRequest.getServicePath() != null) {
+            path = path + restRequest.getServicePath();
+        }
+        var url = URI.create(path);
 
+        log.info("Will send [{}] request to {}", restRequest.getVerb(), path);
         switch (restRequest.getVerb()) {
             case GET -> httpSender.doGet(url);
             case POST -> httpSender.doPost(url,

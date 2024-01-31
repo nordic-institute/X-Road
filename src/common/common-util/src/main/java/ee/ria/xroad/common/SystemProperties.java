@@ -1733,6 +1733,6 @@ public final class SystemProperties {
     }
 
     public static String dataspacesManagementListenPort() {
-        return "29193";
+        return "9193";
     }
 }
