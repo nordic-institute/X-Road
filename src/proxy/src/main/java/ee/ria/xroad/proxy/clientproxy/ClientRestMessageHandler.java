@@ -108,7 +108,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
             var restRequest = createRestRequest(request);
             var proxyCtx = new ProxyRequestCtx(target, request, response, opMonitoringData,
-                    resolveTargetSecurityServers(restRequest.getClientId()));
+                    resolveTargetSecurityServers(restRequest.getServiceId().getClientId()));
 
             if (proxyCtx.targetSecurityServers().dsEnabledServers()) {
                 //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.

@@ -95,7 +95,7 @@ public class AssetsRegistrationJob {
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, DATAPLANE_INSTANCE_TYPE)
                 .add(ID, providerDataplaneId)
-                .add(DataPlaneInstance.URL, "http://127.0.0.1:19192/control/transfer")
+                .add(DataPlaneInstance.URL, "http://%s:9192/control/transfer".formatted(ServerConf.getIdentifier().getServerCode()))
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder()
                         .add("HttpData")
                         .build())
@@ -104,10 +104,11 @@ public class AssetsRegistrationJob {
                         .add("HttpProxy")
                         .build())
                 .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
-                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://127.0.0.1:19291/public/")
+                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://%s:9291/public/".formatted(ServerConf.getIdentifier().getServerCode()))
                         .build())
                 .build()
         );
+
     }
 
     @Scheduled(initialDelay = 1, fixedDelay = 5 * 60, timeUnit = SECONDS) //every 5 minutes;
