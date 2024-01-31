@@ -193,7 +193,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private String getContractAgreementId(String contractNegotiationId) {
         int pollCounter = 0;
 
-        while (pollCounter++ <= 10) {
+        while (pollCounter++ <= 600) {
             var getNegotiationResponse = contractNegotiationApi.getNegotiation(contractNegotiationId);
             log.info("======== getNegotiation: {}", getNegotiationResponse);
             var status = getNegotiationResponse.getString("state");
@@ -201,7 +201,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                 return getNegotiationResponse.getString("contractAgreementId");
             }
 
-            Thread.sleep(1000L);
+            Thread.sleep(100L);
         }
         throw new RuntimeException("Failed fetch contractId");
     }
@@ -228,7 +228,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private void pollTransferCompletion(String transferId) {
         int pollCounter = 0;
 
-        while (pollCounter++ <= 60) {
+        while (pollCounter++ <= 600) {
             var transferProcess = transferProcessApi.getTransferProcess(transferId);
             log.info("======== getTransferProcess: {}", transferProcess);
             var status = transferProcess.getString("state");
@@ -236,7 +236,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                 return;
             }
 
-            Thread.sleep(1000L);
+            Thread.sleep(100L);
         }
         throw new RuntimeException("Download failed");
     }
