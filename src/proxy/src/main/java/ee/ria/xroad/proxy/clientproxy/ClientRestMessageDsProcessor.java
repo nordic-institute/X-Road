@@ -33,11 +33,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.MimeUtils;
 
 import jakarta.json.JsonObject;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
 import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
@@ -285,11 +287,17 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
     private void sendRequest(HttpSender httpSender, InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
         httpSender.addHeader(assetInfo.authKey(), assetInfo.authCode());
+        // todo: xroad8 edc does not support proxying headers to provider IS
+        httpSender.addHeader(MimeUtils.HEADER_QUERY_ID, restRequest.getQueryId());
 
         var path = assetInfo.endpoint();
         if (restRequest.getServicePath() != null) {
             path = path + restRequest.getServicePath();
         }
+        if (StringUtils.isNotBlank(restRequest.getQuery())) {
+            path += "?" + restRequest.getQuery();
+        }
+
         var url = URI.create(path);
 
         log.info("Will send [{}] request to {}", restRequest.getVerb(), path);
