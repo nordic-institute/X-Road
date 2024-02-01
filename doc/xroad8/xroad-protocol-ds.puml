@@ -1,0 +1,120 @@
+@startuml
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+skinparam BoxPadding 10
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+!define WarningColor Business
+!define LeadColor Technology
+
+autonumber
+
+box "Consumer ecosystem" #ConsumerColor
+    participant C_BE as "Backend Service"
+end box
+
+box "Consumer ClientProxy" #ConsumerColor
+    participant C_HANDLER as "Request Handler" #Business
+    participant C_EDC_CALLBACK as "EDC callback" #Business
+    participant C_GLOBAL_CONF as "GlobalConf" #Business
+end box
+
+box "Consumer EDC" #ConsumerColor
+    participant C_EDC_CP as "Control Plane" #Business
+    participant C_EDC_DPS as "Data Plane Selector" #Business
+    participant C_EDC_DP as "Data Plane" #Business
+end box
+
+box "Provider EDC" #ProviderColor
+    participant P_EDC_DP as "Data Plane" #Business
+    participant P_EDC_DPS as "Data Plane Selector" #Business
+    participant P_EDC_CP as "Control Plane" #Business
+end box
+
+box "Provider ecosystem" #ProviderColor
+    participant P_BE as "Backend Service"
+end box
+
+title
+ **X-Road protocol over Data Plane v0.1**
+end title
+autonumber 1
+
+== Negotiate protocol ==
+C_BE ->> C_HANDLER : X-Road protocol request
+activate C_BE
+
+activate C_HANDLER
+C_HANDLER ->> C_HANDLER: Resolve target service
+C_HANDLER ->> C_GLOBAL_CONF: Request DataSpace capabilities 
+activate C_GLOBAL_CONF
+return Provide available DataSpace SecurityServers
+deactivate C_GLOBAL_CONF
+
+== Request asset access ==
+
+C_HANDLER ->> C_EDC_CP: Fetch Catalog
+activate C_EDC_CP
+C_EDC_CP ->> P_EDC_CP: Resolve policies
+activate P_EDC_CP
+return Response
+return Catalog response
+
+
+C_HANDLER ->> C_EDC_CP: Initiate contract negotiation
+activate C_EDC_CP
+C_EDC_CP ->> P_EDC_CP: Negotiate contract
+activate P_EDC_CP
+return Negotiation result
+return Contract data
+
+
+== Start asset Transfer Process ==
+C_HANDLER ->> C_EDC_CP: Initiate data transfer
+activate C_EDC_CP
+
+C_EDC_CP ->> P_EDC_CP : send data request with destination type HttpProxy
+activate P_EDC_CP
+P_EDC_CP ->> P_EDC_DPS : resolve data plane instance
+activate P_EDC_DPS
+return data plane instance
+P_EDC_CP ->> P_EDC_CP : generate an access\ntoken en create data\naddress with type EDR
+P_EDC_CP ->> C_EDC_CP : send data address
+
+deactivate P_EDC_CP
+C_EDC_CP ->> C_EDC_CP : convert data address\n into endpoint data\nreference and dispatch
+
+
+C_HANDLER ->> C_EDC_CALLBACK: Poll for asset data status
+activate C_EDC_CALLBACK
+C_EDC_CP ->> C_EDC_CALLBACK: send asset fetch data (url, token)
+
+return Asset fetch data
+deactivate C_EDC_CP
+deactivate C_EDC_CALLBACK
+
+== Data querying ==
+
+C_HANDLER ->> P_EDC_DP : query data over public endpoint (any verb is supported)
+
+activate P_EDC_DP
+P_EDC_DP ->> P_EDC_CP : send token for validation
+P_EDC_CP ->> P_EDC_CP : validate token
+P_EDC_CP ->> P_EDC_DP : data address
+deactivate P_EDC_CP
+P_EDC_DP ->> P_BE : query data
+activate P_BE
+return data
+P_EDC_DP ->> C_HANDLER : return data
+deactivate P_EDC_DP
+
+C_BE <<-- C_HANDLER : return data
+
+@enduml
