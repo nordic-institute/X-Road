@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.testutil;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
@@ -37,7 +38,11 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Test globalconf implementation.
@@ -55,9 +60,15 @@ public class TestGlobalConfWithDs extends EmptyGlobalConf {
     }
 
     @Override
+    public String getSecurityServerAddress(SecurityServerId serverId) {
+        return "127.0.0.1";
+    }
+
+    @Override
     public Collection<ServerAddressInfo> getProviderSecurityServers(ClientId clientId) {
         return Set.of(
-                new ServerAddressInfo("127.0.0.1", true, "", "http://127.0.0.1:19194/protocol", ""));
+                new ServerAddressInfo("127.0.0.1", true, "",
+                        "http://127.0.0.1:%s/protocol".formatted(SystemProperties.dataspacesProtocolPort()), ""));
     }
 
     @Override

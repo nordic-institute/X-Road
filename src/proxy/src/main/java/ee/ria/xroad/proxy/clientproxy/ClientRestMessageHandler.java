@@ -82,10 +82,10 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    private AuthorizedAssetRegistry authorizedAssetRegistry;
-    private FeignCatalogApi catalogApi;
-    private ContractNegotiationApi contractNegotiationApi;
-    private TransferProcessApi transferProcessApi;
+    private final AuthorizedAssetRegistry authorizedAssetRegistry;
+    private final FeignCatalogApi catalogApi;
+    private final ContractNegotiationApi contractNegotiationApi;
+    private final TransferProcessApi transferProcessApi;
 
     public ClientRestMessageHandler(HttpClient client, AuthorizedAssetRegistry authorizedAssetRegistry,
                                     FeignCatalogApi catalogApi,

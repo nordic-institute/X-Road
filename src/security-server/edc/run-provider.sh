@@ -1,7 +1,7 @@
 #!/bin/bash
 
 resourcesDir="src/main/resources"
-jarFile="build/libs/connector.jar"
+jarFile="connector.jar"
 
 # Check for --in-memory flag
 for arg in "$@"

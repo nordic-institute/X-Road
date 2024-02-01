@@ -654,6 +654,10 @@ public final class SystemProperties {
             GRPC_INTERNAL_TRUSTSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
 
     public static final String DATASPACES_ENABLED = PREFIX + "dataspaces.enabled";
+    public static final String DATASPACES_CONTROL_PORT = PREFIX + "dataspaces.control.port";
+    public static final String DATASPACES_PUBLIC_PORT = PREFIX + "dataspaces.public.port";
+    public static final String DATASPACES_PROTOCOL_PORT = PREFIX + "dataspaces.protocol.port";
+    public static final String DATASPACES_MANAGEMENT_PORT = PREFIX + "dataspaces.management.port";
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -1733,6 +1737,19 @@ public final class SystemProperties {
     }
 
     public static String dataspacesManagementListenPort() {
-        return "9193";
+        return System.getProperty(DATASPACES_MANAGEMENT_PORT, "9193");
     }
+
+    public static String dataspacesControlListenPort() {
+        return System.getProperty(DATASPACES_CONTROL_PORT, "9192");
+    }
+
+    public static String dataspacesPublicListenPort() {
+        return System.getProperty(DATASPACES_PUBLIC_PORT, "9291");
+    }
+
+    public static String dataspacesProtocolPort(){
+        return System.getProperty(DATASPACES_PROTOCOL_PORT, "9194");
+    }
+
 }

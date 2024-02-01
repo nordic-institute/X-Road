@@ -43,6 +43,8 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
@@ -52,6 +54,7 @@ import java.util.Optional;
 import static ee.ria.xroad.common.SystemProperties.DEFAULT_CONNECTOR_HOST;
 
 @Component
+@Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
 @RequiredArgsConstructor
 @Slf4j
 public class EdcProxy {

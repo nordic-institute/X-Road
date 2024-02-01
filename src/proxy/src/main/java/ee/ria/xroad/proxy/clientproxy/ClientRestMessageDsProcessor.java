@@ -179,7 +179,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                         .add(VOCAB, EDC_NAMESPACE)
                         .add(ODRL_PREFIX, ODRL_SCHEMA))
                 .add(TYPE, CONTRACT_REQUEST_TYPE)
-                .add(PROVIDER_ID, "ss1")
+                .add(PROVIDER_ID, "provider") //todo: get the actual value
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
                 .add(PROTOCOL, "dataspace-protocol-http")
                 .add(POLICY, policy)

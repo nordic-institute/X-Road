@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,6 +27,7 @@
 package ee.ria.xroad.proxy;
 
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -34,38 +36,83 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
+import ee.ria.xroad.proxy.testutil.TestGlobalConfWithDs;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
 import jakarta.servlet.ServletOutputStream;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.edc.management.client.configuration.EdcManagementApiFactory;
+import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static io.restassured.RestAssured.given;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * RestProxyTest
+ * RestEdcProxyTest
  */
 @Slf4j
-public class RestProxyTest extends AbstractProxyIntegrationTest {
+public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
 
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
-    private static final TestGlobalConf TEST_GLOBAL_CONF = new TestGlobalConf();
+
+    private static final TestGlobalConfWithDs TEST_GLOBAL_CONF = new TestGlobalConfWithDs();
+
+    private static Process consumerProcess;
+    private static Process providerProcess;
+
+    public static Map<String, String> getAdditionalSystemParameters() {
+        return Map.of(
+                SystemProperties.DATASPACES_ENABLED, Boolean.TRUE.toString(),
+                SystemProperties.DATASPACES_CONTROL_PORT, "19192",
+                SystemProperties.DATASPACES_MANAGEMENT_PORT, "29193", // here 2
+                SystemProperties.DATASPACES_PUBLIC_PORT, "19291",
+                SystemProperties.DATASPACES_PROTOCOL_PORT, "19194",
+                SystemProperties.JETTY_EDCPROXY_CONFIGURATION_FILE, "src/test/edcproxy.xml"
+                // SystemProperties.PROXY_EDC_LISTEN_PORT, String.valueOf(getFreePort()) TODO
+        );
+    }
 
     @BeforeClass
     public static void setup() throws Exception {
-        applicationContext = new TestProxyMain(Map.of(), TEST_GLOBAL_CONF, () -> {}).createApplicationContext(TestProxySpringConfig.class);
+        startEdcProvider();
+        startEdcConsumer();
+
+        applicationContext = new TestProxyMain(getAdditionalSystemParameters(), TEST_GLOBAL_CONF, RestEdcProxyTest::prepareServerEdc)
+                .createApplicationContext(TestProxySpringConfig.class);
+    }
+
+    @AfterClass
+    public static void teardown() {
+        if (applicationContext != null) {
+            applicationContext.close();
+        }
+        RESERVED_PORTS.clear();
+
+        providerProcess.descendants().forEach(ProcessHandle::destroy);
+        consumerProcess.descendants().forEach(ProcessHandle::destroy);
+        providerProcess.destroy();
+        consumerProcess.destroy();
     }
 
     @After
@@ -107,7 +154,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .body("{\"value\" : 42}")
-                .post(PREFIX + "/EE/BUSINESS/producer/sub/echo")
+                .post(PREFIX + "/EE/GOV/1234TEST_CLIENT/SUBCODE5/SERVICE2")
                 .then()
                 .statusCode(200)
                 .body("value", Matchers.equalTo(42));
@@ -219,7 +266,10 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/sub")
                 .queryParam("bytes", requestedBytes)
-                .get(PREFIX + "/EE/BUSINESS/producer/sub/test").asInputStream();
+                .get(PREFIX + "/EE/GOV/1234TEST_CLIENT/SUBCODE5/SERVICE2").asInputStream();
+//                .get(PREFIX + "/EE/BUSINESS/producer/sub/test").asInputStream();
+
+//        new String(stream.readAllBytes(), StandardCharsets.UTF_8);
 
         long c = 0;
         int r;
@@ -480,4 +530,88 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
         output.write(buf, 0, i);
         output.close();
     };
+
+    @SneakyThrows
+    private static void prepareServerEdc() {
+        EdcManagementApiFactory apiFactory = new EdcManagementApiFactory(
+                "http://localhost:19193".formatted("19193"));
+
+        var assetRegistrationJob = new AssetsRegistrationJob(apiFactory.dataplaneSelectorApi(),
+                apiFactory.assetsApi(), apiFactory.policyDefinitionApi(), apiFactory.contractDefinitionApi());
+        assetRegistrationJob.registerDataPlane();
+        assetRegistrationJob.registerAssets();
+    }
+
+    private static void startEdcProvider() throws InterruptedException {
+        Thread t = new Thread(() -> {
+            try {
+                ProcessBuilder pb = new ProcessBuilder("./run-provider.sh", "--in-memory");
+                pb.directory(new File("../security-server/edc/"));
+
+                providerProcess = pb.start();
+                // Redirect output and error streams to SLF4J
+                var logger = LoggerFactory.getLogger("EDC-PROVIDER");
+                StreamGobbler outputGobbler = new StreamGobbler(providerProcess.getInputStream(), logger::info);
+                StreamGobbler errorGobbler = new StreamGobbler(providerProcess.getErrorStream(), logger::error);
+
+                // Start gobbling the streams
+                outputGobbler.start();
+                errorGobbler.start();
+
+            } catch (Exception e) {
+                log.error("Error", e);
+            }
+        });
+
+        t.start();
+        t.join();
+        MILLISECONDS.sleep(3000);
+    }
+
+    private static void startEdcConsumer() throws InterruptedException {
+        Thread t = new Thread(() -> {
+            try {
+                ProcessBuilder pb = new ProcessBuilder("./run-consumer.sh", "--in-memory");
+                pb.directory(new File("../security-server/edc/"));
+                consumerProcess = pb.start();
+                // Redirect output and error streams to SLF4J
+                var logger = LoggerFactory.getLogger("EDC-CONSUMER");
+                StreamGobbler outputGobbler = new StreamGobbler(consumerProcess.getInputStream(), logger::info);
+                StreamGobbler errorGobbler = new StreamGobbler(consumerProcess.getErrorStream(), logger::error);
+
+                // Start gobbling the streams
+                outputGobbler.start();
+                errorGobbler.start();
+
+            } catch (Exception e) {
+                log.error("Error", e);
+            }
+        });
+
+        t.start();
+        t.join();
+        MILLISECONDS.sleep(1000);
+    }
+
+    private static class StreamGobbler extends Thread {
+        private final InputStream inputStream;
+        private final Consumer<String> consumeInputLine;
+
+        public StreamGobbler(InputStream inputStream, Consumer<String> consumeInputLine) {
+            this.inputStream = inputStream;
+            this.consumeInputLine = consumeInputLine;
+        }
+
+        @Override
+        public void run() {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    consumeInputLine.accept(line);
+                }
+            } catch (IOException e) {
+                //do nothing
+            }
+        }
+    }
 }

@@ -27,6 +27,8 @@
 
 package org.niis.xroad.proxy.edc;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -95,7 +97,10 @@ public class AssetsRegistrationJob {
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, DATAPLANE_INSTANCE_TYPE)
                 .add(ID, providerDataplaneId)
-                .add(DataPlaneInstance.URL, "http://%s:9192/control/transfer".formatted(ServerConf.getIdentifier().getServerCode()))
+
+                .add(DataPlaneInstance.URL, "http://%s:%s/control/transfer"
+                        .formatted(GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
+                                SystemProperties.dataspacesControlListenPort()))
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder()
                         .add("HttpData")
                         .build())
@@ -104,7 +109,9 @@ public class AssetsRegistrationJob {
                         .add("HttpProxy")
                         .build())
                 .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
-                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://%s:9291/public/".formatted(ServerConf.getIdentifier().getServerCode()))
+                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://%s:%s/public/"
+                                .formatted(GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
+                                        SystemProperties.dataspacesPublicListenPort()))
                         .build())
                 .build()
         );

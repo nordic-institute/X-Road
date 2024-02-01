@@ -34,6 +34,7 @@ dependencies {
     // sql store
     sqlDependencies("org.postgresql:postgresql:$postgresqlVersion")
     sqlDependencies("org.eclipse.edc:sql-pool-apache-commons:$edcVersion")
+    // without 'transaction-local' db connections are not returned to the pool and eventually edc stops working.
     sqlDependencies("org.eclipse.edc:transaction-local:$edcVersion")
     sqlDependencies("org.eclipse.edc:asset-index-sql:$edcVersion")
     sqlDependencies("org.eclipse.edc:data-plane-instance-store-sql:$edcVersion")
