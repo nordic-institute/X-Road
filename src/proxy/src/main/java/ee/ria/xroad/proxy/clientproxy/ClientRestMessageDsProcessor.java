@@ -65,7 +65,6 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
@@ -181,7 +180,6 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                         .add(VOCAB, EDC_NAMESPACE)
                         .add(ODRL_PREFIX, ODRL_SCHEMA))
                 .add(TYPE, CONTRACT_REQUEST_TYPE)
-                .add(PROVIDER_ID, "provider") //todo: get the actual value
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
                 .add(PROTOCOL, "dataspace-protocol-http")
                 .add(POLICY, policy)
