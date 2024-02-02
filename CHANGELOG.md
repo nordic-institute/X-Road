@@ -1,6 +1,15 @@
 # Change Log
 
-## 7.4.1 - UNRELEASED
+## 7.4.1 - 2024-02-02
+- XRDDEV-2568: Client list and add client flow breaks with 7.4.0
+- XRDDEV-2565: Global group access not working correctly
+- XRDDEV-2566: Security Server operational_data table ID sequence not growing anymore
+- XRDDEV-2553: Restarting Nginx fails on the Central Server when upgrading to version 7.4.0.
+- XRDDEV-2564: Configuration Proxy behaviour has changed and causes errors in 7.4.0
+- XRDDEV-2558: As a Central Server Administrator I want the Configuration Proxy to rewrite node information in shared parameters so that it passes only information about Configuration Proxy nodes and not the Central Server nodes
+- XRDDEV-2569: Unable to delete a client from Security Server after a client registration request has been declined on the Central Server.
+- XRDDEV-2582: X-Road 7.4.0 API authentication behaviour has changed
+- XRDDEV-2583: Security Server disconnecting periodically from HSM starting after version 7.4.0 upgrade
 
 ## 7.4.0 - 2023-12-21
 - XRDDEV-851: As an Architect I want to study alternatives how to make global configuration more flexible so that it is easier to add new configuration items.
