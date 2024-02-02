@@ -25,33 +25,8 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.messagelog;
+package org.niis.xroad.edc.spi.messagelog;
 
-import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
-
-@Extension(value = XRoadMessageLogExtension.NAME)
-@Provides(XRoadMessageLog.class)
-public class XRoadMessageLogExtension implements ServiceExtension {
-
-    static final String NAME = "X-Road Messagelog";
-
-    @Override
-    public String name() {
-        return NAME;
-    }
-
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-
-        monitor.info("Hello from '%s' extension".formatted(NAME));
-
-        XRoadMessageLogImpl messageLog = new XRoadMessageLogImpl(monitor);
-        context.registerService(XRoadMessageLog.class, messageLog);
-    }
-
+public record LogMessage() {
+    // todo:
 }

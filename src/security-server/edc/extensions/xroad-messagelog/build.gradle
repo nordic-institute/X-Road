@@ -3,5 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation("org.eclipse.edc:core-spi:$edcVersion")
+    implementation(project(":security-server:edc:spi:xroad-messagelog-spi"))
+
+    testImplementation("org.eclipse.edc:junit:$edcVersion")
+    testImplementation("org.assertj:assertj-core:$assertjVersion")
 }

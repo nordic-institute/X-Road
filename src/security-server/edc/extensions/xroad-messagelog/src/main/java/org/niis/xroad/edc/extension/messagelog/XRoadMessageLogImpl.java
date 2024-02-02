@@ -27,31 +27,19 @@
 
 package org.niis.xroad.edc.extension.messagelog;
 
-import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import lombok.RequiredArgsConstructor;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.niis.xroad.edc.spi.messagelog.LogMessage;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
-@Extension(value = XRoadMessageLogExtension.NAME)
-@Provides(XRoadMessageLog.class)
-public class XRoadMessageLogExtension implements ServiceExtension {
+@RequiredArgsConstructor
+public class XRoadMessageLogImpl implements XRoadMessageLog {
 
-    static final String NAME = "X-Road Messagelog";
-
-    @Override
-    public String name() {
-        return NAME;
-    }
+    private final Monitor monitor;
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-
-        monitor.info("Hello from '%s' extension".formatted(NAME));
-
-        XRoadMessageLogImpl messageLog = new XRoadMessageLogImpl(monitor);
-        context.registerService(XRoadMessageLog.class, messageLog);
+    public void log(LogMessage message) {
+        monitor.debug("Logging message to message log.");
+        //todo: grpc call to messagelog endpoint
     }
-
 }

@@ -25,33 +25,20 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.messagelog;
-
-import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
-@Extension(value = XRoadMessageLogExtension.NAME)
-@Provides(XRoadMessageLog.class)
-public class XRoadMessageLogExtension implements ServiceExtension {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    static final String NAME = "X-Road Messagelog";
 
-    @Override
-    public String name() {
-        return NAME;
-    }
+@ExtendWith(EdcExtension.class)
+class IntegrationTest {
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-
-        monitor.info("Hello from '%s' extension".formatted(NAME));
-
-        XRoadMessageLogImpl messageLog = new XRoadMessageLogImpl(monitor);
-        context.registerService(XRoadMessageLog.class, messageLog);
+    @Test
+    void verifyServiceRegistered(XRoadMessageLog messageLog) {
+        assertThat(messageLog).isNotNull();
     }
 
 }
