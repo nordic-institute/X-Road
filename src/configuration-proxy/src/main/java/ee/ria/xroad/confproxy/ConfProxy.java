@@ -26,11 +26,12 @@
 package ee.ria.xroad.confproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -54,25 +55,39 @@ public class ConfProxy {
 
     /**
      * Launch the configuration proxy instance. Downloads signed directory,
-     * signs it's content and moves it to the public distribution directory.
+     * signs its content and moves it to the public distribution directory.
      * @throws Exception in case of any errors
      */
     public final void execute() throws Exception {
         log.debug("Purge outdated generations");
         ConfProxyHelper.purgeOutdatedGenerations(conf);
+
+        var result = new ConfProxyExecutionResult();
         for (int version = SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
                 version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
                 version--) {
-            log.debug("Download global configuration version {}. Minimum version {}", version,
-                    SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion());
-            ConfigurationDirectory confDir = download(version);
-            log.debug("Create output builder");
-            try (OutputBuilder output = new OutputBuilder(confDir, conf, version)) {
-                log.debug("Build signed directory");
-                output.buildSignedDirectory();
-                output.move();
-                log.debug("Finished execute");
+            log.debug("Download global configuration version {}. Minimum version {}",
+                    version, SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion());
+
+            try {
+                VersionedConfigurationDirectory confDir = download(version);
+                log.debug("Create output builder");
+                try (OutputBuilder output = new OutputBuilder(confDir, conf, version)) {
+                    log.debug("Build signed directory");
+                    output.buildSignedDirectory();
+                    output.move();
+                    log.debug("Finished execute");
+                }
+                log.info("Successfully distributed global configuration version {}", version);
+                result.markSuccessful();
+            } catch (Exception e) {
+                log.warn("Failed to distribute global configuration version " + version, e);
+                result.addFailedVersion(version);
             }
+        }
+        if (!result.isSuccess() && !result.getFailedVersions().isEmpty()) {
+            throw new Exception("Error distributing any global configuration version: "
+                    + StringUtils.join(result.getFailedVersions(), ","));
         }
     }
 
@@ -82,7 +97,7 @@ public class ConfProxy {
      * @return downloaded configuration directory
      * @throws Exception if configuration client script encounters errors
      */
-    private ConfigurationDirectory download(int version) throws Exception {
+    private VersionedConfigurationDirectory download(int version) throws Exception {
         log.debug("Create directories");
         Files.createDirectories(Paths.get(conf.getConfigurationDownloadPath(version)));
         return ConfProxyHelper.downloadConfiguration(

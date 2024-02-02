@@ -104,12 +104,12 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
             if (tokenWorker == null) {
                 log.debug("Adding new token '{}#{}'", tokenType.getModuleType(), tokenType.getId());
                 tokenWorker = new BlockingTokenWorker(createWorker(getTokenInfo(tokenType), tokenType));
-                tokenWorker.getInternalTokenWorker().start();
+                tokenWorker.start();
             } else if (reload) {
-                tokenWorker.getInternalTokenWorker().reload();
+                tokenWorker.reload();
             }
 
-            tokenWorker.getInternalTokenWorker().refresh();
+            tokenWorker.refresh();
             newTokens.put(tokenType.getId(), tokenWorker);
         }
 
@@ -127,7 +127,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
             if (!moduleTypes.contains(entry.getKey())) {
                 try {
                     log.trace("Stopping token worker for module '{}'", entry.getKey());
-                    entry.getValue().getInternalTokenWorker().stop();
+                    entry.getValue().stop();
                 } catch (Exception e) {
                     log.error("Failed to deinitialize ");
                 }

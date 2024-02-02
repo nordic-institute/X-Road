@@ -112,7 +112,6 @@ public final class ConfigurationClientMain {
         CommandLine cmd = getCommandLine(args);
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
-
             // Run configuration client in one-shot mode downloading the specified global configuration version.
             System.exit(download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2])));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
@@ -140,8 +139,7 @@ public final class ConfigurationClientMain {
     }
 
     private static int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
-        log.debug("Downloading configuration using anchor {} path = {})",
-                configurationAnchorFile, configurationPath);
+        log.debug("Downloading configuration using anchor {} path = {})", configurationAnchorFile, configurationPath);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 

@@ -56,7 +56,7 @@ public class SharedParametersV3 extends AbstractXmlConf<SharedParametersTypeV3> 
 
     // This constructor is used for simple verifications after configuration download.
     // It does not initialise class fully!
-    SharedParametersV3(byte[] content) throws CertificateEncodingException, IOException {
+    public SharedParametersV3(byte[] content) throws CertificateEncodingException, IOException {
         super(content, SharedParametersSchemaValidatorV3.class);
         expiresOn = OffsetDateTime.MAX;
         sharedParameters = converter.convert(confType);
