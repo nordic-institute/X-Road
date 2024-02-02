@@ -139,7 +139,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     ...mapActions(useAddClient, ['createClient']),
-    ...mapActions(useCsr, ['generateKeyAndCsr']),
+    ...mapActions(useCsr, ['generateKeyAndCsr', 'requestGenerateCsr']),
     cancel(): void {
       this.$emit('cancel');
     },

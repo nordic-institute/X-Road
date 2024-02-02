@@ -4,6 +4,11 @@
 if [ "$1" = "configure" ]; then
   deb-systemd-invoke stop xroad-confclient
   deb-systemd-invoke disable xroad-confclient
+
+  if dpkg --compare-versions "$2" lt-nl "7.4.0"; then
+    # see xroad-center.postinst migrate_internal_crt
+    rm -f /etc/xroad/ssl/internal.{crt,key,p12}
+  fi
 fi
 
 if [ "$1" = abort-upgrade ]; then

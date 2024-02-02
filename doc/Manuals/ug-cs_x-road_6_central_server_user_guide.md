@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.40  
+Version: 2.41  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -66,6 +66,7 @@ Doc. ID: UG-CS
 | 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa       | 
 | 15.12.2023 | 2.39    | Publishing global configuration over HTTPS                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets       |
 | 20.12.2023 | 2.40    | Automatic configuration signing key rotation                                                                                                                                                                                                                                                                                                                                                                                            | Andres Rosenthal    |
+| 19.01.2024 | 2.41    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Eneli Reimets       |
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
@@ -969,7 +970,7 @@ Access rights: Registration Officer
 
 Note that the members of the global group security-server-owners are managed automatically by the Central Server and cannot be added or removed manually.
 
-To add subsystems of X-Road members to a global group, follow these steps.
+To add members (can be X-Road members or subsystems) to a global group, follow these steps.
 1. In the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Add Members.
