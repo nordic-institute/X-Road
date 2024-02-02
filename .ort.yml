@@ -238,6 +238,12 @@ excludes:
       reason: "DEV_DEPENDENCY_OF"
       comment: "Packages for development only."
 
+resolutions:
+  issues:
+    - message: ".*free-restricted license LicenseRef-scancode-ubuntu-font-1.0 in NPM:@fontsource:open-sans.*"
+      reason: "LICENSE_ACQUIRED"
+      comment: "The files meant by this license hit are not in use in X-Road."
+
 license_choices:
   repository_license_choices:
     - given: "GPL-2.0-only OR Apache-2.0"
