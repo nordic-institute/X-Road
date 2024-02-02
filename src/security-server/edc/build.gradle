@@ -46,6 +46,8 @@ dependencies {
 
     // x-road extensions
     implementation(project(":security-server:edc:extensions:xroad-messagelog"))
+
+    testImplementation("org.eclipse.edc:junit:$edcVersion")
 }
 
 application {
