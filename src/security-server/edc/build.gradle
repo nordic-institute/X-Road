@@ -43,6 +43,9 @@ dependencies {
     sqlDependencies("org.eclipse.edc:contract-negotiation-store-sql:$edcVersion")
     sqlDependencies("org.eclipse.edc:policy-definition-store-sql:$edcVersion")
     sqlDependencies("org.eclipse.edc:transfer-process-store-sql:$edcVersion")
+
+    // x-road extensions
+    implementation(project(":security-server:edc:extensions:xroad-messagelog"))
 }
 
 application {
