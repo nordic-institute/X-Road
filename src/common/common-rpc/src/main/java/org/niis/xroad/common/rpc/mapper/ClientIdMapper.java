@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.common.rpc.mapper;
 
-option java_multiple_files = true;
-option java_package = "org.niis.xroad.signer.protocol.dto";
+import ee.ria.xroad.common.identifier.ClientId;
 
-/* Generic empty request/response. */
-message Empty {
-}
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.niis.xroad.signer.protocol.dto.ClientIdProto;
+import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
-message ClientIdProto {
-  string member_class = 1;
-  string member_code = 2;
-  optional string subsystem_code = 3;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ClientIdMapper {
 
-  string xroad_instance = 4;
-  XRoadObjectType object_type = 5;
-}
+    public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
+        if (clientIdProto.hasSubsystemCode()) {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode(),
+                    clientIdProto.getSubsystemCode());
+        } else {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode());
+        }
+    }
 
-message SecurityServerIdProto {
-  string member_class = 1;
-  string member_code = 2;
-  string server_code = 3;
+    public static ClientIdProto toDto(ClientId input) {
+        var builder = ClientIdProto.newBuilder()
+                .setMemberClass(input.getMemberClass())
+                .setMemberCode(input.getMemberCode())
+                .setXroadInstance(input.getXRoadInstance())
+                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()));
 
-  string xroad_instance = 4;
-  XRoadObjectType object_type = 5;
-}
-
-enum XRoadObjectType {
-  XROAD_OBJECT_TYPE_UNSPECIFIED = 0;
-  SERVER = 1;
-  SERVICE = 2;
-  MEMBER = 3;
-  SUBSYSTEM = 4;
-  GLOBALGROUP = 5;
-  LOCALGROUP = 6 [deprecated = true]; // Deprecated
+        if (input.getSubsystemCode() != null) {
+            builder.setSubsystemCode(input.getSubsystemCode());
+        }
+        return builder.build();
+    }
 }

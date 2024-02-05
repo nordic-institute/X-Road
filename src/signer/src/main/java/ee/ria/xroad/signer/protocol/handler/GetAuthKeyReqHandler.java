@@ -37,7 +37,6 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.mapper.SecurityServerIdMapper;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
@@ -45,6 +44,7 @@ import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.signer.proto.AuthKeyInfoProto;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
 import org.springframework.stereotype.Component;
