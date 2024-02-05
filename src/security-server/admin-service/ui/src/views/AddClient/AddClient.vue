@@ -37,65 +37,52 @@
       :alt-labels="true"
       class="wizard-stepper wizard-noshadow"
     >
-      <template v-if="addMemberWizardMode === wizardModes.FULL">
-        <v-stepper-header class="wizard-noshadow">
-          <v-stepper-item :complete="currentStep > 1" :value="1">{{
-            $t('wizard.clientDetails')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :complete="currentStep > 2" :value="2">{{
-            $t('wizard.token.title')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :complete="currentStep > 3" :value="3">{{
-            $t('wizard.signKey.title')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :complete="currentStep > 4" :value="4">{{
-            $t('csr.csrDetails')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :complete="currentStep > 5" :value="5">{{
-            $t('csr.generateCsr')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :value="6">{{
-            $t('wizard.finish.title')
-          }}</v-stepper-item>
-        </v-stepper-header>
-      </template>
+      <v-stepper-header class="wizard-noshadow">
+        <v-stepper-item :complete="currentStep > 1" :value="1">
+          {{ $t('wizard.clientDetails') }}
+        </v-stepper-item>
+        <v-divider></v-divider>
 
-      <template v-if="addMemberWizardMode === wizardModes.CERTIFICATE_EXISTS">
-        <v-stepper-header class="wizard-noshadow">
-          <v-stepper-item :complete="currentStep > 1" :value="1">{{
-            $t('wizard.clientDetails')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :value="2">{{
-            $t('wizard.finish.title')
-          }}</v-stepper-item>
-        </v-stepper-header>
-      </template>
+        <v-stepper-item
+          v-if="isModeFull"
+          :complete="currentStep > tokenPageNumber"
+          :value="tokenPageNumber"
+        >
+          {{ $t('wizard.token.title') }}
+        </v-stepper-item>
+        <v-divider v-if="isModeFull"></v-divider>
 
-      <template v-if="addMemberWizardMode === wizardModes.CSR_EXISTS">
-        <v-stepper-header class="wizard-noshadow">
-          <v-stepper-item :complete="currentStep > 1" :value="1">{{
-            $t('wizard.clientDetails')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :complete="currentStep > 2" :value="2">{{
-            $t('csr.csrDetails')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :complete="currentStep > 3" :value="3">{{
-            $t('csr.generateCsr')
-          }}</v-stepper-item>
-          <v-divider></v-divider>
-          <v-stepper-item :value="4">{{
-            $t('wizard.finish.title')
-          }}</v-stepper-item>
-        </v-stepper-header>
-      </template>
+        <v-stepper-item
+          v-if="isModeFull"
+          :complete="currentStep > keyPageNumber"
+          :value="keyPageNumber"
+        >
+          {{ $t('wizard.signKey.title') }}
+        </v-stepper-item>
+        <v-divider v-if="isModeFull"></v-divider>
+
+        <v-stepper-item
+          v-if="isModeFull || isModeCsrExist"
+          :complete="currentStep > csrDetailsPageNumber"
+          :value="csrDetailsPageNumber"
+        >
+          {{ $t('csr.csrDetails') }}
+        </v-stepper-item>
+        <v-divider v-if="isModeFull || isModeCsrExist"></v-divider>
+
+        <v-stepper-item
+          v-if="isModeFull || isModeCsrExist"
+          :complete="currentStep > csrGeneratePageNumber"
+          :value="csrGeneratePageNumber"
+        >
+          {{ $t('csr.generateCsr') }}
+        </v-stepper-item>
+        <v-divider v-if="isModeFull || isModeCsrExist"></v-divider>
+
+        <v-stepper-item :value="finishPageNumber">
+          {{ $t('wizard.finish.title') }}
+        </v-stepper-item>
+      </v-stepper-header>
 
       <v-stepper-window class="wizard-stepper-content">
         <!-- Step 1 -->
@@ -103,7 +90,7 @@
           <ClientDetailsPage @cancel="cancel" @done="currentStep++" />
         </v-stepper-window-item>
         <!-- Step 2 -->
-        <v-stepper-window-item :value="tokenPageNumber">
+        <v-stepper-window-item v-if="isModeFull" :value="tokenPageNumber">
           <TokenPage
             @cancel="cancel"
             @previous="currentStep--"
@@ -111,7 +98,7 @@
           />
         </v-stepper-window-item>
         <!-- Step 3 -->
-        <v-stepper-window-item :value="keyPageNumber">
+        <v-stepper-window-item v-if="isModeFull" :value="keyPageNumber">
           <SignKeyPage
             @cancel="cancel"
             @previous="currentStep--"
@@ -119,7 +106,10 @@
           />
         </v-stepper-window-item>
         <!-- Step 4 -->
-        <v-stepper-window-item :value="csrDetailsPageNumber">
+        <v-stepper-window-item
+          v-if="isModeFull || isModeCsrExist"
+          :value="csrDetailsPageNumber"
+        >
           <CsrDetailsPageLocked
             save-button-text="action.next"
             @cancel="cancel"
@@ -128,7 +118,10 @@
           />
         </v-stepper-window-item>
         <!-- Step 5 -->
-        <v-stepper-window-item :value="csrGeneratePageNumber">
+        <v-stepper-window-item
+          v-if="isModeFull || isModeCsrExist"
+          :value="csrGeneratePageNumber"
+        >
           <GenerateCsrPage
             save-button-text="action.next"
             @cancel="cancel"
@@ -144,137 +137,102 @@
     </v-stepper>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed, onBeforeMount, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import ClientDetailsPage from './ClientDetailsPage.vue';
 import TokenPage from '@/components/wizard/TokenPage.vue';
 import SignKeyPage from '@/components/wizard/SignKeyPage.vue';
 import FinishPage from './FinishPage.vue';
 import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
-import { RouteName, AddMemberWizardModes } from '@/global';
-import { mapActions, mapState } from 'pinia';
+import { AddMemberWizardModes, RouteName } from '@/global';
 import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 
 const NO_SELECTION = 999;
 
-export default defineComponent({
-  components: {
-    ClientDetailsPage,
-    TokenPage,
-    SignKeyPage,
-    FinishPage,
-    CsrDetailsPageLocked,
-    GenerateCsrPage,
-  },
-  data() {
-    return {
-      currentStep: 1,
-      wizardModes: AddMemberWizardModes,
-    };
-  },
-  computed: {
-    ...mapState(useAddClient, ['addMemberWizardMode', 'selectedMemberId']),
-    tokenPageNumber(): number {
-      if (
-        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS ||
-        this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
-      ) {
-        return NO_SELECTION;
-      }
-      return 2;
-    },
-    keyPageNumber(): number {
-      if (
-        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS ||
-        this.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS
-      ) {
-        return NO_SELECTION;
-      }
-      return 3;
-    },
-    csrDetailsPageNumber(): number {
-      switch (this.addMemberWizardMode) {
-        case AddMemberWizardModes.CERTIFICATE_EXISTS:
-          return NO_SELECTION;
-        case AddMemberWizardModes.CSR_EXISTS:
-          return 2;
-        default:
-          return 4;
-      }
-    },
-    csrGeneratePageNumber(): number {
-      switch (this.addMemberWizardMode) {
-        case AddMemberWizardModes.CERTIFICATE_EXISTS:
-          return NO_SELECTION;
-        case AddMemberWizardModes.CSR_EXISTS:
-          return 3;
-        default:
-          return 5;
-      }
-    },
-    finishPageNumber(): number {
-      switch (this.addMemberWizardMode) {
-        case AddMemberWizardModes.CERTIFICATE_EXISTS:
-          return 2;
-        case AddMemberWizardModes.CSR_EXISTS:
-          return 4;
-        default:
-          return 6;
-      }
-    },
-  },
-  created() {
-    // Set up the CSR part with Sign mode
-    this.setupSignKey();
-    // Fetch certificate authorities. Used in "sign key" step.
-    this.fetchCertificateAuthorities().catch((error) => {
-      this.showError(error);
-    });
-  },
-  beforeUnmount() {
-    // Clear the stores used in the wizard
-    this.resetAddClientState();
-    this.resetCsrState();
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsr, [
-      'setupSignKey',
-      'resetCsrState',
-      'fetchCertificateAuthorities',
-      'storeCsrClient',
-      'storeCsrIsNewMember',
-      'fetchCsrForm',
-    ]),
-    ...mapActions(useAddClient, ['resetAddClientState']),
-    cancel(): void {
-      this.$router.replace({ name: RouteName.Clients });
-    },
-    csrDetailsReady(): void {
-      // Add the selected client id in the CSR store
-      const idString = this.selectedMemberId;
-      this.storeCsrClient(idString);
-      this.storeCsrIsNewMember(true);
+const router = useRouter();
+const addClientStore = useAddClient();
+const { showError } = useNotifications();
+const { resetAddClientState } = useAddClient();
+const {
+  setupSignKey,
+  resetCsrState,
+  fetchCertificateAuthorities,
+  storeCsrClient,
+  storeCsrIsNewMember,
+  fetchCsrForm,
+} = useCsr();
 
-      this.fetchCsrForm().then(
-        () => {
-          this.currentStep++;
-        },
-        (error) => {
-          this.showError(error);
-        },
-      );
-    },
-    done(): void {
-      this.$router.replace({ name: RouteName.Clients });
-    },
-  },
+const currentStep = ref(1);
+const isModeFull = computed(
+  () => addClientStore.addMemberWizardMode === AddMemberWizardModes.FULL,
+);
+const isModeCsrExist = computed(
+  () => addClientStore.addMemberWizardMode === AddMemberWizardModes.CSR_EXISTS,
+);
+
+const tokenPageNumber = computed(() => (isModeFull.value ? 2 : NO_SELECTION));
+const keyPageNumber = computed(() => (isModeFull.value ? 3 : NO_SELECTION));
+const csrDetailsPageNumber = computed(() => {
+  if (isModeFull.value) {
+    return 4;
+  } else if (isModeCsrExist.value) {
+    return 2;
+  }
+  return NO_SELECTION;
 });
+const csrGeneratePageNumber = computed(() => {
+  if (isModeFull.value) {
+    return 5;
+  } else if (isModeCsrExist.value) {
+    return 3;
+  }
+  return NO_SELECTION;
+});
+const finishPageNumber = computed(() => {
+  if (isModeFull.value) {
+    return 6;
+  } else if (isModeCsrExist.value) {
+    return 4;
+  }
+  return 2;
+});
+
+onMounted(() => {
+  // Set up the CSR part with Sign mode
+  setupSignKey();
+  // Fetch certificate authorities. Used in "sign key" step.
+  fetchCertificateAuthorities().catch((error) => showError(error));
+});
+
+onBeforeMount(() => {
+  // Clear the stores used in the wizard
+  resetAddClientState();
+  resetCsrState();
+});
+
+function cancel(): void {
+  router.replace({ name: RouteName.Clients });
+}
+
+function csrDetailsReady(): void {
+  // Add the selected client id in the CSR store
+  storeCsrClient(addClientStore.selectedMemberId);
+  storeCsrIsNewMember(true);
+
+  fetchCsrForm()
+    .then(() => currentStep.value++)
+    .catch((error) => showError(error));
+}
+
+function done(): void {
+  router.replace({ name: RouteName.Clients });
+}
 </script>
+
 
 <style lang="scss" scoped>
 @import '@/assets/wizards';

@@ -41,7 +41,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class BlockingTokenWorker implements TokenWorker {
+public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
     private final AbstractTokenWorker tokenWorker;
 
     @Override
@@ -86,16 +86,27 @@ public class BlockingTokenWorker implements TokenWorker {
 
     @Override
     public boolean isSoftwareToken() {
-        return getInternalTokenWorker().isSoftwareToken();
+        return tokenWorker.isSoftwareToken();
     }
 
-    /**
-     * Returns unwrapped and unblocked token worker for internal operations.
-     *
-     * @return token worker
-     */
-    public AbstractTokenWorker getInternalTokenWorker() {
-        return tokenWorker;
+    @Override
+    public void start() {
+        synchronizedAction(tokenWorker::start);
+    }
+
+    @Override
+    public void stop() {
+        synchronizedAction(tokenWorker::stop);
+    }
+
+    @Override
+    public void reload() {
+        synchronizedAction(tokenWorker::reload);
+    }
+
+    @Override
+    public void refresh() throws Exception {
+        synchronizedAction(tokenWorker::refresh);
     }
 
     @FunctionalInterface

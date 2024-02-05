@@ -438,7 +438,7 @@
     <globalGroup>
         <groupCode>Test group</groupCode>
         <description>Description</description>
-        <groupMember id:objectType="MEMBER">
+        <groupMember id:objectType="SUBSYSTEM">
             <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>member1</id:memberCode>
