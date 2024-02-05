@@ -160,3 +160,9 @@ jobs:
           path: |
             src/security-server/system-test/build/allure-report/
             src/security-server/system-test/build/ss-container-logs/
+  DependencySubmission:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v3
