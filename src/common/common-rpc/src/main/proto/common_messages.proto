@@ -43,12 +43,12 @@ message ClientIdProto {
 }
 
 message ServiceIdProto {
-  string service_code = 1;
-  string member_class = 2;
-  string member_code = 3;
-  string subsystem_code = 4;
-  string service_version = 5;
-  ClientIdProto client_id = 6;
+  string xroad_instance = 1;
+  string service_code = 2;
+  string member_class = 3;
+  string member_code = 4;
+  string subsystem_code = 5;
+  optional string service_version = 6;
 }
 
 message SecurityServerIdProto {
