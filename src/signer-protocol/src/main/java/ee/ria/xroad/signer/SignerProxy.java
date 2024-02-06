@@ -35,14 +35,14 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
-import ee.ria.xroad.signer.protocol.mapper.SecurityServerIdMapper;
 
 import com.google.protobuf.ByteString;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
+import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;

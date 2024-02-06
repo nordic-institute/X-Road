@@ -64,6 +64,11 @@ public final class PortNumbers {
      */
     public static final int SIGNER_GRPC_PORT = 5560;
 
+    /**
+     * Message log grpc port
+     */
+    public static final int MESSAGE_LOG_GRPC_PORT = 5561;
+
     /** Port for Distributed Files Client. */
     public static final int CONFIGURATION_CLIENT_PORT = 5665;
 

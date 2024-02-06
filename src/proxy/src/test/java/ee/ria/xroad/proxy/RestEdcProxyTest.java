@@ -608,7 +608,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         private final InputStream inputStream;
         private final Consumer<String> consumeInputLine;
 
-        public StreamGobbler(InputStream inputStream, Consumer<String> consumeInputLine) {
+        StreamGobbler(InputStream inputStream, Consumer<String> consumeInputLine) {
             this.inputStream = inputStream;
             this.consumeInputLine = consumeInputLine;
         }

@@ -1,3 +1,7 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
 dependencies {
     implementation(project(':proxy'))
     implementation(project(':common:common-util'))
@@ -7,6 +11,7 @@ dependencies {
     implementation(project(':common:common-verifier'))
     implementation(project(':asic-util'))
     implementation(project(':addons:messagelog:messagelog-db'))
+    implementation(project(':addons:messagelog:messagelog-protocol'))
 
     testImplementation project(':common:common-test')
     testImplementation project(':addons:messagelog:messagelog-archiver')
@@ -15,7 +20,15 @@ dependencies {
 }
 
 jar {
+    from project(':addons:messagelog:messagelog-db').sourceSets.main.output
+}
+
+shadowJar {
     archiveVersion = ''
+    archiveClassifier = ''
+    dependencies {
+        include project(':addons:messagelog:messagelog-protocol')
+    }
     from project(':addons:messagelog:messagelog-db').sourceSets.main.output
 }
 
@@ -25,4 +38,4 @@ tasks.register('copyGpg', Copy) {
 }
 
 test.dependsOn copyGpg
-
+assemble.dependsOn shadowJar

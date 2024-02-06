@@ -71,7 +71,8 @@ public class ProxyClientConfig {
     }
 
     @Bean
-    ClientRestMessageHandler clientRestMessageHandler(@Qualifier("proxyHttpClient") HttpClient httpClient, AuthorizedAssetRegistry authorizedAssetRegistry,
+    ClientRestMessageHandler clientRestMessageHandler(@Qualifier("proxyHttpClient") HttpClient httpClient,
+                                                      AuthorizedAssetRegistry authorizedAssetRegistry,
                                                       @Autowired(required = false) FeignCatalogApi catalogApi,
                                                       @Autowired(required = false) ContractNegotiationApi contractNegotiationApi,
                                                       @Autowired(required = false) TransferProcessApi transferProcessApi) {
@@ -80,7 +81,8 @@ public class ProxyClientConfig {
 
     @Conditional(ClientUseIdleConnectionMonitorEnabledCondition.class)
     @Bean(initMethod = "start", destroyMethod = "shutdown")
-    IdleConnectionMonitorThread idleConnectionMonitorThread(@Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
+    IdleConnectionMonitorThread idleConnectionMonitorThread(
+            @Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
         var connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
         connectionMonitor.setIntervalMilliseconds(SystemProperties.getClientProxyIdleConnectionMonitorInterval());
         connectionMonitor.setConnectionIdleTimeMilliseconds(

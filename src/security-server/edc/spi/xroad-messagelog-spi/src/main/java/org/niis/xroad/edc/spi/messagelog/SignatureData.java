@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.mapper;
 
-import ee.ria.xroad.common.identifier.ClientId;
+package org.niis.xroad.edc.spi.messagelog;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.ClientIdProto;
-import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
-
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ClientIdMapper {
-
-    public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
-        if (clientIdProto.hasSubsystemCode()) {
-            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
-                    clientIdProto.getMemberClass(),
-                    clientIdProto.getMemberCode(),
-                    clientIdProto.getSubsystemCode());
-        } else {
-            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
-                    clientIdProto.getMemberClass(),
-                    clientIdProto.getMemberCode());
-        }
-    }
-
-    public static ClientIdProto toDto(ClientId input) {
-        var builder = ClientIdProto.newBuilder()
-                .setMemberClass(input.getMemberClass())
-                .setMemberCode(input.getMemberCode())
-                .setXroadInstance(input.getXRoadInstance())
-                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()));
-
-        if (input.getSubsystemCode() != null) {
-            builder.setSubsystemCode(input.getSubsystemCode());
-        }
-        return builder.build();
-    }
+public record SignatureData(
+        String signatureXml,
+        String hashChainResult,
+        String hashChain
+) {
 }

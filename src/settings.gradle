@@ -79,6 +79,7 @@ include "signer-console"
 include "common:common-test"
 // Addons
 include "addons:hwtoken"
+include "addons:messagelog:messagelog-protocol"
 include "addons:messagelog:messagelog-addon"
 include "addons:messagelog:messagelog-archiver"
 include 'addons:messagelog:messagelog-archive-verifier'

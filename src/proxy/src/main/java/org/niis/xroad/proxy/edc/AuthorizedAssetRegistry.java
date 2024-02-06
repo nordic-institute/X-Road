@@ -27,8 +27,6 @@
 
 package org.niis.xroad.proxy.edc;
 
-import org.niis.xroad.proxy.edc.InMemoryAuthorizedAssetRegistry;
-
 import java.util.Optional;
 
 public interface AuthorizedAssetRegistry {
