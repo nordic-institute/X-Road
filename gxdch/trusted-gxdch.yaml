@@ -1,0 +1,6 @@
+registry:
+  - gx-registry.i.x-road.rocks/main
+compliance:
+  - gx-compliance.i.x-road.rocks/main
+registration-notary:
+  - gx-notary.i.x-road.rocks/main
