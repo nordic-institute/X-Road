@@ -65,7 +65,8 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        applicationContext = new TestProxyMain(Map.of(), TEST_GLOBAL_CONF, () -> {}).createApplicationContext(TestProxySpringConfig.class);
+        applicationContext = new TestProxyMain(Map.of(), TEST_GLOBAL_CONF, () -> {
+        }).createApplicationContext(TestProxySpringConfig.class);
     }
 
     @After

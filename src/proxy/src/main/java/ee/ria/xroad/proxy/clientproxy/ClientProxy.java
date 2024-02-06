@@ -80,7 +80,7 @@ public class ClientProxy implements StartStop {
     private final Server server = new Server();
 
     private final HttpClient client;
-private final ClientRestMessageHandler clientRestMessageHandler;
+    private final ClientRestMessageHandler clientRestMessageHandler;
 
     /**
      * Constructs and configures a new client proxy.
