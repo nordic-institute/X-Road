@@ -68,6 +68,7 @@ include "security-server:admin-service:int-test"
 include 'security-server:edc'
 include 'security-server:edc:spi:xroad-messagelog-spi'
 include 'security-server:edc:extensions:xroad-messagelog'
+include 'security-server:edc:extensions:xroad-payload-signer'
 include 'security-server:edc-client'
 include "security-server:system-test"
 

@@ -66,7 +66,7 @@ public class AssetAuthorizationCallbackHandler extends AbstractHandler {
             request.setHandled(true);
 
             var requestBody = objectMapper.readValue(request.getInputStream(), JsonObject.class);
-            log.trace("Received asset callback request: {}", requestBody);
+            log.info("Received asset callback request: {}", requestBody);
             authorizedAssetRegistry.registerAsset(new InMemoryAuthorizedAssetRegistry.GrantedAssetInfo(
                     requestBody.getString("id"),
                     requestBody.getString("contractId"),

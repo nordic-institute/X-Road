@@ -3,6 +3,12 @@
 # set dataspaces enabled for poc.
 crudini --set /etc/xroad/conf.d/local.ini dataspaces enabled true
 
+if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
+  set -a
+  . /var/run/xroad/xroad-grpc-internal-env.properties
+  set +a
+fi
+
 exec java -Dedc.keystore="/etc/xroad-edc/certs/cert.pfx" \
     -Dedc.keystore.password=123456 \
     -Dedc.vault="/etc/xroad-edc/edc-vault.properties" \

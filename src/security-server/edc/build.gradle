@@ -46,6 +46,7 @@ dependencies {
 
     // x-road extensions
     implementation(project(":security-server:edc:extensions:xroad-messagelog"))
+    implementation(project(":security-server:edc:extensions:xroad-payload-signer"))
 
     testImplementation("org.eclipse.edc:junit:$edcVersion")
 }

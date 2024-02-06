@@ -24,36 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc;
+package org.niis.xroad.edc.extension.signer;
 
-import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.SignerProxy;
 
-import java.io.File;
-import java.util.Map;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.impl.RSASSAProvider;
+import com.nimbusds.jose.util.Base64URL;
 
-@ExtendWith(EdcExtension.class)
-class EdcIntegrationTest {
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 
-    @BeforeEach
-    void setUp(EdcExtension extension) {
-        System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
+public class XrdJwsSigner extends RSASSAProvider implements JWSSigner {
 
-        var resourcesDir = new File("src/main/resources").getAbsolutePath();
-        extension.setConfiguration(Map.of(
-                "fs.config", "%s/configuration/provider-configuration.properties".formatted(resourcesDir),
-                "edc.vault", "%s/configuration/provider-vault.properties".formatted(resourcesDir),
-                "edc.keystore", "%s/certs/cert.pfx".formatted(resourcesDir),
-                "edc.keystore.password", "123456",
-                "edc.receiver.http.endpoint", "http://localhost:4000/asset-authorization-callback",
-                "edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"
-        ));
+    @Override
+    public Base64URL sign(final JWSHeader header, final byte[] signingInput) throws JOSEException {
+        try {
+            String signAlgoId = switch (header.getAlgorithm().getName()) {
+                case "RS256" -> CryptoUtils.SHA256WITHRSA_ID;
+                case "RS384" -> CryptoUtils.SHA384WITHRSA_ID;
+                case "RS512" -> CryptoUtils.SHA512WITHRSA_ID;
+                default -> throw new JOSEException("Unsupported signing algorithm");
+            };
+
+            String digAlgoId = getDigestAlgorithmId(signAlgoId);
+            byte[] digest = calculateDigest(digAlgoId, signingInput);
+
+            byte[] sig = SignerProxy.sign(header.getKeyID(), signAlgoId, digest);
+
+            return Base64URL.encode(sig);
+        } catch (Exception e) {
+            throw new JOSEException("Failed to sign", e);
+        }
     }
 
-    @Test
-    void shouldStartup() {
 
-    }
 }

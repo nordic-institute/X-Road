@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':signer-protocol')
+    implementation project(':common:common-util')
+
+    implementation("org.eclipse.edc:core-spi:$edcVersion")
+
+    implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
+
+    implementation("org.eclipse.edc:data-plane-core:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-http:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-util:$edcVersion")
+    implementation("org.eclipse.edc:data-plane-public-api:$edcVersion")
+
+    implementation("org.eclipse.edc:json-ld:$edcVersion")
+    implementation("org.eclipse.edc:jws2020:$edcVersion")
+}

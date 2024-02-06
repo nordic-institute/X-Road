@@ -109,7 +109,7 @@ public class AssetsRegistrationJob {
                         .add("HttpProxy")
                         .build())
                 .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
-                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://%s:%s/public/"
+                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://%s:%s/xroad/public/"
                                 .formatted(GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
                                         SystemProperties.dataspacesPublicListenPort()))
                         .build())
@@ -174,6 +174,8 @@ public class AssetsRegistrationJob {
                         .add("proxyBody", Boolean.TRUE.toString())
                         .add("proxyQueryParams", Boolean.TRUE.toString())
                         .add("baseUrl", ServerConf.getServiceAddress(service))
+                        //pass custom parameters
+                        .add("assetId", assetId)
                         .build())
                 .build());
     }
