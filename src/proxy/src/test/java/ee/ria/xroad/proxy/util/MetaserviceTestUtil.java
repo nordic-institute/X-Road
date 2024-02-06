@@ -34,8 +34,6 @@ import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -74,6 +72,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -259,9 +258,9 @@ public final class MetaserviceTestUtil {
 
     }
 
-    /** Stub class for {@link ServletOutputStream}. For mocking Servlet interactions.
+    /** Stub class for {@link OutputStream}. For mocking Servlet interactions.
      * */
-    public static class StubServletOutputStream extends ServletOutputStream {
+    public static class StubServletOutputStream extends OutputStream {
 
         private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -275,15 +274,6 @@ public final class MetaserviceTestUtil {
 
         public byte[] getAsBytes() {
             return outputStream.toByteArray();
-        }
-
-        @Override
-        public boolean isReady() {
-            return true;
-        }
-
-        @Override
-        public void setWriteListener(WriteListener writeListener) {
         }
 
         @Override

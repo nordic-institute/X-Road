@@ -45,6 +45,7 @@ import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilde
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.CodeWithDetailsDto;
 import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
+import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.registrationservice.config.RegistrationServiceProperties;
 import org.niis.xroad.cs.registrationservice.testutil.TestGlobalConf;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +99,7 @@ class RegistrationRequestApiTest {
         properties.setApiBaseUrl(URI.create(String.format("https://127.0.0.1:%d/api/v1", wireMockRule.getHttpsPort())));
         var response = new AuthenticationCertificateRegistrationRequestDto();
         response.setId(42);
+        response.setType(ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST);
 
         wireMockRule.stubFor(WireMock.post("/api/v1/management-requests")
                 .willReturn(WireMock.jsonResponse(response, 202)));

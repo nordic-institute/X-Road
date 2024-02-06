@@ -34,12 +34,13 @@ import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
+import org.eclipse.jetty.util.Callback;
+import org.eclipse.jetty.util.ssl.X509;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -51,6 +52,7 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerTy
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 @Slf4j
 class ServerProxyHandler extends HandlerBase {
@@ -65,15 +67,14 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     @Override
-    public void handle(String target, Request baseRequest, final HttpServletRequest request,
-            final HttpServletResponse response) throws IOException, ServletException {
+    public boolean handle(Request request, Response response, Callback callback) throws Exception {
         OpMonitoringData opMonitoringData = new OpMonitoringData(PRODUCER, getEpochMillisecond());
 
-        long start = PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
+        long start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
 
         if (!SystemProperties.isServerProxySupportClientsPooledConnections()) {
             // if the header is added, the connections are closed and cannot be reused on the client side
-            response.addHeader("Connection", "close");
+            response.getHeaders().add("Connection", "close");
         }
 
         try {
@@ -85,7 +86,6 @@ class ServerProxyHandler extends HandlerBase {
             GlobalConf.verifyValidity();
 
             ClientProxyVersionVerifier.check(request);
-            baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
             final MessageProcessorBase processor = createRequestProcessor(request, response, opMonitoringData);
             processor.process();
         } catch (Throwable e) { // We want to catch serious errors as well
@@ -96,21 +96,22 @@ class ServerProxyHandler extends HandlerBase {
             opMonitoringData.setFaultCodeAndString(cex);
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
 
-            failure(request, response, cex);
+            failure(request, response, callback, cex);
         } finally {
-            baseRequest.setHandled(true);
+            callback.succeeded();
 
             opMonitoringData.setResponseOutTs(getEpochMillisecond(), false);
             OpMonitoring.store(opMonitoringData);
 
             PerformanceLogger.log(log, start, "Request handled");
         }
+        return true;
     }
 
-    private MessageProcessorBase createRequestProcessor(HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) {
+    private MessageProcessorBase createRequestProcessor(Request request, Response response,
+                                                        OpMonitoringData opMonitoringData) {
 
-        if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeader(HEADER_MESSAGE_TYPE))) {
+        if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeaders().get(HEADER_MESSAGE_TYPE))) {
             return new ServerRestMessageProcessor(request, response, client, getClientSslCertChain(request),
                     opMonitoringData);
         } else {
@@ -120,16 +121,15 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     @Override
-    protected void failure(HttpServletRequest request, HttpServletResponse response, CodedException e)
+    protected void failure(Request request, Response response, Callback callback, CodedException e)
             throws IOException {
-        sendErrorResponse(request, response, e);
+        sendErrorResponse(request, response, callback, e);
     }
 
-    private static X509Certificate[] getClientSslCertChain(HttpServletRequest request) {
-        Object attribute = request.getAttribute("jakarta.servlet.request.X509Certificate");
-
+    private static X509Certificate[] getClientSslCertChain(Request request) {
+        Object attribute = request.getAttribute(SecureRequestCustomizer.X509_ATTRIBUTE);
         if (attribute != null) {
-            return (X509Certificate[]) attribute;
+            return new X509Certificate[]{((X509) attribute).getCertificate()};
         } else {
             return null;
         }

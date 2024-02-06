@@ -33,15 +33,15 @@ import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -63,6 +63,8 @@ import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -342,24 +344,23 @@ public class OcspClientTest {
         }
     }
 
-    private static final class TestOCSPResponder extends AbstractHandler {
+    private static final class TestOCSPResponder extends Handler.Abstract {
 
         private final String responseContentType = "application/ocsp-response";
 
         @Override
-        public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                throws IOException {
+        public boolean handle(Request request, Response response, Callback callback) {
             try {
-                response.setContentType(responseContentType);
+                setContentType(response, responseContentType);
 
                 if (responseData != null) {
-                    response.getOutputStream().write(responseData);
+                    asOutputStream(response).write(responseData);
                 }
+                callback.succeeded();
             } catch (Exception e) {
-                response.sendError(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
-            } finally {
-                baseRequest.setHandled(true);
+                Response.writeError(request, response, callback, HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
             }
+            return true;
         }
     }
 }

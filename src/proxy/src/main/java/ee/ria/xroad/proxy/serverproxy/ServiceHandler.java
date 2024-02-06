@@ -29,8 +29,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.server.Request;
 
 import java.io.InputStream;
 
@@ -42,9 +42,9 @@ interface ServiceHandler {
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage requestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception;
+    void startHandling(Request request,
+                       ProxyMessage requestMessage, HttpClient opMonitorClient,
+                       OpMonitoringData opMonitoringData) throws Exception;
     void finishHandling() throws Exception;
 
     String getResponseContentType();

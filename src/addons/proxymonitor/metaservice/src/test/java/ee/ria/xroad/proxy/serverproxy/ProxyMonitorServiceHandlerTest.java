@@ -44,12 +44,12 @@ import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPException;
+import org.eclipse.jetty.server.Request;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -98,7 +98,7 @@ public class ProxyMonitorServiceHandlerTest {
             = new ProvideSystemProperty(SystemProperties.CONFIGURATION_PATH,
             "src/test/resources/");
 
-    private HttpServletRequest mockRequest;
+    private Request mockRequest;
     private ProxyMessage mockProxyMessage;
 
     /**
@@ -132,7 +132,7 @@ public class ProxyMonitorServiceHandlerTest {
             }
         });
 
-        mockRequest = mock(HttpServletRequest.class);
+        mockRequest = mock(Request.class);
         mockProxyMessage = mock(ProxyMessage.class);
 
         when(mockProxyMessage.getSoapContentType()).thenReturn(MimeTypes.TEXT_XML_UTF8);

@@ -48,7 +48,6 @@ import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -65,6 +64,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.eclipse.jetty.server.Request;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -144,7 +144,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     @Override
     @SneakyThrows
     public boolean canHandle(ServiceId requestServiceId,
-            ProxyMessage requestProxyMessage) {
+                             ProxyMessage requestProxyMessage) {
 
         requestMessage = requestProxyMessage.getSoap();
 
@@ -160,9 +160,9 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception {
+    public void startHandling(Request servletRequest,
+                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+                              OpMonitoringData opMonitoringData) throws Exception {
 
         final String serviceCode = requestMessage.getService().getServiceCode();
 

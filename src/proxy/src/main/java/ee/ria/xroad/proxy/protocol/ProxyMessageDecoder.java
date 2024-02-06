@@ -163,7 +163,7 @@ public class ProxyMessageDecoder {
     public void parse(InputStream is) throws Exception {
         LOG.trace("parse()");
 
-        String baseContentType = HttpField.valueParameters(contentType, null);
+        String baseContentType = HttpField.getValueParameters(contentType, null);
         if (faultAllowed && baseContentType.equalsIgnoreCase(TEXT_XML)) {
             parseFault(is);
         } else if (baseContentType.equalsIgnoreCase(MULTIPART_MIXED)) {

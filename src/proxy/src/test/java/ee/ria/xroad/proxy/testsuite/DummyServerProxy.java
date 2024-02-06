@@ -29,24 +29,28 @@ import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.StartStop;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.JettyUtils.getContentType;
+import static ee.ria.xroad.common.util.JettyUtils.getTarget;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
+import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 class DummyServerProxy extends Server implements StartStop {
@@ -64,56 +68,51 @@ class DummyServerProxy extends Server implements StartStop {
         setHandler(new ServiceHandler());
     }
 
-    private static final class ServiceHandler extends AbstractHandler {
+    private static final class ServiceHandler extends Handler.Abstract {
         @Override
-        public void handle(String target, Request baseRequest,
-                HttpServletRequest request, HttpServletResponse response)
-                throws IOException, ServletException {
-            log.debug("Proxy simulator received request {}, contentType={}",
-                    target, request.getContentType());
+        public boolean handle(Request request, Response response, Callback callback) throws Exception {
+            var target = getTarget(request);
+            log.debug("Proxy simulator received request {}, contentType={}", target, getContentType(request));
 
-            response.addHeader("Connection", "close");
-            response.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
+            response.getHeaders().add("Connection", "close");
+            response.getHeaders().add(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
 
             // check if the test case implements custom service response
-            AbstractHandler handler = currentTestCase().getServerProxyHandler();
+            var handler = currentTestCase().getServerProxyHandler();
             if (handler != null) {
-                handler.handle(target, baseRequest, request, response);
-                return;
+                return handler.handle(request, response, callback);
             }
 
             // Read all of the request (and copy it to /dev/null).
-            IOUtils.copy(request.getInputStream(), new NullOutputStream());
+            IOUtils.copy(asInputStream(request), new NullOutputStream());
 
             if (currentTestCase().getResponseFile() != null) {
-                createResponseFromFile(currentTestCase().getResponseFile(),
-                        baseRequest, response);
+                return createResponseFromFile(currentTestCase().getResponseFile(), request, response);
             } else {
                 log.error("Unknown request {}", target);
             }
+            return false;
         }
 
-        private void createResponseFromFile(String fileName, Request baseRequest,
-                HttpServletResponse response) {
+        private boolean createResponseFromFile(String fileName, Request request, Response response) {
             String file = MessageTestCase.QUERIES_DIR + '/' + fileName;
             try {
-                response.setContentType(
-                        currentTestCase().getResponseContentType());
-                response.setStatus(HttpServletResponse.SC_OK);
-                try (InputStream fileIs = new FileInputStream(file);
-                        InputStream responseIs =
-                                currentTestCase().changeQueryId(fileIs)) {
-                    IOUtils.copy(responseIs, response.getOutputStream());
+                setContentType(response, currentTestCase().getResponseContentType());
+                response.setStatus(HttpStatus.OK_200);
+                try (
+                        InputStream fileIs = new FileInputStream(file);
+                        InputStream responseIs = currentTestCase().changeQueryId(fileIs)
+                ) {
+                    IOUtils.copy(responseIs, asOutputStream(response));
                 }
             } catch (FileNotFoundException e) {
                 log.error("Could not find answer file: " + file, e);
-                return;
+                return false;
             } catch (Exception e) {
-                log.error("An error has occured when sending response "
-                        + "from file " + file, e);
+                log.error("An error has occured when sending response " + "from file " + file, e);
             }
 
-            baseRequest.setHandled(true);
+            return true;
         }
     }
 

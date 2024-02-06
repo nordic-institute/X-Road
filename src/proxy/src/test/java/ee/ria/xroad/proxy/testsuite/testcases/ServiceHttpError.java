@@ -28,12 +28,11 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import java.io.IOException;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
@@ -53,14 +52,12 @@ public class ServiceHttpError extends MessageTestCase {
     }
 
     @Override
-    public AbstractHandler getServiceHandler() {
-        return new AbstractHandler() {
+    public Handler.Abstract getServiceHandler() {
+        return new Handler.Abstract() {
             @Override
-            public void handle(String target, Request baseRequest,
-                    HttpServletRequest request, HttpServletResponse response)
-                    throws IOException {
-                response.sendError(HttpServletResponse.SC_BAD_GATEWAY);
-                baseRequest.setHandled(true);
+            public boolean handle(Request request, Response response, Callback callback) {
+                Response.writeError(request, response, callback, HttpStatus.BAD_GATEWAY_502);
+                return true;
             }
         };
     }

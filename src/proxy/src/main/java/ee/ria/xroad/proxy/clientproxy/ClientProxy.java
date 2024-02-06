@@ -46,6 +46,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -53,9 +54,7 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
-import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
@@ -116,7 +115,13 @@ public class ClientProxy implements StartStop {
         Path file = Paths.get(SystemProperties.getJettyClientProxyConfFile());
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(Resource.newResource(file)).configure(server);
+        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+
+        final var writer = new Slf4jRequestLogWriter();
+        writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
+        final var reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT
+                + " \"%{X-Forwarded-For}i\"");
+        server.setRequestLog(reqLog);
     }
 
     private void createClient() throws Exception {
@@ -215,7 +220,7 @@ public class ClientProxy implements StartStop {
         cf.setIncludeCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {new ClientSslKeyManager()}, new TrustManager[] {new ClientSslTrustManager()},
+        ctx.init(new KeyManager[]{new ClientSslKeyManager()}, new TrustManager[]{new ClientSslTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
@@ -239,6 +244,8 @@ public class ClientProxy implements StartStop {
                 .map(HttpConnectionFactory.class::cast)
                 .forEach(httpCf -> {
                     httpCf.getHttpConfiguration().setSendServerVersion(false);
+                    httpCf.getHttpConfiguration().setUriCompliance(UriCompliance.DEFAULT
+                            .with("x-road", UriCompliance.Violation.AMBIGUOUS_PATH_SEPARATOR));
                     Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
                             .ifPresent(customizer -> customizer.setSniHostCheck(false));
                 });
@@ -247,18 +254,7 @@ public class ClientProxy implements StartStop {
     private void createHandlers() throws Exception {
         log.trace("createHandlers()");
 
-        final Slf4jRequestLogWriter writer = new Slf4jRequestLogWriter();
-        writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
-
-        final CustomRequestLog reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT
-                + " \"%{X-Forwarded-For}i\"");
-
-        RequestLogHandler logHandler = new RequestLogHandler();
-        logHandler.setRequestLog(reqLog);
-
-        HandlerCollection handlers = new HandlerCollection();
-
-        handlers.addHandler(logHandler);
+        var handlers = new Handler.Sequence();
 
         getClientHandlers().forEach(handlers::addHandler);
 

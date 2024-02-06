@@ -29,56 +29,67 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.SoapFault;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static org.eclipse.jetty.http.MimeTypes.Type.TEXT_XML_UTF_8;
+
 /**
  * Convenience base class for proxy HTTP handlers.
  */
-public abstract class HandlerBase extends AbstractHandler {
+public abstract class HandlerBase extends Handler.Abstract {
 
     /**
      * Sends SOAP fault message to the other party.
+     *
      * @param response HTTP servlet response for sending the SOAP fault
-     * @param ex exception that should be converted to a SOAP fault
+     * @param callback
+     * @param ex       exception that should be converted to a SOAP fault
      * @throws IOException if an I/O error occurred
      */
-    public void sendErrorResponse(HttpServletRequest request,
-                                  HttpServletResponse response,
+    public void sendErrorResponse(Request request,
+                                  Response response,
+                                  Callback callback,
                                   CodedException ex) throws IOException {
         String faultXml = ex instanceof CodedException.Fault
                 ? ((CodedException.Fault) ex).getFaultXml() : SoapFault.createFaultXml(ex);
         String encoding = MimeUtils.UTF8;
         byte[] messageBytes = faultXml.getBytes(encoding);
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType(MimeTypes.TEXT_XML);
-        response.setContentLength(messageBytes.length);
-        response.setHeader("SOAPAction", "");
-        response.setCharacterEncoding(encoding);
-        response.getOutputStream().write(messageBytes);
+        response.setStatus(HttpStatus.OK_200);
+        setContentType(response, TEXT_XML_UTF_8);
+        setContentLength(response, messageBytes.length);
+        response.getHeaders().put("SOAPAction", "");
+        response.write(true, ByteBuffer.wrap(messageBytes), callback);
     }
 
     /**
      * Sends plain text fault message to the other party.
+     *
      * @param response HTTP servlet response for sending the plain fault
-     * @param status HTTP status code
-     * @param message fault message
+     * @param status   HTTP status code
+     * @param message  fault message
      * @throws IOException if an I/O error occurred
      */
-    public void sendPlainTextErrorResponse(HttpServletResponse response, int status, String message)
+    public void sendPlainTextErrorResponse(Response response, Callback callback, int status, String message)
             throws IOException {
         byte[] messageBytes = message.getBytes("UTF-8");
         response.setStatus(status);
-        response.setContentType(MimeTypes.TEXT_PLAIN_UTF8);
-        response.setContentLength(messageBytes.length);
-        response.getOutputStream().write(messageBytes);
+        setContentType(response, MimeTypes.TEXT_PLAIN_UTF8);
+        setContentLength(response, messageBytes.length);
+        response.write(true, ByteBuffer.wrap(messageBytes), callback);
     }
 
     /**
@@ -94,7 +105,7 @@ public abstract class HandlerBase extends AbstractHandler {
         }
     }
 
-    protected void failure(HttpServletRequest request, HttpServletResponse response, CodedException ex)
+    protected void failure(Request request, Response response, Callback callback, CodedException ex)
             throws IOException {
     }
 }
