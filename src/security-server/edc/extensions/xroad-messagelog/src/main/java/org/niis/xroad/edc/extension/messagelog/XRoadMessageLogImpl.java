@@ -27,19 +27,85 @@
 
 package org.niis.xroad.edc.extension.messagelog;
 
-import lombok.RequiredArgsConstructor;
+import io.grpc.Channel;
+import lombok.Getter;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.niis.xroad.common.rpc.client.RpcClient;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
+import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.edc.spi.messagelog.LogMessage;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
+import org.niis.xroad.messagelog.proto.LogMessageReq;
+import org.niis.xroad.messagelog.proto.MessagelogServiceGrpc;
+import org.niis.xroad.messagelog.proto.SignatureData;
 
-@RequiredArgsConstructor
+import static java.util.Optional.ofNullable;
+
 public class XRoadMessageLogImpl implements XRoadMessageLog {
 
     private final Monitor monitor;
 
+    private final RpcClient<MessageLogExecutionContext> rpcClient;
+
+    public XRoadMessageLogImpl(Monitor monitor, String grpcHost, int grpcPort, int timeout) {
+        monitor.info("Initializing messagelog with gRPC client.");
+        this.monitor = monitor;
+        try {
+            this.rpcClient = RpcClient.newClient(grpcHost, grpcPort, timeout, MessageLogExecutionContext::new);
+        } catch (Exception e) {
+            throw new RuntimeException("Messagelog service init failed.", e);
+        }
+    }
+
+    public XRoadMessageLogImpl(Monitor monitor) {
+        monitor.warning("Initializing messagelog without gRPC.");
+        this.monitor = monitor;
+        this.rpcClient = null;
+    }
+
     @Override
     public void log(LogMessage message) {
         monitor.debug("Logging message to message log.");
-        //todo: grpc call to messagelog endpoint
+        if (rpcClient != null) {
+            try {
+                rpcClient.execute(ctx -> ctx.getMessagelogServiceBlockingStub().log(transform(message)));
+            } catch (Exception e) {
+                // todo:
+                throw new RuntimeException("Messagelog request failed", e);
+            }
+        } else {
+            monitor.warning("Messagelog gRPC client not initialized. Message not logged.");
+        }
+    }
+
+    private LogMessageReq transform(LogMessage message) {
+        var signatureBuilder = SignatureData.newBuilder()
+                .setSignatureXml(message.signature().signatureXml());
+
+        ofNullable(message.signature().hashChain()).ifPresent(signatureBuilder::setHashChain);
+        ofNullable(message.signature().hashChainResult()).ifPresent(signatureBuilder::setHashChainResult);
+
+        var builder = LogMessageReq.newBuilder()
+                .setSignature(signatureBuilder.build())
+                .setClientId(ClientIdMapper.toDto(message.clientId()))
+                .setServiceId(ServiceIdMapper.toDto(message.serviceId()))
+                .setClientSide(message.clientSide())
+                .setResponse(message.response());
+
+        ofNullable(message.body()).ifPresent(builder::setBody);
+        ofNullable(message.queryId()).ifPresent(builder::setQueryId);
+        ofNullable(message.xRequestId()).ifPresent(builder::setXRequestId);
+
+        return builder.build();
+    }
+
+    @Getter
+    private static class MessageLogExecutionContext implements RpcClient.ExecutionContext {
+        private final MessagelogServiceGrpc.MessagelogServiceBlockingStub messagelogServiceBlockingStub;
+
+        MessageLogExecutionContext(Channel channel) {
+            messagelogServiceBlockingStub = MessagelogServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        }
+
     }
 }

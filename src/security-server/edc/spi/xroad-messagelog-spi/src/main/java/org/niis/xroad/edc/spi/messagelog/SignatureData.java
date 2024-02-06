@@ -27,19 +27,9 @@
 
 package org.niis.xroad.edc.spi.messagelog;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
-
-public record LogMessage(
-        // todo: add all required fields.
-        SignatureData signature,
-        String body,
-        String xRequestId,
-        String queryId,
-        ClientId clientId,
-        ServiceId serviceId,
-        boolean clientSide,
-        boolean response
+public record SignatureData(
+        String signatureXml,
+        String hashChainResult,
+        String hashChain
 ) {
 }
-

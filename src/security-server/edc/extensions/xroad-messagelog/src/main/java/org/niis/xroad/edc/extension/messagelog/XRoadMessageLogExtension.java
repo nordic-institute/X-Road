@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.messagelog;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
@@ -39,18 +40,36 @@ public class XRoadMessageLogExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Messagelog";
 
+    @Setting
+    private static final String XROAD_MESSAGELOG_GRPC_ENABLED = "xroad.messagelog.grpc.enabled";
+    @Setting
+    private static final String XROAD_MESSAGELOG_GRPC_SERVER_HOST = "xroad.messagelog.grpc.host";
+    @Setting
+    private static final String XROAD_MESSAGELOG_GRPC_SERVER_PORT = "xroad.messagelog.grpc.host";
+    @Setting
+    private static final String XROAD_MESSAGELOG_GRPC_SERVER_TIMEOUT = "xroad.messagelog.grpc.timeout";
+
     @Override
     public String name() {
         return NAME;
     }
 
     @Override
+    @SuppressWarnings("checkstyle:magicnumber")
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        monitor.info("Hello from '%s' extension".formatted(NAME));
+        XRoadMessageLogImpl messageLog;
+        boolean isGrpcEnabled = context.getSetting(XROAD_MESSAGELOG_GRPC_ENABLED, false);
+        if (isGrpcEnabled) {
+            String host = context.getSetting(XROAD_MESSAGELOG_GRPC_SERVER_HOST, "127.0.0.1");
+            int port = context.getSetting(XROAD_MESSAGELOG_GRPC_SERVER_PORT, 5561);
+            int timeout = context.getSetting(XROAD_MESSAGELOG_GRPC_SERVER_TIMEOUT, 10_000);
+            messageLog = new XRoadMessageLogImpl(monitor, host, port, timeout);
+        } else {
+            messageLog = new XRoadMessageLogImpl(monitor);
+        }
 
-        XRoadMessageLogImpl messageLog = new XRoadMessageLogImpl(monitor);
         context.registerService(XRoadMessageLog.class, messageLog);
     }
 

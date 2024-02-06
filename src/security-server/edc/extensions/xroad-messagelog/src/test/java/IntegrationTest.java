@@ -26,6 +26,7 @@
  */
 
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
@@ -35,6 +36,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(EdcExtension.class)
 class IntegrationTest {
+
+    @BeforeEach
+    void before() {
+        System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
+    }
 
     @Test
     void verifyServiceRegistered(XRoadMessageLog messageLog) {

@@ -625,6 +625,8 @@ public final class SystemProperties {
      */
     public static final String PROXY_GRPC_PORT = PREFIX + "proxy.grpc-port";
 
+    public static final String MESSAGE_LOG_GRPC_PORT = PREFIX + "message-log.grpc-port";
+
     /**
      * Property name for gRPC internal keystore location.
      */
@@ -1684,17 +1686,24 @@ public final class SystemProperties {
     }
 
     /**
-     * @return gRPC signer host.
+     * @return whether gRPC Tls is enabled.
      */
     public static boolean isGrpcInternalTlsEnabled() {
         return Boolean.parseBoolean(System.getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
     }
 
     /**
-     * @return gRPC signer host.
+     * @return gRPC signer port.
      */
     public static int getGrpcSignerPort() {
         return Integer.parseInt(System.getProperty(GRPC_SIGNER_PORT, String.valueOf(PortNumbers.SIGNER_GRPC_PORT)));
+    }
+
+    /**
+     * @return gRPC messagelog port.
+     */
+    public static int getGrpcMessagelogPort() {
+        return Integer.parseInt(System.getProperty(MESSAGE_LOG_GRPC_PORT, String.valueOf(PortNumbers.MESSAGE_LOG_GRPC_PORT)));
     }
 
     /**
