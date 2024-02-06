@@ -49,6 +49,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
+import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.DECLINED;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.REVOKED;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_CLIENT_REGISTRATION_NOT_FOUND;
@@ -95,8 +96,16 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
                 .findFirst()
                 .ifPresentOrElse(
                         this::revokeRegistration,
-                        this::mrClientRegistrationNotFound
+                        () -> whenDeclinedRegistrationNotFoundThenThrowNotFoundException(serverId, clientId)
                 );
+    }
+
+    private void whenDeclinedRegistrationNotFoundThenThrowNotFoundException(
+            final SecurityServerIdEntity serverId, final ClientIdEntity clientId) {
+        registrationRequests.findBy(serverId, clientId, Set.of(DECLINED))
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND));
     }
 
     private void deleteSecurityServerClient(final SecurityServerEntity securityServer, final ClientIdEntity clientId) {

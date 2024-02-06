@@ -10,7 +10,7 @@
 
         <id name="id" type="long">
             <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
-                <param name="optimizer">hilo</param>
+                <param name="optimizer">legacy-hilo</param>
             </generator>
         </id>
 
