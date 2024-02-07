@@ -72,6 +72,7 @@ public class AdminPort implements StartStop {
 
     /**
      * Constructs an AdminPort instance that listens for commands on the given port number.
+     *
      * @param portNumber the port number AdminPort will listen on
      */
     public AdminPort(int portNumber) {
@@ -101,6 +102,7 @@ public class AdminPort implements StartStop {
 
     /**
      * Registers a shutdown hook to be executed when the application shuts down.
+     *
      * @param hook the runnable that should be run when the application shuts down
      */
     public void addShutdownHook(Runnable hook) {
@@ -109,7 +111,8 @@ public class AdminPort implements StartStop {
 
     /**
      * Registers a synchronous callback for the given command string.
-     * @param target the command string
+     *
+     * @param target  the command string
      * @param handler the synchronous callback that should be executed when the command is issued
      */
     public void addHandler(String target, SynchronousCallback handler) {
@@ -137,29 +140,28 @@ public class AdminPort implements StartStop {
             if (!CONNECTOR_HOST.equals(Request.getRemoteAddr(request))) {
                 response.setStatus(SC_FORBIDDEN);
                 callback.succeeded();
-                return Boolean.TRUE;
-            }
-
-            final var target = request.getHttpURI().getPath();
-            LOG.info("Admin request: {}", target);
-            try {
-                AdminPortCallback handler = handlers.get(target);
-                if (handler != null) {
-                    if (handler instanceof SynchronousCallback) {
-                        //TODO jetty, maybe handle without passing callback??
-                        handler.handle(request, response, callback);
+            } else {
+                final var target = request.getHttpURI().getPath();
+                LOG.info("Admin request: {}", target);
+                try {
+                    AdminPortCallback handler = handlers.get(target);
+                    if (handler != null) {
+                        if (handler instanceof SynchronousCallback) {
+                            //TODO jetty, maybe handle without passing callback??
+                            handler.handle(request, response, callback);
+                        } else {
+                            LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
+                            callback.succeeded();
+                        }
                     } else {
-                        LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
+                        response.setStatus(SC_NOT_FOUND);
                         callback.succeeded();
                     }
-                } else {
-                    response.setStatus(SC_NOT_FOUND);
-                    callback.succeeded();
+                } catch (Exception e) {
+                    LOG.error("Handler got error", e);
+                    response.setStatus(SC_INTERNAL_SERVER_ERROR);
+                    Content.Sink.write(response, true, e.toString(), callback);
                 }
-            } catch (Exception e) {
-                LOG.error("Handler got error", e);
-                response.setStatus(SC_INTERNAL_SERVER_ERROR);
-                Content.Sink.write(response, true, e.toString(), callback);
             }
 
             return Boolean.TRUE;

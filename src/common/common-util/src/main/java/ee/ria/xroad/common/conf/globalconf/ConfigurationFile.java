@@ -136,8 +136,8 @@ final class ConfigurationFile extends AbstractConfigurationPart {
 
         Map<String, String> p = new HashMap<>();
 
-        String id = HttpField.valueParameters(value, p);
-        String instance = p.get(PARAM_INSTANCE);
+        String id = HttpField.getValueParameters(value, p);
+        String instance = StringUtils.unwrap(p.get(PARAM_INSTANCE), '\'');
 
         if ((ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS.equals(id)
                 || ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS.equals(id))
