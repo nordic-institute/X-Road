@@ -38,6 +38,7 @@ import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
 import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -133,6 +134,8 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final var request = mock(Request.class);
         final var fields = mock(Fields.class);
+        final var httpURI = mock(HttpURI.class);
+        when(request.getHttpURI()).thenReturn(httpURI);
         when(fields.getValue(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
         when(fields.getValue(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
         when(fields.getValue(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
@@ -196,6 +199,8 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final var request = mock(Request.class);
         final var fields = mock(Fields.class);
+        final var httpURI = mock(HttpURI.class);
+        when(request.getHttpURI()).thenReturn(httpURI);
         when(fields.getValue(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
         when(fields.getValue(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
         when(fields.getValue(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
