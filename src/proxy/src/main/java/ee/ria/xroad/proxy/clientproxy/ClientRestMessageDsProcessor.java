@@ -32,10 +32,8 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.messagelog.MessageLog;
 
 import jakarta.json.JsonObject;
 import lombok.SneakyThrows;
@@ -301,8 +299,8 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         var url = URI.create(path);
 
         log.info("Will send [{}] request to {}", restRequest.getVerb(), path);
-        // todo: add signature if needed
-        MessageLog.log(restRequest, new SignatureData(null, null, null), null, true, restRequest.getXRequestId());
+        // todo: signature is required for messagelog
+        //  MessageLog.log(restRequest, new SignatureData(null, null, null), null, true, restRequest.getXRequestId());
         switch (restRequest.getVerb()) {
             case GET -> httpSender.doGet(url);
             case POST -> httpSender.doPost(url,
