@@ -38,7 +38,6 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
@@ -71,9 +70,9 @@ public class ServerProxyNoBoundary extends MessageTestCase {
                 IOUtils.readLines(asInputStream(request));
 
                 setContentType(response, "multipart/mixed");
-                setContentLength(response, 1000);
                 response.getHeaders().put(HEADER_HASH_ALGO_ID,
                         DEFAULT_DIGEST_ALGORITHM_ID);
+                callback.succeeded();
                 return true;
             }
         };

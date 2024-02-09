@@ -165,6 +165,7 @@ class DummyService extends Server implements StartStop {
                 } else {
                     log.error("Unknown request {}", target);
                 }
+                callback.succeeded();
             } catch (Exception ex) {
                 Response.writeError(request, response, callback, HttpStatus.INTERNAL_SERVER_ERROR_500, ex.getMessage());
                 log.error("Error when reading request", ex);

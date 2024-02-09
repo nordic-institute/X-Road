@@ -36,11 +36,10 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.util.Callback;
-import org.eclipse.jetty.util.ssl.X509;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -127,9 +126,9 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     private static X509Certificate[] getClientSslCertChain(Request request) {
-        Object attribute = request.getAttribute(SecureRequestCustomizer.X509_ATTRIBUTE);
+        Object attribute = request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
         if (attribute != null) {
-            return new X509Certificate[]{((X509) attribute).getCertificate()};
+            return ((EndPoint.SslSessionData) attribute).peerCertificates();
         } else {
             return null;
         }

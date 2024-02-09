@@ -36,13 +36,14 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
@@ -170,10 +171,11 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     static IsAuthenticationData getIsAuthenticationData(Request request) {
-        X509Certificate[] certs = (X509Certificate[]) request.getAttribute("jakarta.servlet.request.X509Certificate");
+        var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
 
-        return new IsAuthenticationData(certs != null && certs.length != 0 ? certs[0] : null,
-                !"https".equals(request.getHttpURI().getScheme())); // if not HTTPS, it's plaintext
+        var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
+        var cert = (ssd == null || ArrayUtils.isEmpty(ssd.peerCertificates())) ? null : ssd.peerCertificates()[0];
+        return new IsAuthenticationData(cert, isPlaintextConnection);
     }
 
     private static long logPerformanceBegin(Request request) {

@@ -87,7 +87,11 @@ class DummyServerProxy extends Server implements StartStop {
             IOUtils.copy(asInputStream(request), new NullOutputStream());
 
             if (currentTestCase().getResponseFile() != null) {
-                return createResponseFromFile(currentTestCase().getResponseFile(), request, response);
+                var handled = createResponseFromFile(currentTestCase().getResponseFile(), request, response);
+                if (handled) {
+                    callback.succeeded();
+                }
+                return handled;
             } else {
                 log.error("Unknown request {}", target);
             }

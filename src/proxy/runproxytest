@@ -18,6 +18,7 @@ then
 fi
 
 $javabin -Xmx2g\
+    -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005\
     -Dxroad.proxy.ocspCachePath=build/ocsp-cache\
     -Dxroad.tempFiles.path=build/attach-tmp\
     -Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml\

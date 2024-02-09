@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
+import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -56,9 +57,13 @@ public class ServiceConnectionAborted extends MessageTestCase {
     public Handler.Abstract getServiceHandler() {
         return new Handler.Abstract() {
             @Override
-            public boolean handle(Request request, Response response, Callback callback) {
+            public boolean handle(Request request, Response response, Callback callback) throws Exception {
                 // set content length, but send no content
                 setContentLength(response, 1000);
+                var outputStream = Content.Sink.asOutputStream(response);
+                outputStream.flush();
+                outputStream.close();
+                callback.succeeded();
                 return true;
             }
         };

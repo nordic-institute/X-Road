@@ -76,13 +76,13 @@ public enum IsAuthentication {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Client (%s) specifies HTTPS NO AUTH but client made plaintext connection", client);
         } else if (isAuthentication == IsAuthentication.SSLAUTH) {
-            if (auth.getCert() == null) {
+            if (auth.cert() == null) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) specifies HTTPS but did not supply"
                                 + " TLS certificate", client);
             }
 
-            if (auth.getCert().equals(ServerConf.getSSLKey().getCertChain()[0])) {
+            if (auth.cert().equals(ServerConf.getSSLKey().getCertChain()[0])) {
                 // do not check certificates for local TLS connections
                 return;
             }
@@ -93,13 +93,13 @@ public enum IsAuthentication {
                         "Client (%s) has no IS certificates", client);
             }
 
-            if (!isCerts.contains(auth.getCert())) {
+            if (!isCerts.contains(auth.cert())) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) TLS certificate does not match any"
                                 + " IS certificates", client);
             }
 
-            clientIsCertPeriodValidatation(client, auth.getCert());
+            clientIsCertPeriodValidatation(client, auth.cert());
         }
     }
 

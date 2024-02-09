@@ -29,6 +29,7 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -63,13 +64,16 @@ public class ServerProxyConnectionAborted2 extends MessageTestCase {
     public Handler.Abstract getServerProxyHandler() {
         return new Handler.Abstract() {
             @Override
-            public boolean handle(Request request, Response response, Callback callback) {
+            public boolean handle(Request request, Response response, Callback callback) throws Exception {
                 // Read all of the request.
                 IOUtils.readLines(asInputStream(request));
 
                 setContentType(response, "text/xml");
                 setContentLength(response, 1000);
-                response.write(true, null, callback);
+                var outputStream = Content.Sink.asOutputStream(response);
+                outputStream.flush();
+                outputStream.close();
+                callback.succeeded();
                 return true;
             }
         };

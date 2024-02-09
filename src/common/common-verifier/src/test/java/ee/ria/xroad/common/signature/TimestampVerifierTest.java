@@ -123,8 +123,8 @@ public class TimestampVerifierTest {
     private static TimeStampToken getTimestampFromFile(String fileName)
             throws Exception {
         byte[] data = getBytesFromFile(fileName);
-        TimeStampToken token = new TimeStampToken(new ContentInfo(
-                (ASN1Sequence) ASN1Sequence.fromByteArray(data)));
+        TimeStampToken token = new TimeStampToken(ContentInfo.getInstance(
+                ASN1Sequence.fromByteArray(data)));
         assertNotNull(token);
         return token;
     }

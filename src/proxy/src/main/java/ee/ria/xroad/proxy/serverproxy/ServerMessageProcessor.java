@@ -289,8 +289,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         decoder = new ProxyMessageDecoder(requestMessage, getContentType(jRequest), false,
                 getHashAlgoId(jRequest));
-        try (var requestIn = asInputStream(jRequest)) {
-            decoder.parse(requestIn);
+        try {
+            decoder.parse(asInputStream(jRequest));
         } catch (CodedException e) {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
