@@ -302,7 +302,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         var url = URI.create(path);
 
         log.info("Will send [{}] request to {}", restRequest.getVerb(), path);
-        // todo: add signature if needed
+        // todo: signature is required for messagelog
 
 //        MessageLog.log(restRequest, new SignatureData(null, null, null), null, true, restRequest.getXRequestId());
         switch (restRequest.getVerb()) {
