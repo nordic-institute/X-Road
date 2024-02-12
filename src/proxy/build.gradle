@@ -21,14 +21,17 @@ dependencies {
     implementation project(':common:common-messagelog')
     implementation project(':common:common-op-monitoring')
     implementation project(':security-server:edc-client')
+    implementation project(':security-server:edc:xroad-edc-security')
 
     implementation('org.springframework:spring-context')
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
-    implementation "xerces:xercesImpl:$xercesVersion"
+//TODO xroad8 disabling for now. Clashes with DSS verification
+// implementation "xercs:xercesImpl:$xercesVersion"
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     implementation 'org.semver4j:semver4j:5.0.0'
+
 
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')

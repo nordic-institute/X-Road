@@ -24,42 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.signer;
+package org.niis.xroad.edc.sig;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.SignerProxy;
+public class XrdSignatureCreationException extends Exception {
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.impl.RSASSAProvider;
-import com.nimbusds.jose.util.Base64URL;
-
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-
-public class XrdJwsSigner extends RSASSAProvider implements JWSSigner {
-
-    @Override
-    public Base64URL sign(final JWSHeader header, final byte[] signingInput) throws JOSEException {
-        try {
-            String signAlgoId = switch (header.getAlgorithm().getName()) {
-                case "RS256" -> CryptoUtils.SHA256WITHRSA_ID;
-                case "RS384" -> CryptoUtils.SHA384WITHRSA_ID;
-                case "RS512" -> CryptoUtils.SHA512WITHRSA_ID;
-                default -> throw new JOSEException("Unsupported signing algorithm");
-            };
-
-            String digAlgoId = getDigestAlgorithmId(signAlgoId);
-            byte[] digest = calculateDigest(digAlgoId, signingInput);
-
-            byte[] sig = SignerProxy.sign(header.getKeyID(), signAlgoId, digest);
-
-            return Base64URL.encode(sig);
-        } catch (Exception e) {
-            throw new JOSEException("Failed to sign", e);
-        }
+    public XrdSignatureCreationException(String message) {
+        super(message);
     }
 
-
+    public XrdSignatureCreationException(String message, Throwable original) {
+        super(message, original);
+    }
 }

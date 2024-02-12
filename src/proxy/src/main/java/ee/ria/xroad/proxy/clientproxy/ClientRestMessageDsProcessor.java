@@ -32,10 +32,8 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.messagelog.MessageLog;
 
 import jakarta.json.JsonObject;
 import lombok.SneakyThrows;
@@ -46,11 +44,12 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
 import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.eclipse.jetty.server.Response;
 import org.niis.xroad.edc.management.client.FeignCatalogApi;
+import org.niis.xroad.edc.sig.XrdSignService;
 import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
 import org.niis.xroad.proxy.edc.InMemoryAuthorizedAssetRegistry;
 
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -99,6 +98,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private final ContractNegotiationApi contractNegotiationApi;
     private final TransferProcessApi transferProcessApi;
     private final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx;
+    private final XrdSignService xrdSignService = new XrdSignService();
 
     ClientRestMessageDsProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
                                  final RestRequest restRequest,
@@ -268,22 +268,23 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender, assetInfo);
 
-            if (servletResponse instanceof Response) {
-                // the standard API for setting reason and code is deprecated
-//                ((Response) servletResponse).setStatusWithReason(
-//                        rest.getResponseCode(),
-//                        httpSender.st.getReason());
-//                httpSender.ent
-            } else {
-            }
-            servletResponse.setStatus(200);//todo
+            //TODO handle statuses
+            servletResponse.setStatus(200);
             //TODO also headers..
-            IOUtils.copy(httpSender.getResponseContent(), servletResponse.getOutputStream());
+            var outputStream = new ByteArrayOutputStream();
+            IOUtils.copy(httpSender.getResponseContent(), outputStream);
+
+
+            xrdSignService.verify(httpSender.getResponseHeaders(), outputStream.toByteArray(), restRequest);
+            outputStream.writeTo(servletResponse.getOutputStream());
 
             httpSender.getResponseHeaders().forEach(servletResponse::addHeader);
+
+
         }
 
     }
+
 
     private void sendRequest(HttpSender httpSender, InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
         httpSender.addHeader(assetInfo.authKey(), assetInfo.authCode());
@@ -302,7 +303,8 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
         log.info("Will send [{}] request to {}", restRequest.getVerb(), path);
         // todo: add signature if needed
-        MessageLog.log(restRequest, new SignatureData(null, null, null), null, true, restRequest.getXRequestId());
+
+//        MessageLog.log(restRequest, new SignatureData(null, null, null), null, true, restRequest.getXRequestId());
         switch (restRequest.getVerb()) {
             case GET -> httpSender.doGet(url);
             case POST -> httpSender.doPost(url,

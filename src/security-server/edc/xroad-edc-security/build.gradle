@@ -1,0 +1,16 @@
+plugins {
+    id 'java-library'
+}
+
+
+dependencies {
+    api project(':common:common-util')
+    api project(':common:common-verifier')
+    api project(':signer-protocol')
+
+    api "eu.europa.ec.joinup.sd-dss:dss-jades:$dssVersion"
+    api "eu.europa.ec.joinup.sd-dss:dss-token:$dssVersion"
+    api "eu.europa.ec.joinup.sd-dss:dss-utils-apache-commons:$dssVersion"
+    api "eu.europa.ec.joinup.sd-dss:dss-xml-common:$dssVersion"
+    api "com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion"
+}

@@ -49,8 +49,8 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
-import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Map;
 
 @Path("{any:.*}")
 @Produces({"application/json"})
@@ -97,7 +97,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     }
 
     private void handle(ContainerRequestContext context, AsyncResponse response) {
-        monitor.debug("Received request for data plane public api. Ctx: "+context);
+        monitor.debug("Received request for data plane public api. Ctx: " + context);
         ContainerRequestContextApiImpl contextApi = new ContainerRequestContextApiImpl(context);
         String token = (String) contextApi.headers().get("Authorization");
         if (token == null) {
@@ -118,16 +118,17 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
 
                             //TODO xroad8 assume this is outputstream .
                             if (result.getContent() instanceof String responseStr) {
-                                String bodySig = null;
+                                Map<String, String> additionalHeaders;
                                 try {
-                                    bodySig = this.responseSigner.signPayload(dataAddress, responseStr);
+                                    additionalHeaders = this.responseSigner.signPayload(dataAddress, responseStr);
+                                    var builder = Response.ok(responseStr);
+                                    additionalHeaders.forEach(builder::header);
+
+                                    response.resume(builder.build());
                                 } catch (Exception e) {
+                                    monitor.severe("Failed to sign response payload", e);
                                     response.resume(e);
                                 }
-
-                                response.resume(Response.ok(responseStr)
-                                        .header("X-Road-sig-body", bodySig)
-                                        .build());
                             } else {
                                 response.resume(Response.ok(result.getContent()).build());
                             }

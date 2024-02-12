@@ -1,0 +1,39 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.edc.sig;
+
+import lombok.experimental.UtilityClass;
+
+@SuppressWarnings("checkstyle:LineLength")
+@UtilityClass
+public class PocConstants {
+    public static final String HEADER_XRD_SIG = "X-Road-Message-Signature";
+    public static final String HEADER_XRD_SIG_OCSP = "X-Road-Message-Sig-OCSP";
+
+    public static final String TEST_CA_CERT = "MIIFpzCCA4+gAwIBAgIUEbcXVQkWWEC88FwTg2ctua926BQwDQYJKoZIhvcNAQELBQAwWzELMAkGA1UEBhMCRkkxFDASBgNVBAoMC1gtUm9hZCBUZXN0MRowGAYDVQQLDBFYLVJvYWQgVGVzdCBDQSBPVTEaMBgGA1UEAwwRWC1Sb2FkIFRlc3QgQ0EgQ04wHhcNMjEwMzEwMDczNTU2WhcNNDEwMzA1MDczNTU2WjBbMQswCQYDVQQGEwJGSTEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAJJiNMU5G5Ufv6+N1iMkrlaD3PI3k11THgE/SJ2NcTJUD79CjIFYJtJrWLQS536FadtKgJ7ym3eYR0+PlU/mX6lxt1MIspLdTYTC1TRR/Cg533aJ+hJnG2IsE6or6Bl3hPstFH4caKyjpyBg0xPyQnKhEA89VY/bUdIQOJK0zgH3gsckxNlT/udyJ732CS2vZHyrWx6dZ6UAamyD0hwj6e8quU3vMrtTeHF3LqzlKxatlayWorkSj1uA4q6qfMiCZ3yKiFUU4MULV6h1x39YAoGIyj0+aMIbENWnIRY7E0KqGvVotMCpEQO8DUhJbixzzFVPuL6b+NVzLJu4tqtAao3s7SUElhQjmiPmTNCfs16NMnMpUkr9Pz6nnybqnNy7fA0g2l8tguQoec6AABodgtNDRvLX4j/OOmSutVYIS/FDCO+YG8/Xp8MbAV2o24X7rDhBFGM9yf0/i77yQ4BC/SFrNXlBCXP8E1v3O/w99SjVQvD6uQ4fsxWQFmGUQK+959pJ0R2YzSB4qRkpX1/yK1rt5LO+8pHQ1WM28W5BJNsisN2OarplszAleoGjBQAyAPO+8nO/5n5xcs0Dzw1NshWyH2kFDBS4xmp6N9KFhW7MQTmHlzCSQ0YTNmEnOi7W7n+gsxZVfiV8aA5lsABsFRQ+uL9z49FQyuidtfsyVB23AgMBAAGjYzBhMB0GA1UdDgQWBBTOdbt9k88MTU+r8w/+KsgVICpQnDAfBgNVHSMEGDAWgBTOdbt9k88MTU+r8w/+KsgVICpQnDAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjANBgkqhkiG9w0BAQsFAAOCAgEAUA07frwkTioAToWsW1LQWxGZ3s3uK06OmiAV13RFZf3YeIg+AF/sRpu6mfaPwZat0FQKz55NUk70HnJmlWjtkbtNemZFZhedyqbtEzce6e7uqkakaKUZUCnu4tDivUa6zOboYvFhjGNQ2A/C69SRztH5sYDALycUv/BB1o6sURknNqgbvoJmySHrONEQiEYWnnmHcIFOa+muvTrDwHfRB+if2zT2duLHCuy1aiBZM9koz7R00M/8/wXCIzliQFq1iUnckocWc2Lcrh+gJCjuMURAfWwH00Lk+n2lTBY66yRbCt0QEHYxSjXmf+6ACU9zg9m1Sg+xBMqZ8E2u9SumIUmcDHyWfFAbEb8bcl3drnxxE1LiZea9TsyamtGAUegg4PcjbSjtULWnX6h6ruva3s6+brnoJCrBf3nmmggFVWCkDF4RsVPw3PZS342gRsHMy2V7B4Qo2pglB0AiMu5iWHs6tw6iFojeYEBDysQxaLcJtKew7BPxR8ZQjLP1FYQkOPwsphPYHUC2f6z6k2bVf/N4QUqeFCqJSr+NeFUX35ZdZv5NK+oQTbEKftNEb2N/Kv3Gflkyc7DLEwhYJ7B9c+zsVT6fBlm14UlWoUiy63BrsSYwnq7j5HaFnAh6DocQ+7XMFy7UMTueK9MTHsaXlWg4909fZFN975Y+qJXFfBo=";
+    public static final String TEST_OCSP_CERT = "MIIFqjCCA5KgAwIBAgIBATANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yMTAzMTAwNzM1NTdaFw00MTAzMDUwNzM1NTdaMF8xCzAJBgNVBAYTAkZJMRQwEgYDVQQKDAtYLVJvYWQgVGVzdDEcMBoGA1UECwwTWC1Sb2FkIFRlc3QgT0NTUCBPVTEcMBoGA1UEAwwTWC1Sb2FkIFRlc3QgT0NTUCBDTjCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBANXyMQ3LgRPe6DGIUTOTjofOi6ir7GvUpD4CN4Xv5Ahari1npD4eGVqHfH4Kor6D2m0tdzkzOaizqpG2o+U2wFowZCEcWpjOH97ZgV87QkdT/5sv1R0mQ9BtaPPYQlgyJuRtP3VVoj9BeMcwzPIkPvNqvX+ro7cgNz3JvUbwuyn8JU0oP1LBgGmy8aFLblSD22Vin0LqFFYfPzUlFCRDwUVJwoF2NFwsWSbxi5cmWBPPHDhcX8dQTSEDWOzC0jtg8ersAGFvTUslhkGtuixZAtAQJXc49SHOIjllYlS+D9h1bfo/5wakrcNIdaVGER7Yq0I6yfvpI6oTOBmjicepAcyNCQOf0/8ghh04sBAJGwTkY75b89gHCHnXlEWpHhiyqblin5M18MJxEDfz/G9LG9a0qcDST4WKs6ijCItmJzkJuaYpEAIvHXBKC3NlkPvkjp/kW260iTRhWKeQjczvDqZ7atN3wu0jA/auouTitGuOfo3vOXc1frlpzTcw/jadHTchOjsufK7beuWr0CAcMzKy8AA9wrlYSy0qmzLxPybqoBGt3ljU8MnJapmqojd/ECMKrIamprm/xzEeaijVbPdEzGgD9DKtL0PbGqBcRQjUL72LCtY9H1pwVtgDRqW/eyodz7IrQZRq760c8HVgtS/uSjjslwif2mHZiBdTSUPTAgMBAAGjdTBzMAkGA1UdEwQCMAAwHQYDVR0OBBYEFCgPXe/DXrBZTbe1hYo+rPKATzLsMB8GA1UdIwQYMBaAFM51u32TzwxNT6vzD/4qyBUgKlCcMA4GA1UdDwEB/wQEAwIHgDAWBgNVHSUBAf8EDDAKBggrBgEFBQcDCTANBgkqhkiG9w0BAQsFAAOCAgEAWPcf+ObBEyZofQQZYHU673qzaooWohCa/IQ7ZXiQmt+s0YpUXZepYw9UXrv1nPRLzpTy7788bzUvl6vVvnGTCOomLPYSZ5Qwm0VoAXMeyluIkNKKKemeF5e5Mbr7tmGGGaN/HKKQNa6qXEQndbdhjhoD6mxJKMDAgj1hi+slm0/QaKkd2qqjmc+w38RNv0wi+9Zamkl0LZ743/KeH6CtVJEUARxYT+Q1i81adFICYqoDlmDSPpzq7VUir1lZejC3qTnJAVMgGCHw28vp4ROvOkZ95lEFRTOpR7+a/iVetkOcenIWiGJGybUYZ9sAUwl4+GTcDT5aF9UJECnkfHpG4XYs/0Fn9wnqqw+zVNB/JocFdYxjPTe4YpjG9vKaQniK6ZjleLTQwom8SuQAAXarffIX3FNq0qc35T9fmrOzX+E7heFaC4Xg/HT7Lhz4XvQeXx00d/Ej72BS2ffAumeY0yqAOtAHnhq7u7ahhZ6B/VCsM95slKiqi72SQGqF/iy1ndRAzk/8xkJWnlvqbMfeNFOnbCJ7U1jxoxEmoBi31Cx1UQvdLvaAjz6MRo1kS/sJwVXpR3x7ooJjTGt4+/4gL4IxKqObE3sbjYnmA9i9iKCwrOWxPhavASyDVwr6XKz3MRffTHVk5uQSlmtIUSJsEPiV/LIzwcKPZX1eWoLpI08=";
+}

@@ -24,34 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.signer;
+package org.niis.xroad.edc.sig;
 
-import lombok.RequiredArgsConstructor;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.niis.xroad.edc.sig.XrdSignService;
-import org.niis.xroad.edc.sig.XrdSignatureCreationException;
+import ee.ria.xroad.common.message.RestRequest;
 
-import java.util.HashMap;
 import java.util.Map;
 
-@RequiredArgsConstructor
-public class ResponseSigner {
-    private final XrdSignService signService = new XrdSignService();
+public interface XrdSignatureVerifier {
 
-    private final Monitor monitor;
-
-    public Map<String, String> signPayload(DataAddress dataAddress, String responseStr) {
-        monitor.debug("Signing response payload..");
-        var assetId = dataAddress.getStringProperty("assetId");
-        try {
-            var bodySig = signService.sign(assetId, responseStr, new HashMap<>());
-            monitor.debug("Response payload signed. Signature: " + bodySig);
-            return bodySig;
-        } catch (XrdSignatureCreationException e) {
-            throw new RuntimeException("Failed to sign response payload", e);
-        }
-    }
-
-
+    void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, RestRequest restRequest)
+            throws XrdSignatureVerificationException;
 }
