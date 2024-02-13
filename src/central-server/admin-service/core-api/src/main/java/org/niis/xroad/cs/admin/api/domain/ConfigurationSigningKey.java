@@ -39,6 +39,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class ConfigurationSigningKey {
+    private int id;
     private String keyIdentifier;
     private byte[] cert;
     private Instant keyGeneratedAt;

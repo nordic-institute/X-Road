@@ -120,7 +120,7 @@ class SharedParametersLoaderTest {
     @Test
     void loadSharedParameters() {
         when(systemParameterService.getInstanceIdentifier()).thenReturn(XROAD_INSTANCE);
-        when(configurationService.getNodeAddressesWithConfigurationSigningKeys())
+        when(configurationService.getNodeAddressesWithOrderedConfigurationSigningKeys())
                 .thenReturn(getNodeAddressesWithConfigurationSigningKeys());
         when(certificationServicesService.findAll()).thenReturn(List.of(getCertificationService()));
 
