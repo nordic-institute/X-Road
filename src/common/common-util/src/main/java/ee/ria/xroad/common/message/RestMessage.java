@@ -173,7 +173,7 @@ public abstract class RestMessage {
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
-    static ClientId decodeClientId(String value) {
+  public static ClientId decodeClientId(String value) {
         final String[] parts = value.split("/", 5);
         if (parts.length < 3 || parts.length > 4) {
             throw new IllegalArgumentException("Invalid Client Id");

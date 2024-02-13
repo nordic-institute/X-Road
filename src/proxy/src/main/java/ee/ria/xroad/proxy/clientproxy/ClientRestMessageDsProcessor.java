@@ -38,12 +38,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.edc.sig.XrdSignService;
+import org.apache.http.entity.StringEntity;
+import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
-import org.niis.xroad.proxy.edc.InMemoryAuthorizedAssetRegistry;
+import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
@@ -57,7 +61,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private final AssetAuthorizationManager assetAuthorizationManager;
 
     private final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx;
-    private final XrdSignService xrdSignService = new XrdSignService();
+    private final XrdSignatureService xrdSignatureService = new XrdSignatureService();
 
     ClientRestMessageDsProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
                                  final RestRequest restRequest,
@@ -109,7 +113,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void processRequest(InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+    private void processRequest(AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
         if (restRequest.getQueryId() == null) {
             restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
@@ -119,24 +123,40 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender, assetInfo);
 
-            //TODO handle statuses
-            servletResponse.setStatus(200);
-            //TODO also headers..
-            var outputStream = new ByteArrayOutputStream();
-            IOUtils.copy(httpSender.getResponseContent(), outputStream);
-
-
-            xrdSignService.verify(httpSender.getResponseHeaders(), outputStream.toByteArray(), restRequest);
-            outputStream.writeTo(servletResponse.getOutputStream());
-
-            httpSender.getResponseHeaders().forEach(servletResponse::addHeader);
+            processResponse(httpSender);
         }
     }
 
-    private void sendRequest(HttpSender httpSender, InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
-        httpSender.addHeader(assetInfo.authKey(), assetInfo.authCode());
-        // todo: xroad8 edc does not support proxying headers to provider IS
-        httpSender.addHeader(MimeUtils.HEADER_QUERY_ID, restRequest.getQueryId());
+    private void processResponse(HttpSender httpSender) throws Exception {
+        //TODO handle statuses
+        servletResponse.setStatus(200);
+        //TODO also headers..
+        var outputStream = new ByteArrayOutputStream();
+        IOUtils.copy(httpSender.getResponseContent(), outputStream);
+
+        xrdSignatureService.verify(httpSender.getResponseHeaders(), outputStream.toByteArray(), restRequest.getClientId());
+        outputStream.writeTo(servletResponse.getOutputStream());
+
+        int headersSizeInBytes = 0;
+        for (Map.Entry<String, String> entry : httpSender.getResponseHeaders().entrySet()) {
+            // Each header has a name and value, and the ": " delimiter, and CRLF as overhead
+            headersSizeInBytes += entry.getKey().length() + ": ".length() + entry.getValue().length() + "\r\n".length();
+            servletResponse.addHeader(entry.getKey(), entry.getValue());
+        }
+        log.info("EDC public api response headers size: {} KB", headersSizeInBytes / 1024.0);
+    }
+
+    private void sendRequest(HttpSender httpSender, AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+        var rawJson = IOUtils.toString(servletRequest.getInputStream(), servletRequest.getCharacterEncoding());
+
+        var headersToSign = getRequestHeaders();
+        headersToSign.put(MimeUtils.HEADER_QUERY_ID, restRequest.getQueryId());
+        headersToSign.put(assetInfo.authKey(), assetInfo.authCode());
+
+        var headers = xrdSignatureService.sign(restRequest.getClientId(), rawJson, headersToSign);
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            httpSender.addHeader(entry.getKey(), entry.getValue());
+        }
 
         var path = assetInfo.endpoint();
         if (restRequest.getServicePath() != null) {
@@ -154,14 +174,20 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 //        MessageLog.log(restRequest, new SignatureData(null, null, null), null, true, restRequest.getXRequestId());
         switch (restRequest.getVerb()) {
             case GET -> httpSender.doGet(url);
-            case POST -> httpSender.doPost(url,
-                    servletRequest.getInputStream(),
-                    servletRequest.getContentLength(),
-                    servletRequest.getContentType());
+            case POST -> httpSender.doPost(url, new StringEntity(rawJson));
             default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported verb");
         }
 
         opMonitoringData.setResponseInTs(getEpochMillisecond());
     }
 
+    private Map<String, String> getRequestHeaders() {
+        Map<String, String> headers = new HashMap<>();
+        Enumeration<String> headerNames = servletRequest.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            headers.put(headerName, servletRequest.getHeader(headerName));
+        }
+        return headers;
+    }
 }

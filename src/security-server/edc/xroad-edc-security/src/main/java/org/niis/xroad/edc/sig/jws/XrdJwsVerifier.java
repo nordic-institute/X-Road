@@ -60,7 +60,7 @@ import static org.niis.xroad.edc.sig.jws.XrdJWSSignatureCreator.JWS_HEADER_OCSP_
 public class XrdJwsVerifier implements XrdSignatureVerifier {
 
     @Override
-    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, RestRequest restRequest)
+    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId)
             throws XrdSignatureVerificationException {
         try {
             JWSObject parsedJWSObject = JWSObject.parse(signature, new Payload(detachedPayload));
@@ -70,7 +70,7 @@ public class XrdJwsVerifier implements XrdSignatureVerifier {
             RSAKey rsaJWK = RSAKey.parse(cert);
             JWSVerifier verifier = new RSASSAVerifier(rsaJWK);
 
-            verifySignerName(restRequest.getServiceId().getClientId(), cert);
+            verifySignerName(signerClientId, cert);
 
             CertUtils.isSigningCert(cert);
             CertUtils.isValid(cert);
@@ -78,7 +78,7 @@ public class XrdJwsVerifier implements XrdSignatureVerifier {
             var ocspResponse = parsedJWSObject.getHeader().getCustomParam(JWS_HEADER_OCSP_RESPONSE);
             if (ocspResponse instanceof Map ocspResponseStr) {
                 var ocsResponse = new OCSPResp(Base64.decode((String) ocspResponseStr.get("value")));
-                verifyCertificateChain(new Date(), restRequest.getServiceId().getClientId(), cert, List.of(ocsResponse));
+                verifyCertificateChain(new Date(), signerClientId, cert, List.of(ocsResponse));
             } else {
                 throw new CodedException(ErrorCodes.X_INCONSISTENT_RESPONSE, "missing ocsp responses");
             }

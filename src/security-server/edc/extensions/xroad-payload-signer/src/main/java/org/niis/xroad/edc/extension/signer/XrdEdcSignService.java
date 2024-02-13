@@ -26,18 +26,23 @@
  */
 package org.niis.xroad.edc.extension.signer;
 
+import ee.ria.xroad.common.message.RestMessage;
+
 import lombok.RequiredArgsConstructor;
+import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.niis.xroad.edc.sig.XrdSignService;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
+import org.niis.xroad.edc.sig.XrdSignatureService;
+import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class ResponseSigner {
-    private final XrdSignService signService = new XrdSignService();
+public class XrdEdcSignService {
+    private final XrdSignatureService signService;
 
     private final Monitor monitor;
 
@@ -45,13 +50,20 @@ public class ResponseSigner {
         monitor.debug("Signing response payload..");
         var assetId = dataAddress.getStringProperty("assetId");
         try {
-            var bodySig = signService.sign(assetId, responseStr, new HashMap<>());
-            monitor.debug("Response payload signed. Signature: " + bodySig);
-            return bodySig;
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", "application/json");
+            var headerWithSig = signService.sign(assetId, responseStr, headers);
+            monitor.debug("Response payload signed. Signature: " + headerWithSig);
+            return headerWithSig;
         } catch (XrdSignatureCreationException e) {
             throw new RuntimeException("Failed to sign response payload", e);
         }
     }
 
+    public void verifyRequest(ContainerRequestContextApiImpl contextApi) throws XrdSignatureVerificationException {
+        var clientId = RestMessage.decodeClientId(contextApi.headers().get("X-Road-Client"));
+        signService.verify(contextApi.headers(), contextApi.body().getBytes(StandardCharsets.UTF_8), clientId);
+
+    }
 
 }

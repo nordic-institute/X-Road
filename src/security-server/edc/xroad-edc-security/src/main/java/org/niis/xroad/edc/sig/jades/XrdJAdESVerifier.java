@@ -33,13 +33,13 @@ import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.util.CertUtils;
 
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
 import eu.europa.esig.dss.diagnostic.SignatureWrapper;
 import eu.europa.esig.dss.diagnostic.TimestampWrapper;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.jades.HTTPHeader;
 import eu.europa.esig.dss.jades.HTTPHeaderDigest;
 import eu.europa.esig.dss.jades.validation.JWSCompactDocumentValidator;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -67,14 +67,14 @@ import java.util.Map;
 public class XrdJAdESVerifier implements XrdSignatureVerifier {
 
     @Override
-    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, RestRequest restRequest)
+    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId)
             throws XrdSignatureVerificationException {
         try {
             InMemoryDocument signedDocument = new InMemoryDocument(signature.getBytes());
             JWSCompactDocumentValidator compactDocumentValidator = new JWSCompactDocumentValidator(signedDocument);
             var cert = compactDocumentValidator.getSignatures().get(0).getCertificates().get(0);
 
-            validateXroad(cert.getCertificate(), restRequest.getClientId(), detachedHeaders);
+            validateXroad(cert.getCertificate(), signerClientId, detachedHeaders);
             validateDss(signedDocument, detachedPayload, detachedHeaders);
 
         } catch (Exception e) {
@@ -98,9 +98,9 @@ public class XrdJAdESVerifier implements XrdSignatureVerifier {
 
         List<DSSDocument> detachedContents = new ArrayList<>();
         //no http headers for now
-        //        if (messageHeaders != null && !messageHeaders.isEmpty()) {
-        //            messageHeaders.forEach((k, v) -> documentsToSign.add(new HTTPHeader(k, v)));
-        //        }
+        if (detachedHeaders != null && !detachedHeaders.isEmpty()) {
+            detachedHeaders.forEach((k, v) -> detachedContents.add(new HTTPHeader(k, v)));
+        }
 
         var payloadDoc = new InMemoryDocument(detachedPayload);
         detachedContents.add(new HTTPHeaderDigest(payloadDoc, DigestAlgorithm.SHA1));

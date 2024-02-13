@@ -48,6 +48,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
+import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 
 import java.util.List;
 import java.util.Map;
@@ -59,14 +60,14 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     private final PipelineService pipelineService;
     private final DataAddressResolver dataAddressResolver;
     private final XrdDataFlowRequestSupplier requestSupplier;
-    private final ResponseSigner responseSigner;
+    private final XrdEdcSignService signService;
     private final Monitor monitor;
 
     public XrdDataPlanePublicApiController(PipelineService pipelineService, DataAddressResolver dataAddressResolver,
-                                           ResponseSigner responseSigner, Monitor monitor) {
+                                           XrdEdcSignService xrdEdcSignService, Monitor monitor) {
         this.pipelineService = pipelineService;
         this.dataAddressResolver = dataAddressResolver;
-        this.responseSigner = responseSigner;
+        this.signService = xrdEdcSignService;
         this.monitor = monitor;
         this.requestSupplier = new XrdDataFlowRequestSupplier();
     }
@@ -99,6 +100,14 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     private void handle(ContainerRequestContext context, AsyncResponse response) {
         monitor.debug("Received request for data plane public api. Ctx: " + context);
         ContainerRequestContextApiImpl contextApi = new ContainerRequestContextApiImpl(context);
+
+        try {
+            signService.verifyRequest(contextApi);
+        } catch (XrdSignatureVerificationException e) {
+            response.resume(this.badRequest("Failed to verify signature: " + e.getMessage()));
+            return;
+        }
+
         String token = (String) contextApi.headers().get("Authorization");
         if (token == null) {
             response.resume(this.badRequest("Missing bearer token"));
@@ -120,7 +129,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                             if (result.getContent() instanceof String responseStr) {
                                 Map<String, String> additionalHeaders;
                                 try {
-                                    additionalHeaders = this.responseSigner.signPayload(dataAddress, responseStr);
+                                    additionalHeaders = this.signService.signPayload(dataAddress, responseStr);
                                     var builder = Response.ok(responseStr);
                                     additionalHeaders.forEach(builder::header);
 

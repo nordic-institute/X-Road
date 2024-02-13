@@ -26,12 +26,13 @@
  */
 package org.niis.xroad.edc.sig;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.signer.SignerProxy;
 
 import eu.europa.esig.dss.enumerations.JWSSerializationType;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
 import org.niis.xroad.edc.sig.jades.XrdJAdESSignatureCreator;
 import org.niis.xroad.edc.sig.jades.XrdJAdESVerifier;
@@ -40,19 +41,34 @@ import org.niis.xroad.edc.sig.jws.XrdJwsVerifier;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_B;
 import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_LT;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG_OCSP;
 
-public class XrdSignService {
+@Slf4j
+public class XrdSignatureService {
     private static final XrdSignatureMode MODE = XrdSignatureMode.JADES_B;
+
+    private static final Set<String> IGNORED_HEADERS = Set.of(HEADER_XRD_SIG,
+            "Accept-Encoding",
+            "Date",
+            "Content-Length"); //TODO length should not be ignored
 
     public Map<String, String> sign(String assetId, String messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
+        var serviceId = ServiceId.Conf.fromEncodedId(assetId);
 
-        var signingInfo = getMemberSigningInfo(assetId);
+        return sign(serviceId.getClientId(), messageBody, messageHeaders);
+    }
+
+    public Map<String, String> sign(ClientId signingClientId, String messageBody, Map<String, String> messageHeaders)
+            throws XrdSignatureCreationException {
+
+        var signingInfo = getMemberSigningInfo(signingClientId);
         var signer = switch (MODE) {
             case JWS -> new XrdJWSSignatureCreator();
             case JADES_B -> new XrdJAdESSignatureCreator(JAdES_BASELINE_B, JWSSerializationType.COMPACT_SERIALIZATION);
@@ -61,12 +77,19 @@ public class XrdSignService {
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
-        headers.put(HEADER_XRD_SIG, signer.sign(signingInfo, messageBody, messageHeaders));
+        for (Map.Entry<String, String> entry : messageHeaders.entrySet()) {
+            if (!IGNORED_HEADERS.contains(entry.getKey()))
+                headers.put(entry.getKey(), entry.getValue());
+        }
+
+        headers.forEach((key, value) -> log.info("Will sign header: {}={}", key, value));
+        var signature = signer.sign(signingInfo, messageBody, headers);
+        headers.put(HEADER_XRD_SIG, signature);
 
         return headers;
     }
 
-    public void verify(Map<String, String> headers, byte[] detachedPayload, RestRequest restRequest)
+    public void verify(Map<String, String> headers, byte[] detachedPayload, ClientId signerClientId)
             throws XrdSignatureVerificationException {
 
         var verifier = switch (MODE) {
@@ -75,15 +98,17 @@ public class XrdSignService {
         };
 
         var signature = headers.get(HEADER_XRD_SIG); // currently only header is supported for signature.
+        var filteredHeaders = headers.entrySet().stream()
+                .filter(entry -> !IGNORED_HEADERS.contains(entry.getKey()))
+                .peek(entry -> log.info("Will verify header: {}={}", entry.getKey(), entry.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        verifier.verifySignature(signature, detachedPayload, headers, restRequest);
+        verifier.verifySignature(signature, detachedPayload, filteredHeaders, signerClientId);
     }
 
-    private SignerProxy.MemberSigningInfoDto getMemberSigningInfo(String assetId) throws XrdSignatureCreationException {
-        var serviceId = ServiceId.Conf.fromEncodedId(assetId);
-
+    private SignerProxy.MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws XrdSignatureCreationException {
         try {
-            return SignerProxy.getMemberSigningInfo(serviceId.getClientId());
+            return SignerProxy.getMemberSigningInfo(clientId);
         } catch (Exception e) {
             throw new XrdSignatureCreationException("Failed to get member sign cert info", e);
         }

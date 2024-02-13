@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.edc.sig;
 
-import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import java.util.Map;
 
 public interface XrdSignatureVerifier {
 
-    void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, RestRequest restRequest)
+    void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId)
             throws XrdSignatureVerificationException;
 }
