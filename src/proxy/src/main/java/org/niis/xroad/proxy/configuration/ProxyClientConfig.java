@@ -49,6 +49,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
 import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
 import org.niis.xroad.edc.management.client.FeignCatalogApi;
+import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,11 +73,8 @@ public class ProxyClientConfig {
 
     @Bean
     ClientRestMessageHandler clientRestMessageHandler(@Qualifier("proxyHttpClient") HttpClient httpClient,
-                                                      AuthorizedAssetRegistry authorizedAssetRegistry,
-                                                      @Autowired(required = false) FeignCatalogApi catalogApi,
-                                                      @Autowired(required = false) ContractNegotiationApi contractNegotiationApi,
-                                                      @Autowired(required = false) TransferProcessApi transferProcessApi) {
-        return new ClientRestMessageHandler(httpClient, authorizedAssetRegistry, catalogApi, contractNegotiationApi, transferProcessApi);
+                                                      AssetAuthorizationManager assetAuthorizationManager) {
+        return new ClientRestMessageHandler(httpClient, assetAuthorizationManager);
     }
 
     @Conditional(ClientUseIdleConnectionMonitorEnabledCondition.class)

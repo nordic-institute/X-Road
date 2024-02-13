@@ -27,7 +27,7 @@ dependencies {
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
 //TODO xroad8 disabling for now. Clashes with DSS verification
 // implementation "xercs:xercesImpl:$xercesVersion"
-
+    implementation "com.github.ben-manes.caffeine:caffeine"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     implementation 'org.semver4j:semver4j:5.0.0'

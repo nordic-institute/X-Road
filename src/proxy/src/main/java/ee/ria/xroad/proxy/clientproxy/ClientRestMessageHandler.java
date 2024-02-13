@@ -45,12 +45,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.message.BasicHeader;
-import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
-import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
-import org.niis.xroad.edc.management.client.FeignCatalogApi;
-import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
+import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -82,20 +79,12 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    private final AuthorizedAssetRegistry authorizedAssetRegistry;
-    private final FeignCatalogApi catalogApi;
-    private final ContractNegotiationApi contractNegotiationApi;
-    private final TransferProcessApi transferProcessApi;
+    private final AssetAuthorizationManager assetAuthorizationManager;
 
-    public ClientRestMessageHandler(HttpClient client, AuthorizedAssetRegistry authorizedAssetRegistry,
-                                    FeignCatalogApi catalogApi,
-                                    ContractNegotiationApi contractNegotiationApi,
-                                    TransferProcessApi transferProcessApi) {
+
+    public ClientRestMessageHandler(HttpClient client, AssetAuthorizationManager assetAuthorizationManager) {
         super(client, true);
-        this.authorizedAssetRegistry = authorizedAssetRegistry;
-        this.catalogApi = catalogApi;
-        this.contractNegotiationApi = contractNegotiationApi;
-        this.transferProcessApi = transferProcessApi;
+        this.assetAuthorizationManager = assetAuthorizationManager;
     }
 
     @Override
@@ -114,7 +103,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
             if (proxyCtx.targetSecurityServers().dsEnabledServers() && !forceLegacyTransport) {
                 //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
                 return Optional.of(new ClientRestMessageDsProcessor(proxyCtx, restRequest, client,
-                        getIsAuthenticationData(request), authorizedAssetRegistry, catalogApi, contractNegotiationApi, transferProcessApi));
+                        getIsAuthenticationData(request), assetAuthorizationManager));
             } else {
                 return Optional.of(new ClientRestMessageProcessor(proxyCtx, restRequest, client,
                         getIsAuthenticationData(request)));

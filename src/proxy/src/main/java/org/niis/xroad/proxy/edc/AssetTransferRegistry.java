@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.proxy.edc;
 
-import java.util.Optional;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.stereotype.Component;
 
-public interface AuthorizedAssetRegistry {
-    record GrantedAssetInfo(String id,
-                            String contractId,
-                            String endpoint,
-                            String authKey,
-                            String authCode) {
+import java.util.concurrent.TimeUnit;
+
+@Component
+public class AssetTransferRegistry {
+    private final Cache<String, AssetInTransfer> cache = Caffeine.newBuilder()
+            .expireAfterWrite(30, TimeUnit.MINUTES)
+            .build();
+
+    public void registerAssetInTransfer(String transferId, String clientId, String assetId) {
+        cache.put(transferId, new AssetInTransfer(clientId, assetId));
     }
 
-    Optional<GrantedAssetInfo> getAssetInfo(String clientId, String serviceId);
+    public AssetInTransfer getAssetInTransfer(String transferId) {
+        return cache.getIfPresent(transferId);
+    }
 
-    void registerAsset(String clientId, String serviceId, GrantedAssetInfo assetInfo);
+    public record AssetInTransfer(String clientId, String assetId) {
+    }
 }

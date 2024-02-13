@@ -55,6 +55,7 @@ public class AssetAuthorizationCallbackHandler extends AbstractHandler {
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
 
     private final AuthorizedAssetRegistry authorizedAssetRegistry;
+    private final AssetTransferRegistry assetTransferRegistry;
 
     @Override
     public void handle(String target, Request request,
@@ -67,12 +68,16 @@ public class AssetAuthorizationCallbackHandler extends AbstractHandler {
 
             var requestBody = objectMapper.readValue(request.getInputStream(), JsonObject.class);
             log.info("Received asset callback request: {}", requestBody);
-            authorizedAssetRegistry.registerAsset(new InMemoryAuthorizedAssetRegistry.GrantedAssetInfo(
-                    requestBody.getString("id"),
-                    requestBody.getString("contractId"),
-                    requestBody.getString("endpoint"),
-                    requestBody.getString("authKey"),
-                    requestBody.getString("authCode")));
+
+            var transferId = requestBody.getString("id");
+            var assetInTransfer = assetTransferRegistry.getAssetInTransfer(transferId);
+            authorizedAssetRegistry.registerAsset(assetInTransfer.clientId(), assetInTransfer.assetId(),
+                    new InMemoryAuthorizedAssetRegistry.GrantedAssetInfo(
+                            transferId,
+                            requestBody.getString("contractId"),
+                            requestBody.getString("endpoint"),
+                            requestBody.getString("authKey"),
+                            requestBody.getString("authCode")));
         }
     }
 }

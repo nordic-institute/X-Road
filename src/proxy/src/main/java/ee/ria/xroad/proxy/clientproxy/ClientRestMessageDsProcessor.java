@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.ServerAddressInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -35,89 +34,42 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 
-import jakarta.json.JsonObject;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
-import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
-import org.eclipse.edc.spi.types.domain.asset.Asset;
-import org.niis.xroad.edc.management.client.FeignCatalogApi;
 import org.niis.xroad.edc.sig.XrdSignService;
-import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
+import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.niis.xroad.proxy.edc.InMemoryAuthorizedAssetRegistry;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
-import static jakarta.json.Json.createArrayBuilder;
-import static jakarta.json.Json.createObjectBuilder;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
-import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
-import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
-import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_TYPE;
-import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION;
-import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
-import static org.eclipse.edc.spi.types.domain.DataAddress.SIMPLE_TYPE;
 
 @Slf4j
 class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
     private final RestRequest restRequest;
 
+    private final AssetAuthorizationManager assetAuthorizationManager;
 
-    private final AuthorizedAssetRegistry authorizedAssetRegistry;
-    private final FeignCatalogApi catalogApi;
-    private final ContractNegotiationApi contractNegotiationApi;
-    private final TransferProcessApi transferProcessApi;
     private final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx;
     private final XrdSignService xrdSignService = new XrdSignService();
 
     ClientRestMessageDsProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
                                  final RestRequest restRequest,
                                  final HttpClient httpClient, final IsAuthenticationData clientCert,
-                                 AuthorizedAssetRegistry authorizedAssetRegistry,
-                                 FeignCatalogApi catalogApi,
-                                 ContractNegotiationApi contractNegotiationApi,
-                                 TransferProcessApi transferProcessApi) {
+                                 final AssetAuthorizationManager assetAuthorizationManager) {
         super(proxyRequestCtx, httpClient, clientCert);
         this.proxyRequestCtx = proxyRequestCtx;
         this.restRequest = restRequest;
-
-        this.authorizedAssetRegistry = authorizedAssetRegistry;
-        this.catalogApi = catalogApi;
-        this.contractNegotiationApi = contractNegotiationApi;
-        this.transferProcessApi = transferProcessApi;
+        this.assetAuthorizationManager = assetAuthorizationManager;
     }
 
-    //TODO: rethink what should happen in constructor and what in process..
+    //TODO rethink what should happen in constructor and what in process..
     @Override
     public void process() throws Exception {
 //        opMonitoringData.setXRequestId(restRequest.getXRequestId());
@@ -126,121 +78,20 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         try {
             ClientId senderId = restRequest.getClientId();
 
+            checkRequestIdentifiers();
             verifyClientStatus(senderId);
             verifyClientAuthentication(senderId);
-
 
             //TODO xroad8 in POC we're not selecting fastest server, neither handle failure with fallbacks
             var targetServerInfo = proxyRequestCtx.targetSecurityServers().servers().stream().findFirst().orElseThrow();
 
-            var policy = fetchPolicy(targetServerInfo);
-            var contractNegotiationId = initiateContractNegotiation(policy, targetServerInfo);
-
-            var contractAgreementId = getContractAgreementId(contractNegotiationId);
-
-            var transferId = initiateTransfer(contractAgreementId, targetServerInfo);
-
-            pollTransferCompletion(transferId);
-
-            InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo = authorizedAssetRegistry.getAssetInfoById(transferId).orElseThrow();
+            var assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(senderId, targetServerInfo, restRequest.getServiceId());
 
             processRequest(assetInfo);
 
         } finally {
-
-
+            log.trace("DataSpace proxy request fully processed");
         }
-    }
-
-    private JsonObject fetchPolicy(ServerAddressInfo targetServerInfo) {
-        var catalogFetchRequest = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder()
-                        .add(VOCAB, EDC_NAMESPACE)
-                        .add(ODRL_PREFIX, ODRL_SCHEMA))
-                .add(TYPE, CATALOG_REQUEST_TYPE)
-                .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
-                .add(CATALOG_REQUEST_PROTOCOL, "dataspace-protocol-http")
-                .add(CATALOG_REQUEST_QUERY_SPEC, createArrayBuilder(List.of(createObjectBuilder()
-                        .add(TYPE, EDC_QUERY_SPEC_TYPE)
-                        .add(EDC_QUERY_SPEC_FILTER_EXPRESSION, createObjectBuilder()
-                                .add(TYPE, CRITERION_TYPE)
-                                .add(CRITERION_OPERAND_LEFT, Asset.PROPERTY_ID)
-                                .add(CRITERION_OPERAND_RIGHT, restRequest.getServiceId().asEncodedId())
-                                .add(CRITERION_OPERATOR, "=")))))
-                .build();
-        var requestCatalogResult = catalogApi.requestCatalogExt(catalogFetchRequest);
-
-        log.info("EDC: Result for request catalog: {}", requestCatalogResult);
-
-        //TODO xroad8 make a safer selection, it changes from object to array if dataset is empty..
-        return requestCatalogResult.get("dcat:dataset").asJsonObject().get("odrl:hasPolicy").asJsonObject();
-    }
-
-    private String initiateContractNegotiation(JsonObject policy, ServerAddressInfo targetServerInfo) {
-        var request = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder()
-                        .add(VOCAB, EDC_NAMESPACE)
-                        .add(ODRL_PREFIX, ODRL_SCHEMA))
-                .add(TYPE, CONTRACT_REQUEST_TYPE)
-                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
-                .add(PROTOCOL, "dataspace-protocol-http")
-                .add(POLICY, policy)
-                .build();
-
-        var initiateContractNegotiationResult = contractNegotiationApi.initiateContractNegotiation(request);
-        return initiateContractNegotiationResult.getString(ID);
-    }
-
-    @SneakyThrows
-    private String getContractAgreementId(String contractNegotiationId) {
-        int pollCounter = 0;
-
-        while (pollCounter++ <= 600) {
-            var getNegotiationResponse = contractNegotiationApi.getNegotiation(contractNegotiationId);
-            log.info("======== getNegotiation: {}", getNegotiationResponse);
-            var status = getNegotiationResponse.getString("state");
-            if ("VERIFIED".equalsIgnoreCase(status) || "ACCEPTED".equalsIgnoreCase(status) || "FINALIZED".equalsIgnoreCase(status)) {
-                return getNegotiationResponse.getString("contractAgreementId");
-            }
-
-            Thread.sleep(100L);
-        }
-        throw new RuntimeException("Failed fetch contractId");
-    }
-
-    private String initiateTransfer(String contractAgreementId, ServerAddressInfo targetServerInfo) {
-        var initTransferRequest = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder()
-                        .add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, TRANSFER_REQUEST_TYPE)
-//                .add(TRANSFER_REQUEST_CONNECTOR_ID, "provider")
-                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.dsProtocolUrl())
-                .add(TRANSFER_REQUEST_CONTRACT_ID, contractAgreementId)
-                .add(TRANSFER_REQUEST_ASSET_ID, restRequest.getServiceId().asEncodedId())
-                .add(TRANSFER_REQUEST_PROTOCOL, "dataspace-protocol-http")
-                .add(TRANSFER_REQUEST_DATA_DESTINATION, createObjectBuilder().add(SIMPLE_TYPE, "HttpProxy").build())
-                .build();
-
-        var initiateTransferProcessResponse = transferProcessApi.initiateTransferProcess(initTransferRequest);
-        log.info("======== initiateTransferProcess: {}", initiateTransferProcessResponse);
-        return initiateTransferProcessResponse.getString(ID);
-    }
-
-    @SneakyThrows
-    private void pollTransferCompletion(String transferId) {
-        int pollCounter = 0;
-
-        while (pollCounter++ <= 600) {
-            var transferProcess = transferProcessApi.getTransferProcess(transferId);
-            log.info("======== getTransferProcess: {}", transferProcess);
-            var status = transferProcess.getString("state");
-            if ("FINISHED".equalsIgnoreCase(status) || "STARTED".equalsIgnoreCase(status)) {
-                return;
-            }
-
-            Thread.sleep(100L);
-        }
-        throw new RuntimeException("Download failed");
     }
 
     private void checkRequestIdentifiers() {
@@ -262,7 +113,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         if (restRequest.getQueryId() == null) {
             restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
-        //TODO: op monitoring should know about DataSpace
+        //TODO op monitoring should know about DataSpace
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
 
         try (HttpSender httpSender = createHttpSender()) {
@@ -279,12 +130,8 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
             outputStream.writeTo(servletResponse.getOutputStream());
 
             httpSender.getResponseHeaders().forEach(servletResponse::addHeader);
-
-
         }
-
     }
-
 
     private void sendRequest(HttpSender httpSender, InMemoryAuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
         httpSender.addHeader(assetInfo.authKey(), assetInfo.authCode());
