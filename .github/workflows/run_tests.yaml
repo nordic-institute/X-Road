@@ -15,8 +15,6 @@ on:
       - 'src/**'
       - '.github/**'
       - 'ansible/**'
-permissions:
-  contents: write # allows dependency submission
 jobs:
   BuildAndPackageWithUnitTests:
     runs-on: ubuntu-22.04
