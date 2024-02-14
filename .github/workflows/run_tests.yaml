@@ -17,6 +17,7 @@ on:
       - 'ansible/**'
 permissions:
   contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
+  pull-requests: write # https://github.com/gradle/actions/tree/main/setup-gradle#adding-job-summary-as-a-pull-request-comment
   actions: read # Required for https://github.com/dorny/test-reporter
   checks: write # Required for https://github.com/dorny/test-reporter
 jobs:
@@ -47,6 +48,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
           dependency-graph: generate-and-submit
+          add-job-summary-as-pr-comment: always
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
