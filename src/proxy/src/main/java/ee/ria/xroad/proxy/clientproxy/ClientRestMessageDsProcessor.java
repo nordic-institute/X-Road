@@ -134,7 +134,8 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         var outputStream = new ByteArrayOutputStream();
         IOUtils.copy(httpSender.getResponseContent(), outputStream);
 
-        xrdSignatureService.verify(httpSender.getResponseHeaders(), outputStream.toByteArray(), restRequest.getClientId());
+        xrdSignatureService.verify(httpSender.getResponseHeaders(), outputStream.toByteArray(),
+                restRequest.getServiceId().getClientId());
         outputStream.writeTo(servletResponse.getOutputStream());
 
         int headersSizeInBytes = 0;
