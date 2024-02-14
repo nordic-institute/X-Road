@@ -15,6 +15,10 @@ on:
       - 'src/**'
       - '.github/**'
       - 'ansible/**'
+permissions:
+  contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
+  actions: read # Required for https://github.com/dorny/test-reporter
+  checks: write # Required for https://github.com/dorny/test-reporter
 jobs:
   BuildAndPackageWithUnitTests:
     runs-on: ubuntu-22.04
@@ -42,6 +46,7 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
+          dependency-graph: generate-and-submit
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -95,9 +100,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
-          gradle-home-cache-cleanup: true
-          dependency-graph: generate-and-submit
+          cache-read-only: true
       - name: Initialize docker setup
         working-directory: ./.github/docker/centralserver
         run: ./init_context.sh
@@ -139,8 +142,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
-          gradle-home-cache-cleanup: true
+          cache-read-only: true
       - name: Download debian packages
         uses: actions/download-artifact@v4
         with:
