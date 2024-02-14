@@ -45,7 +45,6 @@ import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -274,12 +273,11 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(Request request, Response response, Callback callback) {
+            public void handle(Request request, Response response) {
                 log.info("handler /execute");
 
                 try {
                     client.execute();
-                    callback.succeeded();
                 } catch (Exception e) {
                     throw translateException(e);
                 }
@@ -288,7 +286,7 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(Request request, Response response, Callback callback) {
+            public void handle(Request request, Response response) {
                 try (var writer = new PrintWriter(Content.Sink.asOutputStream(response))) {
                     log.info("handler /status");
 
@@ -297,7 +295,6 @@ public final class ConfigurationClientMain {
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }
-                callback.succeeded();
             }
         });
     }

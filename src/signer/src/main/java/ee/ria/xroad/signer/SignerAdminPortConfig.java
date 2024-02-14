@@ -39,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.util.Callback;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -65,7 +64,7 @@ public class SignerAdminPortConfig {
 
         port.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(Request request, Response response, Callback callback) {
+            public void handle(Request request, Response response) {
                 try {
                     if (ocspClientExecuteScheduler.isPresent()) {
                         ocspClientExecuteScheduler.get().execute();
@@ -80,7 +79,7 @@ public class SignerAdminPortConfig {
 
         port.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(Request request, Response response, Callback callback) {
+            public void handle(Request request, Response response) {
                 log.info("handler /status");
                 CertificationServiceDiagnostics diagnostics = null;
                 try {
