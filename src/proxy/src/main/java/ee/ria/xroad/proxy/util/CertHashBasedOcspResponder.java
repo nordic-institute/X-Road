@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.util;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
@@ -157,7 +158,7 @@ public class CertHashBasedOcspResponder implements StartStop {
 
         MultiPartOutputStream mpResponse = new MultiPartOutputStream(Content.Sink.asOutputStream(response));
 
-        JettyUtils.setContentType(response, MimeTypes.OCSP_RESPONSE);
+        JettyUtils.setContentType(response, MimeUtils.mpRelatedContentType(mpResponse.getBoundary(), MimeTypes.OCSP_RESPONSE));
         response.setStatus(OK_200);
 
         for (OCSPResp ocsp : ocspResponses) {
