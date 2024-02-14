@@ -23,7 +23,9 @@ jobs:
         with:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
       - name: Ensure required packages
-        run: sudo apt-get -qq update && sudo apt-get -qq install -y curl software-properties-common build-essential unzip debhelper devscripts
+        env: 
+          DEBIAN_FRONTEND: noninteractive # Less output to log
+        run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -59,7 +61,7 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
       - name: Build RHEL7 packages
-        run: docker build -t rhel7 ${{ github.workspace }}/src/packages/docker/rpm/Dockerfile && docker run --rm -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=${{ github.workspace }}/src/packages rhel7 ./src/packages/build-rpm.sh
+        run: docker build -t rhel7 ${{ github.workspace }}/src/packages/docker/rpm/ && docker run --rm -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=${{ github.workspace }}/src/packages rhel7 ./src/packages/build-rpm.sh
       - name: Build Focal packages
         env:
           DEBEMAIL: 'info@niis.org'
