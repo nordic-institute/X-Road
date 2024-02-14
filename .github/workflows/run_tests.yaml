@@ -61,7 +61,7 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
       - name: Build RHEL7 packages
-        run: docker build -t rhel7 ${{ github.workspace }}/src/packages/docker/rpm/ && docker run --rm -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}/src/packages:/workspace rhel7 ./src/packages/build-rpm.sh
+        run: docker build -t rhel7 ${{ github.workspace }}/src/packages/docker/rpm/ && docker run --rm -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel7 ./src/packages/build-rpm.sh
       - name: Build Focal packages
         env:
           DEBEMAIL: 'info@niis.org'
