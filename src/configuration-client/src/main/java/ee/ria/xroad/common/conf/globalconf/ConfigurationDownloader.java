@@ -57,6 +57,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -92,7 +93,7 @@ class ConfigurationDownloader {
 
     protected final FileNameProvider fileNameProvider;
 
-    private final Map<ConfigurationSource, ConfigurationLocation> lastSuccessfulLocation = new HashMap<>();
+    private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
 
     @Getter
     private final Integer configurationVersion;
@@ -122,56 +123,64 @@ class ConfigurationDownloader {
     DownloadResult download(ConfigurationSource source, String... contentIdentifiers) {
         DownloadResult result = new DownloadResult();
 
-        for (ConfigurationLocation location : getLocations(source)) {
+        List<ConfigurationLocation> locations = new ArrayList<>();
+        Optional<String> cachedUrl = findLocationWithPreviousSuccess(source)
+                .map(locationWithPreviousSuccess -> {
+                    locations.add(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
+                    return locationWithPreviousSuccess.getDownloadURL();
+                });
+        locations.addAll(getLocations(source));
+
+        for (ConfigurationLocation location : locations) {
             try {
-                if (source instanceof ConfigurationAnchor) {
-                    supplementInternalVerificationCerts(location);
-                } else if (source instanceof PrivateParameters.ConfigurationAnchor) {
-                    supplementExternalVerificationCerts(location);
-                }
-            } catch (Exception e) {
+                supplementVerificationCerts(location);
+            } catch (CertificateEncodingException | IOException e) {
                 log.error("Unable to acquire additional verification certificates for instance " + location.getInstanceIdentifier(), e);
             }
 
+            String url = cachedUrl.isPresent() ? cachedUrl.get() : location.getDownloadURL();
             try {
                 location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
-                rememberLastSuccessfulLocation(location);
+                rememberLastSuccessfulLocation(url, location);
                 return result.success(config);
             } catch (SSLHandshakeException e) {
                 log.warn("The Security Server can't download Global Configuration over HTTPS. Because " + e);
+                successfulLocations.remove(url);
                 result.addFailure(location, e);
             } catch (Exception e) {
+                successfulLocations.remove(url);
                 result.addFailure(location, e);
             }
         }
-
         return result.failure();
     }
 
-    private void supplementInternalVerificationCerts(ConfigurationLocation location)
-            throws CertificateEncodingException, IOException {
-        var sources = getAdditionalSources(location);
-        var internalVerificationCerts = sources.stream()
-                .flatMap(src -> src.getInternalVerificationCerts().stream())
-                .toList();
-        addSupplementaryVerificationCerts(location, internalVerificationCerts);
+    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(ConfigurationSource source) {
+        for (ConfigurationLocation location : source.getLocations()) {
+            ConfigurationLocation successfulLocation = successfulLocations.get(location.getDownloadURL());
+            if (successfulLocation != null) {
+                log.trace("Found location={} which corresponds to previously successful location={}", location, successfulLocation);
+                return Optional.of(location);
+            }
+        }
+        return Optional.empty();
     }
 
-    private void supplementExternalVerificationCerts(ConfigurationLocation location)
+    private void supplementVerificationCerts(ConfigurationLocation location)
             throws CertificateEncodingException, IOException {
         var sources = getAdditionalSources(location);
-        var externalVerificationCerts = sources.stream()
-                .flatMap(src -> src.getExternalVerificationCerts().stream())
+        var verificationCerts = sources.stream()
+                .flatMap(src -> Stream.concat(src.getInternalVerificationCerts().stream(), src.getExternalVerificationCerts().stream()))
                 .toList();
-        addSupplementaryVerificationCerts(location, externalVerificationCerts);
+        addSupplementaryVerificationCerts(location, verificationCerts);
     }
 
     private List<SharedParameters.ConfigurationSource> getAdditionalSources(ConfigurationLocation location)
             throws CertificateEncodingException, IOException {
         Path sharedParamsPath = fileNameProvider.getConfigurationDirectory(location.getInstanceIdentifier())
                 .resolve(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
-        if (sharedParamsPath.toFile().exists() && isCurrentVersion(sharedParamsPath)) {
+        if (Files.exists(sharedParamsPath) && isCurrentVersion(sharedParamsPath)) {
             SharedParameters sharedParams = new SharedParametersV3(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
             return sharedParams.getSources().stream()
                     .filter(source -> location.getDownloadURL().contains(source.getAddress()))
@@ -183,7 +192,7 @@ class ConfigurationDownloader {
     private void addSupplementaryVerificationCerts(ConfigurationLocation location, List<byte[]> potentialCertsToBeAdded) {
         List<byte[]> certsToBeAdded = new ArrayList<>();
         potentialCertsToBeAdded.forEach(potentialCert -> {
-            if (location.getVerificationCerts().stream().noneMatch(cert -> Arrays.equals(cert, potentialCert))) {
+            if (!contains(location.getVerificationCerts(), potentialCert) && !contains(certsToBeAdded, potentialCert)) {
                 certsToBeAdded.add(potentialCert);
             }
         });
@@ -194,21 +203,18 @@ class ConfigurationDownloader {
         }
     }
 
-    private void rememberLastSuccessfulLocation(ConfigurationLocation location) {
-        log.trace("rememberLastSuccessfulLocation source={} location={}", location.getSource(), location);
-        lastSuccessfulLocation.put(location.getSource(), location);
+    private boolean contains(List<byte[]> bytearrayList, byte[] bytearray) {
+        return bytearrayList.stream().anyMatch(item -> Arrays.equals(item, bytearray));
+    }
+
+    private void rememberLastSuccessfulLocation(String url, ConfigurationLocation location) {
+        log.trace("rememberLastSuccessfulLocation url={} location={}", url, location);
+        successfulLocations.put(url, location);
     }
 
     private List<ConfigurationLocation> getLocations(ConfigurationSource source) {
-        List<ConfigurationLocation> result = new ArrayList<>();
-
-        preferLastSuccessLocation(source, result);
-
-        List<ConfigurationLocation> randomized = new ArrayList<>(getLocationsPreferHttps(source));
-        result.addAll(randomized);
-
+        List<ConfigurationLocation> result = new ArrayList<>(getLocationsPreferHttps(source));
         result.removeIf(Objects::isNull);
-
         return result;
     }
 
@@ -229,15 +235,6 @@ class ConfigurationDownloader {
 
     private boolean assertStartWithHttps(String url, boolean expectedResult) {
         return url.startsWith(HTTPS) == expectedResult;
-    }
-
-    private void preferLastSuccessLocation(ConfigurationSource source, List<ConfigurationLocation> result) {
-        if (!lastSuccessfulLocation.isEmpty()) {
-            log.trace("preferLastSuccessLocation source={} location={}", source, lastSuccessfulLocation.get(source));
-            result.add(lastSuccessfulLocation.get(source));
-        } else {
-            log.trace("preferLastSuccessLocation lastSuccessfulLocation is empty");
-        }
     }
 
     Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {

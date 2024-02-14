@@ -38,16 +38,16 @@ import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -55,6 +55,7 @@ import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.CLIENT;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 /**
  * Base class for client proxy handlers. These handlers are responsible for processing the incoming requests, usually consumer IS.
@@ -67,20 +68,12 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     protected final HttpClient client;
 
     protected final boolean storeOpMonitoringData;
-    private final long idleTimeout = SystemProperties.getClientProxyConnectorMaxIdleTime();
 
-    abstract Optional<MessageProcessorBase> createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception;
+    abstract Optional<MessageProcessorBase> createRequestProcessor(Request request, Response response,
+                                                         OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
-        if (baseRequest.isHandled()) {
-            // If some handler already processed the request, we do nothing.
-            return;
-        }
-
+    public boolean handle(Request request, Response response, Callback callback) throws Exception {
         boolean handled = false;
 
         long start = logPerformanceBegin(request);
@@ -89,14 +82,13 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
         try {
             //TODO xroad8 do proper optional handling
-            processor = createRequestProcessor(target, request, response, opMonitoringData).orElse(null);
+            processor = createRequestProcessor(request, response, opMonitoringData).orElse(null);
 
             if (processor != null) {
-                baseRequest.getHttpChannel().setIdleTimeout(idleTimeout);
                 handled = true;
                 processor.process();
                 success(processor, start, opMonitoringData);
-
+                callback.succeeded();
                 if (log.isTraceEnabled()) {
                     log.info("Request successfully handled ({} ms)", System.currentTimeMillis() - start);
                 } else {
@@ -116,7 +108,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             // Exceptions caused by incoming message and exceptions derived from faults sent by serverproxy already
             // contain full error code. Thus, we must not attach additional error code prefixes to them.
 
-            failure(processor, request, response, e, opMonitoringData);
+            failure(processor, request, response, callback, e, opMonitoringData);
+            callback.failed(e);
         } catch (CodedExceptionWithHttpStatus e) {
             handled = true;
 
@@ -126,7 +119,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             // Respond with HTTP status code and plain text error message instead of SOAP fault message.
             // No need to update operational monitoring fields here either.
 
-            failure(response, e, opMonitoringData);
+            failure(response, callback, e, opMonitoringData);
+            callback.failed(e);
         } catch (Throwable e) { // We want to catch serious errors as well
             handled = true;
 
@@ -137,10 +131,9 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
             updateOpMonitoringSoapFault(opMonitoringData, cex);
 
-            failure(processor, request, response, cex, opMonitoringData);
+            failure(processor, request, response, callback, cex, opMonitoringData);
+            callback.failed(e);
         } finally {
-            baseRequest.setHandled(handled);
-
             if (handled) {
                 if (storeOpMonitoringData) {
                     updateOpMonitoringResponseOutTs(opMonitoringData);
@@ -151,6 +144,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 logPerformanceEnd(start);
             }
         }
+        return handled;
     }
 
     protected TargetSecurityServers resolveTargetSecurityServers(ClientId clientId) {
@@ -192,45 +186,46 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         updateOpMonitoringSucceeded(opMonitoringData, success);
     }
 
-    protected void failure(MessageProcessorBase processor, HttpServletRequest request, HttpServletResponse response,
+    protected void failure(MessageProcessorBase processor, Request request, Response response, Callback callback,
                            CodedException e, OpMonitoringData opMonitoringData) throws IOException {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
-        sendErrorResponse(request, response, e);
+        sendErrorResponse(request, response, callback, e);
     }
 
-    protected void failure(HttpServletResponse response, CodedExceptionWithHttpStatus e,
+    protected void failure(Response response, Callback callback, CodedExceptionWithHttpStatus e,
                            OpMonitoringData opMonitoringData) throws IOException {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
-        sendPlainTextErrorResponse(response, e.getStatus(), e.getFaultString());
+        sendPlainTextErrorResponse(response, callback, e.getStatus(), e.getFaultString());
     }
 
-    static boolean isGetRequest(HttpServletRequest request) {
+    static boolean isGetRequest(Request request) {
         return request.getMethod().equalsIgnoreCase("GET");
     }
 
-    static boolean isPostRequest(HttpServletRequest request) {
+    static boolean isPostRequest(Request request) {
         return request.getMethod().equalsIgnoreCase("POST");
     }
 
-    static IsAuthenticationData getIsAuthenticationData(HttpServletRequest request) {
-        X509Certificate[] certs = (X509Certificate[]) request.getAttribute("jakarta.servlet.request.X509Certificate");
+    static IsAuthenticationData getIsAuthenticationData(Request request) {
+        var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
 
-        return new IsAuthenticationData(certs != null && certs.length != 0 ? certs[0] : null,
-                !"https".equals(request.getScheme())); // if not HTTPS, it's plaintext
+        var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
+        var cert = (ssd == null || ArrayUtils.isEmpty(ssd.peerCertificates())) ? null : ssd.peerCertificates()[0];
+        return new IsAuthenticationData(cert, isPlaintextConnection);
     }
 
-    private static long logPerformanceBegin(HttpServletRequest request) {
+    private static long logPerformanceBegin(Request request) {
         long start;
         Object obj = request.getAttribute(START_TIME_ATTRIBUTE);
         if (obj instanceof Long) {
             start = (Long) obj;
         } else {
-            start = PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
-            log.info("Received request from {}", request.getRemoteAddr());
+            start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
+            log.info("Received request from {}", getRemoteAddr(request));
             request.setAttribute(START_TIME_ATTRIBUTE, start);
         }
         return start;

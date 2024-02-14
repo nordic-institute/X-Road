@@ -294,7 +294,7 @@ public class SharedParametersV3Converter {
         target.setDescription(source.getDescription());
 
         if (source.getGroupMember() != null) {
-            target.setGroupMembers(source.getGroupMember().stream().map(ClientId::getMemberId).toList());
+            target.setGroupMembers(source.getGroupMember().stream().map(ClientId.class::cast).toList());
         }
         return target;
     }

@@ -237,8 +237,8 @@ public class AsicContainerVerifier {
     private TimeStampToken getTimeStampToken() throws Exception {
         String timestampDerBase64 = asic.getEntryAsString(ENTRY_TIMESTAMP);
         byte[] tsDerDecoded = decodeBase64(timestampDerBase64);
-        return new TimeStampToken(new ContentInfo(
-                (ASN1Sequence) ASN1Sequence.fromByteArray(tsDerDecoded)));
+        return new TimeStampToken(ContentInfo.getInstance(
+                ASN1Sequence.fromByteArray(tsDerDecoded)));
     }
 
     private static ClientId getSigner(String messageXml) {

@@ -74,6 +74,8 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.MimeUtils.getBoundary;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
+import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
@@ -90,10 +92,11 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private byte[] restBodyDigest;
 
     ClientRestMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
-                               final RestRequest restRequest,
-                               final HttpClient httpClient, final IsAuthenticationData clientCert) {
-        super(proxyRequestCtx, httpClient, clientCert);
-        this.restRequest = restRequest;
+                               Request request, Response response,
+                               HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+            throws Exception {
+        super(proxyRequestCtx,request, response, httpClient, clientCert, opMonitoringData);
+        this.xRequestId = UUID.randomUUID().toString();
     }
 
     //TODO: rethink what should happen in constructor and what in process..
@@ -103,6 +106,14 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         updateOpMonitoringClientSecurityServerAddress();
 
         try {
+            restRequest = new RestRequest(
+                    jRequest.getMethod(),
+                    jRequest.getHttpURI().getPath(),
+                    jRequest.getHttpURI().getQuery(),
+                    headers(jRequest),
+                    xRequestId
+            );
+
             // Check that incoming identifiers do not contain illegal characters
             checkRequestIdentifiers();
 
@@ -253,20 +264,17 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void sendResponse() throws Exception {
         final RestResponse rest = response.getRestResponse();
-        if (servletResponse instanceof Response jettyResponse) {
-            // the standard API for setting reason and code is deprecated
-            jettyResponse.setStatusWithReason(
-                    rest.getResponseCode(),
-                    rest.getReason());
-        } else {
-            servletResponse.setStatus(rest.getResponseCode());
-        }
-        servletResponse.setHeader("Date", null);
+        jResponse.setStatus(rest.getResponseCode());
+
         for (Header h : rest.getHeaders()) {
-            servletResponse.addHeader(h.getName(), h.getValue());
+            if ("Date".equalsIgnoreCase(h.getName())) {
+                jResponse.getHeaders().put(h.getName(), h.getValue());
+            } else {
+                jResponse.getHeaders().add(h.getName(), h.getValue());
+            }
         }
         if (response.hasRestBody()) {
-            IOUtils.copy(response.getRestBody(), servletResponse.getOutputStream());
+            IOUtils.copy(response.getRestBody(), asOutputStream(jResponse));
         }
     }
 
@@ -300,13 +308,13 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
                 final CertChain chain = KeyConf.getAuthKey().getCertChain();
                 KeyConf.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
-                        .forEach(resp -> enc.ocspResponse(resp));
+                        .forEach(enc::ocspResponse);
 
                 enc.restRequest(restRequest);
 
                 //Optimize the case without request body (e.g. simple get requests)
                 //TBD: Optimize the case without body logging
-                try (InputStream in = servletRequest.getInputStream()) {
+                try (InputStream in = asInputStream(jRequest)) {
                     @SuppressWarnings("checkstyle:magicnumber")
                     byte[] buf = new byte[4096];
                     int count = in.read(buf);
@@ -344,6 +352,12 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         public boolean isStreaming() {
             return true;
         }
+    }
+
+    private List<Header> headers(Request req) {
+        return req.getHeaders().stream()
+                .map(f -> new BasicHeader(f.getName(), f.getValue()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
 }

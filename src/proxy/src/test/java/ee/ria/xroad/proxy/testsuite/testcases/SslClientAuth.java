@@ -34,7 +34,6 @@ import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -63,8 +62,8 @@ public class SslClientAuth extends SslMessageTestCase {
             }
 
             @Override
-            public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
-                return Arrays.asList(TestCertUtil.getClient().certChain[0]);
+            public List<X509Certificate> getIsCerts(ClientId client) {
+                return List.of(TestCertUtil.getClient().certChain[0]);
             }
         });
 

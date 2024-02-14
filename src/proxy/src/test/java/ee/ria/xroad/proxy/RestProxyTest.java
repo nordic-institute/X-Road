@@ -37,8 +37,8 @@ import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
-import jakarta.servlet.ServletOutputStream;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -50,7 +50,10 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
+import static ee.ria.xroad.common.util.JettyUtils.getContentLength;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static io.restassured.RestAssured.given;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -117,7 +120,10 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldKeepQueryId() {
         final String qid = UUID.randomUUID().toString();
-        service.setHandler((target, request, response) -> assertEquals(qid, request.getHeader("X-Road-Id")));
+        service.setHandler((request, response) -> {
+            System.out.println("YYY");
+            assertEquals(qid, request.getHeaders().get("X-Road-Id"));
+        });
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -136,8 +142,11 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldHaveContentLengthHeader() {
         String body = "{\"value\" : 42}";
-        service.setHandler((target, request, response) -> assertEquals(body.getBytes().length,
-                request.getContentLength()));
+        service.setHandler((request, response) -> {
+            System.out.println("XXX");
+            assertEquals(body.getBytes().length,
+                    getContentLength(request));
+        });
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -189,7 +198,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldAcceptPercentEncodedIdentifiers() {
-        service.setHandler((target, request, response) -> assertEquals("/path%3B/", request.getRequestURI()));
+        service.setHandler((request, response) -> assertEquals("/path%3B/", request.getHttpURI().getPath()));
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -201,7 +210,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldAcceptEmptyPath() {
-        service.setHandler((target, request, response) -> assertEquals("/", request.getRequestURI()));
+        service.setHandler((request, response) -> assertEquals("/", request.getHttpURI().getPath()));
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -235,9 +244,9 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldNotFollow302Redirects() {
         final String location = PREFIX + "/EE/BUSINESS/producer/sub/notexists";
-        service.setHandler((target, request, response) -> {
+        service.setHandler((request, response) -> {
             response.setStatus(302);
-            response.setHeader("Location", location);
+            response.getHeaders().put("Location", location);
         });
         given()
                 .baseUri("http://127.0.0.1")
@@ -467,11 +476,11 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "text/xml;charset=utf-8");
     }
 
-    private static final TestService.Handler LARGE_OBJECT_HANDLER = (target, request, response) -> {
+    private static final TestService.Handler LARGE_OBJECT_HANDLER = (request, response) -> {
         response.setStatus(200);
-        response.setContentType("application/octet-stream");
-        final int bytes = Integer.parseInt(request.getParameter("bytes"));
-        final ServletOutputStream output = response.getOutputStream();
+        setContentType(response, "application/octet-stream");
+        final int bytes = Integer.parseInt(Request.getParameters(request).getValue("bytes"));
+        final var output = asOutputStream(response);
         byte[] buf = new byte[8192];
         Arrays.fill(buf, (byte) (bytes % 256));
         int i = bytes;

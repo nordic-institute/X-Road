@@ -573,7 +573,8 @@
     },
     "tokenPin": "Token PIN",
     "url": "URL",
-    "username": "Username"
+    "username": "Username",
+    "certificationService": "Certification Service"
   },
   "footer": {
     "copyright": {

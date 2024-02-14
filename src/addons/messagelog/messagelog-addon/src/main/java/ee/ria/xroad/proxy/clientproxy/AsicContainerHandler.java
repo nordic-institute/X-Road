@@ -29,14 +29,15 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 
 /**
  * AsicContainerHandler
@@ -52,10 +53,10 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    Optional<MessageProcessorBase> createRequestProcessor(String target,
-                                                          HttpServletRequest request, HttpServletResponse response,
+    Optional<MessageProcessorBase> createRequestProcessor(Request request, Response response,
                                                           OpMonitoringData opMonitoringData) throws Exception {
-        log.trace("createRequestProcessor({})", target);
+        var target = getTarget(request);
+        log.trace("createRequestProcessor({})", getTarget(request));
 
         // opMonitoringData is null, do not use it.
 

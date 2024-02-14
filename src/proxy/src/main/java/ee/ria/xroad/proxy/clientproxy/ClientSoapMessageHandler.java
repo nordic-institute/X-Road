@@ -33,9 +33,9 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import java.util.Optional;
 
@@ -55,8 +55,8 @@ class ClientSoapMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    Optional<MessageProcessorBase> createRequestProcessor(String target,
-                                                          HttpServletRequest request, HttpServletResponse response,
+    Optional<MessageProcessorBase> createRequestProcessor(
+                                                          Request request, Response response,
                                                           OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
@@ -64,7 +64,7 @@ class ClientSoapMessageHandler extends AbstractClientProxyHandler {
                 getIsAuthenticationData(request), opMonitoringData));
     }
 
-    private void verifyCanProcess(HttpServletRequest request) {
+    private void verifyCanProcess(Request request) {
         if (!isPostRequest(request)) {
             throw new ClientException(X_INVALID_HTTP_METHOD,
                     "Must use POST request method instead of %s",

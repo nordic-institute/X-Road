@@ -27,23 +27,26 @@ package ee.ria.xroad.proxy.testutil;
 
 import ee.ria.xroad.common.util.StartStop;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
+import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.JettyUtils.getContentType;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
+import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 /**
  * Test service
@@ -61,7 +64,7 @@ public class TestService implements StartStop {
      */
     @FunctionalInterface
     public interface Handler {
-        void handle(String target, HttpServletRequest request, HttpServletResponse response) throws Exception;
+        void handle(Request request, Response response) throws Exception;
     }
 
     /**
@@ -132,29 +135,28 @@ public class TestService implements StartStop {
         }
     }
 
-    private final class ServiceHandler extends AbstractHandler {
+    private final class ServiceHandler extends org.eclipse.jetty.server.Handler.Abstract {
         @Override
-        public void handle(String target, Request baseRequest, HttpServletRequest request,
-                HttpServletResponse response) throws IOException, ServletException {
-            log.debug("Service simulator received request {}, contentType={}", target, request.getContentType());
+        public boolean handle(Request request, Response response, Callback callback) throws Exception {
+            log.debug("Service simulator received request {}, contentType={}", request.getHttpURI().getPath(), getContentType(request));
             synchronized (TestService.this) {
                 try {
-                    handler.handle(target, request, response);
+                    handler.handle(request, response);
+                    callback.succeeded();
                 } catch (Throwable t) {
                     exception = t;
                     log.error("Error when handling request", t);
-                    response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, t.getMessage());
-                    throw new ServletException(t);
-                } finally {
-                    baseRequest.setHandled(true);
+                    response.setStatus(INTERNAL_SERVER_ERROR_500);
+                    Content.Sink.write(response, true, UTF_8.encode(t.getMessage()));
+                    callback.failed(t);
                 }
+                return true;
             }
         }
     }
 
-    public static final Handler ECHO = (target, request, response) -> {
-        response.setContentType(request.getContentType());
-        response.setCharacterEncoding(request.getCharacterEncoding());
-        IOUtils.copy(request.getInputStream(), response.getOutputStream());
+    public static final Handler ECHO = (request, response) -> {
+        setContentType(response, getContentType(request));
+        IOUtils.copy(asInputStream(request), asOutputStream(response));
     };
 }
