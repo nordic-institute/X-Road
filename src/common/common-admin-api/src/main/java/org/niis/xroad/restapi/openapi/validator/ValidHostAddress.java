@@ -44,6 +44,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = HostAddressValidator.class)
 public @interface ValidHostAddress {
     String message() default "valid internet domain name or IP address is required. Without control characters.";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

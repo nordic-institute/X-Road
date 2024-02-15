@@ -54,7 +54,7 @@ public class CsrFilenameCreator {
      * @return
      */
     public String createCsrFilename(KeyUsageInfo keyUsageInfo, CertificateRequestFormat csrFormat,
-            ClientId memberId, SecurityServerId securityServerId) {
+                                    ClientId memberId, SecurityServerId securityServerId) {
         StringBuilder builder = new StringBuilder();
         if (KeyUsageInfo.AUTHENTICATION == keyUsageInfo) {
             builder.append("auth");
@@ -76,7 +76,7 @@ public class CsrFilenameCreator {
     }
 
     private String createIdentifier(KeyUsageInfo keyUsageInfo,
-            ClientId memberId, SecurityServerId securityServerId) {
+                                    ClientId memberId, SecurityServerId securityServerId) {
         StringBuilder builder = new StringBuilder();
         if (KeyUsageInfo.AUTHENTICATION == keyUsageInfo) {
             builder.append("securityserver_");

@@ -24,6 +24,7 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.restapi.service;
+
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**

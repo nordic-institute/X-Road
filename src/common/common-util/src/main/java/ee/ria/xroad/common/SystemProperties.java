@@ -464,7 +464,7 @@ public final class SystemProperties {
      * {@link #ALL} naturally means all and {@link #NONE} means federation is disabled.
      * The configurations for those instances won't be downloaded.
      */
-    public enum AllowedFederationMode { ALL, NONE, CUSTOM }
+    public enum AllowedFederationMode {ALL, NONE, CUSTOM}
 
     // Center -----------------------------------------------------------------
 
@@ -1152,7 +1152,7 @@ public final class SystemProperties {
                 DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS));
     }
 
-     /**
+    /**
      * @return path to the directory containing configuration proxy configuration files,
      * '/etc/xroad/confproxy' by default.
      */

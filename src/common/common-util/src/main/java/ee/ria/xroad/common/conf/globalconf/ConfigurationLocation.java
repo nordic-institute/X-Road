@@ -95,7 +95,7 @@ public class ConfigurationLocation {
      * if not found
      */
     public X509Certificate getVerificationCert(String certHashBase64,
-            String hashAlgoId) {
+                                               String hashAlgoId) {
         byte[] certHash = decodeBase64(certHashBase64);
         for (byte[] certBytes : verificationCerts) {
             try {

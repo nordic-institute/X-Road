@@ -77,7 +77,7 @@ final class OperationalDataRecordQuery {
     private jakarta.persistence.criteria.Order order = null;
 
     OperationalDataRecordQuery(Session session, ClientId clientFilter, ClientId serviceProviderFilter,
-            Set<String> outputFields) {
+                               Set<String> outputFields) {
         this.session = session;
         cb = this.session.getCriteriaBuilder();
         query = cb.createTupleQuery();
@@ -147,7 +147,7 @@ final class OperationalDataRecordQuery {
                 member.getSubsystemCode() == null
                         ? cb.isNull(isClient ? from.get(CLIENT_SUBSYSTEM_CODE) : from.get(SERVICE_SUBSYSTEM_CODE))
                         : cb.equal(isClient ? from.get(CLIENT_SUBSYSTEM_CODE) : from.get(SERVICE_SUBSYSTEM_CODE),
-                                member.getSubsystemCode()));
+                        member.getSubsystemCode()));
     }
 
     void addOverflowCriteria(long monitoringDataTs) {

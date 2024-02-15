@@ -28,7 +28,8 @@ package ee.ria.xroad.common.util;
 import io.vavr.CheckedConsumer;
 
 public final class Fn {
-    private Fn() { }
+    private Fn() {
+    }
 
     public static <T> T self(T target, CheckedConsumer<T> selfFn) {
         selfFn.unchecked().accept(target);

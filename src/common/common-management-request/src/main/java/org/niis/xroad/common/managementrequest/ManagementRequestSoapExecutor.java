@@ -50,7 +50,7 @@ public class ManagementRequestSoapExecutor {
     public static final int MAX_REQUEST_SIZE = 100_000;
 
     public static ResponseEntity<String> process(String contentType, InputStream body,
-                                          ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
+                                                 ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
         try (var bos = new BoundedInputStream(body, MAX_REQUEST_SIZE)) {
             var verificationResult = ManagementRequestVerifier.readRequest(contentType, bos);
 

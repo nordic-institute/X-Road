@@ -105,15 +105,19 @@ public class ManagementRequestsPageObj {
         public SelenideElement requestId() {
             return $x("//td[@data-test='managementRequestDetails.requestId']");
         }
+
         public SelenideElement received() {
             return $x("//td[@data-test='managementRequestDetails.received']");
         }
+
         public SelenideElement source() {
             return $x("//td[@data-test='managementRequestDetails.source']");
         }
+
         public SelenideElement status() {
             return $x("//td[@data-test='managementRequestDetails.status']");
         }
+
         public SelenideElement comments() {
             return $x("//td[@data-test='managementRequestDetails.comments']");
         }
@@ -123,22 +127,27 @@ public class ManagementRequestsPageObj {
         private SelenideElement securityServerInformation() {
             return $x("//section[@data-test='managementRequestDetails.securityServerInformation']");
         }
+
         public SelenideElement ownerName() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerName']";
             return securityServerInformation().find(xpath(xpath));
         }
+
         public SelenideElement ownerClass() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerClass']";
             return securityServerInformation().find(xpath(xpath));
         }
+
         public SelenideElement ownerCode() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerCode']";
             return securityServerInformation().find(xpath(xpath));
         }
+
         public SelenideElement serverCode() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.serverCode']";
             return securityServerInformation().find(xpath(xpath));
         }
+
         public SelenideElement address() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.address']";
             return securityServerInformation().find(xpath(xpath));
@@ -149,12 +158,15 @@ public class ManagementRequestsPageObj {
         public SelenideElement ca() {
             return $x("//td[@data-test='managementRequestDetails.ca']");
         }
+
         public SelenideElement serialNumber() {
             return $x("//td[@data-test='managementRequestDetails.serialNumber']");
         }
+
         public SelenideElement subject() {
             return $x("//td[@data-test='managementRequestDetails.subject']");
         }
+
         public SelenideElement expires() {
             return $x("//td[@data-test='managementRequestDetails.expires']");
         }
@@ -164,18 +176,22 @@ public class ManagementRequestsPageObj {
         private SelenideElement clientInformation() {
             return $x("//section[@data-test='managementRequestDetails.clientInformation']");
         }
+
         public SelenideElement ownerName() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerName']";
             return clientInformation().find(xpath(xpath));
         }
+
         public SelenideElement ownerClass() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerClass']";
             return clientInformation().find(xpath(xpath));
         }
+
         public SelenideElement ownerCode() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.ownerCode']";
             return clientInformation().find(xpath(xpath));
         }
+
         public SelenideElement subsystemCode() {
             var xpath = "./div/div/table/tbody/tr/td[@data-test='managementRequestDetails.subsystemCode']";
             return clientInformation().find(xpath(xpath));

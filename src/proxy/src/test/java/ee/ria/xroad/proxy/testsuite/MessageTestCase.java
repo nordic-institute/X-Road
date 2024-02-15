@@ -189,7 +189,7 @@ public class MessageTestCase {
     /**
      * @return the server proxy HTTP handler
      */
-    public  Handler.Abstract getServerProxyHandler() {
+    public Handler.Abstract getServerProxyHandler() {
         return null;
     }
 
@@ -338,7 +338,7 @@ public class MessageTestCase {
     }
 
     protected InputStream getQueryInputStream(String fileName,
-            boolean addUtf8Bom) throws Exception {
+                                              boolean addUtf8Bom) throws Exception {
         InputStream is = changeQueryId(new FileInputStream(fileName));
 
         return addUtf8Bom ? addUtf8Bom(is) : is;

@@ -56,7 +56,7 @@ public class ControllerUtil {
      * @return
      */
     public static <T> ResponseEntity<T> createCreatedResponse(String path,
-            T body, Object... uriVariableValues) {
+                                                              T body, Object... uriVariableValues) {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .replacePath(path)

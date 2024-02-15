@@ -69,25 +69,28 @@ public class MessageBodyManipulatorTest {
     @Setter
     private class TestableMessageBodyManipulator extends MessageBodyManipulator {
         TestableMessageBodyManipulator(boolean globalBodyLogging,
-                                           Collection<ClientId> localOverrides,
-                                           Collection<ClientId> remoteOverrides) {
+                                       Collection<ClientId> localOverrides,
+                                       Collection<ClientId> remoteOverrides) {
             setConfigurator(new Configurator() {
                 @Override
                 public Collection<ClientId> getLocalProducerOverrides() {
                     return localOverrides;
                 }
+
                 @Override
                 public Collection<ClientId> getRemoteProducerOverrides() {
                     return remoteOverrides;
                 }
+
                 @Override
                 public boolean isMessageBodyLoggingEnabled() {
                     return globalBodyLogging;
                 }
             });
         }
+
         TestableMessageBodyManipulator(boolean globalBodyLogging) {
-            this (globalBodyLogging, new ArrayList<ClientId>(), new ArrayList<ClientId>());
+            this(globalBodyLogging, new ArrayList<ClientId>(), new ArrayList<ClientId>());
         }
     }
 
@@ -189,9 +192,9 @@ public class MessageBodyManipulatorTest {
      * that when we do not remove body, it is not empty
      */
     private void assertNodeEmptinessAfterManipulation(SoapMessageImpl query,
-                                                     boolean clientSide,
-                                                     String elementName,
-                                                     boolean keepBody) throws Exception {
+                                                      boolean clientSide,
+                                                      String elementName,
+                                                      boolean keepBody) throws Exception {
         String loggableMessage = new TestableMessageBodyManipulator(keepBody)
                 .getLoggableMessageText(new SoapLogMessage(query, null, clientSide));
         log.debug("loggable message with body"

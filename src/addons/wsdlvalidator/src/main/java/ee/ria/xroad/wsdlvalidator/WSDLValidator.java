@@ -127,7 +127,7 @@ public final class WSDLValidator {
         }
 
         final SSLContext sslCtx = SSLContext.getInstance("TLS");
-        sslCtx.init(keyManagers, new TrustManager[] {new NoopTrustManager()}, new SecureRandom());
+        sslCtx.init(keyManagers, new TrustManager[]{new NoopTrustManager()}, new SecureRandom());
 
         HttpsURLConnection.setDefaultHostnameVerifier((s, sslSession) -> true);
         HttpsURLConnection.setDefaultSSLSocketFactory(sslCtx.getSocketFactory());

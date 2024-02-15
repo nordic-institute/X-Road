@@ -126,10 +126,10 @@ public class ServiceClientService {
         serviceClientsByClient = getServiceClientsByClient(ownerId);
 
         return serviceClientsByClient.stream()
-            .filter(scDto -> scDto.getSubjectId().equals(serviceClientId))
-            .findFirst()
-            .orElseThrow(() -> new ServiceClientNotFoundException("Service client not found for client id: "
-                    + ownerId.toShortString() + " and service client: " + serviceClientId.toShortString()));
+                .filter(scDto -> scDto.getSubjectId().equals(serviceClientId))
+                .findFirst()
+                .orElseThrow(() -> new ServiceClientNotFoundException("Service client not found for client id: "
+                        + ownerId.toShortString() + " and service client: " + serviceClientId.toShortString()));
     }
 
     /**
@@ -184,7 +184,7 @@ public class ServiceClientService {
      * @throws ServiceClientNotFoundException if given service client being searched is not found
      */
     public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId ownerId,
-            XRoadId serviceClientId) throws ClientNotFoundException, ServiceClientNotFoundException {
+                                                                          XRoadId serviceClientId) throws ClientNotFoundException, ServiceClientNotFoundException {
 
         ClientType owner = clientRepository.getClient(ownerId);
         if (owner == null) {

@@ -90,16 +90,16 @@ public final class AsicContainerEntries {
 
     @Getter
     private static final Object[] ALL_ENTRIES = {
-        ENTRY_MIMETYPE,
-        ENTRY_MESSAGE,
-        ENTRY_SIGNATURE_PATTERN,
-        ENTRY_SIG_HASH_CHAIN_RESULT,
-        ENTRY_SIG_HASH_CHAIN,
-        ENTRY_TS_HASH_CHAIN_RESULT,
-        ENTRY_TS_HASH_CHAIN,
-        ENTRY_MANIFEST,
-        ENTRY_ASIC_MANIFEST,
-        ENTRY_TIMESTAMP,
+            ENTRY_MIMETYPE,
+            ENTRY_MESSAGE,
+            ENTRY_SIGNATURE_PATTERN,
+            ENTRY_SIG_HASH_CHAIN_RESULT,
+            ENTRY_SIG_HASH_CHAIN,
+            ENTRY_TS_HASH_CHAIN_RESULT,
+            ENTRY_TS_HASH_CHAIN,
+            ENTRY_MANIFEST,
+            ENTRY_ASIC_MANIFEST,
+            ENTRY_TIMESTAMP,
     };
 
     private AsicContainerEntries() {

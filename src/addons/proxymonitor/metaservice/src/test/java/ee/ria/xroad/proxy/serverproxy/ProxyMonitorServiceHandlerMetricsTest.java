@@ -126,7 +126,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     @BeforeClass
     public static void initCommon() throws JAXBException, SOAPException {
         unmarshaller = JAXBContext.newInstance(ObjectFactory.class, SoapHeader.class,
-                GetSecurityServerMetricsResponse.class)
+                        GetSecurityServerMetricsResponse.class)
                 .createUnmarshaller();
         messageFactory = MessageFactory.newInstance();
     }
@@ -219,13 +219,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat("Missing the expected metrics set",
                 responseMetrics, hasItem(instanceOf(MetricSetType.class)));
 
-        final MetricSetType responseDataMetrics = (MetricSetType)responseMetrics.stream() // we just asserted this..
+        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
                 .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
 
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType)responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }
@@ -304,13 +304,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat("Missing the expected metrics set",
                 responseMetrics, hasItem(instanceOf(MetricSetType.class)));
 
-        final MetricSetType responseDataMetrics = (MetricSetType)responseMetrics.stream() // we just asserted this..
+        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
                 .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
 
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType)responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }

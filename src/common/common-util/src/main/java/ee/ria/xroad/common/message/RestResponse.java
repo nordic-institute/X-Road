@@ -68,7 +68,7 @@ public class RestResponse extends RestMessage {
      * @param messageBytes
      */
     private RestResponse(byte[] messageBytes, ClientId clientId, String queryId, byte[] requestHash,
-            ServiceId serviceId, int code, String reason, List<Header> headers, String xRequestId) {
+                         ServiceId serviceId, int code, String reason, List<Header> headers, String xRequestId) {
         this.messageBytes = messageBytes;
         this.clientId = clientId;
         this.queryId = queryId;
@@ -84,7 +84,7 @@ public class RestResponse extends RestMessage {
      * create response from data
      */
     public RestResponse(ClientId clientId, String queryId, byte[] requestHash, ServiceId serviceId, int code,
-            String reason, List<Header> headers, String xRequestId) {
+                        String reason, List<Header> headers, String xRequestId) {
         this.responseCode = code;
         this.reason = reason;
         this.queryId = queryId;

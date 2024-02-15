@@ -111,13 +111,13 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test(expected = AccessDeniedException.class)
-    @WithMockUser(authorities = { "VIEW_PROXY_INTERNAL_CERT" })
+    @WithMockUser(authorities = {"VIEW_PROXY_INTERNAL_CERT"})
     public void getSystemCertificateWrongPermission() {
         systemApiController.getSystemCertificate();
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_INTERNAL_TLS_CSR" })
+    @WithMockUser(authorities = {"GENERATE_INTERNAL_TLS_CSR"})
     public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
         when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
         ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
@@ -126,20 +126,20 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test(expected = AccessDeniedException.class)
-    @WithMockUser(authorities = { "GENERATE_INTERNAL_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_INTERNAL_CERT_REQ"})
     public void generateSystemCertificateRequestWrongPermission() {
         systemApiController.generateSystemCertificateRequest(new DistinguishedName().name("foobar"));
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_INTERNAL_TLS_CERT" })
+    @WithMockUser(authorities = {"VIEW_INTERNAL_TLS_CERT"})
     public void getSystemCertificateWithViewInternalSslCertPermission() throws Exception {
         getSystemCertificate();
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_VERSION" })
-    public void getVersionInfo()  {
+    @WithMockUser(authorities = {"VIEW_VERSION"})
+    public void getVersionInfo() {
         VersionInfoDto mockVersionInfo = new VersionInfoDto();
         mockVersionInfo.setJavaVersion(33);
 
@@ -163,7 +163,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_TSPS" })
+    @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getConfiguredTimestampingServices() {
         when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(
                 Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME),
@@ -179,7 +179,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_TSPS" })
+    @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getConfiguredTimestampingServicesEmptyList() {
         when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<TspType>());
 
@@ -193,7 +193,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_TSP" })
+    @WithMockUser(authorities = {"ADD_TSP"})
     public void addConfiguredTimestampingService() {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_2_URL, TSA_2_NAME);
 
@@ -206,7 +206,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_TSP" })
+    @WithMockUser(authorities = {"ADD_TSP"})
     public void addDuplicateConfiguredTimestampingService() throws
             SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
@@ -224,7 +224,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "ADD_TSP" })
+    @WithMockUser(authorities = {"ADD_TSP"})
     public void addNonExistingConfiguredTimestampingService() throws
             SystemService.DuplicateConfiguredTimestampingServiceException,
             TimestampingServiceNotFoundException {
@@ -244,7 +244,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_TSP" })
+    @WithMockUser(authorities = {"DELETE_TSP"})
     public void deleteConfiguredTimestampingService() {
         ResponseEntity<Void> response = systemApiController
                 .deleteConfiguredTimestampingService(TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME));
@@ -252,7 +252,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_TSP" })
+    @WithMockUser(authorities = {"DELETE_TSP"})
     public void deleteNonExistingConfiguredTimestampingService() throws TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
@@ -269,7 +269,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_ANCHOR" })
+    @WithMockUser(authorities = {"VIEW_ANCHOR"})
     public void getAnchor() throws AnchorNotFoundException {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
@@ -284,7 +284,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_ANCHOR" })
+    @WithMockUser(authorities = {"VIEW_ANCHOR"})
     public void getAnchorNotFound() throws AnchorNotFoundException {
         Mockito.doThrow(new AnchorNotFoundException("")).when(systemService).getAnchorFile();
 
@@ -297,7 +297,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DOWNLOAD_ANCHOR" })
+    @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
     public void downloadAnchor() throws AnchorNotFoundException, IOException {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
         when(systemService.readAnchorFile()).thenReturn(bytes);
@@ -310,7 +310,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DOWNLOAD_ANCHOR" })
+    @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
     public void downloadAnchorNotFound() throws AnchorNotFoundException {
         Mockito.doThrow(new AnchorNotFoundException("")).when(systemService).readAnchorFile();
 
@@ -323,7 +323,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "UPLOAD_ANCHOR" })
+    @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void replaceAnchor() throws IOException {
         Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
         ResponseEntity<Void> response = systemApiController.replaceAnchor(anchorResource);
@@ -332,7 +332,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "UPLOAD_ANCHOR" })
+    @WithMockUser(authorities = {"UPLOAD_ANCHOR"})
     public void previewAnchor() throws IOException {
         Resource anchorResource = new ByteArrayResource(FileUtils.readFileToByteArray(ANCHOR_FILE));
         ResponseEntity<Anchor> response = systemApiController.previewAnchor(true, anchorResource);
@@ -343,14 +343,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_NODE_TYPE" })
+    @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypeStandalone() {
         ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
         assertEquals(response.getBody().getNodeType(), NodeType.STANDALONE); // default value is STANDALONE
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_NODE_TYPE" })
+    @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypePrimary() {
         when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.MASTER);
         ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
@@ -358,7 +358,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_NODE_TYPE" })
+    @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypeSecondary() {
         when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.SLAVE);
         ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();

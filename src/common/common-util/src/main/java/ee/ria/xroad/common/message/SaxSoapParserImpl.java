@@ -227,13 +227,13 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     private static Soap createSoapMessage(String contentType, String charset,
-            XRoadSoapHandler handler, byte[] xmlBytes) throws Exception {
+                                          XRoadSoapHandler handler, byte[] xmlBytes) throws Exception {
         return new SoapMessageImpl(xmlBytes, charset, handler.getHeader(),
                 null, handler.getServiceName(), handler.isRpc(), contentType);
     }
 
     private static Soap createSoapFault(String charset,
-            ByteArrayOutputStream rawXml, CodedException fault) {
+                                        ByteArrayOutputStream rawXml, CodedException fault) {
         return new SoapFault(fault.getFaultCode(), fault.getFaultString(),
                 fault.getFaultActor(), fault.getFaultDetail(),
                 rawXml.toByteArray(), charset);
@@ -479,7 +479,7 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     private static void validateDuplicateHeader(QName qName,
-            Object existing) {
+                                                Object existing) {
         if (existing != null) {
             throw new CodedException(X_DUPLICATE_HEADER_FIELD, DUPLICATE_HEADER_MESSAGE, qName);
         }
@@ -699,7 +699,7 @@ public class SaxSoapParserImpl implements SoapParser {
             header.setService(serviceId);
         }
 
-         /**
+        /**
          * Called when a represented party header has been paresed.
          * @param representedParty the represented party
          */
@@ -756,7 +756,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
             @Override
             public void openTag() {
-                hashAlgoId =  getAttributes().getValue("", ATTR_ALGORITHM_ID);
+                hashAlgoId = getAttributes().getValue("", ATTR_ALGORITHM_ID);
             }
 
             @Override

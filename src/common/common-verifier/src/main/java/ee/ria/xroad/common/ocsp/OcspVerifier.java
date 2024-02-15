@@ -114,7 +114,7 @@ public final class OcspVerifier {
      *                   if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer) throws Exception {
+                                        X509Certificate subject, X509Certificate issuer) throws Exception {
         verifyValidityAndStatus(response, subject, issuer, new Date());
     }
 
@@ -130,7 +130,7 @@ public final class OcspVerifier {
      *                   if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer, Date atDate)
+                                        X509Certificate subject, X509Certificate issuer, Date atDate)
             throws Exception {
         verifyValidity(response, subject, issuer, atDate);
         verifyStatus(response);
@@ -147,7 +147,7 @@ public final class OcspVerifier {
      *                   if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer) throws Exception {
+                               X509Certificate issuer) throws Exception {
         verifyValidity(response, subject, issuer, new Date());
     }
 
@@ -163,7 +163,7 @@ public final class OcspVerifier {
      *                   if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer, Date atDate) throws Exception {
+                               X509Certificate issuer, Date atDate) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("verifyValidity(subject: {}, issuer: {}, atDate: {})",
                     subject.getSubjectX500Principal().getName(),
@@ -203,7 +203,7 @@ public final class OcspVerifier {
     }
 
     private SingleResp verifyResponseValidityCached(final OCSPResp response, final X509Certificate subject,
-            final X509Certificate issuer) throws Exception {
+                                                    final X509Certificate issuer) throws Exception {
         try {
             final String key = response.hashCode() + ":" + subject.hashCode() + ":" + issuer.hashCode();
             return RESPONSE_VALIDITY_CACHE.get(key, () -> verifyResponseValidity(response, subject, issuer));
@@ -391,7 +391,7 @@ public final class OcspVerifier {
     }
 
     private static boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
-            X509Certificate issuer) throws Exception {
+                                                  X509Certificate issuer) throws Exception {
         // 1. Matches a local configuration of OCSP signing authority for the
         // certificate in question; or
         if (GlobalConf.isOcspResponderCert(issuer, ocspCert)) {

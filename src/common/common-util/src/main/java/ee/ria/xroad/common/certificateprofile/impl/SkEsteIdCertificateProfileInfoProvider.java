@@ -71,7 +71,7 @@ public class SkEsteIdCertificateProfileInfoProvider
 
         @Override
         public DnFieldDescription[] getSubjectFields() {
-            return new DnFieldDescription[] {};
+            return new DnFieldDescription[]{};
         }
 
         @Override
@@ -102,7 +102,7 @@ public class SkEsteIdCertificateProfileInfoProvider
         public ClientId.Conf getSubjectIdentifier(X509Certificate certificate)
                 throws Exception {
             return getSubjectIdentifier(
-                new X500Name(certificate.getSubjectX500Principal().getName())
+                    new X500Name(certificate.getSubjectX500Principal().getName())
             );
         }
 
@@ -114,9 +114,9 @@ public class SkEsteIdCertificateProfileInfoProvider
             }
 
             return ClientId.Conf.create(
-                params.getClientId().getXRoadInstance(),
-                PERSON,
-                sn
+                    params.getClientId().getXRoadInstance(),
+                    PERSON,
+                    sn
             );
         }
     }

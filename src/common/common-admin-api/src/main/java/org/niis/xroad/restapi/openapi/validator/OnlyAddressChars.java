@@ -44,6 +44,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = AddressCharsValidator.class)
 public @interface OnlyAddressChars {
     String message() default "must not contain invalid characters for hostname or IP address";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

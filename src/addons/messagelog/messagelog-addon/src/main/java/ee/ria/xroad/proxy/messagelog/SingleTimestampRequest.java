@@ -46,7 +46,7 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     private Signature signature;
 
     SingleTimestampRequest(Long logRecord) {
-        super(new Long[] {logRecord});
+        super(new Long[]{logRecord});
     }
 
     @Override

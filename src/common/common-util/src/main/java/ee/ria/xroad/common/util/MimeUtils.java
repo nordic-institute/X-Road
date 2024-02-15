@@ -119,7 +119,7 @@ public final class MimeUtils {
      * @return String
      */
     public static String contentTypeWithCharsetAndBoundary(String mimeType, String type, String charset,
-            String boundary) {
+                                                           String boundary) {
         return mimeType + "; type=\"" + type + "\"; charset=" + charset + "; boundary=" + boundary;
     }
 

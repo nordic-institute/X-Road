@@ -62,8 +62,8 @@ public class TokenCertificateConverter {
      * and populate possibleActions
      */
     public TokenCertificate convert(CertificateInfo certificateInfo,
-            KeyInfo keyInfo,
-            TokenInfo tokenInfo) {
+                                    KeyInfo keyInfo,
+                                    TokenInfo tokenInfo) {
         TokenCertificate tokenCertificate = convert(certificateInfo);
         tokenCertificate.setPossibleActions(possibleActionConverter.convert(
                 possibleActionsRuleEngine.getPossibleCertificateActions(
@@ -99,7 +99,7 @@ public class TokenCertificateConverter {
      * @return
      */
     private CertificateOcspStatus getOcspStatus(CertificateInfo info,
-            CertificateDetails details) {
+                                                CertificateDetails details) {
         if (!info.isActive()) {
             return CertificateOcspStatus.DISABLED;
         }
@@ -154,8 +154,8 @@ public class TokenCertificateConverter {
      * @return List of {@link TokenCertificate token certificates}
      */
     public List<TokenCertificate> convert(Iterable<CertificateInfo> certificateInfos,
-            KeyInfo keyInfo,
-            TokenInfo tokenInfo) {
+                                          KeyInfo keyInfo,
+                                          TokenInfo tokenInfo) {
         return Streams.stream(certificateInfos)
                 .map(c -> convert(c, keyInfo, tokenInfo))
                 .collect(Collectors.toList());

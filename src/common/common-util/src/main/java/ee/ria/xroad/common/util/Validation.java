@@ -31,7 +31,8 @@ import java.util.Objects;
 
 public final class Validation {
 
-    private Validation() { }
+    private Validation() {
+    }
 
     public static String validateArgument(String argumentName, String argumentValue) {
         if (StringUtils.isBlank(argumentValue)) {

@@ -82,7 +82,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
 
     @Override
     public X509Certificate[] getAuthTrustChain() {
-        return new X509Certificate[] {TestCertUtil.getCaCert()};
+        return new X509Certificate[]{TestCertUtil.getCaCert()};
     }
 
     private MessageTestCase currentTestCase() {
@@ -91,13 +91,13 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
 
     @Override
     public X509Certificate getCaCert(String instanceIdentifier,
-            X509Certificate org) throws Exception {
+                                     X509Certificate org) throws Exception {
         return TestCertUtil.getCaCert();
     }
 
     @Override
     public CertChain getCertChain(String instanceIdentifier,
-            X509Certificate subject) throws Exception {
+                                  X509Certificate subject) throws Exception {
         return CertChain.create(instanceIdentifier, subject, null);
     }
 
@@ -125,9 +125,9 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
                 // new certificate.
                 ClientId id = super.getSubjectIdentifier(certificate);
                 return ClientId.Conf.create(
-                    id.getXRoadInstance(),
-                    "BUSINESS",
-                    id.getMemberCode()
+                        id.getXRoadInstance(),
+                        "BUSINESS",
+                        id.getMemberCode()
                 );
             }
         };

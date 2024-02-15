@@ -100,7 +100,7 @@ public class UserApiController implements UserApi {
     }
 
     private Set<String> getAuthorities(Authentication authentication,
-            Predicate<String> authorityNamePredicate) {
+                                       Predicate<String> authorityNamePredicate) {
         Set<String> roles = authentication.getAuthorities().stream()
                 .map(authority -> authority.getAuthority())
                 .filter(authorityNamePredicate)

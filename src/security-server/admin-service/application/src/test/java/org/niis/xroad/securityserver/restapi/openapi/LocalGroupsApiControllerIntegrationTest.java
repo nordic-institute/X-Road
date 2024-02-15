@@ -88,7 +88,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS" })
+    @WithMockUser(authorities = {"VIEW_CLIENT_LOCAL_GROUPS"})
     public void getLocalGroup() throws Exception {
         ResponseEntity<LocalGroup> response =
                 localGroupsApiController.getLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
@@ -102,7 +102,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC" })
+    @WithMockUser(authorities = {"VIEW_CLIENT_LOCAL_GROUPS", "EDIT_LOCAL_GROUP_DESC"})
     public void updateGroup() throws Exception {
         localGroupsApiController.updateLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1,
                 new LocalGroupDescription().description(TestUtils.GROUP_DESC));
@@ -113,7 +113,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS" })
+    @WithMockUser(authorities = {"DELETE_LOCAL_GROUP", "VIEW_CLIENT_LOCAL_GROUPS"})
     public void deleteLocalGroup() throws Exception {
         ResponseEntity<Void> response =
                 localGroupsApiController.deleteLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
@@ -129,7 +129,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS" })
+    @WithMockUser(authorities = {"EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS"})
     public void addGroupMember() throws Exception {
         ResponseEntity<Members> response =
                 localGroupsApiController.addLocalGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
@@ -146,7 +146,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS" })
+    @WithMockUser(authorities = {"EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS"})
     public void addMultipleGroupMembers() throws Exception {
         List<String> membersToBeAdded = Arrays.asList(TestUtils.CLIENT_ID_SS1, TestUtils.CLIENT_ID_SS2,
                 TestUtils.CLIENT_ID_SS1, TestUtils.CLIENT_ID_SS2);
@@ -164,7 +164,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS" })
+    @WithMockUser(authorities = {"EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS"})
     public void addDuplicateGroupMember() throws Exception {
         List<String> membersToBeAdded = Arrays.asList(TestUtils.CLIENT_ID_SS1, TestUtils.CLIENT_ID_SS2);
         ResponseEntity<Members> response = localGroupsApiController.addLocalGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1,
@@ -183,7 +183,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS" })
+    @WithMockUser(authorities = {"EDIT_LOCAL_GROUP_MEMBERS", "VIEW_CLIENT_LOCAL_GROUPS"})
     public void deleteGroupMember() throws Exception {
         ResponseEntity<Members> response =
                 localGroupsApiController.addLocalGroupMember(TestUtils.DB_LOCAL_GROUP_ID_1, new Members()

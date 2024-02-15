@@ -148,7 +148,7 @@ public class SharedParameters {
 
     private void cacheSecurityServers() {
         for (SecurityServer securityServer : securityServers) {
-            for (byte[] certHash: securityServer.getAuthCertHashes()) {
+            for (byte[] certHash : securityServer.getAuthCertHashes()) {
                 serverByAuthCert.put(encodeBase64(certHash), securityServer);
             }
 
@@ -157,7 +157,7 @@ public class SharedParameters {
 
             // cache security server information by serverId
             SecurityServerId securityServerId = SecurityServerId.Conf.create(
-                    instanceIdentifier,  securityServer.getOwner().getMemberClass(),
+                    instanceIdentifier, securityServer.getOwner().getMemberClass(),
                     securityServer.getOwner().getMemberCode(), securityServer.getServerCode()
             );
             securityServersById.put(securityServerId, securityServer);

@@ -95,7 +95,7 @@ final class OcspClient {
     }
 
     static OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
-            X509Certificate signer, String signAlgoId) throws Exception {
+                                  X509Certificate signer, String signAlgoId) throws Exception {
         List<String> responderURIs = GlobalConf.getOcspResponderAddresses(subject);
 
         log.trace("responder URIs: {}", responderURIs);
@@ -118,7 +118,7 @@ final class OcspClient {
     }
 
     static OCSPResp fetchResponse(String responderURI, X509Certificate subject, X509Certificate issuer,
-            PrivateKey signerKey, X509Certificate signer, String signAlgoId) throws Exception {
+                                  PrivateKey signerKey, X509Certificate signer, String signAlgoId) throws Exception {
         HttpURLConnection connection = createConnection(responderURI);
 
         OCSPReq ocspRequest = createRequest(subject, issuer, signerKey, signer, signAlgoId);
@@ -198,7 +198,7 @@ final class OcspClient {
     }
 
     private static OCSPReq createRequest(X509Certificate subjectCert, X509Certificate issuerCert, PrivateKey signerKey,
-            X509Certificate signerCert, String signAlgoId) throws Exception {
+                                         X509Certificate signerCert, String signAlgoId) throws Exception {
         OCSPReqBuilder requestBuilder = new OCSPReqBuilder();
 
         CertificateID id = CryptoUtils.createCertId(subjectCert, issuerCert);
@@ -214,7 +214,7 @@ final class OcspClient {
             // needs to be set when generating signed requests
             requestBuilder.setRequestorName(signerCertHolder.getSubject());
 
-            return requestBuilder.build(contentSigner, new X509CertificateHolder[] {signerCertHolder});
+            return requestBuilder.build(contentSigner, new X509CertificateHolder[]{signerCertHolder});
         }
 
         log.trace("Creating unsigned OCSP request for certificate '{}'", subjectCert.getSubjectX500Principal());

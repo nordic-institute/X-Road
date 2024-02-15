@@ -185,8 +185,8 @@ public final class MetaserviceTestUtil {
 
         // note that these return raw type collections
         return services.stream()
-                .flatMap(service -> ((Collection<Port>)service.getPorts().values()).stream())
-                .flatMap(port -> ((List<BindingOperation>)port.getBinding().getBindingOperations()).stream())
+                .flatMap(service -> ((Collection<Port>) service.getPorts().values()).stream())
+                .flatMap(port -> ((List<BindingOperation>) port.getBinding().getBindingOperations()).stream())
                 .map(BindingOperation::getName)
                 .collect(Collectors.toList());
     }
@@ -199,12 +199,12 @@ public final class MetaserviceTestUtil {
     public static List<String> parseEndpointUrlsFromWSDLDefinition(Definition definition) {
         @SuppressWarnings("unchecked") Collection<Service> services = definition.getServices().values();
         List<String> endpointUrls = new ArrayList<>();
-        for (Service service: services) {
-            for (Object portObject: service.getPorts().values()) {
+        for (Service service : services) {
+            for (Object portObject : service.getPorts().values()) {
                 Port port = (Port) portObject;
-                for (Object extensibilityElement: port.getExtensibilityElements()) {
+                for (Object extensibilityElement : port.getExtensibilityElements()) {
                     if (extensibilityElement instanceof SOAPAddress) {
-                        endpointUrls.add(((SOAPAddress)extensibilityElement).getLocationURI());
+                        endpointUrls.add(((SOAPAddress) extensibilityElement).getLocationURI());
                     }
                 }
             }
@@ -222,7 +222,6 @@ public final class MetaserviceTestUtil {
      */
     public static void mergeHeaders(SOAPHeader header, SoapHeader xrHeader) throws JAXBException,
             ParserConfigurationException, SOAPException {
-
 
 
         Document document = documentBuilderFactory.newDocumentBuilder().newDocument();

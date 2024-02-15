@@ -111,7 +111,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                               DescriptionType descriptionType) {
+                                                                    DescriptionType descriptionType) {
         List<ServiceId.Conf> list = new ArrayList<>();
         if (descriptionType == DescriptionType.REST) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));

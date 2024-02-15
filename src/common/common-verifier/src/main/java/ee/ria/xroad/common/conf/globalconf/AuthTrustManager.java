@@ -45,7 +45,7 @@ public class AuthTrustManager implements X509TrustManager {
             return GlobalConf.getAuthTrustChain();
         } catch (Exception e) {
             log.error("Error getting authentication trust chain", e);
-            return new X509Certificate[] {};
+            return new X509Certificate[]{};
         }
     }
 
@@ -55,7 +55,7 @@ public class AuthTrustManager implements X509TrustManager {
         if (chain.length == 0) {
             log.error("Server did not send TLS certificate");
             throw new CertificateException(
-                "Server did not send TLS certificate");
+                    "Server did not send TLS certificate");
         }
 
         log.trace("Received {} server certificates {}", chain.length, chain);
@@ -63,7 +63,7 @@ public class AuthTrustManager implements X509TrustManager {
         if (!GlobalConf.isSecurityServerAuthCert(chain[0])) {
             log.error("The server's authentication certificate is not trusted");
             throw new CertificateException(
-                "The server's authentication certificate is not trusted");
+                    "The server's authentication certificate is not trusted");
         }
     }
 

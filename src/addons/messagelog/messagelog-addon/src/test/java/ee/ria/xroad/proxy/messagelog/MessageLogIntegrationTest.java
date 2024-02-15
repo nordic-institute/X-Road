@@ -104,9 +104,9 @@ public class MessageLogIntegrationTest extends AbstractMessageLogTest {
 
     static SignatureData createTestSignature() throws Exception {
         return new SignatureData(
-            FileUtils.readFileToString(new File("signatures.xml")),
-            FileUtils.readFileToString(new File("hashchain.xml")),
-            FileUtils.readFileToString(new File("hashchainresult.xml"))
+                FileUtils.readFileToString(new File("signatures.xml")),
+                FileUtils.readFileToString(new File("hashchain.xml")),
+                FileUtils.readFileToString(new File("hashchainresult.xml"))
         );
     }
 }

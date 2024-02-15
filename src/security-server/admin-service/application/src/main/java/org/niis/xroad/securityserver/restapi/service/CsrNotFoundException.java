@@ -35,7 +35,8 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CSR_NOT_FOU
  */
 public class CsrNotFoundException extends NotFoundException {
     public CsrNotFoundException(String s) {
-        super(s, createError());        }
+        super(s, createError());
+    }
 
     public CsrNotFoundException(Throwable t) {
         super(t, createError());

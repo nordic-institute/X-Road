@@ -95,7 +95,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     protected AbstractXmlConf(AbstractXmlConf<T> original) {
-        schemaValidator  = original.schemaValidator;
+        schemaValidator = original.schemaValidator;
         confFileName = original.confFileName;
         root = original.root;
         confType = original.confType;

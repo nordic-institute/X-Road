@@ -1109,7 +1109,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
      * @return matching clientIds
      */
     private SortedSet<ClientId> findClientIds(Boolean hasValidLocalSignCert,
-            boolean excludeLocal, boolean internalSearch) {
+                                              boolean excludeLocal, boolean internalSearch) {
         var searchParams = ClientService.SearchParameters.builder()
                 .excludeLocal(excludeLocal)
                 .internalSearch(internalSearch)

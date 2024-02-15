@@ -41,7 +41,9 @@ import org.eclipse.jetty.server.Request;
  */
 public interface RestServiceHandler {
     boolean shouldVerifyAccess();
+
     boolean shouldVerifySignature();
+
     boolean shouldLogSignature();
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);

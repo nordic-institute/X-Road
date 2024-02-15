@@ -49,7 +49,8 @@ final class InternalSslSocketFactory {
     private static volatile SSLSocketFactory sslSocketFactory;
     private static Object lock = new Object();
 
-    private InternalSslSocketFactory() { }
+    private InternalSslSocketFactory() {
+    }
 
     static SSLSocketFactory getInstance() throws Exception {
         if (sslSocketFactory == null) {

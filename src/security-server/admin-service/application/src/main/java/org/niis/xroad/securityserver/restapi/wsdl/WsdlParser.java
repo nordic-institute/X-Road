@@ -265,7 +265,7 @@ public final class WsdlParser {
          * @param version the version of the service
          */
         public ServiceInfo(String name, String title, String url,
-                String version) {
+                           String version) {
             this.name = name;
             this.title = title;
             this.url = url;
@@ -326,7 +326,7 @@ public final class WsdlParser {
 
         @Override
         public InputSource getImportInputSource(String parentLocation,
-                String importLocation) {
+                                                String importLocation) {
             return null;
         }
 
@@ -346,7 +346,7 @@ public final class WsdlParser {
         }
 
         private void configureHttps(HttpsURLConnection conn) throws Exception {
-            TrustManager[] trustAllCerts = new TrustManager[] {
+            TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         @Override
                         public X509Certificate[] getAcceptedIssuers() {
@@ -372,7 +372,7 @@ public final class WsdlParser {
             };
 
             SSLContext ctx = SSLContext.getInstance("SSL");
-            ctx.init(new KeyManager[] {new ClientSslKeyManager()}, trustAllCerts, new SecureRandom());
+            ctx.init(new KeyManager[]{new ClientSslKeyManager()}, trustAllCerts, new SecureRandom());
 
             conn.setSSLSocketFactory(ctx.getSocketFactory());
             conn.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);

@@ -177,13 +177,13 @@ public class HashChainVerifierTest {
 
         Map<String, DigestValue> inputs = makeInputs(
                 MESSAGE, new DigestValue(
-                    DigestMethod.SHA256, new byte[] {(byte) 11 }),
+                        DigestMethod.SHA256, new byte[]{(byte) 11}),
                 attachment(1), new DigestValue(
-                    DigestMethod.SHA256, new byte[] {(byte) 12 }),
+                        DigestMethod.SHA256, new byte[]{(byte) 12}),
                 attachment(2), new DigestValue(
-                    DigestMethod.SHA256, new byte[] {(byte) 13 }),
+                        DigestMethod.SHA256, new byte[]{(byte) 13}),
                 attachment(3), new DigestValue(
-                    DigestMethod.SHA256, new byte[] {(byte) 14 }));
+                        DigestMethod.SHA256, new byte[]{(byte) 14}));
 
         HashChainVerifier.verify(
                 load("hc-verifier2-hashchainresult.xml"),
@@ -200,22 +200,22 @@ public class HashChainVerifierTest {
 
         Resolver resolver = new Resolver(
                 HASH_CHAIN, "hc-verifier2-hashchain.xml") {
-                    @Override
-                    public boolean shouldResolve(String uri, byte[] digestValue) {
-                        switch (uri) {
-                            case "/attachment1":
-                            case "/attachment2":
-                            case "/attachment3":
-                                return false;
-                            default:
-                                return true;
-                        }
-                    }
+            @Override
+            public boolean shouldResolve(String uri, byte[] digestValue) {
+                switch (uri) {
+                    case "/attachment1":
+                    case "/attachment2":
+                    case "/attachment3":
+                        return false;
+                    default:
+                        return true;
+                }
+            }
         };
 
         Map<String, DigestValue> inputs = makeInputs(
                 MESSAGE, new DigestValue(
-                    DigestMethod.SHA256, new byte[] {(byte) 11 }));
+                        DigestMethod.SHA256, new byte[]{(byte) 11}));
 
         HashChainVerifier.verify(
                 load("hc-verifier2-hashchainresult.xml"),
@@ -343,7 +343,7 @@ public class HashChainVerifierTest {
         LOG.debug("load({})", fileName);
         return Thread.currentThread()
                 .getContextClassLoader()
-                    .getResourceAsStream(fileName);
+                .getResourceAsStream(fileName);
     }
 
     static {

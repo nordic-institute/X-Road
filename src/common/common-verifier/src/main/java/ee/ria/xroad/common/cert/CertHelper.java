@@ -96,8 +96,8 @@ public final class CertHelper {
         }
 
         log.debug("verifyAuthCert({}: {}, {})",
-                new Object[] {cert.getSerialNumber(),
-                        cert.getSubjectX500Principal().getName(), member });
+                new Object[]{cert.getSerialNumber(),
+                        cert.getSubjectX500Principal().getName(), member});
 
         // Verify certificate against CAs.
         try {
@@ -121,7 +121,7 @@ public final class CertHelper {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Authentication certificate %s is not associated "
                             + "with any security server",
-                            cert.getSubjectX500Principal());
+                    cert.getSubjectX500Principal());
         }
     }
 
@@ -135,8 +135,8 @@ public final class CertHelper {
      * @throws Exception if an error occurs
      */
     public static OCSPResp getOcspResponseForCert(X509Certificate cert,
-            X509Certificate issuer, List<OCSPResp> ocspResponses)
-                    throws Exception {
+                                                  X509Certificate issuer, List<OCSPResp> ocspResponses)
+            throws Exception {
         CertificateID certId = CryptoUtils.createCertId(cert, issuer);
         for (OCSPResp resp : ocspResponses) {
             BasicOCSPResp basicResp = (BasicOCSPResp) resp.getResponseObject();

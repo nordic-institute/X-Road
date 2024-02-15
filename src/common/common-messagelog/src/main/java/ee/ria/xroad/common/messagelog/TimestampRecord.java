@@ -47,6 +47,6 @@ public class TimestampRecord extends AbstractLogRecord {
 
     @Override
     public Object[] getLinkingInfoFields() {
-        return new Object[] {getId(), getTime(), timestamp};
+        return new Object[]{getId(), getTime(), timestamp};
     }
 }

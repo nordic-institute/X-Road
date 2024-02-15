@@ -56,7 +56,7 @@ public class OcspResponderDiagnosticConverter {
         return ocspResponderDiagnostics;
     }
 
-    public Set<OcspResponderDiagnostics> convert(Iterable<OcspResponderDiagnosticsStatus> statuses)  {
+    public Set<OcspResponderDiagnostics> convert(Iterable<OcspResponderDiagnosticsStatus> statuses) {
         return Streams.stream(statuses)
                 .map(this::convert)
                 .collect(Collectors.toSet());
@@ -78,7 +78,7 @@ public class OcspResponderDiagnosticConverter {
         return ocspResponder;
     }
 
-    private List<OcspResponder> convertOcspResponders(Iterable<DiagnosticsStatus> statuses)  {
+    private List<OcspResponder> convertOcspResponders(Iterable<DiagnosticsStatus> statuses) {
         return Streams.stream(statuses)
                 .map(this::convertOcspResponder)
                 .collect(Collectors.toList());

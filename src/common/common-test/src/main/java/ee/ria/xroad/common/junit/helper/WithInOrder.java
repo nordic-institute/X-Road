@@ -45,7 +45,9 @@ import static ee.ria.xroad.common.junit.helper.WithInOrder.Private.ENCLOSING_OBJ
 public interface WithInOrder {
 
     final class Private {
-        private Private() { }
+        private Private() {
+        }
+
         static final String ENCLOSING_OBJECT_FIELD = "this$0";
     }
 
@@ -78,6 +80,7 @@ public interface WithInOrder {
                            VerificationMode mode) {
             inOrder.verify(mockedStatic, verification, mode);
         }
+
         @Override
         public void verifyNoMoreInteractions() {
             inOrder.verifyNoMoreInteractions();

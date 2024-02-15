@@ -465,7 +465,7 @@ class ConfigurationDownloader {
             throw new CodedException(X_MALFORMED_GLOBALCONF,
                     "Content part %s has invalid instance identifier "
                             + "(expected %s, but was %s)", file,
-                            file.getInstanceIdentifier(), instanceIdentifier);
+                    file.getInstanceIdentifier(), instanceIdentifier);
         }
     }
 

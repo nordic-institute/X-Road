@@ -74,8 +74,8 @@ final class OpMonitorDaemonDatabaseCtx {
 
         @Override
         public boolean onFlushDirty(Object entity, Serializable id,
-                Object[] currentState, Object[] previousState,
-                String[] propertyNames, Type[] types) {
+                                    Object[] currentState, Object[] previousState,
+                                    String[] propertyNames, Type[] types) {
             if (entity instanceof OperationalDataRecord) {
                 truncateStringProperties(currentState, propertyNames, types);
                 return true;
@@ -86,7 +86,7 @@ final class OpMonitorDaemonDatabaseCtx {
 
         @Override
         public boolean onSave(Object entity, Serializable id, Object[] state,
-                String[] propertyNames, Type[] types) {
+                              String[] propertyNames, Type[] types) {
             if (entity instanceof OperationalDataRecord) {
                 truncateStringProperties(state, propertyNames, types);
                 return true;
@@ -96,7 +96,7 @@ final class OpMonitorDaemonDatabaseCtx {
         }
 
         private static void truncateStringProperties(Object[] state,
-                String[] propertyNames, Type[] types) {
+                                                     String[] propertyNames, Type[] types) {
             for (int i = 0; i < types.length; i++) {
                 if (types[i].getReturnedClass() == String.class) {
                     int maxLength = MAX_LENGTH;

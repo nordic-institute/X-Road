@@ -56,7 +56,7 @@ public class UsernameSettingTransactionManager extends JpaTransactionManager {
     @Override
     protected void doBegin(Object transaction, TransactionDefinition definition) {
         super.doBegin(transaction, definition);
-        try (PreparedStatement stmt = ((JdbcTransactionObjectSupport)transaction).getConnectionHolder().getConnection()
+        try (PreparedStatement stmt = ((JdbcTransactionObjectSupport) transaction).getConnectionHolder().getConnection()
                 .prepareStatement("SELECT set_config('xroad.user_name', ?, true)")) {
             stmt.setString(1, getCurrentUsername());
             stmt.execute();

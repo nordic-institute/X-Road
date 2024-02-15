@@ -45,7 +45,7 @@ import static org.junit.Assert.fail;
  *         @Rule
  *         public ExpectedCodedException thrown =
  *                  ExpectedCodedException.none();
-*
+ *
  *         @Test
  *         public void testThrowsNothing() {
  *         }

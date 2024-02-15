@@ -65,7 +65,8 @@ public class JmxClientImpl implements JmxClient {
     private Object readAttribute(MBeanServerConnection connection, ObjectName objectName, String attribute) {
         try {
             return connection.getAttribute(objectName, attribute);
-        } catch (InstanceNotFoundException | ReflectionException | IOException | MBeanException | AttributeNotFoundException e) {
+        } catch (InstanceNotFoundException | ReflectionException | IOException | MBeanException |
+                 AttributeNotFoundException e) {
             throw new RuntimeException("Failed to read JMX Object attribute", e);
         }
     }

@@ -163,7 +163,7 @@ public class EndpointsApiController implements EndpointsApi {
                     new HashSet<>(xRoadIds));
         } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException  e) {
+        } catch (ClientNotFoundException | AccessRightService.DuplicateAccessRightException e) {
             throw new ConflictException(e);
         } catch (ServiceClientNotFoundException e) {
             throw new BadRequestException(e);

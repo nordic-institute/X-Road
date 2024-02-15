@@ -52,7 +52,7 @@ class SecurityServerTypeTypeAdapter extends StdDeserializer<String> {
 
     @Override
     public String deserialize(JsonParser p,
-            DeserializationContext ctxt) throws IOException {
+                              DeserializationContext ctxt) throws IOException {
         String value = p.getValueAsString();
         if (OpMonitoringData.SecurityServerType.fromString(value) == null) {
             throw new RuntimeException("Invalid value of securityServerType");

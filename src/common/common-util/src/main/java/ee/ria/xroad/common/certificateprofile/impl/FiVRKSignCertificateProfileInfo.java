@@ -46,7 +46,7 @@ public class FiVRKSignCertificateProfileInfo
      * @param params the parameters
      */
     public FiVRKSignCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[] {
+        super(new DnFieldDescription[]{
                 // Country Code
                 new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
                         "FI"
@@ -60,17 +60,18 @@ public class FiVRKSignCertificateProfileInfo
                 // Serialnumber
                 new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
                         params.getClientId().getXRoadInstance() + "/"
-                        + params.getServerId().getServerCode() + "/"
-                        + params.getClientId().getMemberClass()
+                                + params.getServerId().getServerCode() + "/"
+                                + params.getClientId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Member code
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE,
                         params.getClientId().getMemberCode()
-                ).setReadOnly(true) }
+                ).setReadOnly(true)}
         );
         this.params = params;
     }
+
     @Override
     public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
         return FISubjectClientIdDecoder.getSubjectClientId(certificate);

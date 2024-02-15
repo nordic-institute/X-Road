@@ -79,15 +79,15 @@ public class FiVRKCertificateProfileInfoProviderTest {
     @Test
     public void signProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
-            new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "FI")
-                .setReadOnly(true),
-            new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "")
-                .setReadOnly(false),
-            new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
-                    "XX/server/Foo")
-                .setReadOnly(true),
-            new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE, "Bar")
-                .setReadOnly(true)
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE, "FI")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME, "")
+                        .setReadOnly(false),
+                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.SERIAL_NUMBER,
+                        "XX/server/Foo")
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE, "Bar")
+                        .setReadOnly(true)
         };
 
         assertTrue(
@@ -138,7 +138,7 @@ public class FiVRKCertificateProfileInfoProviderTest {
         assertEquals(
                 new X500Principal("C=foo, O=bar, CN=baz"),
                 getSignProfile().createSubjectDn(
-                        new DnFieldValue[] {
+                        new DnFieldValue[]{
                                 new DnFieldValueImpl("C", "foo"),
                                 new DnFieldValueImpl("O", "bar"),
                                 new DnFieldValueImpl("CN", "baz")
@@ -232,7 +232,7 @@ public class FiVRKCertificateProfileInfoProviderTest {
         assertEquals(
                 new X500Principal("C=foo, CN=baz"),
                 getAuthProfile().createSubjectDn(
-                        new DnFieldValue[] {
+                        new DnFieldValue[]{
                                 new DnFieldValueImpl("C", "foo"),
                                 new DnFieldValueImpl("CN", "baz")
                         }

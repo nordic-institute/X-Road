@@ -313,7 +313,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public X509Certificate getCaCert(String instanceIdentifier,
-            X509Certificate memberCert) throws Exception {
+                                     X509Certificate memberCert) throws Exception {
         if (memberCert == null) {
             throw new IllegalArgumentException(
                     "Member certificate must be present to find CA cert!");
@@ -323,7 +323,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 memberCert.getEncoded());
 
         String[] instances = instanceIdentifier != null
-                ? new String[] {instanceIdentifier} : new String[] {};
+                ? new String[]{instanceIdentifier} : new String[]{};
 
         return getSharedParameters(instances)
                 .stream()
@@ -350,7 +350,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public CertChain getCertChain(String instanceIdentifier,
-            X509Certificate subject) throws Exception {
+                                  X509Certificate subject) throws Exception {
         if (subject == null) {
             throw new IllegalArgumentException("Member certificate must be present to find cert chain!");
         }
@@ -386,7 +386,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public boolean isOcspResponderCert(X509Certificate ca,
-            X509Certificate ocspCert) {
+                                       X509Certificate ocspCert) {
         return getSharedParameters().stream()
                 .map(p -> p.getCaCertsAndOcspData().get(ca))
                 .filter(Objects::nonNull).flatMap(Collection::stream)
@@ -463,16 +463,16 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public Collection<ApprovedCAInfo> getApprovedCAs(
             String instanceIdentifier) {
         return getSharedParameters(instanceIdentifier).getApprovedCAs()
-            .stream()
-            .map(this::createApprovedCAInfo)
-            .toList();
+                .stream()
+                .map(this::createApprovedCAInfo)
+                .toList();
     }
 
     private ApprovedCAInfo createApprovedCAInfo(SharedParameters.ApprovedCA ca) {
         return new ApprovedCAInfo(
-            ca.getName(),
-            ca.getAuthenticationOnly(),
-            ca.getCertificateProfileInfo()
+                ca.getName(),
+                ca.getAuthenticationOnly(),
+                ca.getCertificateProfileInfo()
         );
     }
 
@@ -486,7 +486,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         }
 
         return getCertProfile(
-            parameters.getServerId().getXRoadInstance(), cert
+                parameters.getServerId().getXRoadInstance(), cert
         ).getAuthCertProfile(parameters);
     }
 
@@ -500,7 +500,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
         }
 
         return getCertProfile(
-            parameters.getClientId().getXRoadInstance(), cert
+                parameters.getClientId().getXRoadInstance(), cert
         ).getSignCertProfile(parameters);
     }
 
@@ -518,7 +518,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public String getApprovedTspName(String instanceIdentifier,
-            String approvedTspUrl) {
+                                     String approvedTspUrl) {
         return getSharedParameters(instanceIdentifier).getApprovedTSAs()
                 .stream().filter(t -> t.getUrl().equals(approvedTspUrl))
                 .map(SharedParameters.ApprovedTSA::getName).findFirst().orElse(null);
@@ -551,18 +551,18 @@ public class GlobalConfImpl implements GlobalConfProvider {
     Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
         Optional<SharedParameters> sharedParameters = confDir.findShared(groupId.getXRoadInstance());
         return sharedParameters.flatMap(params -> params.getGlobalGroups().stream()
-                        .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
-                        .findFirst());
+                .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
+                .findFirst());
     }
 
     @Override
     public boolean isSecurityServerClient(ClientId clientId,
-            SecurityServerId securityServerId) {
+                                          SecurityServerId securityServerId) {
         SharedParameters p = getSharedParameters(securityServerId
                 .getXRoadInstance());
         return p.getSecurityServerClients().containsKey(securityServerId)
                 && p.getSecurityServerClients().get(securityServerId)
-                        .contains(clientId);
+                .contains(clientId);
     }
 
     @Override

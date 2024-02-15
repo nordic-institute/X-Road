@@ -41,6 +41,7 @@ public class KeyUsageConverter {
     // maps a X509Certificate.getKeyUsage bit index to corresponding KeyUsagesEnum value
     private static final Map<Integer, KeyUsage> BIT_TO_USAGE =
             new HashMap<>();
+
     static {
         BIT_TO_USAGE.put(0, KeyUsage.DIGITAL_SIGNATURE);
         BIT_TO_USAGE.put(1, KeyUsage.NON_REPUDIATION);

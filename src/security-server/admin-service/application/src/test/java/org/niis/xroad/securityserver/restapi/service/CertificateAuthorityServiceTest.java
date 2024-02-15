@@ -135,7 +135,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                     }
                 })
                 .collect(Collectors.toList())
-                .toArray(new String[] {});
+                .toArray(new String[]{});
         doReturn(ocspResponses).when(signerProxyFacade).getOcspResponses(any());
         when(clientRepository.getClient(any())).thenReturn(new ClientType());
     }
@@ -279,7 +279,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         evictCache();
         when(globalConfFacade.getAllCaCerts(any())).thenReturn(new ArrayList<>());
-        when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[] {});
+        when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[]{});
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(null).size());
     }

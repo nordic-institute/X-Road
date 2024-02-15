@@ -41,7 +41,7 @@ public interface SoapMessageConsumer {
      * @throws Exception if an error occurs
      */
     void soap(SoapMessage message,
-            Map<String, String> additionalHeaders) throws Exception;
+              Map<String, String> additionalHeaders) throws Exception;
 
     /**
      * Called when an attachment is received.
@@ -51,5 +51,5 @@ public interface SoapMessageConsumer {
      * @throws Exception if an error occurs
      */
     void attachment(String contentType, InputStream content,
-            Map<String, String> additionalHeaders) throws Exception;
+                    Map<String, String> additionalHeaders) throws Exception;
 }

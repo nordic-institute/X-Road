@@ -24,6 +24,7 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.proxy.protocol;
+
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.message.RestRequest;

@@ -59,12 +59,12 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
     private static class SkAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
             implements AuthCertificateProfileInfo {
         SkAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters params) {
-            super(new DnFieldDescription[] {
+            super(new DnFieldDescription[]{
                     new EnumLocalizedFieldDescriptionImpl("SN", DnFieldLabelLocalizationKey.SERIAL_NUMBER_SN,
                             params.getServerId().getMemberCode())
                             .setReadOnly(true),
                     new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.COMMON_NAME,
-                            params.getMemberName()).setReadOnly(true) }
+                            params.getMemberName()).setReadOnly(true)}
             );
         }
     }
@@ -97,13 +97,13 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
         private final String instanceIdentifier;
 
         SkSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters params) {
-            super(new DnFieldDescription[] {
+            super(new DnFieldDescription[]{
                     new EnumLocalizedFieldDescriptionImpl("SN", DnFieldLabelLocalizationKey.SERIAL_NUMBER_SN,
-                        params.getClientId().getMemberCode()
+                            params.getClientId().getMemberCode()
                     ).setReadOnly(true),
                     new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.COMMON_NAME,
-                        params.getMemberName()
-                    ).setReadOnly(true) }
+                            params.getMemberName()
+                    ).setReadOnly(true)}
             );
 
             instanceIdentifier = params.getClientId().getXRoadInstance();

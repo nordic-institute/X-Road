@@ -40,6 +40,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 public final class SecurityServerSystemPropertiesInitializer {
     private SecurityServerSystemPropertiesInitializer() {
     }
+
     private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
 
     /**

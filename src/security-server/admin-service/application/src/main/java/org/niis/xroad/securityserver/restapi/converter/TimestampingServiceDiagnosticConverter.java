@@ -59,7 +59,7 @@ public class TimestampingServiceDiagnosticConverter {
         return timestampingServiceDiagnostics;
     }
 
-    public Set<TimestampingServiceDiagnostics> convert(Iterable<DiagnosticsStatus> statuses)  {
+    public Set<TimestampingServiceDiagnostics> convert(Iterable<DiagnosticsStatus> statuses) {
         return Streams.stream(statuses)
                 .map(this::convert)
                 .collect(Collectors.toSet());

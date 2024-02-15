@@ -55,7 +55,7 @@ public class PublicApiKeyDataConverter {
         return publicApiKeyData;
     }
 
-    public List<PublicApiKeyData> convert(Iterable<PersistentApiKeyType> apiKeys)  {
+    public List<PublicApiKeyData> convert(Iterable<PersistentApiKeyType> apiKeys) {
         return Streams.stream(apiKeys)
                 .map(this::convert)
                 .collect(Collectors.toList());

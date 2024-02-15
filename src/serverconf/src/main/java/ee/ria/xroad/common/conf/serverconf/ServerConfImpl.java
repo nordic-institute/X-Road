@@ -217,7 +217,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-            DescriptionType descriptionType) {
+                                                                    DescriptionType descriptionType) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
                     serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType);
@@ -393,7 +393,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service, String method,
-            String path) {
+                                           String path) {
 
         if (client == null) {
             return false;

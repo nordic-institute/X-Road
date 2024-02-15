@@ -272,15 +272,15 @@ public final class HashChainBuilder {
     private void hashNodes() throws Exception {
         // levelStart -- index of first node for this level (depth)
         for (int levelStart = nodes.length / 2; levelStart > 0;
-                levelStart /= 2) {
+             levelStart /= 2) {
             // End of nodes for this level.
             int levelEnd = levelStart * 2;
 
             LOG.trace("Combining: {}-{}", levelStart, levelEnd);
             // Walk through the pairs in this level.
             for (int i = levelStart;
-                    i < levelEnd && nodes[i] != null && nodes[i + 1] != null;
-                    i += 2) {
+                 i < levelEnd && nodes[i] != null && nodes[i + 1] != null;
+                 i += 2) {
                 // Combine nodes[i] and nodes[i + 1]
                 LOG.trace("Nodes: Combining {} and {}", i, i + 1);
                 byte[] stepDigest = digestHashStep(hashAlgorithm,
@@ -369,8 +369,8 @@ public final class HashChainBuilder {
         // Combine them and store in the current node.
         byte[] stepDigest = digestHashStep(hashAlgorithm,
                 leftValue, rightValue);
-        LOG.trace("Fixing: {} + {} -> {}", new Object[] {
-                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx });
+        LOG.trace("Fixing: {} + {} -> {}", new Object[]{
+                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx});
         nodes[nodeIdx] = stepDigest;
         return stepDigest;
     }

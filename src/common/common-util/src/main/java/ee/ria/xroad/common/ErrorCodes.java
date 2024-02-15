@@ -242,7 +242,7 @@ public final class ErrorCodes {
      * @return translated exception with prefix
      */
     public static CodedException translateWithPrefix(String prefix,
-            Throwable ex) {
+                                                     Throwable ex) {
         return translateException(ex).withPrefix(prefix);
     }
 
