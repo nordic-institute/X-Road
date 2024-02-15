@@ -33,20 +33,22 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.server.Request;
 
 /**
  * Rest service handler interface
  */
 public interface RestServiceHandler {
     boolean shouldVerifyAccess();
+
     boolean shouldVerifySignature();
+
     boolean shouldLogSignature();
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    void startHandling(HttpServletRequest servletRequest,
+    void startHandling(Request request,
                        ProxyMessage requestMessage,
                        ProxyMessageDecoder messageDecoder,
                        ProxyMessageEncoder messageEncoder,

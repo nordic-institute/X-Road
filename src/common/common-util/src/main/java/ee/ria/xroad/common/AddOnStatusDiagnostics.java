@@ -29,6 +29,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Value;
+
 /**
  * Information about status (enabled/disabled) of addons
  */

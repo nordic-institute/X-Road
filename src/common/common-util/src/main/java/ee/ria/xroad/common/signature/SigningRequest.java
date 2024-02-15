@@ -37,7 +37,7 @@ import java.util.List;
  * Encapsulates contents of a signing request.
  */
 @Value
-@ToString(exclude = { "signingCert", "extraCertificates", "ocspResponses" })
+@ToString(exclude = {"signingCert", "extraCertificates", "ocspResponses"})
 public final class SigningRequest {
 
     private final X509Certificate signingCert;

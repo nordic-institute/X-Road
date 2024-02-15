@@ -29,8 +29,8 @@ package ee.ria.xroad.common.identifier;
  * Enumeration containing types of objects that have global identifiers.
  */
 public enum XRoadObjectType { // todo: the usage of this enumeration is a mess. These identifiers are used in several
-                              //       places, but the names are not very descriptive.
-                              // todo: Add javadoc for the identifiers.
+    //       places, but the names are not very descriptive.
+    // todo: Add javadoc for the identifiers.
     SERVER,
     SERVICE,
     MEMBER,

@@ -69,22 +69,23 @@ public class BasicCertificateProfileInfoProvider
             implements AuthCertificateProfileInfo {
 
         BasicAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters params) {
-            super(new DnFieldDescription[] {
-                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME,
-                        "")
-                        .setReadOnly(false),
-                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.MEMBER_CODE_SN,
-                        params.getServerId().getMemberCode())
-                        .setReadOnly(true),
-                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
-                        "")
-                        .setReadOnly(false),
-                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME,
-                        params.getMemberName())
-                        .setReadOnly(true)}
+            super(new DnFieldDescription[]{
+                    new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME,
+                            "")
+                            .setReadOnly(false),
+                    new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.MEMBER_CODE_SN,
+                            params.getServerId().getMemberCode())
+                            .setReadOnly(true),
+                    new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                            "")
+                            .setReadOnly(false),
+                    new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME,
+                            params.getMemberName())
+                            .setReadOnly(true)}
             );
         }
     }
+
     /**
      * Sign cert
      *
@@ -100,23 +101,23 @@ public class BasicCertificateProfileInfoProvider
         private final String instanceIdentifier;
 
         BasicSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters params) {
-            super(new DnFieldDescription[] {
+            super(new DnFieldDescription[]{
 
-                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.ORGANIZATION_NAME_CN,
-                        params.getMemberName())
-                        .setReadOnly(true),
-                new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME,
-                        params.getMemberName())
-                        .setReadOnly(true),
-                new EnumLocalizedFieldDescriptionImpl("businessCategory", DnFieldLabelLocalizationKey.MEMBER_CLASS_BC,
-                        params.getClientId().getMemberClass())
-                        .setReadOnly(true),
-                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
-                        "")
-                        .setReadOnly(false),
-                new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.MEMBER_CODE_SN,
-                        params.getClientId().getMemberCode())
-                        .setReadOnly(true) }
+                    new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.ORGANIZATION_NAME_CN,
+                            params.getMemberName())
+                            .setReadOnly(true),
+                    new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME,
+                            params.getMemberName())
+                            .setReadOnly(true),
+                    new EnumLocalizedFieldDescriptionImpl("businessCategory", DnFieldLabelLocalizationKey.MEMBER_CLASS_BC,
+                            params.getClientId().getMemberClass())
+                            .setReadOnly(true),
+                    new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                            "")
+                            .setReadOnly(false),
+                    new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.MEMBER_CODE_SN,
+                            params.getClientId().getMemberCode())
+                            .setReadOnly(true)}
             );
 
             instanceIdentifier = params.getClientId().getXRoadInstance();
@@ -131,13 +132,13 @@ public class BasicCertificateProfileInfoProvider
             String memberClass = CertUtils.getRDNValue(x500name, BCStyle.BUSINESS_CATEGORY);
             if (memberClass == null) {
                 throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain business category");
+                        "Certificate subject name does not contain business category");
             }
 
             String memberCode = CertUtils.getRDNValue(x500name, BCStyle.SERIALNUMBER);
             if (memberCode == null) {
                 throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Certificate subject name does not contain serial number");
+                        "Certificate subject name does not contain serial number");
             }
 
             return ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);

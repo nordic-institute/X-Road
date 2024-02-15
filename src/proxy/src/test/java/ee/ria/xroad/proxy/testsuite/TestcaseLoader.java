@@ -73,6 +73,7 @@ final class TestcaseLoader {
                 LOG.error(e.toString());
             }
         }
+        testsToRun.sort(Comparator.comparing(mtc -> mtc.getClass().getSimpleName()));
         return testsToRun;
     }
 

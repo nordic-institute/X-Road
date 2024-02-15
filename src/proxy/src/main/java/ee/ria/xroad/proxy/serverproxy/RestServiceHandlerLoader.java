@@ -30,7 +30,8 @@ package ee.ria.xroad.proxy.serverproxy;
  */
 public final class RestServiceHandlerLoader {
 
-    private RestServiceHandlerLoader() { }
+    private RestServiceHandlerLoader() {
+    }
 
     static RestServiceHandler load(String className) {
         try {

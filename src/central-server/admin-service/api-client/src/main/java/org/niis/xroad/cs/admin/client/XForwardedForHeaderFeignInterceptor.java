@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.client;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -43,7 +42,7 @@ public class XForwardedForHeaderFeignInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate template) {
         final RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes instanceof ServletRequestAttributes) {
-            HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+            var request = ((ServletRequestAttributes) requestAttributes).getRequest();
 
             String clientIp = request.getHeader(X_FORWARDED_FOR);
             if (isBlank(clientIp)) {

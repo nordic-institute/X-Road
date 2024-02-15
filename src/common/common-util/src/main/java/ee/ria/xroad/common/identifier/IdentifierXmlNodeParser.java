@@ -102,7 +102,7 @@ public final class IdentifierXmlNodeParser {
     // -- Helper methods ------------------------------------------------------
 
     static <T> T parseType(XRoadObjectType expectedType, Node node,
-            Class<T> clazz) throws Exception {
+                           Class<T> clazz) throws Exception {
         verifyObjectType(node, expectedType);
 
         Unmarshaller unmarshaller = JAXB_CTX.createUnmarshaller();

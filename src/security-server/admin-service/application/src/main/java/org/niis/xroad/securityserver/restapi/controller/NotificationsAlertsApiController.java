@@ -61,7 +61,7 @@ public class NotificationsAlertsApiController {
     /**
      * check if there are alerts
      */
-    @GetMapping(value = "/alerts", produces = { "application/json" })
+    @GetMapping(value = "/alerts", produces = {"application/json"})
     public ResponseEntity<AlertData> checkAlerts() {
         AlertStatus alertStatus = notificationService.getAlerts();
         return new ResponseEntity<>(alertDataConverter.convert(alertStatus), HttpStatus.OK);

@@ -50,12 +50,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -113,8 +114,8 @@ public class RestMetadataServiceHandlerTest {
     public ExpectedException thrown = ExpectedException.none();
 
     private HttpClient httpClientMock;
-    private HttpServletRequest mockRequest;
-    private HttpServletResponse mockResponse;
+    private Request mockRequest;
+    private Response mockResponse;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
 
@@ -139,6 +140,7 @@ public class RestMetadataServiceHandlerTest {
             public DescriptionType getDescriptionType(ServiceId service) {
                 return DescriptionType.OPENAPI3;
             }
+
             @Override
             public String getServiceDescriptionURL(ServiceId service) {
                 if (SUBSYSTEM_FOR_JSON_FILE.equals(service.getSubsystemCode())) {
@@ -150,11 +152,13 @@ public class RestMetadataServiceHandlerTest {
                 }
             }
         });
-
+        var mockHeaders = mock(HttpFields.class);
         httpClientMock = mock(HttpClient.class);
-        mockRequest = mock(HttpServletRequest.class);
-        mockResponse = mock(HttpServletResponse.class);
+        mockRequest = mock(Request.class);
+        mockResponse = mock(Response.class);
         mockProxyMessage = mock(ProxyMessage.class);
+
+        when(mockRequest.getHeaders()).thenReturn(mockHeaders);
 
         mockServer = new WireMockServer(options().port(MOCK_SERVER_PORT));
 
@@ -256,8 +260,6 @@ public class RestMetadataServiceHandlerTest {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_OPENAPI);
-
-        when(mockRequest.getRequestURL()).thenReturn(new StringBuffer("https://securityserver:5500"));
 
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getQuery()).thenReturn("serviceCode=foobar");

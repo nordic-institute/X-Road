@@ -364,9 +364,9 @@ public class GlobalConfTest {
     public void getKnownAddresses() {
         Set<String> expectedAddresses = new HashSet<>(
                 Arrays.asList(
-                    "127.0.0.1",
-                    "https://www.foo.com/bar",
-                    "https://foo.bar.baz"));
+                        "127.0.0.1",
+                        "https://www.foo.com/bar",
+                        "https://foo.bar.baz"));
         Set<String> actualAddresses = GlobalConf.getKnownAddresses();
 
         assertEquals(expectedAddresses, actualAddresses);

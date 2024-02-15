@@ -339,7 +339,7 @@ public final class CryptoUtils {
      * @throws Exception if the certificate if cannot be created
      */
     public static CertificateID createCertId(X509Certificate subject,
-            X509Certificate issuer) throws Exception {
+                                             X509Certificate issuer) throws Exception {
         return createCertId(subject.getSerialNumber(), issuer);
     }
 
@@ -353,7 +353,7 @@ public final class CryptoUtils {
      * @throws Exception if the certificate if cannot be created
      */
     public static CertificateID createCertId(BigInteger subjectSerialNumber,
-            X509Certificate issuer) throws Exception {
+                                             X509Certificate issuer) throws Exception {
         return new CertificateID(createDigestCalculator(SHA1_ID),
                 new X509CertificateHolder(issuer.getEncoded()),
                 subjectSerialNumber);
@@ -408,7 +408,7 @@ public final class CryptoUtils {
      * @throws IOException if an I/O error occurred
      */
     public static byte[] calculateDigest(AlgorithmIdentifier algorithm,
-            byte[] data) throws OperatorCreationException, IOException {
+                                         byte[] data) throws OperatorCreationException, IOException {
         DigestCalculator dc = createDigestCalculator(algorithm);
         return calculateDigest(dc, data);
     }
@@ -487,7 +487,7 @@ public final class CryptoUtils {
      * @throws Exception if any errors occur
      */
     public static byte[] generateX509PublicKey(BigInteger modulus,
-            BigInteger publicExponent) throws Exception {
+                                               BigInteger publicExponent) throws Exception {
         RSAPublicKeySpec rsaPublicKeySpec =
                 new RSAPublicKeySpec(modulus, publicExponent);
         PublicKey javaRsaPublicKey =
@@ -587,7 +587,7 @@ public final class CryptoUtils {
     public static Collection<X509Certificate> readCertificates(
             String base64data) throws Exception {
         try (InputStream is =
-                new ByteArrayInputStream(decodeBase64(base64data))) {
+                     new ByteArrayInputStream(decodeBase64(base64data))) {
             return (Collection<X509Certificate>)
                     CERT_FACTORY.generateCertificates(is);
         }
@@ -778,7 +778,7 @@ public final class CryptoUtils {
      * @throws Exception if any errors occur
      */
     public static KeyStore loadKeyStore(String type, File file,
-            char[] password) throws Exception {
+                                        char[] password) throws Exception {
         KeyStore keyStore = KeyStore.getInstance(type);
         try (FileInputStream fis = new FileInputStream(file)) {
             keyStore.load(fis, password);

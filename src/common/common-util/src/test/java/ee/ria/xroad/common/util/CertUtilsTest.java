@@ -153,8 +153,8 @@ public class CertUtilsTest {
         try (FileInputStream in = new FileInputStream(certPath)) {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
             assertEquals("email:my@example.org, URI:http://example.org/, "
-                    + "DirName:CN=My Name,OU=My Unit,O=My Organization,C=UK, DNS:*.example.org, "
-                    + "othername:<unsupported>, Registered ID:1.2.3.4, IP Address:192.168.7.1",
+                            + "DirName:CN=My Name,OU=My Unit,O=My Organization,C=UK, DNS:*.example.org, "
+                            + "othername:<unsupported>, Registered ID:1.2.3.4, IP Address:192.168.7.1",
                     CertUtils.getSubjectAlternativeNames(cert));
         }
     }

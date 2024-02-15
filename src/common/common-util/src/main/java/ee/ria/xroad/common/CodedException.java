@@ -114,7 +114,6 @@ public class CodedException extends RuntimeException implements Serializable {
     }
 
 
-
     /**
      * Creates exception from fault code and cause.
      * @param faultCode the fault code
@@ -155,7 +154,7 @@ public class CodedException extends RuntimeException implements Serializable {
      * @return CodedException
      */
     public static CodedException tr(String faultCode, String trCode,
-            String faultMessage) {
+                                    String faultMessage) {
         CodedException ret = new CodedException(faultCode, faultMessage);
 
         ret.translationCode = trCode;
@@ -172,7 +171,7 @@ public class CodedException extends RuntimeException implements Serializable {
      * @return CodedException
      */
     public static CodedException tr(String faultCode, String trCode,
-            String faultMessage, Object... args) {
+                                    String faultMessage, Object... args) {
         CodedException ret = new CodedException(faultCode, faultMessage, args);
 
         ret.translationCode = trCode;

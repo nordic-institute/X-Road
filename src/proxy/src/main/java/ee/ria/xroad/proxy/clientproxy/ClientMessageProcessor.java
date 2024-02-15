@@ -46,13 +46,13 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import java.io.InputStream;
 import java.io.PipedInputStream;
@@ -78,10 +78,15 @@ import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.JettyUtils.getContentType;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
+import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 class ClientMessageProcessor extends AbstractClientMessageProcessor {
@@ -107,24 +112,34 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
      */
     private final CountDownLatch httpSenderGate = new CountDownLatch(1);
 
-    /** Holds the incoming request SOAP message. */
+    /**
+     * Holds the incoming request SOAP message.
+     */
     private volatile String originalSoapAction;
     private volatile SoapMessageImpl requestSoap;
     private volatile ServiceId requestServiceId;
 
-    /** If the request failed, will contain SOAP fault. */
+    /**
+     * If the request failed, will contain SOAP fault.
+     */
     private volatile CodedException executionException;
 
-    /** Holds the proxy message output stream and associated info. */
+    /**
+     * Holds the proxy message output stream and associated info.
+     */
     private PipedInputStream reqIns;
     private volatile PipedOutputStream reqOuts;
     private volatile String outputContentType;
 
-    /** Holds the request to the server proxy. */
+    /**
+     * Holds the request to the server proxy.
+     */
     private ProxyMessageEncoder request;
     private String xRequestId;
 
-    /** Holds the response from server proxy. */
+    /**
+     * Holds the response from server proxy.
+     */
     private ProxyMessage response;
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR =
@@ -142,10 +157,10 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         });
     }
 
-    ClientMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+    ClientMessageProcessor(Request request, Response response,
+                           HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
-        super(servletRequest, servletResponse, httpClient, clientCert, opMonitoringData);
+        super(request, response, httpClient, clientCert, opMonitoringData);
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
         this.xRequestId = UUID.randomUUID().toString();
@@ -357,12 +372,11 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
         opMonitoringData.setResponseOutTs(getEpochMillisecond(), true);
 
-        servletResponse.setStatus(HttpServletResponse.SC_OK);
-        servletResponse.setCharacterEncoding(MimeUtils.UTF8);
-        servletResponse.setContentType(response.getSoapContentType());
+        jResponse.setStatus(OK_200);
+        setContentType(jResponse, response.getSoapContentType(), MimeUtils.UTF8);
 
         try (InputStream is = response.getSoapContent()) {
-            IOUtils.copy(is, servletResponse.getOutputStream());
+            IOUtils.copy(is, asOutputStream(jResponse));
         }
     }
 
@@ -422,11 +436,11 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
-            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(servletRequest.getContentType(),
+            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(getContentType(jRequest),
                     handler, new SaxSoapParserImpl());
             try {
-                originalSoapAction = validateSoapActionHeader(servletRequest.getHeader("SOAPAction"));
-                soapMessageDecoder.parse(servletRequest.getInputStream());
+                originalSoapAction = validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
+                soapMessageDecoder.parse(asInputStream(jRequest));
             } catch (Exception ex) {
                 throw new ClientException(translateException(ex));
             }

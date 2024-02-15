@@ -52,10 +52,10 @@ import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -77,7 +77,13 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.METADATA_SUFFIX;
 import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
 import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
+import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
+import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
+import static org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404;
+import static org.eclipse.jetty.http.HttpStatus.UNAUTHORIZED_401;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 
 @Slf4j
 public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
@@ -113,7 +119,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
     private final EncryptionConfigProvider encryptionConfigProvider;
 
-    public AsicContainerClientRequestProcessor(String target, HttpServletRequest request, HttpServletResponse response)
+    public AsicContainerClientRequestProcessor(String target, Request request, Response response)
             throws IOException {
         super(request, response, null);
         this.target = target;
@@ -121,13 +127,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     public boolean canProcess() {
-        switch (target) {
-            case ASIC:
-            case VERIFICATIONCONF:
-                return true;
-            default:
-                return false;
-        }
+        return switch (target) {
+            case ASIC, VERIFICATIONCONF -> true;
+            default -> false;
+        };
     }
 
     @Override
@@ -147,10 +150,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             throw ex;
         } catch (CodedException ex) {
             log.error("ERROR:", ex);
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex);
+            throw new CodedExceptionWithHttpStatus(INTERNAL_SERVER_ERROR_500, ex);
         } catch (Exception ex) {
             log.error("ERROR:", ex);
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            throw new CodedExceptionWithHttpStatus(INTERNAL_SERVER_ERROR_500,
                     X_INTERNAL_ERROR, ex.getMessage());
         }
     }
@@ -160,10 +163,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(SystemProperties.getConfigurationPath());
 
-        servletResponse.setContentType(MimeTypes.ZIP);
-        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
+        setContentType(jResponse, MimeTypes.ZIP);
+        jResponse.getHeaders().put(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
         try (VerificationConfWriter writer = new VerificationConfWriter(confDir.getInstanceIdentifier(),
-                servletResponse.getOutputStream())) {
+                asOutputStream(jResponse))) {
             confDir.eachFile(writer);
         }
     }
@@ -179,9 +182,9 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void verifyClientAuthentication(ClientId clientId) throws Exception {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
-            IsAuthentication.verifyClientAuthentication(clientId, getIsAuthenticationData(servletRequest));
+            IsAuthentication.verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest));
         } catch (CodedException ex) {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_UNAUTHORIZED, ex);
+            throw new CodedExceptionWithHttpStatus(UNAUTHORIZED_401, ex);
         }
     }
 
@@ -191,7 +194,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         boolean requestOnly = hasParameter(PARAM_REQUEST_ONLY);
         boolean responseOnly = hasParameter(PARAM_RESPONSE_ONLY);
         if (requestOnly && responseOnly) {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_BAD_REQUEST, ErrorCodes.X_BAD_REQUEST,
+            throw new CodedExceptionWithHttpStatus(BAD_REQUEST_400, ErrorCodes.X_BAD_REQUEST,
                     INVALID_PARAM_COMBINATION_FAULT_MESSAGE);
         }
 
@@ -205,7 +208,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         } else if (!unique) {
             writeContainers(clientId, queryId, nameGen, response);
         } else {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_BAD_REQUEST, ErrorCodes.X_BAD_REQUEST,
+            throw new CodedExceptionWithHttpStatus(BAD_REQUEST_400, ErrorCodes.X_BAD_REQUEST,
                     MISSING_CONSTRAINT_FAULT_MESSAGE);
         }
     }
@@ -214,7 +217,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         final List<MessageRecord> records = LogRecordManager.getByQueryId(queryId, id, response, Function.identity());
 
         if (records.isEmpty()) {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
+            throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
                     DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
         }
 
@@ -231,12 +234,12 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private boolean hasParameter(String param) {
-        return servletRequest.getParameterMap().containsKey(param);
+    private boolean hasParameter(String param) throws Exception {
+        return Request.getParameters(jRequest).toStringArrayMap().containsKey(param);
     }
 
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-            Boolean response) throws Exception {
+                                 Boolean response) throws Exception {
 
         if (encryptionConfigProvider.isEncryptionEnabled()) {
             writeEncryptedContainers(clientId, queryId, nameGen, response);
@@ -244,10 +247,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             final String filename = AsicUtils.escapeString(queryId)
                     + (response == null ? "" : (response ? "-response" : "-request")) + ".zip";
             final CheckedSupplier<OutputStream> supplier = () -> {
-                servletResponse.setContentType(MimeTypes.ZIP);
-                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                setContentType(jResponse, MimeTypes.ZIP);
+                jResponse.getHeaders().put(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
-                return servletResponse.getOutputStream();
+                return asOutputStream(jResponse);
             };
 
             writeContainers(clientId, queryId, nameGen, response, supplier);
@@ -260,7 +263,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeEncryptedContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-            Boolean response) throws Exception {
+                                          Boolean response) throws Exception {
 
         final String filename = AsicUtils.escapeString(queryId)
                 + (response == null ? "" : (response ? "-response" : "-request")) + ".zip.gpg";
@@ -272,8 +275,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         try {
             final CheckedSupplier<OutputStream> supplier = () -> {
-                servletResponse.setContentType(MimeTypes.BINARY);
-                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                setContentType(jResponse, MimeTypes.BINARY);
+                jResponse.getHeaders().put(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
                 return new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
                         encryptionConfig.getEncryptionKeys());
@@ -282,7 +285,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             writeContainers(clientId, queryId, nameGen, response, supplier);
 
             try (InputStream is = Files.newInputStream(tempFile)) {
-                IOUtils.copyLarge(is, servletResponse.getOutputStream());
+                IOUtils.copyLarge(is, asOutputStream(jResponse));
             }
 
         } finally {
@@ -292,11 +295,11 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-            Boolean response, CheckedSupplier<OutputStream> outputSupplier) throws Exception {
+                                 Boolean response, CheckedSupplier<OutputStream> outputSupplier) throws Exception {
 
         LogRecordManager.getByQueryId(queryId, clientId, response, records -> {
             if (records.isEmpty()) {
-                throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
+                throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
                         DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
             }
             final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
@@ -350,7 +353,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
-            boolean response) throws Exception {
+                                    boolean response) throws Exception {
 
         final EncryptionConfig encryptionConfig =
                 encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
@@ -359,7 +362,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         LogRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
             try {
                 if (record == null) {
-                    throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
+                    throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
                             DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
                 }
                 if (record.getTimestampRecord() == null) {
@@ -371,17 +374,17 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 String filename = nameGen.getArchiveFilename(queryId, response, record.getId());
                 if (encryptionEnabled) {
                     filename += ".gpg";
-                    servletResponse.setContentType(MimeTypes.BINARY);
+                    setContentType(jResponse, MimeTypes.BINARY);
                 } else {
-                    servletResponse.setContentType(MimeTypes.ASIC_ZIP);
+                    setContentType(jResponse, MimeTypes.ASIC_ZIP);
                 }
-                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                jResponse.getHeaders().put(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
 
                 if (encryptionEnabled) {
                     encryptContainer(encryptionConfig, asicContainer);
                 } else {
-                    asicContainer.write(servletResponse.getOutputStream());
+                    asicContainer.write(asOutputStream(jResponse));
                 }
 
             } catch (CodedException ce) {
@@ -402,14 +405,14 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 asicContainer.write(os);
             }
             try (InputStream is = Files.newInputStream(tempFile)) {
-                IOUtils.copyLarge(is, servletResponse.getOutputStream());
+                IOUtils.copyLarge(is, asOutputStream(jResponse));
             }
         } finally {
             Files.deleteIfExists(tempFile);
         }
     }
 
-    private ClientId.Conf getClientIdFromRequest() {
+    private ClientId.Conf getClientIdFromRequest() throws Exception {
         String instanceIdentifier = getParameter(PARAM_INSTANCE_IDENTIFIER, false);
         String memberClass = getParameter(PARAM_MEMBER_CLASS, false);
         String memberCode = getParameter(PARAM_MEMBER_CODE, false);
@@ -418,11 +421,11 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         return ClientId.Conf.create(instanceIdentifier, memberClass, memberCode, subsystemCode);
     }
 
-    private String getParameter(String param, boolean optional) {
-        String paramValue = servletRequest.getParameter(param);
+    private String getParameter(String param, boolean optional) throws Exception {
+        String paramValue = Request.getParameters(jRequest).getValue(param);
 
         if (paramValue == null && !optional) {
-            throw new CodedExceptionWithHttpStatus(HttpServletResponse.SC_BAD_REQUEST, ErrorCodes.X_BAD_REQUEST,
+            throw new CodedExceptionWithHttpStatus(BAD_REQUEST_400, ErrorCodes.X_BAD_REQUEST,
                     String.format(MISSING_PARAMETER_FAULT_MESSAGE, param));
         }
 

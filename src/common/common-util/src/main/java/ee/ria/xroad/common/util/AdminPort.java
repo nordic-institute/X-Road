@@ -25,18 +25,16 @@
  */
 package ee.ria.xroad.common.util;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,7 +51,7 @@ public class AdminPort implements StartStop {
      * Base class for AdminPort callbacks
      */
     public abstract static class AdminPortCallback {
-        public abstract void handle(HttpServletRequest request, HttpServletResponse response);
+        public abstract void handle(Request request, Response response) throws Exception;
     }
 
     /**
@@ -74,6 +72,7 @@ public class AdminPort implements StartStop {
 
     /**
      * Constructs an AdminPort instance that listens for commands on the given port number.
+     *
      * @param portNumber the port number AdminPort will listen on
      */
     public AdminPort(int portNumber) {
@@ -103,6 +102,7 @@ public class AdminPort implements StartStop {
 
     /**
      * Registers a shutdown hook to be executed when the application shuts down.
+     *
      * @param hook the runnable that should be run when the application shuts down
      */
     public void addShutdownHook(Runnable hook) {
@@ -111,7 +111,8 @@ public class AdminPort implements StartStop {
 
     /**
      * Registers a synchronous callback for the given command string.
-     * @param target the command string
+     *
+     * @param target  the command string
      * @param handler the synchronous callback that should be executed when the command is issued
      */
     public void addHandler(String target, SynchronousCallback handler) {
@@ -127,42 +128,41 @@ public class AdminPort implements StartStop {
 
         server.addConnector(connector);
 
-        HandlerCollection handlerCollection = new HandlerCollection();
+        var handlerCollection = new Handler.Sequence();
         handlerCollection.addHandler(new AdminHandler());
 
         server.setHandler(handlerCollection);
     }
 
-    private final class AdminHandler extends AbstractHandler {
+    private final class AdminHandler extends Handler.Abstract {
         @Override
-        public void handle(String target, Request baseRequest,
-                HttpServletRequest request, HttpServletResponse response)
-                throws IOException, ServletException {
-            if (!CONNECTOR_HOST.equals(request.getRemoteAddr())) {
+        public boolean handle(Request request, Response response, Callback callback) {
+            if (!CONNECTOR_HOST.equals(Request.getRemoteAddr(request))) {
                 response.setStatus(SC_FORBIDDEN);
-                baseRequest.setHandled(true);
-                return;
+                callback.succeeded();
+            } else {
+                final var target = request.getHttpURI().getPath();
+                LOG.info("Admin request: {}", target);
+                try {
+                    AdminPortCallback handler = handlers.get(target);
+                    if (handler != null) {
+                        if (handler instanceof SynchronousCallback) {
+                            handler.handle(request, response);
+                        } else {
+                            LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
+                        }
+                    } else {
+                        response.setStatus(SC_NOT_FOUND);
+                    }
+                    callback.succeeded();
+                } catch (Exception e) {
+                    LOG.error("Handler got error", e);
+                    response.setStatus(SC_INTERNAL_SERVER_ERROR);
+                    Content.Sink.write(response, true, e.toString(), callback);
+                }
             }
 
-            LOG.info("Admin request: {}", target);
-            try {
-                AdminPortCallback handler = handlers.get(target);
-                if (handler != null) {
-                    if (handler instanceof SynchronousCallback) {
-                        handler.handle(request, response);
-                    } else {
-                        LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
-                    }
-                } else {
-                    response.setStatus(SC_NOT_FOUND);
-                }
-            } catch (Exception e) {
-                LOG.error("Handler got error", e);
-                response.setStatus(SC_INTERNAL_SERVER_ERROR);
-                response.getOutputStream().write(e.toString().getBytes());
-            } finally {
-                baseRequest.setHandled(true);
-            }
+            return Boolean.TRUE;
         }
     }
 }

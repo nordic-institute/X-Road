@@ -62,6 +62,7 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
+
     /**
      * Specialized exception instead of a generic exception for TokenConf errors.
      */
@@ -154,7 +155,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         // Only save the token if it has keys which have certificates or
         // certificate requests
         tokens.stream().filter(TokenConf::hasKeysWithCertsOfCertRequests)
-            .forEach(token -> confType.getDevice().add(from(token)));
+                .forEach(token -> confType.getDevice().add(from(token)));
 
         save();
     }
@@ -319,7 +320,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
                 return calculateCertHexHash(type.getContents());
             } catch (Exception e) {
                 log.error("Failed to calculate certificate hash for {}",
-                         type, e);
+                        type, e);
 
                 return SignerUtil.randomId();
             }

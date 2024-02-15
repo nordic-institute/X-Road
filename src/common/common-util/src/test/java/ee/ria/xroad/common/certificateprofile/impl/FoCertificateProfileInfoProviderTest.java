@@ -140,7 +140,7 @@ public class FoCertificateProfileInfoProviderTest {
         assertEquals(
                 new X500Principal("C=foo, O=bar, CN=baz"),
                 getSignProfile().createSubjectDn(
-                        new DnFieldValue[] {
+                        new DnFieldValue[]{
                                 new DnFieldValueImpl("C", "foo"),
                                 new DnFieldValueImpl("O", "bar"),
                                 new DnFieldValueImpl("CN", "baz")
@@ -231,7 +231,7 @@ public class FoCertificateProfileInfoProviderTest {
         assertEquals(
                 new X500Principal("C=foo, CN=baz"),
                 getAuthProfile().createSubjectDn(
-                        new DnFieldValue[] {
+                        new DnFieldValue[]{
                                 new DnFieldValueImpl("C", "foo"),
                                 new DnFieldValueImpl("CN", "baz")
                         }

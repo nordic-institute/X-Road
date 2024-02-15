@@ -85,13 +85,13 @@ final class DigestList {
      * Encodes hash value as SingleDigest data structure.
      */
     private static DERSequence singleDigest(String digestMethodUri,
-            byte[] digest) throws Exception {
+                                            byte[] digest) throws Exception {
         DEROctetString digestValue = new DEROctetString(digest);
         DERUTF8String digestMethod = new DERUTF8String(digestMethodUri);
 
         DERSequence transforms = new DERSequence();
 
-        return new DERSequence(new ASN1Encodable[] {
-                digestValue, digestMethod, transforms });
+        return new DERSequence(new ASN1Encodable[]{
+                digestValue, digestMethod, transforms});
     }
 }

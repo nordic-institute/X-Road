@@ -52,13 +52,12 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.Customizers.headerP
 public class ManageApiKeysWebSecurityConfig {
 
 
-
     @Bean
     @Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
     public SecurityFilterChain manageApiSecurityFilterChain(HttpSecurity http,
                                                             CommonModuleEndpointPaths commonModuleEndpointPaths,
                                                             @Qualifier(PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION)
-                                                                AuthenticationProvider authenticationProvider,
+                                                            AuthenticationProvider authenticationProvider,
                                                             @Value("${server.servlet.session.cookie.same-site:Strict}") String sameSite)
             throws Exception {
 

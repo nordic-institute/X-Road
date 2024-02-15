@@ -35,9 +35,10 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 
 import com.codahale.metrics.MetricRegistry;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -45,6 +46,8 @@ import java.util.function.Consumer;
 
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
+import static ee.ria.xroad.common.util.JettyUtils.getContentType;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 
 /**
  * The processor class for operational monitoring query requests.
@@ -57,21 +60,21 @@ class QueryRequestProcessor {
     /**
      * The servlet request.
      */
-    private final HttpServletRequest servletRequest;
+    private final Request request;
 
     /**
      * The servlet response.
      */
-    private final HttpServletResponse servletResponse;
+    private final Response response;
 
     private final OperationalDataRequestHandler operationalDataHandler;
     private final HealthDataRequestHandler healthDataHandler;
 
-    QueryRequestProcessor(HttpServletRequest servletRequest,
-                          HttpServletResponse servletResponse,
+    QueryRequestProcessor(Request request,
+                          Response response,
                           MetricRegistry healthMetricRegistry) {
-        this.servletRequest = servletRequest;
-        this.servletResponse = servletResponse;
+        this.request = request;
+        this.response = response;
 
         this.operationalDataHandler = new OperationalDataRequestHandler();
         this.healthDataHandler = new HealthDataRequestHandler(
@@ -86,12 +89,12 @@ class QueryRequestProcessor {
      * @throws Exception in case of any errors
      */
     void process() throws Exception {
-        try (QueryRequestHandler handler = new QueryRequestHandler()) {
+        try (var handler = new QueryRequestHandler(); var requestIn = Content.Source.asInputStream(request)) {
             SoapMessageDecoder soapMessageDecoder =
-                    new SoapMessageDecoder(servletRequest.getContentType(),
+                    new SoapMessageDecoder(getContentType(request),
                             handler, new SoapParserImpl());
 
-            soapMessageDecoder.parse(servletRequest.getInputStream());
+            soapMessageDecoder.parse(requestIn);
         }
     }
 
@@ -105,28 +108,30 @@ class QueryRequestProcessor {
 
             SoapMessageImpl requestSoap = (SoapMessageImpl) message;
 
-            servletResponse.addHeader("Connection", "close");
+            response.getHeaders().put("Connection", "close");
 
-            switch (requestSoap.getService().getServiceCode()) {
-                case GET_SECURITY_SERVER_OPERATIONAL_DATA:
-                    operationalDataHandler.handle(requestSoap,
-                            servletResponse.getOutputStream(),
-                            responseContentTypeAssigner());
-                    break;
-                case GET_SECURITY_SERVER_HEALTH_DATA:
-                    healthDataHandler.handle(requestSoap,
-                            servletResponse.getOutputStream(),
-                            responseContentTypeAssigner());
-                    break;
-                default:
-                    throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
-                            "Unknown service: '%s'", requestSoap.getService());
+            try (var responseOut = Content.Sink.asOutputStream(response)) {
+                switch (requestSoap.getService().getServiceCode()) {
+                    case GET_SECURITY_SERVER_OPERATIONAL_DATA:
+                        operationalDataHandler.handle(requestSoap,
+                                responseOut,
+                                responseContentTypeAssigner());
+                        break;
+                    case GET_SECURITY_SERVER_HEALTH_DATA:
+                        healthDataHandler.handle(requestSoap,
+                                responseOut,
+                                responseContentTypeAssigner());
+                        break;
+                    default:
+                        throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
+                                "Unknown service: '%s'", requestSoap.getService());
+                }
             }
         }
 
         @Override
         public void attachment(String contentType, InputStream content,
-                               Map<String, String> additionalHeaders) throws Exception {
+                               Map<String, String> additionalHeaders) {
             // Discard.
         }
 
@@ -149,6 +154,6 @@ class QueryRequestProcessor {
     }
 
     private Consumer<String> responseContentTypeAssigner() {
-        return servletResponse::setContentType;
+        return type -> setContentType(response, type);
     }
 }

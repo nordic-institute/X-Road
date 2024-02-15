@@ -79,7 +79,7 @@ public final class UriUtils {
             char ch = src.charAt(i);
 
             if (ch == '/' && allowSeparator) {
-                buf[pos++] = (byte)ch;
+                buf[pos++] = (byte) ch;
                 i++;
             } else if (ch == '%') {
                 if (i + 2 >= length) {
@@ -95,12 +95,12 @@ public final class UriUtils {
                     buf[pos++] = '2';
                     buf[pos++] = 'D';
                 } else {
-                    buf[pos++] = (byte)((d1 << 4) + d2);
+                    buf[pos++] = (byte) ((d1 << 4) + d2);
                 }
                 i += 3;
                 changed = true;
             } else if (safeChar(ch)) {
-                buf[pos++] = (byte)ch;
+                buf[pos++] = (byte) ch;
                 i++;
             } else {
                 throw new IllegalArgumentException("Invalid character in path segment");

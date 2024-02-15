@@ -202,7 +202,7 @@ public final class HealthChecks {
      * @return a provider wrapping the given provider
      */
     public static HealthCheckProvider cacheResultOnce(HealthCheckProvider provider,
-            HealthCheckResult cachedOnceResult) {
+                                                      HealthCheckResult cachedOnceResult) {
         return new HealthCheckProvider() {
 
             private boolean once = true;

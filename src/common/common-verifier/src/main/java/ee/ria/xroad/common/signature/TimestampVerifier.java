@@ -64,8 +64,8 @@ public final class TimestampVerifier {
      * @throws Exception if the verification failed
      */
     public static void verify(TimeStampToken tsToken,
-            byte[] stampedData, List<X509Certificate> tspCerts)
-                    throws Exception {
+                              byte[] stampedData, List<X509Certificate> tspCerts)
+            throws Exception {
         String thatHash = encodeBase64(calculateDigest(
                 tsToken.getTimeStampInfo().getHashAlgorithm(), stampedData));
         String thisHash = encodeBase64(
@@ -86,7 +86,7 @@ public final class TimestampVerifier {
      * @throws Exception if the verification failed
      */
     public static void verify(TimeStampToken tsToken,
-            List<X509Certificate> tspCerts) throws Exception {
+                              List<X509Certificate> tspCerts) throws Exception {
         if (tspCerts.isEmpty()) {
             throw new CodedException(
                     X_INTERNAL_ERROR,
@@ -125,17 +125,17 @@ public final class TimestampVerifier {
      */
     public static X509Certificate getSignerCertificate(
             TimeStampToken tsToken, List<X509Certificate> tspCerts)
-                    throws Exception {
+            throws Exception {
         SignerId signerId = tsToken.getSID();
 
         return getTspCertificate(signerId, tspCerts);
     }
 
     private static X509Certificate getTspCertificate(SignerId signerId,
-            List<X509Certificate> tspCerts) throws Exception {
+                                                     List<X509Certificate> tspCerts) throws Exception {
         log.trace("getTspCertificate({}, {}, {})",
-                new Object[] {signerId.getIssuer(), signerId.getSerialNumber(),
-                Arrays.toString(signerId.getSubjectKeyIdentifier())});
+                new Object[]{signerId.getIssuer(), signerId.getSerialNumber(),
+                        Arrays.toString(signerId.getSubjectKeyIdentifier())});
         for (X509Certificate cert : tspCerts) {
             log.trace("Comparing with cert: {}, {}",
                     cert.getIssuerDN(), cert.getSerialNumber());

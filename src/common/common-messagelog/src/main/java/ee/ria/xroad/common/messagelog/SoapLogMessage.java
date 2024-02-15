@@ -38,6 +38,7 @@ import lombok.Getter;
 public final class SoapLogMessage extends LogMessage {
     @Getter
     private final SoapMessageImpl message;
+
     /**
      * Create a SOAP log message
      */

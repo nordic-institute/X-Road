@@ -136,8 +136,8 @@ public class ServiceService {
      * Security Server and information system fails, and ignoreWarnings was false
      */
     public ServiceType updateService(ClientId clientId, String fullServiceCode,
-            String url, boolean urlAll, Integer timeout, boolean timeoutAll,
-            boolean sslAuth, boolean sslAuthAll, boolean ignoreWarnings) throws InvalidUrlException,
+                                     String url, boolean urlAll, Integer timeout, boolean timeoutAll,
+                                     boolean sslAuth, boolean sslAuthAll, boolean ignoreWarnings) throws InvalidUrlException,
             ServiceDescriptionService.UrlAlreadyExistsException,
             ServiceNotFoundException, ClientNotFoundException, UnhandledWarningsException, InvalidHttpsUrlException {
 
@@ -199,8 +199,8 @@ public class ServiceService {
      * @param serviceFromSameDefinition another service from same service definition. Can be == targetService
      */
     private void updateServiceFromSameDefinition(String url, boolean urlAll, Integer timeout,
-            boolean timeoutAll, boolean sslAuth, boolean sslAuthAll,
-            ServiceType targetService, ServiceType serviceFromSameDefinition) {
+                                                 boolean timeoutAll, boolean sslAuth, boolean sslAuthAll,
+                                                 ServiceType targetService, ServiceType serviceFromSameDefinition) {
 
         boolean serviceMatch = serviceFromSameDefinition == targetService;
         if (urlAll || serviceMatch) {

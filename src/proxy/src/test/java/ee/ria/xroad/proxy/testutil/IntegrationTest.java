@@ -28,4 +28,5 @@ package ee.ria.xroad.proxy.testutil;
 /**
  * JUnit category for integration tests
  */
-public interface IntegrationTest { }
+public interface IntegrationTest {
+}

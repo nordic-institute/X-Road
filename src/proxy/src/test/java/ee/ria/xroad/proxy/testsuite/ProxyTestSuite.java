@@ -110,9 +110,9 @@ public final class ProxyTestSuite {
             }
 
             if (failed.isEmpty()) {
-                log.info("{}", sb.toString());
+                log.info("{}", sb);
             } else {
-                log.warn("{}", sb.toString());
+                log.warn("{}", sb);
             }
 
             System.exit(failed.isEmpty() ? 0 : 1);

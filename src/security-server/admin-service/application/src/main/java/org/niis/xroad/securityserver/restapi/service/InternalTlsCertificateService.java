@@ -91,11 +91,11 @@ public class InternalTlsCertificateService {
 
     @Autowired
     public InternalTlsCertificateService(InternalTlsCertificateRepository internalTlsCertificateRepository,
-            ExternalProcessRunner externalProcessRunner,
-            ClearCacheService clearCacheService,
-            @Value("${script.generate-certificate.path}") String generateCertScriptPath,
-            @Value("${script.generate-certificate.args}") String generateCertScriptArgs,
-            AuditDataHelper auditDataHelper) {
+                                         ExternalProcessRunner externalProcessRunner,
+                                         ClearCacheService clearCacheService,
+                                         @Value("${script.generate-certificate.path}") String generateCertScriptPath,
+                                         @Value("${script.generate-certificate.args}") String generateCertScriptArgs,
+                                         AuditDataHelper auditDataHelper) {
         this.internalTlsCertificateRepository = internalTlsCertificateRepository;
         this.externalProcessRunner = externalProcessRunner;
         this.clearCacheService = clearCacheService;

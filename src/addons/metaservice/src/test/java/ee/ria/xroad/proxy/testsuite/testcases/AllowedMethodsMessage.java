@@ -101,7 +101,7 @@ public class AllowedMethodsMessage extends MessageTestCase {
 
             @Override
             public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                       DescriptionType descriptionType) {
+                                                                            DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClientQuery));
 

@@ -73,7 +73,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     }
 
     @Test
-    @WithMockUser(authorities = { "INIT_CONFIG" })
+    @WithMockUser(authorities = {"INIT_CONFIG"})
     public void initSecurityServerSuccess() {
         InitialServerConf initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
         ResponseEntity<Void> response = initializationApiController.initSecurityServer(initialServerConf);
@@ -81,7 +81,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     }
 
     @Test
-    @WithMockUser(authorities = { "INIT_CONFIG" })
+    @WithMockUser(authorities = {"INIT_CONFIG"})
     public void initSecurityServerFail() throws Exception {
         InitialServerConf initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
         Mockito.doThrow(new AnchorNotFoundException(""))

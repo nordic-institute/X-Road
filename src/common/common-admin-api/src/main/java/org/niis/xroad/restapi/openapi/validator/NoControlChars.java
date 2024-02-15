@@ -44,6 +44,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = NoControlCharsValidator.class)
 public @interface NoControlChars {
     String message() default "must not contain control characters";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

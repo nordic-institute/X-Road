@@ -188,7 +188,7 @@ public class TokensApiController implements TokensApi {
             + " and (hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ'))")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY_AND_CSR)
     public ResponseEntity<KeyWithCertificateSigningRequestId> addKeyAndCsr(String tokenId,
-            KeyLabelWithCsrGenerate keyLabelWithCsrGenerate) {
+                                                                           KeyLabelWithCsrGenerate keyLabelWithCsrGenerate) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
@@ -214,7 +214,7 @@ public class TokensApiController implements TokensApi {
                     csrGenerate.getSubjectFieldValues(),
                     csrFormat);
         } catch (ClientNotFoundException | CertificateAuthorityNotFoundException
-                | DnFieldHelper.InvalidDnParameterException e) {
+                 | DnFieldHelper.InvalidDnParameterException e) {
             throw new BadRequestException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);

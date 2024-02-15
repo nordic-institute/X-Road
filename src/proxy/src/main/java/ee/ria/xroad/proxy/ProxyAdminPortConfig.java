@@ -39,19 +39,25 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 
 @Slf4j
 @Configuration
@@ -87,13 +93,8 @@ public class ProxyAdminPortConfig {
     private void addAddOnStatusHandler(AdminPort adminPort) {
         adminPort.addHandler("/addonstatus", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), addOnStatus);
-                } catch (IOException e) {
-                    logResponseIOError(e);
-                }
+            public void handle(Request request, Response response) {
+                writeJsonResponse(addOnStatus, response);
             }
         });
     }
@@ -101,13 +102,8 @@ public class ProxyAdminPortConfig {
     private void addBackupEncryptionStatus(AdminPort adminPort) {
         adminPort.addHandler("/backup-encryption-status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), backupEncryptionStatusDiagnostics);
-                } catch (IOException e) {
-                    logResponseIOError(e);
-                }
+            public void handle(Request request, Response response) {
+                writeJsonResponse(backupEncryptionStatusDiagnostics, response);
             }
         });
     }
@@ -115,13 +111,8 @@ public class ProxyAdminPortConfig {
     private void addMessageLogEncryptionStatus(AdminPort adminPort) {
         adminPort.addHandler("/message-log-encryption-status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), messageLogEncryptionStatusDiagnostics);
-                } catch (IOException e) {
-                    logResponseIOError(e);
-                }
+            public void handle(Request request, Response response) {
+                writeJsonResponse(messageLogEncryptionStatusDiagnostics, response);
             }
         });
     }
@@ -129,11 +120,11 @@ public class ProxyAdminPortConfig {
     private void addClearCacheHandler(AdminPort adminPort) {
         adminPort.addHandler("/clearconfcache", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(Request request, Response response) {
                 ServerConf.clearCache();
                 try {
-                    response.setCharacterEncoding("UTF8");
-                    response.getWriter().println("Configuration cache cleared");
+                    setContentType(response, MimeTypes.Type.APPLICATION_JSON_UTF_8);
+                    Content.Sink.write(response, true, StandardCharsets.UTF_8.encode("Configuration cache cleared"));
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
@@ -144,17 +135,17 @@ public class ProxyAdminPortConfig {
     private void addMaintenanceHandler(AdminPort adminPort) {
         adminPort.addHandler("/maintenance", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(Request request, Response response) throws Exception {
 
                 String result = "Invalid parameter 'targetState', request ignored";
-                String param = request.getParameter("targetState");
+                String param = Request.getParameters(request).get("targetState").getValue();
 
                 if (param != null && (param.equalsIgnoreCase("true") || param.equalsIgnoreCase("false"))) {
                     result = setHealthCheckMaintenanceMode(Boolean.parseBoolean(param));
                 }
                 try {
-                    response.setCharacterEncoding("UTF8");
-                    response.getWriter().println(result);
+                    setContentType(response, MimeTypes.Type.APPLICATION_JSON_UTF_8);
+                    Content.Sink.write(response, true, StandardCharsets.UTF_8.encode(result));
                 } catch (IOException e) {
                     logResponseIOError(e);
                 }
@@ -170,7 +161,7 @@ public class ProxyAdminPortConfig {
     private void addTimestampStatusHandler(AdminPort adminPort) {
         adminPort.addHandler("/timestampstatus", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(Request request, Response response) {
                 log.info("/timestampstatus");
 
                 Map<String, DiagnosticsStatus> statusesFromSimpleConnectionCheck = checkConnectionToTimestampUrl();
@@ -199,14 +190,18 @@ public class ProxyAdminPortConfig {
                             DiagnosticsErrorCodes.ERROR_CODE_LOGMANAGER_UNAVAILABLE);
                 }
 
-                try {
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), result);
-                } catch (IOException e) {
-                    logResponseIOError(e);
-                }
+                writeJsonResponse(result, response);
             }
         });
+    }
+
+    private void writeJsonResponse(Object jsonObj, Response response) {
+        try (var writer = new PrintWriter(Content.Sink.asOutputStream(response))) {
+            setContentType(response, MimeTypes.Type.APPLICATION_JSON_UTF_8);
+            JsonUtils.getObjectWriter().writeValue(writer, jsonObj);
+        } catch (IOException e) {
+            logResponseIOError(e);
+        }
     }
 
     private String setHealthCheckMaintenanceMode(boolean targetState) {

@@ -59,7 +59,7 @@ public final class FoSubjectClientIdDecoder {
         return parseClientId(x500name);
     }
 
-     /**
+    /**
      * The encoding for clientID:
      *
      *  C  = FO (country code must be 'FO' when using this decoder)
@@ -74,34 +74,34 @@ public final class FoSubjectClientIdDecoder {
         String memberCountry = getRDNValue(x500name, BCStyle.C);
         if (!"FO".equals(memberCountry)) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                "Certificate subject name does not contain valid country code");
+                    "Certificate subject name does not contain valid country code");
         }
 
         // Instance Identifier
         String memberInstance = getRDNValue(x500name, BCStyle.O);
         if (memberInstance == null) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                "Certificate subject name does not contain organization");
+                    "Certificate subject name does not contain organization");
         }
 
         // Member Class Identifier
         String memberClass = getRDNValue(x500name, BCStyle.OU);
         if (memberClass == null) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                "Certificate subject name does not contain organization unit");
+                    "Certificate subject name does not contain organization unit");
         }
 
         // Member Class Identifier
         String memberCode = getRDNValue(x500name, BCStyle.CN);
         if (memberCode == null) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                "Certificate subject name does not contain common name");
+                    "Certificate subject name does not contain common name");
         }
 
         // Check if the Serial Number is present
         if (getRDNValue(x500name, BCStyle.SERIALNUMBER) == null) {
             throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                "Certificate subject name does not contain serial number");
+                    "Certificate subject name does not contain serial number");
         }
 
         // Call factory method for creating a new ClientId.

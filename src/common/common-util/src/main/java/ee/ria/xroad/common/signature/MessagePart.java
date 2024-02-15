@@ -41,7 +41,7 @@ public final class MessagePart implements Serializable {
     /** Holds the name of the part. */
     private final String name;
 
-     /** The identifier of the algorithm used to calculate the hash. */
+    /** The identifier of the algorithm used to calculate the hash. */
     private final String hashAlgoId;
 
     /** The data in data. */

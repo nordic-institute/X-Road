@@ -27,15 +27,13 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.server.ConnectionMetaData;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
-import org.mockito.MockedStatic;
-
-import java.io.IOException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -46,32 +44,40 @@ public class ServerProxyHandlerTest {
 
     @Test
     public void shouldExecuteClientProxyVersionCheck() throws Exception {
-        final HttpServletRequest request = getMockedRequest();
-        final Request baseRequest = mock(Request.class);
+        final var request = getMockedRequest();
+        final var callback = mock(Callback.class);
+
+
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(HttpClient.class), mock(HttpClient.class));
 
-        try (MockedStatic<GlobalConf> globalConfMock = mockStatic(GlobalConf.class);
-                MockedStatic<ClientProxyVersionVerifier> checkMock = mockStatic(ClientProxyVersionVerifier.class)) {
+        try (
+                var globalConfMock = mockStatic(GlobalConf.class);
+                var checkMock = mockStatic(ClientProxyVersionVerifier.class)
+        ) {
             globalConfMock.when(GlobalConf::verifyValidity).then(invocationOnMock -> null);
             checkMock.when(() -> ClientProxyVersionVerifier.check(any()))
                     .thenAnswer(invocation -> null);
 
-            serverProxyHandler.handle("target", baseRequest, request, getMockedResponse());
+            serverProxyHandler.handle(request, getMockedResponse(), callback);
 
             checkMock.verify(() -> ClientProxyVersionVerifier.check(any()));
         }
     }
 
-    private HttpServletRequest getMockedRequest() {
-        final HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRemoteAddr()).thenReturn("remoteAddr");
+    private Request getMockedRequest() {
+        final var request = mock(Request.class);
+        final var connectionMetaData = mock(ConnectionMetaData.class);
+        when(request.getConnectionMetaData()).thenReturn(connectionMetaData);
+
         when(request.getMethod()).thenReturn("POST");
         return request;
     }
 
-    private HttpServletResponse getMockedResponse() throws IOException {
-        final HttpServletResponse response = mock(HttpServletResponse.class);
-        when(response.getOutputStream()).thenReturn(mock(ServletOutputStream.class));
+    private Response getMockedResponse() {
+        final var response = mock(Response.class);
+        final var headers = mock(HttpFields.Mutable.class);
+        when(response.getHeaders()).thenReturn(headers);
+
         return response;
     }
 }

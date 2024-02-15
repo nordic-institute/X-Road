@@ -151,7 +151,7 @@ class ConfigurationClient {
     }
 
     protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
-                                                     FederationConfigurationSourceFilter sourceFilter) {
+                                                       FederationConfigurationSourceFilter sourceFilter) {
         Set<String> directoriesToKeep;
         if (configurationSources != null) {
             directoriesToKeep = configurationSources.stream()
@@ -172,7 +172,7 @@ class ConfigurationClient {
     }
 
     private void downloadConfigurationFromAdditionalSources(List<ConfigurationSource> configurationSources,
-                                                FederationConfigurationSourceFilter sourceFilter) throws Exception {
+                                                            FederationConfigurationSourceFilter sourceFilter) throws Exception {
         if (configurationSources != null) {
             for (ConfigurationSource source : configurationSources) {
                 if (sourceFilter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {

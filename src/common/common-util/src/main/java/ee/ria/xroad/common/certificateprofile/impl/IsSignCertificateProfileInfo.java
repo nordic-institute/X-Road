@@ -45,7 +45,7 @@ public class IsSignCertificateProfileInfo extends AbstractCertificateProfileInfo
      * @param params the parameters
      */
     public IsSignCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[] {
+        super(new DnFieldDescription[]{
 
                 // Country Identifier
                 new EnumLocalizedFieldDescriptionImpl(

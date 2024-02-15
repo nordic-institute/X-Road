@@ -36,7 +36,7 @@ public class SoapNamespacePrefixMapper extends NamespacePrefixMapper {
 
     @Override
     public String getPreferredPrefix(String namespaceUri, String suggestion,
-            boolean requirePrefix) {
+                                     boolean requirePrefix) {
         return switch (namespaceUri) {
             case SoapHeader.NS_XROAD -> SoapHeader.PREFIX_XROAD;
             case SoapUtils.NS_SOAPENV -> SoapUtils.PREFIX_SOAPENV;

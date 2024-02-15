@@ -111,7 +111,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
+    @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getKey() {
         try {
             keysApiController.getKey(KEY_NOT_FOUND_KEY_ID);
@@ -125,7 +125,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_AUTH_CERT" })
+    @WithMockUser(authorities = {"DELETE_AUTH_CERT"})
     public void deleteCsr() {
         try {
             // key id is not used
@@ -139,7 +139,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
+    @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getPossibleActionsForCsr() {
         ResponseEntity<List<PossibleAction>> response = keysApiController
                 .getPossibleActionsForCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
@@ -149,7 +149,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
+    @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getPossibleActionsForKey() {
         ResponseEntity<List<PossibleAction>> response = keysApiController
                 .getPossibleActionsForKey(GOOD_SIGN_KEY_ID);

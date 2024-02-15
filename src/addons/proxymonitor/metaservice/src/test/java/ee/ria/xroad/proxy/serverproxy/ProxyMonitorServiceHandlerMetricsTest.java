@@ -48,7 +48,6 @@ import ee.ria.xroad.proxymonitor.message.MetricType;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -56,6 +55,7 @@ import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.server.Request;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -117,7 +117,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     @Rule
     public final RestoreMonitorClientAfterTest monitorClientRestoreRule = new RestoreMonitorClientAfterTest();
 
-    private HttpServletRequest mockRequest;
+    private Request mockRequest;
     private ProxyMessage mockProxyMessage;
 
     /**
@@ -126,7 +126,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     @BeforeClass
     public static void initCommon() throws JAXBException, SOAPException {
         unmarshaller = JAXBContext.newInstance(ObjectFactory.class, SoapHeader.class,
-                GetSecurityServerMetricsResponse.class)
+                        GetSecurityServerMetricsResponse.class)
                 .createUnmarshaller();
         messageFactory = MessageFactory.newInstance();
     }
@@ -151,7 +151,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
             }
         });
 
-        mockRequest = mock(HttpServletRequest.class);
+        mockRequest = mock(Request.class);
         mockProxyMessage = mock(ProxyMessage.class);
 
         when(mockProxyMessage.getSoapContentType()).thenReturn(MimeTypes.TEXT_XML_UTF8);
@@ -219,13 +219,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat("Missing the expected metrics set",
                 responseMetrics, hasItem(instanceOf(MetricSetType.class)));
 
-        final MetricSetType responseDataMetrics = (MetricSetType)responseMetrics.stream() // we just asserted this..
+        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
                 .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
 
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType)responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }
@@ -304,13 +304,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         assertThat("Missing the expected metrics set",
                 responseMetrics, hasItem(instanceOf(MetricSetType.class)));
 
-        final MetricSetType responseDataMetrics = (MetricSetType)responseMetrics.stream() // we just asserted this..
+        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
                 .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
 
         assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
         assertThat(responseDataMetrics.getMetrics().size(), is(1));
 
-        final StringMetricType responseMetric = (StringMetricType)responseDataMetrics.getMetrics().get(0);
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }

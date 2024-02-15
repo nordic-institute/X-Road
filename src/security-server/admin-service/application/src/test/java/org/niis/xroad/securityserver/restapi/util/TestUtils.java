@@ -280,7 +280,7 @@ public final class TestUtils {
      * @param apiKeyToken API key token
      */
     public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate,
-            String apiKeyToken) {
+                                                    String apiKeyToken) {
         testRestTemplate.getRestTemplate().setInterceptors(
                 Collections.singletonList((request, body, execution) -> {
                     request.getHeaders()

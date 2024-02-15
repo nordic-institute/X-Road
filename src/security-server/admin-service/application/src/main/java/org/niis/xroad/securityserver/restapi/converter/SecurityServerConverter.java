@@ -73,8 +73,8 @@ public class SecurityServerConverter {
      */
     public Set<SecurityServer> convert(Iterable<? extends SecurityServerId> securityServerIds) {
         return Streams.stream(securityServerIds)
-                      .map(this::convert)
-                      .collect(Collectors.toSet());
+                .map(this::convert)
+                .collect(Collectors.toSet());
     }
 
 

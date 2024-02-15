@@ -39,7 +39,7 @@ public class IsAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
      * @param params the parameters
      */
     public IsAuthCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[] {
+        super(new DnFieldDescription[]{
                 // Country Code
                 new EnumLocalizedFieldDescriptionImpl(
                         "C",

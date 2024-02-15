@@ -42,6 +42,7 @@ import java.util.Iterator;
  */
 public class SplitHeaderMessage extends MessageTestCase {
     private static final String EXPECTED_VALUE = buildExpected();
+
     /**
      * Constructs the test case.
      */

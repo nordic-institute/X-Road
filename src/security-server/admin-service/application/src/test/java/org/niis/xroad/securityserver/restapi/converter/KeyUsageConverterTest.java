@@ -44,37 +44,37 @@ public class KeyUsageConverterTest {
     @Test
     public void convert() {
         boolean[] bits;
-        bits = new boolean[] {false, false, false, false, false, false, false, false, false };
+        bits = new boolean[]{false, false, false, false, false, false, false, false, false};
         Set<KeyUsage> usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>());
 
-        bits = new boolean[] {true, false, false, false, false, false, false, false, true };
+        bits = new boolean[]{true, false, false, false, false, false, false, false, true};
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
                 KeyUsage.DIGITAL_SIGNATURE,
                 KeyUsage.DECIPHER_ONLY)));
 
-        bits = new boolean[] {false, true, false, false, false, false, false, true, false };
+        bits = new boolean[]{false, true, false, false, false, false, false, true, false};
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
                 KeyUsage.NON_REPUDIATION,
                 KeyUsage.ENCIPHER_ONLY)));
 
-        bits = new boolean[] {false, false, false, false, true, false, false, false, false };
+        bits = new boolean[]{false, false, false, false, true, false, false, false, false};
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
                 KeyUsage.KEY_AGREEMENT)));
 
-        bits = new boolean[] {false, false, false, false, true };
+        bits = new boolean[]{false, false, false, false, true};
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
                 KeyUsage.KEY_AGREEMENT)));
 
-        bits = new boolean[] {};
+        bits = new boolean[]{};
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>());
 
-        bits = new boolean[] {false, false, false, false, false, false, false, false, true, true, true, true };
+        bits = new boolean[]{false, false, false, false, false, false, false, false, true, true, true, true};
         usages = keyUsageConverter.convert(bits);
         assertEquals(new HashSet<>(usages), new HashSet<>(Arrays.asList(
                 KeyUsage.DECIPHER_ONLY)));

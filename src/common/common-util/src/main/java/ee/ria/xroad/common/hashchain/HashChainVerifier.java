@@ -121,12 +121,12 @@ public final class HashChainVerifier {
      * @throws Exception in case of any errors
      */
     public static void verify(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
-            Map<String, DigestValue> inputs) throws Exception {
+                              Map<String, DigestValue> inputs) throws Exception {
         new HashChainVerifier(hashChainResultXml, referenceResolver, inputs).verify();
     }
 
     private HashChainVerifier(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
-            Map<String, DigestValue> inputs) {
+                              Map<String, DigestValue> inputs) {
         this.hashChainResultXml = hashChainResultXml;
         this.referenceResolver = referenceResolver;
         this.inputs = inputs;

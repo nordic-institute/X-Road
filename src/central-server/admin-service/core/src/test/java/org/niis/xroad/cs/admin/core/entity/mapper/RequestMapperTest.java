@@ -152,7 +152,7 @@ class RequestMapperTest {
         assertThat(result.getComments()).isEqualTo(source.getComments());
         assertThat(result.getManagementRequestType()).isEqualTo(ManagementRequestType.ADDRESS_CHANGE_REQUEST);
         assertThat(result.getSecurityServerId().getServerCode()).isEqualTo(source.getSecurityServerId().getServerCode());
-        assertThat(((AddressChangeRequest)result).getServerAddress()).isEqualTo("https://server.address");
+        assertThat(((AddressChangeRequest) result).getServerAddress()).isEqualTo("https://server.address");
     }
 
 }

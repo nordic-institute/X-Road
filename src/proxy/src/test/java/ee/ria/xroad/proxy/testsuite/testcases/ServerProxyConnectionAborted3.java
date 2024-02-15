@@ -28,17 +28,21 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
-import java.io.IOException;
+import java.nio.charset.Charset;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 /**
  * Client sends normal message, SP aborts connection
@@ -60,20 +64,20 @@ public class ServerProxyConnectionAborted3 extends MessageTestCase {
     }
 
     @Override
-    public AbstractHandler getServerProxyHandler() {
-        return new AbstractHandler() {
+    public Handler.Abstract getServerProxyHandler() {
+        return new Handler.Abstract() {
             @Override
-            public void handle(String target, Request baseRequest,
-                    HttpServletRequest request, HttpServletResponse response)
-                    throws IOException {
+            public boolean handle(Request request, Response response, Callback callback) throws Exception {
                 // Read all of the request.
-                IOUtils.readLines(request.getInputStream());
+                IOUtils.readLines(asInputStream(request), Charset.defaultCharset());
 
-                response.setContentType("multipart/mixed; boundary=foobar");
-                response.setContentLength(1000);
-                response.getOutputStream().close();
-                response.flushBuffer();
-                baseRequest.setHandled(true);
+                setContentType(response, "multipart/mixed; boundary=foobar");
+                setContentLength(response, 1000);
+                var outputStream = Content.Sink.asOutputStream(response);
+                outputStream.flush();
+                outputStream.close();
+                callback.succeeded();
+                return true;
             }
         };
     }

@@ -56,17 +56,17 @@ public class EnumLocalizedFieldDescriptionImpl extends LocalizedFieldDescription
     private final DnFieldLabelLocalizationKey labelLocalizationKey;
 
     public EnumLocalizedFieldDescriptionImpl(String id,
-            DnFieldLabelLocalizationKey labelLocalizationKey,
-            String defaultValue) {
+                                             DnFieldLabelLocalizationKey labelLocalizationKey,
+                                             String defaultValue) {
         super(id, labelLocalizationKey.name(), defaultValue);
         this.labelLocalizationKey = labelLocalizationKey;
     }
 
     public EnumLocalizedFieldDescriptionImpl(String id,
-            DnFieldLabelLocalizationKey labelLocalizationKey,
-            String defaultValue,
-            boolean readOnly,
-            boolean required) {
+                                             DnFieldLabelLocalizationKey labelLocalizationKey,
+                                             String defaultValue,
+                                             boolean readOnly,
+                                             boolean required) {
         super(id, labelLocalizationKey.name(), defaultValue, readOnly, required);
         this.labelLocalizationKey = labelLocalizationKey;
     }

@@ -53,9 +53,9 @@ public class EmptyMultipartRequest extends MessageTestCase {
 
     @Override
     protected InputStream getQueryInputStream(String fileName,
-            boolean addUtf8Bom) throws Exception {
+                                              boolean addUtf8Bom) throws Exception {
         return new ByteArrayInputStream(addUtf8Bom
-                ? ByteOrderMark.UTF_8.getBytes() : new byte[] {});
+                ? ByteOrderMark.UTF_8.getBytes() : new byte[]{});
     }
 
     @Override

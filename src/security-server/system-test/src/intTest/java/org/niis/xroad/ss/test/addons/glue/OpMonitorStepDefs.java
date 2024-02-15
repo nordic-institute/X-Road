@@ -139,6 +139,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private static String findRecordsContentId(SoapMessage message, String elementTagName) {
         return findRecordsContentId(message.getSoap().getSOAPBody(), elementTagName);
     }
+
     @SneakyThrows
     private static String findRecordsContentId(SOAPMessage message, String elementTagName) {
         return findRecordsContentId(message.getSOAPBody(), elementTagName);

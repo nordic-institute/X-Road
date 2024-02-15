@@ -119,6 +119,7 @@ public class KeyConverter {
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
+
     /**
      * Convert a group of {@link KeyInfo keyInfos} to a list of {@link Key keyInfos},
      * populating possibleActions

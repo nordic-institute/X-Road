@@ -34,8 +34,6 @@ import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -74,6 +72,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -186,8 +185,8 @@ public final class MetaserviceTestUtil {
 
         // note that these return raw type collections
         return services.stream()
-                .flatMap(service -> ((Collection<Port>)service.getPorts().values()).stream())
-                .flatMap(port -> ((List<BindingOperation>)port.getBinding().getBindingOperations()).stream())
+                .flatMap(service -> ((Collection<Port>) service.getPorts().values()).stream())
+                .flatMap(port -> ((List<BindingOperation>) port.getBinding().getBindingOperations()).stream())
                 .map(BindingOperation::getName)
                 .collect(Collectors.toList());
     }
@@ -200,12 +199,12 @@ public final class MetaserviceTestUtil {
     public static List<String> parseEndpointUrlsFromWSDLDefinition(Definition definition) {
         @SuppressWarnings("unchecked") Collection<Service> services = definition.getServices().values();
         List<String> endpointUrls = new ArrayList<>();
-        for (Service service: services) {
-            for (Object portObject: service.getPorts().values()) {
+        for (Service service : services) {
+            for (Object portObject : service.getPorts().values()) {
                 Port port = (Port) portObject;
-                for (Object extensibilityElement: port.getExtensibilityElements()) {
+                for (Object extensibilityElement : port.getExtensibilityElements()) {
                     if (extensibilityElement instanceof SOAPAddress) {
-                        endpointUrls.add(((SOAPAddress)extensibilityElement).getLocationURI());
+                        endpointUrls.add(((SOAPAddress) extensibilityElement).getLocationURI());
                     }
                 }
             }
@@ -223,7 +222,6 @@ public final class MetaserviceTestUtil {
      */
     public static void mergeHeaders(SOAPHeader header, SoapHeader xrHeader) throws JAXBException,
             ParserConfigurationException, SOAPException {
-
 
 
         Document document = documentBuilderFactory.newDocumentBuilder().newDocument();
@@ -259,9 +257,9 @@ public final class MetaserviceTestUtil {
 
     }
 
-    /** Stub class for {@link ServletOutputStream}. For mocking Servlet interactions.
+    /** Stub class for {@link OutputStream}. For mocking Servlet interactions.
      * */
-    public static class StubServletOutputStream extends ServletOutputStream {
+    public static class StubServletOutputStream extends OutputStream {
 
         private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -275,15 +273,6 @@ public final class MetaserviceTestUtil {
 
         public byte[] getAsBytes() {
             return outputStream.toByteArray();
-        }
-
-        @Override
-        public boolean isReady() {
-            return true;
-        }
-
-        @Override
-        public void setWriteListener(WriteListener writeListener) {
         }
 
         @Override

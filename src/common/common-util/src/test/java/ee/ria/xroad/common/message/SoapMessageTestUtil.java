@@ -57,8 +57,8 @@ public final class SoapMessageTestUtil {
      * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(ClientId sender,
-            ServiceId receiver, String userId, String queryId)
-                    throws Exception {
+                                        ServiceId receiver, String userId, String queryId)
+            throws Exception {
         return build(false, sender, receiver, userId, queryId, null);
     }
 
@@ -73,8 +73,8 @@ public final class SoapMessageTestUtil {
      * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(boolean isRpcEncoded, ClientId sender,
-            ServiceId receiver, String userId, String queryId)
-                    throws Exception {
+                                        ServiceId receiver, String userId, String queryId)
+            throws Exception {
         return build(isRpcEncoded, sender, receiver, userId, queryId, null);
     }
 
@@ -90,9 +90,9 @@ public final class SoapMessageTestUtil {
      * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(boolean isRpcEncoded, ClientId sender,
-            ServiceId receiver, String userId, String queryId,
-            SoapBuilder.SoapBodyCallback createBodyCallback)
-                    throws Exception {
+                                        ServiceId receiver, String userId, String queryId,
+                                        SoapBuilder.SoapBodyCallback createBodyCallback)
+            throws Exception {
         SoapHeader header = new SoapHeader();
         header.setClient(sender);
         header.setService(receiver);
@@ -126,7 +126,7 @@ public final class SoapMessageTestUtil {
      */
     public static byte[] messageToBytes(Soap soap) throws Exception {
         if (soap instanceof SoapMessage) {
-            return ((SoapMessage)soap).getBytes();
+            return ((SoapMessage) soap).getBytes();
         }
 
         return soap.getXml().getBytes();

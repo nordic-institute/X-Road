@@ -83,7 +83,6 @@ class ClientDisableRequestHandlerTest {
     }
 
 
-
     @Test
     void add() {
         var request = new ClientDisableRequest(Origin.SECURITY_SERVER, securityServerId, subsystemId);

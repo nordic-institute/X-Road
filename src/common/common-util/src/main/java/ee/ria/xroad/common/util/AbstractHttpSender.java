@@ -216,7 +216,7 @@ public abstract class AbstractHttpSender implements Closeable {
     }
 
     protected static InputStreamEntity createInputStreamEntity(InputStream content, long contentLength,
-            String contentType) {
+                                                               String contentType) {
         InputStreamEntity entity = new InputStreamEntity(content, contentLength);
 
         if (contentLength < 0) {
@@ -235,8 +235,8 @@ public abstract class AbstractHttpSender implements Closeable {
     protected void checkResponseStatus(HttpResponse response) {
         switch (response.getStatusLine().getStatusCode()) {
             case HttpStatus.OK_200: // FALL THROUGH
-            // R1126 An INSTANCE MUST return a "500 Internal Server Error"
-            // HTTP status code if the response envelope is a Fault.
+                // R1126 An INSTANCE MUST return a "500 Internal Server Error"
+                // HTTP status code if the response envelope is a Fault.
             case HttpStatus.INTERNAL_SERVER_ERROR_500:
                 return;
             default:

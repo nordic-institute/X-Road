@@ -189,7 +189,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "SEND_AUTH_CERT_DEL_REQ" })
+    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "SEND_AUTH_CERT_DEL_REQ"})
     public void deleteKey() throws Exception {
         keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
         verify(signerProxyFacade, times(1))
@@ -211,7 +211,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "SEND_AUTH_CERT_DEL_REQ" })
+    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY", "SEND_AUTH_CERT_DEL_REQ"})
     public void deleteKeyIgnoreWarningsFalse() throws Exception {
         try {
             keyService.deleteKey(AUTH_KEY_ID, false);
@@ -225,13 +225,13 @@ public class KeyServiceTest extends AbstractServiceTestContext {
 
     @Test(expected = AccessDeniedException.class)
     // missing SEND_AUTH_CERT_DEL_REQ
-    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
+    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void deleteKeyUnregisterRequiresSpecificPermission() throws Exception {
         keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "SEND_AUTH_CERT_DEL_REQ" })
+    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "SEND_AUTH_CERT_DEL_REQ"})
     public void deleteAuthKeyPermissionCheck() throws Exception {
         try {
             keyService.deleteKeyAndIgnoreWarnings(SIGN_KEY_ID);
@@ -247,7 +247,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_SIGN_KEY" })
+    @WithMockUser(authorities = {"DELETE_SIGN_KEY"})
     public void deleteSignKeyPermissionCheck() throws Exception {
         try {
             keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
@@ -263,7 +263,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_KEY" })
+    @WithMockUser(authorities = {"DELETE_KEY"})
     public void deleteTypelessKeyPermissionCheck() throws Exception {
         try {
             keyService.deleteKeyAndIgnoreWarnings(AUTH_KEY_ID);
@@ -279,7 +279,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY" })
+    @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void deleteChecksPossibleActions() throws Exception {
         mockPossibleActionsRuleEngineDenyAll();
         try {
@@ -290,7 +290,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
+    @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getPossibleActionsForKey() throws Exception {
         EnumSet<PossibleActionEnum> possibleActions = keyService.getPossibleActionsForKey(SIGN_KEY_ID);
         Set<PossibleActionEnum> allActions = new HashSet<>(Arrays.asList(PossibleActionEnum.values()));
@@ -325,7 +325,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
         possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
             @Override
             public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo token,
-                    KeyInfo keyInfo) {
+                                                                     KeyInfo keyInfo) {
                 // by default all actions are possible
                 return EnumSet.allOf(PossibleActionEnum.class);
             }
@@ -337,14 +337,14 @@ public class KeyServiceTest extends AbstractServiceTestContext {
         possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
             @Override
             public EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo token,
-                    KeyInfo keyInfo) {
+                                                                     KeyInfo keyInfo) {
                 // prepare so that no actions are possible
                 return EnumSet.noneOf(PossibleActionEnum.class);
             }
 
             @Override
             public void requirePossibleKeyAction(PossibleActionEnum action, TokenInfo token,
-                    KeyInfo keyInfo) throws ActionNotPossibleException {
+                                                 KeyInfo keyInfo) throws ActionNotPossibleException {
                 throw new ActionNotPossibleException("");
             }
         };

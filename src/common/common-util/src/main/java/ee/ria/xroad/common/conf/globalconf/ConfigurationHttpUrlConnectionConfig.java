@@ -93,7 +93,8 @@ public final class ConfigurationHttpUrlConnectionConfig {
         return paramValue ? "enabled" : "disabled";
     }
 
-    @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified in production environment")
+    @SuppressWarnings("java:S4830")
+    // Won't fix: Works as designed ("Server certificates should be verified in production environment")
     static class NoopTrustManager implements X509TrustManager {
         @Override
         public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {

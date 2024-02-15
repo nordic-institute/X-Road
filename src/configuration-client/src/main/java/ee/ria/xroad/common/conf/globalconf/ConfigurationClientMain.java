@@ -35,14 +35,16 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -50,6 +52,7 @@ import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
@@ -65,6 +68,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 
 /**
  * Main program of configuration client.
@@ -269,7 +273,7 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(Request request, Response response) {
                 log.info("handler /execute");
 
                 try {
@@ -282,13 +286,12 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
+            public void handle(Request request, Response response) {
+                try (var writer = new PrintWriter(Content.Sink.asOutputStream(response))) {
                     log.info("handler /status");
 
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getObjectWriter()
-                            .writeValue(response.getWriter(), ConfigurationClientJobListener.getStatus());
+                    setContentType(response, MimeTypes.Type.APPLICATION_JSON_UTF_8);
+                    JsonUtils.getObjectWriter().writeValue(writer, ConfigurationClientJobListener.getStatus());
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }

@@ -105,13 +105,13 @@ public class SoapParserImpl implements SoapParser {
     }
 
     private InputStream excludeUtf8Bom(String contentType,
-            InputStream soapStream) {
+                                       InputStream soapStream) {
         return hasUtf8Charset(contentType)
                 ? new BOMInputStream(soapStream) : soapStream;
     }
 
     protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,
-            String charset, String originalContentType) throws Exception {
+                                String charset, String originalContentType) throws Exception {
         if (soap.getSOAPBody() == null) {
             throw new CodedException(X_MISSING_BODY,
                     "Malformed SOAP message: body missing");
@@ -126,7 +126,7 @@ public class SoapParserImpl implements SoapParser {
     }
 
     protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-            String charset, String originalContentType) throws Exception {
+                                 String charset, String originalContentType) throws Exception {
         // Request and response messages must have a header,
         // fault messages may or may not have a header.
         SoapHeader header = null;
@@ -140,8 +140,8 @@ public class SoapParserImpl implements SoapParser {
     }
 
     protected Soap createMessage(byte[] rawXml, SoapHeader header,
-            SOAPMessage soap, String charset, String originalContentType)
-                    throws Exception {
+                                 SOAPMessage soap, String charset, String originalContentType)
+            throws Exception {
         if (header == null) {
             throw new CodedException(X_MISSING_HEADER,
                     "Malformed SOAP message: header missing");
@@ -196,7 +196,7 @@ public class SoapParserImpl implements SoapParser {
 
     @SuppressWarnings("unchecked")
     static <T> T unmarshalHeader(Class<?> clazz, SOAPHeader soapHeader,
-            boolean checkRequiredFields) throws Exception {
+                                 boolean checkRequiredFields) throws Exception {
         Unmarshaller unmarshaller = JaxbUtils.createUnmarshaller(clazz);
 
         if (checkRequiredFields) {

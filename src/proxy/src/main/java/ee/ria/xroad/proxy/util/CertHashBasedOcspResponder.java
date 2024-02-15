@@ -26,39 +26,42 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
-import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
+import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.eclipse.jetty.server.Request.getRemoteAddr;
+
 /**
  * Service responsible for responding with OCSP responses of SSL certificates identified with the certificate hashes.
- *
+ * <p>
  * Accepts only GET requests. Certificate hashes are specified with url parameter "cert".
- *
+ * <p>
  * To retrieve OCSP responses, send a GET request to this service:
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
@@ -74,6 +77,7 @@ public class CertHashBasedOcspResponder implements StartStop {
 
     /**
      * Constructs a cert hash responder.
+     *
      * @throws Exception in case of any errors
      */
     public CertHashBasedOcspResponder() throws Exception {
@@ -82,6 +86,7 @@ public class CertHashBasedOcspResponder implements StartStop {
 
     /**
      * Constructs a cert hash responder that listens on the specified address.
+     *
      * @param host the address this responder should listen at
      * @throws Exception in case of any errors
      */
@@ -97,9 +102,7 @@ public class CertHashBasedOcspResponder implements StartStop {
         Path file = Paths.get(SystemProperties.getJettyOcspResponderConfFile());
 
         log.debug("Configuring server from {}", file);
-        try (Resource in = Resource.newResource(file)) {
-            new XmlConfiguration(in).configure(server);
-        }
+        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
     }
 
     private void createConnector(String host) {
@@ -147,16 +150,16 @@ public class CertHashBasedOcspResponder implements StartStop {
         }
     }
 
-    private void doHandleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String[] hashes = getCertSha1Hashes(request);
+    private void doHandleRequest(Request request, Response response) throws Exception {
+        var hashes = getCertSha1Hashes(request);
         List<OCSPResp> ocspResponses = getOcspResponses(hashes);
 
-        log.debug("Returning OCSP responses for cert hashes: " + Arrays.toString(hashes));
+        log.debug("Returning OCSP responses for cert hashes: " + hashes);
 
-        MultiPartOutputStream mpResponse = new MultiPartOutputStream(response.getOutputStream());
+        MultiPartOutputStream mpResponse = new MultiPartOutputStream(Content.Sink.asOutputStream(response));
 
-        response.setContentType(MimeUtils.mpRelatedContentType(mpResponse.getBoundary(), MimeTypes.OCSP_RESPONSE));
-        response.setStatus(HttpServletResponse.SC_OK);
+        JettyUtils.setContentType(response, MimeUtils.mpRelatedContentType(mpResponse.getBoundary(), MimeTypes.OCSP_RESPONSE));
+        response.setStatus(OK_200);
 
         for (OCSPResp ocsp : ocspResponses) {
             mpResponse.startPart(MimeTypes.OCSP_RESPONSE);
@@ -166,17 +169,16 @@ public class CertHashBasedOcspResponder implements StartStop {
         mpResponse.close();
     }
 
-    private final class RequestHandler extends AbstractHandler {
+    private final class RequestHandler extends Handler.Abstract {
         @Override
-        public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                throws IOException, ServletException {
-            log.trace("Received {} request from {}", baseRequest.getMethod(), request.getRemoteAddr());
+        public boolean handle(Request request, Response response, Callback callback) throws Exception {
+            log.trace("Received {} request from {}", request.getMethod(), getRemoteAddr(request));
 
             try {
-                switch (baseRequest.getMethod()) {
+                switch (request.getMethod()) {
                     case METHOD_HEAD:
                         // heart beat - simply return OK
-                        response.setStatus(HttpServletResponse.SC_OK);
+                        response.setStatus(OK_200);
 
                         break;
                     case METHOD_GET:
@@ -189,15 +191,17 @@ public class CertHashBasedOcspResponder implements StartStop {
             } catch (Exception e) {
                 log.error("Error getting OCSP responses", e);
 
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+                response.setStatus(INTERNAL_SERVER_ERROR_500);
+                Content.Sink.write(response, true, e.getMessage(), callback);
             } finally {
-                baseRequest.setHandled(true);
+                callback.succeeded();
             }
+            return true;
         }
     }
 
-    private static List<OCSPResp> getOcspResponses(String[] certHashes) throws Exception {
-        List<OCSPResp> ocspResponses = new ArrayList<>(certHashes.length);
+    private static List<OCSPResp> getOcspResponses(List<String> certHashes) throws Exception {
+        List<OCSPResp> ocspResponses = new ArrayList<>(certHashes.size());
 
         for (String certHash : certHashes) {
             ocspResponses.add(getOcspResponse(certHash));
@@ -216,11 +220,11 @@ public class CertHashBasedOcspResponder implements StartStop {
         return ocsp;
     }
 
-    private static String[] getCertSha1Hashes(HttpServletRequest request) throws Exception {
+    private static List<String> getCertSha1Hashes(Request request) throws Exception {
         // TODO sha256 cert hashes should be read from "cert_hash" param instead once 7.3.x is no longer supported
-        String[] paramValues = request.getParameterValues(CERT_PARAM);
+        var paramValues = Request.getParameters(request).getValues(CERT_PARAM);
 
-        if (paramValues.length < 1) {
+        if (paramValues.isEmpty()) {
             throw new Exception("Could not get cert hashes");
         }
 

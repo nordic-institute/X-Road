@@ -101,7 +101,7 @@ public final class Version {
         // print app name + version and java vendor name + runtime version
         int javaVersion = readJavaVersion();
         String runtimeName = System.getProperty(JAVA_RUNTIME_NAME_PROPERTY, JAVA_DEFAULT_RUNTIME_NAME);
-        String vendorVersion =  JAVA_VENDOR != null ? javaVersion + " "  + JAVA_RUNTIME_VERSION : JAVA_RUNTIME_VERSION;
+        String vendorVersion = JAVA_VENDOR != null ? javaVersion + " " + JAVA_RUNTIME_VERSION : JAVA_RUNTIME_VERSION;
 
         log.info(String.format("%s %s (%s %s)", appName, XROAD_VERSION, runtimeName, vendorVersion));
         if (javaVersion < MIN_SUPPORTED_JAVA_VERSION || javaVersion > MAX_SUPPORTED_JAVA_VERSION) {
