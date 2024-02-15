@@ -77,7 +77,8 @@ final class OperationalDataRecordManager {
     }
 
     static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
-                                               ClientId serviceProviderFilter, Set<String> outputFields) throws Exception {
+                                               ClientId serviceProviderFilter,
+                                               Set<String> outputFields) throws Exception {
         OperationalDataRecords records = doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
@@ -132,7 +133,9 @@ final class OperationalDataRecordManager {
      */
     @SuppressWarnings("unchecked")
     private static OperationalDataRecords queryOperationalDataInTransaction(Session session, long recordsFrom,
-                                                                            long recordsTo, ClientId clientFilter, ClientId serviceProviderFilter, Set<String> outputFields) {
+                                                                            long recordsTo, ClientId clientFilter,
+                                                                            ClientId serviceProviderFilter,
+                                                                            Set<String> outputFields) {
 
         final OperationalDataRecordQuery
                 query = new OperationalDataRecordQuery(session, clientFilter, serviceProviderFilter, outputFields);

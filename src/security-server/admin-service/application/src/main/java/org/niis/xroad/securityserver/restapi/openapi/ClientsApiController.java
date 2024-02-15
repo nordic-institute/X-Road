@@ -441,7 +441,10 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
     public ResponseEntity<Set<ServiceClient>> findServiceClientCandidates(String encodedClientId,
                                                                           String memberNameOrGroupDescription,
-                                                                          ServiceClientType serviceClientType, String instance, String memberClass, String memberGroupCode,
+                                                                          ServiceClientType serviceClientType,
+                                                                          String instance,
+                                                                          String memberClass,
+                                                                          String memberGroupCode,
                                                                           String subsystemCode) {
         ClientId clientId = clientIdConverter.convertId(encodedClientId);
         XRoadObjectType xRoadObjectType = ServiceClientTypeMapping.map(serviceClientType).orElse(null);

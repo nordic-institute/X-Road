@@ -159,11 +159,13 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
         }
     }
 
-    protected GetSecurityServerOperationalDataResponseType
-    buildOperationalDataResponse(ClientId filterByClient,
-                                 long recordsFrom, long recordsTo, ClientId filterByServiceProvider,
-                                 Set<String> outputFields, long recordsAvailableBefore)
-            throws IOException {
+    protected GetSecurityServerOperationalDataResponseType buildOperationalDataResponse(
+            ClientId filterByClient,
+            long recordsFrom,
+            long recordsTo,
+            ClientId filterByServiceProvider,
+            Set<String> outputFields,
+            long recordsAvailableBefore) throws IOException {
         OperationalDataRecords responseRecords;
         GetSecurityServerOperationalDataResponseType opDataResponse =
                 OBJECT_FACTORY

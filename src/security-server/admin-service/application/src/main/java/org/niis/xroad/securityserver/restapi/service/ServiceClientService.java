@@ -183,8 +183,9 @@ public class ServiceClientService {
      * @throws ClientNotFoundException if given client or service client is not found
      * @throws ServiceClientNotFoundException if given service client being searched is not found
      */
-    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId ownerId,
-                                                                          XRoadId serviceClientId) throws ClientNotFoundException, ServiceClientNotFoundException {
+    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(
+            ClientId ownerId,
+            XRoadId serviceClientId) throws ClientNotFoundException, ServiceClientNotFoundException {
 
         ClientType owner = clientRepository.getClient(ownerId);
         if (owner == null) {

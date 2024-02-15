@@ -106,7 +106,7 @@ public class AccessRightService {
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
             throws ClientNotFoundException, AccessRightNotFoundException,
-            ServiceNotFoundException {
+                   ServiceNotFoundException {
 
 
         ClientType clientType = clientService.getLocalClientOrThrowNotFound(clientId);
@@ -150,7 +150,7 @@ public class AccessRightService {
      */
     public void deleteEndpointAccessRights(Long endpointId, Set<? extends XRoadId> subjectIds)
             throws EndpointNotFoundException,
-            ClientNotFoundException, AccessRightNotFoundException {
+                   ClientNotFoundException, AccessRightNotFoundException {
 
         ClientType clientType = clientRepository.getClientByEndpointId(endpointId);
         EndpointType endpointType = endpointService.getEndpoint(endpointId);
@@ -225,10 +225,13 @@ public class AccessRightService {
      * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
      * subjectId did not exist
      */
-    public List<ServiceClientDto> addSoapServiceAccessRights(ClientId clientId, String fullServiceCode,
-                                                             Set<XRoadId.Conf> subjectIds) throws ClientNotFoundException,
-            ServiceNotFoundException, DuplicateAccessRightException,
-            ServiceClientNotFoundException {
+    public List<ServiceClientDto> addSoapServiceAccessRights(
+            ClientId clientId,
+            String fullServiceCode,
+            Set<XRoadId.Conf> subjectIds) throws ClientNotFoundException,
+                                                 ServiceNotFoundException,
+                                                 DuplicateAccessRightException,
+                                                 ServiceClientNotFoundException {
 
         ClientType clientType = clientService.getLocalClientOrThrowNotFound(clientId);
 
@@ -256,7 +259,7 @@ public class AccessRightService {
      */
     public List<ServiceClientDto> addEndpointAccessRights(Long endpointId, Set<XRoadId.Conf> subjectIds)
             throws EndpointNotFoundException, ClientNotFoundException,
-            ServiceClientNotFoundException, DuplicateAccessRightException {
+                   ServiceClientNotFoundException, DuplicateAccessRightException {
 
         EndpointType endpointType = endpointService.getEndpoint(endpointId);
 
@@ -271,8 +274,10 @@ public class AccessRightService {
      * subjectId did not exist
      * @throws DuplicateAccessRightException
      */
-    private List<ServiceClientDto> addEndpointAccessRights(ClientType clientType, EndpointType endpointType,
-                                                           Set<XRoadId.Conf> subjectIds) throws DuplicateAccessRightException, ServiceClientNotFoundException {
+    private List<ServiceClientDto> addEndpointAccessRights(
+            ClientType clientType,
+            EndpointType endpointType,
+            Set<XRoadId.Conf> subjectIds) throws DuplicateAccessRightException, ServiceClientNotFoundException {
 
         subjectIds.forEach(this::validateServiceClientObjectType);
 
@@ -306,9 +311,13 @@ public class AccessRightService {
      * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
      * subjectId did not exist
      */
-    public List<ServiceClientAccessRightDto> addServiceClientAccessRights(ClientId clientId, Set<String> serviceCodes,
-                                                                          XRoadId.Conf subjectId) throws ServiceNotFoundException,
-            DuplicateAccessRightException, ClientNotFoundException, ServiceClientNotFoundException {
+    public List<ServiceClientAccessRightDto> addServiceClientAccessRights(
+            ClientId clientId,
+            Set<String> serviceCodes,
+            XRoadId.Conf subjectId) throws ServiceNotFoundException,
+                                           DuplicateAccessRightException,
+                                           ClientNotFoundException,
+                                           ServiceClientNotFoundException {
 
         addAuditData(clientId, subjectId, serviceCodes);
 
@@ -348,8 +357,10 @@ public class AccessRightService {
      * @throws ServiceNotFoundException if given client did not have services with given serviceCodes
      */
     public void deleteServiceClientAccessRights(ClientId clientId,
-                                                Set<String> serviceCodes, XRoadId subjectId) throws AccessRightNotFoundException, ClientNotFoundException,
-            ServiceNotFoundException {
+                                                Set<String> serviceCodes,
+                                                XRoadId subjectId) throws AccessRightNotFoundException,
+                                                                          ClientNotFoundException,
+                                                                          ServiceNotFoundException {
 
         addAuditData(clientId, subjectId, serviceCodes);
 
@@ -610,7 +621,10 @@ public class AccessRightService {
      */
     public List<ServiceClientDto> findAccessRightHolderCandidates(ClientId clientId,
                                                                   String memberNameOrGroupDescription,
-                                                                  XRoadObjectType subjectType, String instance, String memberClass, String memberGroupCode,
+                                                                  XRoadObjectType subjectType,
+                                                                  String instance,
+                                                                  String memberClass,
+                                                                  String memberGroupCode,
                                                                   String subsystemCode) throws ClientNotFoundException {
         List<ServiceClientDto> dtos = new ArrayList<>();
 
@@ -714,7 +728,10 @@ public class AccessRightService {
      * @return Predicate
      */
     private Predicate<ServiceClientDto> buildSubjectSearchPredicate(XRoadObjectType subjectType,
-                                                                    String memberNameOrGroupDescription, String instance, String memberClass, String memberGroupCode,
+                                                                    String memberNameOrGroupDescription,
+                                                                    String instance,
+                                                                    String memberClass,
+                                                                    String memberGroupCode,
                                                                     String subsystemCode) {
         // Start by assuming the search is a match. If there are no search terms --> return all
         Predicate<ServiceClientDto> searchPredicate = accessRightHolderDto -> true;

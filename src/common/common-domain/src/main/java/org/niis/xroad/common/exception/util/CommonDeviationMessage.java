@@ -68,8 +68,7 @@ public enum CommonDeviationMessage implements DeviationProvider {
             "Configuration verification failed: unreachable"),
 
     ERROR_READING_OPENAPI_FILE("openapi_file_error", "Error reading open api definition file"),
-    INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted"),
-    ;
+    INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted");
 
     @Getter
     private final String code;
