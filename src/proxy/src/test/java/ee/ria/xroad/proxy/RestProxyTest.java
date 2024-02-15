@@ -105,7 +105,6 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     public void shouldKeepQueryId() {
         final String qid = UUID.randomUUID().toString();
         service.setHandler((request, response) -> {
-            System.out.println("YYY");
             assertEquals(qid, request.getHeaders().get("X-Road-Id"));
         });
 
@@ -127,7 +126,6 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     public void shouldHaveContentLengthHeader() {
         String body = "{\"value\" : 42}";
         service.setHandler((request, response) -> {
-            System.out.println("XXX");
             assertEquals(body.getBytes().length,
                     getContentLength(request));
         });
