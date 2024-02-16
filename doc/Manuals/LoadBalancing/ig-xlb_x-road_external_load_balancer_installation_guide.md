@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.19 
+Version: 1.20 
 Doc. ID: IG-XLB
 
 
@@ -26,6 +26,7 @@ Doc. ID: IG-XLB
 | 01.03.2023 | 1.17    | Updates for user groups in secondary nodes                                                                               | Petteri Kivimäki            |
 | 20.12.2023 | 1.18    | Added RHEL 9                                                                                                             | Justas Samuolis             |
 | 12.01.2024 | 1.19    | RHEL PostgreSQL 12 support                                                                                               | Eneli Reimets               |
+| 16.02.2024 | 1.20    | RHEL PostgreSQL 13 support                                                                                               | Eneli Reimets               |
 ## Table of Contents
 
 <!-- toc -->
@@ -62,6 +63,7 @@ Doc. ID: IG-XLB
     * [4.2.1 on RHEL](#421-on-rhel)
       * [4.2.1.1 on RHEL PostgreSQL before 12](#4211-on-rhel-postgresql-before-12)
       * [4.2.1.2 on RHEL PostgreSQL 12](#4212-on-rhel-postgresql-12)
+      * [4.2.1.3 on RHEL PostgreSQL 13](#4213-on-rhel-postgresql-13)
     * [4.2.2 on Ubuntu](#422-on-ubuntu)
   * [4.3 Configuring the primary instance for replication](#43-configuring-the-primary-instance-for-replication)
   * [4.4 Configuring the secondary instance for replication](#44-configuring-the-secondary-instance-for-replication)
@@ -296,7 +298,7 @@ In order to properly set up the data replication, the secondary nodes must be ab
 5. Set up SSH between the primary and the secondary (the secondary must be able to access `/etc/xroad` via ssh)
    * Create an SSH keypair for `xroad` user and copy the public key to authorized keys of the primary node
    (`/home/xroad-slave/.ssh/authorized_keys`)
-   > On RHEL 8: generate a new key which is compliant with FIPS-140-2, for example ECDSA with curve nistp256
+   > On RHEL 8, 9: generate a new key which is compliant with FIPS-140-2, for example ECDSA with curve nistp256
       ```bash
       ssh-keygen -t ecdsa
       ```
@@ -558,6 +560,36 @@ semanage port -a -t postgresql_port_t -p tcp 5433
 systemctl enable postgresql-serverconf
 ```
 
+##### 4.2.1.3 on RHEL PostgreSQL 13
+
+Create a new `systemctl` service unit for the new database. As root, make a copy for the new service
+
+```bash
+cp /lib/systemd/system/postgresql-13.service /etc/systemd/system/postgresql-serverconf.service 
+```
+
+Edit `/etc/systemd/system/postgresql-serverconf.service` and override the following properties:
+
+```properties
+[Service]
+...
+Environment=PGPORT=5433
+Environment=PGDATA=/var/lib/pgsql/13/serverconf
+```
+
+Create the database and configure SELinux:
+
+```bash
+# Init db
+sudo su postgres
+cd /tmp
+/usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=md5 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+exit
+
+semanage port -a -t postgresql_port_t -p tcp 5433
+systemctl enable postgresql-serverconf
+```
+
 #### 4.2.2 on Ubuntu
 
 ```bash
@@ -568,9 +600,9 @@ In the above command, `10` is the postgresql major version. Use `pg_lsclusters` 
 ### 4.3 Configuring the primary instance for replication
 
 Edit `postgresql.conf` and set the following options:
->On RHEL, PostgreSQL < 12 config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.
->On RHEL, PostgreSQL 12 config files are located in the `PGDATA` directory `/var/lib/pgql/12/serverconf`.
->Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`)
+>On RHEL, PostgreSQL < 12 config files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
+>On RHEL, PostgreSQL >= 12 config files are located in the `PGDATA` directory `/var/lib/pgsql/<version>/serverconf`, e.g. `/var/lib/pgsql/12/serverconf`.
+>Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`.
 
 ```properties
 ssl = on
@@ -662,7 +694,7 @@ Prerequisites:
 
 Go to the postgresql data directory:
  * RHEL PostgreSQL < 12: `/var/lib/pgsql/serverconf`
- * RHEL PostgreSQL 12: `/var/lib/pgsql/12/serverconf`
+ * RHEL PostgreSQL >= 12: `/var/lib/pgsql/<postgresql major version>/serverconf`
  * Ubuntu: `/var/lib/postgresql/<postgresql major version>/serverconf`
 
 Clear the data directory:
@@ -694,8 +726,8 @@ On *Ubuntu 20.04 & 22.04, RHEL (PostgreSQL >=12)*, create an empty `standby.sign
 
 Next, modify `postgresql.conf`:
 >On RHEL, PostgreSQL < 12 config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`. 
->On RHEL, PostgreSQL 12 config files are located in the `PGDATA` directory `/var/lib/pgql/12/serverconf`.
->Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/12/serverconf`)
+>On RHEL, PostgreSQL >= 12 config files are located in the `PGDATA` directory `/var/lib/pgql/<version>/serverconf`, e.g. `/var/lib/pgql/12/serverconf`.
+>Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/12/serverconf`.
 ```properties
 ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
@@ -705,9 +737,10 @@ ssl_key_file  = '/etc/xroad/postgresql/server.key'
 listen_addresses = localhost
 
 # no need to send WAL logs
-# wal_level = minimal
-# max_wal_senders = 0
-# wal_keep_segments = 0
+# wal_level = replica
+# max_wal_senders = 3
+# wal_keep_segments = 8    # on PostgreSQL in 10, 12
+# wal_keep_size = 8        # on PostgreSQL >= 13
 
 hot_standby = on
 hot_standby_feedback = on
