@@ -583,7 +583,7 @@ Create the database and configure SELinux:
 # Init db
 sudo su postgres
 cd /tmp
-/usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=md5 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+/usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
 exit
 
 semanage port -a -t postgresql_port_t -p tcp 5433
