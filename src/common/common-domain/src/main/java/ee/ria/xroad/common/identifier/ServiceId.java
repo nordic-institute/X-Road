@@ -26,11 +26,11 @@
 package ee.ria.xroad.common.identifier;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.vavr.control.Option;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.util.Validation.validateArgument;
 
@@ -91,16 +91,19 @@ public interface ServiceId extends XRoadId {
 
         public static ServiceId.Conf ensure(ServiceId identifier) {
             validateArgument("identifier", identifier);
-            return Option.of(identifier)
+
+            return Optional.ofNullable(identifier)
                     .filter(ServiceId.Conf.class::isInstance)
                     .map(ServiceId.Conf.class::cast)
-                    .getOrElse(() -> new ServiceId.Conf(identifier.getObjectType(),
+                    .orElseGet(() -> new ServiceId.Conf(
+                            identifier.getObjectType(),
                             identifier.getXRoadInstance(),
                             identifier.getMemberClass(),
                             identifier.getMemberCode(),
                             identifier.getSubsystemCode(),
                             identifier.getServiceCode(),
-                            identifier.getServiceVersion()));
+                            identifier.getServiceVersion()
+                    ));
         }
 
         /**

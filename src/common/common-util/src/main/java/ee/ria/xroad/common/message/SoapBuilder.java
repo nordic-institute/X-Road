@@ -44,8 +44,6 @@ import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
 
-import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
-import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.PREFIX_IDENTIFIERS;
 import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
 import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
 import static ee.ria.xroad.common.message.SoapUtils.RPC_ATTR;
@@ -60,6 +58,9 @@ import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
 @Getter
 @Setter
 public class SoapBuilder {
+    public static final String NS_IDENTIFIERS = "http://x-road.eu/xsd/identifiers";
+
+    public static final String PREFIX_IDENTIFIERS = "id";
 
     /**
      * Functional interface for the callback used when assembling the SOAP body.

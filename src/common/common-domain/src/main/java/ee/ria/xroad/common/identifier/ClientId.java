@@ -26,11 +26,11 @@
 package ee.ria.xroad.common.identifier;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.vavr.control.Option;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
@@ -79,10 +79,11 @@ public interface ClientId extends XRoadId {
 
         public static ClientId.Conf ensure(ClientId identifier) {
             validateArgument("identifier", identifier);
-            return Option.of(identifier)
+            return Optional.ofNullable(identifier)
                     .filter(ClientId.Conf.class::isInstance)
                     .map(ClientId.Conf.class::cast)
-                    .getOrElse(() -> new ClientId.Conf(identifier.getXRoadInstance(),
+                    .orElseGet(() -> new ClientId.Conf(
+                            identifier.getXRoadInstance(),
                             identifier.getMemberClass(),
                             identifier.getMemberCode(),
                             identifier.getSubsystemCode()));

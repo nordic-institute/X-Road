@@ -24,35 +24,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter.db;
+package org.niis.xroad.restapi.converter;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.domain.SecurityServer;
-import org.niis.xroad.cs.admin.rest.api.converter.model.SecurityServerIdDtoConverter;
-import org.niis.xroad.cs.openapi.model.SecurityServerDto;
-import org.niis.xroad.restapi.converter.UniDirectionalDtoConverter;
-import org.springframework.stereotype.Service;
-
-import java.time.ZoneOffset;
-
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class SecurityServerDtoConverter extends UniDirectionalDtoConverter<SecurityServer, SecurityServerDto> {
-    private final ZoneOffset dtoZoneOffset;
-
-    private final SecurityServerIdDtoConverter securityServerIdDtoConverter;
-
-    @Override
-    public SecurityServerDto toDto(SecurityServer source) {
-        return new SecurityServerDto()
-                .serverId(securityServerIdDtoConverter.toDto(source.getServerId()))
-                .ownerName(source.getOwner().getName())
-                .serverAddress(source.getAddress())
-                .createdAt(source.getCreatedAt().atOffset(dtoZoneOffset))
-                .updatedAt(source.getUpdatedAt().atOffset(dtoZoneOffset));
-    }
-
+public abstract class UniDirectionalDtoConverter<T, DTO> {
+    public abstract DTO toDto(T source);
 
 }

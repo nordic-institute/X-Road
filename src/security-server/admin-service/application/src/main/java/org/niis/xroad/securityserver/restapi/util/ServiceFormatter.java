@@ -1,6 +1,5 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,35 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.rest.api.converter.db;
+package org.niis.xroad.securityserver.restapi.util;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.domain.SecurityServer;
-import org.niis.xroad.cs.admin.rest.api.converter.model.SecurityServerIdDtoConverter;
-import org.niis.xroad.cs.openapi.model.SecurityServerDto;
-import org.niis.xroad.restapi.converter.UniDirectionalDtoConverter;
-import org.springframework.stereotype.Service;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
-import java.time.ZoneOffset;
+import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class SecurityServerDtoConverter extends UniDirectionalDtoConverter<SecurityServer, SecurityServerDto> {
-    private final ZoneOffset dtoZoneOffset;
+@UtilityClass
+public class ServiceFormatter {
 
-    private final SecurityServerIdDtoConverter securityServerIdDtoConverter;
-
-    @Override
-    public SecurityServerDto toDto(SecurityServer source) {
-        return new SecurityServerDto()
-                .serverId(securityServerIdDtoConverter.toDto(source.getServerId()))
-                .ownerName(source.getOwner().getName())
-                .serverAddress(source.getAddress())
-                .createdAt(source.getCreatedAt().atOffset(dtoZoneOffset))
-                .updatedAt(source.getUpdatedAt().atOffset(dtoZoneOffset));
+    /**
+     * Get the full service name (e.g. myService.v1) from ServiceType object
+     *
+     * @param serviceType serviceType
+     * @return full service name as String
+     */
+    public static String getServiceFullName(ServiceType serviceType) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(serviceType.getServiceCode());
+        if (!StringUtils.isEmpty(serviceType.getServiceVersion())) {
+            sb.append(".").append(serviceType.getServiceVersion());
+        }
+        return sb.toString();
     }
-
-
 }

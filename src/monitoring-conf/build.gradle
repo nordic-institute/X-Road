@@ -7,13 +7,14 @@ configurations {
 sourceSets {
     main {
         java.srcDirs = ["src/main/java", schemaTargetDir]
-        resources.srcDirs = ['src/main/resources', '../common/common-util/src/main/resources']
+        resources.srcDirs = ['src/main/resources', '../common/common-domain/src/main/resources']
         resources.exclude 'version.properties'
     }
 }
 
 dependencies {
     implementation project(':common:common-util')
+    implementation project(':common:common-domain')
     implementation project(':common:common-verifier')
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"

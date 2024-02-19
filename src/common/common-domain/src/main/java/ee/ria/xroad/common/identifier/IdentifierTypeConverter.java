@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 
 import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 
 /**
@@ -233,22 +232,13 @@ final class IdentifierTypeConverter {
                 return null;
             }
 
-            switch (v.getObjectType()) {
-                case MEMBER:
-                case SUBSYSTEM:
-                    return printClientId((ClientId) v);
-                case SERVICE:
-                    return printServiceId((ServiceId) v);
-                case SERVER:
-                    return printSecurityServerId((SecurityServerId) v);
-                case GLOBALGROUP:
-                    return printGlobalGroupId((GlobalGroupId) v);
-                case LOCALGROUP:
-                    return printLocalGroupId((LocalGroupId) v);
-                default:
-                    throw new CodedException(X_INTERNAL_ERROR,
-                            "Unsupported object type: " + v.getObjectType());
-            }
+            return switch (v.getObjectType()) {
+                case MEMBER, SUBSYSTEM -> printClientId((ClientId) v);
+                case SERVICE -> printServiceId((ServiceId) v);
+                case SERVER -> printSecurityServerId((SecurityServerId) v);
+                case GLOBALGROUP -> printGlobalGroupId((GlobalGroupId) v);
+                case LOCALGROUP -> printLocalGroupId((LocalGroupId) v);
+            };
         }
 
         @Override
@@ -257,22 +247,13 @@ final class IdentifierTypeConverter {
                 return null;
             }
 
-            switch (v.getObjectType()) {
-                case MEMBER:
-                case SUBSYSTEM:
-                    return parseClientId(v);
-                case SERVICE:
-                    return parseServiceId(v);
-                case SERVER:
-                    return parseSecurityServerId(v);
-                case GLOBALGROUP:
-                    return parseGlobalGroupId(v);
-                case LOCALGROUP:
-                    return parseLocalGroupId(v);
-                default:
-                    throw new CodedException(X_INTERNAL_ERROR,
-                            "Unsupported object type: " + v.getObjectType());
-            }
+            return switch (v.getObjectType()) {
+                case MEMBER, SUBSYSTEM -> parseClientId(v);
+                case SERVICE -> parseServiceId(v);
+                case SERVER -> parseSecurityServerId(v);
+                case GLOBALGROUP -> parseGlobalGroupId(v);
+                case LOCALGROUP -> parseLocalGroupId(v);
+            };
         }
     }
 }

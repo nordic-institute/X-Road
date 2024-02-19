@@ -70,7 +70,7 @@ tasks.register('createDirs') {
 }
 
 tasks.register('xjc') {
-    dependsOn(':common:common-util:xjc', ':common:common-verifier:xjc')
+    dependsOn(':common:common-domain:xjc', ':common:common-verifier:xjc')
     inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
@@ -81,7 +81,7 @@ tasks.register('xjc') {
             destdir: project.ext.schemaTargetDir,
             package: 'ee.ria.xroad.common.conf.keyconf',
             schema: 'src/main/resources/keyconf.xsd',
-            binding: '../common/common-util/src/main/resources/identifiers-bindings.xml'
+            binding: '../common/common-domain/src/main/resources/identifiers-bindings.xml'
         )
     }
 }

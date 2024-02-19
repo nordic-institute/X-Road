@@ -31,75 +31,22 @@ import ee.ria.xroad.common.message.JaxbUtils;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Unmarshaller;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+import static ee.ria.xroad.common.message.SoapBuilder.NS_IDENTIFIERS;
 
 /**
  * XML node parser for X-Road identifiers.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class IdentifierXmlNodeParser {
-
-    public static final String NS_IDENTIFIERS =
-            "http://x-road.eu/xsd/identifiers";
-
-    public static final String PREFIX_IDENTIFIERS = "id";
-
-    private static final JAXBContext JAXB_CTX =
-            JaxbUtils.initJAXBContext(ObjectFactory.class);
-
-    private IdentifierXmlNodeParser() {
-    }
-
-    /**
-     * Parses a client ID from the given node.
-     * @param node the node from which to parse the client ID
-     * @return ClientId
-     * @throws Exception if errors occur during parsing
-     */
-    public static ClientId parseClientId(Node node) throws Exception {
-        XRoadClientIdentifierType type =
-                parseType(XRoadObjectType.MEMBER, node,
-                        XRoadClientIdentifierType.class);
-        return IdentifierTypeConverter.parseClientId(type);
-    }
-
-    /**
-     * Parses a client or subsystem ID from the given node.
-     * @param node the node from which to parse the client ID
-     * @return ClientId
-     * @throws Exception if errors occur during parsing
-     */
-    public static ClientId parseClientOrSubsystem(Node node) throws Exception {
-
-        XRoadObjectType type = getObjectType(node);
-        if (!XRoadObjectType.MEMBER.equals(type) && !XRoadObjectType.SUBSYSTEM.equals(type)) {
-            throw new CodedException(X_INVALID_XML,
-                    "Unexpected objectType: %s", type);
-        }
-        XRoadClientIdentifierType systemType =
-                parseType(type, node,
-                        XRoadClientIdentifierType.class);
-        return IdentifierTypeConverter.parseClientId(systemType);
-    }
-
-    /**
-     * Parses a service ID from the given node.
-     * @param node the node from which to parse the service ID
-     * @return ServiceId
-     * @throws Exception if errors occur during parsing
-     */
-    public static ServiceId parseServiceId(Node node) throws Exception {
-        XRoadServiceIdentifierType type =
-                parseType(XRoadObjectType.SERVICE, node,
-                        XRoadServiceIdentifierType.class);
-        return IdentifierTypeConverter.parseServiceId(type);
-    }
-
-    // -- Helper methods ------------------------------------------------------
+    private static final JAXBContext JAXB_CTX = JaxbUtils.initJAXBContext(ObjectFactory.class);
 
     static <T> T parseType(XRoadObjectType expectedType, Node node,
                            Class<T> clazz) throws Exception {

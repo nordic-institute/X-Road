@@ -27,8 +27,6 @@ package ee.ria.xroad.common;
 
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.soap.SOAPException;
-import org.apache.james.mime4j.MimeException;
-import org.glassfish.jaxb.runtime.api.AccessorException;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -39,7 +37,9 @@ import java.net.UnknownServiceException;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.cert.CertificateException;
 
-/** Enumeration class for various error codes. */
+/**
+ * Enumeration class for various error codes.
+ */
 public final class ErrorCodes {
 
     // Error code prefixes
@@ -200,6 +200,7 @@ public final class ErrorCodes {
      * @param ex the exception
      * @return translated CodedException
      */
+    @SuppressWarnings("squid:S1872")
     public static CodedException translateException(Throwable ex) {
         if (ex instanceof CodedException) {
             return (CodedException) ex;
@@ -215,15 +216,15 @@ public final class ErrorCodes {
             return new CodedException(X_INCORRECT_CERTIFICATE, ex);
         } else if (ex instanceof SOAPException) {
             return new CodedException(X_INVALID_SOAP, ex);
-        } else if (ex instanceof MimeException) {
+        } else if ("org.apache.james.mime4j.MimeException".equals(ex.getClass().getName())) {
             return new CodedException(X_MIME_PARSING_FAILED, ex);
         } else if (ex instanceof SAXException) {
             return new CodedException(X_INVALID_XML, ex);
         } else if (ex instanceof UnmarshalException) {
-            return ex.getCause() instanceof AccessorException
+            return ex.getCause() != null && "org.glassfish.jaxb.runtime.api.AccessorException".equals(ex.getCause().getClass().getName())
                     ? translateException(ex.getCause())
                     : new CodedException(X_INTERNAL_ERROR, ex);
-        } else if (ex instanceof AccessorException) {
+        } else if ("org.glassfish.jaxb.runtime.api.AccessorException".equals(ex.getClass().getName())) {
             return ex.getCause() instanceof CodedException
                     ? (CodedException) ex.getCause()
                     : new CodedException(X_INTERNAL_ERROR, ex);

@@ -109,7 +109,7 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     @AuditEventMethod(event = RestApiAuditEvent.APPROVE_MANAGEMENT_REQUEST)
     @PreAuthorize("hasPermission(#id, 'MANAGEMENT_REQUEST', 'APPROVE')")
     public ResponseEntity<ManagementRequestDto> approveManagementRequest(Integer id) {
-        return ResponseEntity.ok(converter.convert(service.approve(id)));
+        return ResponseEntity.ok(converter.toDto(service.approve(id)));
     }
 
     @Override
