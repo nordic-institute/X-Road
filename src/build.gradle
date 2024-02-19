@@ -159,8 +159,8 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
             }
         }
 
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-        testImplementation("org.junit.vintage:junit-vintage-engine:$junitVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+        testImplementation("org.junit.vintage:junit-vintage-engine:$junitJupiterVersion")
 
         compileOnly "org.projectlombok:lombok:${lombokVersion}"
         annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
