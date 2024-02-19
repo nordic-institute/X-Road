@@ -53,7 +53,6 @@ import org.apache.http.entity.AbstractHttpEntity;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
-import org.eclipse.jetty.server.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,11 +91,12 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private byte[] restBodyDigest;
 
     ClientRestMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
-                               Request request, Response response,
-                               HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+                               RestRequest restRequest,
+                               HttpClient httpClient, IsAuthenticationData clientCert)
             throws Exception {
-        super(proxyRequestCtx,request, response, httpClient, clientCert, opMonitoringData);
-        this.xRequestId = UUID.randomUUID().toString();
+        super(proxyRequestCtx, httpClient, clientCert);
+        this.restRequest = restRequest;
+
     }
 
     //TODO: rethink what should happen in constructor and what in process..
@@ -106,14 +106,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         updateOpMonitoringClientSecurityServerAddress();
 
         try {
-            restRequest = new RestRequest(
-                    jRequest.getMethod(),
-                    jRequest.getHttpURI().getPath(),
-                    jRequest.getHttpURI().getQuery(),
-                    headers(jRequest),
-                    xRequestId
-            );
-
             // Check that incoming identifiers do not contain illegal characters
             checkRequestIdentifiers();
 
@@ -354,10 +346,5 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private List<Header> headers(Request req) {
-        return req.getHeaders().stream()
-                .map(f -> new BasicHeader(f.getName(), f.getValue()))
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
 
 }

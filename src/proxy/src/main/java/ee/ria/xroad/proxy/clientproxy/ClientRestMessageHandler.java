@@ -101,7 +101,7 @@ final var target = getTarget(request);
             var proxyCtx = new ProxyRequestCtx(target, request, response, opMonitoringData,
                     resolveTargetSecurityServers(restRequest.getServiceId().getClientId()));
 
-            boolean forceLegacyTransport = Boolean.TRUE.toString().equalsIgnoreCase(request.getHeader("X-Road-Force-Legacy-Transport"));
+            boolean forceLegacyTransport = Boolean.TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
             if (proxyCtx.targetSecurityServers().dsEnabledServers() && !forceLegacyTransport) {
                 //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
                 return Optional.of(new ClientRestMessageDsProcessor(proxyCtx, restRequest, client,
@@ -114,22 +114,20 @@ final var target = getTarget(request);
         return Optional.empty();
     }
 
-    private RestRequest createRestRequest(HttpServletRequest request) {
+    private RestRequest createRestRequest(Request jRequest) {
         return new RestRequest(
-                request.getMethod(),
-                request.getRequestURI(),
-                request.getQueryString(),
-                headers(request),
+                jRequest.getMethod(),
+                jRequest.getHttpURI().getPath(),
+                jRequest.getHttpURI().getQuery(),
+                headers(jRequest),
                 UUID.randomUUID().toString()
         );
     }
 
-    private List<Header> headers(HttpServletRequest req) {
-        //Use jetty request to keep the original order
-        Request jrq = (Request) req;
-        return jrq.getHttpFields().stream()
+    private List<Header> headers(Request req) {
+        return req.getHeaders().stream()
                 .map(f -> new BasicHeader(f.getName(), f.getValue()))
-                .collect(Collectors.toCollection(ArrayList::new));
+                .collect(Collectors.toList());
     }
 
     private void verifyCanProcess() {

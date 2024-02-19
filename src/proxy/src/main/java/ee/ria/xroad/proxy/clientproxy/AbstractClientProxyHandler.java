@@ -49,6 +49,7 @@ import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
@@ -166,8 +167,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     //TODO xroad8 this has an overlap with RestRequest object, possibly merge these
     record ProxyRequestCtx(
             String clientRequestUrl,
-            HttpServletRequest clientRequest,
-            HttpServletResponse clientResponse,
+            Request clientRequest,
+            Response clientResponse,
             OpMonitoringData opMonitoringData,
 
             TargetSecurityServers targetSecurityServers
@@ -175,7 +176,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     record TargetSecurityServers(
-            Collection<ServerAddressInfo> servers,
+            java.util.Collection<ServerAddressInfo> servers,
             boolean dsEnabledServers
     ) {
     }

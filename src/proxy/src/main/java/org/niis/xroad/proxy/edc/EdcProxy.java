@@ -34,14 +34,13 @@ import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.CustomRequestLog;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
-import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
 import org.springframework.context.annotation.Conditional;
@@ -85,10 +84,7 @@ public class EdcProxy {
         Path file = Paths.get(SystemProperties.getJettyEdcProxyConfFile());
 
         log.debug("Configuring server from {}", file);
-
-        try (Resource in = Resource.newResource(file)) {
-            new XmlConfiguration(in).configure(server);
-        }
+        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
     }
 
     private void createConnector() {
@@ -128,14 +124,13 @@ public class EdcProxy {
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
         final CustomRequestLog reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
 
-        RequestLogHandler logHandler = new RequestLogHandler();
-        logHandler.setRequestLog(reqLog);
+        server.setRequestLog(reqLog);
 
-        HandlerCollection handler = new HandlerCollection();
-        handler.addHandler(logHandler);
-        handler.addHandler(assetAuthorizationCallbackHandler);
+        var handlers = new Handler.Sequence();
 
-        server.setHandler(handler);
+        handlers.addHandler(assetAuthorizationCallbackHandler);
+
+        server.setHandler(handlers);
     }
 
 }

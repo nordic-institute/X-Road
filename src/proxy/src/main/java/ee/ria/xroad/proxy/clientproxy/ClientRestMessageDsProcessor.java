@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,19 +40,21 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.StringEntity;
+import org.eclipse.jetty.http.HttpField;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
+import static org.eclipse.jetty.server.Request.asInputStream;
 
 @Slf4j
 class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
@@ -129,26 +132,26 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
     private void processResponse(HttpSender httpSender) throws Exception {
         //TODO handle statuses
-        servletResponse.setStatus(200);
+        jResponse.setStatus(200);
         //TODO also headers..
         var outputStream = new ByteArrayOutputStream();
         IOUtils.copy(httpSender.getResponseContent(), outputStream);
 
         xrdSignatureService.verify(httpSender.getResponseHeaders(), outputStream.toByteArray(),
                 restRequest.getServiceId().getClientId());
-        outputStream.writeTo(servletResponse.getOutputStream());
+        outputStream.writeTo(asOutputStream(jResponse));
 
         int headersSizeInBytes = 0;
         for (Map.Entry<String, String> entry : httpSender.getResponseHeaders().entrySet()) {
             // Each header has a name and value, and the ": " delimiter, and CRLF as overhead
             headersSizeInBytes += entry.getKey().length() + ": ".length() + entry.getValue().length() + "\r\n".length();
-            servletResponse.addHeader(entry.getKey(), entry.getValue());
+            jResponse.getHeaders().add(entry.getKey(), entry.getValue());
         }
         log.info("EDC public api response headers size: {} KB", headersSizeInBytes / 1024.0);
     }
 
     private void sendRequest(HttpSender httpSender, AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
-        var rawJson = IOUtils.toString(servletRequest.getInputStream(), servletRequest.getCharacterEncoding());
+        var rawJson = IOUtils.toString(asInputStream(jRequest), JettyUtils.getCharacterEncoding(jRequest));
 
         var headersToSign = getRequestHeaders();
         headersToSign.put(MimeUtils.HEADER_QUERY_ID, restRequest.getQueryId());
@@ -183,12 +186,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     }
 
     private Map<String, String> getRequestHeaders() {
-        Map<String, String> headers = new HashMap<>();
-        Enumeration<String> headerNames = servletRequest.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            headers.put(headerName, servletRequest.getHeader(headerName));
-        }
-        return headers;
+        return jRequest.getHeaders().stream()
+                .collect(Collectors.toMap(HttpField::getName, HttpField::getValue));
     }
 }

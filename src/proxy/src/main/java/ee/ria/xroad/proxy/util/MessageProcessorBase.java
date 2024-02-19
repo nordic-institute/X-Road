@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.niis.xroad.proxy.ProxyMessageProcessor;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -51,7 +52,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
  * Base class for message processors.
  */
 @Slf4j
-public abstract class MessageProcessorBase {
+public abstract class MessageProcessorBase implements ProxyMessageProcessor {
 
     /** The servlet request. */
     protected final Request jRequest;
@@ -90,12 +91,6 @@ public abstract class MessageProcessorBase {
      */
     protected void postprocess() throws Exception {
     }
-
-    /**
-     * Processes the incoming message.
-     * @throws Exception in case of any errors
-     */
-    public abstract void process() throws Exception;
 
     /**
      * Update operational monitoring data with SOAP message header data and

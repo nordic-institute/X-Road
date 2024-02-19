@@ -29,18 +29,18 @@ package org.niis.xroad.proxy.edc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import static ee.ria.xroad.common.util.JettyUtils.getTarget;
+import static org.eclipse.jetty.server.Request.asInputStream;
 
 /**
  * TODO: xroad8
@@ -51,22 +51,20 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AssetAuthorizationCallbackHandler extends AbstractHandler {
+public class AssetAuthorizationCallbackHandler extends Handler.Abstract {
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
 
     private final AuthorizedAssetRegistry authorizedAssetRegistry;
     private final AssetTransferRegistry assetTransferRegistry;
 
+
     @Override
-    public void handle(String target, Request request,
-                       HttpServletRequest httpServletRequest,
-                       HttpServletResponse httpServletResponse)
-            throws IOException, ServletException {
-
+    public boolean handle(Request request, Response response, Callback callback) throws Exception {
+        final var target = getTarget(request);
         if (StringUtils.isNotBlank(target) && target.equals("/asset-authorization-callback")) {
-            request.setHandled(true);
 
-            var requestBody = objectMapper.readValue(request.getInputStream(), JsonObject.class);
+
+            var requestBody = objectMapper.readValue(asInputStream(request), JsonObject.class);
             log.info("Received asset callback request: {}", requestBody);
 
             var transferId = requestBody.getString("id");
@@ -78,6 +76,10 @@ public class AssetAuthorizationCallbackHandler extends AbstractHandler {
                             requestBody.getString("endpoint"),
                             requestBody.getString("authKey"),
                             requestBody.getString("authCode")));
+
+            callback.succeeded();
+            return true;
         }
+        return false;
     }
 }
