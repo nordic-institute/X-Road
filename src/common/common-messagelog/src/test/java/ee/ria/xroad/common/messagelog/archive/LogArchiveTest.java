@@ -70,7 +70,7 @@ public class LogArchiveTest {
 
     @Parameterized.Parameters(name = "encrypted = {0}, grouping = {1}")
     public static Object[][] params() {
-        return new Object[][] {
+        return new Object[][]{
                 {Boolean.FALSE, GroupingStrategy.NONE},
                 {Boolean.FALSE, GroupingStrategy.MEMBER},
                 {Boolean.FALSE, GroupingStrategy.SUBSYSTEM},
@@ -200,7 +200,7 @@ public class LogArchiveTest {
                 ClientId.Conf.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
                 "92060130-3ba8-4e35-89e2-41b90aac074b");
         record.setId(recordNo);
-        record.setTime((long)(Math.random() * 100000L));
+        record.setTime((long) (Math.random() * 100000L));
 
         return record;
     }
@@ -212,7 +212,7 @@ public class LogArchiveTest {
         record.setId(recordNo);
         record.setTimestamp("ts");
         record.setHashChainResult("foo");
-        record.setTime((long)(Math.random() * 100000L));
+        record.setTime((long) (Math.random() * 100000L));
 
         return record;
     }

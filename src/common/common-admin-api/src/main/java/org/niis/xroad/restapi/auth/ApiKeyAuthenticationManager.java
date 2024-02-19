@@ -59,11 +59,11 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
 
     @Autowired
     public ApiKeyAuthenticationManager(ApiKeyAuthenticationHelper apiKeyAuthenticationHelper,
-            AuthenticationHeaderDecoder authenticationHeaderDecoder,
-            GrantedAuthorityMapper permissionMapper,
-            @Qualifier(AuthenticationIpWhitelist.REGULAR_API_WHITELIST)
-                    AuthenticationIpWhitelist authenticationIpWhitelist,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+                                       AuthenticationHeaderDecoder authenticationHeaderDecoder,
+                                       GrantedAuthorityMapper permissionMapper,
+                                       @Qualifier(AuthenticationIpWhitelist.REGULAR_API_WHITELIST)
+                                       AuthenticationIpWhitelist authenticationIpWhitelist,
+                                       AuditEventLoggingFacade auditEventLoggingFacade) {
         this.apiKeyAuthenticationHelper = apiKeyAuthenticationHelper;
         this.authenticationHeaderDecoder = authenticationHeaderDecoder;
         this.permissionMapper = permissionMapper;

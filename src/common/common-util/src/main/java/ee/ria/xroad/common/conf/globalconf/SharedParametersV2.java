@@ -34,7 +34,6 @@ import jakarta.xml.bind.JAXBException;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.cert.CertificateEncodingException;

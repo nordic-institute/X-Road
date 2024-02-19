@@ -63,7 +63,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited
  */
 @Component
 @Slf4j
-@Profile({ "nontest", "audit-test" })
+@Profile({"nontest", "audit-test"})
 public class AuditDataHelper {
 
     private final RequestScopedAuditDataHolder requestScopedAuditDataHolder;

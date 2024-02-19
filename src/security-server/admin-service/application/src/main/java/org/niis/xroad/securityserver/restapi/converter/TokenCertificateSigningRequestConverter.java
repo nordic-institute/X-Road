@@ -58,14 +58,15 @@ public class TokenCertificateSigningRequestConverter {
      * @return {@link TokenCertificateSigningRequest}
      */
     public TokenCertificateSigningRequest convert(CertRequestInfo csrInfo,
-            KeyInfo keyInfo,
-            TokenInfo tokenInfo) {
+                                                  KeyInfo keyInfo,
+                                                  TokenInfo tokenInfo) {
         TokenCertificateSigningRequest request = convert(csrInfo);
         request.setPossibleActions(possibleActionConverter.convert(
                 possibleActionsRuleEngine.getPossibleCsrActions(
                         tokenInfo)));
         return request;
     }
+
     /**
      * Convert {@link CertRequestInfo} to {@link TokenCertificateSigningRequest}
      * @param csrInfo
@@ -99,8 +100,8 @@ public class TokenCertificateSigningRequestConverter {
      * @return List of {@link TokenCertificateSigningRequest token CSRs}
      */
     public List<TokenCertificateSigningRequest> convert(Iterable<CertRequestInfo> csrInfos,
-            KeyInfo keyInfo,
-            TokenInfo tokenInfo) {
+                                                        KeyInfo keyInfo,
+                                                        TokenInfo tokenInfo) {
         return Streams.stream(csrInfos)
                 .map(c -> convert(c, keyInfo, tokenInfo))
                 .collect(Collectors.toList());

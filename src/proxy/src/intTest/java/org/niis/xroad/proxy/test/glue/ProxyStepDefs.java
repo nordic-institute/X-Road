@@ -207,7 +207,8 @@ public class ProxyStepDefs extends BaseStepDefs {
         }
     }
 
-    private record BatchSignResult(ClientId.Conf clientId, String message, SignatureData signatureData, List<MessagePart> messageParts) {
+    private record BatchSignResult(ClientId.Conf clientId, String message, SignatureData signatureData,
+                                   List<MessagePart> messageParts) {
     }
 
     private static void verify(final BatchSignResult batchSignResult)

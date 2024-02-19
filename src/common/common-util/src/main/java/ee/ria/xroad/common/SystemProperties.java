@@ -1183,7 +1183,7 @@ public final class SystemProperties {
                 DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS));
     }
 
-     /**
+    /**
      * @return path to the directory containing configuration proxy configuration files,
      * '/etc/xroad/confproxy' by default.
      */

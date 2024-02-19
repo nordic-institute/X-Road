@@ -51,6 +51,7 @@ public enum DnFieldLabelLocalizationKey {
         this.compatibilityLabel = compatibilityLabel;
 
     }
+
     /**
      * For backwards compatibility while we still support old UI.
      * Remove when old UI support can be removed

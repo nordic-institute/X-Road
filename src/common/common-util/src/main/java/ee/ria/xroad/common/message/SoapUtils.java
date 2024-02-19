@@ -127,7 +127,6 @@ public final class SoapUtils {
     }
 
     /**
-
      * Returns namespace URIs from a SOAPMessage.
      * @param soap soap message from which to retrieve namespace URIs
      * @return a List of namespace URI Strings
@@ -188,11 +187,11 @@ public final class SoapUtils {
      * @param serviceName service name inside the SOAP message body
      */
     public static void validateServiceName(String serviceCode,
-            String serviceName) {
+                                           String serviceName) {
         if (!serviceName.startsWith(serviceCode)) {
             throw new CodedException(X_INCONSISTENT_HEADERS,
                     "Malformed SOAP message: "
-                        + "service code does not match in header and body");
+                            + "service code does not match in header and body");
         }
     }
 
@@ -218,7 +217,7 @@ public final class SoapUtils {
      * @param m2 the second SOAP message
      */
     public static void checkConsistency(SoapMessageImpl m1,
-            SoapMessageImpl m2) {
+                                        SoapMessageImpl m2) {
         checkConsistency(m1.getHeader(), m2.getHeader());
     }
 
@@ -262,11 +261,11 @@ public final class SoapUtils {
      * @throws Exception if errors occur during response message creation
      */
     public static SoapMessageImpl toResponse(SoapMessageImpl request,
-            SOAPCallback callback) throws Exception {
+                                             SOAPCallback callback) throws Exception {
         String charset = request.getCharset();
 
         SOAPMessage soap = createSOAPMessage(new ByteArrayInputStream(
-                        request.getBytes()), charset);
+                request.getBytes()), charset);
 
         List<SOAPElement> bodyChildren = getChildElements(soap.getSOAPBody());
         if (bodyChildren.isEmpty()) {

@@ -57,18 +57,18 @@ public class LocalizedFieldDescriptionImpl implements DnFieldDescription {
     }
 
     public LocalizedFieldDescriptionImpl(String id,
-            String labelKey,
-            String defaultValue) {
+                                         String labelKey,
+                                         String defaultValue) {
         this.id = id;
         this.labelKey = labelKey;
         this.defaultValue = defaultValue;
     }
 
     public LocalizedFieldDescriptionImpl(String id,
-            String labelKey,
-            String defaultValue,
-            boolean readOnly,
-            boolean required) {
+                                         String labelKey,
+                                         String defaultValue,
+                                         boolean readOnly,
+                                         boolean required) {
         this.id = id;
         this.labelKey = labelKey;
         this.defaultValue = defaultValue;

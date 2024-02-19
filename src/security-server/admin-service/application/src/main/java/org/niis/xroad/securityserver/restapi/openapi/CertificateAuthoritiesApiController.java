@@ -93,7 +93,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
             + "#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING)")
     public ResponseEntity<Set<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType,
-            Boolean includeIntermediateCas) {
+                                                                                       Boolean includeIntermediateCas) {
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
         Collection<ApprovedCaDto> caDtos = null;
         try {

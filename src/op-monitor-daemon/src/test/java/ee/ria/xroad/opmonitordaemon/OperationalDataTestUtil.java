@@ -45,7 +45,8 @@ import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.storeRec
 final class OperationalDataTestUtil {
     static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
-    private OperationalDataTestUtil() { }
+    private OperationalDataTestUtil() {
+    }
 
     static void prepareDatabase() throws Exception {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES,
@@ -73,7 +74,7 @@ final class OperationalDataTestUtil {
         return rec;
     }
 
-    static String formatInvalidOperationalDataAsJson()  {
+    static String formatInvalidOperationalDataAsJson() {
         return new StringBuilder()
                 .append("{\"clientMemberCode\":\"00000001\",")
                 .append("\"serviceXRoadInstance\":\"XTEE-CI-XM\",")
@@ -123,7 +124,7 @@ final class OperationalDataTestUtil {
     }
 
     static void storeFullOperationalDataRecords(int count,
-            long monitoringDataTs) throws Exception {
+                                                long monitoringDataTs) throws Exception {
         List<OperationalDataRecord> records = new ArrayList<>();
         OperationalDataRecord record;
 
@@ -139,7 +140,7 @@ final class OperationalDataTestUtil {
     }
 
     static void storeFullOperationalDataRecord(long monitoringDataTs,
-            ClientId client, ClientId serviceProvider) throws Exception {
+                                               ClientId client, ClientId serviceProvider) throws Exception {
         OperationalDataRecord record = OBJECT_READER.readValue(
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
 

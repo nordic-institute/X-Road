@@ -68,7 +68,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public X509Certificate getCaCert(String instanceIdentifier,
-            X509Certificate orgCert) throws Exception {
+                                     X509Certificate orgCert) throws Exception {
         return null;
     }
 
@@ -84,7 +84,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean isOcspResponderCert(X509Certificate ca,
-            X509Certificate ocspCert) {
+                                       X509Certificate ocspCert) {
         return true;
     }
 
@@ -106,7 +106,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean isSubjectInGlobalGroup(ClientId subject,
-            GlobalGroupId group) {
+                                          GlobalGroupId group) {
         return false;
     }
 
@@ -137,7 +137,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean authCertMatchesMember(X509Certificate cert,
-            ClientId memberId) throws Exception {
+                                         ClientId memberId) throws Exception {
         return false;
     }
 
@@ -163,7 +163,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean isSecurityServerClient(ClientId client,
-            SecurityServerId securityServer) {
+                                          SecurityServerId securityServer) {
         return false;
     }
 
@@ -174,7 +174,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public CertChain getCertChain(String instanceIdentifier,
-            X509Certificate subject) throws Exception {
+                                  X509Certificate subject) throws Exception {
         return null;
     }
 
@@ -235,7 +235,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public String getApprovedTspName(String instanceIdentifier,
-            String approvedTspUrl) {
+                                     String approvedTspUrl) {
         return null;
     }
 
@@ -251,7 +251,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public void reload() {
-      // nothing to reload here
+        // nothing to reload here
     }
 
     @Override

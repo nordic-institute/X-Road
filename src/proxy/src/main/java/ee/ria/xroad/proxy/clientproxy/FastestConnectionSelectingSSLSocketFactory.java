@@ -89,7 +89,7 @@ public class FastestConnectionSelectingSSLSocketFactory
     private final boolean cachingEnabled;
 
     public FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext) {
-        super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier)null);
+        super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
         this.socketfactory = sslContext.getSocketFactory();
         this.selectedHosts = CacheBuilder.newBuilder()
                 .expireAfterWrite(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
@@ -106,7 +106,7 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     public Socket connectSocket(int timeout, Socket socket, HttpHost host, InetSocketAddress remoteAddress,
-            InetSocketAddress localAddress, HttpContext context) {
+                                InetSocketAddress localAddress, HttpContext context) {
         // Discard dummy socket.
         closeQuietly(socket);
 
@@ -189,7 +189,7 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     protected void prepareSocket(final SSLSocket socket) throws IOException {
-        socket.setEnabledProtocols(new String[] {CryptoUtils.SSL_PROTOCOL});
+        socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
         socket.setEnabledCipherSuites(SystemProperties.getXroadTLSCipherSuites());
     }
 
@@ -204,9 +204,9 @@ public class FastestConnectionSelectingSSLSocketFactory
     }
 
     private static void updateOpMonitoringData(HttpContext context,
-            SocketInfo socketInfo) {
+                                               SocketInfo socketInfo) {
         try {
-            OpMonitoringData opMonitoringData = (OpMonitoringData)context
+            OpMonitoringData opMonitoringData = (OpMonitoringData) context
                     .getAttribute(OpMonitoringData.class.getName());
 
             if (opMonitoringData != null) {
@@ -240,7 +240,7 @@ public class FastestConnectionSelectingSSLSocketFactory
     }
 
     private void prepareAndVerify(SSLSocket sslSocket, URI selectedAddress,
-            HttpContext context) throws IOException {
+                                  HttpContext context) throws IOException {
         prepareSocket(sslSocket);
 
         // Called explicitly to catch TLS handshake errors
@@ -256,7 +256,7 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     private SSLSocket wrapToSSLSocket(Socket socket, int connectTimeout) throws IOException {
         if (socket instanceof SSLSocket) {
-            return (SSLSocket)socket;
+            return (SSLSocket) socket;
         }
         log.trace("Existing connection not over TLS, negotiating the use of TLS.");
         //XRDDEV-248: use connection timeout as read timeout during SSL handshake
@@ -265,7 +265,7 @@ public class FastestConnectionSelectingSSLSocketFactory
         Socket sslSocket = socketfactory.createSocket(socket,
                 socket.getInetAddress().getHostName(), socket.getPort(), SystemProperties.isUseSslSocketAutoClose());
         if (sslSocket instanceof SSLSocket) {
-            return (SSLSocket)sslSocket;
+            return (SSLSocket) sslSocket;
         }
 
         throw new CodedException(X_INTERNAL_ERROR, "Failed to create SSL socket");
@@ -273,16 +273,16 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     private static URI[] getAddressesFromContext(HttpContext context) {
         Object targets = context.getAttribute(ID_TARGETS);
-        if (targets instanceof URI[] && ((URI[])targets).length > 0) {
-            return (URI[])targets;
+        if (targets instanceof URI[] && ((URI[]) targets).length > 0) {
+            return (URI[]) targets;
         }
         throw new CodedException(X_INTERNAL_ERROR, "Target hosts not specified in http context");
     }
 
     private static CodedException couldNotConnectException(URI[] addresses, Exception cause) {
-        log.error("Could not connect to any target host ({})", (Object)addresses);
+        log.error("Could not connect to any target host ({})", (Object) addresses);
         if (cause instanceof CodedException) {
-            return (CodedException)cause;
+            return (CodedException) cause;
         } else {
             return new CodedException(X_NETWORK_ERROR, cause, "Could not connect to any target host (%s)",
                     Arrays.toString(addresses));
@@ -306,7 +306,7 @@ public class FastestConnectionSelectingSSLSocketFactory
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof CacheKey)) return false;
-            final CacheKey key = (CacheKey)o;
+            final CacheKey key = (CacheKey) o;
             if (hash != key.hash) return false;
             return Arrays.equals(addresses, key.addresses);
         }

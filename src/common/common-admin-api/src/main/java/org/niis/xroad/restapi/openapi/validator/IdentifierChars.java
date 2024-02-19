@@ -44,7 +44,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = IdentifierCharsValidator.class)
 public @interface IdentifierChars {
     String message() default "identifiers are not allowed to contain colon, semicolon, slashes, percent, or"
-        + " control characters";
+            + " control characters";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

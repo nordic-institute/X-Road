@@ -156,7 +156,7 @@ public class SignatureManifest {
             if (otherRef == null) {
                 throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
                         "Reference for URI '" + thisRef.getName()
-                        + "' does not exist");
+                                + "' does not exist");
             }
 
             if (!thisRef.equals(otherRef)) {
@@ -209,7 +209,7 @@ public class SignatureManifest {
      * @throws Exception if errors occur when creating the DOM elements
      */
     public static Element createReferenceInfoElement(Document doc,
-            String hashMethod, byte[] hashValue) throws Exception {
+                                                     String hashMethod, byte[] hashValue) throws Exception {
         Element referenceElement = doc.createElement(Helper.PREFIX_XADES
                 + Helper.REFERENCE_INFO_TAG);
 

@@ -102,10 +102,12 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
                     public DnFieldDescription[] getSubjectFields() {
                         return new DnFieldDescription[0];
                     }
+
                     @Override
                     public X500Principal createSubjectDn(DnFieldValue[] values) {
                         return null;
                     }
+
                     @Override
                     public void validateSubjectField(DnFieldValue field) throws Exception {
                     }
@@ -113,7 +115,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_APPROVED_CERTIFICATE_AUTHORITIES" })
+    @WithMockUser(authorities = {"VIEW_APPROVED_CERTIFICATE_AUTHORITIES"})
     public void getApprovedCertificatesWithViewPermission() throws Exception {
         // basically test that these do not throw exceptions
         caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
@@ -124,7 +126,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_AUTH_CERT_REQ"})
     public void getApprovedCertificateAuthoritiesAuthWithAuthPermission() throws Exception {
         caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
         caController.getApprovedCertificateAuthorities(null, false);
@@ -137,7 +139,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_SIGN_CERT_REQ"})
     public void getApprovedCertificateAuthoritiesAuthWithSignPermission() throws Exception {
         caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING, false);
 
@@ -154,7 +156,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_AUTH_CERT_REQ"})
     public void getSubjectFieldDescriptionsAuthWithAuthPermission() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.AUTHENTICATION,
                 GOOD_AUTH_KEY_ID, "FI:GOV:M1", false);
@@ -168,7 +170,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_SIGN_CERT_REQ"})
     public void getSubjectFieldDescriptionsAuthWithSignPermission() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.SIGNING,
                 GOOD_SIGN_KEY_ID, "FI:GOV:M1", false);
@@ -182,7 +184,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ", "GENERATE_AUTH_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_SIGN_CERT_REQ", "GENERATE_AUTH_CERT_REQ"})
     public void getSubjectFieldsKeyIsOptional() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.SIGNING,
                 null, "FI:GOV:M1", false);

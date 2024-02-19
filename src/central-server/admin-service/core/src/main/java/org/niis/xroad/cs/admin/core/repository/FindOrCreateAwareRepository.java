@@ -42,6 +42,7 @@ public interface FindOrCreateAwareRepository<ENTITY, ID> extends GenericReposito
      * <p>
      */
     Optional<ENTITY> findOpt(ENTITY model);
+
     /**
      * Return an equivalent model from the repository.
      * <p>

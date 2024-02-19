@@ -73,10 +73,10 @@ public final class AuthTrustVerifier {
     }
 
     static void verify(HttpContext context, SSLSession sslSession,
-            URI selectedAddress) {
+                       URI selectedAddress) {
         log.debug("verify()");
 
-        ServiceId service = (ServiceId)context.getAttribute(ID_PROVIDERNAME);
+        ServiceId service = (ServiceId) context.getAttribute(ID_PROVIDERNAME);
         if (service == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Could not get provider name from context");
@@ -96,7 +96,7 @@ public final class AuthTrustVerifier {
     }
 
     private static void verifyAuthCert(ClientId serviceProvider,
-            X509Certificate[] certs, URI address) throws Exception {
+                                       X509Certificate[] certs, URI address) throws Exception {
         CertChain chain;
         List<OCSPResp> ocspResponses;
         try {
@@ -190,7 +190,7 @@ public final class AuthTrustVerifier {
 
         try {
             // Note: assuming X509-based auth
-            return (X509Certificate[])session.getPeerCertificates();
+            return (X509Certificate[]) session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException e) {
             throw new CodedException(X_SSL_AUTH_FAILED, e, "Service provider did not provide TLS certificate");
         }

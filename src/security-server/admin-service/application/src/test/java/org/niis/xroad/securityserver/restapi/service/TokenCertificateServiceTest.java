@@ -286,7 +286,7 @@ public class TokenCertificateServiceTest {
                 return null;
             } else if (SIGNER_EXCEPTION_CSR_ID.equals(csrId)) {
                 throw CodedException.tr(X_CSR_NOT_FOUND,
-                        "csr_not_found", "Certificate request '%s' not found", csrId)
+                                "csr_not_found", "Certificate request '%s' not found", csrId)
                         .withPrefix(SIGNER_X);
             } else if (CSR_NOT_FOUND_CSR_ID.equals(csrId)) {
                 throw new CsrNotFoundException("not found");
@@ -372,7 +372,7 @@ public class TokenCertificateServiceTest {
     }
 
     private void mockGetTokenAndKeyIdForCertificateRequestId(KeyInfo authKey, KeyInfo goodKey, KeyInfo signKey,
-            TokenInfo tokenInfo) throws KeyNotFoundException, CsrNotFoundException {
+                                                             TokenInfo tokenInfo) throws KeyNotFoundException, CsrNotFoundException {
         doAnswer(invocation -> {
             String csrId = (String) invocation.getArguments()[0];
             switch (csrId) {
@@ -393,7 +393,7 @@ public class TokenCertificateServiceTest {
     }
 
     private void mockGetTokenAndKeyIdForCertificateHash(KeyInfo authKey, KeyInfo goodKey, KeyInfo signKey,
-            TokenInfo tokenInfo) throws KeyNotFoundException, CertificateNotFoundException {
+                                                        TokenInfo tokenInfo) throws KeyNotFoundException, CertificateNotFoundException {
         doAnswer(invocation -> {
             String hash = (String) invocation.getArguments()[0];
             switch (hash) {

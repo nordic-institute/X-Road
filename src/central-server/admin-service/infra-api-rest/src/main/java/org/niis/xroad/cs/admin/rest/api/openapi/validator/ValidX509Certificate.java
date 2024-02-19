@@ -44,6 +44,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = X509CertificateValidator.class)
 public @interface ValidX509Certificate {
     String message() default "Invalid X.509 certificate";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

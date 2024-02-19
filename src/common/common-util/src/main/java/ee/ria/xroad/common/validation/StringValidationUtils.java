@@ -38,7 +38,8 @@ public final class StringValidationUtils {
     //zero-width space
     private static final char FORBIDDEN_ZWSP = '\u200b';
 
-    private StringValidationUtils() { }
+    private StringValidationUtils() {
+    }
 
     /**
      * checks if the string contains ISO control characters or zero-width spaces

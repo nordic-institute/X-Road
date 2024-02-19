@@ -187,7 +187,7 @@ public abstract class RestMessage {
     }
 
     static void serializeHeaders(List<Header> headers, OutputStream os, Predicate<Header> filter) throws IOException {
-        for (Header h: headers) {
+        for (Header h : headers) {
             if (filter.test(h)) {
                 writeString(os, h.getName());
                 writeString(os, ":");

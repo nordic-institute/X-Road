@@ -64,7 +64,7 @@ public class AddCorrelationIdFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
-            FilterChain chain) throws IOException, ServletException {
+                         FilterChain chain) throws IOException, ServletException {
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
         httpServletResponse.setHeader(CORRELATION_ID_HEADER_NAME, getCorrelationId());
         chain.doFilter(request, response);

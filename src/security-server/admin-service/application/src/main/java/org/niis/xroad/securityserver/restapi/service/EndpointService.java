@@ -114,12 +114,12 @@ public class EndpointService {
 
         if ("".equals(path)) {
             throw new IllegalArgumentException("Path can't be empty string when updating an endpoint: "
-                + id.toString());
+                    + id.toString());
         }
 
         if (method == null && path == null) {
             throw new IllegalArgumentException("Method and path can't both be null when updating an endpoint: "
-                + id.toString());
+                    + id.toString());
         }
 
         ClientType client = clientRepository.getClientByEndpointId(id);
@@ -190,7 +190,7 @@ public class EndpointService {
     public List<EndpointType> getServiceBaseEndpoints(ClientType clientType, Set<String> serviceCodes)
             throws EndpointNotFoundException {
         List<EndpointType> baseEndpoints = new ArrayList<>();
-        for (String serviceCode: serviceCodes) {
+        for (String serviceCode : serviceCodes) {
             baseEndpoints.add(getServiceBaseEndpoint(clientType, serviceCode));
         }
         return baseEndpoints;

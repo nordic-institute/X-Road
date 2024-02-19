@@ -136,7 +136,7 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
     }
 
     private Optional<ServiceClientAccessRightDto> findAccessRightDto(List<ServiceClientAccessRightDto> dtos,
-            String serviceCode) {
+                                                                     String serviceCode) {
         return dtos.stream()
                 .filter(dto -> dto.getServiceCode().equals(serviceCode))
                 .findFirst();

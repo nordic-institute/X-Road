@@ -137,7 +137,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
     @Step("user deletes selectable members filter query")
     public void clearCandidatesFilter() {
         vTextField(globalGroupDetailsPage.getAddMembersDialogObj().inputFilter())
-                 .clear();
+                .clear();
     }
 
     @Step("user opens delete member dialog for {string}")

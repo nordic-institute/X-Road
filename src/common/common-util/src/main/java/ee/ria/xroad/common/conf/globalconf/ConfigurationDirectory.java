@@ -125,23 +125,23 @@ public interface ConfigurationDirectory {
     static void deleteDirectory(Path directory) {
         try {
             Files.walkFileTree(directory,
-                new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult postVisitDirectory(
-                            Path dir, IOException exc) throws IOException {
-                        super.postVisitDirectory(dir, exc);
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
+                    new SimpleFileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult postVisitDirectory(
+                                Path dir, IOException exc) throws IOException {
+                            super.postVisitDirectory(dir, exc);
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
 
-                    @Override
-                    public FileVisitResult visitFile(
-                            Path file, BasicFileAttributes attrs)
-                            throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
+                        @Override
+                        public FileVisitResult visitFile(
+                                Path file, BasicFileAttributes attrs)
+                                throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
         } catch (IOException e) {
             LOG.error("Error deleting directory " + directory, e);
         }

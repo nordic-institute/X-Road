@@ -107,7 +107,7 @@ public class ProxyMonitorServiceHandlerTest {
     @BeforeClass
     public static void initCommon() throws JAXBException, SOAPException {
         unmarshaller = JAXBContext.newInstance(ObjectFactory.class, SoapHeader.class,
-                GetSecurityServerMetricsResponse.class)
+                        GetSecurityServerMetricsResponse.class)
                 .createUnmarshaller();
         messageFactory = MessageFactory.newInstance();
     }

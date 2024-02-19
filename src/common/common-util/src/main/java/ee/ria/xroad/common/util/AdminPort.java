@@ -51,7 +51,7 @@ public class AdminPort implements StartStop {
      * Base class for AdminPort callbacks
      */
     public abstract static class AdminPortCallback {
-        public abstract void handle(Request request, Response response, Callback callback) throws Exception;
+        public abstract void handle(Request request, Response response) throws Exception;
     }
 
     /**
@@ -147,16 +147,14 @@ public class AdminPort implements StartStop {
                     AdminPortCallback handler = handlers.get(target);
                     if (handler != null) {
                         if (handler instanceof SynchronousCallback) {
-                            //TODO jetty, maybe handle without passing callback??
-                            handler.handle(request, response, callback);
+                            handler.handle(request, response);
                         } else {
                             LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
-                            callback.succeeded();
                         }
                     } else {
                         response.setStatus(SC_NOT_FOUND);
-                        callback.succeeded();
                     }
+                    callback.succeeded();
                 } catch (Exception e) {
                     LOG.error("Handler got error", e);
                     response.setStatus(SC_INTERNAL_SERVER_ERROR);

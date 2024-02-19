@@ -36,7 +36,7 @@ public class HostAddressValidator implements ConstraintValidator<ValidHostAddres
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        return  null == value
+        return null == value
                 || InternetDomainName.isValid(value)
                 || InetAddresses.isInetAddress(value);
     }

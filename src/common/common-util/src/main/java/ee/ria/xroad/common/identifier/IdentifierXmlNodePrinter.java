@@ -53,7 +53,7 @@ public final class IdentifierXmlNodePrinter {
      * @throws Exception if errors occur during XML node generation
      */
     public static void printClientId(ClientId clientId, Node parentNode,
-            QName nodeQName) throws Exception {
+                                     QName nodeQName) throws Exception {
         if (clientId == null) {
             return;
         }
@@ -76,7 +76,7 @@ public final class IdentifierXmlNodePrinter {
      * @throws Exception if errors occur during XML node generation
      */
     public static void printServiceId(ServiceId serviceId, Node parentNode,
-            QName nodeQName) throws Exception {
+                                      QName nodeQName) throws Exception {
         if (serviceId == null) {
             return;
         }

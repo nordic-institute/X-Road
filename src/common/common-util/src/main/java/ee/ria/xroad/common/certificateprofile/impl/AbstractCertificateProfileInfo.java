@@ -53,12 +53,12 @@ abstract class AbstractCertificateProfileInfo
     @Override
     public X500Principal createSubjectDn(DnFieldValue[] values) {
         return new X500Principal(
-            StringUtils.join(
-                Arrays.stream(values)
-                    .map(this::toString)
-                    .collect(Collectors.toList()),
-                ", "
-            )
+                StringUtils.join(
+                        Arrays.stream(values)
+                                .map(this::toString)
+                                .collect(Collectors.toList()),
+                        ", "
+                )
         );
     }
 
@@ -67,10 +67,10 @@ abstract class AbstractCertificateProfileInfo
         DnFieldDescription description = getDescription(field);
         if (description.isRequired() && StringUtils.isBlank(field.getValue())) {
             throw new RuntimeException(
-                String.format("Field '%s (%s)' is missing value",
-                    description.getLabel(),
-                    description.getId()
-                )
+                    String.format("Field '%s (%s)' is missing value",
+                            description.getLabel(),
+                            description.getId()
+                    )
             );
         }
     }
@@ -84,7 +84,7 @@ abstract class AbstractCertificateProfileInfo
                 .filter(f -> f.getId().equals(value.getId()))
                 .findFirst()
                 .orElseThrow(() ->
-                    new RuntimeException("Unknown field: " + value.getId())
+                        new RuntimeException("Unknown field: " + value.getId())
                 );
     }
 }

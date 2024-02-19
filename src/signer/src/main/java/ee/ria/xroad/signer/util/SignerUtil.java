@@ -231,7 +231,7 @@ public final class SignerUtil {
      */
     @SneakyThrows
     public static String getFormattedTokenId(String tokenIdFormat, String moduleType,
-            iaik.pkcs.pkcs11.Token token) {
+                                             iaik.pkcs.pkcs11.Token token) {
         iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
         String slotIndex = Long.toString(token.getSlot().getSlotID());
 

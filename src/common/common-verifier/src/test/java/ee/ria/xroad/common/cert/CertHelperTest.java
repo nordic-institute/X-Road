@@ -59,7 +59,7 @@ public class CertHelperTest {
     @Test
     public void getSubjectSerialNumber() throws Exception {
         String base64data = IOUtils.toString(new FileInputStream(
-                        "../common-test/src/test/certs/test-esteid.txt"));
+                "../common-test/src/test/certs/test-esteid.txt"));
         X509Certificate cert = CryptoUtils.readCertificate(base64data);
         String serialNumber = CertHelper.getSubjectSerialNumber(cert);
         assertEquals("47101010033", serialNumber);

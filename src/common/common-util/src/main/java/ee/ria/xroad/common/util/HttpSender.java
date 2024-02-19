@@ -45,6 +45,7 @@ import java.net.URI;
 public class HttpSender extends AbstractHttpSender {
     private final HttpClient client;
     private static final String DO_POST_LOG = "doPost(address = {}, connectionTimeout = {}, socketTimeout = {})";
+
     /**
      * Configures a HTTP sender using the given HTTP client.
      * @param httpClient HTTP client this sender should use

@@ -46,14 +46,14 @@ public class XRoadObjectTypeTest extends TestCase {
         @Parameters(name = "\"{1}\" => {0}")
         @SuppressWarnings({"NoWhitespaceAfter"})
         public static Collection<Object[]> data() {
-            return Arrays.asList(new Object[][] {
-                    { XRoadObjectType.MEMBER, "MEMBER" },
-                    { XRoadObjectType.SUBSYSTEM, "SUBSYSTEM" },
-                    { XRoadObjectType.SERVER, "SERVER" },
-                    { XRoadObjectType.GLOBALGROUP, "GLOBALGROUP" },
-                    { XRoadObjectType.SERVICE, "SERVICE" },
-                    { XRoadObjectType.LOCALGROUP, "LOCALGROUP" },
-                    { null, "unknown" },
+            return Arrays.asList(new Object[][]{
+                    {XRoadObjectType.MEMBER, "MEMBER"},
+                    {XRoadObjectType.SUBSYSTEM, "SUBSYSTEM"},
+                    {XRoadObjectType.SERVER, "SERVER"},
+                    {XRoadObjectType.GLOBALGROUP, "GLOBALGROUP"},
+                    {XRoadObjectType.SERVICE, "SERVICE"},
+                    {XRoadObjectType.LOCALGROUP, "LOCALGROUP"},
+                    {null, "unknown"},
             });
         }
 

@@ -70,7 +70,7 @@ public class HashChainBuilderTest {
 
         HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
         for (int i = 0; i < count; ++i) {
-            builder.addInputHash(new byte[] {(byte) i });
+            builder.addInputHash(new byte[]{(byte) i});
         }
         builder.finishBuilding();
         printChains(builder);
@@ -134,7 +134,7 @@ public class HashChainBuilderTest {
     private static void printChains(HashChainBuilder builder) throws Exception {
         String[] chains = builder.getHashChains("foo.xml");
         LOG.debug("Hash chains:");
-        for (String chain: chains) {
+        for (String chain : chains) {
             LOG.debug(chain);
         }
     }
@@ -156,17 +156,17 @@ public class HashChainBuilderTest {
         LOG.info("attachments()");
 
         HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
-        builder.addInputHash(new byte[][] {new byte[] {(byte) 0 }});
-        builder.addInputHash(new byte[][] {
-                new byte[] {(byte) 11 },
-                new byte[] {(byte) 12 },
-                new byte[] {(byte) 13 },
-                new byte[] {(byte) 14 },
+        builder.addInputHash(new byte[][]{new byte[]{(byte) 0}});
+        builder.addInputHash(new byte[][]{
+                new byte[]{(byte) 11},
+                new byte[]{(byte) 12},
+                new byte[]{(byte) 13},
+                new byte[]{(byte) 14},
         });
-        builder.addInputHash(new byte[] {(byte) 3});
-        builder.addInputHash(new byte[][] {
-                new byte[] {(byte) 41 },
-                new byte[] {(byte) 42 }
+        builder.addInputHash(new byte[]{(byte) 3});
+        builder.addInputHash(new byte[][]{
+                new byte[]{(byte) 41},
+                new byte[]{(byte) 42}
         });
 
         builder.finishBuilding();
@@ -199,11 +199,11 @@ public class HashChainBuilderTest {
         LOG.info("singleInputAttachment()");
 
         HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
-        builder.addInputHash(new byte[][] {
-                new byte[] {(byte) 11 },
-                new byte[] {(byte) 12 },
-                new byte[] {(byte) 13 },
-                new byte[] {(byte) 14 },
+        builder.addInputHash(new byte[][]{
+                new byte[]{(byte) 11},
+                new byte[]{(byte) 12},
+                new byte[]{(byte) 13},
+                new byte[]{(byte) 14},
         });
         builder.finishBuilding();
 

@@ -38,6 +38,7 @@ import org.eclipse.jetty.server.Request;
 public class SoapActionHeader extends MessageTestCase {
 
     private static final String HEADER_VALUE = "\"\"";
+
     /**
      * Constructs the test case.
      */

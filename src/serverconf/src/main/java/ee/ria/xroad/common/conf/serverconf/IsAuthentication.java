@@ -56,7 +56,7 @@ public enum IsAuthentication {
      * @throws Exception if verification fails
      */
     public static void verifyClientAuthentication(ClientId client,
-            IsAuthenticationData auth) throws Exception {
+                                                  IsAuthenticationData auth) throws Exception {
         IsAuthentication isAuthentication =
                 ServerConf.getIsAuthentication(client);
         if (isAuthentication == null) {

@@ -116,6 +116,7 @@ public class InternalTlsCertificateServiceTest {
                     throw new RuntimeException(ex);
                 }
             }
+
             @Override
             public Collection<X509Certificate> getInternalTlsCertificateChain() {
                 try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
@@ -155,8 +156,8 @@ public class InternalTlsCertificateServiceTest {
     private Map<String, byte[]> extractTarGZ(byte[] tarBytes) throws IOException {
         Map<String, byte[]> files = new HashMap<>();
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(tarBytes);
-                GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(byteArrayInputStream);
-                TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+             GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(byteArrayInputStream);
+             TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
             TarArchiveEntry entry;
             while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
                 if (entry.isFile()) {

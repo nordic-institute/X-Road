@@ -40,8 +40,8 @@ public class TokenPinPolicyTest {
     private static final Random RND = new Random(1);
     private static final char[] UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
     private static final char[] LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz".toCharArray();
-    private static final char[] DIGITS            = "1234567890".toCharArray();
-    private static final char[] SPECIAL_CHARS     = " !\"#$%&'()*+,-./:;<=>?`@{|}~".toCharArray();
+    private static final char[] DIGITS = "1234567890".toCharArray();
+    private static final char[] SPECIAL_CHARS = " !\"#$%&'()*+,-./:;<=>?`@{|}~".toCharArray();
 
     /**
      * Test that policy rejects weak passwords
@@ -147,7 +147,7 @@ public class TokenPinPolicyTest {
 
         for (int i = 0; i < len; i++) {
             char[] chs = charSets[RND.nextInt(charSets.length)];
-            if (password[i] == 0)  {
+            if (password[i] == 0) {
                 password[i] = chs[RND.nextInt(chs.length)];
             }
         }

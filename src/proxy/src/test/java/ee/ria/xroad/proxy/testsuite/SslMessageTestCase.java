@@ -47,6 +47,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
+
 /**
  * All test cases extending this class will be executed in a separate batch
  * where ClientProxy and ServerProxy are started in SSL mode.

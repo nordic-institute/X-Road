@@ -40,7 +40,7 @@ public class UsernameHelper {
 
     private static final String UNKNOWN_USERNAME = null;
 
-     /**
+    /**
      * Returns optional that holds currently logged in user's username, if it could be determined.
      * Exceptions are logged, not thrown, and empty optional is returned if they happen.
      * Other Throwables are thrown.

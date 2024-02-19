@@ -62,7 +62,6 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     private FeignXRoadSoapRequestsApi xRoadSoapRequestsApi;
 
 
-
     private static final Marshaller MARSHALLER = createMarshaller();
 
     @SuppressWarnings("checkstyle:OperatorWrap")
@@ -101,8 +100,8 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
 
         assertThat(evalXpath(response.getBody(),
                 "//monitoring:getSecurityServerMetricsResponse//monitoring:numericMetric[./monitoring:name/text()='"
-                + metricName
-                + "']/monitoring:value"))
+                        + metricName
+                        + "']/monitoring:value"))
                 .isNotEmpty()
                 .containsOnlyDigits();
     }

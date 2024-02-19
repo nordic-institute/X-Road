@@ -25,6 +25,7 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.cs.admin.core.converter;
+
 import org.niis.xroad.cs.admin.api.dto.KeyUsageEnum;
 import org.springframework.stereotype.Component;
 

@@ -262,6 +262,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public boolean hasRestBody() {
         return attachmentCache != null && (restMessage != null || restResponse != null);
     }
+
     /**
      * Get rest body as inputstream.
      */

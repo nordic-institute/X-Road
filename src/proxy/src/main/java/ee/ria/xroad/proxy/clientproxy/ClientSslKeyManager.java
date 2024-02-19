@@ -45,14 +45,14 @@ class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers,
-            Socket socket) {
+                                    Socket socket) {
         log.trace("chooseClientAlias {} {}", keyType, issuers);
         return ALIAS;
     }
 
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers,
-            Socket socket) {
+                                    Socket socket) {
         log.trace("chooseServerAlias {} {}", keyType, issuers);
         return ALIAS;
     }
@@ -82,14 +82,14 @@ class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
-            SSLEngine engine) {
+                                          SSLEngine engine) {
         log.trace("chooseEngineClientAlias {} {}", keyType, issuers);
         return ALIAS;
     }
 
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers,
-            SSLEngine engine) {
+                                          SSLEngine engine) {
         log.trace("chooseEngineServerAlias {} {}", keyType, issuers);
         return ALIAS;
     }

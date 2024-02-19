@@ -38,6 +38,7 @@ public interface SystemParameterService {
     String INSTANCE_IDENTIFIER = "instanceIdentifier";
 
     String getCentralServerAddress();
+
     String getCentralServerAddress(String haNodeName);
 
     String getInstanceIdentifier();

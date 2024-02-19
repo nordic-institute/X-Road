@@ -42,7 +42,7 @@ public class XForwardedForHeaderFeignInterceptor implements RequestInterceptor {
     public void apply(RequestTemplate template) {
         final RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes instanceof ServletRequestAttributes) {
-            var request =  ((ServletRequestAttributes) requestAttributes).getRequest();
+            var request = ((ServletRequestAttributes) requestAttributes).getRequest();
 
             String clientIp = request.getHeader(X_FORWARDED_FOR);
             if (isBlank(clientIp)) {

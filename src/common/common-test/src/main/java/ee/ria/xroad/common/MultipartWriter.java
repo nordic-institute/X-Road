@@ -81,7 +81,7 @@ public abstract class MultipartWriter implements Runnable {
 
     protected void startAttachmentPart() throws IOException {
         mpos.startPart("application/octet-stream",
-                new String[] {"Content-Transfer-Encoding: binary"});
+                new String[]{"Content-Transfer-Encoding: binary"});
     }
 
     protected abstract void writeAttachment() throws IOException;

@@ -274,7 +274,7 @@ public class ConfigurationAnchorServiceImplTest {
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME2)).thenReturn(CENTRAL_SERVICE2);
             when(configurationSourceRepository.findBySourceTypeOrCreate(EXTERNAL_CONFIGURATION.toLowerCase(),
-                                                                        new HAConfigStatus(HA_NODE_NAME, false)))
+                    new HAConfigStatus(HA_NODE_NAME, false)))
                     .thenReturn(configurationSource);
             when(configurationSourceRepository.findAllBySourceType(EXTERNAL_CONFIGURATION.toLowerCase()))
                     .thenReturn(List.of(configurationSource, configurationSource2));

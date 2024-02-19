@@ -71,11 +71,11 @@ public final class FileWatcherRunner implements AutoCloseable {
          * Specify the {@link FileWatchListener} to notify when the file changes.
          *
          * @param listener the listener to add.
-         * @throws  NullPointerException if listener is null
+         * @throws NullPointerException if listener is null
          * @return this builder
          */
         public Builder andOnChangeNotify(FileWatchListener listener) {
-            this.watchListener =  requireNonNull(listener);
+            this.watchListener = requireNonNull(listener);
             return this;
         }
 
@@ -83,11 +83,11 @@ public final class FileWatcherRunner implements AutoCloseable {
          * Specify the {@link FileWatcherStartupListener} to notify when the watcher is up and running
          *
          * @param listener the start up listener to add.
-         * @throws  NullPointerException if listener is null
+         * @throws NullPointerException if listener is null
          * @return this builder
          */
         public Builder andOnStartupNotify(FileWatcherStartupListener listener) {
-            this.startupListener =  requireNonNull(listener);
+            this.startupListener = requireNonNull(listener);
             return this;
         }
 
@@ -132,7 +132,8 @@ public final class FileWatcherRunner implements AutoCloseable {
         public FileWatcherRunner buildAndStartWatcher() {
             requireNonNull(watchPath);
 
-            this.startupListener = (this.startupListener != null) ? this.startupListener : () -> { };
+            this.startupListener = (this.startupListener != null) ? this.startupListener : () -> {
+            };
 
             // AbstractPoller.register will throw if there are no events to listen to, so throw early
             checkArgument(eventTypes.size() > 0, "You have to listen to at least one type of event");

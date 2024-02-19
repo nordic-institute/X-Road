@@ -369,8 +369,8 @@ public final class HashChainBuilder {
         // Combine them and store in the current node.
         byte[] stepDigest = digestHashStep(hashAlgorithm,
                 leftValue, rightValue);
-        LOG.trace("Fixing: {} + {} -> {}", new Object[] {
-                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx });
+        LOG.trace("Fixing: {} + {} -> {}", new Object[]{
+                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx});
         nodes[nodeIdx] = stepDigest;
         return stepDigest;
     }

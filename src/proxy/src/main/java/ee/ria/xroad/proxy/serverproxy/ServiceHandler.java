@@ -37,7 +37,9 @@ import java.io.InputStream;
 interface ServiceHandler {
 
     boolean shouldVerifyAccess();
+
     boolean shouldVerifySignature();
+
     boolean shouldLogSignature();
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
@@ -45,8 +47,10 @@ interface ServiceHandler {
     void startHandling(Request request,
                        ProxyMessage requestMessage, HttpClient opMonitorClient,
                        OpMonitoringData opMonitoringData) throws Exception;
+
     void finishHandling() throws Exception;
 
     String getResponseContentType();
+
     InputStream getResponseContent() throws Exception;
 }

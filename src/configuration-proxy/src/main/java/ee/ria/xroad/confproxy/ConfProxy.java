@@ -64,8 +64,8 @@ public class ConfProxy {
 
         var result = new ConfProxyExecutionResult();
         for (int version = SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
-                version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
-                version--) {
+             version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
+             version--) {
             log.debug("Download global configuration version {}. Minimum version {}",
                     version, SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion());
 
