@@ -33,7 +33,7 @@ dependencies {
     testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
 
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation 'io.rest-assured:rest-assured:5.3.1'
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
     testImplementation "wsdl4j:wsdl4j:$wsdl4jVersion"
 
     intTestRuntimeOnly project(':signer')
