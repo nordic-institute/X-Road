@@ -6,9 +6,6 @@ buildscript {
         classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1') {
             exclude group: 'org.springframework', module: 'spring-core'
         }
-        classpath('org.json:json:20231013')
-        classpath('com.h2database:h2:2.2.220')
-        classpath('org.codehaus.plexus:plexus-utils:3.0.24')
     }
 }
 
