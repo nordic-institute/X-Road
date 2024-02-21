@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,6 +41,7 @@ import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,8 +80,9 @@ class ManagementRequestServiceImplTest {
                 "ServerCode"));
         when(certificateRegistrationRequestHandler.narrow(
                 any(AuthenticationCertificateRegistrationRequest.class)))
-                .thenReturn(Option.of(request));
+                .thenReturn(Optional.ofNullable(request));
 
+        when(certificateRegistrationRequestHandler.add(request)).thenReturn(request);
         service.add(request);
 
         verify(certificateRegistrationRequestHandler, times(1))
@@ -92,10 +93,10 @@ class ManagementRequestServiceImplTest {
 
     @Test
     void shouldThrowExceptionIfNoCorrectHandler() {
-        when(certificateRegistrationRequestHandler.narrow(any())).thenReturn(Option.none());
-        when(clientRegistrationRequestHandler.narrow(any())).thenReturn(Option.none());
-        when(clientDeletionRequestHandler.narrow(any())).thenReturn(Option.none());
-        when(ownerChangeRequestHandler.narrow(any())).thenReturn(Option.none());
+        when(certificateRegistrationRequestHandler.narrow(any())).thenReturn(Optional.empty());
+        when(clientRegistrationRequestHandler.narrow(any())).thenReturn(Optional.empty());
+        when(clientDeletionRequestHandler.narrow(any())).thenReturn(Optional.empty());
+        when(ownerChangeRequestHandler.narrow(any())).thenReturn(Optional.empty());
 
         assertThrows(ServiceException.class, () -> service.add(new IncorrectRequest()));
 

@@ -35,6 +35,7 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -202,7 +203,7 @@ public class ProxyMessageDecoder {
 
     private void parseMultipart(InputStream is) throws Exception {
         // Multipart content type requires boundary!
-        if (!MimeUtils.hasBoundary(contentType.toLowerCase())) {
+        if (!HeaderValueUtils.hasBoundary(contentType.toLowerCase())) {
             throw new CodedException(X_INVALID_CONTENT_TYPE,
                     "Multipart content type is missing required boundary");
         }

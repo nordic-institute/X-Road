@@ -22,7 +22,8 @@ sourceSets {
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-    implementation project(':common:common-util')
+    implementation project(':common:common-core')
+    implementation project(':common:common-jetty')
     implementation project(':common:common-verifier')
     implementation project(':common:common-rpc')
     implementation project(':signer-protocol')
@@ -38,7 +39,7 @@ dependencies {
 
 
     intTestRuntimeOnly project(':addons:hwtoken')
-    intTestRuntimeOnly project(':common:common-util')
+    intTestRuntimeOnly project(':common:common-globalconf')
     intTestImplementation project(":common:common-test")
     intTestImplementation project(":common:common-int-test")
 
@@ -93,9 +94,9 @@ tasks.register('xjc') {
 tasks.register('runSignerMain', JavaExec) {
     jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
         '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
-        '-Dxroad.common.configuration-path=../common/common-util/src/test/resources/globalconf_good_v2',
+        '-Dxroad.common.configuration-path=../common/common-globalconf/src/test/resources/globalconf_good_v2',
         "-Dxroad.common.temp-files-path=${layout.buildDirectory.get().asFile}/tmp/",
-        '-Dxroad.proxy.configuration-anchor-file=../common/common-util/src/test/resources/configuration-anchor1.xml',
+        '-Dxroad.proxy.configuration-anchor-file=../common/common-globalconf/src/test/resources/configuration-anchor1.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
         '-Djava.library.path=../passwordstore:../libs',
         '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'

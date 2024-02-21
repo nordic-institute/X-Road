@@ -94,9 +94,9 @@ import java.util.UUID;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.GET_WSDL;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 
 @Slf4j
 class MetadataServiceHandlerImpl implements ServiceHandler {

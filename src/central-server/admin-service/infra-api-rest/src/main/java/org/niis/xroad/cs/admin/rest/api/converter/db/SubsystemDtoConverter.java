@@ -37,8 +37,6 @@ import org.niis.xroad.cs.openapi.model.UsedSecurityServersDto;
 import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
-import static ee.ria.xroad.common.util.Fn.self;
-
 @Service
 @RequiredArgsConstructor
 public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto> {
@@ -51,18 +49,17 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
 
     @Override
     public SubsystemDto toDto(Subsystem source) {
-        return self(new SubsystemDto(), self -> {
-            self.setSubsystemId(clientIdDtoConverter.toDto(source.getIdentifier()));
-            self.setUsedSecurityServers(source.getServerClients().stream().map(serverClient -> {
-                UsedSecurityServersDto usedSecurityServersDto = new UsedSecurityServersDto();
-                usedSecurityServersDto.setServerCode(serverClient.getServerCode());
-                usedSecurityServersDto.setServerOwner(serverClient.getServerOwner());
+        return new SubsystemDto()
+                .subsystemId(clientIdDtoConverter.toDto(source.getIdentifier()))
+                .usedSecurityServers(source.getServerClients().stream().map(serverClient -> {
+                    UsedSecurityServersDto usedSecurityServersDto = new UsedSecurityServersDto();
+                    usedSecurityServersDto.setServerCode(serverClient.getServerCode());
+                    usedSecurityServersDto.setServerOwner(serverClient.getServerOwner());
 
-                var securityServerRegStatus = resolveSecurityServerStatus(serverClient, source.getIdentifier());
-                usedSecurityServersDto.setStatus(securityServerRegStatus);
-                return usedSecurityServersDto;
-            }).toList());
-        });
+                    var securityServerRegStatus = resolveSecurityServerStatus(serverClient, source.getIdentifier());
+                    usedSecurityServersDto.setStatus(securityServerRegStatus);
+                    return usedSecurityServersDto;
+                }).toList());
     }
 
     private String resolveSecurityServerStatus(ServerClient serverClient, ClientId clientId) {

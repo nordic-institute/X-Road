@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
-import io.vavr.control.Option;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
 import org.niis.xroad.cs.admin.rest.api.converter.ManagementRequestDetailedViewDtoConverter;
@@ -48,6 +47,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
 
 import static java.util.Map.entry;
 
@@ -78,7 +79,7 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
             + "and ((#request.origin.name() == 'SECURITY_SERVER' and hasAuthority('IMPERSONATE_SECURITY_SERVER'))"
             + "or (#request.origin.name() == 'CENTER' and !hasAuthority('IMPERSONATE_SECURITY_SERVER')))")
     public ResponseEntity<ManagementRequestDto> addManagementRequest(ManagementRequestDto request) {
-        ManagementRequestDto response = Option.of(request)
+        ManagementRequestDto response = Optional.ofNullable(request)
                 .map(managementRequestDtoConverter::fromDto)
                 .map(service::add)
                 .map(managementRequestDtoConverter::toDto).get();
@@ -91,7 +92,7 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_MANAGEMENT_REQUEST_DETAILS')")
     public ResponseEntity<ManagementRequestDetailedViewDto> getManagementRequest(Integer id) {
-        return Option.of(id)
+        return Optional.ofNullable(id)
                 .map(service::getRequestView)
                 .map(managementRequestDetailedViewDtoConverter::convert)
                 .map(ResponseEntity::ok).get();

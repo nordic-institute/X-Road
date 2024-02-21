@@ -69,9 +69,9 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-util/src/test/resources/globalconf_good");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-globalconf/src/test/resources/globalconf_good");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common/common-util/src/test/resources/configuration-anchor1.xml");
+                "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
 
         GlobalConf.reload(new TestGlobalConfImpl() {
             @Override

@@ -3,7 +3,7 @@ dependencies {
         exclude group: 'org.springframework', module: 'spring-context'
     }
     implementation(project(':signer-protocol'))
-    implementation(project(':common:common-util'))
+    implementation(project(':common:common-domain'))
 
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../../libs', include: '*.jar')

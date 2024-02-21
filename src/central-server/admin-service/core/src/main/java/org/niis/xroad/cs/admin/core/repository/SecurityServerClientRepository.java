@@ -29,15 +29,16 @@ package org.niis.xroad.cs.admin.core.repository;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+
+import java.util.Optional;
 
 public interface SecurityServerClientRepository<T extends SecurityServerClientEntity> extends
         GenericRepository<T, Integer> {
 
-    Option<T> findOneBy(ClientId id);
+    Optional<T> findOneBy(ClientId id);
 
-    Option<T> findOneBy(ClientId id, XRoadObjectType explicitType);
+    Optional<T> findOneBy(ClientId id, XRoadObjectType explicitType);
 
     long count(ClientId id);
 }

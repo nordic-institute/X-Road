@@ -28,6 +28,7 @@ package org.niis.xroad.common.managementrequest.model;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.MultipartOutputStream;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -37,7 +38,7 @@ import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.util.MultiPartOutputStream;
+
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -66,7 +67,7 @@ public class AuthCertRegRequest implements ManagementRequest {
 
     private byte[] dataToSign;
 
-    private MultiPartOutputStream multipart;
+    private MultipartOutputStream multipart;
 
     public AuthCertRegRequest(byte[] authCert, ClientId owner, SoapMessageImpl request) throws Exception {
         this.authCert = authCert;
@@ -96,7 +97,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         verifyAuthCert();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        multipart = new MultiPartOutputStream(out);
+        multipart = new MultipartOutputStream(out);
 
         writeSoap();
         writeSignatures();

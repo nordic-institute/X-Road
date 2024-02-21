@@ -59,7 +59,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_CLIENTS;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.xmlUtf8ContentTypes;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;

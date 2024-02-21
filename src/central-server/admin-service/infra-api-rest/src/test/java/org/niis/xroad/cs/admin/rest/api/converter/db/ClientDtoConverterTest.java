@@ -27,7 +27,6 @@ package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
-import io.vavr.control.Option;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -251,7 +250,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             doReturn(subsystemClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.SUBSYSTEM).when(clientIdDto).getType();
             doReturn(memberClientId).when(subsystemClientId).getMemberId();
-            doReturn(Option.of(xRoadMember)).when(memberService).findMember(memberClientId);
+            doReturn(Optional.of(xRoadMember)).when(memberService).findMember(memberClientId);
             doReturn(INSTANCE_ID).when(subsystemClientId).getXRoadInstance();
             doReturn(MEMBER_CLASS_CODE).when(subsystemClientId).getMemberClass();
             doReturn(MEMBER_CODE).when(subsystemClientId).getMemberCode();
@@ -294,7 +293,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
             doReturn(subsystemClientId).when(clientIdDtoConverter).fromDto(clientIdDto);
             doReturn(XRoadIdDto.TypeEnum.SUBSYSTEM).when(clientIdDto).getType();
             doReturn(memberClientId).when(subsystemClientId).getMemberId();
-            doReturn(Option.none()).when(memberService).findMember(memberClientId);
+            doReturn(Optional.empty()).when(memberService).findMember(memberClientId);
             doReturn(MEMBER_CODE).when(clientIdDto).getMemberCode();
 
             ThrowingCallable testable = () -> converter.fromDto(clientDto);

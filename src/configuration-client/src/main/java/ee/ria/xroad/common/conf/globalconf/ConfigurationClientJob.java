@@ -57,9 +57,9 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
         JobDataMap data = context.getJobDetail().getJobDataMap();
         Object client = data.get("client");
 
-        if (client instanceof ConfigurationClient) {
+        if (client instanceof ConfigurationClient configClient) {
             try {
-                ((ConfigurationClient) client).execute();
+                configClient.execute();
 
                 DiagnosticsStatus status =
                         new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),

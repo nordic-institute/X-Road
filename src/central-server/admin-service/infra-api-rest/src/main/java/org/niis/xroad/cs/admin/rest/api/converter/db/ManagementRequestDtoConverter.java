@@ -68,7 +68,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.util.Fn.self;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_UNKNOWN_TYPE;
 
@@ -88,33 +87,30 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
     public ManagementRequestDto toDto(Request request) {
         ManagementRequestDto result;
 
-        if (request instanceof AuthenticationCertificateRegistrationRequest) {
-            AuthenticationCertificateRegistrationRequest req = (AuthenticationCertificateRegistrationRequest) request;
-            result = self(new AuthenticationCertificateRegistrationRequestDto(), self -> {
-                self.setServerAddress(req.getAddress());
-                self.setAuthenticationCertificate(req.getAuthCert());
-            });
-
+        if (request instanceof AuthenticationCertificateRegistrationRequest req) {
+            result = new AuthenticationCertificateRegistrationRequestDto()
+                    .serverAddress(req.getAddress())
+                    .authenticationCertificate(req.getAuthCert());
         } else if (request instanceof AuthenticationCertificateDeletionRequest req) {
-            result = self(new AuthenticationCertificateDeletionRequestDto(), self -> self.setAuthenticationCertificate(req.getAuthCert()));
+            result = new AuthenticationCertificateDeletionRequestDto().authenticationCertificate(req.getAuthCert());
 
         } else if (request instanceof ClientRegistrationRequest req) {
-            result = self(new ClientRegistrationRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
+            result = new ClientRegistrationRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
 
         } else if (request instanceof ClientDeletionRequest req) {
-            result = self(new ClientDeletionRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
+            result = new ClientDeletionRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
 
         } else if (request instanceof ClientDisableRequest req) {
-            result = self(new ClientDisableRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
+            result = new ClientDisableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
 
         } else if (request instanceof ClientEnableRequest req) {
-            result = self(new ClientEnableRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
+            result = new ClientEnableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
 
         } else if (request instanceof OwnerChangeRequest req) {
-            result = self(new OwnerChangeRequestDto(), self -> self.setClientId(clientIdConverter.convertId(req.getClientId())));
+            result = new OwnerChangeRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
 
         } else if (request instanceof AddressChangeRequest req) {
-            result = self(new AddressChangeRequestDto(), self -> self.setServerAddress(req.getServerAddress()));
+            result = new AddressChangeRequestDto().serverAddress(req.getServerAddress());
 
         } else {
             throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);

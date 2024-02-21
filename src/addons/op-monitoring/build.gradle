@@ -2,7 +2,9 @@ dependencies {
     implementation project(':common:common-op-monitoring')
 
     implementation project(':proxy')
-    implementation project(':common:common-util')
+    implementation project(':common:common-domain')
+    implementation project(':common:common-message')
+    implementation project(':common:common-jetty')
     implementation project(':serverconf')
 
     testImplementation project(':common:common-test')

@@ -30,9 +30,9 @@ import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
-import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+import ee.ria.xroad.proxy.util.PerformanceLogger;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

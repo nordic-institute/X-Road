@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import io.vavr.collection.Stream;
-import io.vavr.control.Option;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.DataIntegrityException;
@@ -179,27 +177,25 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
      * Dispatches request to handlers, returns the response of the first
      * handler that can handle the request.
      */
-    private <T extends Request> T dispatch(Function<RequestHandler<Request>, Option<T>> operation) {
-        return Stream.ofAll(handlers)
+    private <T extends Request> T dispatch(Function<RequestHandler<Request>, Optional<T>> operation) {
+        return handlers.stream()
                 .map(handler -> (RequestHandler<Request>) handler)
                 .map(operation)
-                .filter(Option::isDefined)
-                .map(Option::get)
-                .headOption()
-                .getOrElseThrow(() -> {
-                    throw new ServiceException(MR_NOT_SUPPORTED);
-                });
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst()
+                .orElseThrow(() -> new ServiceException(MR_NOT_SUPPORTED));
     }
 
     /*
      * Some generics wrangling to work around type erasure,
      * and to refine wildcards to type parameters.
      */
-    private <T extends Request> Option<T> doApprove(RequestHandler<Request> handler, T request) {
+    private <T extends Request> Optional<T> doApprove(RequestHandler<Request> handler, T request) {
         return handler.narrow(request).map(handler::approve).map(r -> (T) r);
     }
 
-    private <T extends Request> Option<T> doAdd(RequestHandler<Request> handler, T request) {
+    private <T extends Request> Optional<T> doAdd(RequestHandler<Request> handler, T request) {
         return handler.narrow(request).map(r -> {
             T response = (T) handler.add((T) r);
             if (handler.canAutoApprove(response)) {

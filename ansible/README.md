@@ -134,10 +134,10 @@ For fast development, you can compile and update modules separately using the an
 ansible-playbook -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=proxy-ui-api
 ```
 
-It is also possible to compile and update several modules (JARs or WARs). The following command compiles and updates JAR-files for modules `common-util`, `signer` and `proxy-ui-api` to the defined existing server installations.
+It is also possible to compile and update several modules (JARs or WARs). The following command compiles and updates JAR-files for modules `signer` and `proxy-ui-api` to the defined existing server installations.
 
 ```
-ansible-playbook -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=common-util,proxy-ui-api,signer
+ansible-playbook -i hosts/example_xroad_hosts.txt xroad_dev_partial.yml -e selected_modules=proxy-ui-api,signer
 ```
 
 This updates the **selected modules (JARs or WARs)** to ones compiled locally.

@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     id 'java-library'
     id 'com.google.protobuf'
@@ -14,7 +16,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation project(':common:common-util')
+    implementation project(':common:common-domain')
     api project(':common:common-rpc')
 }
 
@@ -29,3 +31,25 @@ protobuf {
 }
 
 compileJava.dependsOn generateProto
+
+if (Os.isName("linux")) {
+    task make(type: Exec) {
+        def javaCompiler = javaToolchains.compilerFor(java.toolchain)
+        def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
+
+        inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c', '*.h', 'Makefile'])
+        inputs.dir file("${javaHome}/include")
+        outputs.dir file('../lib')
+
+        workingDir '../../'
+        commandLine 'make', 'clean', 'all'
+    }
+
+    task makeClean(type: Exec) {
+        workingDir '../../'
+        commandLine 'make', 'clean'
+    }
+
+    classes.dependsOn make
+    clean.dependsOn makeClean
+}
