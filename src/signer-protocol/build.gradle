@@ -33,7 +33,7 @@ protobuf {
 compileJava.dependsOn generateProto
 
 test {
-    jvmArgs '-Djava.library.path=../../lib'
+    jvmArgs '-Djava.library.path=../lib'
 }
 
 if (Os.isName("linux")) {
