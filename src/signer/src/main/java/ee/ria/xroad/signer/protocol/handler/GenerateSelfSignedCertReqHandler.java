@@ -117,7 +117,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
 
         X509Certificate build(TokenAndKey tokenAndKey, GenerateSelfSignedCertReq message, PublicKey publicKey,
                               String signAlgoId) throws Exception {
-            X500Name subject = new X500Name("CN=" + message.getCommonName());
+            X500Name subject = new X500Name(message.getCommonName());
 
             JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE,
                     fromUnixTimestamp(message.getDateNotBefore()),

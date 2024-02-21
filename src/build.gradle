@@ -157,6 +157,12 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
                     require("$woodstoxVersion")
                 }
             }
+            add('implementation', 'io.micrometer:micrometer-tracing-bridge-brave') {
+                because("Vulnerability fix regarding CVE-2022-47932")
+                version {
+                    require("1.23.0")
+                }
+            }
         }
 
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
