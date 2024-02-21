@@ -6,6 +6,9 @@ buildscript {
         classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1') {
             exclude group: 'org.springframework', module: 'spring-core'
         }
+        classpath('org.json:json:20231013')
+        classpath('com.h2database:h2:2.2.220')
+        classpath('org.codehaus.plexus:plexus-utils:3.0.24')
     }
 }
 
@@ -161,6 +164,18 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
                 because("Vulnerability fix regarding CVE-2022-47932")
                 version {
                     require("1.23.0")
+                }
+            }
+            add('implementation', 'org.springframework.security:spring-security-core') {
+                because("Vulnerability fix regarding CVE-2024-22234")
+                version {
+                    require("$springSecurityVersion")
+                }
+            }
+            add('implementation', 'com.jayway.jsonpath:json-path') {
+                because("Vulnerability fix regarding CVE-2023-51074")
+                version {
+                    require("$jsonPathVersion")
                 }
             }
         }
