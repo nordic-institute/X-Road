@@ -133,30 +133,6 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     dependencies {
         //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
         constraints {
-            add('implementation', 'com.fasterxml.jackson.core:jackson-databind') {
-                because("Vulnerability fix regarding CVE-2022-42003")
-                version {
-                    require("$jacksonBomVersion")
-                }
-            }
-            add('implementation', 'org.yaml:snakeyaml') {
-                because("Vulnerability fix regarding CVE-2022-25857")
-                version {
-                    require("$snakeyamlVersion")
-                }
-            }
-            add('implementation', 'org.apache.commons:commons-text') {
-                because("Vulnerability fix regarding CVE-2022-42889")
-                version {
-                    require("$commonsTextVersion")
-                }
-            }
-            add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
-                because("Vulnerability fix regarding CVE-2022-40152")
-                version {
-                    require("$woodstoxVersion")
-                }
-            }
             add('implementation', 'io.micrometer:micrometer-tracing-bridge-brave') {
                 because("Vulnerability fix regarding CVE-2022-47932")
                 version {
