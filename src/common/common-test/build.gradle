@@ -10,6 +10,7 @@ dependencies {
     // JUnit is needed for ExpectedCodedException
     implementation "org.junit.vintage:junit-vintage-engine:$junitVersion"
 
+    api("org.apache.httpcomponents:httpasyncclient:4.1.5")
     api "org.mockito:mockito-junit-jupiter:$mockitoVersion"
     api "org.awaitility:awaitility:$awaitilityVersion"
     api "com.github.stefanbirkner:system-rules:$systemRulesVersion"
