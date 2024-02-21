@@ -23,50 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.password;
-
-import ee.ria.xroad.common.SystemProperties;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.junit.Assume;
-import org.junit.Test;
-
-
-import static ee.ria.xroad.signer.protocol.password.PasswordStore.getPassword;
-import static ee.ria.xroad.signer.protocol.password.PasswordStore.storePassword;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+package ee.ria.xroad.common.util;
 
 /**
- * Tests to verify
+ * Manages passwords stored in the shared memory segment.
  */
-public class PasswordStoreTest {
+public class MemoryPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
 
-    /**
-     * Run tests.
-     * @throws Exception in case of unexpected errors
-     */
-    @Test
-    public void runTest() throws Exception {
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
-
-        assertEquals("/", SystemProperties.getSignerPasswordStoreIPCKeyPathname());
-
-        getPassword("foo"); // Just check if get on empty DB works.
-
-        storePassword("foo", null);
-        storePassword("bar", null);
-
-        assertNull(getPassword("foo"));
-
-        storePassword("foo", "fooPwd".toCharArray());
-        storePassword("bar", "barPwd".toCharArray());
-
-        assertEquals("fooPwd", new String(getPassword("foo")));
-        assertEquals("barPwd", new String(getPassword("bar")));
-
-        storePassword("foo", null);
-        assertNull(getPassword("foo"));
-        assertEquals("barPwd", new String(getPassword("bar")));
+    static {
+        System.loadLibrary("passwordstore");
     }
+
+    @Override
+    public native byte[] read(String pathnameForFtok, String id) throws Exception;
+
+    @Override
+    public native void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
+
+    @Override
+    public native void clear(String pathnameForFtok, int permissions) throws Exception;
+
+
 }

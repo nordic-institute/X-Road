@@ -36,7 +36,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.mapper.SecurityServerIdMapper;
-import ee.ria.xroad.signer.protocol.password.PasswordStore;
+import ee.ria.xroad.common.util.PasswordStore;
 
 import com.google.protobuf.ByteString;
 import lombok.AccessLevel;

@@ -23,25 +23,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.password;
+package ee.ria.xroad.common.util;
+
+import ee.ria.xroad.common.SystemProperties;
+
+import org.apache.commons.lang3.SystemUtils;
+import org.junit.Assume;
+import org.junit.Test;
+
+
+import static ee.ria.xroad.common.util.PasswordStore.getPassword;
+import static ee.ria.xroad.common.util.PasswordStore.storePassword;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
- * Manages passwords stored in the shared memory segment.
+ * Tests to verify
  */
-public class MemoryPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
+public class PasswordStoreTest {
 
-    static {
-        System.loadLibrary("passwordstore");
+    /**
+     * Run tests.
+     * @throws Exception in case of unexpected errors
+     */
+    @Test
+    public void runTest() throws Exception {
+        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
+
+        assertEquals("/", SystemProperties.getSignerPasswordStoreIPCKeyPathname());
+
+        getPassword("foo"); // Just check if get on empty DB works.
+
+        storePassword("foo", null);
+        storePassword("bar", null);
+
+        assertNull(getPassword("foo"));
+
+        storePassword("foo", "fooPwd".toCharArray());
+        storePassword("bar", "barPwd".toCharArray());
+
+        assertEquals("fooPwd", new String(getPassword("foo")));
+        assertEquals("barPwd", new String(getPassword("bar")));
+
+        storePassword("foo", null);
+        assertNull(getPassword("foo"));
+        assertEquals("barPwd", new String(getPassword("bar")));
     }
-
-    @Override
-    public native byte[] read(String pathnameForFtok, String id) throws Exception;
-
-    @Override
-    public native void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
-
-    @Override
-    public native void clear(String pathnameForFtok, int permissions) throws Exception;
-
-
 }
