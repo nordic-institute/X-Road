@@ -29,24 +29,27 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.commonui.OptionalConfPart;
-import ee.ria.xroad.commonui.OptionalPartsConf;
 
+import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
+import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
@@ -55,10 +58,9 @@ import org.niis.xroad.cs.admin.core.validation.ConfigurationPartValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -67,6 +69,8 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
@@ -96,6 +100,21 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final DistributedFileMapper distributedFileMapper;
     private final AuditDataHelper auditDataHelper;
     private final ConfigurationPartValidator configurationPartValidator;
+    private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
+
+    @Override
+    public Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys() {
+        return configurationSourceRepository.findAll().stream().collect(toMap(
+                src -> systemParameterService.getCentralServerAddress(src.getHaNodeName()),
+                src -> src.getConfigurationSigningKeys().stream()
+                        .map(configurationSigningKeyMapper::toTarget)
+                        .collect(toList()),
+                (signingKeys1, signingKeys2) -> {
+                    signingKeys1.addAll(signingKeys2);
+                    return signingKeys1;
+                }
+        ));
+    }
 
     @Override
     public boolean hasSigningKeys(final ConfigurationSourceType sourceType) {
@@ -131,7 +150,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         for (OptionalConfPart part : allParts) {
             final ConfigurationParts configurationPart = distributedFileRepository
-                    .findFirstByContentIdentifierAndHaNodeName(part.getContentIdentifier(), haNodeName)
+                    .findFirstByContentIdentifierAndHaNodeName(part.contentIdentifier(), haNodeName)
                     .map(file -> optionalConfigurationPart(part, file))
                     .orElse(optionalConfigurationPart(part));
             configurationParts.add(configurationPart);
@@ -140,11 +159,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private ConfigurationParts optionalConfigurationPart(OptionalConfPart part, DistributedFileEntity file) {
-        return new ConfigurationParts(part.getContentIdentifier(), part.getFileName(), file.getVersion(), file.getFileUpdatedAt(), true);
+        return new ConfigurationParts(part.contentIdentifier(), part.fileName(), file.getVersion(), file.getFileUpdatedAt(), true);
     }
 
     private ConfigurationParts optionalConfigurationPart(OptionalConfPart part) {
-        return new ConfigurationParts(part.getContentIdentifier(), part.getFileName(), null, null, true);
+        return new ConfigurationParts(part.contentIdentifier(), part.fileName(), null, null, true);
     }
 
     private Set<ConfigurationParts> getRequiredConfigurationParts(String haNode, String... contentIdentifiers) {
@@ -168,14 +187,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     private String resolveFileName(String contentIdentifier) {
-        switch (contentIdentifier) {
-            case CONTENT_ID_PRIVATE_PARAMETERS:
-                return FILE_NAME_PRIVATE_PARAMETERS;
-            case CONTENT_ID_SHARED_PARAMETERS:
-                return FILE_NAME_SHARED_PARAMETERS;
-            default:
-                throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
-        }
+        return switch (contentIdentifier) {
+            case CONTENT_ID_PRIVATE_PARAMETERS -> FILE_NAME_PRIVATE_PARAMETERS;
+            case CONTENT_ID_SHARED_PARAMETERS -> FILE_NAME_SHARED_PARAMETERS;
+            default -> throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
+        };
     }
 
     @Override

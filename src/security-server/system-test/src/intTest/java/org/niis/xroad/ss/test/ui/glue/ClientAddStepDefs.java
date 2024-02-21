@@ -34,9 +34,11 @@ import java.io.File;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class ClientAddStepDefs extends BaseUiStepDefs {
@@ -55,8 +57,8 @@ public class ClientAddStepDefs extends BaseUiStepDefs {
         String[] idParts = client.split(":");
 
         clientPageObj.addClientDetails.selectMemberClass().shouldBe(text(idParts[1]));
-        clientPageObj.addClientDetails.inputMemberCode().shouldBe(value(idParts[2]));
-        clientPageObj.addClientDetails.inputSubsystemCode().shouldBe(value(idParts[3]));
+        vTextField(clientPageObj.addClientDetails.inputMemberCode()).shouldHaveText(idParts[2]);
+        vTextField(clientPageObj.addClientDetails.inputSubsystemCode()).shouldHaveText(idParts[3]);
 
         clientPageObj.addClientDetails.btnNext().click();
     }
@@ -68,30 +70,31 @@ public class ClientAddStepDefs extends BaseUiStepDefs {
 
     @Step("Add Client Token is set as {string}")
     public void wizardClientToken(String token) {
-        clientPageObj.addClientToken.checkedRadioByTokenName(token).shouldBe(visible);
+        clientPageObj.addClientToken.radioByTokenName(token).shouldBe(visible);
+        vRadio(clientPageObj.addClientToken.radioByTokenName(token)).shouldBeChecked();
         clientPageObj.addClientToken.btnNext().click();
     }
 
     @Step("Add Client Sign key label set to {string}")
     public void wizardSignKey(String label) {
-        clientPageObj.addClientSignKey.inputLabel().setValue(label);
+        vTextField(clientPageObj.addClientSignKey.inputLabel()).setValue(label);
         clientPageObj.addClientSignKey.btnNext().click();
     }
 
     @Step("Add Client CSR details Certification Service to {string} and CSR format {string}")
     public void setAuthCsrDetails(String certificationService, String csrFormat) {
         clientPageObj.addClientCsrDetails.csrService().click();
-        clientPageObj.addClientCsrDetails.selectorOptionOf(certificationService).click();
+        selectorOptionOf(certificationService).click();
 
         clientPageObj.addClientCsrDetails.csrFormat().click();
-        clientPageObj.addClientCsrDetails.selectorOptionOf(csrFormat).click();
+        selectorOptionOf(csrFormat).click();
         clientPageObj.addClientCsrDetails.btnNext().click();
     }
 
     @SneakyThrows
     @Step("Add Client Generate CSR is set to organization {string} and csr is created")
     public void wizardGenerateCsr(String org) {
-        clientPageObj.addClientGenerateCsr.inputOrganizationName().setValue(org);
+        vTextField(clientPageObj.addClientGenerateCsr.inputOrganizationName()).setValue(org);
         clientPageObj.addClientGenerateCsr.btnNext().click();
 
         File file = clientPageObj.addClientFinish.submitButton().download();

@@ -70,19 +70,19 @@ public class GlobalGroupDetailsPageObj {
 
     private SelenideElement memberRow(final String instance, final String clazz, final String code) {
         final var xpath = "//div[@data-test='global-group-members']"
-                + "//tr[.//span[@data-test='instance' and contains(text(), '%s')] "
-                + "and .//span[@data-test='class' and contains(text(), '%s')]"
-                + "and .//span[@data-test='code' and contains(text(), '%s')]"
-                + "and .//span[@data-test='subsystem' and not(normalize-space(text()))]]";
+                + "//tr[.//td[@data-test='instance' and text()='%s'] "
+                + "and .//td[@data-test='class' and text()='%s']"
+                + "and .//td[@data-test='code' and text()='%s']"
+                + "and .//td[@data-test='subsystem' and not(normalize-space(text()))]]";
         return $x(String.format(xpath, instance, clazz, code));
     }
 
     private SelenideElement memberRow(final String instance, final String clazz, final String code, final String subsystem) {
         final var xpath = "//div[@data-test='global-group-members']"
-                + "//tr[.//span[@data-test='instance' and contains(text(), '%s')] "
-                + "and .//span[@data-test='class' and contains(text(), '%s')]"
-                + "and .//span[@data-test='code' and contains(text(), '%s')]"
-                + "and .//span[@data-test='subsystem' and contains(text(), '%s')]]";
+                + "//tr[.//td[@data-test='instance' and text()='%s'] "
+                + "and .//td[@data-test='class' and text()='%s']"
+                + "and .//td[@data-test='code' and text()='%s']"
+                + "and .//td[@data-test='subsystem' and text()='%s']]";
         return $x(String.format(xpath, instance, clazz, code, subsystem));
     }
 
@@ -126,19 +126,19 @@ public class GlobalGroupDetailsPageObj {
 
         private SelenideElement selectableRow(final String instance, final String clazz, final String code) {
             final var xpath = "//div[@data-test='select-members-list']"
-                    + "//tr[.//span[@data-test='instance' and contains(text(), '%s')] "
-                    + "and .//span[@data-test='class' and contains(text(), '%s')]"
-                    + "and .//span[@data-test='code' and contains(text(), '%s')]"
-                    + "and .//span[@data-test='subsystem' and not(normalize-space(text()))]]";
+                    + "//tr[.//td[@data-test='instance' and text()='%s'] "
+                    + "and .//td[@data-test='class' and text()='%s']"
+                    + "and .//td[@data-test='code' and text()='%s']"
+                    + "and .//td[@data-test='subsystem' and not(normalize-space(text()))]]";
             return $x(String.format(xpath, instance, clazz, code));
         }
 
         private SelenideElement selectableRow(final String instance, final String clazz, final String code, final String subsystem) {
             final var xpath = "//div[@data-test='select-members-list']"
-                    + "//tr[.//span[@data-test='instance' and contains(text(), '%s')] "
-                    + "and .//span[@data-test='class' and contains(text(), '%s')]"
-                    + "and .//span[@data-test='code' and contains(text(), '%s')]"
-                    + "and .//span[@data-test='subsystem' and contains(text(), '%s')]]";
+                    + "//tr[.//td[@data-test='instance' and text()='%s'] "
+                    + "and .//td[@data-test='class' and text()='%s']"
+                    + "and .//td[@data-test='code' and text()='%s']"
+                    + "and .//td[@data-test='subsystem' and text()='%s']]";
             return $x(String.format(xpath, instance, clazz, code, subsystem));
         }
 

@@ -31,26 +31,18 @@
       cancel-button-text="action.cancel"
       save-button-text="action.upload"
       title="trustServices.addCertificationService"
-      :disable-save="certFile === null"
+      submittable
+      :disable-save="!certFile"
       @save="onUpload"
-      @cancel="cancel"
+      @cancel="$emit('cancel')"
     >
       <template #content>
         <div class="dlg-input-width">
-          <xrd-file-upload
-            v-slot="{ upload }"
-            accepts=".der, .crt, .pem, .cer"
-            @file-changed="onFileUploaded"
-          >
-            <v-text-field
-              v-model="certFileTitle"
-              variant="outlined"
-              autofocus
-              :label="$t('trustServices.uploadCertificate')"
-              append-inner-icon="icon-Upload"
-              @click="upload"
-            />
-          </xrd-file-upload>
+          <CertificateFileUpload
+            v-model:file="certFile"
+            label-key="trustServices.uploadCertificate"
+            autofocus
+          />
         </div>
       </template>
     </xrd-simple-dialog>
@@ -60,86 +52,138 @@
       cancel-button-text="action.cancel"
       save-button-text="action.save"
       title="trustServices.caSettings"
-      :disable-save="certProfile === ''"
+      submittable
+      :disable-save="!meta.valid"
       :loading="loading"
       @save="onSave"
-      @cancel="cancel"
+      @cancel="$emit('cancel')"
     >
       <template #content>
         <div class="dlg-input-width">
           <v-checkbox
             v-model="tlsAuthOnly"
+            v-bind="tlsAuthOnlyAttrs"
             :label="$t('trustServices.addCASettingsCheckbox')"
           />
           <v-text-field
             v-model="certProfile"
+            v-bind="certProfileAttrs"
             variant="outlined"
             :label="$t('trustServices.certProfileInput')"
             :hint="$t('trustServices.certProfileInputExplanation')"
             persistent-hint
             data-test="cert-profile-input"
           />
+          <v-checkbox
+            v-model="isAcme"
+            :label="$t('trustServices.trustService.settings.acmeCapable')"
+            hide-details
+            class="mt-4"
+            data-test="acme-checkbox"
+          />
+          <v-sheet v-show="isAcme">
+            <v-text-field
+              v-model="acmeServerDirectoryUrl"
+              v-bind="acmeServerDirectoryUrlAttrs"
+              :label="$t('fields.acmeServerDirectoryUrl')"
+              :hint="$t('trustServices.acmeServerDirectoryUrlExplanation')"
+              persistent-hint
+              variant="outlined"
+              data-test="acme-server-directory-url-input"
+              class="py-4"
+            />
+            <v-text-field
+              v-model="acmeServerIpAddress"
+              v-bind="acmeServerIpAddressAttrs"
+              :label="$t('fields.acmeServerIpAddress')"
+              :hint="$t('trustServices.acmeServerIpAddressExplanation')"
+              persistent-hint
+              variant="outlined"
+              data-test="acme-server-ip-address-input"
+            />
+          </v-sheet>
         </div>
       </template>
     </xrd-simple-dialog>
   </main>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { FileUploadResult,XrdFileUpload } from '@niis/shared-ui';
-import { Event } from '@/ui-types';
+<script lang="ts" setup>
+import { computed, ref } from 'vue';
+import { useForm } from 'vee-validate';
+import { useBasicForm, useFileRef } from '@/util/composables';
+import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
+import { useCertificationService } from '@/store/modules/trust-services';
 
-export default defineComponent({
-  components: { XrdFileUpload },
-  emits: [Event.Cancel, Event.Add],
-  data() {
-    return {
-      showCASettingsDialog: false,
-      certFile: null as File | null,
-      certFileTitle: '',
-      certProfile: '',
-      tlsAuthOnly: false,
-      showUploadCertificateDialog: true,
-      loading: false,
+const emit = defineEmits(['save', 'cancel']);
+
+const commonValidation = { certProfile: 'required', tlsAuthOnly: '' };
+const acmeValidation = {
+  acmeServerDirectoryUrl: 'required|url',
+  acmeServerIpAddress: 'ipAddresses',
+};
+const isAcme = ref(false);
+const validationSchema = computed(() =>
+  isAcme.value ? { ...commonValidation, ...acmeValidation } : commonValidation,
+);
+
+const { meta, defineField, handleSubmit } = useForm({
+  validationSchema,
+  initialValues: {
+    tlsAuthOnly: false,
+    certProfile: '',
+    acmeServerDirectoryUrl: '',
+    acmeServerIpAddress: '',
+  },
+});
+const [tlsAuthOnly, tlsAuthOnlyAttrs] = defineField('tlsAuthOnly');
+const [certProfile, certProfileAttrs] = defineField('certProfile', {
+  props: (state) => ({ 'error-messages': state.errors }),
+  validateOnModelUpdate: true,
+});
+const [acmeServerDirectoryUrl, acmeServerDirectoryUrlAttrs] = defineField(
+  'acmeServerDirectoryUrl',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+    validateOnModelUpdate: true,
+  },
+);
+const [acmeServerIpAddress, acmeServerIpAddressAttrs] = defineField(
+  'acmeServerIpAddress',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+    validateOnModelUpdate: true,
+  },
+);
+
+const { loading, showSuccess, showError, t } = useBasicForm();
+const { add } = useCertificationService();
+
+const showCASettingsDialog = ref(false);
+const showUploadCertificateDialog = ref(true);
+const certFile = useFileRef();
+
+function onUpload(): void {
+  showCASettingsDialog.value = true;
+  showUploadCertificateDialog.value = false;
+}
+
+const onSave = handleSubmit((values) => {
+  if (certFile.value) {
+    loading.value = true;
+    const certService = {
+      certificate: certFile.value,
+      tls_auth: values.tlsAuthOnly.toString(),
+      certificate_profile_info: values.certProfile,
+      acme_server_directory_url: values.acmeServerDirectoryUrl,
+      acme_server_ip_address: values.acmeServerIpAddress,
     };
-  },
-  methods: {
-    onFileUploaded(result: FileUploadResult): void {
-      this.certFile = result.file;
-      this.certFileTitle = result.file.name;
-    },
-    onUpload(): void {
-      this.showCASettingsDialog = true;
-      this.showUploadCertificateDialog = false;
-    },
-    onSave(): void {
-      if (this.certFile !== null) {
-        this.loading = true;
-        const certService = {
-          certificate: this.certFile,
-          tls_auth: this.tlsAuthOnly.toString(),
-          certificate_profile_info: this.certProfile,
-        };
-        this.$emit(Event.Add, certService, {
-          done: () => {
-            this.loading = false;
-            this.clearForm();
-          },
-        });
-      }
-    },
-    cancel(): void {
-      this.$emit(Event.Cancel);
-      this.clearForm();
-    },
-    clearForm(): void {
-      this.certFile = null as File | null;
-      this.certProfile = '';
-      this.tlsAuthOnly = false;
-      this.certFileTitle = '';
-    },
-  },
+    add(certService)
+      .then(() => showSuccess(t('trustServices.certImportedSuccessfully')))
+      .then(() => emit('save'))
+      .catch((error) => showError(error))
+      .finally(() => (loading.value = false));
+  }
 });
 </script>
 

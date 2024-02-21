@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.restapi.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -37,9 +37,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping(ControllerUtil.NOTIFICATIONS_API_V1_PATH + "/session-status")
@@ -58,10 +55,8 @@ public class NotificationsSessionStatusApiController {
         return new ResponseEntity<>(new StatusData(isStillAlive),
                 HttpStatus.OK);
     }
-    @Data
-    @AllArgsConstructor
-    private static class StatusData {
-        private boolean valid;
+
+    public record StatusData(boolean valid) {
     }
 
 }

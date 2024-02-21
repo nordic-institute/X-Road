@@ -29,6 +29,7 @@
   <xrd-simple-dialog
     save-button-text="action.delete"
     title="members.member.details.deleteMember"
+    submittable
     :loading="loading"
     :disable-save="!meta.valid"
     @save="proceedDelete"
@@ -43,73 +44,67 @@
     </template>
     <template #content>
       <v-text-field
-        v-model="value"
+        v-model="memberCode"
+        v-bind="memberCodeAttrs"
         variant="outlined"
         :label="$t('members.member.details.enterCode')"
         autofocus
         data-test="member-code"
-        :error-messages="errors"
       />
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { Client } from '@/openapi-types';
 import { useMember } from '@/store/modules/members';
 import { toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
-import { useField } from 'vee-validate';
-import { mapActions, mapStores } from 'pinia';
+import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
+import { i18n } from '@/plugins/i18n';
 
-export default defineComponent({
-  props: {
-    member: {
-      type: Object as () => Client,
-      required: true,
-    },
+const props = defineProps({
+  member: {
+    type: Object as () => Client,
+    required: true,
   },
-  emits: ['cancel'],
-  setup(props) {
-    const { value, errors, meta, resetField } = useField<string>('memberCode', {
-      required: true,
-      is: props.member.client_id.member_code,
-    });
-    return { resetField, value, errors, meta };
+});
+
+const emits = defineEmits(['cancel']);
+
+const { meta, handleSubmit, defineField, resetForm } = useForm({
+  validationSchema: {
+    memberCode: 'required|is:' + props.member.client_id.member_code,
   },
-  data() {
-    return { loading: false, enteredCode: '' };
-  },
-  computed: {
-    ...mapStores(useMember),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancelDelete(): void {
-      this.enteredCode = '';
-      this.$emit('cancel');
-    },
-    proceedDelete(): void {
-      this.loading = true;
-      this.memberStore
-        .deleteById(toIdentifier(this.member.client_id))
-        .then(() => {
-          this.showSuccess(
-            this.$t('members.member.details.memberDeleted'),
-            true,
-          );
-          this.$router.replace({ name: RouteName.Members });
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-  },
+});
+
+const [memberCode, memberCodeAttrs] = defineField('memberCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const { deleteById: deleteMember } = useMember();
+const { showError, showSuccess } = useNotifications();
+
+function cancelDelete() {
+  resetForm();
+  emits('cancel');
+}
+
+const loading = ref(false);
+const { t } = i18n.global;
+const router = useRouter();
+const proceedDelete = handleSubmit(() => {
+  loading.value = true;
+  deleteMember(toIdentifier(props.member.client_id))
+    .then(() => {
+      showSuccess(t('members.member.details.memberDeleted'), true);
+      router.replace({ name: RouteName.Members });
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
 });
 </script>
 

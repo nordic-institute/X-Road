@@ -31,11 +31,11 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 
 /**
  * MetadataHandler
@@ -51,9 +51,9 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) {
+    MessageProcessorBase createRequestProcessor(Request request, Response response,
+                                                OpMonitoringData opMonitoringData) {
+        var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);
 
         // opMonitoringData is null, do not use it.

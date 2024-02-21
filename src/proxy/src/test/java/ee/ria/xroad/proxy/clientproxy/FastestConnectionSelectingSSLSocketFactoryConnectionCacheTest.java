@@ -53,7 +53,7 @@ public class FastestConnectionSelectingSSLSocketFactoryConnectionCacheTest {
 
     @Test
     public void testCacheKeyEqualsAndHashcode() throws URISyntaxException {
-        URI[] a1 = new URI[] {
+        URI[] a1 = new URI[]{
                 new URI("https://localhost:5500"), new URI("http://10.10.10.10"), new URI("http://1.2.3.4")
         };
 
@@ -63,7 +63,7 @@ public class FastestConnectionSelectingSSLSocketFactoryConnectionCacheTest {
 
         assert !Arrays.equals(a1, a2);
 
-        URI[] a3 = new URI[] {
+        URI[] a3 = new URI[]{
                 new URI("https://localhost:80"), new URI("http://10.10.10.10"), new URI("http://1.2.3.4")
         };
 
@@ -107,7 +107,7 @@ public class FastestConnectionSelectingSSLSocketFactoryConnectionCacheTest {
                 .ticker(ticker)
                 .build();
 
-        CacheKey k = new CacheKey(new URI[] {new URI("https://localhost:5500")});
+        CacheKey k = new CacheKey(new URI[]{new URI("https://localhost:5500")});
         URI v = new URI("https://localhost:5500");
 
         cache.put(k, v);

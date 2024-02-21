@@ -207,5 +207,63 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
         executeRequest(TestManagementRequestPayload.empty());
     }
 
+    @Step("Address change request with new address {string} was sent")
+    public void addressChangeRequestWithNewAddressWasSent(String address) throws Exception {
+        addressChangeRequestWasSent("EE:CLASS:MEMBER", DEFAULT_SERVER_ID.asEncodedId(), address);
+    }
+
+    @Step("Address change request with clientId {string} and serverId {string} and address {string} was sent")
+    public void addressChangeRequestWasSent(String clientIdString, String serverId, String address) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdString);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(clientId)
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(
+                        (builder, serverId1, clientId1) -> builder.buildAddressChangeRequest(serverId1, address))
+                .build();
+        executeRequest(req.createPayload());
+    }
+
+    @Step("Client disable request with clientId {string} was sent")
+    public void executeRequestClientDisable(String clientIdStr) throws Exception {
+        executeRequestClientDisableWithCustomServerId(clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
+    }
+
+    @Step("Client disable request with clientId {string} and serverId {string} was sent")
+    public void executeRequestClientDisableWithCustomServerId(String clientIdStr, String serverId) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(resolveClientIdFromEncodedStr("EE:CLASS:MEMBER"))
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientDisableRequest)
+                .build();
+        executeRequest(req.createPayload());
+    }
+
+    @Step("Client enable request with clientId {string} was sent")
+    public void executeRequestClientEnable(String clientIdStr) throws Exception {
+        executeRequestClientEnableWithCustomServerId(clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
+    }
+
+    @Step("Client enable request with clientId {string} and serverId {string} was sent")
+    public void executeRequestClientEnableWithCustomServerId(String clientIdStr, String serverId) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(resolveClientIdFromEncodedStr("EE:CLASS:MEMBER"))
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientEnableRequest)
+                .build();
+        executeRequest(req.createPayload());
+    }
+
 
 }

@@ -34,7 +34,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_TIMESTAMPIN
  * If timestamping service was not found
  */
 public class TimestampingServiceNotFoundException extends NotFoundException {
-    public TimestampingServiceNotFoundException(String s)  {
+    public TimestampingServiceNotFoundException(String s) {
         super(s, new ErrorDeviation(ERROR_TIMESTAMPING_SERVICE_NOT_FOUND));
     }
 }

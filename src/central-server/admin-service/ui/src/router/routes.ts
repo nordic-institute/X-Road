@@ -90,8 +90,12 @@ import IntermediateCaOcspResponders from '@/views/TrustServices/CertificationSer
 import TimestampingServiceCertificate from '@/components/timestampingServices/TimestampingServiceCertificate.vue';
 import ManagementRequestDetails from '@/views/ManagementRequests/ManagementRequestDetails.vue';
 import ManagementRequestsList from '@/views/ManagementRequests/ManagementRequestsList.vue';
+import ManagementServiceTlsKey from '@/views/Settings/TlsCertificates/ManagementServiceTlsCertificate.vue';
+import ManagementServiceCertificate from '@/components/tlsCertificates/ManagementServiceCertificate.vue';
+import { useSettingsTabs } from '@/store/modules/settings-tabs';
+import { XrdRoute } from '@/router/types';
 
-const routes: RouteRecordRaw[] = [
+const routes: XrdRoute[] = [
   {
     path: '/',
     component: AppBase,
@@ -102,7 +106,13 @@ const routes: RouteRecordRaw[] = [
         name: RouteName.Settings,
         path: '/settings',
         meta: {
-          permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
+          permissions: [
+            Permissions.VIEW_SYSTEM_SETTINGS,
+            Permissions.VIEW_GLOBAL_GROUPS,
+            Permissions.VIEW_SECURITY_SERVERS,
+            Permissions.BACKUP_CONFIGURATION,
+            Permissions.VIEW_API_KEYS,
+          ],
         },
         components: {
           default: SettingsView,
@@ -110,6 +120,7 @@ const routes: RouteRecordRaw[] = [
           subTabs: SettingsTabs,
           alerts: AlertsContainer,
         },
+        redirect: () => useSettingsTabs().getAvailableTabs()[0].to,
         props: {
           subTabs: true,
         },
@@ -161,6 +172,21 @@ const routes: RouteRecordRaw[] = [
             props: true,
             meta: { permissions: [Permissions.VIEW_API_KEYS] },
           },
+          {
+            name: RouteName.TlsCertificates,
+            path: 'tls-certificates',
+            component: ManagementServiceTlsKey,
+            props: true,
+            meta: {
+              permissions: [Permissions.VIEW_MANAGEMENT_SERVICE_TLS_CERT],
+            },
+          },
+          {
+            name: RouteName.ManagementServiceCertificateDetails,
+            path: '/tls-certificates-details',
+            component: ManagementServiceCertificate,
+            meta: { permissions: [Permissions.VIEW_TLS_CERTIFICATES] },
+          },
         ],
       },
 
@@ -174,7 +200,7 @@ const routes: RouteRecordRaw[] = [
         props: {
           default: true,
         },
-        meta: { permissions: [Permissions.CREATE_API_KEY] },
+        meta: { permissions: [Permissions.CREATE_API_KEY], backOnEscape: true },
       },
 
       {
@@ -266,7 +292,7 @@ const routes: RouteRecordRaw[] = [
                 props: (
                   route: RouteLocationNormalized,
                 ): { serverId: string } => {
-                  return { serverId: route.params.serverId };
+                  return { serverId: route.params.serverId as string };
                 },
               },
               {
@@ -283,6 +309,7 @@ const routes: RouteRecordRaw[] = [
                 },
                 meta: {
                   permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+                  backOnEscape: true,
                 },
               },
               {
@@ -317,7 +344,10 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.TimestampingServiceCertificateDetails,
             path: '/timestamping-service-certificate/:timestampingServiceId',
             component: TimestampingServiceCertificate,
-            meta: { permissions: [Permissions.VIEW_APPROVED_TSAS] },
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_TSAS],
+              backOnEscape: true,
+            },
             props(route: RouteLocationNormalized): {
               timestampingServiceId: number;
             } {
@@ -397,7 +427,10 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.CertificationServiceCertificateDetails,
             path: '/certification-services/:certificationServiceId/certificate-details',
             component: CertificationServiceCertificate,
-            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
+              backOnEscape: true,
+            },
             props: (
               route: RouteLocationNormalized,
             ): { certificationServiceId: number } => {
@@ -411,7 +444,10 @@ const routes: RouteRecordRaw[] = [
             name: RouteName.OcspResponderCertificateDetails,
             path: 'ocsp-responder/:ocspResponderId/certificate-details',
             component: OcspResponderCertificate,
-            meta: { permissions: [Permissions.VIEW_APPROVED_CA_DETAILS] },
+            meta: {
+              permissions: [Permissions.VIEW_APPROVED_CA_DETAILS],
+              backOnEscape: true,
+            },
             props: (
               route: RouteLocationNormalized,
             ): { ocspResponderId: number } => {

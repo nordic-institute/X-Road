@@ -2,13 +2,16 @@
 <!DOCTYPE hibernate-mapping PUBLIC
     "-//Hibernate/Hibernate Mapping DTD//EN"
     "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- TODO: support for hibernate-mapping will be removed after 6.x version -->
 <hibernate-mapping package="ee.ria.xroad.opmonitordaemon"
     default-access="field">
 
     <class name="OperationalDataRecord" table="operational_data">
 
         <id name="id" type="long">
-            <generator class="seqhilo"/>
+            <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+                <param name="optimizer">legacy-hilo</param>
+            </generator>
         </id>
 
         <!-- Indexes are created for fields that are mandatory in the request

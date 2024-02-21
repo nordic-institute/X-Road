@@ -12,6 +12,8 @@ spring:
     properties:
       hibernate:
         dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        id:
+          db_structure_naming_strategy: legacy #TODO Migrate to newer strategies
   profiles:
     include: nontest
 

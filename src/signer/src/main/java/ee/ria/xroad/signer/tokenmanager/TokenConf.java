@@ -42,12 +42,11 @@ import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.util.SignerUtil;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.jetty.util.StringUtil;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,6 +62,7 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
+
     /**
      * Specialized exception instead of a generic exception for TokenConf errors.
      */
@@ -155,7 +155,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         // Only save the token if it has keys which have certificates or
         // certificate requests
         tokens.stream().filter(TokenConf::hasKeysWithCertsOfCertRequests)
-            .forEach(token -> confType.getDevice().add(from(token)));
+                .forEach(token -> confType.getDevice().add(from(token)));
 
         save();
     }
@@ -320,7 +320,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
                 return calculateCertHexHash(type.getContents());
             } catch (Exception e) {
                 log.error("Failed to calculate certificate hash for {}",
-                         type, e);
+                        type, e);
 
                 return SignerUtil.randomId();
             }

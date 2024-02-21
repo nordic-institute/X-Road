@@ -34,11 +34,15 @@ import ee.ria.xroad.common.util.StartStop;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import javax.net.ssl.KeyManager;
@@ -47,12 +51,8 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.security.Principal;
@@ -60,9 +60,16 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Enumeration;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.JettyUtils.getCharacterEncoding;
+import static ee.ria.xroad.common.util.JettyUtils.getContentType;
+import static ee.ria.xroad.common.util.JettyUtils.getTarget;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
+import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 class DummyService extends Server implements StartStop {
@@ -89,6 +96,14 @@ class DummyService extends Server implements StartStop {
         ServerConnector sslConnector = createSslConnector();
         sslConnector.setName("httpsConnector");
         sslConnector.setPort(ProxyTestSuite.SERVICE_SSL_PORT);
+        sslConnector.getConnectionFactories().stream()
+                .filter(HttpConnectionFactory.class::isInstance)
+                .map(HttpConnectionFactory.class::cast)
+                .forEach(httpCf -> {
+                    httpCf.getHttpConfiguration().setSendServerVersion(false);
+                    Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
+                            .ifPresent(customizer -> customizer.setSniHostCheck(false));
+                });
         addConnector(sslConnector);
     }
 
@@ -104,8 +119,8 @@ class DummyService extends Server implements StartStop {
         cf.setSessionCachingEnabled(true);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {new DummyServiceKeyManager()},
-                new TrustManager[] {new DummyServiceTrustManager()},
+        ctx.init(new KeyManager[]{new DummyServiceKeyManager()},
+                new TrustManager[]{new DummyServiceTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
@@ -113,28 +128,26 @@ class DummyService extends Server implements StartStop {
         return new ServerConnector(this, cf);
     }
 
-    private class ServiceHandler extends AbstractHandler {
+    private static final class ServiceHandler extends Handler.Abstract {
         @Override
-        public void handle(String target, Request baseRequest,
-                HttpServletRequest request, HttpServletResponse response)
-                throws IOException, ServletException {
+        public boolean handle(Request request, Response response, Callback callback) {
+            var target = getTarget(request);
             log.debug("Service simulator received request {}, contentType={}",
-                    target, request.getContentType());
+                    target, getContentType(request));
             debugRequestHeaders(request);
             try {
                 // check if the test case implements custom service response
-                AbstractHandler handler = currentTestCase().getServiceHandler();
+                Handler.Abstract handler = currentTestCase().getServiceHandler();
                 if (handler != null) {
-                    handler.handle(target, baseRequest, request, response);
-                    return;
+                    return handler.handle(request, response, callback);
                 }
 
                 currentTestCase().onServiceReceivedHttpRequest(request);
 
                 Message receivedRequest = new Message(
-                        request.getInputStream(), request.getContentType()).parse();
+                        asInputStream(request), getContentType(request)).parse();
 
-                String encoding = request.getCharacterEncoding();
+                String encoding = getCharacterEncoding(request);
 
                 log.debug("Request: encoding={}, soap={}", encoding,
                         receivedRequest.getSoap());
@@ -147,33 +160,31 @@ class DummyService extends Server implements StartStop {
                     try {
                         sendResponseFromFile(responseFile, response);
                     } catch (Exception e) {
-                        log.error("An error has occurred when sending response"
-                                + " from file '{}': {}", responseFile, e);
+                        log.error("An error has occurred when sending response from file '{}'", responseFile, e);
                     }
                 } else {
                     log.error("Unknown request {}", target);
                 }
+                callback.succeeded();
             } catch (Exception ex) {
-                response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
+                Response.writeError(request, response, callback, HttpStatus.INTERNAL_SERVER_ERROR_500, ex.getMessage());
                 log.error("Error when reading request", ex);
-            } finally {
-                baseRequest.setHandled(true);
             }
+            return true;
         }
 
-        private void debugRequestHeaders(HttpServletRequest request) {
+        private void debugRequestHeaders(Request request) {
             log.debug("Request headers:");
 
-            Enumeration<String> headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
+            var headerNames = request.getHeaders().getFieldNamesCollection();
+            for (String headerName : headerNames) {
                 log.debug("\t{} = {}", headerName,
-                        request.getHeader(headerName));
+                        request.getHeaders().get(headerName));
             }
         }
 
         private void sendResponseFromFile(String fileName,
-                HttpServletResponse response) throws Exception {
+                                          Response response) throws Exception {
             String responseContentType =
                     currentTestCase().getResponseContentType();
 
@@ -181,26 +192,29 @@ class DummyService extends Server implements StartStop {
                     responseContentType,
                     currentTestCase().addUtf8BomToResponseFile);
 
-            response.setContentType(responseContentType);
-            response.setStatus(HttpServletResponse.SC_OK);
+            setContentType(response, responseContentType);
+            response.setStatus(OK_200);
 
             String file = MessageTestCase.QUERIES_DIR + '/' + fileName;
 
-            try (InputStream fileIs = new FileInputStream(file);
-                    InputStream responseIs =
-                            currentTestCase().changeQueryId(fileIs)) {
+            try (
+                    InputStream fileIs = new FileInputStream(file);
+                    InputStream responseIs = currentTestCase().changeQueryId(fileIs);
+                    var responseOs = asOutputStream(response)
+            ) {
 
                 if (currentTestCase().addUtf8BomToResponseFile) {
-                    response.getOutputStream().write(
+                    responseOs.write(
                             ByteOrderMark.UTF_8.getBytes());
                 }
 
-                IOUtils.copy(responseIs, response.getOutputStream());
+                IOUtils.copy(responseIs, responseOs);
             }
 
-            try (InputStream fileIs = new FileInputStream(file);
-                    InputStream responseIs =
-                            currentTestCase().changeQueryId(fileIs)) {
+            try (
+                    InputStream fileIs = new FileInputStream(file);
+                    InputStream responseIs = currentTestCase().changeQueryId(fileIs)
+            ) {
                 currentTestCase().onSendResponse(
                         new Message(responseIs, currentTestCase()
                                 .getResponseServiceContentType()).parse());
@@ -215,20 +229,20 @@ class DummyService extends Server implements StartStop {
         return ProxyTestSuite.currentTestCase;
     }
 
-    private static class DummyServiceKeyManager extends X509ExtendedKeyManager {
+    private static final class DummyServiceKeyManager extends X509ExtendedKeyManager {
 
         private static final String ALIAS = "AuthKeyManager";
 
         @Override
         public String chooseClientAlias(String[] keyType, Principal[] issuers,
-                Socket socket) {
+                                        Socket socket) {
             log.debug("chooseClientAlias");
             return ALIAS;
         }
 
         @Override
         public String chooseServerAlias(String keyType, Principal[] issuers,
-                Socket socket) {
+                                        Socket socket) {
             log.debug("chooseServerAlias");
             return ALIAS;
         }
@@ -258,20 +272,20 @@ class DummyService extends Server implements StartStop {
 
         @Override
         public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
-                SSLEngine engine) {
+                                              SSLEngine engine) {
             log.debug("chooseEngineClientAlias");
             return ALIAS;
         }
 
         @Override
         public String chooseEngineServerAlias(String keyType, Principal[] issuers,
-                SSLEngine engine) {
+                                              SSLEngine engine) {
             log.debug("chooseEngineServerAlias");
             return ALIAS;
         }
     }
 
-    private static class DummyServiceTrustManager implements X509TrustManager {
+    private static final class DummyServiceTrustManager implements X509TrustManager {
 
         @Override
         public X509Certificate[] getAcceptedIssuers() {

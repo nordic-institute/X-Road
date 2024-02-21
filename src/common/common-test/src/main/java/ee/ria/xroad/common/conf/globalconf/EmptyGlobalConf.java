@@ -28,7 +28,6 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -69,7 +68,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public X509Certificate getCaCert(String instanceIdentifier,
-            X509Certificate orgCert) throws Exception {
+                                     X509Certificate orgCert) throws Exception {
         return null;
     }
 
@@ -85,7 +84,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean isOcspResponderCert(X509Certificate ca,
-            X509Certificate ocspCert) {
+                                       X509Certificate ocspCert) {
         return true;
     }
 
@@ -107,7 +106,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean isSubjectInGlobalGroup(ClientId subject,
-            GlobalGroupId group) {
+                                          GlobalGroupId group) {
         return false;
     }
 
@@ -128,7 +127,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean authCertMatchesMember(X509Certificate cert,
-            ClientId memberId) throws Exception {
+                                         ClientId memberId) throws Exception {
         return false;
     }
 
@@ -154,7 +153,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public boolean isSecurityServerClient(ClientId client,
-            SecurityServerId securityServer) {
+                                          SecurityServerId securityServer) {
         return false;
     }
 
@@ -165,7 +164,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public CertChain getCertChain(String instanceIdentifier,
-            X509Certificate subject) throws Exception {
+                                  X509Certificate subject) throws Exception {
         return null;
     }
 
@@ -215,18 +214,18 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getApprovedTsps(String instanceIdentifier) {
+    public List<String> getApprovedTspUrls(String instanceIdentifier) {
         return null;
     }
 
     @Override
-    public List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
+    public List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier) {
         return null;
     }
 
     @Override
     public String getApprovedTspName(String instanceIdentifier,
-            String approvedTspUrl) {
+                                     String approvedTspUrl) {
         return null;
     }
 
@@ -236,13 +235,13 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId.Conf getServerOwner(SecurityServerId serverId) {
+    public ClientId getServerOwner(SecurityServerId serverId) {
         return null;
     }
 
     @Override
     public void reload() {
-      // nothing to reload here
+        // nothing to reload here
     }
 
     @Override

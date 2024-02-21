@@ -53,7 +53,7 @@ public class EmptyKeyConf implements KeyConfProvider {
 
     @Override
     public void setOcspResponses(List<X509Certificate> certs,
-            List<OCSPResp> response) throws Exception {
+                                 List<OCSPResp> response) throws Exception {
     }
 
     @Override

@@ -84,7 +84,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
     @AuditEventMethod(event = EDIT_LOCAL_GROUP_DESC)
     public ResponseEntity<LocalGroup> updateLocalGroup(String groupIdString,
-            LocalGroupDescription localGroupDescription) {
+                                                       LocalGroupDescription localGroupDescription) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         String description = localGroupDescription.getDescription();
         LocalGroupType localGroupType = null;
@@ -111,7 +111,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
         } catch (LocalGroupService.MemberAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (LocalGroupNotFoundException
-                | LocalGroupService.LocalGroupMemberNotFoundException e) {
+                 | LocalGroupService.LocalGroupMemberNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
         return new ResponseEntity<>(members, HttpStatus.CREATED);

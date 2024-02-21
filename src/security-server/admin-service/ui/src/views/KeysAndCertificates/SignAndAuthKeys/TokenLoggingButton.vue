@@ -50,17 +50,17 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { Token } from '@/openapi-types';
-import { Prop } from 'vue/types/options';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     token: {
-      type: Object as Prop<Token>,
+      type: Object as PropType<Token>,
       required: true,
     },
   },
+  emits: ['token-logout', 'token-login'],
   methods: {
     confirmLogout(): void {
       this.$emit('token-logout');

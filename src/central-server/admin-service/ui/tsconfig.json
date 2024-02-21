@@ -14,9 +14,8 @@
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
-      "webpack-env",
-      "jest",
-      "vuetify"
+      "vite/client",
+      "vuetify",
     ],
     "paths": {
       "@/*": [

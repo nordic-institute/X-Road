@@ -29,7 +29,6 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.ss.test.ui.TargetHostUrlProvider;
-import org.niis.xroad.ss.test.ui.container.MockServerService;
 import org.niis.xroad.ss.test.ui.page.CommonPageObj;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +45,6 @@ public abstract class BaseUiStepDefs extends BaseStepDefs {
 
     @Autowired
     protected TargetHostUrlProvider targetHostUrlProvider;
-    @Autowired
-    protected MockServerService mockServerService;
 
     /**
      * Vue.JS adds additional elements on top of input and simple clear just does not work.

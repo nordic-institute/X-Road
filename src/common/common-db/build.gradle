@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api  "org.hibernate:hibernate-core:$hibernateVersion"
+    api "org.hibernate.orm:hibernate-core:$hibernateVersion"
 
     implementation project(':common:common-util')
     implementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"

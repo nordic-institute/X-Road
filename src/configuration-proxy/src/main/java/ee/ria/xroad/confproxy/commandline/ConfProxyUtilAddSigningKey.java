@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -82,8 +81,7 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
      */
     private void addSigningKey(final ConfProxyProperties conf,
                                final String keyId) throws Exception {
-        ClientId.Conf clientId = null;
-        final byte[] certBytes = SignerProxy.generateSelfSignedCert(keyId, clientId, SIGNING, "N/A",
+        final byte[] certBytes = SignerProxy.generateSelfSignedCert(keyId, null, SIGNING, "N/A",
                 new Date(0), new Date(Integer.MAX_VALUE));
         conf.saveCert(keyId, certBytes);
         System.out.println("Saved self-signed certificate to cert_"

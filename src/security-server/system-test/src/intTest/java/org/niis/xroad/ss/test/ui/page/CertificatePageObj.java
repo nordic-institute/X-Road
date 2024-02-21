@@ -38,10 +38,10 @@ public class CertificatePageObj {
     }
 
     public SelenideElement btnClose() {
-        return $x("//i[@data-test='close-x']");
+        return $x("//button[@data-test='close-x']");
     }
 
     public SelenideElement btnDelete() {
-        return $x("//button[.//*[contains(text(), \"Delete\")]]");
+        return $x("//button[@data-test='tls-certificate-delete-button']");
     }
 }

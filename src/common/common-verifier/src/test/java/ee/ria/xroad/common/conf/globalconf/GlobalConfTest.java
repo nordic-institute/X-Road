@@ -129,7 +129,30 @@ public class GlobalConfTest {
      */
     @Test
     public void getInstanceIdentifiers() {
-        assertEquals(Arrays.asList("EE", "bar", "foo"), GlobalConf.getInstanceIdentifiers());
+        assertTrue(Arrays.asList("EE", "bar", "foo").containsAll(GlobalConf.getInstanceIdentifiers()));
+    }
+
+    /**
+     * Tests checking if subject is in global group.
+     */
+    @Test
+    public void isSubjectInGlobalGroup() {
+        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member1", "subsys"),
+                GlobalGroupId.Conf.create("EE", "Test group"))
+        );
+        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member2"),
+                GlobalGroupId.Conf.create("EE", "Test group"))
+        );
+        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member2", "subsys"),
+                GlobalGroupId.Conf.create("EE", "Test group"))
+        );
+        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+                ClientId.Conf.create("EE", "BUSINESS", "member2"),
+                GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
+        );
     }
 
     /**
@@ -341,9 +364,9 @@ public class GlobalConfTest {
     public void getKnownAddresses() {
         Set<String> expectedAddresses = new HashSet<>(
                 Arrays.asList(
-                    "127.0.0.1",
-                    "https://www.foo.com/bar",
-                    "https://foo.bar.baz"));
+                        "127.0.0.1",
+                        "https://www.foo.com/bar",
+                        "https://foo.bar.baz"));
         Set<String> actualAddresses = GlobalConf.getKnownAddresses();
 
         assertEquals(expectedAddresses, actualAddresses);

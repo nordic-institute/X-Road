@@ -40,10 +40,15 @@
         <data-table-toolbar title-key="globalConf.downloadUrl.title" />
       </template>
       <template #[`item.url`]="{ item }">
-        <div class="xrd-clickable" @click="openInNewTab(item.raw.url)">
+        <a
+          class="xrd-clickable"
+          target="_blank"
+          rel="noreferrer"
+          :href="item.url"
+        >
           <v-icon class="internal-conf-icon" icon="mdi-link" />
-          {{ item.raw.url }}
-        </div>
+          {{ item.url }}
+        </a>
       </template>
       <template #bottom>
         <custom-data-table-footer />
@@ -61,12 +66,11 @@ import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 
 export default defineComponent({
-  components: { CustomDataTableFooter, DataTableToolbar, VDataTable },
+  components: { CustomDataTableFooter, DataTableToolbar },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -119,5 +123,9 @@ export default defineComponent({
 .internal-conf-icon {
   margin-right: 15px;
   color: $XRoad-Purple100;
+}
+
+.xrd-clickable {
+  text-decoration-line: none;
 }
 </style>

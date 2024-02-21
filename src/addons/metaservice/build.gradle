@@ -7,47 +7,43 @@ dependencies {
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     testImplementation project(':common:common-test')
-    testImplementation project (path: ":proxy", configuration: 'testArtifacts')
+    testImplementation project(path: ":proxy", configuration: 'testArtifacts')
 
-    testImplementation "org.eclipse.jetty:jetty-servlet:$jettyVersion"
-    testImplementation ('com.github.tomakehurst:wiremock:2.27.2') {
-        exclude group: 'org.eclipse.jetty', module: 'jetty-servlet'
-    }
-    testImplementation 'org.hamcrest:hamcrest:2.2'
-    testImplementation 'wsdl4j:wsdl4j:1.6.3'
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation('org.wiremock:wiremock-standalone:3.4.1')
+
+    testImplementation "wsdl4j:wsdl4j:$wsdl4jVersion"
     testImplementation 'org.apache.httpcomponents:httpmime:4.5.13'
-    testImplementation 'org.xmlunit:xmlunit-core:2.8.2'
-    testImplementation 'org.xmlunit:xmlunit-matchers:2.8.2'
+    testImplementation "org.xmlunit:xmlunit-core:$xmlUnitVersion"
+    testImplementation "org.xmlunit:xmlunit-matchers:$xmlUnitVersion"
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
-task runMetaserviceTest(type: JavaExec) {
+tasks.register('runMetaserviceTest', JavaExec) {
 
     if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-Xdebug',
-                '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'
+            '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'
     }
 
     jvmArgs '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
-            '-Dxroad.tempFiles.path=build/attach-tmp',
-            '-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_producer.xml',
-            '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/resources/serverproxy.xml',
-            '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/resources/clientproxy.xml',
-            '-Dlogback.configurationFile=src/test/resources/logback-metaservicetest.xml',
-            '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/resources/ocsp-responder.xml',
-            '-Dxroad.proxy.client-connector-so-linger=-1',
-            '-Dxroad.proxy.client-httpclient-so-linger=-1',
-            '-Dxroad.proxy.server-connector-so-linger=-1',
-            '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.MetadataServiceHandlerImpl',
-            '-Dxroad.proxy.clientHandlers=ee.ria.xroad.proxy.clientproxy.MetadataHandler',
-            '-Dxroad.common.grpc-internal-tls-enabled=false'
+        '-Dxroad.tempFiles.path=build/attach-tmp',
+        '-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_producer.xml',
+        '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/resources/serverproxy.xml',
+        '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/resources/clientproxy.xml',
+        '-Dlogback.configurationFile=src/test/resources/logback-metaservicetest.xml',
+        '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/resources/ocsp-responder.xml',
+        '-Dxroad.proxy.client-connector-so-linger=-1',
+        '-Dxroad.proxy.client-httpclient-so-linger=-1',
+        '-Dxroad.proxy.server-connector-so-linger=-1',
+        '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.MetadataServiceHandlerImpl',
+        '-Dxroad.proxy.clientHandlers=ee.ria.xroad.proxy.clientproxy.MetadataHandler',
+        '-Dxroad.common.grpc-internal-tls-enabled=false'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
 }
 
 jacoco {
-  applyTo runMetaserviceTest
+    applyTo runMetaserviceTest
 }

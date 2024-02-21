@@ -1,0 +1,70 @@
+{
+  "openapi": "3.2.0",
+  "info": {
+    "version": "1.0",
+    "title": "Test"
+  },
+  "servers": [
+    {
+      "url": "https://example.org/api",
+      "description": "test"
+    }
+  ],
+  "paths": {
+    "/test": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "text/plain": {
+              "schema": {
+                "exclusiveMaximum": 50,
+                "exclusiveMinimum": 1.22,
+                "type": "number",
+                "contentEncoding": "double",
+                "contentMediaType": "text/plain"
+              },
+              "example": 3
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "post"
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "get"
+      }
+    },
+    "/file": {
+      "post": {
+        "summary": "file upload",
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {}
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  }
+}

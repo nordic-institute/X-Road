@@ -84,7 +84,7 @@ final class HealthDataMetrics {
      *                                 is called when the startup timestamp gauge is queried for data
      */
     static void registerInitialMetrics(MetricRegistry registry,
-            Supplier<Long> startupTimestampProvider) {
+                                       Supplier<Long> startupTimestampProvider) {
         registerMonitoringStartupTimestampGauge(registry,
                 startupTimestampProvider);
         registerHealthStatisticsPeriodSecondsGauge(registry);
@@ -98,7 +98,7 @@ final class HealthDataMetrics {
      *                 analyzed for health metrics
      */
     static void processRecords(MetricRegistry registry,
-            List<OperationalDataRecord> records) {
+                               List<OperationalDataRecord> records) {
         for (OperationalDataRecord rec : records) {
             if (!SecurityServerType.PRODUCER.equals(
                     SecurityServerType.fromString(rec.getSecurityServerType()))) {
@@ -126,7 +126,7 @@ final class HealthDataMetrics {
     }
 
     private static void registerOrUpdateGauges(MetricRegistry registry,
-            ServiceId serviceId, OperationalDataRecord rec) {
+                                               ServiceId serviceId, OperationalDataRecord rec) {
         // last request timestamp
         String expectedGaugeName = getLastRequestTimestampGaugeName(serviceId,
                 rec.getSucceeded());
@@ -151,7 +151,7 @@ final class HealthDataMetrics {
     }
 
     private static void registerOrUpdateCounters(MetricRegistry registry,
-            ServiceId serviceId, OperationalDataRecord rec) {
+                                                 ServiceId serviceId, OperationalDataRecord rec) {
         String expectedCounterName = getRequestCounterName(serviceId,
                 rec.getSucceeded());
         Counter counter = HealthDataMetricsUtil.findCounter(registry,
@@ -168,7 +168,7 @@ final class HealthDataMetrics {
     }
 
     private static void registerOrUpdateHistograms(MetricRegistry registry,
-            ServiceId serviceId, OperationalDataRecord rec) {
+                                                   ServiceId serviceId, OperationalDataRecord rec) {
         registerOrUpdateHistogram(registry, getRequestDurationName(serviceId), getRequestDuration(rec));
 
         registerOrUpdateHistogram(registry, getRequestSizeName(serviceId), rec.getRequestSize());

@@ -34,16 +34,12 @@
   </g>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-
-export default Vue.extend({
-  //name: 'XrdIconFolderOutline',
-  props: {
-    fillColor: {
-      type: String,
-      default: 'currentColor',
-    },
+<script lang="ts" setup>
+//name: 'XrdIconFolderOutline',
+defineProps({
+  fillColor: {
+    type: String,
+    default: 'currentColor',
   },
 });
 </script>

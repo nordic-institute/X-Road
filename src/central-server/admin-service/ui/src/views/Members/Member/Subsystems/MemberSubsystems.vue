@@ -115,6 +115,10 @@
                   "
                   :color="colors.Success100"
                 />
+                <xrd-icon-error
+                  v-if="subitem.status === 'DISABLED'"
+                  :color="colors.WarmGrey100"
+                />
                 <xrd-icon-error v-if="subitem.status === undefined" />
               </xrd-icon-base>
               {{ getStatusText(subitem.status) }}
@@ -123,7 +127,8 @@
               <div>
                 <xrd-button
                   v-if="
-                    subitem.status === 'APPROVED' &&
+                    (subitem.status === 'APPROVED' ||
+                      subitem.status === 'DISABLED') &&
                     allowToUnregisterMemberSubsystem
                   "
                   text
@@ -163,7 +168,7 @@
       :member="memberStore.currentMember"
       data-test="add-member-to-group"
       @cancel="cancel"
-      @added-subsystem="addedSubsystem"
+      @save="addedSubsystem"
     />
 
     <delete-member-subsystem-dialog
@@ -327,7 +332,7 @@ export default defineComponent({
           this.loading = false;
         });
     },
-    getStatusText(status: string) {
+    getStatusText(status: string | undefined) {
       if (status) {
         switch (status) {
           case ManagementRequestStatus.APPROVED:
@@ -335,6 +340,8 @@ export default defineComponent({
           case ManagementRequestStatus.WAITING:
           case ManagementRequestStatus.SUBMITTED_FOR_APPROVAL:
             return this.$t('securityServers.pending') as string;
+          case 'DISABLED':
+            return this.$t('securityServers.disabled') as string;
         }
       }
       return this.$t('securityServers.unregistered') as string;

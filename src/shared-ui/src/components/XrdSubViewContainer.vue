@@ -27,18 +27,17 @@
 <template>
   <div class="xrd-sub-view-outer-wrapper">
     <v-container class="xrd-default-font-size mt-7">
-      <slot></slot>
+      <slot />
     </v-container>
   </div>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-
-/**
- * View wrapper component for sub views. See Settings.vue for example
+<script lang="ts">/**
+ * View wrapper component for sub views. See SettingsView.vue for example
  */
-export default Vue.extend({});
+import { defineComponent } from "vue";
+
+export default defineComponent({});
 </script>
 
 <style lang="scss" scoped>

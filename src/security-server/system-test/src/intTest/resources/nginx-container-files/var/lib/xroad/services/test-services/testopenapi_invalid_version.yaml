@@ -1,0 +1,44 @@
+---
+openapi: 3.1.1
+servers:
+  - description: test
+    url: https://example.org/api
+info:
+  title: Test
+  version: "1.0"
+paths:
+  /test:
+    get:
+      summary: get
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: post
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              exclusiveMaximum: 50
+              exclusiveMinimum: 1.22
+              type: number
+              contentEncoding: double
+              contentMediaType: text/plain
+            example: 3
+        required: true
+      responses:
+        '200':
+          description: OK
+  /file:
+    post:
+      summary: file upload
+      requestBody:
+        content:
+          application/octet-stream: { }
+      responses:
+        '201':
+          description: OK

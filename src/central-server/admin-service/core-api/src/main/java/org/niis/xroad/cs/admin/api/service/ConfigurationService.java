@@ -26,15 +26,20 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface ConfigurationService {
+
+    Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys();
 
     boolean hasSigningKeys(ConfigurationSourceType sourceType);
 

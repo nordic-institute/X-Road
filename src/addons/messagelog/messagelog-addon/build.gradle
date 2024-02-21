@@ -19,9 +19,9 @@ jar {
     from project(':addons:messagelog:messagelog-db').sourceSets.main.output
 }
 
-task copyGpg(type: Copy) {
+tasks.register('copyGpg', Copy) {
     from 'src/test/gpg'
-    into "${buildDir}/gpg"
+    into layout.buildDirectory.dir("gpg")
 }
 
 test.dependsOn copyGpg

@@ -29,8 +29,6 @@ package org.niis.xroad.cs.admin.core.entity;
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
 import io.vavr.control.Option;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.DisplayName;
@@ -63,11 +61,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
     private final Entity notExistingEntity = new Entity(NOT_EXISTS);
     private final Entity existingEntity = new Entity(EXISTS);
 
-    @RequiredArgsConstructor
-    private class Entity implements EntityExistsAwareEntity<Entity> {
-        @Accessors(fluent = true)
-        @Getter
-        private final boolean exists;
+    private record Entity(@Accessors(fluent = true) boolean exists) implements EntityExistsAwareEntity<Entity> {
     }
 
     @Mock
@@ -75,11 +69,11 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
     @Nested
     @DisplayName("exists()")
-    public class ExistsMethod {
+    class ExistsMethod {
 
         @Test
         @DisplayName("should exist")
-        public void shouldExist(TestInfo testInfo) {
+        void shouldExist(TestInfo testInfo) {
 
             boolean isExists = existingEntity.exists();
 
@@ -88,7 +82,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should not exist")
-        public void shouldNotExist(TestInfo testInfo) {
+        void shouldNotExist(TestInfo testInfo) {
 
             boolean isExists = notExistingEntity.exists();
 
@@ -98,11 +92,11 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
     @Nested
     @DisplayName("notExists()")
-    public class NotExistsMethod {
+    class NotExistsMethod {
 
         @Test
         @DisplayName("should not exist")
-        public void shouldExist(TestInfo testInfo) {
+        void shouldExist(TestInfo testInfo) {
 
             boolean isExists = notExistingEntity.notExists();
 
@@ -111,7 +105,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should not not exist")
-        public void shouldNotExist(TestInfo testInfo) {
+        void shouldNotExist(TestInfo testInfo) {
 
             boolean isExists = existingEntity.notExists();
 
@@ -121,14 +115,14 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
     @Nested
     @DisplayName("ifExists(Consumer<SELF> consumer)")
-    public class IfExistsConsumerMethod implements WithInOrder {
+    class IfExistsConsumerMethod implements WithInOrder {
 
         @Mock
         private Consumer<Entity> entityConsumer;
 
         @Test
         @DisplayName("should call consumer if entity exist")
-        public void shouldCallConsumerIfEntityExist() {
+        void shouldCallConsumerIfEntityExist() {
             doNothing().when(entityConsumer).accept(existingEntity);
 
             existingEntity.ifExists(entityConsumer);
@@ -140,7 +134,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should not call consumer if entity exist")
-        public void shouldNotCallConsumerIfEntityExist() {
+        void shouldNotCallConsumerIfEntityExist() {
 
             notExistingEntity.ifExists(entityConsumer);
 
@@ -150,7 +144,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
     @Nested
     @DisplayName("ifExists(Function<SELF, R> function) ")
-    public class IfExistsFunctionMethod implements WithInOrder {
+    class IfExistsFunctionMethod implements WithInOrder {
 
         @Mock
         private Function<Entity, Entity> entityFunction;
@@ -159,7 +153,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should call function if entity exist")
-        public void shouldCallFunctionIfEntityExist() {
+        void shouldCallFunctionIfEntityExist() {
             doReturn(otherEntity).when(entityFunction).apply(existingEntity);
 
             Option<Entity> returnedEntityOption = existingEntity.ifExists(entityFunction);
@@ -174,7 +168,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should not call function if entity exist")
-        public void shouldNotCallFunctionIfEntityExist() {
+        void shouldNotCallFunctionIfEntityExist() {
 
             Option<Entity> returnedEntityOption = notExistingEntity.ifExists(entityFunction);
 
@@ -186,7 +180,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
     @Nested
     @DisplayName("ifNotExists(Supplier<SELF> supplier) ")
-    public class IfNotExistsSupplierMethod implements WithInOrder {
+    class IfNotExistsSupplierMethod implements WithInOrder {
 
         @Mock
         private Supplier<Entity> entitySupplier;
@@ -195,7 +189,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should call supplier if entity doesn't exist")
-        public void shouldCallSupplierIfEntityDoesntExist() {
+        void shouldCallSupplierIfEntityDoesntExist() {
             doReturn(otherEntity).when(entitySupplier).get();
 
             Entity returnedEntity = notExistingEntity.ifNotExists(entitySupplier);
@@ -208,7 +202,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should not call supplier if entity exist")
-        public void shouldNotCallSupplierIfEntityExist() {
+        void shouldNotCallSupplierIfEntityExist() {
 
             Entity returnedEntity = existingEntity.ifNotExists(entitySupplier);
 
@@ -219,14 +213,14 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
     @Nested
     @DisplayName("ifExistsThrow(Supplier<? extends RuntimeException> throwsSupplier)")
-    public class IfExistsThrowSupplierMethod implements WithInOrder {
+    class IfExistsThrowSupplierMethod implements WithInOrder {
 
         @Mock
         private Supplier<RuntimeException> runtimeExceptionSupplier;
 
         @Test
         @DisplayName("should throw an exception if entity exists")
-        public void shouldThrowAnExceptionIfEntityExists() {
+        void shouldThrowAnExceptionIfEntityExists() {
             doThrow(runtimeException).when(runtimeExceptionSupplier).get();
 
             ThrowableAssert.ThrowingCallable testable = () -> existingEntity.ifExistsThrow(runtimeExceptionSupplier);
@@ -239,7 +233,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should not throw an exception if entity doesn't exist")
-        public void shouldNotThrowAnExceptionIfEntityDoesntExist() {
+        void shouldNotThrowAnExceptionIfEntityDoesntExist() {
 
             notExistingEntity.ifExistsThrow(runtimeExceptionSupplier);
 
@@ -249,14 +243,14 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
     @Nested
     @DisplayName("ifExistsThrow(Function<SELF, ? extends RuntimeException> throwsSupplier)")
-    public class IfExistsThrowFunctionMethod implements WithInOrder {
+    class IfExistsThrowFunctionMethod implements WithInOrder {
 
         @Mock
         private Function<Entity, RuntimeException> runtimeExceptionFunction;
 
         @Test
         @DisplayName("should throw an exception if entity exists")
-        public void shouldThrowAnExceptionIfEntityExists() {
+        void shouldThrowAnExceptionIfEntityExists() {
             doThrow(runtimeException).when(runtimeExceptionFunction).apply(existingEntity);
 
             ThrowableAssert.ThrowingCallable testable = () -> existingEntity.ifExistsThrow(runtimeExceptionFunction);
@@ -269,7 +263,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should not throw an exception if entity doesn't exist")
-        public void shouldNotThrowAnExceptionIfEntityDoesntExist() {
+        void shouldNotThrowAnExceptionIfEntityDoesntExist() {
 
             notExistingEntity.ifExistsThrow(runtimeExceptionFunction);
 
@@ -279,14 +273,14 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
     @Nested
     @DisplayName("ifNotExistsThrow(Supplier<? extends RuntimeException> throwsSupplier)")
-    public class IfNotExistsThrowSupplierMethod implements WithInOrder {
+    class IfNotExistsThrowSupplierMethod implements WithInOrder {
 
         @Mock
         private Supplier<RuntimeException> runtimeExceptionSupplier;
 
         @Test
         @DisplayName("should throw an exception if entity not exists")
-        public void shouldThrowAnExceptionIfEntityNotExists() {
+        void shouldThrowAnExceptionIfEntityNotExists() {
             doThrow(runtimeException).when(runtimeExceptionSupplier).get();
 
             ThrowableAssert.ThrowingCallable testable = () -> notExistingEntity.ifNotExistsThrow(runtimeExceptionSupplier);
@@ -299,7 +293,7 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
 
         @Test
         @DisplayName("should return an entity if entity doesn't not exists")
-        public void shouldReturnAnEntityIfEntityDoesntNotDoesntExist() {
+        void shouldReturnAnEntityIfEntityDoesntNotDoesntExist() {
 
             Entity returnedEntity = existingEntity.ifNotExistsThrow(runtimeExceptionSupplier);
 

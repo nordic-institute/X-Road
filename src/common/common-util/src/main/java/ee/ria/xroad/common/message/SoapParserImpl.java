@@ -29,20 +29,20 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeUtils;
 
-import com.sun.xml.bind.api.AccessorException;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.ValidationEvent;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.soap.SOAPHeader;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.jaxb.runtime.api.AccessorException;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEvent;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPHeader;
-import javax.xml.soap.SOAPMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -105,13 +105,13 @@ public class SoapParserImpl implements SoapParser {
     }
 
     private InputStream excludeUtf8Bom(String contentType,
-            InputStream soapStream) {
+                                       InputStream soapStream) {
         return hasUtf8Charset(contentType)
                 ? new BOMInputStream(soapStream) : soapStream;
     }
 
     protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,
-            String charset, String originalContentType) throws Exception {
+                                String charset, String originalContentType) throws Exception {
         if (soap.getSOAPBody() == null) {
             throw new CodedException(X_MISSING_BODY,
                     "Malformed SOAP message: body missing");
@@ -126,7 +126,7 @@ public class SoapParserImpl implements SoapParser {
     }
 
     protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-            String charset, String originalContentType) throws Exception {
+                                 String charset, String originalContentType) throws Exception {
         // Request and response messages must have a header,
         // fault messages may or may not have a header.
         SoapHeader header = null;
@@ -140,8 +140,8 @@ public class SoapParserImpl implements SoapParser {
     }
 
     protected Soap createMessage(byte[] rawXml, SoapHeader header,
-            SOAPMessage soap, String charset, String originalContentType)
-                    throws Exception {
+                                 SOAPMessage soap, String charset, String originalContentType)
+            throws Exception {
         if (header == null) {
             throw new CodedException(X_MISSING_HEADER,
                     "Malformed SOAP message: header missing");
@@ -170,8 +170,7 @@ public class SoapParserImpl implements SoapParser {
         Iterator<?> it = soapHeader.getChildElements();
         while (it.hasNext()) {
             Object next = it.next();
-            if (next instanceof SOAPElement) {
-                SOAPElement soapElement = (SOAPElement) next;
+            if (next instanceof SOAPElement soapElement) {
                 if (!fields.add(soapElement.getElementQName())) {
                     throw new CodedException(X_DUPLICATE_HEADER_FIELD,
                             "SOAP header contains duplicate field '%s'",
@@ -197,27 +196,22 @@ public class SoapParserImpl implements SoapParser {
 
     @SuppressWarnings("unchecked")
     static <T> T unmarshalHeader(Class<?> clazz, SOAPHeader soapHeader,
-            boolean checkRequiredFields) throws Exception {
+                                 boolean checkRequiredFields) throws Exception {
         Unmarshaller unmarshaller = JaxbUtils.createUnmarshaller(clazz);
 
         if (checkRequiredFields) {
             unmarshaller.setListener(new RequiredHeaderFieldsChecker(clazz));
         }
 
-        unmarshaller.setEventHandler(event -> {
-            switch (event.getSeverity()) {
-                case ValidationEvent.WARNING:
-                    return true;
-                case ValidationEvent.ERROR:
-                    Throwable t = event.getLinkedException();
-
-                    return !(t instanceof AccessorException
-                            && t.getCause() instanceof CodedException);
-                case ValidationEvent.FATAL_ERROR:
-                    return false;
-                default:
-                    return true;
+        unmarshaller.setEventHandler(event -> switch (event.getSeverity()) {
+            case ValidationEvent.WARNING -> true;
+            case ValidationEvent.ERROR -> {
+                Throwable t = event.getLinkedException();
+                yield !(t instanceof AccessorException
+                        && t.getCause() instanceof CodedException);
             }
+            case ValidationEvent.FATAL_ERROR -> false;
+            default -> true;
         });
 
         JAXBElement<T> jaxbElement =

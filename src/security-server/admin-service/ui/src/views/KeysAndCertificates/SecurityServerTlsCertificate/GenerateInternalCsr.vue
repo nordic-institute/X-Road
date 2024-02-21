@@ -46,7 +46,7 @@
           <v-text-field
             v-model="distinguishedName"
             autofocus
-            outlined
+            variant="outlined"
             data-text="generate-internal-csr-distinguished-name-field"
             :placeholder="
               $t('ssTlsCertificate.generateInternalCsr.step1.placeholder')
@@ -92,13 +92,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { saveResponseAsFile } from '@/util/helpers';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   data() {
     return {
       distinguishedName: '',
@@ -109,7 +109,7 @@ export default Vue.extend({
   methods: {
     ...mapActions(useNotifications, ['showError']),
     back(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
     generateCsr(): void {
       this.generatingCsr = true;
@@ -133,9 +133,9 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/detail-views';
-@import '~styles/colors';
-@import '~styles/wizards';
+@import '@/assets/detail-views';
+@import '@/assets/colors';
+@import '@/assets/wizards';
 
 $spacing: 12rem;
 

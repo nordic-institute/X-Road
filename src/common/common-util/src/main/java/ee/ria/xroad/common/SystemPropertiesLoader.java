@@ -223,7 +223,7 @@ public class SystemPropertiesLoader {
      * @return this instance
      */
     public SystemPropertiesLoader with(String fileName,
-            String... sectionNames) {
+                                       String... sectionNames) {
         files.add(new FileWithSections(fileName, sectionNames));
         return this;
     }
@@ -236,7 +236,7 @@ public class SystemPropertiesLoader {
      * @return this instance
      */
     public SystemPropertiesLoader withLocalOptional(String fileName,
-            String... sectionNames) {
+                                                    String... sectionNames) {
         optionalLocalFiles.add(new FileWithSections(fileName, sectionNames));
         return this;
     }

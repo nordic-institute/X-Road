@@ -26,8 +26,7 @@
 package ee.ria.xroad.confproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
+import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 import ee.ria.xroad.signer.SignerProxy;
@@ -68,14 +67,12 @@ public class ConfProxyTest {
     public void cleanupTempDirectoriesWhenBuildingSignedDirectoryFails() throws Exception {
         ConfProxyProperties conf = new ConfProxyProperties("PROXY1");
         ConfProxyHelper.purgeOutdatedGenerations(conf);
-        ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(
-                conf.getConfigurationDownloadPath(SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION));
+        VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(conf.getConfigurationDownloadPath(2));
 
         try (MockedStatic<SignerProxy> signerProxyMock = mockStatic(SignerProxy.class)) {
             signerProxyMock.when(() -> SignerProxy.getSignMechanism(any()))
                     .thenThrow(new CodedException("InternalError", "Signer is unreachable"));
-            try (OutputBuilder output = new OutputBuilder(confDir, conf,
-                    SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION)) {
+            try (OutputBuilder output = new OutputBuilder(confDir, conf, 2)) {
                 CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
                 assertEquals("InternalError: Signer is unreachable", exception.getMessage());
             }

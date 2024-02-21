@@ -154,7 +154,7 @@ public class KeysApiController implements KeysApi {
                     csrGenerate.getSubjectFieldValues(),
                     csrFormat).getCertRequest();
         } catch (WrongKeyUsageException | DnFieldHelper.InvalidDnParameterException
-                | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
+                 | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
             throw new BadRequestException(e);
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);

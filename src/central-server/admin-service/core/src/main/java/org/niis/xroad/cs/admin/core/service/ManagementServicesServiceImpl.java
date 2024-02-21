@@ -54,7 +54,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MANAGEMENT_SERVICE_PROVIDER_NOT_SET;
@@ -165,13 +164,14 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
             if (ownedServers != null && !ownedServers.isEmpty()) {
                 securityServers.addAll(ownedServers.stream()
                         .map(SecurityServer::getServerId)
-                        .collect(toList()));
+                        .toList());
             }
         }
 
         securityServers.addAll(securityServerClient.getServerClients().stream()
+                .filter(ServerClient::isEnabled)
                 .map(ServerClient::getServerId)
-                .collect(toList()));
+                .toList());
 
         return securityServers.stream()
                 .map(securityServerId -> securityServerId.asEncodedId(true))

@@ -63,7 +63,7 @@ public class AntiDosConnector extends ServerConnector {
     private final Semaphore semaphore = new Semaphore(configuration.getMaxParallelConnections());
 
     private final AntiDosConnectionManager<SocketChannelWrapperImpl> manager =
-            new AntiDosConnectionManager<SocketChannelWrapperImpl>(configuration) {
+            new AntiDosConnectionManager<>(configuration) {
                 @Override
                 void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
                     try {
@@ -91,7 +91,7 @@ public class AntiDosConnector extends ServerConnector {
      * @param acceptorCount acceptor count
      * @param sslContextFactory SSL context factory to use for configuration
      */
-    public AntiDosConnector(Server server, int acceptorCount, SslContextFactory sslContextFactory) {
+    public AntiDosConnector(Server server, int acceptorCount, SslContextFactory.Server sslContextFactory) {
         super(server, acceptorCount, -1, sslContextFactory);
     }
 
@@ -142,7 +142,7 @@ public class AntiDosConnector extends ServerConnector {
         };
     }
 
-    private class QueueManager implements Runnable {
+    private final class QueueManager implements Runnable {
         @Override
         public void run() {
             try {

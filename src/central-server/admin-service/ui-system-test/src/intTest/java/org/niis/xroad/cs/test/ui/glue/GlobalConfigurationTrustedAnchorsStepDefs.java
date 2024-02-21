@@ -89,6 +89,7 @@ public class GlobalConfigurationTrustedAnchorsStepDefs extends BaseUiStepDefs {
         final var file = trustedAnchorsPageObj.downloadAnchorButton(instance).download();
         putStepData(DOWNLOADED_FILE, file);
     }
+
     @Step("trusted anchor is successfully downloaded")
     public void anchorIsSuccessfullyDownloaded() {
         final File file = (File) getStepData(DOWNLOADED_FILE).orElseThrow();

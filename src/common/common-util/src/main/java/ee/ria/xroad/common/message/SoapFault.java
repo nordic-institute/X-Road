@@ -27,10 +27,9 @@ package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.CodedException;
 
+import jakarta.xml.soap.SOAPFault;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
-
-import javax.xml.soap.SOAPFault;
 
 /**
  * Soap interface implementation representing an error message.

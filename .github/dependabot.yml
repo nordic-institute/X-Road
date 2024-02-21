@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/src"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "nordic-institute/xrd-developers"
+  - package-ecosystem: "npm"
+    directory: "/src"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "nordic-institute/xrd-developers"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "nordic-institute/xrd-developers"

@@ -25,12 +25,18 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import lombok.Getter;
-import lombok.Value;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 
 import java.io.IOException;
 import java.net.URL;
@@ -39,8 +45,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -48,7 +55,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
-    private static final String LOCATION_URL_SUCCESS = "http://www.example.com/SUCCESS";
+    private static final String LOCATION_URL_SUCCESS = "http://www.example.com";
+    private static final String LOCATION_HTTPS_URL_SUCCESS = "https://www.example.com";
 
     /**
      * For better HA, the order of sources to be tried to download configuration
@@ -80,11 +88,11 @@ public class ConfigurationDownloaderTest {
      */
     @Test
     public void rememberLastSuccessfulDownloadLocation() {
+        int version = 3;
         // We loop in order to make failing due to wrong URL more certain.
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
             // Given
-            ConfigurationDownloader downloader =
-                    getDownloader(LOCATION_URL_SUCCESS);
+            ConfigurationDownloader downloader = getDownloader(version, LOCATION_HTTPS_URL_SUCCESS + "?version=" + version);
             List<String> locationUrls = getMixedLocationUrls();
 
             // When
@@ -93,13 +101,70 @@ public class ConfigurationDownloaderTest {
             downloader.download(getSource(locationUrls));
 
             // Then
-            verifyLastSuccessfulLocationUsedSecondTime(downloader);
+            verifySuccessfulLocation(downloader, version);
         }
+    }
+
+    @Test
+    public void presetVersionPrevailsWhenVersionNotEnforced() {
+        // Given
+        int presetVersion = 1;
+        ConfigurationDownloader downloader =
+                getDownloader(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
+        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, presetVersion);
+    }
+
+    @Test
+    public void v3PrevailsWhenVersionNeitherPresetNorEnforced() {
+        // Given
+        ConfigurationDownloader downloader = getDownloader(LOCATION_HTTPS_URL_SUCCESS + "?version=" + 3);
+        List<String> locationUrls = List.of(LOCATION_HTTPS_URL_SUCCESS);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, LOCATION_HTTPS_URL_SUCCESS, 3);
+    }
+
+    @Test
+    public void v2PrevailsWhenVersionNeitherPresetNorEnforcedAndV3NotAvailable() {
+        // Given
+        String url = LOCATION_URL_SUCCESS + "/nope";
+        ConfigurationDownloader downloader = getDownloader(url + "?version=" + 2);
+        List<String> locationUrls = List.of(url);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, url, 2);
+    }
+
+    @Test
+    public void enforcedVersionPrevailsPresetVersion() {
+        // Given
+        int enforcedVersion = 2;
+        ConfigurationDownloader downloader = getDownloader(enforcedVersion, LOCATION_HTTPS_URL_SUCCESS + "?version=" + enforcedVersion);
+        List<String> locationUrls = List.of(LOCATION_HTTPS_URL_SUCCESS + "?version=" + 3);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, LOCATION_HTTPS_URL_SUCCESS, enforcedVersion);
     }
 
     /**
      * Checks that ConfigurationDownloader uses connections that timeout
      * after a period of time.
+     *
      * @throws IOException
      */
     @Test
@@ -110,24 +175,45 @@ public class ConfigurationDownloaderTest {
         assertTrue(connection.getReadTimeout() > 0);
     }
 
+    @Test
+    public void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
+        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "false");
+        HttpsURLConnection connection =
+                (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
+        assertThat(connection.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
+    }
+
+    @Test
+    public void downloaderWithDefaultHostnameVerifier() throws IOException {
+        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true");
+        HttpsURLConnection connection =
+                (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
+        assertThat(connection.getHostnameVerifier()).isInstanceOf(HostnameVerifier.class);
+        assertThat(connection.getHostnameVerifier()).isNotInstanceOf(NoopHostnameVerifier.class);
+    }
+
     private void resetParser(ConfigurationDownloader downloader) {
         getParser(downloader).reset();
     }
 
-    private void verifyLastSuccessfulLocationUsedSecondTime(
-            ConfigurationDownloader downloader) {
-        List<String> successfulDownloadUrls =
-                getParser(downloader).getConfigurationUrls();
+    private void verifySuccessfulLocation(ConfigurationDownloader downloader, String expectedUrl, int expectedLocationVersion) {
+        List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl());
+        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(expectedUrl, expectedLocationVersion));
     }
 
-    private Matcher<List<String>> hasOnlyOneSuccessfulUrl() {
-        return new TypeSafeMatcher<List<String>>() {
+    private void verifySuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
+        List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
+
+        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
+    }
+
+    private Matcher<List<String>> hasOnlyOneSuccessfulUrl(String url, int version) {
+        return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(List<String> parsedUrls) {
-                return  parsedUrls.size() == 1
-                        && parsedUrls.contains(LOCATION_URL_SUCCESS);
+                return parsedUrls.size() == 1
+                        && parsedUrls.contains(url + "?version=" + version);
             }
 
             @Override
@@ -139,23 +225,28 @@ public class ConfigurationDownloaderTest {
 
     private void executeDownload() {
         // Given
-        ConfigurationDownloader downloader = getDownloader();
+        ConfigurationDownloader downloader = getDownloader(3);
         List<String> locationUrls = getAllFailedLocationUrls();
 
         // When
         downloader.download(getSource(locationUrls));
 
         // Then
-        verifyLocationsRandomized(downloader, locationUrls);
+        List<String> expectedLocationUrls = locationUrls.stream()
+                .map(url -> url + "?version=" + downloader.getConfigurationVersion())
+                .collect(toList());
+        verifyLocationsRandomizedPreferHttps(downloader, expectedLocationUrls);
     }
 
-    private void verifyLocationsRandomized(
+    private void verifyLocationsRandomizedPreferHttps(
             ConfigurationDownloader downloader, List<String> locationUrls) {
         List<String> urlsParsedInOrder =
                 getParser(downloader).getConfigurationUrls();
 
-        assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
-        assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
+        assertTrue(locationUrls.get(0).startsWith("http:"));
+        assertTrue(urlsParsedInOrder.get(0).startsWith("https"));
+        MatcherAssert.assertThat(urlsParsedInOrder, sameUrlsAreContained(locationUrls));
+        MatcherAssert.assertThat(urlsParsedInOrder, urlsAreInDifferentOrder(locationUrls));
     }
 
     private TestConfigurationParser getParser(ConfigurationDownloader downloader) {
@@ -168,10 +259,10 @@ public class ConfigurationDownloaderTest {
 
     private Matcher<List<String>> sameUrlsAreContained(
             final List<String> locationUrls) {
-        return new TypeSafeMatcher<List<String>>() {
+        return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(List<String> parsedUrls) {
-                return  locationUrls.size() == parsedUrls.size()
+                return locationUrls.size() == parsedUrls.size()
                         && locationUrls.containsAll(parsedUrls);
             }
 
@@ -202,8 +293,8 @@ public class ConfigurationDownloaderTest {
         List<String> result = new ArrayList<>();
 
         result.add("http://www.example.com/loc1");
-        result.add("http://www.example.com/loc2");
-        result.add("http://www.example.com/loc3");
+        result.add("https://www.example.com/loc2");
+        result.add("https://www.example.com/loc3");
 
         return result;
     }
@@ -213,6 +304,7 @@ public class ConfigurationDownloaderTest {
 
         result.add("http://www.example.com/failure1");
         result.add(LOCATION_URL_SUCCESS);
+        result.add(LOCATION_HTTPS_URL_SUCCESS);
         result.add("http://www.example.com/failure2");
 
         return result;
@@ -223,8 +315,20 @@ public class ConfigurationDownloaderTest {
     }
 
 
-    private ConfigurationDownloader getDownloader(
-            String... successfulLocationUrls) {
+    private ConfigurationDownloader getDownloader(int confVersion, String... successfulLocationUrls) {
+        return new ConfigurationDownloader("f", confVersion) {
+
+            ConfigurationParser parser =
+                    new TestConfigurationParser(successfulLocationUrls);
+
+            @Override
+            ConfigurationParser getParser() {
+                return parser;
+            }
+        };
+    }
+
+    private ConfigurationDownloader getDownloader(String... successfulLocationUrls) {
         return new ConfigurationDownloader("f") {
 
             ConfigurationParser parser =
@@ -237,10 +341,8 @@ public class ConfigurationDownloaderTest {
         };
     }
 
-    @Value
-    private static class TestConfigurationSource implements ConfigurationSource {
 
-        private final List<String> locationUrls;
+    private record TestConfigurationSource(List<String> locationUrls) implements ConfigurationSource {
 
         @Override
         public String getInstanceIdentifier() {
@@ -279,7 +381,7 @@ public class ConfigurationDownloaderTest {
 
         @Override
         public Configuration parse(ConfigurationLocation location,
-                               String... contentIdentifiersToBeHandled) {
+                                   String... contentIdentifiersToBeHandled) {
             // For checking the order later.
             String downloadUrl = location.getDownloadURL();
             configurationUrls.add(downloadUrl);

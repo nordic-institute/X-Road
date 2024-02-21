@@ -81,7 +81,7 @@ export interface AddClientState {
   memberClass: string;
   memberCode: string;
   subsystemCode: string | undefined;
-  memberWizardMode: string;
+  memberWizardMode: AddMemberWizardModes;
   reservedMemberData: ReservedMemberData | undefined;
 }
 
@@ -243,7 +243,7 @@ export const useAddClient = defineStore('addClient', {
     // set AddMemberWizardModes.CERTIFICATE_EXISTS and/or AddMemberWizardModes.CSR_EXISTS to correct values
     // to adjust how add client wizard works
     // both values are possible even if this member is not yet a local client in this SS
-    async searchTokens(params: {
+    async updateAddMemberWizardModeIfNeeded(params: {
       instanceId: string;
       memberClass: string;
       memberCode: string;
@@ -309,7 +309,7 @@ export const useAddClient = defineStore('addClient', {
       });
     },
 
-    setAddMemberWizardMode(mode: string) {
+    setAddMemberWizardMode(mode: AddMemberWizardModes) {
       this.memberWizardMode = mode;
     },
 

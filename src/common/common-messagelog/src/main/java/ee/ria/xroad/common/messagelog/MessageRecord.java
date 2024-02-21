@@ -153,7 +153,7 @@ public class MessageRecord extends AbstractLogRecord {
      * @param xRequestId common id between a request and it's response
      */
     public MessageRecord(String qid, String msg, String sig, boolean response,
-            ClientId clientId, String xRequestId) {
+                         ClientId clientId, String xRequestId) {
         this.queryId = qid;
         this.message = msg;
         this.signature = sig;
@@ -166,7 +166,7 @@ public class MessageRecord extends AbstractLogRecord {
 
     @Override
     public Object[] getLinkingInfoFields() {
-        return new Object[] {getId(), getTime(), queryId, message, signature,
+        return new Object[]{getId(), getTime(), queryId, message, signature,
                 memberClass, memberCode, subsystemCode};
     }
 

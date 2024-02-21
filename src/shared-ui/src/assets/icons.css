@@ -25,114 +25,116 @@
  * THE SOFTWARE.
  */
 @font-face {
-    font-family: "icons";
-    src: url("./icons.eot?079159c8469dda20a14109c847b9b879#iefix") format("embedded-opentype"),
-url("./icons.woff2?079159c8469dda20a14109c847b9b879") format("woff2"),
-url("./icons.woff?079159c8469dda20a14109c847b9b879") format("woff");
+  font-family: 'icons';
+  src: url('./icons.eot?079159c8469dda20a14109c847b9b879#iefix')
+      format('embedded-opentype'),
+    url('./icons.woff2?079159c8469dda20a14109c847b9b879') format('woff2'),
+    url('./icons.woff?079159c8469dda20a14109c847b9b879') format('woff');
 }
 
-i[class^="icon-"]:before, i[class*=" icon-"]:before {
-    font-family: icons !important;
-    font-style: normal;
-    font-weight: normal !important;
-    font-variant: normal;
-    text-transform: none;
-    font-size: 26px;
-    line-height: 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+i[class^='icon-']:before,
+i[class*=' icon-']:before {
+  font-family: icons !important;
+  font-style: normal;
+  font-weight: normal !important;
+  font-variant: normal;
+  text-transform: none;
+  font-size: 26px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .icon-Add:before {
-    content: "\f101";
+  content: '\f101';
 }
 .icon-Cancel:before {
-    content: "\f102";
+  content: '\f102';
 }
 .icon-Certificate:before {
-    content: "\f103";
+  content: '\f103';
 }
 .icon-Checked:before {
-    content: "\f104";
+  content: '\f104';
 }
 .icon-Checker:before {
-    content: "\f105";
+  content: '\f105';
 }
 .icon-Checkmark:before {
-    content: "\f106";
+  content: '\f106';
 }
 .icon-Close:before {
-    content: "\f107";
+  content: '\f107';
 }
 .icon-Copy:before {
-    content: "\f108";
+  content: '\f108';
 }
 .icon-Database-backup:before {
-    content: "\f109";
+  content: '\f109';
 }
 .icon-Database:before {
-    content: "\f10a";
+  content: '\f10a';
 }
 .icon-Datepicker:before {
-    content: "\f10b";
+  content: '\f10b';
 }
 .icon-Declined:before {
-    content: "\f10c";
+  content: '\f10c';
 }
 .icon-Download:before {
-    content: "\f10d";
+  content: '\f10d';
 }
 .icon-Dropdown-open:before {
-    content: "\f10e";
+  content: '\f10e';
 }
 .icon-Edit:before {
-    content: "\f10f";
+  content: '\f10f';
 }
 .icon-Error-notification:before {
-    content: "\f110";
+  content: '\f110';
 }
 .icon-Error:before {
-    content: "\f111";
+  content: '\f111';
 }
 .icon-Folder-outline:before {
-    content: "\f112";
+  content: '\f112';
 }
 .icon-Folder:before {
-    content: "\f113";
+  content: '\f113';
 }
 .icon-Import:before {
-    content: "\f114";
+  content: '\f114';
 }
 .icon-In-progress:before {
-    content: "\f115";
+  content: '\f115';
 }
 .icon-Key:before {
-    content: "\f116";
+  content: '\f116';
 }
 .icon-Menu:before {
-    content: "\f117";
+  content: '\f117';
 }
 .icon-Plus:before {
-    content: "\f118";
+  content: '\f118';
 }
 .icon-Search:before {
-    content: "\f119";
+  content: '\f119';
 }
 .icon-Security-Server:before {
-    content: "\f11a";
+  content: '\f11a';
 }
 .icon-Sorting-arrow:before {
-    content: "\f11b";
+  content: '\f11b';
 }
 .icon-Table-backup:before {
-    content: "\f11c";
+  content: '\f11c';
 }
 .icon-Tooltip:before {
-    content: "\f11d";
+  content: '\f11d';
 }
 .icon-Upload:before {
-    content: "\f11e";
+  content: '\f11e';
 }
 .icon-Warning:before {
-    content: "\f11f";
+  content: '\f11f';
 }

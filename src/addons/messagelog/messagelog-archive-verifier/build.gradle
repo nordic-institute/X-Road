@@ -1,0 +1,27 @@
+plugins {
+    id("java")
+    id 'com.github.johnrengelman.shadow'
+}
+
+dependencies {
+    implementation project(':common:common-util')
+}
+
+ext {
+    mainClassName = 'org.niis.xroad.cli.ArchiveHashChainVerifier'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+shadowJar {
+    archiveVersion = ''
+    archiveClassifier = ''
+    from rootProject.file("LICENSE.txt")
+}
+
+jar.enabled = false
+build.dependsOn shadowJar

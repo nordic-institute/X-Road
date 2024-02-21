@@ -27,11 +27,11 @@ package ee.ria.xroad.common.identifier;
 
 import ee.ria.xroad.common.message.JaxbUtils;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 /**
@@ -53,7 +53,7 @@ public final class IdentifierXmlNodePrinter {
      * @throws Exception if errors occur during XML node generation
      */
     public static void printClientId(ClientId clientId, Node parentNode,
-            QName nodeQName) throws Exception {
+                                     QName nodeQName) throws Exception {
         if (clientId == null) {
             return;
         }
@@ -76,7 +76,7 @@ public final class IdentifierXmlNodePrinter {
      * @throws Exception if errors occur during XML node generation
      */
     public static void printServiceId(ServiceId serviceId, Node parentNode,
-            QName nodeQName) throws Exception {
+                                      QName nodeQName) throws Exception {
         if (serviceId == null) {
             return;
         }

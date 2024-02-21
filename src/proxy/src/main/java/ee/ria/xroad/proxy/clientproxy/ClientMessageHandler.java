@@ -34,9 +34,8 @@ import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
@@ -54,8 +53,8 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
+    MessageProcessorBase createRequestProcessor(
+            Request request, Response response,
             OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
@@ -63,7 +62,7 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
                 getIsAuthenticationData(request), opMonitoringData);
     }
 
-    private void verifyCanProcess(HttpServletRequest request) {
+    private void verifyCanProcess(Request request) {
         if (!isPostRequest(request)) {
             throw new ClientException(X_INVALID_HTTP_METHOD,
                     "Must use POST request method instead of %s",

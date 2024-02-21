@@ -3,11 +3,11 @@ plugins {
     id 'com.github.johnrengelman.shadow'
 }
 
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 
 sourceSets {
     main {
-        java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
+        java.srcDirs = ["src/main/java", schemaTargetDir]
         resources.srcDirs = ['src/main/resources', '../../../common/common-util/src/main/resources']
     }
 }
@@ -29,50 +29,34 @@ dependencies {
     testImplementation project(path: ":proxy", configuration: 'testArtifacts')
     testImplementation project(':common:common-test')
     testImplementation 'org.hamcrest:hamcrest:2.2'
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
 }
 
-task createDirs() {
+tasks.register('createDirs') {
     doLast {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
-
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
 
 jar {
     enabled = false
 }
 
 shadowJar {
-  archiveClassifier = ''
-  exclude('**/module-info.class')
-  dependencies {
-    include(project(':addons:proxymonitor-common'))
-    include(project(':monitor-common'))
-    include(project(':monitoring-conf'))
-  }
-  mergeServiceFiles()
+    archiveClassifier = ''
+    exclude('**/module-info.class')
+    dependencies {
+        include(project(':addons:proxymonitor-common'))
+        include(project(':monitor-common'))
+        include(project(':monitoring-conf'))
+    }
+    mergeServiceFiles()
 }
 
 build.dependsOn shadowJar
 
 compileJava.dependsOn processResources
 
-task runProxymonitorMetaserviceTest(type: JavaExec) {
+tasks.register('runProxymonitorMetaserviceTest', JavaExec) {
     if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-Xdebug',
             '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'

@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
@@ -61,6 +62,7 @@ import static java.util.stream.Collectors.toSet;
 @Slf4j
 @RequiredArgsConstructor
 public class PamAuthenticationProvider implements AuthenticationProvider {
+    private static final int MAX_LEN = 255;
 
     // from PAMLoginModule
     private static final String PAM_SERVICE_NAME = "xroad";
@@ -89,6 +91,8 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
 
     private Authentication doAuthenticateInternal(Authentication authentication, String username) {
         String password = String.valueOf(authentication.getCredentials());
+        validateCredentialsLength(username, password);
+
         authenticationIpWhitelist.validateIpAddress(authentication);
         PAM pam;
         try {
@@ -120,5 +124,13 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
         return authentication.equals(
                 UsernamePasswordAuthenticationToken.class);
     }
-}
 
+    private void validateCredentialsLength(final String username, final String password) {
+        if (StringUtils.length(username) > MAX_LEN) {
+            throw new BadCredentialsException("username is too long, max length: %d".formatted(MAX_LEN));
+        }
+        if (StringUtils.length(password) > MAX_LEN) {
+            throw new BadCredentialsException("password is too long, max length: %d".formatted(MAX_LEN));
+        }
+    }
+}

@@ -48,8 +48,8 @@ cp -p %{srcdir}/common/addon/proxy/messagelog-archiver.conf %{buildroot}/etc/xro
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/build/libs/messagelog-archiver.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
-cp -p %{srcdir}/../../../../doc/archive-hashchain-verifier.rb %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
-cp -p %{srcdir}/../../../../doc/archive-hashchain-verifier.README %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-archive-verifier/build/libs/messagelog-archive-verifier.jar %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-archive-verifier/README.md %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
 cp -p %{srcdir}/../../../asicverifier/build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
@@ -65,8 +65,8 @@ rm -rf %{buildroot}
 %config /etc/xroad/services/messagelog-archiver.conf
 %defattr(-,root,root,-)
 %{_unitdir}/%{name}.service
-/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
-/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/archive-hashchain-verifier.rb
+/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README.md
+/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/messagelog-archive-verifier.jar
 /usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl
 /usr/share/xroad/db/messagelog-changelog.xml
 /usr/share/xroad/db/messagelog
@@ -85,8 +85,12 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
+mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+if systemctl is-active %{name} &> /dev/null; then
+  touch "%{_localstatedir}/lib/rpm-state/%{name}/active"
+fi
+
 if [ "$1" -gt 1 ] ; then
-  mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
   rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
 fi
 
@@ -105,7 +109,7 @@ fi
 %post -p /bin/bash
 %systemd_post xroad-addon-messagelog.service
 
-# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+# RHEL7 java-17-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %manage_messagelog_activation
 %endif
@@ -133,8 +137,8 @@ fi
 %systemd_postun_with_restart xroad-proxy.service xroad-addon-messagelog.service
 
 %posttrans -p /bin/bash
-# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8}
+# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8} || 0%{?el9}
 %manage_messagelog_activation
 %endif
 

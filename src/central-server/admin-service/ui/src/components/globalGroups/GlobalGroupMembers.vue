@@ -26,7 +26,7 @@
  -->
 <template>
   <searchable-titled-view
-    v-model="filter.query"
+    v-model="query"
     @update:model-value="debouncedFetchItems"
   >
     <template #title>
@@ -78,7 +78,7 @@
           <xrd-icon-base class="mr-4">
             <XrdIconFolderOutline />
           </xrd-icon-base>
-          <div data-test="member-name">{{ item.raw.name }}</div>
+          <div data-test="member-name">{{ item.name }}</div>
         </div>
       </template>
 
@@ -89,41 +89,39 @@
             data-test="delete-member-button"
             text
             :outlined="false"
-            @click="groupMemberToDelete = item.raw"
+            @click="groupMemberToDelete = item"
             >{{ $t('action.remove') }}
           </xrd-button>
         </div>
       </template>
 
       <template #[`item.type`]="{ item }">
-        <div>{{ item.raw.client_id.type }}</div>
+        {{ item.client_id.type }}
       </template>
 
       <template #[`item.instance`]="{ item }">
-        <span data-test="instance">{{ item.raw.client_id.instance_id }}</span>
+        {{ item.client_id.instance_id }}
       </template>
 
       <template #[`item.class`]="{ item }">
-        <span data-test="class">{{ item.raw.client_id.member_class }}</span>
+        {{ item.client_id.member_class }}
       </template>
 
       <template #[`item.code`]="{ item }">
-        <span data-test="code">{{ item.raw.client_id.member_code }}</span>
+        {{ item.client_id.member_code }}
       </template>
 
       <template #[`item.subsystem`]="{ item }">
-        <span data-test="subsystem">{{
-          item.raw.client_id.subsystem_code
-        }}</span>
+        {{ item.client_id.subsystem_code }}
       </template>
 
       <template #[`item.created_at`]="{ item }">
-        <date-time :value="item.raw.created_at" />
+        <date-time :value="item.created_at" />
       </template>
     </v-data-table-server>
 
     <!-- Dialogs -->
-    <group-members-filter-dialog
+    <FilterGroupMembersDialog
       v-if="showFilterDialog"
       :group-code="groupCode"
       cancel-button-text="action.cancel"
@@ -133,7 +131,7 @@
     <add-group-members-dialog
       v-if="showAddMemberDialog"
       :group-code="groupCode"
-      @add="refreshList"
+      @save="refreshList"
       @cancel="showAddMemberDialog = false"
     />
     <delete-group-member-dialog
@@ -157,12 +155,11 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { GroupMemberListView, GroupMembersFilter } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import GroupMembersFilterDialog from './GroupMembersFilterDialog.vue';
+import FilterGroupMembersDialog from './FilterGroupMembersDialog.vue';
 import { debounce } from '@/util/helpers';
 import AddGroupMembersDialog from './AddGroupMembersDialog.vue';
 import DeleteGroupMemberDialog from './DeleteGroupMemberDialog.vue';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import DateTime from '@/components/ui/DateTime.vue';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 
@@ -176,8 +173,7 @@ export default defineComponent({
     SearchableTitledView,
     DeleteGroupMemberDialog,
     AddGroupMembersDialog,
-    GroupMembersFilterDialog,
-    VDataTableServer,
+    FilterGroupMembersDialog,
   },
   props: {
     groupCode: {
@@ -189,6 +185,7 @@ export default defineComponent({
     return {
       itemsPerPageOptions: defaultItemsPerPageOptions(),
       paging: { itemsPerPage: 10, page: 1 } as PagingOptions,
+      query: '',
       filter: { query: '' } as GroupMembersFilter,
       loading: false,
       showFilterDialog: false,
@@ -223,21 +220,25 @@ export default defineComponent({
           title: this.$t('globalGroup.instance') as string,
           align: 'start',
           key: 'instance',
+          cellProps: { 'data-test': 'instance' },
         },
         {
           title: this.$t('globalGroup.class') as string,
           align: 'start',
           key: 'class',
+          cellProps: { 'data-test': 'class' },
         },
         {
           title: this.$t('globalGroup.code') as string,
           align: 'start',
           key: 'code',
+          cellProps: { 'data-test': 'code' },
         },
         {
           title: this.$t('globalGroup.subsystem') as string,
           align: 'start',
           key: 'subsystem',
+          cellProps: { 'data-test': 'subsystem' },
         },
         {
           title: this.$t('globalGroup.added') as string,
@@ -260,6 +261,7 @@ export default defineComponent({
     debouncedFetchItems: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
       that.paging.page = 1;
+      that.filter.query = that.query;
       that.fetchItems();
     }, 600),
     changeOptions: async function (options: PagingOptions) {
@@ -284,6 +286,7 @@ export default defineComponent({
       this.showFilterDialog = false;
     },
     applyFilter(filter: GroupMembersFilter): void {
+      this.query = '';
       this.filter = filter;
       this.fetchItems();
       this.showFilterDialog = false;
@@ -307,8 +310,5 @@ export default defineComponent({
   font-size: 14px;
   display: flex;
   align-items: center;
-}
-
-.filter-button {
 }
 </style>

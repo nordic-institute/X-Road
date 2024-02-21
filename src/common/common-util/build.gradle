@@ -5,7 +5,7 @@ plugins {
     id 'java-library'
 }
 
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 testJar.enabled = true
 
 configurations {
@@ -14,49 +14,48 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
+        java.srcDirs = ['src/main/java', schemaTargetDir]
     }
 }
 
 dependencies {
-    api 'org.apache.santuario:xmlsec:2.2.3'
+    //FIXME review dependencies
+    api 'org.apache.santuario:xmlsec:2.2.6'
     api "org.bouncycastle:bcpkix-jdk15on:$bouncyCastleVersion"
-    api 'org.apache.commons:commons-lang3:3.12.0'
-    api 'commons-io:commons-io:2.11.0'
+    api 'org.apache.commons:commons-lang3:3.14.0'
+    api 'commons-io:commons-io:2.13.0'
     api "org.slf4j:jcl-over-slf4j:$slf4jVersion"
-    api 'org.apache.james:apache-mime4j-core:0.8.7'
+    api 'org.apache.james:apache-mime4j-core:0.8.9'
     api "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
-    api 'com.sun.xml.messaging.saaj:saaj-impl:1.5.3'
-    api 'com.sun.activation:jakarta.activation:1.2.2'
+    api 'com.sun.xml.messaging.saaj:saaj-impl:3.0.2'
+    api 'com.sun.activation:jakarta.activation:2.0.1'
     api "org.eclipse.jetty:jetty-server:$jettyVersion"
-    api 'org.apache.httpcomponents:httpclient:4.5.13'
-    api 'org.apache.httpcomponents:httpasyncclient:4.1.4'
+    api 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+    api 'org.apache.httpcomponents:httpclient:4.5.14'
+    api 'org.apache.httpcomponents:httpasyncclient:4.1.5'
 
     api platform("com.fasterxml.jackson:jackson-bom:$jacksonBomVersion")
     api "com.fasterxml.jackson.core:jackson-databind"
     api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-    api 'com.google.code.gson:gson:2.9.0'
     api "com.google.guava:guava:$guavaVersion"
 
     api "io.vavr:vavr:$vavrVersion"
 
-    api ('org.quartz-scheduler:quartz:2.3.2') {
+    api('org.quartz-scheduler:quartz:2.3.2') {
         exclude module: 'c3p0'
     }
 
-    api ('org.apache.commons:commons-configuration2:2.8.0') {
+    api('org.apache.commons:commons-configuration2:2.9.0') {
         exclude group: 'org.apache.commons', module: 'commons-text'
     }
-    api 'org.apache.commons:commons-text:1.10.0'
+    api "org.apache.commons:commons-text:$commonsTextVersion"
+    compileOnly("jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
 
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
     testImplementation project(':common:common-test')
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation "org.assertj:assertj-core:$assertjVersion"
-    testImplementation "org.mockito:mockito-inline:$mockitoVersion"
-
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
@@ -90,19 +89,35 @@ task xjc() {
             binding: 'src/main/resources/identifiers-bindings.xml'
         )
 
-        // Generate classes for federateable global external conf
+        // Generate classes for federateable global external conf v2
         ant.xjc(
             destdir: project.ext.schemaTargetDir,
             package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v2',
-            schema: 'src/main/resources/globalconf/shared-parameters.xsd',
+            schema: 'src/main/resources/globalconf/v2/shared-parameters.xsd',
             binding: 'src/main/resources/identifiers-bindings.xml'
         )
 
-        // Generate classes for federateable global internal conf
+        // Generate classes for federateable global internal conf v2
         ant.xjc(
             destdir: project.ext.schemaTargetDir,
             package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v2',
-            schema: 'src/main/resources/globalconf/private-parameters.xsd',
+            schema: 'src/main/resources/globalconf/v2/private-parameters.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+        )
+
+        // Generate classes for federateable global external conf v3
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v3',
+            schema: 'src/main/resources/globalconf/v3/shared-parameters.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+        )
+
+        // Generate classes for federateable global internal conf v3
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v3',
+            schema: 'src/main/resources/globalconf/v3/private-parameters.xsd',
             binding: 'src/main/resources/identifiers-bindings.xml'
         )
 
@@ -159,30 +174,15 @@ licenseFormatTest {
 
 compileJava.dependsOn xjc
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
-
 def gitCommitHash() {
     def cmd = "git show -s --format=git%h --abbrev=7"
     def hash = null
     try {
-      def proc = cmd.execute()
-      hash = proc.text.trim()
+        def proc = cmd.execute()
+        hash = proc.text.trim()
     } catch (Exception e) {
-      println("Could not execute git command: " + e.message)
-      hash = null
+        println("Could not execute git command: " + e.message)
+        hash = null
     }
     return hash
 }

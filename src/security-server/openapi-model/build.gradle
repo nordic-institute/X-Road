@@ -9,21 +9,22 @@ dependencies {
     compileOnly("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
 
     api("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
+    api("jakarta.validation:jakarta.validation-api:$jakartaValidationApiVersion")
 }
 
 sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            "${buildDir}/generated-sources/openapi/src/main/java",
+            layout.buildDirectory.dir("generated-sources/openapi/src/main/java"),
         ]
     }
 }
 
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$projectDir/src/main/resources/META-INF/openapi-definition.yaml".toString()
-    outputDir = "$buildDir/generated-sources/openapi".toString()
+    inputSpec = "$projectDir/src/main/resources/META-INF/openapi-definition.yaml"
+    outputDir = "${layout.buildDirectory.get().asFile}/generated-sources/openapi"
     apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
     modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
     globalProperties = [
@@ -35,6 +36,7 @@ openApiGenerate {
         supportingFiles        : 'ApiUtil.java'
     ]
     configOptions = [
+        useJakartaEe         : "true",
         interfaceOnly        : "true",
         useTags              : "true",
         documentationProvider: "none",

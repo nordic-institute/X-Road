@@ -29,16 +29,15 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
+import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 /**
  * Server proxy responds with HTTP error.
@@ -60,17 +59,14 @@ public class ServerProxyHttpError extends MessageTestCase {
     }
 
     @Override
-    public AbstractHandler getServerProxyHandler() {
-        return new AbstractHandler() {
+    public Handler.Abstract getServerProxyHandler() {
+        return new Handler.Abstract() {
             @Override
-            public void handle(String target, Request baseRequest,
-                    HttpServletRequest request, HttpServletResponse response)
-                    throws IOException {
+            public boolean handle(Request request, Response response, Callback callback) {
                 // Read all of the request.
-                IOUtils.readLines(request.getInputStream());
-
-                response.sendError(HttpServletResponse.SC_BAD_GATEWAY);
-                baseRequest.setHandled(true);
+                IOUtils.readLines(asInputStream(request));
+                Response.writeError(request, response, callback, HttpStatus.BAD_GATEWAY_502);
+                return true;
             }
         };
     }

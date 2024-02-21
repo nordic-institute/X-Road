@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -41,8 +42,6 @@ import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -127,10 +126,10 @@ public class ServiceClientService {
         serviceClientsByClient = getServiceClientsByClient(ownerId);
 
         return serviceClientsByClient.stream()
-            .filter(scDto -> scDto.getSubjectId().equals(serviceClientId))
-            .findFirst()
-            .orElseThrow(() -> new ServiceClientNotFoundException("Service client not found for client id: "
-                    + ownerId.toShortString() + " and service client: " + serviceClientId.toShortString()));
+                .filter(scDto -> scDto.getSubjectId().equals(serviceClientId))
+                .findFirst()
+                .orElseThrow(() -> new ServiceClientNotFoundException("Service client not found for client id: "
+                        + ownerId.toShortString() + " and service client: " + serviceClientId.toShortString()));
     }
 
     /**
@@ -184,7 +183,8 @@ public class ServiceClientService {
      * @throws ClientNotFoundException if given client or service client is not found
      * @throws ServiceClientNotFoundException if given service client being searched is not found
      */
-    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(ClientId ownerId,
+    public List<ServiceClientAccessRightDto> getServiceClientAccessRights(
+            ClientId ownerId,
             XRoadId serviceClientId) throws ClientNotFoundException, ServiceClientNotFoundException {
 
         ClientType owner = clientRepository.getClient(ownerId);

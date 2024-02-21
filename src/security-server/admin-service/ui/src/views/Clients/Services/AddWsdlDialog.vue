@@ -25,77 +25,64 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    v-if="dialog"
     title="services.addWsdl"
-    :disable-save="!isValid"
+    :disable-save="!meta.valid"
     width="620"
     @save="save"
     @cancel="cancel"
   >
-    <div slot="content">
+    <template #content>
       <div class="pt-4 dlg-input-width">
-        <ValidationProvider
-          ref="serviceUrl"
-          v-slot="{ errors }"
-          rules="required|wsdlUrl"
-          name="serviceUrl"
-          class="validation-provider"
-        >
-          <v-text-field
-            v-model="url"
-            :label="$t('services.url')"
-            autofocus
-            outlined
-            class="dlg-row-input"
-            name="serviceUrl"
-            :error-messages="errors"
-          ></v-text-field>
-        </ValidationProvider>
+        <v-text-field
+          v-model="serviceUrl"
+          :label="$t('services.url')"
+          autofocus
+          variant="outlined"
+          class="dlg-row-input"
+          data-test="service-url-text-field"
+          :error-messages="errors"
+        ></v-text-field>
       </div>
-    </div>
+    </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { ValidationProvider } from 'vee-validate';
-import { isValidWsdlURL } from '@/util/helpers';
+import { defineComponent } from 'vue';
+import { useField } from 'vee-validate';
 
-export default Vue.extend({
-  components: { ValidationProvider },
+export default defineComponent({
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
   },
-
-  data() {
-    return {
-      url: '',
-    };
+  emits: ['cancel', 'save'],
+  setup() {
+    const { value, meta, errors, resetField } = useField(
+      'serviceUrl',
+      {
+        required: true,
+        wsdlUrl: true,
+        max: 255,
+      },
+      { initialValue: '' },
+    );
+    return { serviceUrl: value, meta, errors, resetField };
   },
-
-  computed: {
-    isValid(): boolean {
-      return isValidWsdlURL(this.url);
-    },
-  },
-
   methods: {
     cancel(): void {
       this.$emit('cancel');
       this.clear();
     },
     save(): void {
-      this.$emit('save', this.url);
+      this.$emit('save', this.serviceUrl);
       this.clear();
     },
     clear(): void {
-      this.url = '';
-      (
-        this.$refs.serviceUrl as InstanceType<typeof ValidationProvider>
-      ).reset();
+      this.resetField();
     },
   },
 });

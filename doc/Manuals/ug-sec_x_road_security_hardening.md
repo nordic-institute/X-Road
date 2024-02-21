@@ -1,6 +1,6 @@
 # X-Road: Security hardening guidelines <!-- omit in toc -->
 
-Version: 0.2  
+Version: 0.4  
 Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
@@ -9,6 +9,8 @@ Doc. ID: UG-SEC
 |------------|---------|--------------------------------------------------|-------------------|
 | 02.06.2023 | 0.1     | Initial version                                  | Ričardas Bučiūnas |
 | 24.08.2023 | 0.2     | Minimum supported client Security Server version | Eneli Reimets     |
+| 14.11.2023 | 0.3     | Publish global configuration over HTTPS          | Eneli Reimets     |
+| 15.12.2023 | 0.4     | Minor updates                                    | Eneli Reimets     |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -29,6 +31,10 @@ Doc. ID: UG-SEC
     * [3.1 Host header injection mitigation](#31-host-header-injection-mitigation)
 * [4. Access control](#4-access-control)
     * [4.1 Minimum Supported Client Security Server Version](#41-minimum-supported-client-security-server-version)
+* [5. Publish global configuration over HTTPS](#5-publish-global-configuration-over-https)
+    * [5.1 Central Server TLS configuration](#51-central-server-tls-configuration)
+    * [5.2 Configuration Proxy TLS configuration](#52-configuration-proxy-tls-configuration)
+    * [5.3 Security Server TLS configuration](#53-security-server-tls-configuration)
   
 <!-- tocstop -->
 
@@ -57,6 +63,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 4. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road: Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md).
 5. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md).
 6. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+7. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] X-Road: Configuration Proxy Manual. Document ID: [UG-CP](ug-cp_x-road_v6_configuration_proxy_manual.md).
 
 ## 2 User management
 
@@ -177,3 +184,35 @@ For example, setting the value `server-min-supported-client-version = 7.3.1` mea
 
 	[proxy]
 	server-min-supported-client-version = 7.3.1
+
+## 5. Publish global configuration over HTTPS
+
+Starting from X-Road version 7.4, it is possible to publish global configuration over HTTPS using a TLS certificate issued by a trusted CA. The CA must be trusted by the Security Server's Java installation. See the Central Server User Guide [UG-CS](#Ref_UG-CS) for details.
+
+### 5.1 Central Server TLS configuration
+
+To configure the Central Server to use a certificate issued by a trusted CA for serving global configurations over HTTPS follow "Central Server Installation Guide" [IG-CS](#Ref_IG-CS) section "Configuring TLS Certificates".
+
+### 5.2 Configuration Proxy TLS configuration
+
+To configure the Configuration Proxy to use a certificate issued by a trusted CA follow "Configuration Proxy Manual" [UG-CP](#Ref_UG-CP) section "Configuring TLS Certificates".
+
+### 5.3 Security Server TLS configuration
+
+The TLS certificate used by the global configuration endpoint must be signed by a trusted CA (one trusted by the JAVA installation).
+
+If the certificate isn't trusted by the Security Server's JAVA installation by default, it can be manually added to the system truststore by following the steps below:
+
+**Example on Ubuntu 20.04 / 22.04**
+
+Copy the `.crt` file (PEM) into the `/usr/local/share/ca-certificates` folder.
+
+Run `sudo update-ca-certificates`.
+
+**Example on RHEL 7 / 8 / 9**
+
+Copy the `.crt` file (PEM or DER) into the `/etc/pki/ca-trust/source/anchors` folder.
+
+Run `sudo update-ca-trust extract`.
+
+It is possible to disable the verification of the global configuration endpoint’s TLS certificate via system properties. The verification may be disabled in test and development environments. Instead, the verification must always be enabled in production environments. System parameters are specified in the [UG-SYSPAR](#Ref_UG-SYSPAR) section "Configuration Client parameters: [configuration-client]".

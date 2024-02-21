@@ -44,6 +44,7 @@ export enum RouteName {
   CertificationServiceIntermediateCas = 'certification-service-intermediate-cas',
   IntermediateCACertificateDetails = 'intermediate-ca-certificate-details',
   OcspResponderCertificateDetails = 'ocsp-responder-certificate-details',
+  ManagementServiceCertificateDetails = 'management-service-certificate-details',
   IntermediateCaDetails = 'intermediate-ca-details',
   IntermediateCaOcspResponders = 'intermediate-ca-ocsp-responders',
   Settings = 'settings',
@@ -52,6 +53,7 @@ export enum RouteName {
   SystemSettings = 'system-settings',
   BackupAndRestore = 'backup-and-restore',
   ApiKeys = 'api-keys',
+  TlsCertificates = 'tls-certificates',
   CreateApiKey = 'create-api-key',
   InternalConfiguration = 'internal-configuration',
   ExternalConfiguration = 'external-configuration',
@@ -125,6 +127,12 @@ export enum Permissions {
   REGISTER_SERVICE_PROVIDER = 'REGISTER_SERVICE_PROVIDER',
   BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION',
   RESTORE_CONFIGURATION = 'RESTORE_CONFIGURATION',
+  VIEW_TLS_CERTIFICATES = 'VIEW_TLS_CERTIFICATES',
+  VIEW_MANAGEMENT_SERVICE_TLS_CERT = 'VIEW_MANAGEMENT_SERVICE_TLS_CERT',
+  DOWNLOAD_MANAGEMENT_SERVICE_TLS_CERT = 'DOWNLOAD_MANAGEMENT_SERVICE_TLS_CERT',
+  GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT = 'GENERATE_MANAGEMENT_SERVICE_TLS_KEY_CERT',
+  GENERATE_MANAGEMENT_SERVICE_TLS_CSR = 'GENERATE_MANAGEMENT_SERVICE_TLS_CSR',
+  UPLOAD_MANAGEMENT_SERVICE_TLS_CERT = 'UPLOAD_MANAGEMENT_SERVICE_TLS_CERT',
   VIEW_VERSION = 'VIEW_VERSION',
   CREATE_API_KEY = 'CREATE_API_KEY', // api key
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
@@ -190,7 +198,7 @@ export const mainTabs: Tab[] = [
   },
   {
     // Settings tab
-    to: { name: RouteName.GlobalResources }, // name of the first child tab
+    to: { name: RouteName.Settings },
     key: 'settings',
     name: 'tab.main.settings',
     permissions: [

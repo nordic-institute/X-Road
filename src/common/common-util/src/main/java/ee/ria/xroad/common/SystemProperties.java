@@ -53,7 +53,7 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 3;
 
     /** Minimum supported version number of the global configuration **/
     static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
@@ -279,7 +279,7 @@ public final class SystemProperties {
 
     private static final String PROXY_HEALTH_CHECK_INTERFACE = PREFIX + "proxy.health-check-interface";
 
-    private static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
+    public static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
 
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
@@ -413,16 +413,6 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
 
-    public static final String SIGNER_CLIENT_HEARTBEAT_INTERVAL =
-            PREFIX + "signer.client.heartbeat-interval";
-
-    private static final String DEFAULT_SIGNER_CLIENT_HEARTBEAT_INTERVAL = "1";
-
-    public static final String SIGNER_CLIENT_FAILURE_THRESHOLD =
-            PREFIX + "signer.client.failure-threshold";
-
-    private static final String DEFAULT_SIGNER_CLIENT_FAILURE_THRESHOLD = "7";
-
     // AntiDos ----------------------------------------------------------------
 
     /** Property name of the AntiDos on/off switch */
@@ -458,6 +448,12 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON =
             PREFIX + "configuration-client.proxy-configuration-backup-cron";
+
+    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION =
+            PREFIX + "configuration-client.global_conf_tls_cert_verification";
+
+    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
+            PREFIX + "configuration-client.global_conf_hostname_verification";
 
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
@@ -536,37 +532,12 @@ public final class SystemProperties {
 
     // Proxy & Central monitor agent ------------------------------------------
 
-    /** Property name of the proxy monitor agent configuration file. */
-    public static final String MONITOR_AGENT_CONFIGURATION_FILE =
-            PREFIX + "monitor-agent.monitoring-conf-file";
-
-    /** Property of the monitor agent admin port. **/
-    public static final String MONITOR_AGENT_ADMIN_PORT =
-            PREFIX + "monitor-agent.admin-port";
-
-    /** Property of the proxy monitor agent sending interval in seconds. */
-    public static final String PROXY_MONITOR_AGENT_SENDING_INTERVAL =
-            PREFIX + "proxy-monitor-agent.sending-interval";
-
     /** Property name of the proxy monitor info collection interval. */
     public static final String PROXY_PARAMS_COLLECTING_INTERVAL =
             PREFIX + "proxy-monitor-agent.params-collecting-interval";
 
     public static final String NET_STATS_FILE =
             PREFIX + "proxy-monitor-agent.net-stats-file";
-
-    public static final String MONITORING_AGENT_URI =
-            PREFIX + "monitoringagent.uri";
-
-    /** Property of the central monitor agent HTTPS port. */
-    public static final String CENTRAL_MONITOR_AGENT_HTTPS_PORT =
-            PREFIX + "central-monitor-agent.https-port";
-
-    // Zabbix configurator agent ----------------------------------------------
-
-    /** Property name of the Zabbix configurator client's timeout (milliseconds). */
-    public static final String ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT =
-            PREFIX + "monitoring.zabbix-configurator-client-timeout";
 
     // Configuration proxy ------------------------------------------------- //
 
@@ -746,7 +717,7 @@ public final class SystemProperties {
 
     // --------------------------------------------------------------------- //
 
-    private static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
+    public static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
 
     /**
      * @return path to the directory where configuration files are located, '/etc/xroad/' by default.
@@ -1038,23 +1009,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the signer client heartbeat interval in seconds
-     */
-    public static int getSignerClientHeartbeatInterval() {
-        return Integer.parseInt(
-                System.getProperty(SIGNER_CLIENT_HEARTBEAT_INTERVAL, DEFAULT_SIGNER_CLIENT_HEARTBEAT_INTERVAL));
-    }
-
-    /**
-     * @return the signer client failure threshold (how many lost heartbeat messages until signer is considered
-     * unreachable).
-     */
-    public static int getSignerClientFailureThreshold() {
-        return Integer.parseInt(
-                System.getProperty(SIGNER_CLIENT_FAILURE_THRESHOLD, DEFAULT_SIGNER_CLIENT_FAILURE_THRESHOLD));
-    }
-
-    /**
      * @return the HTTP port on which the configuration client is listening, '5665' by default.
      */
     public static int getConfigurationClientPort() {
@@ -1084,6 +1038,14 @@ public final class SystemProperties {
      */
     public static String getConfigurationClientProxyConfigurationBackupCron() {
         return System.getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "0 15 3 * * ?");
+    }
+
+    public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, "true"));
+    }
+
+    public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true"));
     }
 
     public static String getConfigurationClientAllowedFederations() {
@@ -1188,36 +1150,6 @@ public final class SystemProperties {
     public static boolean getCenterAutoApproveOwnerChangeRequests() {
         return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS,
                 DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS));
-    }
-
-    /**
-     * @return the HTTP port on which the monitor agent listens for administrative commands, '5588' by default.
-     */
-    public static int getMonitorAgentAdminPort() {
-        return Integer.parseInt(System.getProperty(MONITOR_AGENT_ADMIN_PORT,
-                Integer.toString(PortNumbers.MONITOR_AGENT_ADMIN_PORT)));
-    }
-
-    /**
-     * @return the interval in seconds at which monitor agent sends collected monitoring data, '180' by default.
-     */
-    public static int getProxyMonitorAgentSendingInterval() {
-        return Integer.parseInt(System.getProperty(PROXY_MONITOR_AGENT_SENDING_INTERVAL, "180"));
-    }
-
-    /**
-     * @return path to the monitor agent configuration file, '/etc/xroad/monitor-agent.ini' by default.
-     */
-    public static String getMonitorAgentConfFile() {
-        return System.getProperty(MONITOR_AGENT_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.MONITOR_AGENT_CONFIGURATION_FILE);
-    }
-
-    /**
-     * @return the Zabbix configurator client connection timeout in milliseconds, '300000' by default.
-     */
-    public static int getZabbixConfiguratorClientTimeout() {
-        return Integer.parseInt(System.getProperty(ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT, "300000"));
     }
 
     /**
@@ -1387,15 +1319,6 @@ public final class SystemProperties {
      */
     public static boolean isAntiDosEnabled() {
         return "true".equalsIgnoreCase(System.getProperty(ANTIDOS_ENABLED, "true"));
-    }
-
-    /**
-     * @return the HTTPS port at which the central monitor agent listens for
-     * incoming monitoring data, '443' by default.
-     */
-    public static int getCentralMonitorAgentPort() {
-        return Integer.parseInt(System.getProperty(CENTRAL_MONITOR_AGENT_HTTPS_PORT,
-                Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
     }
 
     /**
@@ -1633,16 +1556,16 @@ public final class SystemProperties {
      */
     public static int getMinimumCentralServerGlobalConfigurationVersion() {
         // read the setting
-        int version = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
+        int minVersion = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
-        checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
+        checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION);
         // ignore the versions that are no longer supported
-        if (version < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
-            version = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        if (minVersion < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
+            minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
-        return version;
+        return minVersion;
     }
 
     /**
@@ -1650,17 +1573,17 @@ public final class SystemProperties {
      */
     public static int getMinimumConfigurationProxyGlobalConfigurationVersion() {
         // read the setting
-        int version = Integer.parseInt(System.getProperty(
+        int minVersion = Integer.parseInt(System.getProperty(
                 MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
-        checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
+        checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
         // ignore the versions that are no longer supported
-        if (version < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
-            version = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
+        if (minVersion < MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION) {
+            minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
-        return version;
+        return minVersion;
     }
 
     /**
@@ -1686,8 +1609,8 @@ public final class SystemProperties {
         return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
     }
 
-    private static void checkVersionValidity(int version, int current, String defaultVersion) {
-        if (version > current || version < 1) {
+    private static void checkVersionValidity(int min, int current, String defaultVersion) {
+        if (min > current || min < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
     }
@@ -1702,7 +1625,7 @@ public final class SystemProperties {
 
     /**
      * @return Whether encryption to security server backup files using server's OpenPGP key is enabled,
-     * 'false' by default..
+     * 'false' by default.
      */
     public static boolean isBackupEncryptionEnabled() {
         return "true".equalsIgnoreCase(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,

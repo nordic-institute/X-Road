@@ -225,7 +225,7 @@ public class IdentifierTypeConverterTest {
     }
 
     private static <T> T fileToType(String file, XRoadObjectType expectedType,
-            Class<T> type) throws Exception {
+                                    Class<T> type) throws Exception {
         return IdentifierXmlNodeParser.parseType(expectedType,
                 fileToNode(file), type);
     }

@@ -29,35 +29,8 @@
 import { NavigationFailure } from 'vue-router';
 import { ClientId, ErrorInfo, ManagementRequestType } from '@/openapi-types';
 import { AxiosError, AxiosResponse } from 'axios';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 import dayjs from 'dayjs';
-
-export function selectedFilter<T, K extends keyof T>(
-  arr: T[],
-  search: string,
-  excluded?: K,
-): T[] {
-  // Clean the search string
-  const mysearch = search.toString().toLowerCase();
-  if (mysearch.trim() === '') {
-    return arr;
-  }
-
-  return arr.filter((g) => {
-    let filteredKeys = Object.keys(g) as K[];
-
-    // If there is an excluded key remove it from the keys
-    if (excluded) {
-      filteredKeys = filteredKeys.filter((value) => {
-        return value !== excluded;
-      });
-    }
-
-    return filteredKeys.find((key: K) => {
-      return String(g[key]).toLowerCase().includes(mysearch);
-    });
-  });
-}
 
 // Save response data as a file
 export function saveResponseAsFile(
@@ -123,6 +96,8 @@ export function swallowRedirectedNavigationError(
   error: NavigationFailure,
 ): void {
   // NavigationFailureType.redirected = 2, but does not work here?
+  //TODO maybe irrelevant?
+  // @ts-expect-error
   if (2 == error.type) {
     // ignore errors caused by redirect in beforeEach route guard
     // eslint-disable-next-line no-console
@@ -133,7 +108,7 @@ export function swallowRedirectedNavigationError(
 }
 
 export function getErrorInfo(axiosError: AxiosError): ErrorInfo {
-  return axiosError?.response?.data || { status: 0 };
+  return (axiosError?.response?.data as ErrorInfo) || { status: 0 };
 }
 
 /*
@@ -220,10 +195,16 @@ export function managementTypeToText(
       return t('managementRequests.removeCertificate') as string;
     case ManagementRequestType.CLIENT_DELETION_REQUEST:
       return t('managementRequests.removeClient') as string;
+    case ManagementRequestType.CLIENT_DISABLE_REQUEST:
+      return t('managementRequests.clientDisable') as string;
+    case ManagementRequestType.CLIENT_ENABLE_REQUEST:
+      return t('managementRequests.clientEnable') as string;
     case ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST:
       return t('managementRequests.addCertificate') as string;
     case ManagementRequestType.CLIENT_REGISTRATION_REQUEST:
       return t('managementRequests.addClient') as string;
+    case ManagementRequestType.ADDRESS_CHANGE_REQUEST:
+      return t('managementRequests.changeAddress') as string;
     default:
       return '';
   }

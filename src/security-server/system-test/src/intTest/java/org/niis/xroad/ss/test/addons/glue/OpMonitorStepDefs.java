@@ -35,6 +35,8 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import io.cucumber.java.en.Step;
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
@@ -42,9 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.w3c.dom.Element;
-
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPMessage;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -140,6 +139,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private static String findRecordsContentId(SoapMessage message, String elementTagName) {
         return findRecordsContentId(message.getSoap().getSOAPBody(), elementTagName);
     }
+
     @SneakyThrows
     private static String findRecordsContentId(SOAPMessage message, String elementTagName) {
         return findRecordsContentId(message.getSOAPBody(), elementTagName);

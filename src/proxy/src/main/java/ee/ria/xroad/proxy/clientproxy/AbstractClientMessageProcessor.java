@@ -45,9 +45,8 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -63,6 +62,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
+import static ee.ria.xroad.common.util.JettyUtils.getContentType;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
@@ -85,10 +85,10 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    protected AbstractClientMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+    protected AbstractClientMessageProcessor(Request request, Response response,
+                                             HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
-        super(servletRequest, servletResponse, httpClient);
+        super(request, response, httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
@@ -137,12 +137,12 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         // Preserve the original content type in the "x-original-content-type"
         // HTTP header, which will be used to send the request to the
         // service provider
-        httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, servletRequest.getContentType());
+        httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, getContentType(jRequest));
 
         return addresses;
     }
 
-    private void updateOpMonitoringServiceSecurityServerAddress(URI addresses[], HttpSender httpSender) {
+    private void updateOpMonitoringServiceSecurityServerAddress(URI[] addresses, HttpSender httpSender) {
         if (addresses.length == 1) {
             opMonitoringData.setServiceSecurityServerAddress(addresses[0].getHost());
         } else {

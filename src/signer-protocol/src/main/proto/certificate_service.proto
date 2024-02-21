@@ -125,7 +125,7 @@ message GenerateSelfSignedCertReq {
   int64 date_not_before = 3;
   int64 date_not_after = 4;
   KeyUsageInfo key_usage = 5;
-  ClientIdProto member_id = 6;
+  optional ClientIdProto member_id = 6;
 }
 
 message GenerateSelfSignedCertResp {

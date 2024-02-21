@@ -26,27 +26,28 @@
  -->
 <template>
   <xrd-simple-dialog
-    :disable-save="!formReady"
-    :loading="loading"
     cancel-button-text="action.cancel"
     title="globalResources.addGlobalGroup"
-    @cancel="cancel"
+    submittable
+    :disable-save="!meta.valid"
+    :loading="loading"
+    @cancel="$emit('cancel')"
     @save="save"
   >
     <template #content>
       <v-text-field
-        v-bind="code"
+        v-model="code"
+        v-bind="codeAttrs"
         variant="outlined"
         :label="$t('globalResources.code')"
-        :error-messages="errors.code"
         autofocus
         data-test="add-global-group-code-input"
       />
 
       <v-text-field
-        v-bind="description"
+        v-model="description"
+        v-bind="descriptionAttrs"
         :label="$t('globalResources.description')"
-        :error-messages="errors.description"
         variant="outlined"
         data-test="add-global-group-description-input"
       />
@@ -54,66 +55,37 @@
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
 import { useGlobalGroups } from '@/store/modules/global-groups';
-import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
+import { useBasicForm } from '@/util/composables';
 
-export default defineComponent({
-  emits: ['cancel', 'group-added'],
-  setup() {
-    const { values, errors, defineComponentBinds, meta, resetForm } = useForm({
-      validationSchema: {
-        code: 'required',
-        description: 'required',
-      },
-    });
-    const code = defineComponentBinds('code');
-    const description = defineComponentBinds('description');
-    return { values, errors, meta, resetForm, code, description };
+const emit = defineEmits(['save', 'cancel']);
+const { defineField, meta, handleSubmit } = useForm({
+  validationSchema: {
+    code: 'required',
+    description: 'required',
   },
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useGlobalGroups, useNotifications),
-    formReady(): boolean {
-      return this.meta.valid;
-    },
-  },
+});
+const [code, codeAttrs] = defineField('code', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const [description, descriptionAttrs] = defineField('description', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
 
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancel(): void {
-      this.clearForm();
-      this.$emit('cancel');
-    },
-    save(): void {
-      this.loading = true;
-      this.globalGroupStore
-        .add({ code: this.values.code, description: this.values.description })
-        .then(() => {
-          this.notificationsStore.showSuccess(
-            this.$t('globalResources.globalGroupSuccessfullyAdded'),
-          );
-          this.clearForm();
-          this.$emit('group-added');
-        })
-        .catch((error) => {
-          this.notificationsStore.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-    clearForm(): void {
-      this.resetForm();
-    },
-  },
+const { add } = useGlobalGroups();
+const { loading, showSuccess, t, showError } = useBasicForm();
+
+const save = handleSubmit((values) => {
+  loading.value = true;
+  add({ code: values.code, description: values.description })
+    .then(() => {
+      showSuccess(t('globalResources.globalGroupSuccessfullyAdded'));
+      emit('save');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
 });
 </script>
 <style lang="scss" scoped>

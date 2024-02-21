@@ -30,8 +30,9 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
-    implementation('org.kohsuke:libpam4j:1.11')
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation('io.micrometer:micrometer-tracing-bridge-brave')
+    implementation("org.kohsuke:libpam4j:$libpam4jVersion")
     implementation("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
     implementation("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
 
@@ -41,10 +42,10 @@ dependencies {
     testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('javax.validation:validation-api')
-    implementation('org.apache.tika:tika-core:2.8.0')
+    implementation('jakarta.validation:jakarta.validation-api')
+    implementation("org.apache.tika:tika-core:$tikaVersion")
 
-    api ("com.github.ben-manes.caffeine:caffeine")
+    api("com.github.ben-manes.caffeine:caffeine")
 }
 
 bootJar {
@@ -55,14 +56,10 @@ jar {
     enabled = true
 }
 
-test {
-    useJUnitPlatform()
-}
-
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
-    outputDir = "$buildDir/generated-sources/openapi".toString()
+    inputSpec = "$projectDir/src/main/resources/common-openapi-definition.yaml"
+    outputDir = "${layout.buildDirectory.get().asFile}/generated-sources/openapi"
     apiPackage = "org.niis.xroad.restapi.openapi"
     modelPackage = "org.niis.xroad.restapi.openapi.model"
     globalProperties = [
@@ -73,11 +70,12 @@ openApiGenerate {
         generateSupportingFiles: "false"
     ]
     configOptions = [
-        interfaceOnly: "true",
-        useTags      : "true",
-        documentationProvider  : "none",
-        skipDefaultInterface   : "true",
-        openApiNullable: "false"
+        useJakartaEe         : "true",
+        interfaceOnly        : "true",
+        useTags              : "true",
+        documentationProvider: "none",
+        skipDefaultInterface : "true",
+        openApiNullable      : "false"
     ]
 }
 
@@ -88,22 +86,6 @@ tasks.openApiGenerate {
 }
 
 compileJava.dependsOn tasks.openApiGenerate
-
-// set license format to ignore generated java sources
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
 
 apiValidationParameters.apiDefinitionPaths = [
     "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()

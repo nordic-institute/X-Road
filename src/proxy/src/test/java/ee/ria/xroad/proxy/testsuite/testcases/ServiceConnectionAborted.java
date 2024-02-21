@@ -28,15 +28,16 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
 
 /**
  * Client sends normal message. Service aborts connection during sending
@@ -53,14 +54,17 @@ public class ServiceConnectionAborted extends MessageTestCase {
     }
 
     @Override
-    public AbstractHandler getServiceHandler() {
-        return new AbstractHandler() {
+    public Handler.Abstract getServiceHandler() {
+        return new Handler.Abstract() {
             @Override
-            public void handle(String target, Request baseRequest,
-                    HttpServletRequest request, HttpServletResponse response) {
+            public boolean handle(Request request, Response response, Callback callback) throws Exception {
                 // set content length, but send no content
-                response.setContentLength(1000);
-                baseRequest.setHandled(true);
+                setContentLength(response, 1000);
+                var outputStream = Content.Sink.asOutputStream(response);
+                outputStream.flush();
+                outputStream.close();
+                callback.succeeded();
+                return true;
             }
         };
     }

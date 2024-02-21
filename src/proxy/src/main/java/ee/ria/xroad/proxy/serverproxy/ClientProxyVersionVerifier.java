@@ -33,13 +33,13 @@ import ee.ria.xroad.proxy.ProxyMain;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.server.Request;
 import org.semver4j.Semver;
-
-import javax.servlet.http.HttpServletRequest;
 
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CLIENT_PROXY_VERSION_NOT_SUPPORTED;
+import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 @Slf4j
 public final class ClientProxyVersionVerifier {
@@ -55,10 +55,10 @@ public final class ClientProxyVersionVerifier {
     private ClientProxyVersionVerifier() {
     }
 
-    public static void check(HttpServletRequest request) {
-        String clientVersion = getVersion(request.getHeader(MimeUtils.HEADER_PROXY_VERSION));
+    public static void check(Request request) {
+        String clientVersion = getVersion(request.getHeaders().get(MimeUtils.HEADER_PROXY_VERSION));
 
-        log.info("Received request from {} (security server version: {})", request.getRemoteAddr(), clientVersion);
+        log.info("Received request from {} (security server version: {})", getRemoteAddr(request), clientVersion);
 
         if (MIN_SUPPORTED_CLIENT_VERSION != null && MIN_SUPPORTED_CLIENT_VERSION.isGreaterThan(new Semver(clientVersion))) {
             throw new CodedException(X_CLIENT_PROXY_VERSION_NOT_SUPPORTED,

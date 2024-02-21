@@ -46,25 +46,26 @@ public class EjbcaSignCertificateProfileInfo
      * @param params the parameters
      */
     public EjbcaSignCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[] {
+        super(new DnFieldDescription[]{
                 // Instance identifier
                 new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
-                    params.getClientId().getXRoadInstance()
+                        params.getClientId().getXRoadInstance()
                 ).setReadOnly(true),
 
                 // Member class
                 new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.MEMBER_CLASS,
-                    params.getClientId().getMemberClass()
+                        params.getClientId().getMemberClass()
                 ).setReadOnly(true),
 
                 // Member code
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE,
-                    params.getClientId().getMemberCode()
-                ).setReadOnly(true) }
+                        params.getClientId().getMemberCode()
+                ).setReadOnly(true)}
         );
 
         this.params = params;
     }
+
     @Override
     public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
         return CertUtils.getSubjectClientId(certificate);

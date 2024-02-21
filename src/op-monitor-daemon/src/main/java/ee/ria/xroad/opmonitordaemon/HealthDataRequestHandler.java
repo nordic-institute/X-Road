@@ -40,12 +40,11 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+import jakarta.xml.bind.JAXBElement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.bind.JAXBElement;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.OutputStream;
 import java.util.Map.Entry;
@@ -85,7 +84,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
 
     @Override
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
-            Consumer<String> contentTypeCallback) throws Exception {
+                       Consumer<String> contentTypeCallback) throws Exception {
         log.trace("handle()");
 
         ClientId.Conf clientId = requestSoap.getClient();
@@ -93,7 +92,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
                 requestSoap, GetSecurityServerHealthDataType.class);
 
         Optional<ClientId.Conf> provider = Optional.ofNullable(
-                requestData.getFilterCriteria())
+                        requestData.getFilterCriteria())
                 .map(FilterCriteriaType::getClient);
 
         log.debug("Handle getSecurityServerHealthData: clientId: {}, "
@@ -282,11 +281,11 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
 
         return idParts.length > SERVICE_ID_NUM_PARTS - 1
                 ? ServiceId.Conf.create(idParts[0], idParts[1], idParts[2],
-                        idParts[SERVICE_ID_SUBSYSTEM_PART],
-                        idParts[SERVICE_ID_CODE_PART],
-                        idParts[SERVICE_ID_VERSION_PART])
+                idParts[SERVICE_ID_SUBSYSTEM_PART],
+                idParts[SERVICE_ID_CODE_PART],
+                idParts[SERVICE_ID_VERSION_PART])
                 : ServiceId.Conf.create(idParts[0], idParts[1], idParts[2],
-                        idParts[SERVICE_ID_SUBSYSTEM_PART],
-                        idParts[SERVICE_ID_CODE_PART]);
+                idParts[SERVICE_ID_SUBSYSTEM_PART],
+                idParts[SERVICE_ID_CODE_PART]);
     }
 }

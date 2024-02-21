@@ -26,6 +26,7 @@
 package org.niis.xroad.ss.test.api;
 
 
+import jakarta.validation.Valid;
 import org.niis.xroad.securityserver.restapi.openapi.InitializationApi;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatus;
@@ -35,8 +36,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.validation.Valid;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -56,7 +55,7 @@ public interface FeignInitializationApi extends InitializationApi {
     @RequestMapping(
             method = RequestMethod.GET,
             value = "/initialization/status",
-            produces = { "application/json" }
+            produces = {"application/json"}
     )
     ResponseEntity<InitializationStatus> getInitializationStatusWithHeader(
             @RequestHeader(AUTHORIZATION) String authentication

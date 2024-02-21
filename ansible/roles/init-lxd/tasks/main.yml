@@ -1,6 +1,6 @@
 ---
 - name: Ready all Ubuntu {{ubuntu_releasever}} containers
-  with_inventory_hostnames: all:!lxd_servers:!centos_ss
+  with_inventory_hostnames: all:!lxd_servers:!centos_ss:!localhost
   lxd_container:
     name: "{{item}}"
     url: "{{ lxd_url | default(omit) }}"

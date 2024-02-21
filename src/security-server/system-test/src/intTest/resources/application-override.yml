@@ -3,6 +3,10 @@ logging:
   level:
     ROOT: INFO
     cucumber: TRACE
+    com:
+      codeborne:
+        selenide:
+          proxy: ERROR
     org.springframework: INFO
 
 test-automation:
@@ -13,7 +17,7 @@ test-automation:
     execution:
       parallel:
         enabled: false # Tests are executed in sequential order
-    glue-append: "org.niis.xroad.ss.test.ui.glue,org.niis.xroad.common.test.glue,org.niis.xroad.ss.test.addons.glue"
+    glue-append: "org.niis.xroad.ss.test.ui.glue,org.niis.xroad.common.test.glue,org.niis.xroad.ss.test.addons.glue,org.niis.xroad.ss.test.globalconf.glue"
     filter:
       tags: "not @Skip"
   containers:
@@ -22,10 +26,10 @@ test-automation:
       directory-mounts:
         - "/var/log/xroad/:build/ss-container-logs/" # useful for debugging. This will attach logs
     context-containers:
-      ca-server:
+      reverse-proxy:
         enabled: true
         reuse-between-runs: ${reuse-between-runs}
-      mock-server:
+      ca-server:
         enabled: true
         reuse-between-runs: ${reuse-between-runs}
   selenide:
@@ -33,8 +37,8 @@ test-automation:
     browser-size: "1920x1080"
     driver-manager-enabled: true
     headless: true
-    timeout: 10000
-    page-load-timeout: 20000
+    timeout: 15000
+    page-load-timeout: 25000
     screenshots: true
     proxy-enabled: true # Proxy is required for file downloads.
     proxy-host: 127.0.0.1

@@ -84,7 +84,7 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
     private String getNotAcceptedCipher(String[] acceptedCiphers) throws NoSuchAlgorithmException,
             KeyManagementException {
         for (String cipher : SSLContextUtil.createXroadSSLContext().createSSLEngine().getSupportedCipherSuites()) {
-            if (cipher.contains("_RSA_") && !ArrayUtils.contains(acceptedCiphers, cipher))  {
+            if (cipher.contains("_RSA_") && !ArrayUtils.contains(acceptedCiphers, cipher)) {
                 return cipher;
             }
         }

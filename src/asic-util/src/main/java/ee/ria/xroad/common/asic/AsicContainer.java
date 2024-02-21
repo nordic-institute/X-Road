@@ -93,7 +93,7 @@ public class AsicContainer {
      * @throws Exception if container content verification fails
      */
     public AsicContainer(String message, SignatureData signature,
-            TimestampData timestamp, InputStream attachment, long time) throws Exception {
+                         TimestampData timestamp, InputStream attachment, long time) throws Exception {
         put(ENTRY_MIMETYPE, MIMETYPE);
         put(ENTRY_MESSAGE, message);
         put(ENTRY_SIGNATURE, signature.getSignatureXml());

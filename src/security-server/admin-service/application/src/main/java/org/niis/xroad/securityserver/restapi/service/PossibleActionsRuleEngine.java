@@ -280,9 +280,12 @@ public class PossibleActionsRuleEngine {
      *
      * @throws ActionNotPossibleException if given action is not possible for give target type
      */
-    public void requirePossibleAction(PossibleActionEnum action, ActionTargetType target,
-            TokenInfo tokenInfo, KeyInfo keyInfo, CertificateInfo certificateInfo, CertRequestInfo certRequestInfo)
-            throws ActionNotPossibleException {
+    public void requirePossibleAction(PossibleActionEnum action,
+                                      ActionTargetType target,
+                                      TokenInfo tokenInfo,
+                                      KeyInfo keyInfo,
+                                      CertificateInfo certificateInfo,
+                                      CertRequestInfo certRequestInfo) throws ActionNotPossibleException {
         EnumSet<PossibleActionEnum> possibleActions;
         switch (target) {
             case TOKEN:

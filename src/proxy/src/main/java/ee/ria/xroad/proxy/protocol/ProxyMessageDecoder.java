@@ -52,7 +52,7 @@ import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
-import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,7 +163,7 @@ public class ProxyMessageDecoder {
     public void parse(InputStream is) throws Exception {
         LOG.trace("parse()");
 
-        String baseContentType = HttpFields.valueParameters(contentType, null);
+        String baseContentType = HttpField.getValueParameters(contentType, null);
         if (faultAllowed && baseContentType.equalsIgnoreCase(TEXT_XML)) {
             parseFault(is);
         } else if (baseContentType.equalsIgnoreCase(MULTIPART_MIXED)) {
@@ -219,7 +219,7 @@ public class ProxyMessageDecoder {
         OCSP, SOAP, REST, RESTBODY, ATTACHMENT, HASH_CHAIN_RESULT, HASH_CHAIN, SIGNATURE, NONE
     }
 
-    private class ContentHandler extends AbstractContentHandler {
+    private final class ContentHandler extends AbstractContentHandler {
         private NextPart nextPart = NextPart.OCSP;
         private boolean rest = false;
         private Map<String, String> headers;
@@ -240,7 +240,7 @@ public class ProxyMessageDecoder {
 
         @Override
         public void field(Field field) throws MimeException {
-            if (field.getName().toLowerCase().equals(HEADER_CONTENT_TYPE)) {
+            if (field.getName().equalsIgnoreCase(HEADER_CONTENT_TYPE)) {
                 partContentType = field.getBody();
             } else {
                 headers.put(field.getName(), field.getBody());
@@ -432,7 +432,7 @@ public class ProxyMessageDecoder {
 
             @Override
             public void field(Field field) throws MimeException {
-                if (field.getName().toLowerCase().equals(
+                if (field.getName().equalsIgnoreCase(
                         HEADER_CONTENT_TYPE)) {
                     partContentType = field.getBody();
                 } else {

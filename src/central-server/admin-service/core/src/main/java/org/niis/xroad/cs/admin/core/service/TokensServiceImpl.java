@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.common.exception.ValidationFailureException;
@@ -41,8 +42,6 @@ import org.niis.xroad.cs.admin.core.converter.TokenInfoMapper;
 import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.util.Map;
 import java.util.Set;

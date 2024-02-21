@@ -26,12 +26,14 @@
  */
 
 import 'vuetify/styles';
+import * as components from 'vuetify/components';
 import '@mdi/font/css/materialdesignicons.css';
 import { createVuetify } from 'vuetify';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
 import { Colors } from '@/global';
 
 export default createVuetify({
+  components,
   defaults: {
     VProgressLinear: {
       color: 'primary',

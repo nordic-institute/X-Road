@@ -1,5 +1,7 @@
 {
   "ignore": [
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
     "build/",
     "build.gradle",
     ".gradle",

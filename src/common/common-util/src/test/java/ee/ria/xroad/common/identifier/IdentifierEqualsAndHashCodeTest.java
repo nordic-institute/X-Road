@@ -49,8 +49,11 @@ public class IdentifierEqualsAndHashCodeTest {
 
     private abstract static class DataProvider {
         abstract XRoadId provideVariant1();
+
         abstract XRoadId provideVariant2();
+
         abstract XRoadId provideVariant3();
+
         abstract XRoadId provideVariant4();
     }
 
@@ -69,99 +72,111 @@ public class IdentifierEqualsAndHashCodeTest {
      */
     @Parameters
     public static Collection<DataProvider[]> data() {
-        DataProvider[][] data = new DataProvider[][] {
-            {// Set #1 -- ClientId
-                new DataProvider() {
-                    @Override
-                    XRoadId provideVariant1() {
-                        return ClientId.Conf.create(
-                                "EE", "BUSINESS", "member");
-                    }
-                    @Override
-                    XRoadId provideVariant2() {
-                        return ClientId.Conf.create(
-                                "EE", "BUSINESS", "foobar");
-                    }
-                    @Override
-                    XRoadId provideVariant3() {
-                        return ClientId.Conf.create(
-                                "EE", "BUSINESS", "member", "foo");
-                    }
-                    @Override
-                    XRoadId provideVariant4() {
-                        return ClientId.Conf.create(
-                                "EE", "COMPANY", "member");
-                    }
+        DataProvider[][] data = new DataProvider[][]{
+                {// Set #1 -- ClientId
+                        new DataProvider() {
+                            @Override
+                            XRoadId provideVariant1() {
+                                return ClientId.Conf.create(
+                                        "EE", "BUSINESS", "member");
+                            }
+
+                            @Override
+                            XRoadId provideVariant2() {
+                                return ClientId.Conf.create(
+                                        "EE", "BUSINESS", "foobar");
+                            }
+
+                            @Override
+                            XRoadId provideVariant3() {
+                                return ClientId.Conf.create(
+                                        "EE", "BUSINESS", "member", "foo");
+                            }
+
+                            @Override
+                            XRoadId provideVariant4() {
+                                return ClientId.Conf.create(
+                                        "EE", "COMPANY", "member");
+                            }
+                        },
                 },
-            },
-            {// Set #2 -- ServiceId
-                new DataProvider() {
-                    @Override
-                    XRoadId provideVariant1() {
-                        return ServiceId.Conf.create(
-                                "EE", "BUSINESS", "member", null, "getState");
-                    }
-                    @Override
-                    XRoadId provideVariant2() {
-                        return ServiceId.Conf.create(
-                                "EE", "BUSINESS", "member", null, "putState");
-                    }
-                    @Override
-                    XRoadId provideVariant3() {
-                        return ServiceId.Conf.create(
-                                "EE", "BUSINESS", "member", "foo", "getState");
-                    }
-                    @Override
-                    XRoadId provideVariant4() {
-                        return ServiceId.Conf.create(
-                                "EE", "COMPANY", "member", null, "getState");
-                    }
+                {// Set #2 -- ServiceId
+                        new DataProvider() {
+                            @Override
+                            XRoadId provideVariant1() {
+                                return ServiceId.Conf.create(
+                                        "EE", "BUSINESS", "member", null, "getState");
+                            }
+
+                            @Override
+                            XRoadId provideVariant2() {
+                                return ServiceId.Conf.create(
+                                        "EE", "BUSINESS", "member", null, "putState");
+                            }
+
+                            @Override
+                            XRoadId provideVariant3() {
+                                return ServiceId.Conf.create(
+                                        "EE", "BUSINESS", "member", "foo", "getState");
+                            }
+
+                            @Override
+                            XRoadId provideVariant4() {
+                                return ServiceId.Conf.create(
+                                        "EE", "COMPANY", "member", null, "getState");
+                            }
+                        },
                 },
-            },
-            {// Set #5 -- SecurityServerId
-                new DataProvider() {
-                    @Override
-                    XRoadId provideVariant1() {
-                        return SecurityServerId.Conf.create(
-                                "EE", "COMPANY", "producer", "server1");
-                    }
-                    @Override
-                    XRoadId provideVariant2() {
-                        return SecurityServerId.Conf.create(
-                                "EE", "COMPANY", "consumer", "server1");
-                    }
-                    @Override
-                    XRoadId provideVariant3() {
-                        return SecurityServerId.Conf.create(
-                                "EE", "BUSINESS", "producer", "server1");
-                    }
-                    @Override
-                    XRoadId provideVariant4() {
-                        return SecurityServerId.Conf.create(
-                                "EE", "COMPANY", "producer", "server3");
-                    }
+                {// Set #5 -- SecurityServerId
+                        new DataProvider() {
+                            @Override
+                            XRoadId provideVariant1() {
+                                return SecurityServerId.Conf.create(
+                                        "EE", "COMPANY", "producer", "server1");
+                            }
+
+                            @Override
+                            XRoadId provideVariant2() {
+                                return SecurityServerId.Conf.create(
+                                        "EE", "COMPANY", "consumer", "server1");
+                            }
+
+                            @Override
+                            XRoadId provideVariant3() {
+                                return SecurityServerId.Conf.create(
+                                        "EE", "BUSINESS", "producer", "server1");
+                            }
+
+                            @Override
+                            XRoadId provideVariant4() {
+                                return SecurityServerId.Conf.create(
+                                        "EE", "COMPANY", "producer", "server3");
+                            }
+                        },
                 },
-            },
-            {// Set #6 -- GlobalGroupId
-                new DataProvider() {
-                    @Override
-                    XRoadId provideVariant1() {
-                        return GlobalGroupId.Conf.create("EE", "G1");
-                    }
-                    @Override
-                    XRoadId provideVariant2() {
-                        return GlobalGroupId.Conf.create("EE", "G2");
-                    }
-                    @Override
-                    XRoadId provideVariant3() {
-                        return GlobalGroupId.Conf.create("UE", "G1");
-                    }
-                    @Override
-                    XRoadId provideVariant4() {
-                        return GlobalGroupId.Conf.create("EE", "G5");
-                    }
-                },
-            }
+                {// Set #6 -- GlobalGroupId
+                        new DataProvider() {
+                            @Override
+                            XRoadId provideVariant1() {
+                                return GlobalGroupId.Conf.create("EE", "G1");
+                            }
+
+                            @Override
+                            XRoadId provideVariant2() {
+                                return GlobalGroupId.Conf.create("EE", "G2");
+                            }
+
+                            @Override
+                            XRoadId provideVariant3() {
+                                return GlobalGroupId.Conf.create("UE", "G1");
+                            }
+
+                            @Override
+                            XRoadId provideVariant4() {
+                                return GlobalGroupId.Conf.create("EE", "G5");
+                            }
+                        },
+                }
         };
         return Arrays.asList(data);
     }

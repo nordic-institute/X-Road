@@ -121,6 +121,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT_INTERNAL_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHANS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DISABLE_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ENABLE_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SEND_OWNER_CHANGE_REQ;
@@ -161,7 +163,7 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceClientHelper serviceClientHelper;
     private final AuditDataHelper auditDataHelper;
 
-    private ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
      * Finds clients matching search terms
@@ -182,8 +184,8 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<Set<Client>> findClients(String name, String instance, String memberClass,
-            String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
-            Boolean localValidSignCert, Boolean excludeLocal) {
+                                                   String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
+                                                   Boolean localValidSignCert, Boolean excludeLocal) {
         ClientService.SearchParameters searchParams = ClientService.SearchParameters.builder()
                 .name(name)
                 .instance(instance)
@@ -263,7 +265,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
     @AuditEventMethod(event = ADD_CLIENT_INTERNAL_CERT)
     public ResponseEntity<CertificateDetails> addClientTlsCertificate(String encodedId,
-            Resource body) {
+                                                                      Resource body) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later
         String filename = body.getFilename();
@@ -370,7 +372,7 @@ public class ClientsApiController implements ClientsApi {
     @SuppressWarnings({"java:S3776"}) // won't fix: too high cognitive complexity.
     // should be fixed when this method is updated next.
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id,
-            ServiceDescriptionAdd serviceDescription) {
+                                                                          ServiceDescriptionAdd serviceDescription) {
         ClientId clientId = clientIdConverter.convertId(id);
         String url = serviceDescription.getUrl();
         boolean ignoreWarnings = serviceDescription.getIgnoreWarnings();
@@ -386,14 +388,14 @@ public class ClientsApiController implements ClientsApi {
                 addedServiceDescriptionType = serviceDescriptionService.addWsdlServiceDescription(
                         clientId, url, ignoreWarnings);
             } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException | InvalidUrlException
-                    | InvalidWsdlException | InvalidServiceUrlException e) {
+                     | InvalidWsdlException | InvalidServiceUrlException e) {
                 // deviation data (errorcode + warnings) copied
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
                 // deviation data (errorcode + warnings) copied
                 throw new ResourceNotFoundException(e);
             } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                    | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
+                     | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
                 // deviation data (errorcode + warnings) copied
                 throw new ConflictException(e);
             } catch (InterruptedException e) {
@@ -404,12 +406,12 @@ public class ClientsApiController implements ClientsApi {
                 addedServiceDescriptionType = serviceDescriptionService.addOpenApi3ServiceDescription(clientId, url,
                         restServiceCode, ignoreWarnings);
             } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException
-                    | InvalidUrlException | UnsupportedOpenApiVersionException e) {
+                     | InvalidUrlException | UnsupportedOpenApiVersionException e) {
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
                 throw new ResourceNotFoundException(e);
             } catch (ServiceDescriptionService.UrlAlreadyExistsException
-                    | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                     | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
                 throw new ConflictException(e);
             }
         } else if (serviceDescription.getType() == ServiceType.REST) {
@@ -421,7 +423,7 @@ public class ClientsApiController implements ClientsApi {
             } catch (MissingParameterException | InvalidUrlException e) {
                 throw new BadRequestException(e);
             } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException
-                    | ServiceDescriptionService.UrlAlreadyExistsException e) {
+                     | ServiceDescriptionService.UrlAlreadyExistsException e) {
                 throw new ConflictException(e);
             }
         }
@@ -438,9 +440,12 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
     public ResponseEntity<Set<ServiceClient>> findServiceClientCandidates(String encodedClientId,
-            String memberNameOrGroupDescription,
-            ServiceClientType serviceClientType, String instance, String memberClass, String memberGroupCode,
-            String subsystemCode) {
+                                                                          String memberNameOrGroupDescription,
+                                                                          ServiceClientType serviceClientType,
+                                                                          String instance,
+                                                                          String memberClass,
+                                                                          String memberGroupCode,
+                                                                          String subsystemCode) {
         ClientId clientId = clientIdConverter.convertId(encodedClientId);
         XRoadObjectType xRoadObjectType = ServiceClientTypeMapping.map(serviceClientType).orElse(null);
         List<ServiceClientDto> serviceClientDtos = null;
@@ -479,7 +484,7 @@ public class ClientsApiController implements ClientsApi {
                     clientAdd.getClient().getSubsystemCode(),
                     isAuthentication, ignoreWarnings);
         } catch (ClientService.ClientAlreadyExistsException
-                | ClientService.AdditionalMemberAlreadyExistsException e) {
+                 | ClientService.AdditionalMemberAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (UnhandledWarningsException | ClientService.InvalidMemberClassException e) {
             throw new BadRequestException(e);
@@ -540,7 +545,7 @@ public class ClientsApiController implements ClientsApi {
         try {
             clientService.registerClient(clientId);
         } catch (ClientService.CannotRegisterOwnerException
-                | ClientService.InvalidMemberClassException | ClientService.InvalidInstanceIdentifierException e) {
+                 | ClientService.InvalidMemberClassException | ClientService.InvalidInstanceIdentifierException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -560,7 +565,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (GlobalConfOutdatedException | ActionNotPossibleException
-                | ClientService.CannotUnregisterOwnerException e) {
+                 | ClientService.CannotUnregisterOwnerException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -579,6 +584,38 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DISABLE_CLIENT')")
+    @AuditEventMethod(event = DISABLE_CLIENT)
+    public ResponseEntity<Void> disableClient(String encodedClientId) {
+        ClientId.Conf clientId = clientIdConverter.convertId(encodedClientId);
+        try {
+            clientService.disableClient(clientId);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException
+                 | ClientService.CannotUnregisterOwnerException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('ENABLE_CLIENT')")
+    @AuditEventMethod(event = ENABLE_CLIENT)
+    public ResponseEntity<Void> enableClient(String encodedClientId) {
+        ClientId.Conf clientId = clientIdConverter.convertId(encodedClientId);
+        try {
+            clientService.enableClient(clientId);
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException
+                 | ClientService.CannotUnregisterOwnerException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -637,7 +674,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
     @AuditEventMethod(event = ADD_SERVICE_CLIENT_ACCESS_RIGHTS)
     public ResponseEntity<Set<AccessRight>> addServiceClientAccessRights(String encodedClientId,
-            String endcodedServiceClientId, AccessRights accessRights) {
+                                                                         String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientIdConverter.convertId(encodedClientId);
         Set<String> serviceCodes = getServiceCodes(accessRights);
         List<ServiceClientAccessRightDto> accessRightTypes = null;
@@ -660,7 +697,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
     @AuditEventMethod(event = REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS)
     public ResponseEntity<Void> deleteServiceClientAccessRights(String encodedClientId,
-            String endcodedServiceClientId, AccessRights accessRights) {
+                                                                String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientIdConverter.convertId(encodedClientId);
         Set<String> serviceCodes = getServiceCodes(accessRights);
         try {

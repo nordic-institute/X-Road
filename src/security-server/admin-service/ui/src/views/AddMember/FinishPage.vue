@@ -42,7 +42,6 @@
           <xrd-form-label :label-text="$t('wizard.member.register')" />
           <v-checkbox
             v-model="registerChecked"
-            color="primary"
             class="register-checkbox"
             data-test="register-member-checkbox"
           ></v-checkbox>
@@ -75,7 +74,7 @@
       >
     </div>
     <!-- Accept warnings -->
-    <warningDialog
+    <WarningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
       localization-parent="wizard.warning"
@@ -86,7 +85,7 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
@@ -97,17 +96,19 @@ import { mapActions, mapState } from 'pinia';
 import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
+import { CodeWithDetails } from '@/openapi-types';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     WarningDialog,
   },
+  emits: ['cancel', 'previous', 'done'],
   data() {
     return {
       disableCancel: false as boolean,
       registerChecked: true as boolean,
       submitLoading: false as boolean,
-      warningInfo: [] as string[],
+      warningInfo: [] as CodeWithDetails[],
       warningDialog: false as boolean,
     };
   },
@@ -262,5 +263,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/wizards';
+@import '@/assets/wizards';
 </style>

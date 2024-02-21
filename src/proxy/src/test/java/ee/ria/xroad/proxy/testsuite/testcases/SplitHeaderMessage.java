@@ -30,9 +30,8 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
+import jakarta.xml.soap.SOAPHeaderElement;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.soap.SOAPHeaderElement;
 
 import java.io.ByteArrayInputStream;
 import java.util.Iterator;
@@ -43,6 +42,7 @@ import java.util.Iterator;
  */
 public class SplitHeaderMessage extends MessageTestCase {
     private static final String EXPECTED_VALUE = buildExpected();
+
     /**
      * Constructs the test case.
      */

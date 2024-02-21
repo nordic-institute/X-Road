@@ -38,18 +38,19 @@ import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import javax.servlet.ServletOutputStream;
-
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
+import static ee.ria.xroad.common.util.JettyUtils.getContentLength;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static io.restassured.RestAssured.given;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -62,7 +63,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
 
     @Test
-    public void shouldFailIfClientHeaderMissing() throws IOException {
+    public void shouldFailIfClientHeaderMissing() {
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -74,7 +75,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldFailIfMalformedRequestURI() throws IOException {
+    public void shouldFailIfMalformedRequestURI() {
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -87,7 +88,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldHandleSimplePost() throws IOException {
+    public void shouldHandleSimplePost() {
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -103,7 +104,9 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldKeepQueryId() {
         final String qid = UUID.randomUUID().toString();
-        service.setHandler((target, request, response) -> assertEquals(qid, request.getHeader("X-Road-Id")));
+        service.setHandler((request, response) -> {
+            assertEquals(qid, request.getHeaders().get("X-Road-Id"));
+        });
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -122,8 +125,10 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldHaveContentLengthHeader() {
         String body = "{\"value\" : 42}";
-        service.setHandler((target, request, response) -> assertEquals(body.getBytes().length,
-                request.getContentLength()));
+        service.setHandler((request, response) -> {
+            assertEquals(body.getBytes().length,
+                    getContentLength(request));
+        });
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -162,7 +167,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldHaveOnlyOneDateHeader() throws IOException {
+    public void shouldHaveOnlyOneDateHeader() {
         assertEquals(1, given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -174,8 +179,8 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldAcceptPercentEncodedIdentifiers() throws IOException {
-        service.setHandler((target, request, response) -> assertEquals("/path%3B/", request.getRequestURI()));
+    public void shouldAcceptPercentEncodedIdentifiers() {
+        service.setHandler((request, response) -> assertEquals("/path%3B/", request.getHttpURI().getPath()));
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -186,8 +191,8 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldAcceptEmptyPath() throws IOException {
-        service.setHandler((target, request, response) -> assertEquals("/", request.getRequestURI()));
+    public void shouldAcceptEmptyPath() {
+        service.setHandler((request, response) -> assertEquals("/", request.getHttpURI().getPath()));
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -221,9 +226,9 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldNotFollow302Redirects() {
         final String location = PREFIX + "/EE/BUSINESS/producer/sub/notexists";
-        service.setHandler((target, request, response) -> {
+        service.setHandler((request, response) -> {
             response.setStatus(302);
-            response.setHeader("Location", location);
+            response.getHeaders().put("Location", location);
         });
         given()
                 .baseUri("http://127.0.0.1")
@@ -287,7 +292,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldSelectResolvableAddress() throws IOException {
+    public void shouldSelectResolvableAddress() {
 
         GlobalConf.reload(new TestGlobalConf() {
             @Override
@@ -309,7 +314,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
-    public void shouldRespectAcceptHeaderInErrorResponse() throws IOException {
+    public void shouldRespectAcceptHeaderInErrorResponse() {
 
         ServerConf.reload(new TestServerConf(servicePort) {
             @Override
@@ -325,13 +330,13 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
                 .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
+                .header("Accept", "application/json;charset=utf-8")
                 .header("X-Road-Client", "EE/BUSINESS/consumer/subsystem")
                 .get(PREFIX + "/EE/BUSINESS/producer/sub/wsdl")
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/json");
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -343,7 +348,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/json");
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -354,7 +359,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/json");
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -414,7 +419,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .then()
                 .statusCode(Matchers.is(500))
                 .header("X-Road-Error", Matchers.notNullValue())
-                .header("Content-Type", "application/json;charset=utf-8");
+                .header("Content-Type", "application/json");
 
         given()
                 .baseUri("http://127.0.0.1")
@@ -453,15 +458,13 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
                 .header("Content-Type", "text/xml;charset=utf-8");
     }
 
-    private static final TestService.Handler LARGE_OBJECT_HANDLER = (target, request, response) -> {
+    private static final TestService.Handler LARGE_OBJECT_HANDLER = (request, response) -> {
         response.setStatus(200);
-        response.setContentType("application/octet-stream");
-        final int bytes = Integer.valueOf(request.getParameter("bytes"));
-        final ServletOutputStream output = response.getOutputStream();
+        setContentType(response, "application/octet-stream");
+        final int bytes = Integer.parseInt(Request.getParameters(request).getValue("bytes"));
+        final var output = asOutputStream(response);
         byte[] buf = new byte[8192];
-        for (int i = 0; i < buf.length; i++) {
-            buf[i] = (byte)(bytes % 256);
-        }
+        Arrays.fill(buf, (byte) (bytes % 256));
         int i = bytes;
         for (; i > buf.length; i -= buf.length) {
             output.write(buf);

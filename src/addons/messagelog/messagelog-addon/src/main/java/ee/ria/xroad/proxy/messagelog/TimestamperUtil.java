@@ -57,7 +57,7 @@ final class TimestamperUtil {
 
     @SuppressWarnings("unchecked")
     static TimeStampToken addSignerCertificate(TimeStampResponse tsResponse,
-            X509Certificate signerCertificate) throws Exception {
+                                               X509Certificate signerCertificate) throws Exception {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
         List<X509CertificateHolder> collection = new ArrayList<>();

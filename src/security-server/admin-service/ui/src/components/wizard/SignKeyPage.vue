@@ -36,7 +36,8 @@
           class="wizard-form-input"
           type="text"
           data-test="key-label-input"
-          outlined
+          variant="outlined"
+          maxlength="255"
           autofocus
         ></v-text-field>
       </div>
@@ -65,12 +66,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapWritableState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 
-export default Vue.extend({
+export default defineComponent({
+  emits: ['cancel', 'previous', 'done'],
   data() {
     return {
       disableDone: true,

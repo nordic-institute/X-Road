@@ -50,7 +50,7 @@ import static org.junit.Assert.fail;
  *         @Rule
  *         public ExpectedCodedException thrown =
  *                  ExpectedCodedException.none();
-*
+ *
  *         @Test
  *         public void testThrowsNothing() {
  *         }
@@ -142,7 +142,7 @@ public final class ExpectedCodedException implements TestRule {
             if (expected != null) {
                 fail("Expected test to throw CodedException with "
                         + (expectedSuffix
-                                ? "error code suffix " : "error code ")
+                        ? "error code suffix " : "error code ")
                         + expected);
             }
         }

@@ -66,14 +66,14 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
         doAnswer(invocation -> invocation.getArguments()[0].equals(EXISTING_SERVER_ID))
                 .when(globalConfService).securityServerExists(any());
         when(globalConfFacade.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
-        when(globalConfFacade.getSecurityServers(any()))
+        when(globalConfFacade.getSecurityServers())
                 .thenReturn(Arrays.asList(EXISTING_SERVER_ID, OWNER_SERVER_ID));
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
     }
 
     @Test
-    @WithMockUser(authorities = { "INIT_CONFIG" })
+    @WithMockUser(authorities = {"INIT_CONFIG"})
     public void getSecurityServerFindsOne() {
         ResponseEntity<SecurityServer> response = securityServersApiController.getSecurityServer(
                 "XRD2:GOV:M4:server1");
@@ -88,19 +88,19 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
     }
 
     @Test(expected = ResourceNotFoundException.class)
-    @WithMockUser(authorities = { "INIT_CONFIG" })
+    @WithMockUser(authorities = {"INIT_CONFIG"})
     public void getSecurityServerNoMatch() {
         securityServersApiController.getSecurityServer("XRD2:GOV:M4:server-does-not-exist");
     }
 
     @Test(expected = ValidationFailureException.class)
-    @WithMockUser(authorities = { "INIT_CONFIG" })
+    @WithMockUser(authorities = {"INIT_CONFIG"})
     public void getSecurityServerBadRequest() {
         securityServersApiController.getSecurityServer("XRD2:GOV:M4:server:somethingExtra");
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_SECURITY_SERVERS" })
+    @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void getAllSecurityServers() {
         ResponseEntity<Set<SecurityServer>> response = securityServersApiController
                 .getSecurityServers(false);
@@ -110,7 +110,7 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_SECURITY_SERVERS" })
+    @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void getCurrentSecurityServer() {
         ResponseEntity<Set<SecurityServer>> response = securityServersApiController
                 .getSecurityServers(true);

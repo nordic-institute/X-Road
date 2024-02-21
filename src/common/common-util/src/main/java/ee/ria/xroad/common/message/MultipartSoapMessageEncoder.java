@@ -104,8 +104,8 @@ public class MultipartSoapMessageEncoder implements SoapMessageEncoder {
 
     private static String[] convertHeaders(Map<String, String> headers) {
         return headers.entrySet().stream()
-            .map(e -> e.getKey() + ": " + e.getValue())
-            .collect(Collectors.toList())
-            .toArray(new String[] {});
+                .map(e -> e.getKey() + ": " + e.getValue())
+                .collect(Collectors.toList())
+                .toArray(new String[]{});
     }
 }

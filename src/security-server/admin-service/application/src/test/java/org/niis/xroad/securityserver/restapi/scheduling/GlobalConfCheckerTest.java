@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
@@ -230,7 +230,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     public void testUpdateTimestampServiceUrls() {
 
         // test with single matching items
-        List<ApprovedTSAType> approvedTSATypes =
+        List<SharedParameters.ApprovedTSA> approvedTSATypes =
                 Collections.singletonList(TestUtils.createApprovedTsaType("http://example.com:8121", "Foo"));
         List<TspType> tspTypes =
                 Collections.singletonList(TestUtils.createTspType("http://example.com:8121", "Foo"));
@@ -242,7 +242,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         // test the normal update case
         // the change in approvedTSAType1 URL should be reflected to tspType1 URL
-        List<ApprovedTSAType> approvedTSATypes1 = Arrays.asList(
+        List<SharedParameters.ApprovedTSA> approvedTSATypes1 = Arrays.asList(
                 TestUtils.createApprovedTsaType("http://example.com:9999", "Foo"),
                 TestUtils.createApprovedTsaType("http://example.net", "Bar")
         );
@@ -260,7 +260,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         // test the conflicting update case
         // the change in approvedTSAType3 URL should not be reflected to tspType3 URL because of ambiguous names
-        List<ApprovedTSAType> approvedTSATypes2 = Arrays.asList(
+        List<SharedParameters.ApprovedTSA> approvedTSATypes2 = Arrays.asList(
                 TestUtils.createApprovedTsaType("http://example.com:9898", "Foo"),
                 TestUtils.createApprovedTsaType("http://example.net", "Foo"),
                 TestUtils.createApprovedTsaType("http://example.org:8080", "Zzz")

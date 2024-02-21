@@ -1,29 +1,32 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.17 
+Version: 1.20 
 Doc. ID: IG-XLB
 
 
-| Date       | Version | Description                                                                                                              | Author                       |
-|------------|---------|--------------------------------------------------------------------------------------------------------------------------|------------------------------|
-| 22.3.2017  | 1.0     | Initial version                                                                                                          | Jarkko Hyöty, Olli Lindgren  |
-| 27.4.2017  | 1.1     | Added slave node user group instructions                                                                                 | Tatu Repo                    |
-| 15.6.2017  | 1.2     | Added health check interface maintenance mode                                                                            | Tatu Repo                    |
-| 21.6.2017  | 1.3     | Added chapter 7 on [upgrading the security server cluster](#7-upgrading-a-clustered-x-road-security-server-installation) | Olli Lindgren                |
-| 02.03.2018 | 1.4     | Added uniform terms and conditions reference                                                                             | Tatu Repo                    |
-| 15.11.2018 | 1.5     | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                 |
-| 20.12.2018 | 1.6     | Update upgrade instructions                                                                                              | Jarkko Hyöty                 |
-| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                 |
-| 08.10.2020 | 1.8     | Added notes about API keys and caching                                                                                   | Janne Mattila                |
-| 19.10.2020 | 1.9     | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki               |
-| 19.10.2020 | 1.10    | Added information about management REST API permissions                                                                  | Petteri Kivimäki             |
-| 23.12.2020 | 1.11    | Updates for Ubuntu 20.04 support                                                                                         | Jarkko Hyöty                 |
-| 02.07.2021 | 1.12    | Updates for state sync                                                                                                   | Jarkko Hyöty                 |
-| 25.08.2021 | 1.13    | Update X-Road references from version 6 to 7                                                                             | Caro Hautamäki               |
-| 17.09.2021 | 1.14    | Add note about the proxy health check now also checking global conf validity                                             | Caro Hautamäki               |
-| 17.06.2022 | 1.15    | Replace the word "replica" with "secondary"                                                                              | Petteri Kivimäki             |
-| 26.09.2022 | 1.16    | Remove Ubuntu 18.04 support                                                                                              | Andres Rosenthal             |
-| 01.03.2023 | 1.17    | Updates for user groups in secondary nodes                                                                               | Petteri Kivimäki             |
+| Date       | Version | Description                                                                                                              | Author                      |
+|------------|---------|--------------------------------------------------------------------------------------------------------------------------|-----------------------------|
+| 22.3.2017  | 1.0     | Initial version                                                                                                          | Jarkko Hyöty, Olli Lindgren |
+| 27.4.2017  | 1.1     | Added slave node user group instructions                                                                                 | Tatu Repo                   |
+| 15.6.2017  | 1.2     | Added health check interface maintenance mode                                                                            | Tatu Repo                   |
+| 21.6.2017  | 1.3     | Added chapter 7 on [upgrading the security server cluster](#7-upgrading-a-clustered-x-road-security-server-installation) | Olli Lindgren               |
+| 02.03.2018 | 1.4     | Added uniform terms and conditions reference                                                                             | Tatu Repo                   |
+| 15.11.2018 | 1.5     | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                |
+| 20.12.2018 | 1.6     | Update upgrade instructions                                                                                              | Jarkko Hyöty                |
+| 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                |
+| 08.10.2020 | 1.8     | Added notes about API keys and caching                                                                                   | Janne Mattila               |
+| 19.10.2020 | 1.9     | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki              |
+| 19.10.2020 | 1.10    | Added information about management REST API permissions                                                                  | Petteri Kivimäki            |
+| 23.12.2020 | 1.11    | Updates for Ubuntu 20.04 support                                                                                         | Jarkko Hyöty                |
+| 02.07.2021 | 1.12    | Updates for state sync                                                                                                   | Jarkko Hyöty                |
+| 25.08.2021 | 1.13    | Update X-Road references from version 6 to 7                                                                             | Caro Hautamäki              |
+| 17.09.2021 | 1.14    | Add note about the proxy health check now also checking global conf validity                                             | Caro Hautamäki              |
+| 17.06.2022 | 1.15    | Replace the word "replica" with "secondary"                                                                              | Petteri Kivimäki            |
+| 26.09.2022 | 1.16    | Remove Ubuntu 18.04 support                                                                                              | Andres Rosenthal            |
+| 01.03.2023 | 1.17    | Updates for user groups in secondary nodes                                                                               | Petteri Kivimäki            |
+| 20.12.2023 | 1.18    | Added RHEL 9                                                                                                             | Justas Samuolis             |
+| 12.01.2024 | 1.19    | RHEL PostgreSQL 12 support                                                                                               | Eneli Reimets               |
+| 16.02.2024 | 1.20    | RHEL PostgreSQL 13 support                                                                                               | Eneli Reimets               |
 ## Table of Contents
 
 <!-- toc -->
@@ -49,7 +52,7 @@ Doc. ID: IG-XLB
       * [2.3.2.2 OCSP responses from `/var/cache/xroad/`](#2322-ocsp-responses-from-varcachexroad)
 * [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration)
   * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 primary installation](#32-primary-installation)
+  * [3.2 Primary installation](#32-primary-installation)
   * [3.3 Secondary installation](#33-secondary-installation)
   * [3.4 Health check service configuration](#34-health-check-service-configuration)
     * [3.4.1 Known check result inconsistencies vs. actual state](#341-known-check-result-inconsistencies-vs-actual-state)
@@ -58,6 +61,9 @@ Doc. ID: IG-XLB
   * [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
   * [4.2 Creating a separate PostgreSQL instance for the `serverconf` database](#42-creating-a-separate-postgresql-instance-for-the-serverconf-database)
     * [4.2.1 on RHEL](#421-on-rhel)
+      * [4.2.1.1 on RHEL PostgreSQL before 12](#4211-on-rhel-postgresql-before-12)
+      * [4.2.1.2 on RHEL PostgreSQL 12](#4212-on-rhel-postgresql-12)
+      * [4.2.1.3 on RHEL PostgreSQL 13](#4213-on-rhel-postgresql-13)
     * [4.2.2 on Ubuntu](#422-on-ubuntu)
   * [4.3 Configuring the primary instance for replication](#43-configuring-the-primary-instance-for-replication)
   * [4.4 Configuring the secondary instance for replication](#44-configuring-the-secondary-instance-for-replication)
@@ -246,7 +252,7 @@ In order to properly set up the data replication, the secondary nodes must be ab
 * the primary `serverconf` database (e.g. tcp port 5433).
 
 
-### 3.2 primary installation
+### 3.2 Primary installation
 
 1. Install the X-Road security server packages using the normal installation procedure or use an existing standalone node.
 2. Stop the xroad services.
@@ -292,6 +298,10 @@ In order to properly set up the data replication, the secondary nodes must be ab
 5. Set up SSH between the primary and the secondary (the secondary must be able to access `/etc/xroad` via ssh)
    * Create an SSH keypair for `xroad` user and copy the public key to authorized keys of the primary node
    (`/home/xroad-slave/.ssh/authorized_keys`)
+   > On RHEL 8, 9: generate a new key which is compliant with FIPS-140-2, for example ECDSA with curve nistp256
+      ```bash
+      ssh-keygen -t ecdsa
+      ```
 6. Set up state synchronization using rsync+ssh. See section
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Make the initial synchronization between the primary and the secondary.
@@ -438,8 +448,8 @@ Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 
 For technical details on the PostgreSQL replication, refer to the [official documentation](https://www.postgresql.org/docs/10/high-availability.html).
 Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. At the time of writing, RHEL 7
-distributes PostgreSQL version 9.2, and RHEL 8 version 10; the replication configuration is the same
-for these versions. On Ubuntu 20.04 using PostgreSQL version 12 and on 22.04 using version 14, the configuration has some differences.
+distributes PostgreSQL version 9.2 and 12, and RHEL 8 version 10 and 12; the replication configuration is the same
+for versions 9.2 and 10. On RHEL 9 using PostgreSQL 13, Ubuntu 20.04 using PostgreSQL version 12 and on 22.04 using version 14, the configuration has some differences.
 
 ### 4.1 Setting up TLS certificates for database authentication
 
@@ -505,6 +515,8 @@ For further details on the certificate authentication, see the
 
 #### 4.2.1 on RHEL
 
+##### 4.2.1.1 on RHEL PostgreSQL before 12
+
 Create a new `systemctl` service unit for the new database. As root, execute the following command:
 
 ```bash
@@ -523,6 +535,61 @@ semanage port -a -t postgresql_port_t -p tcp 5433
 systemctl enable postgresql-serverconf
 ```
 
+##### 4.2.1.2 on RHEL PostgreSQL 12
+
+Create a new `systemctl` service unit for the new database. As root, execute the following command:
+
+```bash
+cat <<EOF >/etc/systemd/system/postgresql-serverconf.service
+.include /usr/lib/systemd/system/postgresql-12.service
+[Service]
+Environment=PGPORT=5433
+Environment=PGDATA=/var/lib/pgsql/12/serverconf
+EOF
+```
+Create the database and configure SELinux:
+
+```bash
+# Init db
+sudo su postgres
+cd /tmp
+/usr/pgsql-12/bin/initdb --auth-local=peer --auth-host=md5 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/12/serverconf/
+exit
+
+semanage port -a -t postgresql_port_t -p tcp 5433
+systemctl enable postgresql-serverconf
+```
+
+##### 4.2.1.3 on RHEL PostgreSQL 13
+
+Create a new `systemctl` service unit for the new database. As root, make a copy for the new service
+
+```bash
+cp /lib/systemd/system/postgresql-13.service /etc/systemd/system/postgresql-serverconf.service 
+```
+
+Edit `/etc/systemd/system/postgresql-serverconf.service` and override the following properties:
+
+```properties
+[Service]
+...
+Environment=PGPORT=5433
+Environment=PGDATA=/var/lib/pgsql/13/serverconf
+```
+
+Create the database and configure SELinux:
+
+```bash
+# Init db
+sudo su postgres
+cd /tmp
+/usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+exit
+
+semanage port -a -t postgresql_port_t -p tcp 5433
+systemctl enable postgresql-serverconf
+```
+
 #### 4.2.2 on Ubuntu
 
 ```bash
@@ -533,8 +600,9 @@ In the above command, `10` is the postgresql major version. Use `pg_lsclusters` 
 ### 4.3 Configuring the primary instance for replication
 
 Edit `postgresql.conf` and set the following options:
->On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.  
->Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`)
+>On RHEL, PostgreSQL < 12 config files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
+>On RHEL, PostgreSQL >= 12 config files are located in the `PGDATA` directory `/var/lib/pgsql/<version>/serverconf`, e.g. `/var/lib/pgsql/12/serverconf`.
+>Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`.
 
 ```properties
 ssl = on
@@ -547,13 +615,13 @@ listen_addresses  = '*'  # (default is localhost. Alternatively: localhost, <IP 
 # PostgreSQL 9.2 (RHEL 7)
 wal_level = hot_standby
 
-# PostgreSQL 10 & 12 (RHEL 8, Ubuntu 20.04)
+# PostgreSQL 10 & 12 (RHEL 7, 8; Ubuntu 20.04)
 wal_level = replica
 
 max_wal_senders   = 3   # should be ~ number of secondaries plus some small number. Here, we assume there are two secondaries.
 wal_keep_segments = 8   # keep some wal segments so that secondaries that are offline can catch up.
 
-# PostgreSQL >=14 (Ubuntu 22.04)
+# PostgreSQL >=13 (RHEL 9, Ubuntu 22.04)
 wal_level = replica
 
 max_wal_senders = 3   # should be ~ number of secondaries plus some small number. Here, we assume there are two secondaries.
@@ -625,7 +693,8 @@ Prerequisites:
 [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
 
 Go to the postgresql data directory:
- * RHEL: `/var/lib/pgsql/serverconf`
+ * RHEL PostgreSQL < 12: `/var/lib/pgsql/serverconf`
+ * RHEL PostgreSQL >= 12: `/var/lib/pgsql/<postgresql major version>/serverconf`
  * Ubuntu: `/var/lib/postgresql/<postgresql major version>/serverconf`
 
 Clear the data directory:
@@ -653,11 +722,12 @@ trigger_file = '/var/lib/xroad/postgresql.trigger'
 ```
 Where, as above, `<primary>` is the DNS or IP address of the primary node and `<nodename>` is the node name (the replication user name added to the primary database).
 
-On *Ubuntu 20.04 & 22.04 (PostgreSQL >=12)*, create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
+On *Ubuntu 20.04 & 22.04, RHEL (PostgreSQL >=12)*, create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
 
 Next, modify `postgresql.conf`:
->On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.  
->Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/12/serverconf`)
+>On RHEL, PostgreSQL < 12 config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`. 
+>On RHEL, PostgreSQL >= 12 config files are located in the `PGDATA` directory `/var/lib/pgql/<version>/serverconf`, e.g. `/var/lib/pgql/12/serverconf`.
+>Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/12/serverconf`.
 ```properties
 ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
@@ -667,15 +737,16 @@ ssl_key_file  = '/etc/xroad/postgresql/server.key'
 listen_addresses = localhost
 
 # no need to send WAL logs
-# wal_level = minimal
-# max_wal_senders = 0
-# wal_keep_segments = 0
+# wal_level = replica
+# max_wal_senders = 3
+# wal_keep_segments = 8    # on PostgreSQL in 10, 12
+# wal_keep_size = 8        # on PostgreSQL >= 13
 
 hot_standby = on
 hot_standby_feedback = on
 ```
 
-*On Ubuntu 20.04 & 22.04 (PostgreSQL >=12) only*, add the primary_conninfo to postgresql.conf:
+*On Ubuntu 20.04 & 22.04, RHEL (PostgreSQL >=12) only*, add the primary_conninfo to postgresql.conf:
 ```properties
 primary_conninfo = 'host=<primary> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
 ```

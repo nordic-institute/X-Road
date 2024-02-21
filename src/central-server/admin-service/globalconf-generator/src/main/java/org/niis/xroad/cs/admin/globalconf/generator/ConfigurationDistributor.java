@@ -103,6 +103,10 @@ public class ConfigurationDistributor {
         }
     }
 
+    public int getVersion() {
+        return version;
+    }
+
     public Path getVersionSubPath() {
         return Path.of("V" + version);
     }

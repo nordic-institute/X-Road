@@ -104,13 +104,14 @@
         certificationServiceStore.currentCertificationService &&
         showDeleteDialog
       "
+      title="trustServices.trustService.delete.confirmationDialog.title"
+      text="trustServices.trustService.delete.confirmationDialog.message"
       data-test="delete-trust-service-confirm-dialog"
+      focus-on-accept
       :loading="deleting"
       :data="{
         name: certificationServiceStore.currentCertificationService.name,
       }"
-      title="trustServices.trustService.delete.confirmationDialog.title"
-      text="trustServices.trustService.delete.confirmationDialog.message"
       @cancel="showDeleteDialog = false"
       @accept="confirmDelete"
     />

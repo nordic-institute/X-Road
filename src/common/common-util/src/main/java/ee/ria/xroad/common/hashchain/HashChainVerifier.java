@@ -28,6 +28,11 @@ package ee.ria.xroad.common.hashchain;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.bind.Unmarshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -39,11 +44,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.UnmarshalException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
@@ -121,12 +121,12 @@ public final class HashChainVerifier {
      * @throws Exception in case of any errors
      */
     public static void verify(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
-            Map<String, DigestValue> inputs) throws Exception {
+                              Map<String, DigestValue> inputs) throws Exception {
         new HashChainVerifier(hashChainResultXml, referenceResolver, inputs).verify();
     }
 
     private HashChainVerifier(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
-            Map<String, DigestValue> inputs) {
+                              Map<String, DigestValue> inputs) {
         this.hashChainResultXml = hashChainResultXml;
         this.referenceResolver = referenceResolver;
         this.inputs = inputs;

@@ -86,10 +86,10 @@
  * Component for displaying detailed certificate information
  */
 
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import CertificateLine from './CertificateLine.vue';
 
-export default Vue.extend({
+export default defineComponent({
   components: {
     CertificateLine,
   },

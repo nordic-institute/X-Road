@@ -48,4 +48,3 @@ public class ConfigurationSource {
     private Set<ConfigurationSigningKey> configurationSigningKeys = new HashSet<>(0);
 }
 
-

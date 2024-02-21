@@ -34,6 +34,7 @@ import org.niis.xroad.ss.test.ui.page.SystemParametersPageObj;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SystemParametersStepDefs extends BaseUiStepDefs {
     private final SystemParametersPageObj systemParametersPageObj = new SystemParametersPageObj();
@@ -81,4 +82,31 @@ public class SystemParametersStepDefs extends BaseUiStepDefs {
         systemParametersPageObj.btnDeleteTimestampingServicesByRow(index).click();
         commonPageObj.dialog.btnSave().click();
     }
+
+    @Step("Security Server address is displayed")
+    public void securityServerAddressIsDisplayed() {
+        systemParametersPageObj.tableServerAddress().shouldBe(visible);
+    }
+
+    @Step("Security Server address edit button is enabled")
+    public void securityServerAddressEditButtonIsEnabled() {
+        systemParametersPageObj.btnEditServerAddress().shouldBe(enabled);
+    }
+
+    @Step("Security Server address edit button is clicked")
+    public void securityServerAddressEditButtonIsClicked() {
+        systemParametersPageObj.btnEditServerAddress().click();
+    }
+
+    @Step("new Security Server address {string} is submitted")
+    public void newSecurityServerAddressIsSubmitted(String address) {
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+
+        vTextField(systemParametersPageObj.dialogEditServerAddress.addressField())
+                .setValue(address);
+
+        commonPageObj.dialog.btnSave().shouldBe(enabled);
+        commonPageObj.dialog.btnSave().click();
+    }
+
 }

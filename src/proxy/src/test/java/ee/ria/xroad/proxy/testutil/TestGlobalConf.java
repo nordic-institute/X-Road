@@ -67,7 +67,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public X509Certificate[] getAuthTrustChain() {
-        return new X509Certificate[] {TestCertUtil.getCaCert()};
+        return new X509Certificate[]{TestCertUtil.getCaCert()};
     }
 
     @Override
@@ -92,7 +92,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public SignCertificateProfileInfo getSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) throws Exception {
         return new EjbcaSignCertificateProfileInfo(parameters) {
             @Override
             public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
@@ -111,7 +111,7 @@ public class TestGlobalConf extends EmptyGlobalConf {
 
     @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+                                                                    X509Certificate cert) throws Exception {
         return null;
     }
 

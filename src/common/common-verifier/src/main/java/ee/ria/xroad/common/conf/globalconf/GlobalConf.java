@@ -30,7 +30,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -300,7 +299,7 @@ public final class GlobalConf {
      * @throws Exception if an error occurs
      */
     public static X509Certificate getCaCert(String instanceIdentifier,
-            X509Certificate subject) throws Exception {
+                                            X509Certificate subject) throws Exception {
         log.trace("getCaCert({}, {})", instanceIdentifier,
                 subject.getSubjectX500Principal().getName());
 
@@ -333,7 +332,7 @@ public final class GlobalConf {
      * @throws Exception if an error occurs
      */
     public static CertChain getCertChain(String instanceIdentifier,
-            X509Certificate subject) throws Exception {
+                                         X509Certificate subject) throws Exception {
         log.trace("getCertChain({}, {})", instanceIdentifier,
                 subject.getSubjectX500Principal().getName());
 
@@ -347,7 +346,7 @@ public final class GlobalConf {
      * false otherwise
      */
     public static boolean isOcspResponderCert(X509Certificate ca,
-            X509Certificate ocspCert) {
+                                              X509Certificate ocspCert) {
         log.trace("isOcspResponderCert({}, {})",
                 ca.getSubjectX500Principal().getName(),
                 ocspCert.getSubjectX500Principal().getName());
@@ -414,7 +413,7 @@ public final class GlobalConf {
      * @throws Exception if an error occurs
      */
     public static boolean authCertMatchesMember(X509Certificate cert,
-            ClientId memberId) throws Exception {
+                                                ClientId memberId) throws Exception {
         log.trace("authCertMatchesMember({}: {}, {})",
                 cert.getSerialNumber(), cert.getSubjectDN(),
                 memberId);
@@ -484,18 +483,18 @@ public final class GlobalConf {
      * @param instanceIdentifier the instance identifier
      * @return all approved TSPs for the given instance identifier
      */
-    public static List<String> getApprovedTsps(String instanceIdentifier) {
+    public static List<String> getApprovedTspUrls(String instanceIdentifier) {
         log.trace("getApprovedTsps({})", instanceIdentifier);
 
-        return getInstance().getApprovedTsps(instanceIdentifier);
+        return getInstance().getApprovedTspUrls(instanceIdentifier);
     }
 
     /**
      * @param instanceIdentifier the instance identifier
      * @return all approved TSP types for the given instance identifier
      */
-    public static List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
-        return getInstance().getApprovedTspTypes(instanceIdentifier);
+    public static List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier) {
+        return getInstance().getApprovedTsps(instanceIdentifier);
     }
 
     /**
@@ -505,7 +504,7 @@ public final class GlobalConf {
      * url
      */
     public static String getApprovedTspName(String instanceIdentifier,
-            String approvedTspUrl) {
+                                            String approvedTspUrl) {
         log.trace("getApprovedTspName({}, {})", instanceIdentifier,
                 approvedTspUrl);
 
@@ -538,7 +537,7 @@ public final class GlobalConf {
      * @return true, if given subject belongs to given global group
      */
     public static boolean isSubjectInGlobalGroup(ClientId subject,
-            GlobalGroupId group) {
+                                                 GlobalGroupId group) {
         log.trace("isSubjectInGlobalGroup({}, {})", subject, group);
 
         return getInstance().isSubjectInGlobalGroup(subject, group);
@@ -550,7 +549,7 @@ public final class GlobalConf {
      * @return true, if client belongs to the security server
      */
     public static boolean isSecurityServerClient(ClientId client,
-            SecurityServerId securityServer) {
+                                                 SecurityServerId securityServer) {
         log.trace("isSecurityServerClient({}, {})", client, securityServer);
 
         return getInstance().isSecurityServerClient(client, securityServer);

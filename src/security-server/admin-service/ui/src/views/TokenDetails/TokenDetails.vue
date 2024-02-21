@@ -24,155 +24,125 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width dtlv-outer">
-    <ValidationObserver ref="form" v-slot="{ dirty, invalid }">
-      <div class="dtlv-content">
-        <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
-        <v-row>
-          <v-col>
-            <h3>{{ $t('keys.tokenInfo') }}</h3>
-            <div class="d-flex">
-              <div class="row-title">{{ $t('keys.tokenId') }}</div>
-              <div class="row-data text-break">{{ token.id }}</div>
-            </div>
-            <div class="d-flex">
-              <div class="row-title">{{ $t('keys.type') }}</div>
-              <div class="row-data">{{ token.type }}</div>
-            </div>
-          </v-col>
+  <div class="xrd-tab-max-width detail-view-outer">
+    <div class="detail-view-content">
+      <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
+      <v-row>
+        <v-col>
+          <h3>{{ $t('keys.tokenInfo') }}</h3>
+          <div class="d-flex">
+            <div class="row-title">{{ $t('keys.tokenId') }}</div>
+            <div class="row-data text-break">{{ token.id }}</div>
+          </div>
+          <div class="d-flex">
+            <div class="row-title">{{ $t('keys.type') }}</div>
+            <div class="row-data">{{ token.type }}</div>
+          </div>
+        </v-col>
 
-          <v-col>
-            <v-row no-gutters>
-              <ValidationProvider
-                v-slot="{ errors }"
-                rules="required"
-                name="token.friendlyName"
-                class="validation-provider"
-              >
-                <v-text-field
-                  v-model="token.name"
-                  class="code-input"
-                  name="token.friendlyName"
-                  type="text"
-                  outlined
-                  :label="$t('keys.friendlyName')"
-                  :maxlength="255"
-                  :error-messages="errors"
-                  :loading="loading"
-                  :disabled="!(hasEditPermission && canEditName())"
-                  data-test="token-friendly-name"
-                  autofocus
-                  @input="isFriendlyNameFieldDirty = true"
-                ></v-text-field>
-              </ValidationProvider>
-            </v-row>
-            <v-row v-if="isSoftwareToken() && canUpdatePin" no-gutters>
-              <xrd-expandable
-                class="expandable"
-                :is-open="isChangePinOpen"
-                :is-disabled="!isTokenLoggedIn()"
-                data-test="token-open-pin-change-button"
-                @open="toggleChangePinOpen"
-                @close="toggleChangePinOpen"
-              >
-                <template #link>
-                  <div
-                    :class="isTokenLoggedIn() && 'pointer'"
-                    data-test="token-open-pin-change-link"
-                    @click="toggleChangePinOpen"
+        <v-col>
+          <v-row no-gutters>
+            <v-text-field
+              v-bind="friendlyNameRef"
+              class="code-input"
+              name="token.friendlyName"
+              type="text"
+              variant="outlined"
+              :label="$t('keys.friendlyName')"
+              :maxlength="255"
+              :disabled="!(hasEditPermission && canEditName())"
+              data-test="token-friendly-name"
+              autofocus
+            ></v-text-field>
+          </v-row>
+          <v-row v-if="isSoftwareToken() && canUpdatePin" no-gutters>
+            <xrd-expandable
+              class="expandable"
+              :is-open="isChangePinOpen"
+              :is-disabled="!isTokenLoggedIn()"
+              data-test="token-open-pin-change-button"
+              @open="toggleChangePinOpen"
+              @close="toggleChangePinOpen"
+            >
+              <template #link>
+                <div
+                  :class="isTokenLoggedIn() && 'pointer'"
+                  data-test="token-open-pin-change-link"
+                  @click="toggleChangePinOpen"
+                >
+                  <span class="font-weight-black">
+                    {{ $t('token.changePin') }}
+                  </span>
+                </div>
+              </template>
+              <template #content>
+                <v-row no-gutters v-if="isEnforceTokenPolicyEnabled">
+                  <v-alert
+                    data-test="alert-token-policy-enabled"
+                    class="mb-6"
+                    variant="outlined"
+                    border="start"
+                    density="compact"
+                    type="info"
                   >
-                    <span class="font-weight-black">
-                      {{ $t('token.changePin') }}
-                    </span>
-                  </div>
-                </template>
-                <template #content>
-                  <v-row no-gutters>
-                    <ValidationProvider
-                      v-slot="{ errors }"
-                      rules="required"
-                      name="token.oldPin"
-                      class="validation-provider"
-                    >
-                      <v-text-field
-                        v-model="tokenPinUpdate.old_pin"
-                        class="code-input"
-                        name="token.oldPin"
-                        type="password"
-                        outlined
-                        :label="$t('fields.token.oldPin')"
-                        :maxlength="255"
-                        :error-messages="errors"
-                        :loading="loading"
-                        data-test="token-change-pin-old"
-                      ></v-text-field>
-                    </ValidationProvider>
-                  </v-row>
-                  <v-row no-gutters>
-                    <ValidationProvider
-                      v-slot="{ errors }"
-                      rules="required|confirmed:confirm"
-                      name="token.newPin"
-                      class="validation-provider"
-                    >
-                      <v-text-field
-                        v-model="tokenPinUpdate.new_pin"
-                        class="code-input"
-                        name="token.newPin"
-                        type="password"
-                        outlined
-                        :label="$t('fields.token.newPin')"
-                        :maxlength="255"
-                        :error-messages="errors"
-                        :loading="loading"
-                        data-test="token-change-pin-new"
-                      ></v-text-field>
-                    </ValidationProvider>
-                  </v-row>
-                  <v-row no-gutters>
-                    <ValidationProvider
-                      v-slot="{ errors }"
-                      rules="required"
-                      vid="confirm"
-                      name="token.newPinConfirm"
-                      class="validation-provider"
-                    >
-                      <v-text-field
-                        v-model="newPinConfirm"
-                        class="code-input"
-                        name="token.newPinConfirm"
-                        type="password"
-                        outlined
-                        :label="$t('fields.token.newPinConfirm')"
-                        :maxlength="255"
-                        :error-messages="errors"
-                        :loading="loading"
-                        data-test="token-change-pin-new-confirm"
-                      ></v-text-field>
-                    </ValidationProvider>
-                  </v-row>
-                </template>
-              </xrd-expandable>
-            </v-row>
-          </v-col>
-        </v-row>
-      </div>
-      <div class="dtlv-actions-footer">
-        <xrd-button
-          outlined
-          data-test="token-details-cancel"
-          @click="close()"
-          >{{ $t('action.cancel') }}</xrd-button
-        >
-        <xrd-button
-          :loading="saveBusy"
-          :disabled="!dirty || invalid"
-          data-test="token-details-save"
-          @click="save()"
-          >{{ $t('action.save') }}</xrd-button
-        >
-      </div>
-    </ValidationObserver>
+                    <h4>{{ $t('token.tokenPinPolicyHeader') }}</h4>
+                    <div>{{ $t('token.tokenPinPolicy') }}</div>
+                  </v-alert>
+                </v-row>
+                <v-row no-gutters>
+                  <v-text-field
+                    v-bind="oldPinRef"
+                    class="code-input"
+                    name="token.oldPin"
+                    type="password"
+                    variant="outlined"
+                    :label="$t('fields.token.oldPin')"
+                    :maxlength="255"
+                    data-test="token-change-pin-old"
+                  ></v-text-field>
+                </v-row>
+                <v-row no-gutters>
+                  <v-text-field
+                    v-bind="newPinRef"
+                    class="code-input"
+                    name="token.newPin"
+                    type="password"
+                    variant="outlined"
+                    :label="$t('fields.token.newPin')"
+                    :maxlength="255"
+                    data-test="token-change-pin-new"
+                  ></v-text-field>
+                </v-row>
+                <v-row no-gutters>
+                  <v-text-field
+                    v-bind="newPinConfirmRef"
+                    class="code-input"
+                    name="token.newPinConfirm"
+                    type="password"
+                    variant="outlined"
+                    :label="$t('fields.token.newPinConfirm')"
+                    :maxlength="255"
+                    data-test="token-change-pin-new-confirm"
+                  ></v-text-field>
+                </v-row>
+              </template>
+            </xrd-expandable>
+          </v-row>
+        </v-col>
+      </v-row>
+    </div>
+    <div class="detail-view-actions-footer">
+      <xrd-button outlined data-test="token-details-cancel" @click="close()">
+        {{ $t('action.cancel') }}
+      </xrd-button>
+      <xrd-button
+        :loading="saving"
+        :disabled="isSaveDisabled"
+        data-test="token-details-save"
+        @click="save()"
+        >{{ $t('action.save') }}
+      </xrd-button>
+    </div>
   </div>
 </template>
 
@@ -180,104 +150,154 @@
 /***
  * Component for showing the details of a token.
  */
-import Vue from 'vue';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
-import { ValidationObserver, ValidationProvider } from 'vee-validate';
+import { computed, defineComponent, ref } from 'vue';
 import { Permissions } from '@/global';
-import {
-  PossibleAction,
-  Token,
-  TokenPinUpdate,
-  TokenType,
-} from '@/openapi-types';
+import { PossibleAction, Token, TokenType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { AxiosError } from 'axios';
+import { PublicPathState, useForm } from 'vee-validate';
+import { useTokens } from '@/store/modules/tokens';
 
-export default Vue.extend({
-  components: {
-    ValidationProvider,
-    ValidationObserver,
-  },
+export default defineComponent({
   props: {
     id: {
       type: String,
       required: true,
     },
   },
+  setup(props) {
+    const { tokens } = useTokens();
+    const isChangePinOpen = ref(false);
+    const token: Token = tokens.find((token) => token.id === props.id)!;
+    const validationSchema = computed(() => {
+      if (isChangePinOpen.value) {
+        return {
+          'token.friendlyName': 'required|max:255',
+          'token.oldPin': 'required',
+          'token.newPin': 'required|confirmed:@token.newPinConfirm',
+          'token.newPinConfirm': 'required',
+        };
+      } else {
+        return {
+          'token.friendlyName': 'required|max:255',
+        };
+      }
+    });
+    const {
+      meta,
+      values,
+      setFieldValue,
+      isFieldValid,
+      isFieldDirty,
+      resetField,
+      defineComponentBinds,
+    } = useForm({
+      validationSchema,
+      initialValues: {
+        token: {
+          friendlyName: token.name,
+          oldPin: '',
+          newPin: '',
+          newPinConfirm: '',
+        },
+      },
+    });
+    const componentConfig = (state: PublicPathState) => ({
+      props: {
+        'error-messages': state.errors,
+      },
+    });
+    const friendlyNameRef = defineComponentBinds(
+      'token.friendlyName',
+      componentConfig,
+    );
+    const oldPinRef = defineComponentBinds('token.oldPin', componentConfig);
+    const newPinRef = defineComponentBinds('token.newPin', componentConfig);
+    const newPinConfirmRef = defineComponentBinds(
+      'token.newPinConfirm',
+      componentConfig,
+    );
+    return {
+      isChangePinOpen,
+      token,
+      meta,
+      values,
+      setFieldValue,
+      isFieldValid,
+      isFieldDirty,
+      resetField,
+      friendlyNameRef,
+      oldPinRef,
+      newPinRef,
+      newPinConfirmRef,
+    };
+  },
   data() {
     return {
-      saveBusy: false,
-      loading: false,
-      token: {} as Token,
-      tokenPinUpdate: {} as TokenPinUpdate,
-      isChangePinOpen: false,
-      isFriendlyNameFieldDirty: false,
-      newPinConfirm: '',
+      saving: false,
     };
   },
   computed: {
-    ...mapState(useUser, ['hasPermission']),
-
+    ...mapState(useUser, ['hasPermission', 'isEnforceTokenPolicyEnabled']),
     hasEditPermission(): boolean {
       return this.hasPermission(Permissions.EDIT_TOKEN_FRIENDLY_NAME);
     },
     canUpdatePin(): boolean {
       return this.hasPermission(Permissions.UPDATE_TOKEN_PIN);
     },
+    isSaveDisabled(): boolean {
+      if (this.isChangePinOpen) {
+        return !this.meta.dirty || !this.meta.valid;
+      } else {
+        return (
+          !this.isFieldDirty('token.friendlyName') ||
+          !this.isFieldValid('token.friendlyName')
+        );
+      }
+    },
   },
   created() {
-    this.fetchData();
+    this.fetchInitializationStatus().catch((error) => {
+      this.showError(error);
+    });
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useUser, ['fetchInitializationStatus']),
+    ...mapActions(useTokens, ['updatePin', 'updateToken']),
     close(): void {
-      this.$router.go(-1);
+      this.$router.back();
     },
 
     async save(): Promise<void> {
-      this.saveBusy = true;
+      this.saving = true;
 
       try {
         let successMsg = this.$t('keys.tokenSaved') as string;
         if (this.isChangePinOpen) {
-          await api.put(
-            `/tokens/${encodePathParameter(this.id)}/pin`,
-            this.tokenPinUpdate,
+          this.updatePin(
+            this.id,
+            this.values.token.oldPin,
+            this.values.token.newPin,
           );
           successMsg = this.$t('token.pinChanged') as string;
         }
-        if (this.isFriendlyNameFieldDirty) {
-          await api.patch(
-            `/tokens/${encodePathParameter(this.id)}`,
-            this.token,
-          );
+        if (this.isFieldDirty('token.friendlyName')) {
+          this.updateToken({
+            ...this.token,
+            name: this.values.token.friendlyName,
+          });
         }
         this.showSuccess(successMsg);
-        this.$router.go(-1);
+        this.$router.back();
       } catch (error) {
         // Error comes from axios, so it most probably is AxiosError
         this.showError(error as AxiosError);
       } finally {
-        this.saveBusy = false;
+        this.saving = false;
       }
-    },
-
-    fetchData(): void {
-      this.loading = true;
-      api
-        .get<Token>(`/tokens/${encodePathParameter(this.id)}`)
-        .then((res) => {
-          this.token = res.data;
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-        });
     },
 
     canEditName(): boolean {
@@ -305,9 +325,9 @@ export default Vue.extend({
         return;
       }
       this.isChangePinOpen = !this.isChangePinOpen;
-      this.tokenPinUpdate.old_pin = '';
-      this.tokenPinUpdate.new_pin = '';
-      this.newPinConfirm = '';
+      this.resetField('token.oldPin');
+      this.resetField('token.newPin');
+      this.resetField('token.newPinConfirm');
     },
   },
 });
@@ -320,7 +340,7 @@ export default Vue.extend({
   width: 450px;
 }
 
-.expandable::v-deep .exp-header {
+.expandable::v-deep(.exp-header) {
   padding: 0;
   margin-left: -12px;
 }

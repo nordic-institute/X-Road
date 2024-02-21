@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.validation.ConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -48,8 +49,6 @@ import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
-
-import javax.validation.ConstraintViolationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,7 +107,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_ENDPOINT" })
+    @WithMockUser(authorities = {"VIEW_ENDPOINT"})
     public void getEndpoint() {
         Endpoint endpoint = endpointsApiController.getEndpoint("12").getBody();
         assertTrue(endpoint.getId().equals("12"));
@@ -117,19 +116,19 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test(expected = ResourceNotFoundException.class)
-    @WithMockUser(authorities = { "DELETE_ENDPOINT" })
+    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpointNotExist() {
         endpointsApiController.deleteEndpoint(NO_SUCH_ENDPOINT_ID);
     }
 
     @Test(expected = BadRequestException.class)
-    @WithMockUser(authorities = { "DELETE_ENDPOINT" })
+    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteGeneratedEndpoint() {
         endpointsApiController.deleteEndpoint("10");
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_ENDPOINT" })
+    @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpoint() {
         ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         int aclCount = client.getAcl().size();
@@ -139,7 +138,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test(expected = BadRequestException.class)
-    @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateGeneratedEndpoint() {
         EndpointUpdate pathAndMethod = new EndpointUpdate();
         pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
@@ -148,21 +147,21 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test(expected = ConstraintViolationException.class)
-    @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpointWithEmptyPathString() {
         EndpointUpdate pathAndMethod = new EndpointUpdate().method(MethodEnum.GET);
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
     @Test(expected = ConstraintViolationException.class)
-    @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpointWithEmptyMethod() {
         EndpointUpdate pathAndMethod = new EndpointUpdate().path("/foo").method(null);
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
+    @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateEndpoint() {
         EndpointUpdate pathAndMethod = new EndpointUpdate();
         pathAndMethod.setMethod(EndpointUpdate.MethodEnum.STAR);
@@ -178,13 +177,13 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test(expected = NotFoundException.class)
-    @WithMockUser(authorities = { "VIEW_ENDPOINT_ACL" })
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
     public void getInexistingEndpointAccessRights() {
         endpointsApiController.getEndpointServiceClients("NON_EXISTING_ENDPOINT_ID");
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_ENDPOINT_ACL" })
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL"})
     public void getEndpointAccesRights() {
         Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
@@ -193,7 +192,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test
-    @WithMockUser(authorities = { "EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL" })
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
     public void removeExistingEndpointAccessRights() {
         doReturn(true).when(globalConfService).clientsExist(any());
         Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
@@ -209,7 +208,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test(expected = ResourceNotFoundException.class)
-    @WithMockUser(authorities = { "EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL" })
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
     public void removeInexistingEndpointAccessRights() {
         doReturn(true).when(globalConfService).clientsExist(any());
         Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
@@ -221,7 +220,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test(expected = ConflictException.class)
-    @WithMockUser(authorities = { "EDIT_ENDPOINT_ACL" })
+    @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL"})
     public void addExistingEndpointAccessRights() {
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
@@ -233,7 +232,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_ENDPOINT_ACL", "EDIT_ENDPOINT_ACL" })
+    @WithMockUser(authorities = {"VIEW_ENDPOINT_ACL", "EDIT_ENDPOINT_ACL"})
     public void addEndpointAccessRights() {
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());

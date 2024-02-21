@@ -27,33 +27,35 @@
 <template>
   <v-app class="xrd-app">
     <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
+    <AppToolbar v-if="loginView" />
     <v-main app>
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </v-main>
-    <snackbar />
-    <app-footer v-if="loginView" />
+    <SnackBar />
+    <AppFooter v-if="loginView" />
   </v-app>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import axios from 'axios';
-import Snackbar from '@/components/ui/Snackbar.vue';
+import SnackBar from '@/components/ui/SnackBar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'App',
   components: {
     AppFooter,
     AppToolbar,
-    Snackbar,
+    SnackBar,
   },
   computed: {
     loginView(): boolean {
@@ -72,11 +74,11 @@ export default Vue.extend({
       (error) => {
         /*
           Check if error is a proper "unauthorized error" meaning it is not happening in sending login form data.
-          Also the response from from session timeout polling is handled in AppBase -component
+          Also, the response from session timeout polling is handled in AppBase -component
          */
         if (
           error?.response?.status === 401 &&
-          this.$router.currentRoute.name !== 'login'
+          this.$router.currentRoute.value.name !== 'login'
         ) {
           // if you ever get an unauthorized, logout the user
           this.setSessionAlive(false);
@@ -143,7 +145,7 @@ export default Vue.extend({
 }
 
 /* Set the app background color */
-.theme--light.v-application.xrd-app {
+.v-theme--light.v-application.xrd-app {
   background: $XRoad-WarmGrey30;
 }
 </style>

@@ -270,15 +270,19 @@ public final class SignerProxy {
                                                 String commonName, Date notBefore, Date notAfter) throws Exception {
         log.trace("Generate self-signed cert for key '{}'", keyId);
 
+        var builder = GenerateSelfSignedCertReq.newBuilder()
+                .setKeyId(keyId)
+                .setCommonName(commonName)
+                .setDateNotBefore(notBefore.getTime())
+                .setDateNotAfter(notAfter.getTime())
+                .setKeyUsage(keyUsage);
+
+        if (memberId != null) {
+            builder.setMemberId(ClientIdMapper.toDto(memberId));
+        }
+
         var response = RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .generateSelfSignedCert(GenerateSelfSignedCertReq.newBuilder()
-                        .setKeyId(keyId)
-                        .setCommonName(commonName)
-                        .setDateNotBefore(notBefore.getTime())
-                        .setDateNotAfter(notAfter.getTime())
-                        .setKeyUsage(keyUsage)
-                        .setMemberId(ClientIdMapper.toDto(memberId))
-                        .build()));
+                .generateSelfSignedCert(builder.build()));
 
         byte[] certificateBytes = response.getCertificateBytes().toByteArray();
 

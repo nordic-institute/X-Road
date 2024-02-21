@@ -58,17 +58,17 @@
         @update:options="changeOptions"
       >
         <template #top></template>
-        <template #[`item.member_name`]="{ item }">
+        <template #[`item.member_name`]="{ item, internalItem }">
           <div
             v-if="hasPermissionToMemberDetails"
             class="members-table-cell-name-action"
-            @click="toDetails(item.raw)"
+            @click="toDetails(item)"
           >
             <xrd-icon-base class="xrd-clickable mr-4">
               <xrd-icon-folder-outline />
             </xrd-icon-base>
 
-            {{ item.columns.member_name }}
+            {{ internalItem.columns.member_name }}
           </div>
 
           <div v-else class="members-table-cell-name">
@@ -76,7 +76,7 @@
               <xrd-icon-folder-outline />
             </xrd-icon-base>
 
-            {{ item.columns.member_name }}
+            {{ internalItem.columns.member_name }}
           </div>
         </template>
       </v-data-table-server>
@@ -100,7 +100,6 @@ import { mapActions, mapState, mapStores } from 'pinia';
 import { debounce, toIdentifier } from '@/util/helpers';
 import { useNotifications } from '@/store/modules/notifications';
 import { Client } from '@/openapi-types';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { DataQuery, DataTableHeader } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
@@ -113,7 +112,6 @@ export default defineComponent({
   components: {
     SearchableTitledView,
     AddMemberDialog,
-    VDataTableServer,
   },
   data() {
     return {
@@ -179,6 +177,7 @@ export default defineComponent({
         },
       });
     },
+    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;

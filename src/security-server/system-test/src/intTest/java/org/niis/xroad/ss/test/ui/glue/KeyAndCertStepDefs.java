@@ -45,6 +45,8 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 @Slf4j
 public class KeyAndCertStepDefs extends BaseUiStepDefs {
@@ -111,6 +113,17 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.section(tokenKey).tokenLabel().shouldBe(visible).click();
     }
 
+    @Step("Token: {} edit page is opened")
+    public void tokenIsVisibleAndEdited(String tokenKey) {
+        keyAndCertPageObj.section(tokenKey).tokenEditButton().shouldBe(visible).click();
+    }
+
+    @Step("Token Alert about token policy being enforced is present")
+    public void tokenHasEnforceTokenPolicyAlert() {
+        keyAndCertPageObj.tokenEdit.btnChangeToken().shouldBe(visible).click();
+        keyAndCertPageObj.tokenEdit.alertTokenPolicyEnabled().shouldBe(visible);
+    }
+
     @Step("Token: {} - Add key wizard is opened")
     public void addKey(String tokenKey) {
         keyAndCertPageObj.section(tokenKey).addSigningKey().shouldBe(visible).click();
@@ -134,7 +147,7 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
     @Step("Key Label is set to {string}")
     public void setKeyLabel(String label) {
         if (StringUtils.isNotBlank(label)) {
-            keyAndCertPageObj.addKeyWizardDetails.keyLabel().setValue(label);
+            vTextField(keyAndCertPageObj.addKeyWizardDetails.keyLabel()).setValue(label);
         }
         keyAndCertPageObj.addKeyWizardDetails.nextButton().click();
     }
@@ -144,18 +157,18 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(disabled);
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrUsage().click();
-        keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(usage).click();
+        selectorOptionOf(usage).click();
 
         if ("SIGNING".equalsIgnoreCase(usage)) {
             keyAndCertPageObj.addKeyWizardCsrDetails.csrClient().click();
-            keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(client).click();
+            selectorOptionOf(client).click();
         }
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrService().click();
-        keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(certificationService).click();
+        selectorOptionOf(certificationService).click();
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrFormat().click();
-        keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(csrFormat).click();
+        selectorOptionOf(csrFormat).click();
 
         keyAndCertPageObj.addKeyWizardCsrDetails.previousButton().shouldBe(visible).click();
         keyAndCertPageObj.addKeyWizardCsrDetails.csrService().shouldNotBe(visible);
@@ -170,15 +183,15 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.section(token).tokenLabeledKeyGenerateCsrButton(key).shouldBe(enabled).click();
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrService().click();
-        keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(certService).click();
+        selectorOptionOf(certService).click();
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrFormat().click();
-        keyAndCertPageObj.addKeyWizardCsrDetails.selectorOptionOf(csrFormat).click();
+        selectorOptionOf(csrFormat).click();
 
         keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(visible).click();
 
-        keyAndCertPageObj.addKeyWizardGenerate.serverDNS().setValue("ss1");
-        keyAndCertPageObj.addKeyWizardGenerate.organizationName().setValue(randomAlphabetic(10));
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.serverDNS()).setValue("ss1");
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(randomAlphabetic(10));
 
         keyAndCertPageObj.addKeyWizardGenerate.generateButton().click();
         keyAndCertPageObj.addKeyWizardGenerate.doneButton().click();
@@ -196,9 +209,9 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.addKeyWizardGenerate.doneButton().shouldBe(disabled);
 
         if (StringUtils.isNotBlank(dns)) {
-            keyAndCertPageObj.addKeyWizardGenerate.serverDNS().setValue(dns);
+            vTextField(keyAndCertPageObj.addKeyWizardGenerate.serverDNS()).setValue(dns);
         }
-        keyAndCertPageObj.addKeyWizardGenerate.organizationName().setValue(organization);
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(organization);
 
         File certReq = keyAndCertPageObj.addKeyWizardGenerate.generateButton().download(FileFilters.withExtension("pem"));
         log.info("Putting {} into downloaded file", certReq);

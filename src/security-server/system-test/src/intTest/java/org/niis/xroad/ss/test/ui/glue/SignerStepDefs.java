@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class SignerStepDefs extends BaseUiStepDefs {
@@ -41,5 +42,21 @@ public class SignerStepDefs extends BaseUiStepDefs {
                 .execInContainer("supervisorctl", "restart", "xroad-signer");
 
         testReportService.attachJson("supervisorctl restart xroad-signer", execResult);
+    }
+
+    @SneakyThrows
+    @Step("predefined signer softtoken is uploaded")
+    public void updateSignerSoftToken() {
+        execInContainer("supervisorctl", "stop", "xroad-signer");
+        execInContainer("rm", "-rf", "/etc/xroad/signer/");
+        execInContainer("cp", "-r", "/etc/xroad/signer-predefined/", "/etc/xroad/signer/");
+        execInContainer("chown", "-R", "xroad:xroad", "/etc/xroad/signer/");
+        execInContainer("supervisorctl", "start", "xroad-signer");
+    }
+
+    @SneakyThrows
+    private void execInContainer(String... args) {
+        var execResult = containerProvider.getContainer().execInContainer(args);
+        testReportService.attachJson(StringUtils.join(args, " "), execResult);
     }
 }

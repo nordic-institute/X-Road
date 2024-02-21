@@ -30,6 +30,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.DataIntegrityException;
@@ -53,8 +54,6 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.util.EnumSet;
 import java.util.List;

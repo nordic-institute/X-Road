@@ -102,6 +102,10 @@ public class CommonPageObj {
         public SelenideElement apiKeysTab() {
             return $x("//*[@data-test='apikeys-tab-button']");
         }
+
+        public SelenideElement tlsCertificatesTab() {
+            return $x("//*[@data-test='tlscertificates-tab-button']");
+        }
     }
 
     public class Dialog {
@@ -138,7 +142,7 @@ public class CommonPageObj {
 
     public class Alerts {
         public SelenideElement alert(final String text) {
-            return $x(String.format("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]", text));
+            return $x("//div[@data-test='contextual-alert']//div[contains(text(), '%s')]".formatted(text));
         }
 
         public SelenideElement btnClose() {

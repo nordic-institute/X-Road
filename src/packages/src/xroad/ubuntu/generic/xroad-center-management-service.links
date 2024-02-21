@@ -1,2 +1,1 @@
 usr/share/xroad/jlib/centralserver-management-service-1.0.jar usr/share/xroad/jlib/centralserver-management-service.jar
-etc/xroad/nginx/management-service.conf etc/nginx/sites-enabled/xroad-management-service

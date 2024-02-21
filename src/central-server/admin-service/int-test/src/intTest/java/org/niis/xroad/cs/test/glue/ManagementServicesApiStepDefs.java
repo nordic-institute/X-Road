@@ -30,14 +30,20 @@ package org.niis.xroad.cs.test.glue;
 import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.cs.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.cs.openapi.model.DistinguishedNameDto;
 import org.niis.xroad.cs.openapi.model.ManagementServicesConfigurationDto;
 import org.niis.xroad.cs.openapi.model.RegisterServiceProviderRequestDto;
 import org.niis.xroad.cs.openapi.model.ServiceProviderIdDto;
 import org.niis.xroad.cs.test.api.FeignManagementServicesApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.nortal.test.asserts.Assertions.equalsAssertion;
+import static java.lang.ClassLoader.getSystemResourceAsStream;
 import static org.springframework.http.HttpStatus.OK;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -47,6 +53,9 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
     private FeignManagementServicesApi managementServicesApi;
 
     private ResponseEntity<ManagementServicesConfigurationDto> response;
+    private ResponseEntity<CertificateDetailsDto> tlsCertificateResponse;
+    private ResponseEntity<Resource> resourceResponse;
+    private ResponseEntity<Void> voidResponse;
 
     @Step("Management services provider id is set to {string}")
     public void updateManagementServicesConfiguration(String serviceProviderId) {
@@ -67,6 +76,65 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
         try {
             response = managementServicesApi.getManagementServicesConfiguration();
             putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("Management service TLS certificate is retrieved")
+    public void getCertificate() {
+        try {
+            tlsCertificateResponse = managementServicesApi.getCertificate();
+            putStepData(StepDataKey.RESPONSE_STATUS, tlsCertificateResponse.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("Management service TLS certificate is downloaded")
+    public void downloadCertificate() {
+        try {
+            resourceResponse = managementServicesApi.downloadCertificate();
+            putStepData(StepDataKey.RESPONSE_STATUS, resourceResponse.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("Management service TLS key and certificate is created")
+    public void generateKeyAndCertificate() {
+        try {
+            voidResponse = managementServicesApi.generateKeyAndCertificate();
+            putStepData(StepDataKey.RESPONSE_STATUS, voidResponse.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("Management service certificate CSR is generated")
+    public void generateCertificateRequest() {
+        var distinguishedName = new DistinguishedNameDto();
+        distinguishedName.setName("CN=cs");
+        try {
+            resourceResponse = managementServicesApi.generateCertificateRequest(distinguishedName);
+            putStepData(StepDataKey.RESPONSE_STATUS, resourceResponse.getStatusCodeValue());
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
+    }
+
+    @Step("Management service TLS certificate is uploaded")
+    public void uploadCertificate() throws Exception {
+        var keyInputStream = getSystemResourceAsStream("container-files/etc/xroad/ssl/management-service-new.crt");
+        MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, keyInputStream.readAllBytes());
+        try {
+            tlsCertificateResponse = managementServicesApi.uploadCertificate(certificate);
+            putStepData(StepDataKey.RESPONSE_STATUS, tlsCertificateResponse.getStatusCodeValue());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());

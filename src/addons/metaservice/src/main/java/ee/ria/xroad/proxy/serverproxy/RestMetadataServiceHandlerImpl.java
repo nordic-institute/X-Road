@@ -56,14 +56,13 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-
-import javax.servlet.http.HttpServletRequest;
+import org.eclipse.jetty.server.Request;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -124,7 +123,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest, ProxyMessage requestProxyMessage,
+    public void startHandling(Request servletRequest, ProxyMessage requestProxyMessage,
                               ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                               HttpClient restClient, HttpClient opMonitorClient,
                               OpMonitoringData opMonitoringData) throws Exception {
@@ -135,7 +134,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 HttpStatus.SC_OK,
                 "OK",
                 requestProxyMessage.getRest().getHeaders(),
-                servletRequest.getHeader(HEADER_REQUEST_ID)
+                servletRequest.getHeaders().get(HEADER_REQUEST_ID)
         );
 
         restResponseBody = new CachingStream();
@@ -175,7 +174,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     private void handleGetOpenApi(ProxyMessage requestProxyMessage) throws IOException,
             HttpClientCreator.HttpClientCreatorException, URISyntaxException {
         List<NameValuePair> pairs = URLEncodedUtils.parse(requestProxyMessage.getRest().getQuery(),
-                Charset.forName("UTF-8"));
+                StandardCharsets.UTF_8);
         String targetServiceCode = null;
         for (NameValuePair pair : pairs) {
             log.trace("{} : {}", pair.getName(), pair.getValue());

@@ -130,7 +130,7 @@ public class GetWSDLMessage extends MessageTestCase {
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public IsAuthentication getIsAuthentication(ClientId client) {
-                return  IsAuthentication.NOSSL;
+                return IsAuthentication.NOSSL;
             }
         });
         setUpDatabase();

@@ -53,6 +53,8 @@ import org.niis.xroad.cs.admin.core.entity.OcspInfoEntity;
 import org.niis.xroad.cs.admin.core.repository.ApprovedCaRepository;
 import org.niis.xroad.cs.admin.core.repository.CaInfoRepository;
 import org.niis.xroad.cs.admin.core.repository.OcspInfoRepository;
+import org.niis.xroad.cs.admin.core.validation.IpAddressValidator;
+import org.niis.xroad.cs.admin.core.validation.UrlValidator;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.security.cert.CertificateEncodingException;
@@ -92,6 +94,8 @@ class CertificationServicesServiceImplTest {
     private static final Instant VALID_TO = TimeUtils.now().plus(1, DAYS);
     private static final String CA_NAME = "X-Road Test CA";
     private static final String CERT_PROFILE = "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider";
+    private static final String ACME_SERVER_DIRECTORY_URL = "http://ca-for-test/acme-server";
+    private static final String ACME_SERVER_IP_ADDRESS = "1:2:3:4:aa:bb:cd:fff";
 
     @Mock
     private ApprovedCaRepository approvedCaRepository;
@@ -110,6 +114,8 @@ class CertificationServicesServiceImplTest {
         CertificateConverter certConverter = new CertificateConverter(new KeyUsageConverter());
         CaInfoConverter caInfoConverter = new CaInfoConverter(certConverter, ocspResponderConverter);
         ApprovedCaConverter approvedCaConverter = new ApprovedCaConverter(ocspResponderConverter, caInfoConverter);
+        UrlValidator urlValidator = new UrlValidator();
+        IpAddressValidator ipAddressValidator = new IpAddressValidator();
 
         service = new CertificationServicesServiceImpl(
                 approvedCaRepository,
@@ -119,7 +125,9 @@ class CertificationServicesServiceImplTest {
                 approvedCaConverter,
                 ocspResponderConverter,
                 caInfoConverter,
-                certConverter);
+                certConverter,
+                urlValidator,
+                ipAddressValidator);
     }
 
 
@@ -146,6 +154,8 @@ class CertificationServicesServiceImplTest {
         assertEquals(CA_NAME, certificationService.getName());
         assertEquals(VALID_FROM, certificationService.getNotBefore());
         assertEquals(VALID_TO, certificationService.getNotAfter());
+        assertEquals(ACME_SERVER_DIRECTORY_URL, certificationService.getAcmeServerDirectoryUrl());
+        assertEquals(ACME_SERVER_IP_ADDRESS, certificationService.getAcmeServerIpAddress());
         assertTrue(certificationService.getTlsAuth());
     }
 
@@ -195,7 +205,8 @@ class CertificationServicesServiceImplTest {
         verify(auditDataHelper).put(CA_ID, mockOcspInfo.getCaInfo().getId());
         verify(auditDataHelper).put(OCSP_ID, mockOcspInfo.getId());
         verify(auditDataHelper).put(OCSP_URL, mockOcspInfo.getUrl());
-        verify(auditDataHelper).put(OCSP_CERT_HASH, "F5:1B:1F:9C:07:23:4C:DA:E6:4C:99:CB:FC:D8:EE:0E:C5:5F:A4:AF");
+        verify(auditDataHelper).put(OCSP_CERT_HASH,
+                "B9:CF:6E:A1:BC:98:24:6B:16:68:24:E3:9A:9F:CD:8E:51:B7:05:37:44:68:D4:96:50:D2:22:85:A7:FA:54:2B");
         verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
@@ -210,7 +221,7 @@ class CertificationServicesServiceImplTest {
 
         final CertificateAuthority certificateAuthority = service.addIntermediateCa(ID, certificateBytes);
 
-        assertEquals("24AFDE09AA818A20D3EE7A4A2264BA247DA5C3F9", certificateAuthority.getCaCertificate().getHash());
+        assertEquals("D8FD191D4155864DE4DB7F8A5E099DAF70E57AF1B62A2A9B3B3B0C2B51788994", certificateAuthority.getCaCertificate().getHash());
 
         ArgumentCaptor<CaInfoEntity> captor = ArgumentCaptor.forClass(CaInfoEntity.class);
         verify(caInfoRepository).save(captor.capture());
@@ -220,7 +231,8 @@ class CertificationServicesServiceImplTest {
 
         verify(auditDataHelper).put(CA_ID, ID);
         verify(auditDataHelper).put(INTERMEDIATE_CA_ID, 0);
-        verify(auditDataHelper).put(INTERMEDIATE_CA_CERT_HASH, "24:AF:DE:09:AA:81:8A:20:D3:EE:7A:4A:22:64:BA:24:7D:A5:C3:F9");
+        verify(auditDataHelper).put(INTERMEDIATE_CA_CERT_HASH,
+                "D8:FD:19:1D:41:55:86:4D:E4:DB:7F:8A:5E:09:9D:AF:70:E5:7A:F1:B6:2A:2A:9B:3B:3B:0C:2B:51:78:89:94");
         verify(auditDataHelper).put(INTERMEDIATE_CA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
@@ -258,6 +270,8 @@ class CertificationServicesServiceImplTest {
         ca.setAuthenticationOnly(true);
         ca.setCertProfileInfo(CERT_PROFILE);
         ca.setCaInfo(caInfo());
+        ca.setAcmeServerDirectoryUrl(ACME_SERVER_DIRECTORY_URL);
+        ca.setAcmeServerIpAddress(ACME_SERVER_IP_ADDRESS);
         ca.setIntermediateCaInfos(Set.of(caInfo(), caInfo()));
         return ca;
     }

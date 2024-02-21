@@ -55,22 +55,22 @@
             <div
               v-if="hasPermissionToDetails"
               class="xrd-clickable"
-              @click="toDetails(item.raw)"
+              @click="toDetails(item)"
             >
-              {{ item.raw.name }}
+              {{ item.name }}
             </div>
             <div v-else>
-              {{ item.raw.name }}
+              {{ item.name }}
             </div>
           </template>
           <template #[`item.not_before`]="{ item }">
             <div>
-              <date-time :value="item.raw.not_before" />
+              <date-time :value="item.not_before" />
             </div>
           </template>
           <template #[`item.not_after`]="{ item }">
             <div>
-              <date-time :value="item.raw.not_after" />
+              <date-time :value="item.not_after" />
             </div>
           </template>
 
@@ -86,7 +86,7 @@
     <!-- Dialogs -->
     <add-certification-service-dialog
       v-if="showAddCSDialog"
-      @add="addCertificationService"
+      @save="hideAddCSDialog"
       @cancel="hideAddCSDialog"
     />
   </div>
@@ -95,17 +95,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import AddCertificationServiceDialog from '@/components/certificationServices/AddCertificationServiceDialog.vue';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { useUser } from '@/store/modules/user';
 import { Permissions, RouteName } from '@/global';
-import {
-  ApprovedCertificationService,
-  ApprovedCertificationServiceListItem,
-  CertificationServiceFileAndSettings,
-} from '@/openapi-types';
+import { ApprovedCertificationServiceListItem } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import { DataTableHeader } from '@/ui-types';
@@ -120,7 +115,6 @@ export default defineComponent({
     DateTime,
     AddCertificationServiceDialog,
     TimestampingServicesList,
-    VDataTable,
   },
   data() {
     return {
@@ -181,24 +175,13 @@ export default defineComponent({
     hideAddCSDialog(): void {
       this.showAddCSDialog = false;
     },
-    toDetails(certificationService: ApprovedCertificationService): void {
+    toDetails(
+      certificationService: ApprovedCertificationServiceListItem,
+    ): void {
       this.$router.push({
         name: RouteName.CertificationServiceDetails,
         params: { certificationServiceId: String(certificationService.id) },
       });
-    },
-    addCertificationService(
-      addCertificationService: CertificationServiceFileAndSettings,
-    ): void {
-      this.certificationServiceStore
-        .add(addCertificationService)
-        .then(() => {
-          this.showSuccess(this.$t('trustServices.certImportedSuccessfully'));
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => this.hideAddCSDialog());
     },
   },
 });

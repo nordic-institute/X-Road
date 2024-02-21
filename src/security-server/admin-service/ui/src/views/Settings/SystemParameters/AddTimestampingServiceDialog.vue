@@ -30,20 +30,22 @@
     persistent
     data-test="system-parameters-add-timestamping-service-dialog"
   >
-    <template #activator="{ on: { click } }">
+    <template #activator="{ props }">
       <xrd-button
         data-test="system-parameters-timestamping-services-add-button"
         outlined
         :disabled="selectableTimestampingServices.length === 0"
-        @click="click"
+        v-bind="props"
       >
-        <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add />
+        </xrd-icon-base>
         {{ $t('systemParameters.timestampingServices.action.add.button') }}
       </xrd-button>
     </template>
     <v-card class="xrd-card">
       <v-card-title>
-        <span data-test="dialog-title" class="headline">{{
+        <span data-test="dialog-title" class="text-h5">{{
           $t('systemParameters.timestampingServices.action.add.dialog.title')
         }}</span>
       </v-card-title>
@@ -93,31 +95,33 @@
           :disabled="selectedTimestampingService === undefined"
           @click="add"
         >
-          <v-icon class="xrd-large-button-icon">icon-Add</v-icon
-          >{{ $t('action.add') }}</xrd-button
-        >
+          <xrd-icon-base class="xrd-large-button-icon">
+            <xrd-icon-add />
+          </xrd-icon-base>
+          {{ $t('action.add') }}
+        </xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent, PropType } from 'vue';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
-import { Prop } from 'vue/types/options';
 import { TimestampingService } from '@/openapi-types';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
-export default Vue.extend({
+export default defineComponent({
   name: 'AddTimestampingServiceDialog',
   props: {
     configuredTimestampingServices: {
-      type: Array as Prop<TimestampingService[]>,
+      type: Array as PropType<TimestampingService[]>,
       required: true,
     },
   },
+  emits: ['added'],
   data() {
     return {
       loading: false,
@@ -180,7 +184,7 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '~styles/colors';
+@import '@/assets/colors';
 .option-row {
   border-bottom: solid 1px $XRoad-WarmGrey30;
 }

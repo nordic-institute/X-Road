@@ -62,6 +62,9 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLED;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
+import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
@@ -73,6 +76,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.INSTANCE_FI;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.MEMBER_CLASS_GOV;
 
 /**
  * test client service
@@ -89,56 +94,42 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     private byte[] derBytes;
     private byte[] sqlFileBytes;
 
-    private ClientId.Conf existingSavedClientId = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
-    private ClientId.Conf existingRegisteredClientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
-    private ClientId.Conf ownerClientId = ClientId.Conf.create("FI", "GOV", "M1", null);
-    private ClientId.Conf newOwnerClientId = ClientId.Conf.create("FI", "GOV", "M2", null);
-
-    private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
-            TestUtils.MEMBER_CLASS_PRO);
+    private final ClientId.Conf existingSavedClientId = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
+    private final ClientId.Conf existingRegisteredClientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
+    private final ClientId.Conf ownerClientId = ClientId.Conf.create("FI", "GOV", "M1", null);
+    private final ClientId.Conf newOwnerClientId = ClientId.Conf.create("FI", "GOV", "M2", null);
+    private static final ClientId MEMBER_FI_GOV_M3 = TestUtils.getClientId("FI:GOV:M3");
+    private static final ClientId SUBSYSTEM_FI_GOV_M3_SS_NEW = TestUtils.getClientId("FI:GOV:M3:SS-NEW");
+    private static final List<String> MEMBER_CLASSES = List.of(MEMBER_CLASS_GOV, TestUtils.MEMBER_CLASS_PRO);
 
     @Before
     public void setup() throws Exception {
-        List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
+        List<MemberInfo> globalMemberInfos = new ArrayList<>(List.of(
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM2),
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM2),
                 // exists in serverconf
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3,
-                        TestUtils.SUBSYSTEM1),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
-                        TestUtils.SUBSYSTEM3),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1,
-                        TestUtils.SUBSYSTEM1),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2,
-                        null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3,
-                        null)));
-        when(globalConfFacade.getMembers(any())).thenReturn(globalMemberInfos);
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3, TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M3, null),
+                TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, TestUtils.SUBSYSTEM3),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, null),
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null)));
+        when(globalConfFacade.getMembers()).thenReturn(globalMemberInfos);
         when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
-            Optional<MemberInfo> m = globalMemberInfos.stream()
+            return globalMemberInfos.stream()
                     .filter(g -> g.getId().equals(clientId))
-                    .findFirst();
-            if (m.isPresent()) {
-                return m.get().getName();
-            } else {
-                return null;
-            }
+                    .findFirst()
+                    .map(MemberInfo::getName)
+                    .orElse(null);
         });
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
+        when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE_FI);
         when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
         when(globalConfFacade.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
             // mock isSecurityServerClient: it is a client, if it exists in DB / getAllLocalClients
@@ -254,6 +245,10 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         return JdbcTestUtils.countRowsInTable(jdbcTemplate, "identifier");
     }
 
+    private int countClientIdentifiers() {
+        return JdbcTestUtils.countRowsInTableWhere(jdbcTemplate, "identifier", "type IN ('MEMBER', 'SUBSYSTEM')");
+    }
+
     private long countMembers() {
         return countByType(false);
     }
@@ -305,7 +300,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         clientService.deleteLocalClient(subsystemId);
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems, countSubsystems());
-        assertEquals(startIdentifiers + 2, countIdentifiers());
+        assertEquals(startIdentifiers + 1, countIdentifiers());
         assertNull(clientService.getLocalClient(memberId));
         assertNull(clientService.getLocalClient(subsystemId));
 
@@ -338,70 +333,143 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         clientService.deleteLocalClient(clientId);
     }
 
-    /**
-     * Change status to SAVED and then delete
-     */
-    private void forceDelete(ClientId clientId) throws ActionNotPossibleException,
-            ClientService.CannotDeleteOwnerException, ClientNotFoundException {
-        ClientType client = clientService.getLocalClient(clientId);
-        client.setClientStatus(STATUS_SAVED);
-        clientService.deleteLocalClient(clientId);
+    @Test
+    public void deleteLocalClientWithStatusSavedIsPossible() throws Exception {
+        String status = STATUS_SAVED;
+        var startMembers = countMembers();
+        var startSubsystems = countSubsystems();
+        var startIdentifiers = countClientIdentifiers();
+
+        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+
+        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
     }
 
     @Test
-    public void deleteLocalClientNotPossible() throws Exception {
-        long startMembers = countMembers();
-        long startSubsystems = countSubsystems();
-        int startIdentifiers = countIdentifiers();
+    public void deleteLocalClientWithStatusDeleteInProgressIsPossible() throws Exception {
+        String status = STATUS_DELINPROG;
+        var startMembers = countMembers();
+        var startSubsystems = countSubsystems();
+        var startIdentifiers = countClientIdentifiers();
 
-        // test cases where we delete is not possible due to client status
-        /**
-         * clients_controller.rb:
-         *       :delete_enabled =>
-         *         [ClientType::STATUS_SAVED,
-         *          ClientType::STATUS_DELINPROG,
-         *          ClientType::STATUS_GLOBALERR].include?(client.clientStatus),
-         */
-        // -> delete not possible with statuses STATUS_REGINPROG and STATUS_REGISTERED
+        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
 
-        // iterate all client statuses and test create + delete
-        List<String> allStatuses = Arrays.asList(STATUS_SAVED, STATUS_REGINPROG, STATUS_REGISTERED,
-                STATUS_DELINPROG, STATUS_GLOBALERR);
-        int created = 0;
-        for (String status : allStatuses) {
-            created++;
-            ClientId memberId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status);
-            ClientId subsystemId = TestUtils.getClientId("FI:GOV:UNREGISTERED-NEW-MEMBER" + status
-                    + ":NEW-SUBSYSTEM");
+        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
+    }
 
-            if (status.equals(STATUS_REGISTERED) || status.equals(STATUS_REGINPROG)) {
-                // delete is not possible
-                try {
-                    addAndDeleteLocalClient(memberId, status);
-                    fail("delete should not be been possible");
-                } catch (ActionNotPossibleException expected) {
-                }
-                try {
-                    addAndDeleteLocalClient(subsystemId, status);
-                    fail("delete should not be been possible");
-                } catch (ActionNotPossibleException expected) {
-                }
-                assertNotNull(clientService.getLocalClient(memberId));
-                assertNotNull(clientService.getLocalClient(subsystemId));
-                // clean up so that we can continue adding members
-                forceDelete(memberId);
-                forceDelete(subsystemId);
-            } else {
-                // delete is possible
-                addAndDeleteLocalClient(memberId, status);
-                addAndDeleteLocalClient(subsystemId, status);
-                assertNull(clientService.getLocalClient(memberId));
-                assertNull(clientService.getLocalClient(subsystemId));
-            }
-            assertEquals(startMembers, countMembers());
-            assertEquals(startSubsystems, countSubsystems());
-            assertEquals(startIdentifiers + (created * 2), countIdentifiers());
+    @Test
+    public void deleteLocalClientWithStatusGlobalErrorIsPossible() throws Exception {
+        String status = STATUS_GLOBALERR;
+        var startMembers = countMembers();
+        var startSubsystems = countSubsystems();
+        var startIdentifiers = countClientIdentifiers();
+
+        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+
+        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
+    }
+
+    @Test
+    public void deleteLocalClientWithStatusDisabledIsPossible() throws Exception {
+        String status = STATUS_DISABLED;
+        var startMembers = countMembers();
+        var startSubsystems = countSubsystems();
+        var startIdentifiers = countClientIdentifiers();
+
+        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+
+        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
+    }
+
+    @Test
+    public void deleteLocalClientWithStatusDisablingInProgressIsPossible() throws Exception {
+        String status = STATUS_DISABLING_INPROG;
+        var startMembers = countMembers();
+        var startSubsystems = countSubsystems();
+        var startIdentifiers = countClientIdentifiers();
+
+        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+
+        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
+    }
+
+    private void assertAfterDelete(long startMembers, long startSubsystems, long startIdentifiers) {
+        assertNull(clientService.getLocalClient(MEMBER_FI_GOV_M3));
+        assertNull(clientService.getLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW));
+
+        assertEquals(startMembers, countMembers());
+        assertEquals(startSubsystems, countSubsystems());
+        assertEquals(startIdentifiers, countClientIdentifiers());
+    }
+
+    @Test
+    public void deleteLocalClientWithStatusRegisteringInProgressIsNotPossible() throws Exception {
+        String status = STATUS_REGINPROG;
+        var startMembers = countMembers();
+        var startSubsystems = countSubsystems();
+        var startIdentifiers = countClientIdentifiers();
+
+        try {
+            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        } catch (ActionNotPossibleException expected) {
         }
+        try {
+            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+
+        assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
+    }
+
+    @Test
+    public void deleteLocalClientWithStatusRegisteredIsNotPossible() throws Exception {
+        String status = STATUS_REGISTERED;
+        var startMembers = countMembers();
+        var startSubsystems = countSubsystems();
+        var startIdentifiers = countClientIdentifiers();
+
+        try {
+            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+        try {
+            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+
+        assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
+    }
+
+    @Test
+    public void deleteLocalClientWithStatusEnablingInProgressIsNotPossible() throws Exception {
+        String status = STATUS_ENABLING_INPROG;
+        var startMembers = countMembers();
+        var startSubsystems = countSubsystems();
+        var startIdentifiers = countClientIdentifiers();
+
+        try {
+            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+        try {
+            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+
+        assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
+    }
+
+    private void assertAfterCouldNotDelete(long startMembers, long startSubsystems, long startIdentifiers) {
+        assertNotNull(clientService.getLocalClient(MEMBER_FI_GOV_M3));
+        assertNotNull(clientService.getLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW));
+        assertEquals(startMembers + 1, countMembers());
+        assertEquals(startSubsystems + 1, countSubsystems());
+        assertEquals(startIdentifiers + 2, countClientIdentifiers());
     }
 
     @Test(expected = ClientService.CannotDeleteOwnerException.class)
@@ -424,7 +492,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertEquals(startMembers, countMembers());
         assertEquals(startSubsystems + 1, countSubsystems());
         assertEquals(startIdentifiers + 1, countIdentifiers());
-        assertEquals(TestUtils.INSTANCE_FI, added.getIdentifier().getXRoadInstance());
+        assertEquals(INSTANCE_FI, added.getIdentifier().getXRoadInstance());
         assertEquals(STATUS_SAVED, added.getClientStatus());
 
         // add global subsystem: add FI:GOV:M3:SS1, which exists in global conf but not serverconf
@@ -790,8 +858,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findClientsWithOnlyLocallyMissingClients() {
         var searchParams = ClientService.SearchParameters.builder()
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
-                .instance(TestUtils.INSTANCE_FI)
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .instance(INSTANCE_FI)
+                .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(false)
                 .internalSearch(false)
                 .excludeLocal(true)
@@ -814,7 +882,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findLocalClientsByInstanceIncludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .instance(TestUtils.INSTANCE_FI)
+                .instance(INSTANCE_FI)
                 .showMembers(true)
                 .hasValidLocalSignCert(false).build();
         List<ClientType> clients = clientService.findLocalClients(searchParams);
@@ -824,7 +892,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findLocalClientsByClassIncludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(true)
                 .hasValidLocalSignCert(false).build();
         List<ClientType> clients = clientService.findLocalClients(searchParams);
@@ -834,7 +902,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findLocalClientsByInstanceAndMemberCodeIncludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .instance(TestUtils.INSTANCE_FI)
+                .instance(INSTANCE_FI)
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .showMembers(true)
                 .hasValidLocalSignCert(false).build();
@@ -846,8 +914,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findLocalClientsByAllTermsIncludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
-                .instance(TestUtils.INSTANCE_FI)
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .instance(INSTANCE_FI)
+                .memberClass(MEMBER_CLASS_GOV)
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .subsystemCode(TestUtils.SUBSYSTEM1)
                 .showMembers(true)
@@ -869,7 +937,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findLocalClientsByInstanceExcludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .instance(TestUtils.INSTANCE_FI)
+                .instance(INSTANCE_FI)
                 .showMembers(false)
                 .hasValidLocalSignCert(false).build();
         List<ClientType> clients = clientService.findLocalClients(searchParams);
@@ -879,7 +947,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findLocalClientsByClassExcludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(false)
                 .hasValidLocalSignCert(false).build();
         List<ClientType> clients = clientService.findLocalClients(searchParams);
@@ -889,7 +957,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findLocalClientsByInstanceAndMemberCodeExcludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .instance(TestUtils.INSTANCE_FI)
+                .instance(INSTANCE_FI)
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .showMembers(false)
                 .hasValidLocalSignCert(false).build();
@@ -901,8 +969,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findLocalClientsByAllTermsExcludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
-                .instance(TestUtils.INSTANCE_FI)
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .instance(INSTANCE_FI)
+                .memberClass(MEMBER_CLASS_GOV)
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .subsystemCode(TestUtils.SUBSYSTEM1)
                 .showMembers(false)
@@ -1041,7 +1109,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
      * @return matching clientIds
      */
     private SortedSet<ClientId> findClientIds(Boolean hasValidLocalSignCert,
-            boolean excludeLocal, boolean internalSearch) {
+                                              boolean excludeLocal, boolean internalSearch) {
         var searchParams = ClientService.SearchParameters.builder()
                 .excludeLocal(excludeLocal)
                 .internalSearch(internalSearch)
@@ -1086,7 +1154,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findGlobalClientsByClassIncludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(true)
                 .build();
         List<ClientType> clients = clientService.findGlobalClients(searchParams);
@@ -1096,7 +1164,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeIncludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .instance(TestUtils.INSTANCE_FI)
+                .instance(INSTANCE_FI)
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .showMembers(true)
                 .build();
@@ -1108,8 +1176,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findGlobalClientsByAllTermsIncludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
-                .instance(TestUtils.INSTANCE_FI)
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .instance(INSTANCE_FI)
+                .memberClass(MEMBER_CLASS_GOV)
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .subsystemCode(TestUtils.SUBSYSTEM1)
                 .showMembers(true)
@@ -1141,7 +1209,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findGlobalClientsByClassExcludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .memberClass(MEMBER_CLASS_GOV)
                 .showMembers(false)
                 .build();
         List<ClientType> clients = clientService.findGlobalClients(searchParams);
@@ -1151,7 +1219,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeExcludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
-                .instance(TestUtils.INSTANCE_FI)
+                .instance(INSTANCE_FI)
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .showMembers(false)
                 .build();
@@ -1163,8 +1231,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findGlobalClientsByAllTermsExcludeMembers() {
         var searchParams = ClientService.SearchParameters.builder()
                 .name(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1)
-                .instance(TestUtils.INSTANCE_FI)
-                .memberClass(TestUtils.MEMBER_CLASS_GOV)
+                .instance(INSTANCE_FI)
+                .memberClass(MEMBER_CLASS_GOV)
                 .memberCode(TestUtils.MEMBER_CODE_M1)
                 .subsystemCode(TestUtils.SUBSYSTEM1)
                 .showMembers(false)
@@ -1176,10 +1244,10 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void getLocalClientMemberIds() {
         Set<ClientId> expected = new HashSet();
-        expected.add(ClientId.Conf.create(TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1));
-        expected.add(ClientId.Conf.create(TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2));
+        expected.add(ClientId.Conf.create(INSTANCE_FI,
+                MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1));
+        expected.add(ClientId.Conf.create(INSTANCE_FI,
+                MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2));
         expected.add(ClientId.Conf.create("DUMMY", "PRO", "M2"));
         expected.add(ClientId.Conf.create("FI", "DUMMY", "M2"));
         Set<ClientId> result = clientService.getLocalClientMemberIds();

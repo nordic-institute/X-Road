@@ -45,8 +45,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 public class SslAuthTrustManagerError extends IsolatedSslMessageTestCase {
 
     /**
-    * Constructs the test case.
-    */
+     * Constructs the test case.
+     */
     public SslAuthTrustManagerError() {
         requestFileName = "getstate.query";
         responseFile = "getstate.answer";

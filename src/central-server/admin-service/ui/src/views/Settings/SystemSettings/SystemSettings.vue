@@ -88,7 +88,7 @@
     v-if="showEditServerAddressDialog"
     :service-address="serverAddress || ''"
     @cancel="showEditServerAddressDialog = false"
-    @edit="refreshData"
+    @save="refreshData"
   />
   <!-- Management Services -->
 </template>
@@ -96,7 +96,7 @@
 <script lang="ts">
 import { useManagementServices } from '@/store/modules/management-services';
 import { useSystem } from '@/store/modules/system';
-import ManagementServices from '@/components/systemSettings/ManagementServices.vue';
+import ManagementServices from '@/components/systemSettings/managementServices/ManagementServices.vue';
 import MemberClasses from '@/components/systemSettings/MemberClasses.vue';
 import EditServerAddressDialog from '@/components/systemSettings/EditServerAddressDialog.vue';
 import { mapActions, mapState } from 'pinia';
@@ -147,7 +147,11 @@ export default defineComponent({
     refreshData() {
       this.showEditServerAddressDialog = false;
       this.fetchSystemStatus();
-      this.$refs.managementServices.fetchManagementServicesConfiguration();
+      (
+        this.$refs.managementServices as {
+          fetchManagementServicesConfiguration: () => void;
+        }
+      ).fetchManagementServicesConfiguration();
     },
   },
 });

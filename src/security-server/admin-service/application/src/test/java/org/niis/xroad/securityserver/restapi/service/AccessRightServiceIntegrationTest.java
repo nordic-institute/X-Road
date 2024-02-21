@@ -76,16 +76,12 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
     @Autowired
     EndpointService endpointService;
 
-    private List<MemberInfo> memberInfos = new ArrayList<>(Arrays.asList(
+    private List<MemberInfo> memberInfos = new ArrayList<>(List.of(
             TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, null),
-            TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    TestUtils.SUBSYSTEM1),
-            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    TestUtils.SUBSYSTEM1),
-            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    TestUtils.SUBSYSTEM2),
-            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
-                    "SS5")
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM2),
+            TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, "SS5")
     ));
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE),
@@ -100,7 +96,8 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         when(globalConfFacade.getMembers()).thenReturn(memberInfos);
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
-        when(globalConfFacade.getGlobalGroups(any())).thenAnswer(invocation -> {
+        when(globalConfFacade.getGlobalGroups()).thenReturn(globalGroupInfos);
+        when(globalConfFacade.getGlobalGroups(any(String[].class))).thenAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             if (args.length == 0) {
                 return globalGroupInfos;
@@ -244,6 +241,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         } catch (AccessRightService.AccessRightNotFoundException expected) {
         }
     }
+
     @Test
     public void removeObsoleteSoapServiceAccessRights() throws Exception {
         ClientId.Conf serviceOwner = TestUtils.getM1Ss1ClientId();
@@ -574,7 +572,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
 
         // should have 3 subjects with 3 identical access rights each
         assertEquals(3, dtosById.size());
-        for (XRoadId subjectId: dtosById.keySet()) {
+        for (XRoadId subjectId : dtosById.keySet()) {
             List<ServiceClientAccessRightDto> accessRights = dtosById.get(subjectId);
             assertNotNull(accessRights);
             assertEquals(3, accessRights.size());
@@ -589,7 +587,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
     }
 
     private ServiceClientAccessRightDto findServiceClientAccessRightDto(String serviceCode,
-            List<ServiceClientAccessRightDto> accessRights) {
+                                                                        List<ServiceClientAccessRightDto> accessRights) {
         return accessRights.stream()
                 .filter(dto -> dto.getServiceCode().equals(serviceCode))
                 .findFirst()

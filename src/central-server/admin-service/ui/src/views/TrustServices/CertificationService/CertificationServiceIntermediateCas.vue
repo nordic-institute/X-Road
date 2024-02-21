@@ -27,6 +27,7 @@
 <template>
   <main id="certification-service-indermediate-cas" class="mt-8">
     <intermediate-cas-list
+      v-if="certificationServiceStore.currentCertificationService"
       :cs="certificationServiceStore.currentCertificationService"
     />
   </main>

@@ -128,7 +128,7 @@ final class OpMonitorDaemon implements StartStop {
 
     @SneakyThrows
     private static ServerConnector createDaemonSslConnector(Server server) {
-        SslContextFactory cf = new SslContextFactory(false);
+        var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
@@ -136,11 +136,10 @@ final class OpMonitorDaemon implements StartStop {
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {new OpMonitorSslKeyManager()}, new TrustManager[] {new OpMonitorSslTrustManager()},
+        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()}, new TrustManager[]{new OpMonitorSslTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
-
         return new ServerConnector(server, cf);
     }
 

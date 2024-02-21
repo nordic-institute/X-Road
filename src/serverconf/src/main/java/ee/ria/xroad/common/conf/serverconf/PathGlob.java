@@ -90,7 +90,7 @@ public final class PathGlob {
                     final int lookup = cursor.peek();
                     if (lookup == '*' || lookup == '\\') {
                         b.append('\\');
-                        b.append((char)lookup);
+                        b.append((char) lookup);
                         cursor.skip();
                     } else {
                         b.append("\\\\");

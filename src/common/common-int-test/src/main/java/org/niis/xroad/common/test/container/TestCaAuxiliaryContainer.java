@@ -40,6 +40,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.testcontainers.containers.GenericContainer;
 
+import java.util.Objects;
 import java.util.concurrent.Future;
 
 
@@ -64,7 +65,8 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
     public TestCaContainer configure() {
         return new TestCaContainer(imageDefinition())
                 .withExposedPorts(8899, 8888, 8889)
-                .withNetworkAliases(NETWORK_ALIAS);
+                .withNetworkAliases(NETWORK_ALIAS)
+                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(64 * 1024 * 1024L));
     }
 
     @SneakyThrows

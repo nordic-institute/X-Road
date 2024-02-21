@@ -105,7 +105,7 @@ public class CertificateAuthorityService {
      */
     @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
     public List<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo,
-            boolean includeIntermediateCas) throws InconsistentCaDataException {
+                                                         boolean includeIntermediateCas) throws InconsistentCaDataException {
 
         log.debug("getCertificateAuthorities");
         List<X509Certificate> caCerts = new ArrayList<>(globalConfService.getAllCaCertsForThisInstance());
@@ -125,7 +125,7 @@ public class CertificateAuthorityService {
 
         String[] base64EncodedOcspResponses;
         try {
-            String[] certHashes = CertUtils.getCertHashes(new ArrayList<>(filteredCerts));
+            String[] certHashes = CertUtils.getSha1Hashes(new ArrayList<>(filteredCerts));
             base64EncodedOcspResponses = signerProxyFacade.getOcspResponses(certHashes);
         } catch (Exception e) {
             throw new InconsistentCaDataException("failed to get read CA OCSP responses", e);
@@ -219,7 +219,7 @@ public class CertificateAuthorityService {
      * Build path from topmost CA down to this CA using subject-issuer relationships
      */
     List<String> buildPath(X509Certificate certificate,
-            Map<String, String> subjectsToIssuers) {
+                           Map<String, String> subjectsToIssuers) {
         ArrayList<String> pathElements = new ArrayList<>();
         String current = certificate.getSubjectDN().getName();
         String issuer = certificate.getIssuerDN().getName();
@@ -244,7 +244,7 @@ public class CertificateAuthorityService {
      * @throws ClientNotFoundException if client with memberId was not found
      */
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId,
-            boolean isNewMember)
+                                                        boolean isNewMember)
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
             WrongKeyUsageException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthorityInfo(caName);
@@ -304,9 +304,11 @@ public class CertificateAuthorityService {
         public InconsistentCaDataException(String s, Throwable t) {
             super(s, t, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
         }
+
         public InconsistentCaDataException(String s) {
             super(s, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
         }
+
         public InconsistentCaDataException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
         }

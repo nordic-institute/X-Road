@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.datasource.JdbcTransactionObjectSupport;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -33,8 +34,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.TransactionDefinition;
-
-import javax.persistence.EntityManagerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -57,7 +56,7 @@ public class UsernameSettingTransactionManager extends JpaTransactionManager {
     @Override
     protected void doBegin(Object transaction, TransactionDefinition definition) {
         super.doBegin(transaction, definition);
-        try (PreparedStatement stmt = ((JdbcTransactionObjectSupport)transaction).getConnectionHolder().getConnection()
+        try (PreparedStatement stmt = ((JdbcTransactionObjectSupport) transaction).getConnectionHolder().getConnection()
                 .prepareStatement("SELECT set_config('xroad.user_name', ?, true)")) {
             stmt.setString(1, getCurrentUsername());
             stmt.execute();

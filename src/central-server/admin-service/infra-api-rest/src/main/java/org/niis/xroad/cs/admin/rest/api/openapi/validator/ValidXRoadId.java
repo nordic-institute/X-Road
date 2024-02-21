@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.cs.admin.rest.api.openapi.validator;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -42,6 +42,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = XRoadIdValidator.class)
 public @interface ValidXRoadId {
     String message() default "Invalid X-Road identifier";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

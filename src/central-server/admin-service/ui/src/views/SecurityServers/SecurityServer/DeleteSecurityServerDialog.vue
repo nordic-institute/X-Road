@@ -32,7 +32,7 @@
     title="securityServers.dialogs.deleteAddress.title"
     data-test="security-server-delete-dialog"
     save-button-text="action.delete"
-    :dialog="showDialog"
+    submittable
     :scrollable="false"
     :show-close="true"
     :loading="loading"
@@ -52,87 +52,73 @@
     </template>
     <template #content>
       <v-text-field
-        v-model="value"
+        v-model="enteredCode"
+        v-bind="enteredCodeAttrs"
         name="serverCode"
         variant="outlined"
         :label="$t('securityServers.dialogs.deleteAddress.enterCode')"
         autofocus
         data-test="verify-server-code"
-        :error-messages="errors"
       />
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
-import { useField } from 'vee-validate';
-import { mapActions, mapStores } from 'pinia';
+import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
+import { i18n } from '@/plugins/i18n';
 
 /**
  * Component for a Security server details view
  */
-export default defineComponent({
-  props: {
-    securityServerId: {
-      type: String,
-      default: '',
-    },
-    serverCode: {
-      type: String,
-      default: '',
-    },
+
+const props = defineProps({
+  securityServerId: {
+    type: String,
+    default: '',
   },
-  setup(props) {
-    const { value, meta, errors, resetField } = useField(
-      'serverCode',
-      {
-        required: true,
-        is: props.serverCode,
-      },
-      { initialValue: '' },
-    );
-    return { value, meta, errors, resetField };
+  serverCode: {
+    type: String,
+    default: '',
   },
-  data() {
-    return {
-      loading: false,
-      showDialog: false,
-    };
+});
+
+const emits = defineEmits(['cancel']);
+
+const { meta, handleSubmit, defineField } = useForm({
+  validationSchema: {
+    serverCode: 'required|is:' + props.serverCode,
   },
-  computed: {
-    ...mapStores(useSecurityServer),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    open(): void {
-      this.showDialog = true;
-    },
-    close(): void {
-      this.resetField();
-      this.showDialog = false;
-    },
-    deleteSecurityServer: async function () {
-      try {
-        this.loading = true;
-        await this.securityServerStore.delete(this.securityServerId);
-        this.showSuccess(
-          this.$t('securityServers.dialogs.deleteAddress.success'),
-          true,
-        );
-        this.$router.replace({
-          name: RouteName.SecurityServers,
-        });
-      } catch (error: unknown) {
-        this.showError(error);
-      } finally {
-        this.loading = false;
-      }
-    },
-  },
+});
+const [enteredCode, enteredCodeAttrs] = defineField('serverCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+const { delete: deleteSS } = useSecurityServer();
+const { showError, showSuccess } = useNotifications();
+
+function close() {
+  emits('cancel');
+}
+
+const loading = ref(false);
+const { t } = i18n.global;
+const router = useRouter();
+const deleteSecurityServer = handleSubmit(() => {
+  loading.value = true;
+  deleteSS(props.securityServerId)
+    .then(() => {
+      showSuccess(t('securityServers.dialogs.deleteAddress.success'), true);
+      router.replace({
+        name: RouteName.SecurityServers,
+      });
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
 });
 </script>
 

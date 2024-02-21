@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.test.ui.glue;
 
-import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.OcspRespondersPageObj;
 import org.niis.xroad.cs.test.ui.page.TrustServicesPageObj;
@@ -35,9 +34,11 @@ import org.niis.xroad.cs.test.ui.utils.CertificateUtils;
 
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.niis.xroad.cs.test.ui.constants.Constants.CN_SUBJECT_PREFIX;
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
 
 public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     private final TrustServicesPageObj trustServicesPageObj = new TrustServicesPageObj();
@@ -48,11 +49,24 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         trustServicesPageObj.certServiceDetails.tabOcspResponders().scrollIntoView(false).click();
     }
 
-    @Step("OCSP responder with URL {} is added")
-    public void newOcspResponderIsAdded(String url) throws Exception {
+    @Step("OCSP responder with URL {string} is added")
+    public void newOcspResponderIsAdded(String url) {
         ocspRespondersPageObj.btnAddOcspResponder().click();
-        commonPageObj.dialog.btnCancel().should(Condition.enabled);
-        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
+        commonPageObj.dialog.btnCancel().should(enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(enabled);
+
+        vTextField(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl()).setValue(url);
+        commonPageObj.dialog.btnSave().click();
+
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("OCSP responder with URL {string} and random cert is added")
+    public void newOcspResponderWithCertIsAdded(String url) throws Exception {
+        ocspRespondersPageObj.btnAddOcspResponder().click();
+        commonPageObj.dialog.btnCancel().should(enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(enabled);
 
         final byte[] certificate = CertificateUtils.generateAuthCert(CN_SUBJECT_PREFIX + url);
 
@@ -67,7 +81,7 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
 
     @Step("OCSP responder table is visible")
     public void ocspResponderTableIsVisible() {
-        ocspRespondersPageObj.table().shouldBe(Condition.enabled);
+        ocspRespondersPageObj.table().shouldBe(enabled);
     }
 
     @Step("OCSP responder with URL {} is visible in the OCSP responders list")
@@ -103,6 +117,12 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
         ocspRespondersPageObj.certificateView.certificateDetails().shouldBe(visible);
     }
 
+    @Step("view certificate of OCSP responder with URL {} button is missing")
+    public void viewCertButtonMissing(String url) {
+        ocspRespondersPageObj.btnViewOcspResponder(url).shouldNotBe(visible);
+        ocspRespondersPageObj.certificateView.certificateDetails().shouldBe(visible);
+    }
+
     @Step("User is able click Edit button in OCSP responder with URL {}")
     public void userIsAbleToEditOcspResponder(String url) {
         ocspRespondersPageObj.btnEditOcspResponder(url).click();
@@ -110,13 +130,13 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
 
     @Step("User is able change the URL to new URL {}")
     public void userIsAbleEditTheUrl(String newUrl) {
-        commonPageObj.dialog.btnCancel().should(Condition.enabled);
-        commonPageObj.dialog.btnSave().should(Condition.enabled);
+        commonPageObj.dialog.btnCancel().should(enabled);
+        commonPageObj.dialog.btnSave().should(disabled);
 
         vTextField(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl())
                 .clear();
 
-        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(enabled);
 
         vTextField(ocspRespondersPageObj.addEditDialog.inputOcspResponderUrl())
                 .setValue(newUrl);
@@ -149,8 +169,8 @@ public class TrustServicesOcspRespondersStepDefs extends BaseUiStepDefs {
     public void userIsAbleToDeleteOcspResponder(String url) {
         ocspRespondersPageObj.btnDeleteOcspResponder(url).click();
 
-        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
-        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+        commonPageObj.dialog.btnCancel().shouldBe(enabled);
+        commonPageObj.dialog.btnSave().shouldBe(enabled).click();
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();

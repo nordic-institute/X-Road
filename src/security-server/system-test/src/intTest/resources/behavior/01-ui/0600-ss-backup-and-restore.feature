@@ -31,8 +31,22 @@ Feature: 0600 - SS: Backup and Restore
     Then Configuration backup count is equal to 1
 
   Scenario: Configuration can be restored from backup
-    Given Configuration backup count is equal to 1
+    Given Clients tab is selected
+    And Client "random-sub-1" with status "SAVED" is present in the list
+    And Client "random-sub-2" with status "SAVED" is missing in the list
+    When Subsystem add page is opened for Client "TestGov"
+    And Subsystem code is set to "random-sub-2"
+    When Add subsystem form is submitted
+    And Register client send registration request dialog is confirmed
+    And snackbar is closed
+    Then Client "random-sub-2" with status "SAVED" is present in the list
+    When Settings tab is selected
+    And Backup and Restore sub-tab is selected
+    And Configuration backup count is equal to 1
     Then Configuration can be successfully restored from backup
+    When Clients tab is selected
+    Then Client "random-sub-1" with status "SAVED" is present in the list
+    Then Client "random-sub-2" with status "SAVED" is missing in the list
 
   Scenario: Configuration backups can be filtered
     Given Configuration backup count is equal to 1

@@ -38,9 +38,8 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -55,18 +54,19 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 public abstract class MessageProcessorBase {
 
     /** The servlet request. */
-    protected final HttpServletRequest servletRequest;
+    protected final Request jRequest;
 
     /** The servlet response. */
-    protected final HttpServletResponse servletResponse;
+    protected final Response jResponse;
 
     /** The http client instance. */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(HttpServletRequest servletRequest,
-            HttpServletResponse servletResponse, HttpClient httpClient) {
-        this.servletRequest = servletRequest;
-        this.servletResponse = servletResponse;
+    protected MessageProcessorBase(Request request,
+                                   Response response,
+                                   HttpClient httpClient) {
+        this.jRequest = request;
+        this.jResponse = response;
         this.httpClient = httpClient;
 
         GlobalConf.verifyValidity();

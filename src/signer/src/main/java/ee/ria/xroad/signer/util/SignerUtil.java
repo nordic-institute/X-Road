@@ -29,18 +29,20 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.xml.bind.DatatypeConverter;
 import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 
-import javax.xml.bind.DatatypeConverter;
-
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
@@ -54,7 +56,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSAANDMGF1_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSAANDMGF1_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 
 /**
  * Collection of various utility methods.
@@ -87,19 +89,11 @@ public final class SignerUtil {
      * @throws NoSuchAlgorithmException if the algorithm is not supported
      */
     public static byte[] createDataToSign(byte[] digest, String signAlgoId) throws NoSuchAlgorithmException {
-        switch (signAlgoId) {
-            case SHA256WITHRSAANDMGF1_ID:
-            case SHA384WITHRSAANDMGF1_ID:
-            case SHA512WITHRSAANDMGF1_ID:
-                return digest; // Nothing to do
-            case SHA1WITHRSA_ID:
-            case SHA256WITHRSA_ID:
-            case SHA384WITHRSA_ID:
-            case SHA512WITHRSA_ID:
-                return createDataToSign(digest);
-            default:
-                throw new NoSuchAlgorithmException("Unknown sign algorithm id: " + signAlgoId);
-        }
+        return switch (signAlgoId) {
+            case SHA256WITHRSAANDMGF1_ID, SHA384WITHRSAANDMGF1_ID, SHA512WITHRSAANDMGF1_ID -> digest; // Nothing to do
+            case SHA1WITHRSA_ID, SHA256WITHRSA_ID, SHA384WITHRSA_ID, SHA512WITHRSA_ID -> createDataToSign(digest);
+            default -> throw new NoSuchAlgorithmException("Unknown sign algorithm id: " + signAlgoId);
+        };
 
     }
 
@@ -207,18 +201,22 @@ public final class SignerUtil {
     }
 
     /**
+     * @param certSha1Hash the certificate SHA-1 hash in HEX
      * @return certificate matching certHash
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException if digest calculator cannot be created
+     * @throws IOException if an I/O error occurred
      */
-    public static X509Certificate getCertForCertHash(String certHash) throws Exception {
-        X509Certificate cert =
-                TokenManager.getCertificateForCertHash(certHash);
+    public static X509Certificate getCertForCertHash(String certSha1Hash)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
+        X509Certificate cert = TokenManager.getCertificateForCerHash(certSha1Hash);
         if (cert != null) {
             return cert;
         }
 
         // not in key conf, look elsewhere
         for (X509Certificate caCert : GlobalConf.getAllCaCerts()) {
-            if (certHash.equals(calculateCertHexHash(caCert))) {
+            if (certSha1Hash.equals(calculateCertSha1HexHash(caCert))) {
                 return caCert;
             }
         }
@@ -233,7 +231,7 @@ public final class SignerUtil {
      */
     @SneakyThrows
     public static String getFormattedTokenId(String tokenIdFormat, String moduleType,
-            iaik.pkcs.pkcs11.Token token) {
+                                             iaik.pkcs.pkcs11.Token token) {
         iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
         String slotIndex = Long.toString(token.getSlot().getSlotID());
 

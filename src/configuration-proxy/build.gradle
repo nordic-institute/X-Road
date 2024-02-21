@@ -6,36 +6,39 @@ dependencies {
     implementation project(':common:common-util')
     implementation project(':signer-protocol')
 
-    implementation 'commons-cli:commons-cli:1.4'
+    implementation "commons-cli:commons-cli:$commonsCliVersion"
 
     testImplementation project(':common:common-test')
-    testImplementation "org.mockito:mockito-inline:$mockitoVersion"
+    testImplementation "org.assertj:assertj-core:$assertjVersion"
 }
 
 ext {
-  mainClassName = 'ee.ria.xroad.confproxy.ConfProxyMain'
+    mainClassName = 'ee.ria.xroad.confproxy.ConfProxyMain'
 }
 
 jar {
-  manifest {
-    attributes  'Main-Class': mainClassName
-  }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
 }
 
 shadowJar {
-  classifier = ''
-  exclude('**/module-info.class')
-  from rootProject.file("LICENSE.txt")
-  mergeServiceFiles()
+    archiveClassifier = ''
+    exclude('**/module-info.class')
+    from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
+}
+
+build {
+    dependsOn shadowJar
 }
 
 jar.enabled = false
-build.dependsOn shadowJar
 
-task runConfigurationProxyMain(type: JavaExec) {
+tasks.register('runConfigurationProxyMain', JavaExec) {
     jvmArgs '-Dxroad.conf.path=src/test/resources/',
-            '-Dxroad.common.configuration-path=build/',
-            '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+        '-Dxroad.common.configuration-path=build/',
+        '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
 
     mainClass = 'ee.ria.xroad.confproxy.ConfProxyMain'
     classpath = sourceSets.test.runtimeClasspath
@@ -43,9 +46,9 @@ task runConfigurationProxyMain(type: JavaExec) {
     args 'PROXY1'
 }
 
-task runConfigurationProxyUtilTest(type: JavaExec) {
+tasks.register('runConfigurationProxyUtilTest', JavaExec) {
     jvmArgs '-Dxroad.conf.path=src/test/resources/',
-            '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+        '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
 
     mainClass = 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain'
     classpath = sourceSets.test.runtimeClasspath

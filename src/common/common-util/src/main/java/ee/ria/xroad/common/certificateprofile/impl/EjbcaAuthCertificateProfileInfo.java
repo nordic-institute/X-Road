@@ -40,16 +40,16 @@ public class EjbcaAuthCertificateProfileInfo
      * @param params the parameters
      */
     public EjbcaAuthCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[] {
+        super(new DnFieldDescription[]{
                 // Instance identifier
                 new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.INSTANCE_IDENTIFIER,
-                    params.getServerId().getXRoadInstance()
+                        params.getServerId().getXRoadInstance()
                 ).setReadOnly(true),
 
                 // Server code
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_CODE,
-                    params.getServerId().getServerCode()
-                ).setReadOnly(true) }
+                        params.getServerId().getServerCode()
+                ).setReadOnly(true)}
         );
     }
 }

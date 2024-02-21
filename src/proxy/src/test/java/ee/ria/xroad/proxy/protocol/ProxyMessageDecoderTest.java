@@ -24,6 +24,7 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.proxy.protocol;
+
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.message.RestRequest;
@@ -293,7 +294,7 @@ public class ProxyMessageDecoderTest {
         return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
     }
 
-    private static class DummyMessageConsumer implements ProxyMessageConsumer {
+    private static final class DummyMessageConsumer implements ProxyMessageConsumer {
 
         private SoapMessageImpl soapMessage;
         private boolean hasAttachments;

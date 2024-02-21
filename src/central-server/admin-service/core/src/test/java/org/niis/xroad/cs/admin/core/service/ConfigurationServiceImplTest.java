@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.commonui.OptionalPartsConf;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -47,10 +46,14 @@ import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
+import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.DistributedFileEntity;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
+import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapperImpl;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.DistributedFileMapperImpl;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
@@ -61,6 +64,7 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -116,6 +120,8 @@ class ConfigurationServiceImplTest {
     private DistributedFileMapper distributedFileMapper = new DistributedFileMapperImpl();
     @Mock
     private ConfigurationSigningKeyRepository configurationSigningKeyRepository;
+    @Spy
+    private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
     private ConfigurationServiceImpl configurationServiceHa;
 
     @BeforeEach
@@ -205,6 +211,17 @@ class ConfigurationServiceImplTest {
             assertThat(configurationService.getConfigurationParts(INTERNAL)).isEmpty();
             verifyNoInteractions(distributedFileRepository);
         }
+
+        @Test
+        void getNodeAddressesWithConfigurationSigningKeys() {
+            when(configurationSourceRepository.findAll()).thenReturn(List.of(configurationSource, configurationSource));
+            when(configurationSource.getConfigurationSigningKeys()).thenReturn(Set.of(new ConfigurationSigningKeyEntity()));
+            when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
+            when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
+
+            assertThat(configurationServiceHa.getNodeAddressesWithConfigurationSigningKeys().get(CENTRAL_SERVICE))
+                    .hasSize(2);
+        }
     }
 
     @Nested
@@ -239,7 +256,8 @@ class ConfigurationServiceImplTest {
                 distributedFileRepository,
                 distributedFileMapper,
                 auditDataHelper,
-                configurationPartValidator);
+                configurationPartValidator,
+                configurationSigningKeyMapper);
     }
 
     @Nested

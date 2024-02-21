@@ -27,17 +27,18 @@
 import { defineStore } from 'pinia';
 import { mainTabs } from '@/global';
 import axiosAuth from '../../axios-auth';
-import axios from 'axios';
+import * as api from '@/util/api';
 import {
   InitializationStatus,
   SecurityServer,
   TokenInitStatus,
   User,
 } from '@/openapi-types';
-import { Tab } from '@/ui-types';
-import i18n from '@/i18n';
+import { SessionStatus, Tab } from '@/ui-types';
+import { i18n } from '@/plugins/i18n';
 import { routePermissions } from '@/routePermissions';
 import { useSystem } from './system';
+import { RouteRecordName } from 'vue-router';
 
 export const useUser = defineStore('user', {
   state: () => {
@@ -49,10 +50,12 @@ export const useUser = defineStore('user', {
       username: '',
       currentSecurityServer: {} as SecurityServer,
       initializationStatus: undefined as InitializationStatus | undefined,
-      bannedRoutes: [] as string[], // Array for routes the user doesn't have permission to access.
+      bannedRoutes: [] as RouteRecordName[], // Array for routes the user doesn't have permission to access.
     };
   },
-  persist: true, // This store is saved into browser local storage (pinia-plugin-persistedstate)
+  persist: {
+    storage: localStorage,
+  },
   getters: {
     hasPermission: (state) => (perm: string) => {
       return state.permissions.includes(perm);
@@ -95,6 +98,10 @@ export const useUser = defineStore('user', {
 
     isServerCodeInitialized(state): boolean {
       return state.initializationStatus?.is_server_code_initialized ?? false;
+    },
+
+    isEnforceTokenPolicyEnabled(state): boolean {
+      return state.initializationStatus?.enforce_token_pin_policy ?? false;
     },
 
     softwareTokenInitializationStatus(state): TokenInitStatus | undefined {
@@ -142,8 +149,8 @@ export const useUser = defineStore('user', {
     },
 
     async fetchSessionStatus() {
-      return axios
-        .get('/notifications/session-status')
+      return api
+        .get<SessionStatus>('/notifications/session-status')
         .then((res) => {
           this.sessionAlive = res?.data?.valid ?? false;
         })
@@ -153,7 +160,7 @@ export const useUser = defineStore('user', {
     },
 
     async fetchUserData() {
-      return axios
+      return api
         .get<User>('/user')
         .then((res) => {
           this.username = res.data.username;
@@ -197,12 +204,14 @@ export const useUser = defineStore('user', {
       );
     },
     async fetchCurrentSecurityServer() {
-      return axios
+      return api
         .get<SecurityServer[]>('/security-servers?current_server=true')
         .then((resp) => {
           if (resp.data?.length !== 1) {
             throw new Error(
-              i18n.t('stores.user.currentSecurityServerNotFound') as string,
+              i18n.global.t(
+                'stores.user.currentSecurityServerNotFound',
+              ) as string,
             );
           }
           this.currentSecurityServer = resp.data[0];
@@ -220,6 +229,8 @@ export const useUser = defineStore('user', {
       const system = useSystem();
       system.clearSystemStore();
 
+      sessionStorage.clear();
+
       // Call backend for logout
       return axiosAuth
         .post('/logout')
@@ -235,8 +246,8 @@ export const useUser = defineStore('user', {
     },
 
     async fetchInitializationStatus() {
-      return axios
-        .get('/initialization/status')
+      return api
+        .get<InitializationStatus>('/initialization/status')
         .then((resp) => {
           this.initializationStatus = resp.data;
         })

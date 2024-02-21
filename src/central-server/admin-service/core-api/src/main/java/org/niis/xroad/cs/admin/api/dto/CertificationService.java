@@ -45,6 +45,8 @@ public class CertificationService {
     private Instant notBefore;
     private String certificateProfileInfo;
     private Boolean tlsAuth;
+    private String acmeServerDirectoryUrl;
+    private String acmeServerIpAddress;
 
     private byte[] certificate;
     private List<OcspResponder> ocspResponders;

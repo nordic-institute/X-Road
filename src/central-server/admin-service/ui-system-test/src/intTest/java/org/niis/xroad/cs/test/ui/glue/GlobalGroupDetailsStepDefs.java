@@ -34,7 +34,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.niis.xroad.cs.test.ui.utils.VuetifyHelper.vTextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
 
@@ -137,7 +137,7 @@ public class GlobalGroupDetailsStepDefs extends BaseUiStepDefs {
     @Step("user deletes selectable members filter query")
     public void clearCandidatesFilter() {
         vTextField(globalGroupDetailsPage.getAddMembersDialogObj().inputFilter())
-                 .clear();
+                .clear();
     }
 
     @Step("user opens delete member dialog for {string}")

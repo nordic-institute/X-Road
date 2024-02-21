@@ -30,27 +30,22 @@ import ee.ria.xroad.common.util.StartStop;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
+import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503;
 
 
 /**
@@ -93,14 +88,14 @@ public class HealthCheckPort implements StartStop {
         httpConfiguration.setSendServerVersion(false);
         HttpConnectionFactory connectionFactory = new HttpConnectionFactory(httpConfiguration);
         ServerConnector connector = new ServerConnector(server, ACCEPTOR_THREAD_COUNT, SELECTOR_THREAD_COUNT,
-                                                        connectionFactory);
+                connectionFactory);
         connector.setName("HealthCheckPort");
         connector.setHost(SystemProperties.getHealthCheckInterface());
         connector.setPort(portNumber);
         connector.setIdleTimeout(SOCKET_MAX_IDLE_MILLIS);
         server.addConnector(connector);
 
-        HandlerCollection handlerCollection = new HandlerCollection();
+        var handlerCollection = new Handler.Sequence();
         handlerCollection.addHandler(new HealthCheckHandler(stoppableHealthCheckProvider));
 
         server.setHandler(handlerCollection);
@@ -108,6 +103,7 @@ public class HealthCheckPort implements StartStop {
 
     /**
      * A setter for the HealthCheckPort maintenance mode
+     *
      * @param targetState boolean value for the intended new state of maintenance mode
      * @return returns a String representation of the occurred state transition
      */
@@ -152,29 +148,28 @@ public class HealthCheckPort implements StartStop {
      * firewall.
      */
     @RequiredArgsConstructor
-    public class HealthCheckHandler extends AbstractHandler {
+    public class HealthCheckHandler extends Handler.Abstract {
 
         private final HealthCheckProvider healthCheckProvider;
 
         @Override
-        public void handle(String target, Request baseRequest,
-                           HttpServletRequest request, HttpServletResponse response)
-                throws IOException, ServletException {
+        public boolean handle(Request request, Response response, Callback callback) throws Exception {
 
             if (isMaintenanceMode()) {
-                response.setStatus(SC_SERVICE_UNAVAILABLE);
-                response.getWriter().println(MAINTENANCE_MESSAGE);
+                response.setStatus(SERVICE_UNAVAILABLE_503);
+                Content.Sink.write(response, true, MAINTENANCE_MESSAGE, callback);
             } else {
                 HealthCheckResult result = healthCheckProvider.get();
                 if (result.isOk()) {
-                    response.setStatus(SC_OK);
+                    response.setStatus(OK_200);
+                    callback.succeeded();
                 } else {
-                    response.setStatus(SC_INTERNAL_SERVER_ERROR);
-                    IOUtils.copy(new StringReader(result.getErrorMessage().concat(System.lineSeparator())),
-                            response.getOutputStream());
+                    response.setStatus(INTERNAL_SERVER_ERROR_500);
+                    Content.Sink.write(response, true, result.getErrorMessage().concat(System.lineSeparator()), callback);
                 }
             }
-            baseRequest.setHandled(true);
+
+            return true;
         }
     }
 }

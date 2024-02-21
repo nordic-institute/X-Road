@@ -86,7 +86,7 @@ public class AsicContainerVerifierTest {
      */
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
+        return Arrays.asList(new Object[][]{
                 {"valid-signed-message.asice", null},
                 {"valid-signed-hashchain.asice", null},
                 {"valid-batch-ts.asice", null},

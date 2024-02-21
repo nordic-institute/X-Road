@@ -25,7 +25,7 @@
  */
 
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import * as api from '@/util/api';
 import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
@@ -64,8 +64,8 @@ export const useClient = defineStore('client', {
       }
 
       this.clientLoading = true;
-      return axios
-        .get(`/clients/${encodePathParameter(id)}`)
+      return api
+        .get<Client>(`/clients/${encodePathParameter(id)}`)
         .then((res) => {
           this.client = res.data;
         })
@@ -79,7 +79,7 @@ export const useClient = defineStore('client', {
         throw new Error('Missing id');
       }
 
-      return axios
+      return api
         .get<TokenCertificate[]>(
           `/clients/${encodePathParameter(id)}/sign-certificates`,
         )
@@ -96,7 +96,7 @@ export const useClient = defineStore('client', {
         throw new Error('Missing id');
       }
 
-      return axios
+      return api
         .get<CertificateDetails>('/system/certificate')
         .then((res) => {
           this.ssCertificate = res.data;
@@ -111,7 +111,7 @@ export const useClient = defineStore('client', {
         throw new Error('Missing id');
       }
 
-      return axios
+      return api
         .get<CertificateDetails[]>(
           `/clients/${encodePathParameter(id)}/tls-certificates`,
         )
@@ -124,8 +124,8 @@ export const useClient = defineStore('client', {
     },
 
     async saveConnectionType(params: { clientId: string; connType: string }) {
-      return axios
-        .patch(`/clients/${encodePathParameter(params.clientId)}`, {
+      return api
+        .patch<Client>(`/clients/${encodePathParameter(params.clientId)}`, {
           connection_type: params.connType,
         })
         .then((res) => {

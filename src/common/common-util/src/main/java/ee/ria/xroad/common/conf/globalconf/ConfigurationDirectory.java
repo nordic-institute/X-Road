@@ -90,7 +90,7 @@ public interface ConfigurationDirectory {
      */
     static void saveMetadata(Path fileName, ConfigurationPartMetadata metadata) throws Exception {
         AtomicSave.execute(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA,
-                "expires", metadata.toByteArray(), StandardCopyOption.ATOMIC_MOVE);
+                "expires", metadata.toJson(), StandardCopyOption.ATOMIC_MOVE);
     }
 
     /**
@@ -125,23 +125,23 @@ public interface ConfigurationDirectory {
     static void deleteDirectory(Path directory) {
         try {
             Files.walkFileTree(directory,
-                new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult postVisitDirectory(
-                            Path dir, IOException exc) throws IOException {
-                        super.postVisitDirectory(dir, exc);
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
+                    new SimpleFileVisitor<Path>() {
+                        @Override
+                        public FileVisitResult postVisitDirectory(
+                                Path dir, IOException exc) throws IOException {
+                            super.postVisitDirectory(dir, exc);
+                            Files.delete(dir);
+                            return FileVisitResult.CONTINUE;
+                        }
 
-                    @Override
-                    public FileVisitResult visitFile(
-                            Path file, BasicFileAttributes attrs)
-                            throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
+                        @Override
+                        public FileVisitResult visitFile(
+                                Path file, BasicFileAttributes attrs)
+                                throws IOException {
+                            Files.delete(file);
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
         } catch (IOException e) {
             LOG.error("Error deleting directory " + directory, e);
         }
@@ -152,7 +152,6 @@ public interface ConfigurationDirectory {
      *
      * @param consumer the function instance that should be applied to all files belonging to the configuration
      * directory.
-     * @throws Exception if an error occurs
      */
-    void eachFile(FileConsumer consumer) throws Exception;
+    void eachFile(FileConsumer consumer) throws IOException;
 }

@@ -189,7 +189,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider,
-            ClientId client) {
+                                                   ClientId client) {
         List<ServiceId.Conf> list = new ArrayList<>();
         list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
         list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
@@ -199,7 +199,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
-                                              ClientId client, DescriptionType descriptionType) {
+                                                                    ClientId client, DescriptionType descriptionType) {
         return emptyList();
     }
 

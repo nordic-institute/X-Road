@@ -25,11 +25,11 @@
  */
 package ee.ria.xroad.common.db;
 
-import org.hibernate.dialect.PostgreSQL9Dialect;
+import org.hibernate.dialect.PostgreSQLDialect;
 
 /**
  * @deprecated To be removed
  */
 @Deprecated
-public class CustomPostgreSQLDialect extends PostgreSQL9Dialect {
+public class CustomPostgreSQLDialect extends PostgreSQLDialect {
 }

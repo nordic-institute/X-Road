@@ -10,6 +10,13 @@ Feature: 0400 - SS: System Parameters
     And Settings tab is selected
     And System Parameters sub-tab is selected
 
+  Scenario: Security server address is update fails
+    Given Security Server address is displayed
+    And Security Server address edit button is enabled
+    When Security Server address edit button is clicked
+    And new Security Server address "new.address" is submitted
+    Then error: "Sending of management request failed" was displayed
+
   Scenario: Timestamping service is selected and deleted
     Given Timestamping services table has 0 entries
     When Add Timestamping services dialog is opened

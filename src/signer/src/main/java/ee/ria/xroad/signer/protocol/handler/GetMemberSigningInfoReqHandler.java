@@ -37,7 +37,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
@@ -57,12 +56,10 @@ import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGISTERED
  */
 @Slf4j
 @Component
-public class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
+public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
 
-    @Data
-    private static class SelectedCertificate {
-        private final KeyInfo key;
-        private final CertificateInfo cert;
+
+    private record SelectedCertificate(KeyInfo key, CertificateInfo cert) {
     }
 
     @Override
@@ -84,9 +81,9 @@ public class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMember
         }
 
         return GetMemberSigningInfoResp.newBuilder()
-                .setKeyId(memberCert.getKey().getId())
-                .setCert(memberCert.getCert().asMessage())
-                .setSignMechanismName(memberCert.getKey().getSignMechanismName())
+                .setKeyId(memberCert.key().getId())
+                .setCert(memberCert.cert().asMessage())
+                .setSignMechanismName(memberCert.key().getSignMechanismName())
                 .build();
     }
 

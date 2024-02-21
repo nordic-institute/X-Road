@@ -45,7 +45,9 @@ public abstract class LogMessage {
     private final String xRequestId;
 
     public abstract String getQueryId();
+
     public abstract ClientId getClient();
+
     public abstract ServiceId getService();
 
     /**

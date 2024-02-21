@@ -6,34 +6,36 @@ dependencies {
     implementation project(':common:common-util')
     implementation project(':common:common-verifier')
 
-    implementation 'commons-cli:commons-cli:1.4'
+    implementation "commons-cli:commons-cli:$commonsCliVersion"
 
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation project(':common:common-test')
 }
 
 ext {
-  mainClassName = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
+    mainClassName = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
 }
 
 jar {
-  manifest {
-    attributes  'Main-Class': mainClassName
-  }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
 }
 
 shadowJar {
-  exclude('**/module-info.class')
-  classifier = ''
-  mergeServiceFiles()
+    exclude('**/module-info.class')
+    archiveClassifier = ''
+    mergeServiceFiles()
 }
 
 jar.enabled = false
-build.dependsOn shadowJar
 
-task runConfigurationClient(type: JavaExec) {
+build {
+    dependsOn shadowJar
+}
+
+tasks.register('runConfigurationClient', JavaExec) {
     jvmArgs '-Dxroad.conf.path=build/',
-            '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
+        '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
     mainClass = mainClassName
     classpath = sourceSets.main.runtimeClasspath
 }

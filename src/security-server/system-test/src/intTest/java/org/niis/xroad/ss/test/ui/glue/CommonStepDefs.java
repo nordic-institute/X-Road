@@ -37,14 +37,15 @@ public class CommonStepDefs extends BaseUiStepDefs {
 
     @Step("Page is prepared to be tested")
     public void preparePage() {
-        Selenide.executeJavaScript("window.e2eTestingMode = true;\n"
-                + "      const style = `\n"
-                + "      <style>\n"
-                + "        *, ::before, ::after {\n"
-                + "            transition:none !important;\n"
-                + "        }\n"
-                + "      </style>`;\n"
-                + "      document.head.insertAdjacentHTML('beforeend', style);");
+        Selenide.executeJavaScript("""
+                window.e2eTestingMode = true;
+                      const style = `
+                      <style>
+                        *, ::before, ::after {
+                            transition:none !important;
+                        }
+                      </style>`;
+                      document.head.insertAdjacentHTML('beforeend', style);""");
     }
 
     @Step("error: {string} was displayed")
@@ -81,4 +82,15 @@ public class CommonStepDefs extends BaseUiStepDefs {
     public void formError(String errorMessage) {
         commonPageObj.form.inputErrorMessage().should(Condition.partialText(errorMessage));
     }
+
+    @Step("snackbar is closed")
+    public void snackbarIsClosed() {
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("take screenshot {string}")
+    public void takeScreenShot(String name) {
+        super.takeScreenshot(name);
+    }
+
 }

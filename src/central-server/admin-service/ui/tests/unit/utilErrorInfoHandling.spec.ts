@@ -25,9 +25,10 @@
  * THE SOFTWARE.
  */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { AxiosError } from 'axios';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { getErrorInfo, isFieldError } from '@/util/helpers';
 import { ErrorInfo } from '@/openapi-types';
+import { describe, expect, it } from 'vitest';
 
 describe('util/helpers.ts ', () => {
   const hostAddressError = {
@@ -40,7 +41,9 @@ describe('util/helpers.ts ', () => {
     },
   };
   const realAxiosError: AxiosError<ErrorInfo> = {
-    config: {},
+    config: {
+      headers: {} as AxiosHeaders,
+    },
     isAxiosError: true,
     message: 'Correct test AxiosError',
     name: '',
@@ -49,7 +52,7 @@ describe('util/helpers.ts ', () => {
       status: 0,
       statusText: 'Fake status',
       headers: {},
-      config: {},
+      config: { headers: {} as AxiosHeaders },
     },
     stack: '',
     toJSON(): Record<string, unknown> {

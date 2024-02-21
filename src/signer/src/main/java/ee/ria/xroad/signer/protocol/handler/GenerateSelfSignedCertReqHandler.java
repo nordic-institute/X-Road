@@ -105,7 +105,8 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
 
         importCertReqHandler.importCertificate(cert,
                 CertificateInfo.STATUS_REGISTERED,
-                ClientIdMapper.fromDto(request.getMemberId()));
+                request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null
+        );
 
         return GenerateSelfSignedCertResp.newBuilder()
                 .setCertificateBytes(ByteString.copyFrom(cert.getEncoded()))
@@ -144,7 +145,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
         }
 
         @Data
-        private class CertContentSigner implements ContentSigner {
+        private final class CertContentSigner implements ContentSigner {
 
             private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 

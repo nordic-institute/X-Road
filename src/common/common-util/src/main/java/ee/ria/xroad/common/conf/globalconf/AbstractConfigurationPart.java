@@ -52,12 +52,12 @@ abstract class AbstractConfigurationPart {
     }
 
     static final void verifyFieldExists(Map<String, String> headers,
-            String fieldName) {
+                                        String fieldName) {
         verifyFieldExists(headers, fieldName, null);
     }
 
     static final void verifyFieldExists(Map<String, String> headers,
-            String fieldName, String expectedValue) {
+                                        String fieldName, String expectedValue) {
         String value = headers.get(fieldName);
         if (StringUtils.isBlank(value)) {
             throw new CodedException(X_INTERNAL_ERROR,

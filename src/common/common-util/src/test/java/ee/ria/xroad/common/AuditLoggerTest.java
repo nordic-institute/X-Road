@@ -63,7 +63,7 @@ public class AuditLoggerTest {
     public void log() throws JsonProcessingException {
         byte[] tmp = new byte[32];
         for (int i = 0; i < tmp.length; i++) {
-            tmp[i] = (byte)i;
+            tmp[i] = (byte) i;
         }
         AuditLogger.log(
                 "event\u008d",

@@ -29,19 +29,22 @@ package org.niis.xroad.ss.test.ui.glue;
 import com.codeborne.selenide.Condition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.common.test.ui.utils.VuetifyHelper;
 import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers;
 import org.niis.xroad.ss.test.ui.page.ClientInfoPageObj;
 
-import static com.codeborne.selenide.ClickOptions.usingJavaScript;
 import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static java.time.Duration.ofSeconds;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.Checkbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.TextField;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vRadio;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class ClientServicesStepDefs extends BaseUiStepDefs {
     private final ClientInfoPageObj clientInfoPageObj = new ClientInfoPageObj();
@@ -64,19 +67,21 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         commonPageObj.dialog.btnSave().shouldBe(disabled);
 
-        clientInfoPageObj.services.inputRadioRESTPath().shouldNotBe(selected);
-        clientInfoPageObj.services.inputRadioOpenAPI().shouldNotBe(selected);
+        VuetifyHelper.Radio restRadioButton = vRadio(clientInfoPageObj.services.radioRESTPath());
+        VuetifyHelper.Radio openApiRadioButton = vRadio(clientInfoPageObj.services.radioOpenAPI());
+        restRadioButton.shouldBeUnChecked();
+        openApiRadioButton.shouldBeUnChecked();
 
         if (isBasePath) {
-            clientInfoPageObj.services.radioRESTPath().click();
+            restRadioButton.click();
         } else {
-            clientInfoPageObj.services.radioOpenAPI().click();
+            openApiRadioButton.click();
         }
-        clientInfoPageObj.services.servicesParameters.inputServiceUrl()
+        vTextField(clientInfoPageObj.services.servicesParameters.inputServiceUrl())
                 .shouldBe(empty)
                 .setValue(url);
 
-        clientInfoPageObj.services.servicesParameters.inputServiceCode()
+        vTextField(clientInfoPageObj.services.servicesParameters.inputServiceCode())
                 .shouldBe(empty)
                 .setValue(serviceCode);
     }
@@ -110,37 +115,45 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     private void editService(String url, String timeout, boolean verifyTlsCert, boolean urlApplyAll, boolean timeoutApplyAll,
                              boolean verifyTlsApplyAll) {
-        clearInput(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
-        clearInput(clientInfoPageObj.services.servicesParameters.inputServiceTimeout());
+        VuetifyHelper.TextField urlTextField = vTextField(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
+        VuetifyHelper.TextField timeoutTextField = vTextField(clientInfoPageObj.services.servicesParameters.inputServiceTimeout());
+        urlTextField.clear();
+        timeoutTextField.clear();
 
         commonPageObj.form.inputErrorMessage("The URL field is required").shouldBe(visible);
         commonPageObj.form.inputErrorMessage("The Timeout field is required").shouldBe(visible);
 
-        clientInfoPageObj.services.servicesParameters.inputServiceUrl().setValue(url);
-        clientInfoPageObj.services.servicesParameters.inputServiceTimeout().setValue(timeout);
+        urlTextField.setValue(url);
+        timeoutTextField.setValue(timeout);
 
-        var isChecked = clientInfoPageObj.services.servicesParameters.inputVerifyTlsCert().is(checked);
+        Checkbox verifyTlsCertCheckbox = vCheckbox(clientInfoPageObj.services.servicesParameters.inputVerifyTlsCert());
+        var isChecked = verifyTlsCertCheckbox.isChecked();
         if (isChecked != verifyTlsCert) {
-            clientInfoPageObj.services.servicesParameters.checkboxVerifyTlsCert().click();
+            verifyTlsCertCheckbox.click();
         }
 
         if (urlApplyAll) {
-            clientInfoPageObj.services.servicesEdit.checkboxUrlApplyAll().click();
+            vCheckbox(clientInfoPageObj.services.servicesEdit.checkboxUrlApplyAll()).click();
         }
         if (timeoutApplyAll) {
-            clientInfoPageObj.services.servicesEdit.checkboxTimeoutApplyAll().click();
+            vCheckbox(clientInfoPageObj.services.servicesEdit.checkboxTimeoutApplyAll()).click();
         }
         if (verifyTlsApplyAll) {
-            clientInfoPageObj.services.servicesEdit.checkboxVerifySslApplyAll().click();
+            vCheckbox(clientInfoPageObj.services.servicesEdit.checkboxVerifySslApplyAll()).click();
         }
     }
 
     @Step("Service URL is {string}, timeout is {} and tls certificate verification is {checkbox}")
     public void editServiceVerify(String url, String timeout, boolean verifyTlsCert) {
-        clientInfoPageObj.services.servicesParameters.inputServiceUrl().shouldBe(value(url));
-        clientInfoPageObj.services.servicesParameters.inputServiceTimeout().shouldBe(value(timeout));
+        vTextField(clientInfoPageObj.services.servicesParameters.inputServiceUrl()).shouldHaveText(url);
+        vTextField(clientInfoPageObj.services.servicesParameters.inputServiceTimeout()).shouldHaveText(timeout);
 
-        clientInfoPageObj.services.servicesParameters.inputVerifyTlsCert().shouldBe(verifyTlsCert ? checked : Condition.not(checked));
+        Checkbox verifyTlsCertCheckbox = vCheckbox(clientInfoPageObj.services.servicesParameters.inputVerifyTlsCert());
+        if (verifyTlsCert) {
+            verifyTlsCertCheckbox.shouldBeChecked();
+        } else {
+            verifyTlsCertCheckbox.shouldBeUnchecked();
+        }
     }
 
     @Step("Service is saved and success message {string} is shown")
@@ -172,20 +185,20 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service subject lookup is executed with member name {string} and subsystem code {string}")
     public void searchAccessRights(String name, String subsystem) {
-        clientInfoPageObj.services.addSubject.inputName().shouldBe(empty).setValue(name);
-        clientInfoPageObj.services.addSubject.inputSubsystemCode().shouldBe(empty).setValue(subsystem);
+        vTextField(clientInfoPageObj.services.addSubject.inputName()).shouldBe(empty).setValue(name);
+        vTextField(clientInfoPageObj.services.addSubject.inputSubsystemCode()).shouldBe(empty).setValue(subsystem);
         clientInfoPageObj.services.addSubject.btnSearch().click();
     }
 
     @Step("Adding value for member name, member code, subsystem and then click the remove value button on the input field")
     public void clearSubjectsFilter() {
-        clientInfoPageObj.services.addSubject.inputName().shouldBe(empty).setValue("name");
+        vTextField(clientInfoPageObj.services.addSubject.inputName()).shouldBe(empty).setValue("name");
         clientInfoPageObj.services.addSubject.buttonClearInputName().click();
 
-        clientInfoPageObj.services.addSubject.inputMemberCode().shouldBe(empty).setValue("memberCode");
+        vTextField(clientInfoPageObj.services.addSubject.inputMemberCode()).shouldBe(empty).setValue("memberCode");
         clientInfoPageObj.services.addSubject.buttonClearInputMemberCode().click();
 
-        clientInfoPageObj.services.addSubject.inputSubsystemCode().shouldBe(empty).setValue("subsystemCode");
+        vTextField(clientInfoPageObj.services.addSubject.inputSubsystemCode()).shouldBe(empty).setValue("subsystemCode");
         clientInfoPageObj.services.addSubject.buttonClearInputSubsystemCode().click();
     }
 
@@ -198,8 +211,8 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
     public void addAccessRights(String id, String id2, int size) {
         clientInfoPageObj.services.addSubject.memberTableRows().shouldHave(size(size));
 
-        clientInfoPageObj.services.addSubject.memberTableRowCheckboxOfId(id).click();
-        clientInfoPageObj.services.addSubject.memberTableRowCheckboxOfId(id2).click();
+        vCheckbox(clientInfoPageObj.services.addSubject.memberTableRowCheckboxOfId(id)).click();
+        vCheckbox(clientInfoPageObj.services.addSubject.memberTableRowCheckboxOfId(id2)).click();
 
         clientInfoPageObj.services.addSubject.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Access rights added successfully"));
@@ -257,12 +270,13 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         clientInfoPageObj.services.endpoints.btnAddEndpoint().click();
 
         clientInfoPageObj.services.endpoints.dropdownHttpMethod().click();
-        clientInfoPageObj.services.endpoints.selectDropdownOption(httpMethod).click();
+        selectorOptionOf(httpMethod).click();
 
-        clearInput(clientInfoPageObj.services.endpoints.inputPath());
+        TextField pathTextField = vTextField(clientInfoPageObj.services.endpoints.inputPath());
+        pathTextField.clear();
         commonPageObj.dialog.btnSave().shouldBe(disabled);
 
-        clientInfoPageObj.services.endpoints.inputPath().setValue(path);
+        pathTextField.setValue(path);
 
         commonPageObj.dialog.btnSave().click();
         if (duplicate) {
@@ -292,11 +306,11 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
                 .scrollIntoView(false)
                 .click();
 
-        clearInput(clientInfoPageObj.services.endpoints.inputPath());
-        clientInfoPageObj.services.endpoints.inputPath().shouldBe(empty);
+        TextField pathTextField = vTextField(clientInfoPageObj.services.endpoints.inputPath());
+        pathTextField.clear().shouldBe(empty);
         clientInfoPageObj.services.endpoints.btnSave().shouldBe(disabled);
 
-        clientInfoPageObj.services.endpoints.inputPath().setValue(newPath);
+        pathTextField.setValue(newPath);
         clientInfoPageObj.services.endpoints.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Changes to endpoint saved successfully"));
     }
@@ -324,8 +338,8 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
     @Step("Service {string} is disabled with notice {string}")
     public void disableService(String desc, String notice) {
-        clientInfoPageObj.services.headerServiceToggle(desc).click(usingJavaScript());
-        clientInfoPageObj.services.inputDisableNotice().setValue(notice);
+        clientInfoPageObj.services.headerServiceToggle(desc).click();
+        vTextField(clientInfoPageObj.services.inputDisableNotice()).setValue(notice);
 
         commonPageObj.dialog.btnSave().click();
         commonPageObj.snackBar.success().shouldHave(text("Service description disabled"));
@@ -336,14 +350,16 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
     public void editRestService(String name, String url, String serviceCode) {
         clientInfoPageObj.services.headerServiceDescription(name).click();
 
-        clearInput(clientInfoPageObj.services.servicesEdit.inputEditUrl());
-        clearInput(clientInfoPageObj.services.servicesEdit.inputEditServiceCode());
+        VuetifyHelper.TextField urlTextField = vTextField(clientInfoPageObj.services.servicesEdit.textFieldUrl());
+        VuetifyHelper.TextField serviceCodeTextField = vTextField(clientInfoPageObj.services.servicesEdit.textFieldServiceCode());
+        urlTextField.clear();
+        serviceCodeTextField.clear();
 
         commonPageObj.form.inputErrorMessage("The URL field is required").shouldBe(visible);
-        commonPageObj.form.inputErrorMessage("The fields.code_field field is required").shouldBe(visible);
+        commonPageObj.form.inputErrorMessage("The Service Code field is required").shouldBe(visible);
 
-        clientInfoPageObj.services.servicesEdit.inputEditUrl().setValue(url);
-        clientInfoPageObj.services.servicesEdit.inputEditServiceCode().setValue(serviceCode);
+        urlTextField.setValue(url);
+        serviceCodeTextField.setValue(serviceCode);
     }
 
     @Step("Rest service details are saved and error message {string} is shown")
@@ -395,16 +411,14 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
 
         commonPageObj.dialog.btnSave().shouldBe(disabled);
 
-        clientInfoPageObj.services.servicesParameters.inputServiceUrl().shouldBe(empty).setValue(" ");
+        VuetifyHelper.TextField urlTextField = vTextField(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
+        urlTextField.shouldBe(empty).setValue(" ");
         commonPageObj.form.inputErrorMessage("The URL field is required").shouldBe(visible);
-        clearInput(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
 
-        clientInfoPageObj.services.servicesParameters.inputServiceUrl().shouldBe(empty).setValue("invalid");
+        urlTextField.clear().shouldBe(empty).setValue("invalid");
         commonPageObj.form.inputErrorMessage("URL is not valid").shouldBe(visible);
-        clearInput(clientInfoPageObj.services.servicesParameters.inputServiceUrl());
 
-        clientInfoPageObj.services.servicesParameters.inputServiceUrl().setValue(url);
-
+        urlTextField.clear().setValue(url);
         commonPageObj.dialog.btnSave().click();
     }
 
@@ -412,11 +426,12 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
     public void editWsdlService(String name, String url) {
         clientInfoPageObj.services.headerServiceDescription(name).click();
 
-        clearInput(clientInfoPageObj.services.servicesEdit.inputEditUrl());
+        VuetifyHelper.TextField urlTextField = vTextField(clientInfoPageObj.services.servicesEdit.textFieldUrl());
+        urlTextField.clear();
 
         commonPageObj.form.inputErrorMessage("The URL field is required").shouldBe(visible);
 
-        clientInfoPageObj.services.servicesEdit.inputEditUrl().setValue(url);
+        urlTextField.setValue(url);
 
         clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
         clientInfoPageObj.services.servicesEdit.btnContinueWarn().click();

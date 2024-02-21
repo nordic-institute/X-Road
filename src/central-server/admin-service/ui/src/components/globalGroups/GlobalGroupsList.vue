@@ -53,18 +53,18 @@
       data-test="global-groups-table"
     >
       <template #[`item.code`]="{ item }">
-        <div class="group-code xrd-clickable" @click="toDetails(item.raw)">
+        <div class="group-code xrd-clickable" @click="toDetails(item)">
           <xrd-icon-base class="mr-4">
             <XrdIconFolder />
           </xrd-icon-base>
-          <div data-test="group-code">{{ item.raw.code }}</div>
+          <div data-test="group-code">{{ item.code }}</div>
         </div>
       </template>
       <template #[`item.updated_at`]="{ item }">
-        <date-time :value="item.raw.updated_at" />
+        <date-time :value="item.updated_at" />
       </template>
 
-      <template #footer>
+      <template #bottom>
         <custom-data-table-footer />
       </template>
     </v-data-table>
@@ -72,13 +72,12 @@
     <add-group-dialog
       v-if="showAddGroupDialog"
       @cancel="closeAddGroupDialog()"
-      @group-added="groupAdded()"
+      @save="groupAdded()"
     />
   </titled-view>
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { DataTableHeader } from '@/ui-types';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { useNotifications } from '@/store/modules/notifications';
@@ -90,7 +89,7 @@ import TitledView from '@/components/ui/TitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { XrdIconFolder } from '@niis/shared-ui';
-import { VDataTable } from 'vuetify/labs/VDataTable';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   name: 'GlobalResourcesList',
@@ -100,7 +99,6 @@ export default defineComponent({
     TitledView,
     AddGroupDialog,
     XrdIconFolder,
-    VDataTable,
   },
   data() {
     return {

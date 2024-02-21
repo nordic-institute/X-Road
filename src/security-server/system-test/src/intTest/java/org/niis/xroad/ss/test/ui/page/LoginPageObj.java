@@ -35,18 +35,18 @@ import static org.openqa.selenium.By.id;
 public class LoginPageObj {
 
     public SelenideElement inputUsername() {
-        return $(id("username"));
+        return $x("//div[@data-test='login-username-input']");
     }
 
     public SelenideElement inputPassword() {
-        return $(id("password"));
+        return $x("//div[@data-test='login-password-input']");
     }
 
     public SelenideElement btnLogin() {
         return $(id("submit-button"));
     }
 
-    public SelenideElement inputeErorMessageWithText(String partialText) {
+    public SelenideElement inputErrorMessageWithText(String partialText) {
         var xpath = "//div[text()[contains(.,'%s')]]";
         return $x(String.format(xpath, partialText));
     }

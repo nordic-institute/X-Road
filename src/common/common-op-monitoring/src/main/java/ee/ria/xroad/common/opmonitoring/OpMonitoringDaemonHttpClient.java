@@ -82,7 +82,7 @@ public final class OpMonitoringDaemonHttpClient {
      * @throws Exception if creating a HTTPS client and SSLContext initialization fails
      */
     public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
-            int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
+                                                       int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
         return createHttpClient(authKey, DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
                 connectionTimeoutMilliseconds, socketTimeoutMilliseconds);
     }
@@ -99,8 +99,8 @@ public final class OpMonitoringDaemonHttpClient {
      * initialization fails
      */
     public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
-            int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
-            int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
+                                                       int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
+                                                       int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
         log.trace("createHttpClient()");
 
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
@@ -133,9 +133,9 @@ public final class OpMonitoringDaemonHttpClient {
 
     private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey) throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(getKeyManager(authKey), new TrustManager[] {new OpMonitorTrustManager()}, new SecureRandom());
+        ctx.init(getKeyManager(authKey), new TrustManager[]{new OpMonitorTrustManager()}, new SecureRandom());
 
-        return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[] {CryptoUtils.SSL_PROTOCOL},
+        return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[]{CryptoUtils.SSL_PROTOCOL},
                 SystemProperties.getXroadTLSCipherSuites(), NoopHostnameVerifier.INSTANCE);
         // We don't need hostname verification
     }
@@ -147,7 +147,7 @@ public final class OpMonitoringDaemonHttpClient {
             return null;
         }
 
-        return new KeyManager[] {new OpMonitorClientKeyManager(authKey)};
+        return new KeyManager[]{new OpMonitorClientKeyManager(authKey)};
     }
 
     private static final class OpMonitorTrustManager implements X509TrustManager {

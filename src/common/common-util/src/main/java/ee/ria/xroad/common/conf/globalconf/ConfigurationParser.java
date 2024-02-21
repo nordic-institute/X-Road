@@ -42,6 +42,7 @@ import org.apache.james.mime4j.stream.MimeConfig;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
@@ -58,6 +59,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 
 /**
  * Parses and handles the downloaded configuration directory.
@@ -74,7 +76,7 @@ public class ConfigurationParser {
     }
 
     private enum ContentPart {
-        EXPIRATION_DATE,
+        HEADER,
         CONTENT
     }
 
@@ -88,9 +90,9 @@ public class ConfigurationParser {
     /**
      * Parses the configuration directory from the given input stream.
      *
-     * @param location the configuration location
+     * @param location                      the configuration location
      * @param contentIdentifiersToBeHandled array of content identifiers that are handled.
-     * If null, all content is handled.
+     *                                      If null, all content is handled.
      * @return list of downloaded files
      * @throws Exception if an error occurs
      */
@@ -138,7 +140,7 @@ public class ConfigurationParser {
      * Topmost multipart content handler. Reads and verifies the signed data.
      */
     @RequiredArgsConstructor
-    private class MultipartContentHandler extends AbstractContentHandler {
+    private final class MultipartContentHandler extends AbstractContentHandler {
 
         private Map<String, String> headers;
 
@@ -147,7 +149,7 @@ public class ConfigurationParser {
         private ConfigurationPart nextPart = ConfigurationPart.SIGNED_DATA;
 
         @Override
-        public final void startMultipart(BodyDescriptor bd) {
+        public void startMultipart(BodyDescriptor bd) {
             parser.setFlat();
         }
 
@@ -167,24 +169,24 @@ public class ConfigurationParser {
                 readSignedData(is);
                 nextPart = ConfigurationPart.SIGNATURE;
             } else {
-                byte[] signature = decodeBase64(IOUtils.toString(is));
+                byte[] signature = decodeBase64(IOUtils.toString(is, Charset.defaultCharset()));
                 verifySignedData(signature);
                 handleSignedData();
             }
         }
 
-        protected String getHeader(String headerName) {
+        private String getHeader(String headerName) {
             return headers.get(headerName.toLowerCase());
         }
 
-        protected void readSignedData(InputStream is) throws IOException {
+        private void readSignedData(InputStream is) throws IOException {
             log.trace("readSignedData()");
 
             signedDataContentType = getHeader(HEADER_CONTENT_TYPE);
             signedData = IOUtils.toByteArray(is);
         }
 
-        protected void verifySignedData(byte[] signature) {
+        private void verifySignedData(byte[] signature) {
             log.trace("verifySignedData()");
 
             try {
@@ -259,7 +261,7 @@ public class ConfigurationParser {
             return cert;
         }
 
-        protected void handleSignedData() throws MimeException, IOException {
+        private void handleSignedData() throws MimeException, IOException {
             MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(signedDataContentType).build();
             MimeStreamParser p = new MimeStreamParser(config);
             p.setContentHandler(new ConfigurationPartContentHandler());
@@ -271,15 +273,15 @@ public class ConfigurationParser {
      * Configuration directory multipart content handler.
      */
     @RequiredArgsConstructor
-    private class ConfigurationPartContentHandler
+    private final class ConfigurationPartContentHandler
             extends AbstractContentHandler {
 
-        protected Map<String, String> headers;
+        private Map<String, String> headers;
 
-        private ContentPart nextPart = ContentPart.EXPIRATION_DATE;
+        private ContentPart nextPart = ContentPart.HEADER;
 
         @Override
-        public final void startMultipart(BodyDescriptor bd) {
+        public void startMultipart(BodyDescriptor bd) {
             parser.setFlat();
         }
 
@@ -295,9 +297,10 @@ public class ConfigurationParser {
 
         @Override
         public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
-            if (nextPart == ContentPart.EXPIRATION_DATE) {
+            if (nextPart == ContentPart.HEADER) {
                 parseExpirationDate();
                 verifyConfUpToDate();
+                parseVersion();
                 nextPart = ContentPart.CONTENT;
             } else {
                 parseContent(is);
@@ -306,6 +309,10 @@ public class ConfigurationParser {
 
         private void parseExpirationDate() {
             configuration.setExpirationDate(parseExpireDate(getHeader(HEADER_EXPIRE_DATE)));
+        }
+
+        private void parseVersion() {
+            configuration.setVersion(getHeader(HEADER_VERSION));
         }
 
         private void verifyConfUpToDate() {
@@ -319,8 +326,8 @@ public class ConfigurationParser {
             log.trace("onContent({})", headers);
 
             try {
-                ConfigurationFile file = ConfigurationFile.of(headers, configuration.getExpirationDate(),
-                        IOUtils.toString(is));
+                ConfigurationFile file = ConfigurationFile.of(headers,
+                        configuration.getExpirationDate(), configuration.getVersion(), IOUtils.toString(is, Charset.defaultCharset()));
 
                 if (shouldHandleContent(file)) {
                     configuration.getFiles().add(file);
@@ -337,7 +344,7 @@ public class ConfigurationParser {
                     || ArrayUtils.contains(contentIdentifiers, f.getContentIdentifier());
         }
 
-        protected String getHeader(String headerName) {
+        private String getHeader(String headerName) {
             return headers.get(headerName.toLowerCase());
         }
     }

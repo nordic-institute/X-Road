@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.test.api;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.niis.xroad.cs.openapi.ClientsApi;
 import org.niis.xroad.cs.openapi.model.ClientTypeDto;
 import org.niis.xroad.cs.openapi.model.PagedClientsDto;
@@ -35,16 +37,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
-
 @FeignClient(name = "clientsApi", path = "/api/v1")
 public interface FeignClientsApi extends ClientsApi {
 
     @Override
     @GetMapping(value = "/clients", produces = {"application/json"})
     ResponseEntity<PagedClientsDto> findClients(
-            @Size(max = 25) @Valid @RequestParam(value = "q", required = false) String q,
+            @Size(max = 255) @Valid @RequestParam(value = "q", required = false) String q,
             @SpringQueryMap @Valid PagingSortingParametersDto pagingSorting,
             @Size(min = 0, max = 255) @Valid @RequestParam(value = "name", required = false) String name,
             @Size(min = 0, max = 255) @Valid @RequestParam(value = "instance", required = false) String instance,
@@ -53,6 +52,6 @@ public interface FeignClientsApi extends ClientsApi {
             @Size(min = 0, max = 255) @Valid @RequestParam(value = "subsystem_code", required = false) String subsystemCode,
             @Valid @RequestParam(value = "client_type", required = false) ClientTypeDto clientType,
             @Valid @RequestParam(value = "security_server", required = false) String securityServer,
-            @Size(min = 1, max = 255)  @Valid @RequestParam(value = "excluding_group", required = false) String excludingGroup
+            @Size(min = 1, max = 255) @Valid @RequestParam(value = "excluding_group", required = false) String excludingGroup
     );
 }

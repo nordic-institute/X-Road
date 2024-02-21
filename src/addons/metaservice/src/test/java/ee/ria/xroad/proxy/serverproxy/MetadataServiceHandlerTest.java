@@ -52,6 +52,13 @@ import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -62,8 +69,10 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.XMLUnit;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -72,20 +81,15 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
 import org.xml.sax.InputSource;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.builder.Input;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.ElementSelectors;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -120,9 +124,11 @@ import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.verifyAndGetSingleBody
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 
@@ -157,8 +163,8 @@ public class MetadataServiceHandlerTest {
 
 
     private HttpClient httpClientMock;
-    private HttpServletRequest mockRequest;
-    private HttpServletResponse mockResponse;
+    private Request mockRequest;
+    private Response mockResponse;
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
@@ -187,11 +193,13 @@ public class MetadataServiceHandlerTest {
         ServerConf.reload(new TestSuiteServerConf());
 
         httpClientMock = mock(HttpClient.class);
-        mockRequest = mock(HttpServletRequest.class);
-        mockResponse = mock(HttpServletResponse.class);
+        mockRequest = mock(Request.class);
+        mockResponse = mock(Response.class);
 
         mockServletOutputStream = new MetaserviceTestUtil.StubServletOutputStream();
-        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
+        try (var util = mockStatic(Content.Sink.class)) {
+            util.when(() -> Content.Sink.asOutputStream(mockResponse)).thenReturn(mockServletOutputStream);
+        }
 
         mockProxyMessage = mock(ProxyMessage.class);
 
@@ -293,7 +301,7 @@ public class MetadataServiceHandlerTest {
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                DescriptionType descriptionType) {
+                                                                     DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
             }
@@ -353,7 +361,7 @@ public class MetadataServiceHandlerTest {
 
             @Override
             public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                       DescriptionType descriptionType) {
+                                                                            DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClient));
 
@@ -485,7 +493,7 @@ public class MetadataServiceHandlerTest {
 
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
-                .willReturn(aResponse().withStatus(HttpServletResponse.SC_FORBIDDEN)));
+                .willReturn(aResponse().withStatus(HttpStatus.FORBIDDEN_403)));
         mockServer.start();
 
 
@@ -500,7 +508,7 @@ public class MetadataServiceHandlerTest {
                 httpClientMock, mock(OpMonitoringData.class));
     }
 
-    private static class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
+    private static final class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
         private OverwriteAttributeFilter filter;
 
         @Override
@@ -536,12 +544,27 @@ public class MetadataServiceHandlerTest {
         log.debug("expected: {}", expectedXml);
         log.debug("result: {}", resultXml);
 
-        XMLUnit.setIgnoreWhitespace(true);
-        Diff diff = new Diff(resultXml, expectedXml);
-        log.debug("diff: {}", diff);
+        var diffIdentical = DiffBuilder
+                .compare(Input.fromString(expectedXml))
+                .withTest(Input.fromString(resultXml))
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byName))
+                .checkForIdentical()
+                .ignoreWhitespace()
+                .build();
+
+        var diffSimilar = DiffBuilder
+                .compare(Input.fromString(expectedXml))
+                .withTest(Input.fromString(resultXml))
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byName))
+                .checkForSimilar()
+                .ignoreWhitespace()
+                .build();
+
+        log.debug("diff identical: {}", diffIdentical);
+        log.debug("diff similar: {}", diffSimilar);
         // diff is "similar" (not identical) even if namespace prefixes and element ordering differ
-        assertTrue(diff.similar());
-        assertTrue(diff.identical());
+        assertFalse(diffSimilar.hasDifferences());
+        assertFalse(diffIdentical.hasDifferences());
     }
 
     @Test
@@ -629,7 +652,9 @@ public class MetadataServiceHandlerTest {
         mockServer.start();
 
 
-        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
+        try (var util = mockStatic(Content.Sink.class)) {
+            util.when(() -> Content.Sink.asOutputStream(mockResponse)).thenReturn(mockServletOutputStream);
+        }
 
 
         handlerToTest.canHandle(serviceId, mockProxyMessage);
@@ -698,7 +723,7 @@ public class MetadataServiceHandlerTest {
     }
 
 
-    private static class TestMimeContentHandler extends AbstractContentHandler {
+    private static final class TestMimeContentHandler extends AbstractContentHandler {
 
         @Getter
         private SoapHeader xrHeader;
@@ -709,21 +734,17 @@ public class MetadataServiceHandlerTest {
         private List<String> endpointUrls;
 
         private String partContentType;
-
+        @Getter
         private String contentAsString;
 
-        public String getContentAsString() {
-            return contentAsString;
-        }
-
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             partContentType = null;
         }
 
         @Override
-        public void field(Field field) throws MimeException {
-            if (field.getName().toLowerCase().equals(HEADER_CONTENT_TYPE)) {
+        public void field(Field field) {
+            if (field.getName().equalsIgnoreCase(HEADER_CONTENT_TYPE)) {
                 partContentType = field.getBody();
             }
         }

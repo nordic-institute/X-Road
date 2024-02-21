@@ -515,27 +515,27 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         clientType = clientService.getLocalClient(CLIENT_ID_SS1);
 
         assertTrue("Expecting endpoint for service 'foo' to be added",
-                   clientType.getEndpoint().stream()
-                           .map(EndpointType::getServiceCode)
-                           .anyMatch(isEqual("foo")));
+                clientType.getEndpoint().stream()
+                        .map(EndpointType::getServiceCode)
+                        .anyMatch(isEqual("foo")));
         assertTrue("Expecting access rights for service 'foo' not to added",
-                   clientType.getAcl().stream()
-                           .map(AccessRightType::getEndpoint)
-                           .map(EndpointType::getServiceCode)
-                           .anyMatch(isEqual("foo")));
+                clientType.getAcl().stream()
+                        .map(AccessRightType::getEndpoint)
+                        .map(EndpointType::getServiceCode)
+                        .anyMatch(isEqual("foo")));
 
         serviceDescriptionService.deleteServiceDescription(serviceDescription1.getId());
 
         clientType = clientService.getLocalClient(CLIENT_ID_SS1);
         assertTrue("Expecting endpoint for service 'foo' not to be removed as it's still referenced by v2",
-                   clientType.getEndpoint().stream()
-                           .map(EndpointType::getServiceCode)
-                           .anyMatch(isEqual("foo")));
+                clientType.getEndpoint().stream()
+                        .map(EndpointType::getServiceCode)
+                        .anyMatch(isEqual("foo")));
         assertTrue("Expecting access rights for service 'foo' not to be removed as it's still referenced by v2",
-                   clientType.getAcl().stream()
-                           .map(AccessRightType::getEndpoint)
-                           .map(EndpointType::getServiceCode)
-                           .anyMatch(isEqual("foo")));
+                clientType.getAcl().stream()
+                        .map(AccessRightType::getEndpoint)
+                        .map(EndpointType::getServiceCode)
+                        .anyMatch(isEqual("foo")));
     }
 
     private ServiceDescriptionType createServiceDescription(ClientType clientType, String wsdl) {
@@ -583,7 +583,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     }
 
     @Test
-    @WithMockUser(authorities = { "REFRESH_OPENAPI3" })
+    @WithMockUser(authorities = {"REFRESH_OPENAPI3"})
     public void refreshOpenapi3ServiceDescription() throws Exception {
         ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
 
@@ -622,7 +622,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     }
 
     @Test
-    @WithMockUser(authorities = { "REFRESH_OPENAPI3" })
+    @WithMockUser(authorities = {"REFRESH_OPENAPI3"})
     public void refreshOpenApi3ServiceDescriptionUpdatesDate() throws Exception {
         ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
         Date originalRefreshedDate = serviceDescriptiontype.getRefreshedDate();
@@ -775,7 +775,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     }
 
     private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,
-            String serviceCode) {
+                                                                     String serviceCode) {
         return serviceDescription.getService().stream()
                 .map(s -> s.getServiceCode())
                 .collect(Collectors.toList())

@@ -28,7 +28,8 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import javax.servlet.http.HttpServletRequest;
+import org.eclipse.jetty.server.Request;
+
 
 /**
  * Check that SOAPAction header is preserved
@@ -37,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 public class SoapActionHeader extends MessageTestCase {
 
     private static final String HEADER_VALUE = "\"\"";
+
     /**
      * Constructs the test case.
      */
@@ -52,8 +54,8 @@ public class SoapActionHeader extends MessageTestCase {
     }
 
     @Override
-    protected void onServiceReceivedHttpRequest(HttpServletRequest request) throws Exception {
-        if (!HEADER_VALUE.equals(request.getHeader("SOAPAction"))) {
+    protected void onServiceReceivedHttpRequest(Request request) throws Exception {
+        if (!HEADER_VALUE.equals(request.getHeaders().get("SOAPAction"))) {
             throw new Exception("Expected SOAPAction header");
         }
     }

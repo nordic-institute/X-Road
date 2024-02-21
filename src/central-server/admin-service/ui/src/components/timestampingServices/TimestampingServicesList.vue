@@ -55,7 +55,7 @@
           {{
             $t(
               'trustServices.trustService.timestampingService.timestampingIntervalMinutes',
-              { min: toMinutes(item.raw.timestamping_interval) },
+              { min: toMinutes(item.timestamping_interval) },
             )
           }}
         </template>
@@ -63,7 +63,7 @@
           {{
             $t(
               'trustServices.trustService.timestampingService.costValues.' +
-                item.raw.cost,
+                item.cost,
             )
           }}
         </template>
@@ -73,7 +73,7 @@
               text
               :outlined="false"
               data-test="view-timestamping-service-certificate"
-              @click="navigateToCertificateDetails(item.raw)"
+              @click="navigateToCertificateDetails(item)"
             >
               {{ $t('trustServices.viewCertificate') }}
             </xrd-button>
@@ -82,7 +82,7 @@
               text
               :outlined="false"
               data-test="edit-timestamping-service"
-              @click="openEditDialog(item.raw)"
+              @click="openEditDialog(item)"
             >
               {{ $t('action.edit') }}
             </xrd-button>
@@ -91,7 +91,7 @@
               text
               :outlined="false"
               data-test="delete-timestamping-service"
-              @click="showDeleteDialog(item.raw)"
+              @click="showDeleteDialog(item)"
             >
               {{ $t('action.delete') }}
             </xrd-button>
@@ -107,9 +107,9 @@
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
       v-if="selectedTimestampingService && confirmDelete"
-      :dialog="confirmDelete"
       title="trustServices.trustService.timestampingService.delete.dialog.title"
       text="trustServices.trustService.timestampingService.delete.dialog.message"
+      focus-on-accept
       :data="{ url: selectedTimestampingService.url }"
       :loading="deletingTimestampingService"
       @cancel="confirmDelete = false"
@@ -141,10 +141,9 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import { VDataTable } from 'vuetify/labs/VDataTable';
-import { DataTableHeader } from '@/ui-types';
 import TitledView from '@/components/ui/TitledView.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
@@ -152,9 +151,7 @@ export default defineComponent({
     TitledView,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
-    VDataTable,
   },
-  props: {},
   data() {
     return {
       loading: false,

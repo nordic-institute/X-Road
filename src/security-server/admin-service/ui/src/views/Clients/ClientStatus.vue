@@ -31,13 +31,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     status: {
       type: String,
-      default: undefined,
+      default: '',
     },
   },
 
@@ -50,11 +50,15 @@ export default Vue.extend({
         case 'registered':
           return 'ok';
         case 'registration_in_progress':
+        case 'enabling_in_progress':
           return 'progress-register';
         case 'saved':
           return 'saved';
         case 'deletion_in_progress':
+        case 'disabling_in_progress':
           return 'progress-delete';
+        case 'disabled':
+          return 'error-disabled';
         case 'global_error':
           return 'error';
         default:
@@ -70,15 +74,21 @@ export default Vue.extend({
       }
       switch (status.toLowerCase()) {
         case 'registered':
-          return this.$t('client.statusText.registered') as string;
+          return this.$t('client.statusText.registered');
         case 'registration_in_progress':
-          return this.$t('client.statusText.registrationInProgress') as string;
+          return this.$t('client.statusText.registrationInProgress');
         case 'saved':
-          return this.$t('client.statusText.saved') as string;
+          return this.$t('client.statusText.saved');
         case 'deletion_in_progress':
-          return this.$t('client.statusText.deletionInProgress') as string;
+          return this.$t('client.statusText.deletionInProgress');
+        case 'disabling_in_progress':
+          return this.$t('client.statusText.disablingInProgress');
+        case 'disabled':
+          return this.$t('client.statusText.disabled');
+        case 'enabling_in_progress':
+          return this.$t('client.statusText.enablingInProgress');
         case 'global_error':
-          return this.$t('client.statusText.globalError') as string;
+          return this.$t('client.statusText.globalError');
         default:
           return '';
       }
@@ -88,7 +98,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '@/assets/colors';
 
 .status-wrapper {
   display: flex;

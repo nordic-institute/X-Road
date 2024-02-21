@@ -71,6 +71,15 @@
           :loader-height="2"
           data-test="owned-servers-table"
         >
+          <template #[`item.server_id.server_code`]="{ item }">
+            <div
+              class="server-code xrd-clickable"
+              :data-test="`owned-server-${item.server_id.server_code}`"
+              @click="toSecurityServerDetails(item)"
+            >
+              {{ item.server_id.server_code }}
+            </div>
+          </template>
           <template #bottom>
             <custom-data-table-footer />
           </template>
@@ -96,7 +105,7 @@
           data-test="global-groups-table"
         >
           <template #[`item.added_to_group`]="{ item }">
-            <date-time :value="item.raw.added_to_group" />
+            <date-time :value="item.added_to_group" />
           </template>
           <template #bottom>
             <custom-data-table-footer />
@@ -132,7 +141,7 @@
       v-if="showEditNameDialog"
       :member="memberStore.currentMember"
       @cancel="cancelEditMemberName"
-      @name-changed="memberNameChanged"
+      @save="memberNameChanged"
     />
 
     <!-- Delete member - Check member code dialog -->
@@ -146,7 +155,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors, Permissions } from '@/global';
+import { Colors, Permissions, RouteName } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
@@ -155,10 +164,10 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
 import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { DataTableHeader } from '@/ui-types';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,7 +185,6 @@ export default defineComponent({
     EditMemberNameDialog,
     MemberDeleteDialog,
     InfoCard,
-    VDataTable,
   },
   props: {
     memberid: {
@@ -205,7 +213,7 @@ export default defineComponent({
           align: 'start',
           key: 'server_id.server_code',
         },
-      ],
+      ] as DataTableHeader[],
       groupsHeaders: [
         {
           key: 'group_code',
@@ -222,7 +230,7 @@ export default defineComponent({
           title: this.$t('members.member.details.addedToGroup') as string,
           align: 'start',
         },
-      ],
+      ] as DataTableHeader[],
     };
   },
   computed: {
@@ -275,6 +283,12 @@ export default defineComponent({
     cancelDelete() {
       this.showDeleteDialog = false;
     },
+    toSecurityServerDetails(securityServer: SecurityServer): void {
+      this.$router.push({
+        name: RouteName.SecurityServerDetails,
+        params: { serverId: securityServer.server_id.encoded_id || '' },
+      });
+    },
   },
 });
 </script>
@@ -282,6 +296,14 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '@/assets/colors';
 @import '@/assets/tables';
+
+.server-code {
+  color: $XRoad-Purple100;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
 
 .card-title {
   font-size: 12px;
@@ -303,6 +325,7 @@ export default defineComponent({
   cursor: pointer;
   display: flex;
   flex-direction: row;
+
   .action-text {
     margin-top: 2px;
   }

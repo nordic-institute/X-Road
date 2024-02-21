@@ -27,17 +27,16 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TupleElement;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-
-import javax.persistence.Tuple;
-import javax.persistence.TupleElement;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -75,10 +74,10 @@ final class OperationalDataRecordQuery {
 
     private Predicate pred;
     private List<Selection<?>> projection = new ArrayList<>();
-    private javax.persistence.criteria.Order order = null;
+    private jakarta.persistence.criteria.Order order = null;
 
     OperationalDataRecordQuery(Session session, ClientId clientFilter, ClientId serviceProviderFilter,
-            Set<String> outputFields) {
+                               Set<String> outputFields) {
         this.session = session;
         cb = this.session.getCriteriaBuilder();
         query = cb.createTupleQuery();
@@ -148,7 +147,7 @@ final class OperationalDataRecordQuery {
                 member.getSubsystemCode() == null
                         ? cb.isNull(isClient ? from.get(CLIENT_SUBSYSTEM_CODE) : from.get(SERVICE_SUBSYSTEM_CODE))
                         : cb.equal(isClient ? from.get(CLIENT_SUBSYSTEM_CODE) : from.get(SERVICE_SUBSYSTEM_CODE),
-                                member.getSubsystemCode()));
+                        member.getSubsystemCode()));
     }
 
     void addOverflowCriteria(long monitoringDataTs) {

@@ -35,8 +35,9 @@
       <xrd-backups-toolbar
         accepts=".gpg"
         :can-backup="canBackup"
-        :backup-handler="backupBandler()"
-        @refresh-backups="fetchData"
+        :backup-handler="backupHandler()"
+        @create-backup="fetchData"
+        @upload-backup="fetchData"
       />
     </div>
     <xrd-backups-data-table
@@ -44,8 +45,8 @@
       :backups="backups"
       :filter="search"
       :loading="loadingBackups"
-      :backup-handler="backupBandler()"
-      @refresh-backups="fetchData"
+      :backup-handler="backupHandler()"
+      @delete="fetchData"
     />
   </div>
 </template>
@@ -54,33 +55,43 @@
 /**
  * View for 'backup and restore' tab
  */
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { Backup, BackupExt } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import VueI18n from 'vue-i18n';
-import Values = VueI18n.Values;
 import { encodePathParameter } from '@/util/api';
 import { saveResponseAsFile } from '@/util/helpers';
+import {
+  BackupHandler,
+  BackupItem,
+  XrdBackupsToolbar,
+  XrdBackupsDataTable,
+} from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();
   formData.set('file', backupFile, backupFile.name);
-  return api.post(
-    `/backups/upload?ignore_warnings=${ignoreWarnings}`,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+  return api
+    .post<BackupItem>(
+      `/backups/upload?ignore_warnings=${ignoreWarnings}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       },
-    },
-  );
+    )
+    .then((resp) => resp.data);
 };
 
-export default Vue.extend({
+export default defineComponent({
+  components: {
+    XrdBackupsToolbar,
+    XrdBackupsDataTable,
+  },
   data() {
     return {
       search: '' as string,
@@ -107,7 +118,7 @@ export default Vue.extend({
       'showSuccess',
       'showWarningMessage',
     ]),
-    backupBandler() {
+    backupHandler(): BackupHandler {
       return {
         showError: this.showError,
         showSuccess: this.displaySuccess,
@@ -116,7 +127,7 @@ export default Vue.extend({
         upload: uploadBackup,
         delete: this.deleteBackup,
         download: this.downloadBackup,
-        restore: this.downloadBackup,
+        restore: this.restoreBackup,
       };
     },
     fetchData() {
@@ -133,7 +144,8 @@ export default Vue.extend({
     },
     createBackup() {
       this.creatingBackup = true;
-      return api.post<BackupExt>('/backups/ext', null)
+      return api
+        .post<BackupExt>('/backups/ext', null)
         .then((resp) => resp.data);
     },
     deleteBackup(filename: string) {
@@ -147,12 +159,12 @@ export default Vue.extend({
         .then((resp) => saveResponseAsFile(resp, fileName));
     },
     restoreBackup(fileName: string) {
-      api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
+      return api.put(`/backups/${encodePathParameter(fileName)}/restore`, {});
     },
-    displaySuccess(textKey: string, data: Values = {}) {
+    displaySuccess(textKey: string, data: Record<string, unknown> = {}) {
       this.showSuccess(this.$t(textKey, data));
     },
-    displayWarning(textKey: string, data: Values = {}) {
+    displayWarning(textKey: string, data: Record<string, unknown> = {}) {
       this.showWarningMessage(this.$t(textKey, data));
     },
   },
@@ -160,5 +172,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/tables';
+@import '@/assets/tables';
 </style>

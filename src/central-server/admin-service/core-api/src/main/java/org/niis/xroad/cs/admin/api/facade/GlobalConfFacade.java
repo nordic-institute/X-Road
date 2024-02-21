@@ -32,7 +32,7 @@ import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -137,9 +137,9 @@ public interface GlobalConfFacade {
     String getSecurityServerAddress(SecurityServerId securityServerId);
 
     /**
-     * {@link GlobalConf#getApprovedTspTypes(String)}
+     * {@link GlobalConf#getApprovedTsps(String)}
      */
-    List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier);
+    List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier);
 
     /**
      * {@link GlobalConf#isSecurityServerClient(ClientId, SecurityServerId)}}

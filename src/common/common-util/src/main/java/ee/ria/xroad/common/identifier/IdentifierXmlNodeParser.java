@@ -28,13 +28,12 @@ package ee.ria.xroad.common.identifier;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.JaxbUtils;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Unmarshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 
@@ -103,7 +102,7 @@ public final class IdentifierXmlNodeParser {
     // -- Helper methods ------------------------------------------------------
 
     static <T> T parseType(XRoadObjectType expectedType, Node node,
-            Class<T> clazz) throws Exception {
+                           Class<T> clazz) throws Exception {
         verifyObjectType(node, expectedType);
 
         Unmarshaller unmarshaller = JAXB_CTX.createUnmarshaller();

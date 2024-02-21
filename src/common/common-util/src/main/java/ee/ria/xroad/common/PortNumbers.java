@@ -35,10 +35,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PortNumbers {
     /** Client proxy listens for HTTP queries. */
-    public static final int CLIENT_HTTP_PORT = 80;
+    public static final int CLIENT_HTTP_PORT = 8080;
 
     /** Client proxy listens for HTTPS queries. */
-    public static final int CLIENT_HTTPS_PORT = 443;
+    public static final int CLIENT_HTTPS_PORT = 8443;
 
     /** Port for connection between client and server proxy. */
     public static final int PROXY_PORT = 5500;
@@ -65,9 +65,6 @@ public final class PortNumbers {
 
     /** Port for Configuration Admin Port. */
     public static final int CONFIGURATION_CLIENT_ADMIN_PORT = 5675;
-
-    /** Admin port for monitor agents. */
-    public static final int MONITOR_AGENT_ADMIN_PORT = 5588;
 
     /** Port of the operational monitoring daemon. */
     public static final int OP_MONITOR_DAEMON_PORT = 2080;

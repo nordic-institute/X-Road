@@ -64,7 +64,7 @@ public final class SkCprKlass3 {
             throw new Exception("Serial number length must be " + SN_LENGTH);
         }
 
-        return new String[] {getMemberClass(sn), sn};
+        return new String[]{getMemberClass(sn), sn};
     }
 
     // Returns the hardcoded member class based on the first number in

@@ -3,7 +3,7 @@ Feature: Members Api
 
   @Modifying
   Scenario: Create new member
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
     And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member' is added
@@ -12,7 +12,7 @@ Feature: Members Api
 
   @Modifying
   Scenario: Get member details
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
     And Authentication header is set to REGISTRATION_OFFICER
     When new member 'CS:TEST:member' is added
@@ -24,7 +24,7 @@ Feature: Members Api
 
   @Modifying
   Scenario: Delete member
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
     And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member' is added
@@ -34,7 +34,7 @@ Feature: Members Api
 
   @Modifying
   Scenario: Update member name
-    Given Authentication header is set to MANAGEMENT_SERVICE
+    Given Authentication header is set to SECURITY_OFFICER
     And member class 'TEST' is created
     And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:TEST:member' is added with name 'memberName'

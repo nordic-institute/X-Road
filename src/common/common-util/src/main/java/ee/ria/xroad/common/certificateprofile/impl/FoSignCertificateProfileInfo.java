@@ -42,7 +42,7 @@ public class FoSignCertificateProfileInfo extends AbstractCertificateProfileInfo
      * @param params the parameters
      */
     public FoSignCertificateProfileInfo(Parameters params) {
-        super(new DnFieldDescription[] {
+        super(new DnFieldDescription[]{
 
                 // Country Identifier
                 new EnumLocalizedFieldDescriptionImpl(

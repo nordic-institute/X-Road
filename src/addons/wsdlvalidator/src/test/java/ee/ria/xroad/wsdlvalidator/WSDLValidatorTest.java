@@ -73,7 +73,7 @@ public class WSDLValidatorTest {
         }
 
         boolean isEmpty() {
-            return ((ByteArrayOutputStream)out).size() == 0;
+            return ((ByteArrayOutputStream) out).size() == 0;
         }
     }
 }

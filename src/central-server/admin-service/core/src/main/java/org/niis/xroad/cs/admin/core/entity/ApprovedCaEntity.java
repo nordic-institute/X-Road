@@ -26,21 +26,20 @@
  */
 package org.niis.xroad.cs.admin.core.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -89,6 +88,16 @@ public class ApprovedCaEntity extends AuditableEntity {
     @Getter
     @Setter
     private String certProfileInfo;
+
+    @Column(name = "acme_server_directory_url")
+    @Getter
+    @Setter
+    private String acmeServerDirectoryUrl;
+
+    @Column(name = "acme_server_ip_address")
+    @Getter
+    @Setter
+    private String acmeServerIpAddress;
 
     //this is the set of intermediate CAs
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "approvedCa")

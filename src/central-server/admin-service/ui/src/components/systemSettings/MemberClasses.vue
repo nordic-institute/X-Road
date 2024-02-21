@@ -60,7 +60,7 @@
           <xrd-button
             text
             data-test="system-settings-edit-member-class-button"
-            @click="openEditMemberClassDialog(item.raw)"
+            @click="openEditMemberClassDialog(item)"
           >
             {{ $t('action.edit') }}
           </xrd-button>
@@ -68,7 +68,7 @@
           <xrd-button
             text
             data-test="system-settings-delete-member-class-button"
-            @click="openDeleteMemberClassDialog(item.raw)"
+            @click="openDeleteMemberClassDialog(item)"
           >
             {{ $t('action.delete') }}
           </xrd-button>
@@ -86,7 +86,7 @@
       v-if="showAddEditMemberClassDialog"
       :member-class="selectedMemberClass"
       @cancel="closeEditMemberClassDialog"
-      @edit="closeEditMemberClassDialog"
+      @save="closeEditMemberClassDialog"
     />
   </div>
 </template>
@@ -99,20 +99,18 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useMemberClass } from '@/store/modules/member-class';
 import EditMemberClassDialog from '@/components/systemSettings/EditMemberClassDialog.vue';
 import DeleteMemberClassDialog from '@/components/systemSettings/DeleteMemberClassDialog.vue';
-import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import { toPagingOptions } from '@/util/helpers';
+import { DataTableHeader, SortItem } from '@/ui-types';
 
 export default defineComponent({
   components: {
     DataTableToolbar,
     EditMemberClassDialog,
     DeleteMemberClassDialog,
-    VDataTable,
   },
   data: () => ({
-    sortBy: [{ key: 'code', order: 'asc' }],
+    sortBy: [{ key: 'code', order: 'asc' }] as SortItem[],
     selectedMemberClass: undefined as MemberClass | undefined,
     showAddEditMemberClassDialog: false,
     showDeleteMemberClassDialog: false,

@@ -34,6 +34,18 @@ import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPHeader;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.SOAPPart;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.hibernate.query.Query;
@@ -45,28 +57,14 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
 import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
 import javax.wsdl.Service;
 import javax.wsdl.extensions.soap.SOAPAddress;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPHeader;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
 import javax.xml.transform.stream.StreamSource;
 
 import java.io.BufferedInputStream;
@@ -74,6 +72,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -186,8 +185,8 @@ public final class MetaserviceTestUtil {
 
         // note that these return raw type collections
         return services.stream()
-                .flatMap(service -> ((Collection<Port>)service.getPorts().values()).stream())
-                .flatMap(port -> ((List<BindingOperation>)port.getBinding().getBindingOperations()).stream())
+                .flatMap(service -> ((Collection<Port>) service.getPorts().values()).stream())
+                .flatMap(port -> ((List<BindingOperation>) port.getBinding().getBindingOperations()).stream())
                 .map(BindingOperation::getName)
                 .collect(Collectors.toList());
     }
@@ -200,12 +199,12 @@ public final class MetaserviceTestUtil {
     public static List<String> parseEndpointUrlsFromWSDLDefinition(Definition definition) {
         @SuppressWarnings("unchecked") Collection<Service> services = definition.getServices().values();
         List<String> endpointUrls = new ArrayList<>();
-        for (Service service: services) {
-            for (Object portObject: service.getPorts().values()) {
+        for (Service service : services) {
+            for (Object portObject : service.getPorts().values()) {
                 Port port = (Port) portObject;
-                for (Object extensibilityElement: port.getExtensibilityElements()) {
+                for (Object extensibilityElement : port.getExtensibilityElements()) {
                     if (extensibilityElement instanceof SOAPAddress) {
-                        endpointUrls.add(((SOAPAddress)extensibilityElement).getLocationURI());
+                        endpointUrls.add(((SOAPAddress) extensibilityElement).getLocationURI());
                     }
                 }
             }
@@ -223,7 +222,6 @@ public final class MetaserviceTestUtil {
      */
     public static void mergeHeaders(SOAPHeader header, SoapHeader xrHeader) throws JAXBException,
             ParserConfigurationException, SOAPException {
-
 
 
         Document document = documentBuilderFactory.newDocumentBuilder().newDocument();
@@ -259,9 +257,9 @@ public final class MetaserviceTestUtil {
 
     }
 
-    /** Stub class for {@link ServletOutputStream}. For mocking Servlet interactions.
+    /** Stub class for {@link OutputStream}. For mocking Servlet interactions.
      * */
-    public static class StubServletOutputStream extends ServletOutputStream {
+    public static class StubServletOutputStream extends OutputStream {
 
         private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -275,15 +273,6 @@ public final class MetaserviceTestUtil {
 
         public byte[] getAsBytes() {
             return outputStream.toByteArray();
-        }
-
-        @Override
-        public boolean isReady() {
-            return true;
-        }
-
-        @Override
-        public void setWriteListener(WriteListener writeListener) {
         }
 
         @Override
@@ -324,11 +313,10 @@ public final class MetaserviceTestUtil {
     }
 
     /** Clean the database (You are using this from a test, right?)
-     * @throws Exception
      */
     public static void cleanDB() throws Exception {
         doInTransaction(session -> {
-            Query q = session.createSQLQuery("TRUNCATE SCHEMA public AND COMMIT");
+            Query q = session.createNativeQuery("TRUNCATE SCHEMA public AND COMMIT");
             q.executeUpdate();
             return null;
         });

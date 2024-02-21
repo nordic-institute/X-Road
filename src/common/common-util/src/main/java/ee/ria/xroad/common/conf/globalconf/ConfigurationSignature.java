@@ -27,9 +27,8 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 
-import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpField;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +47,7 @@ final class ConfigurationSignature extends AbstractConfigurationPart {
     private final VerificationCertHash verificationCertHash;
 
     private ConfigurationSignature(Map<String, String> parameters,
-            VerificationCertHash verificationCertHash) {
+                                   VerificationCertHash verificationCertHash) {
         super(parameters);
 
         this.verificationCertHash = verificationCertHash;
@@ -64,11 +63,11 @@ final class ConfigurationSignature extends AbstractConfigurationPart {
     }
 
     String getVerificationCertHash() {
-        return verificationCertHash.getHash();
+        return verificationCertHash.hash();
     }
 
     String getVerificationCertHashAlgoId() {
-        return verificationCertHash.getAlgoId();
+        return verificationCertHash.algoId();
     }
 
     static ConfigurationSignature of(Map<String, String> headers) {
@@ -90,21 +89,19 @@ final class ConfigurationSignature extends AbstractConfigurationPart {
     private static VerificationCertHash getCertVerificationHash(String value) {
         Map<String, String> p = new HashMap<>();
 
-        String hash = HttpFields.valueParameters(value, p);
+        String hash = HttpField.valueParameters(value, p);
         String algoId = p.get(HEADER_HASH_ALGORITHM_ID);
 
         if (StringUtils.isBlank(algoId)) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Field " + HEADER_VERIFICATION_CERT_HASH
-                        + " is missing parameter " + HEADER_HASH_ALGORITHM_ID);
+                            + " is missing parameter " + HEADER_HASH_ALGORITHM_ID);
         }
 
         return new VerificationCertHash(hash, algoId);
     }
 
-    @Data
-    private static class VerificationCertHash {
-        private final String hash;
-        private final String algoId;
+
+    private record VerificationCertHash(String hash, String algoId) {
     }
 }

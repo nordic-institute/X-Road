@@ -1,8 +1,8 @@
 plugins {
-  id 'com.github.johnrengelman.shadow'
+    id 'com.github.johnrengelman.shadow'
 }
 
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 
 configurations {
     xjc
@@ -10,13 +10,13 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
+        java.srcDirs = ['src/main/java', schemaTargetDir]
     }
-  intTest {
-    resources {
-      srcDir '../common/common-int-test/src/main/resources/'
+    intTest {
+        resources {
+            srcDir '../common/common-int-test/src/main/resources/'
+        }
     }
-  }
 }
 
 dependencies {
@@ -34,7 +34,6 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
 
-    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 
 
@@ -56,21 +55,22 @@ jar {
 }
 
 shadowJar {
-  archiveClassifier = ''
-  exclude('**/module-info.class')
-  from rootProject.file("LICENSE.txt")
-  mergeServiceFiles()
+    archiveClassifier = ''
+    exclude('**/module-info.class')
+    from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
 }
 
 jar.finalizedBy shadowJar
 
-task createDirs() {
+tasks.register('createDirs') {
     doLast {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
 
-task xjc(dependsOn: [':common:common-util:xjc', ':common:common-verifier:xjc']) {
+tasks.register('xjc') {
+    dependsOn(':common:common-util:xjc', ':common:common-verifier:xjc')
     inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
@@ -90,18 +90,18 @@ task xjc(dependsOn: [':common:common-util:xjc', ':common:common-verifier:xjc']) 
 // gradle cannot handle parallel runs if each task invokes a long-running server process.
 // Instead, use the .jar in the build/libs directory:
 // java -Djava.library.path=/home/iks2/core/passwordstore -jar signer-1.0.jar
-task runSignerMain(type: JavaExec) {
+tasks.register('runSignerMain', JavaExec) {
     jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
         '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
         '-Dxroad.common.configuration-path=../common/common-util/src/test/resources/globalconf_good_v2',
-        "-Dxroad.common.temp-files-path=${buildDir}/tmp/",
+        "-Dxroad.common.temp-files-path=${layout.buildDirectory.get().asFile}/tmp/",
         '-Dxroad.proxy.configuration-anchor-file=../common/common-util/src/test/resources/configuration-anchor1.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
         '-Djava.library.path=../passwordstore:../libs',
         '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'
     mainClass = 'ee.ria.xroad.signer.SignerMain'
     classpath = sourceSets.main.runtimeClasspath
-    classpath += files("../addons/hwtoken/${buildDir}/libs/hwtoken-1.0.jar")
+    classpath += files("../addons/hwtoken/${layout.buildDirectory.get().asFile}/libs/hwtoken-1.0.jar")
 
     description = "Starts signer main program.\nNote: " +
         "Be sure that appropriate libpkcs11wrapper.so is installed to the " +
@@ -113,45 +113,30 @@ task runSignerMain(type: JavaExec) {
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc
 
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
-
 tasks.register('intTest', Test) {
-  useJUnitPlatform()
+    useJUnitPlatform()
 
-  setDescription("Runs integration tests.")
-  group = 'verification'
+    setDescription("Runs integration tests.")
+    group = 'verification'
 
-  testClassesDirs = sourceSets.intTest.output.classesDirs
-  classpath = sourceSets.intTest.runtimeClasspath
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
 
-  def intTestArgs = []
-  if (project.hasProperty('intTestProfilesInclude')) {
-    intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
-  }
+    def intTestArgs = []
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
 
-  jvmArgs intTestArgs
+    jvmArgs intTestArgs
 
-  testLogging {
-    showStackTraces(true)
-    showExceptions(true)
-    showCauses(true)
-    showStandardStreams(true)
-  }
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
 }
 
 tasks.named('check') {
-  dependsOn tasks.named('intTest')
+    dependsOn tasks.named('intTest')
 }

@@ -131,13 +131,13 @@ public final class GlobalConfExtensions {
 
                 if (Files.exists(ocspFetchIntervalPath)) {
                     log.trace("Loading private parameters from {}",
-                                ocspFetchIntervalPath);
+                            ocspFetchIntervalPath);
                     ocspFetchInterval = new OcspFetchInterval();
                     ocspFetchInterval.load(getOcspFetchIntervalConfigurationPath().toString());
                     log.trace("Parameters were loaded, value: {}", ocspFetchInterval.getOcspFetchInterval());
                 } else {
                     log.trace("Not loading ocsp fetch interval from {}, "
-                                + "file does not exist", ocspFetchIntervalPath);
+                            + "file does not exist", ocspFetchIntervalPath);
                 }
             }
         } catch (Exception e) {

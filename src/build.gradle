@@ -10,18 +10,15 @@ buildscript {
 }
 
 plugins {
-  id 'org.sonarqube' version '4.2.1.3168'
-  id 'org.owasp.dependencycheck' version '8.4.0'
-  id 'jacoco'
-  id 'java'
-  id 'idea'
-  id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
-  id 'org.springframework.boot' version "${springBootVersion}" apply false
-  id 'com.google.protobuf' version "$protobufGradleVersion" apply false
-}
-
-repositories {
-    mavenCentral()
+    id 'org.sonarqube' version '4.4.1.3373'
+    id 'org.owasp.dependencycheck' version '9.0.9'
+    id 'jacoco-report-aggregation'
+    id 'java'
+    id 'idea'
+    id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
+    id 'com.google.protobuf' version "$protobufGradleVersion" apply false
+    id 'org.siouan.frontend-jdk17' version "$frontendPluginVersion" apply false
 }
 
 sonarqube {
@@ -35,7 +32,7 @@ sonarqube {
         property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
         property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
-        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml"
 
         property "sonar.issue.ignore.multicriteria", "e1"
         //# ignore 'Local-Variable Type Inference should be used"
@@ -45,7 +42,7 @@ sonarqube {
 }
 
 dependencyCheck {
-    outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
+    outputDirectory = "${project.layout.buildDirectory.get().asFile}/reports/owasp-dependency-check"
     suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
     format = "ALL"
     skipProjects = [
@@ -54,6 +51,10 @@ dependencyCheck {
         ":central-server:admin-service:int-test",
         ":central-server:management-service:int-test"
     ]
+    nvd {
+        apiKey = "${nvdApiKey}"
+        delay = 6000
+    }
     analyzers {
         experimentalEnabled = false
         archiveEnabled = false
@@ -74,7 +75,7 @@ dependencyCheck {
         nodeEnabled = false
         nodeAudit {
             enabled = false
-            yarnEnabled = false
+            pnpmEnabled = false
         }
         ossIndex {
             enabled = false
@@ -84,15 +85,10 @@ dependencyCheck {
 
 group = 'ee.ria.xroad'
 subprojects {
-    group = "${parent.group}.${name.replace(/\W/,"_")}"
+    group = "${parent.group}.${name.replace(/\W/, "_")}"
 }
 
 allprojects {
-    buildscript {
-        repositories {
-            mavenCentral()
-        }
-    }
 
     repositories {
         mavenLocal()
@@ -101,24 +97,11 @@ allprojects {
 
     version = '1.0'
 
-    jacoco {
-        toolVersion = "0.8.7"
-    }
-
-    task allDependencies(type: DependencyReportTask) {}
-
-    task printDeps {
-        doLast {
-            if (configurations.hasProperty("runtime")) {
-                configurations.runtime.resolvedConfiguration.firstLevelModuleDependencies.each { dep ->
-                    println "${project.name}:${dep.module.id.group}:${dep.module.id.name}:${dep.module.id.version}"
-                }
-            }
-        }
-    }
+    tasks.register('allDependencies', DependencyReportTask) {}
 }
 
-configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].contains(it.name) }) {
+//Configure java projects
+configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
@@ -131,10 +114,6 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
         toolchain {
             languageVersion = JavaLanguageVersion.of(17)
         }
-    }
-
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
     }
 
     sourceSets {
@@ -167,10 +146,10 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
                 }
             }
             add('implementation', 'org.apache.commons:commons-text') {
-              because("Vulnerability fix regarding CVE-2022-42889")
-              version {
-                require("$commonsTextVersion")
-              }
+                because("Vulnerability fix regarding CVE-2022-42889")
+                version {
+                    require("$commonsTextVersion")
+                }
             }
             add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
                 because("Vulnerability fix regarding CVE-2022-40152")
@@ -179,9 +158,6 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
                 }
             }
         }
-
-        testImplementation 'org.hamcrest:hamcrest:2.2'
-        testImplementation 'org.hamcrest:hamcrest-library:2.2'
 
         testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
         testImplementation("org.junit.vintage:junit-vintage-engine:$junitVersion")
@@ -196,35 +172,34 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
         intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
     }
 
-  test {
-    useJUnitPlatform()
-  }
+    test {
+        useJUnitPlatform()
+    }
 
-    task testJar(type: Jar) {
-        classifier 'test'
+    tasks.register('testJar', Jar) {
+        archiveClassifier = 'test'
         from sourceSets.test.output
     }
 
     def javaCompiler = javaToolchains.compilerFor(java.toolchain)
     def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
     }
 
-    tasks.withType(JavaExec) {
+    tasks.withType(JavaExec).configureEach {
         systemProperty 'file.encoding', 'UTF-8'
-        javaLauncher = javaToolchains.launcherFor(java.toolchain)
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
     }
 
-    tasks.withType(Test) {
+    tasks.withType(Test).configureEach {
         systemProperty 'file.encoding', 'UTF-8'
     }
 
-    tasks.withType(Exec) {
+    tasks.withType(Exec).configureEach {
         environment "JAVA_HOME", javaHome
         environment "JAVA_TOOL_OPTIONS", '-Dfile.encoding=UTF-8'
     }
@@ -236,7 +211,7 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
     }
 
     checkstyle {
-        toolVersion = "10.7.0"
+        toolVersion = "10.12.6"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         ignoreFailures = false
         showViolations = false
@@ -253,7 +228,17 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
         configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
     }
 
-    jacocoTestReport {
+    configurations.checkstyle {
+        resolutionStrategy.capabilitiesResolution.withCapability("com.google.collections:google-collections") {
+            select("com.google.guava:guava:0")
+        }
+    }
+
+    jacoco {
+        toolVersion = "0.8.11"
+    }
+    // Do not generate reports for individual projects
+    tasks.named("jacocoTestReport") {
         enabled = false
     }
 
@@ -263,9 +248,9 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
         header rootProject.file('LICENSE.txt')
         include '**/*.java'
         skipExistingHeaders = true
-      mapping {
-        java = 'SLASHSTAR_STYLE'
-      }
+        mapping {
+            java = 'SLASHSTAR_STYLE'
+        }
     }
 
     licenseMain.source = fileTree('src/main')
@@ -281,15 +266,31 @@ configure(subprojects.findAll { !["frontend", "shared-ui", "shared-ui-3", "ui"].
 
 clean.delete << "${rootDir}/packages/build"
 
-jacocoTestReport {
-    def javaProjects = subprojects.findAll { it.plugins.hasPlugin(JavaPlugin) }
-    dependsOn javaProjects.check
-    reports {
-        xml.required = true
+dependencies {
+    subprojects {
+        pluginManager.withPlugin('java') {
+            jacocoAggregation project
+        }
     }
-    classDirectories.setFrom files(javaProjects.sourceSets.main.java.classesDirectory)
-    sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
-    executionData.setFrom fileTree(dir: '.', include: "**/build/jacoco/*.exec")
+}
+
+reporting {
+    reports {
+        jacocoAggregatedReport(JacocoCoverageReport) {
+            testType = 'full'
+            reportTask.configure {
+                description = 'Build a full test coverage report including test and integrationTest results'
+                project.subprojects {
+                    pluginManager.withPlugin('jacoco') {
+                        executionData tasks.withType(Test)
+                    }
+                }
+                reports {
+                    xml.required = true
+                }
+            }
+        }
+    }
 }
 
 tasks.withType(Jar).configureEach {

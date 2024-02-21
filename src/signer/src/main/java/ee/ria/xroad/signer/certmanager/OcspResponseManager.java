@@ -37,7 +37,7 @@ import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 import java.security.cert.X509Certificate;
 import java.util.Map.Entry;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 
@@ -72,7 +72,7 @@ public class OcspResponseManager {
      * @throws Exception if an error occurs
      */
     public byte[] getOcspResponse(X509Certificate cert) throws Exception {
-        return getOcspResponse(calculateCertHexHash(cert));
+        return getOcspResponse(calculateCertSha1HexHash(cert));
     }
 
     /**
@@ -82,7 +82,7 @@ public class OcspResponseManager {
      * @throws Exception if an error occurs
      */
     private byte[] getOcspResponse(String certHash) throws Exception {
-        GetOcspResponses message = new GetOcspResponses(new String[] {certHash});
+        GetOcspResponses message = new GetOcspResponses(new String[]{certHash});
 
         GetOcspResponsesResponse result = handleGetOcspResponses(message);
 

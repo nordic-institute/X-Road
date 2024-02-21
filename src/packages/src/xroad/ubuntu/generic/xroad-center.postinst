@@ -24,6 +24,25 @@ handle_error() {
     rm -f /tmp/cert.err
 }
 
+handle_error_retry() {
+  ERR=$1
+  db_reset xroad-common/cert-generation-retry
+  db_reset xroad-common/cert-generation-error
+  db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+  db_beginblock
+  db_input critical xroad-common/cert-generation-error || true
+  db_input critical xroad-common/cert-generation-retry || true
+  db_endblock
+  db_go
+
+  db_get xroad-common/cert-generation-retry
+  if [ "$RET" = false ]; then
+    exit 1
+  fi
+
+  echo "Retrying certificate generation"
+}
+
 # setup database and run migrations
 setup_database() {
     /usr/share/xroad/scripts/migrate_db_cfg_to_spring_datasourse.sh
@@ -165,6 +184,24 @@ EOF
     fi
 }
 
+migrate_internal_crt() {
+  if [[ -f /etc/xroad/ssl/internal.crt && -f /etc/xroad/ssl/internal.key ]]; then
+    if [[ ! -r /etc/xroad/ssl/management-service.crt || ! -r /etc/xroad/ssl/management-service.key || ! -r /etc/xroad/ssl/management-service.p12 ]]; then
+      echo "found existing internal.crt and internal.key, migrating those to management-service.crt, key and p12"
+      # Copying instead of moving because nginx configuration is not updated until
+      # registration-service and management service packages are installed.
+      # internal.* files are removed in xroad-centralserver.postinst
+      cp /etc/xroad/ssl/internal.crt /etc/xroad/ssl/management-service.crt
+      cp /etc/xroad/ssl/internal.key /etc/xroad/ssl/management-service.key
+      openssl pkcs12 -export -in /etc/xroad/ssl/management-service.crt -inkey /etc/xroad/ssl/management-service.key -name management-service -out /etc/xroad/ssl/management-service.p12 -passout pass:management-service
+      chmod -f 640 /etc/xroad/ssl/management-service.key /etc/xroad/ssl/management-service.crt /etc/xroad/ssl/management-service.p12
+      chown -f xroad:xroad /etc/xroad/ssl/management-service.key /etc/xroad/ssl/management-service.crt /etc/xroad/ssl/management-service.p12
+    else
+        echo "found existing management-service.key, crt and p12, keeping those and not migrating internal.key and crt"
+    fi
+  fi
+}
+
 # check certificates and request necessary subject information from the user
 create_certificates() {
     HOST=$(hostname -f)
@@ -225,42 +262,56 @@ create_certificates() {
         fi
     done
 
-    while :; do
-        if [[ ! -r /etc/xroad/ssl/internal.crt || ! -r /etc/xroad/ssl/internal.key || ! -r /etc/xroad/ssl/internal.p12 ]]; then
-            log "Generating new internal.[crt|key|p12] files "
-            db_subst xroad-common/service-subject HOST "$HOST"
-            db_subst xroad-common/service-altsubject ALT "$ALT"
-            RET=
+    if [[ ! -r /etc/xroad/ssl/management-service.crt || ! -r /etc/xroad/ssl/management-service.key || ! -r /etc/xroad/ssl/management-service.p12 ]]; then
+        log "Generating new management-service.[crt|key|p12] files "
+
+        db_subst xroad-common/service-subject HOST "$HOST"
+        db_subst xroad-common/service-altsubject ALT "$ALT"
+
+        while :; do
             db_get xroad-common/service-subject
-            if [ -z "$RET" ]; then
-                db_set xroad-common/service-subject "/CN=$HOST"
-            fi
-            RET=
+            [ -z "$RET" ] && db_set xroad-common/service-subject "/CN=$HOST"
             db_get xroad-common/service-altsubject
-            if [ -z "$RET" ]; then
-                db_set xroad-common/service-altsubject "$ALT"
-            fi
+            [ -z "$RET" ] && db_set xroad-common/service-altsubject "$ALT"
+
+            db_beginblock
             db_input critical xroad-common/service-subject || true
             db_input critical xroad-common/service-altsubject || true
+            db_endblock
             db_go
-            RET=
+
             db_get xroad-common/service-subject
             subj="$RET"
-            RET=
             db_get xroad-common/service-altsubject
             altn="$RET"
-            db_go
-            rm -f /etc/xroad/ssl/internal.crt /etc/xroad/ssl/internal.key /etc/xroad/ssl/internal.p12
-            log "generating new service TLS key/certificate with $subj and $altn"
-            /usr/share/xroad/scripts/generate_certificate.sh -n internal -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err || handle_error
-        else
-            break
-        fi
-    done
+            if [ -z "$subj" ]; then
+              subj="/CN=$HOST"
+            fi
+            if [ -z "$altn" ]; then
+              altn="$ALT"
+            fi
+
+            echo "generating new management service TLS key/certificate with $subj and $altn"
+            if ! /usr/share/xroad/scripts/generate_certificate.sh -n management-service -s "${subj}" -a "${altn}" -p 2>/tmp/cert.err; then
+                ERR=$(</tmp/cert.err)
+                rm -f /tmp/cert.err
+                handle_error_retry "$ERR"
+                db_fset xroad-common/service-subject seen false
+                db_fset xroad-common/service-altsubject seen false
+                continue
+            fi
+
+        break
+
+        done
+    fi
 }
 
 case "$1" in
 configure | reconfigure)
+    if dpkg --compare-versions "$2" lt-nl "7.4.0"; then
+      migrate_internal_crt
+    fi
     create_certificates
     setup_database
 
@@ -312,6 +363,11 @@ configure | reconfigure)
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     skip_migrations="${RET}"
+
+    #create symlink to nginx config
+    if [[ -d /etc/nginx/sites-enabled ]]; then
+      ln -sf /etc/xroad/nginx/xroad-public.conf /etc/nginx/sites-enabled/xroad-public
+    fi
 
     invoke-rc.d --quiet rsyslog try-restart || true
     invoke-rc.d --quiet nginx try-restart || true

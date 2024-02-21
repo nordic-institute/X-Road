@@ -129,8 +129,8 @@ public class ConfigurationClientTest {
 
     // ------------------------------------------------------------------------
 
-    private static ConfigurationAnchorV2 getConfigurationAnchor(final String fileName) {
-        return new ConfigurationAnchorV2((String) null) {
+    private static ConfigurationAnchor getConfigurationAnchor(final String fileName) {
+        return new ConfigurationAnchor((String) null) {
 
             @Override
             public boolean hasChanged() {
@@ -142,7 +142,7 @@ public class ConfigurationClientTest {
                 try {
                     return Arrays.asList(new ConfigurationLocation(this,
                             fileName, Arrays.asList(
-                                    TestCertUtil.getConsumer().certChain[0].getEncoded())));
+                            TestCertUtil.getConsumer().certChain[0].getEncoded())));
                 } catch (CertificateEncodingException e) {
                     throw new RuntimeException(e);
                 }
@@ -156,14 +156,14 @@ public class ConfigurationClientTest {
     }
 
     private void initInstanceIdentifier() throws Exception {
-        ConfigurationDirectory.saveInstanceIdentifier(tempConfFolder.getRoot().getAbsolutePath(),  "EE");
+        ConfigurationDirectory.saveInstanceIdentifier(tempConfFolder.getRoot().getAbsolutePath(), "EE");
     }
 
     private ConfigurationClient getClient(final String confPath, final List<String> receivedParts) {
-        ConfigurationAnchorV2 configurationAnchor = getConfigurationAnchor(confPath + ".txt");
+        ConfigurationAnchor configurationAnchor = getConfigurationAnchor(confPath + ".txt");
 
         ConfigurationDownloader configurations = new ConfigurationDownloader(
-                tempConfFolder.getRoot().getAbsolutePath()) {
+                tempConfFolder.getRoot().getAbsolutePath(), 2) {
             @Override
             ConfigurationParser getParser() {
                 return new ConfigurationParser() {

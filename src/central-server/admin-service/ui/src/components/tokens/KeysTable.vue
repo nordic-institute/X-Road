@@ -39,25 +39,25 @@
         <xrd-icon-base class="key-icon">
           <xrd-icon-key />
         </xrd-icon-base>
-        <span :data-test="`key-label-text`">{{ keyLabel(item.raw) }}</span>
+        <span :data-test="`key-label-text`">{{ keyLabel(item) }}</span>
       </template>
       <template #[`item.createdAt`]="{ item }">
-        <date-time :value="item.raw.created_at" />
+        <date-time :value="item.created_at" />
       </template>
       <template #[`item.actions`]="{ item }">
         <xrd-button
-          v-if="canActivateKey(item.raw)"
-          :data-test="`key-${keyLabel(item.raw)}-activate-button`"
+          v-if="canActivateKey(item)"
+          :data-test="`key-${keyLabel(item)}-activate-button`"
           text
-          @click="openActivateKeyDialog(item.raw)"
+          @click="openActivateKeyDialog(item)"
         >
           {{ $t('action.activate') }}
         </xrd-button>
         <xrd-button
-          v-if="canDeleteKey(item.raw)"
-          :data-test="`key-${keyLabel(item.raw)}-delete-button`"
+          v-if="canDeleteKey(item)"
+          :data-test="`key-${keyLabel(item)}-delete-button`"
           text
-          @click="openDeleteKeyDialog(item.raw)"
+          @click="openDeleteKeyDialog(item)"
         >
           {{ $t('action.delete') }}
         </xrd-button>
@@ -85,8 +85,6 @@
  */
 import { defineComponent, PropType } from 'vue';
 import { ConfigurationSigningKey, PossibleKeyAction } from '@/openapi-types';
-import { DataTableHeader } from '@/ui-types';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
@@ -94,13 +92,13 @@ import SigningKeyDeleteDialog from '@/components/signingKeys/SigningKeyDeleteDia
 import SigningKeyActivateDialog from '@/components/signingKeys/SigningKeyActivateDialog.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import { XrdIconKey } from '@niis/shared-ui';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
     DateTime,
     SigningKeyActivateDialog,
     SigningKeyDeleteDialog,
-    VDataTable,
     XrdIconKey,
   },
   props: {

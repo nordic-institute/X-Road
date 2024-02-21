@@ -46,12 +46,12 @@
         <div
           v-if="hasPermissionToMemberDetails"
           class="table-cell-member-name-action"
-          @click="toMemberDetails(item.raw)"
+          @click="toMemberDetails(item)"
         >
           <xrd-icon-base class="xrd-clickable mr-4">
             <xrd-icon-folder-outline
           /></xrd-icon-base>
-          {{ item.raw.member_name }}
+          {{ item.member_name }}
         </div>
 
         <div v-else class="table-cell-member-name">
@@ -81,11 +81,9 @@ import { useNotifications } from '@/store/modules/notifications';
 import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
-import { VDataTable } from 'vuetify/labs/VDataTable';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
-  components: { VDataTable },
   props: {
     serverId: {
       type: String,

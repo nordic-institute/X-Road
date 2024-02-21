@@ -40,11 +40,10 @@ import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResp
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataType;
 import ee.ria.xroad.opmonitordaemon.message.SearchCriteriaType;
 
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -73,7 +72,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
 
     @Override
     public void handle(SoapMessageImpl requestSoap, OutputStream out,
-            Consumer<String> contentTypeCallback) throws Exception {
+                       Consumer<String> contentTypeCallback) throws Exception {
         log.trace("handle()");
 
         ClientId clientId = requestSoap.getClient();
@@ -124,7 +123,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
     }
 
     static void checkTimestamps(long recordsFrom, long recordsTo,
-            long recordsAvailableBefore) {
+                                long recordsAvailableBefore) {
         if (recordsFrom < 0) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Records from timestamp is a negative number")
@@ -160,11 +159,13 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
         }
     }
 
-    protected GetSecurityServerOperationalDataResponseType
-            buildOperationalDataResponse(ClientId filterByClient,
-            long recordsFrom, long recordsTo, ClientId filterByServiceProvider,
-            Set<String> outputFields, long recordsAvailableBefore)
-            throws IOException {
+    protected GetSecurityServerOperationalDataResponseType buildOperationalDataResponse(
+            ClientId filterByClient,
+            long recordsFrom,
+            long recordsTo,
+            ClientId filterByServiceProvider,
+            Set<String> outputFields,
+            long recordsAvailableBefore) throws IOException {
         OperationalDataRecords responseRecords;
         GetSecurityServerOperationalDataResponseType opDataResponse =
                 OBJECT_FACTORY
@@ -223,7 +224,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
     }
 
     protected ClientId getClientForFilter(ClientId clientId,
-            SecurityServerId serverId) throws Exception {
+                                          SecurityServerId serverId) throws Exception {
         return !isMonitoringClient(clientId)
                 && !isServerOwner(clientId, serverId) ? clientId : null;
     }

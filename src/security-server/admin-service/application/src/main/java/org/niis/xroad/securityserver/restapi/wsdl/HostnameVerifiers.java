@@ -35,5 +35,6 @@ public final class HostnameVerifiers {
 
     public static final HostnameVerifier ACCEPT_ALL = (hostname, session) -> true;
 
-    private HostnameVerifiers() { }
+    private HostnameVerifiers() {
+    }
 }

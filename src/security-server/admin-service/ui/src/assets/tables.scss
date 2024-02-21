@@ -28,7 +28,6 @@
 
 .xrd-table {
   width: 100%;
-  margin-top: 10px;
   border-collapse: collapse;
 
   td {
@@ -75,4 +74,8 @@
   padding: 16px;
   background-color: $XRoad-WarmGrey10;
   height: 72px;
+}
+
+.data-table {
+  border-radius: 4px;
 }

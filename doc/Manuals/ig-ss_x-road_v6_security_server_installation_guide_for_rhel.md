@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.24  
+Version: 1.27  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -36,7 +36,10 @@ Doc. ID: IG-SS-RHEL
 | 03.09.2021 | 1.21    | Minor fixes                                                                                                                                                                                                          | Ilkka Seppälä    |
 | 06.09.2021 | 1.22    | Update list of running services                                                                                                                                                                                      | Jarkko Hyöty     |
 | 23.05.2023 | 1.23    | Minor backup encryption configuration fixes                                                                                                                                                                          | Eneli Reimets    |
-| 09.10.2023 | 1.24    | Java 17 installation instructions for RHEL 7                                                                                                                                                                         | Justas Samuolis  | 
+| 09.10.2023 | 1.24    | Java 17 installation instructions for RHEL 7                                                                                                                                                                         | Justas Samuolis  |
+| 13.12.2023 | 1.25    | Remove Java 17 manual installation instructions for RHEL 8                                                                                                                                                           | Justas Samuolis  |
+| 19.12.2023 | 1.26    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis  |
+| 02.01.2024 | 1.27    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis  |
 
 ## License
 
@@ -60,7 +63,6 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
     - [2.3.1 Installing Java 17](#231-installing-java-17)
       - [2.3.1.1 Installing Java 17 on RHEL 7](#2311-installing-java-17-on-rhel-7)
-      - [2.3.1.2 Installing Java 17 on RHEL 8](#2312-installing-java-17-on-rhel-8)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
@@ -123,7 +125,7 @@ There are multiple alternatives how the security server can be deployed. The opt
 
 The security server runs on the following platforms:
 
-* Red Hat Enterprise Linux (RHEL) versions 7 and 8 on a x86-64 platform.
+* Red Hat Enterprise Linux (RHEL) versions 7, 8 and 9 on a x86-64 platform.
 * Ubuntu Server 20.04 and 22.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
@@ -136,29 +138,29 @@ The software can be installed both on physical and virtualized hardware (of the 
 **Caution**: Data necessary for the functioning of the operating system is not included.
 
 
-| Ref     |                           | Explanation |
-| ------- | --------------------------| ---------------------------------------------------------- |
-| 1.0     | RHEL (7.3 or newer; 8.0 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
-| 1.1     | https://artifactory.niis.org/xroad-release-rpm  | X-Road package repository
-| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
-| 1.3     |                                         | Account name in the user interface
-| 1.4     | **Inbound ports from external network** | Ports for inbound connections from the external network to the security server
-|         | TCP 5500                                | Message exchange between security servers
-|         | TCP 5577                                | Querying of OCSP responses between security servers
-| 1.5     | **Outbound ports to external network**  | Ports for outbound connections from the security server to the external network
-|         | TCP 5500                                | Message exchange between security servers
-|         | TCP 5577                                | Querying of OCSP responses between security servers
-|         | TCP 4001                                | Communication with the central server
-|         | TCP 80                                  | Downloading global configuration from the central server
-|         | TCP 80,443                              | Most common OCSP and time-stamping services
-| 1.6     | **Inbound ports from internal network** | Ports for inbound connections from the internal network to the security server
-|         | TCP 4000                                | User interface and management REST API (local network). **Must not be accessible from the internet!**
-|         | TCP 8080 (or TCP 80), 8443 (or TCP 443) | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**
-| 1.7     | **Outbound ports to internal network**  | Ports for inbound connections from the internal network to the security server
-|         | TCP 80, 443, *other*                    | Producer information system endpoints
-|         | TCP 2080                                | Message exchange between security server and operational data monitoring daemon (by default on localhost)
-| 1.8     |                                         | Security server internal IP address(es) and hostname(s)
-| 1.9     |                                         | Security server public IP address, NAT address
+| Ref |                                                                                              | Explanation                                                                                                                                                                                                                                                                                |
+|-----|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0 | RHEL (7.3 or newer; 8.0 or newer; 9.3 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements                                                                                                                                                                                                                                                                       |
+| 1.1 | https://artifactory.niis.org/xroad-release-rpm                                               | X-Road package repository                                                                                                                                                                                                                                                                  |
+| 1.2 | https://artifactory.niis.org/api/gpg/key/public                                              | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.3 |                                                                                              | Account name in the user interface                                                                                                                                                                                                                                                         |
+| 1.4 | **Inbound ports from external network**                                                      | Ports for inbound connections from the external network to the security server                                                                                                                                                                                                             |
+|     | TCP 5500                                                                                     | Message exchange between security servers                                                                                                                                                                                                                                                  |
+|     | TCP 5577                                                                                     | Querying of OCSP responses between security servers                                                                                                                                                                                                                                        |
+| 1.5 | **Outbound ports to external network**                                                       | Ports for outbound connections from the security server to the external network                                                                                                                                                                                                            |
+|     | TCP 5500                                                                                     | Message exchange between security servers                                                                                                                                                                                                                                                  |
+|     | TCP 5577                                                                                     | Querying of OCSP responses between security servers                                                                                                                                                                                                                                        |
+|     | TCP 4001                                                                                     | Communication with the central server                                                                                                                                                                                                                                                      |
+|     | TCP 80                                                                                       | Downloading global configuration from the central server                                                                                                                                                                                                                                   |
+|     | TCP 80,443                                                                                   | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
+| 1.6 | **Inbound ports from internal network**                                                      | Ports for inbound connections from the internal network to the security server                                                                                                                                                                                                             |
+|     | TCP 4000                                                                                     | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
+|     | TCP 8080 (or TCP 80), 8443 (or TCP 443)                                                      | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
+| 1.7 | **Outbound ports to internal network**                                                       | Ports for inbound connections from the internal network to the security server                                                                                                                                                                                                             |
+|     | TCP 80, 443, *other*                                                                         | Producer information system endpoints                                                                                                                                                                                                                                                      |
+|     | TCP 2080                                                                                     | Message exchange between security server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
+| 1.8 |                                                                                              | Security server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
+| 1.9 |                                                                                              | Security server public IP address, NAT address                                                                                                                                                                                                                                             |
 
 It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
 
@@ -167,23 +169,36 @@ It is strongly recommended to protect the security server from unwanted access u
 
 The network diagram below provides an example of a basic Security Server setup. Allowing incoming connections from the Monitoring Security Server on ports 5500/tcp and 5577/tcp is necessary for the X-Road Operator to be able to monitor the ecosystem and provide statistics and support for Members.
 
-![network diagram](img/ig-ss_network_diagram_RHEL.png)
+![network diagram](img/ig-ss_network_diagram.png)
 
 The table below lists the required connections between different components.
 
-| Connection Type | Source | Target | Target Ports | Protocol | Note |
-|-----------|------------|-----------|-----------|-----------|-----------|
-| Out | Security Server | Central Server | 80, 4001 | tcp | |
-| Out | Security Server | Management Security Server | 5500, 5577 | tcp | |
-| Out | Security Server | OCSP Service | 80 / 443 | tcp | |
-| Out | Security Server | Timestamping Service | 80 / 443 | tcp | |
-| Out | Security Server | Data Exchange Partner Security Server (Service Producer) | 5500, 5577 | tcp | |
-| Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in the internal network |
-| In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
-| In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
-| In | Consumer Information System | Security Server | 8080, 8443 | tcp | Source in the internal network |
-| In | Admin | Security Server | 4000 | tcp | Source in the internal network |
+| Connection Type | Source                                                   | Target                                                   | Target Ports   | Protocol | Note                           |
+|-----------------|----------------------------------------------------------|----------------------------------------------------------|----------------|----------|--------------------------------|
+| Out             | Security Server                                          | Central Server                                           | 80, 4001       | tcp      |                                |
+| Out             | Security Server                                          | Management Security Server                               | 5500, 5577     | tcp      |                                |
+| Out             | Security Server                                          | OCSP Service                                             | 80 / 443       | tcp      |                                |
+| Out             | Security Server                                          | Timestamping Service                                     | 80 / 443       | tcp      |                                |
+| Out             | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577     | tcp      |                                |
+| Out             | Security Server                                          | Producer Information System                              | 80, 443, other | tcp      | Target in the internal network |
+| In              | Monitoring Security Server                               | Security Server                                          | 5500, 5577     | tcp      |                                |
+| In              | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577     | tcp      |                                |
+| In              | Consumer Information System                              | Security Server                                          | 8080, 8443     | tcp      | Source in the internal network |
+| In              | Admin                                                    | Security Server                                          | 4000           | tcp      | Source in the internal network |
 
+The table below lists the open ports for Security Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
+
+| **Component**            | **Ports** | **Protocol** | **Note**                        |
+|--------------------------|-----------|--------------|---------------------------------|
+| PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         | 
+| OP Monitoring daemon     | 2080      | tcp          |                                 | 
+| Environmental monitoring | 2552      | tcp          |                                 | 
+| Signer                   | 5559      | tcp          | Signer admin port               | 
+| Signer                   | 5560      | tcp          | Signer gRPC port                | 
+| Proxy                    | 5566      | tcp          | Proxy admin port                | 
+| Proxy                    | 5567      | tcp          | Proxy gRPC server port          | 
+| Configuration Client     | 5675      | tcp          | Configuration Client admin port | 
+| Audit Log                | 514       | udp          |                                 | 
 
 ### 2.3 Requirements for the Security Server
 
@@ -198,21 +213,21 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured RHEL (v7.3 or newer; 8.0 or newer;) x86-64 operating system;
+* an installed and configured RHEL (v7.3 or newer; 8.0 or newer; 9.3 or newer) x86-64 operating system;
 * Java 17 should be installed;
 * if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
 #### 2.3.1 Installing Java 17
 
-Java 17 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server. For RHEL 8 it is available in default repository, however it is not included in RHEL 7.
-Sample installation steps are provided for both versions.
+Java 17 is a prerequisite for running the Security Server and should be installed prior installing/updating Security Server, however it is not included in default repositories for RHEL 7.
+Sample installation steps are provided below.
 
 * Check the current java version:
 
         java -version
 
-If the current Java version is 17, following steps should be skipped. If not, follow the instructions depending on RHEL version.
+If the current Java version is 17, following steps should be skipped. If not, follow the instructions to install Java 17.
 
 ##### 2.3.1.1 Installing Java 17 on RHEL 7
 
@@ -236,20 +251,6 @@ Follow these steps to install Temurin JDK 17 on RHEL 7:
 
 * Verify the installation:
     
-        java -version
-
-The output should contain Java version 17. If it does not, set the default Java version to 17 using *alternatives*:
-
-        sudo alternatives --config java
-
-##### 2.3.1.2 Installing Java 17 on RHEL 8
-
-Install Java 17 from default repository:
-
-        sudo yum install jre-17-openjdk-headless
-
-* Verify the installation:
-
         java -version
 
 The output should contain Java version 17. If it does not, set the default Java version to 17 using *alternatives*:

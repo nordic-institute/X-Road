@@ -24,9 +24,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" persistent :max-width="maxWidth">
+  <v-dialog
+    v-if="dialog"
+    :model-value="dialog"
+    persistent
+    :max-width="maxWidth"
+  >
     <v-card>
-      <v-card-title class="headline">{{ $t('services.warning') }}</v-card-title>
+      <v-card-title class="text-h5">{{ $t('services.warning') }}</v-card-title>
       <v-card-text>
         <div v-for="warning in warnings" :key="warning.code">
           <!-- create the localisation key from warning code -->
@@ -38,16 +43,16 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="primary" text outlined @click="cancel()">{{
+        <xrd-button color="primary" variant="outlined" @click="cancel()">{{
           $t(cancelButtonText)
-        }}</v-btn>
-        <v-btn
+        }}</xrd-button>
+        <xrd-button
           color="primary"
-          text
-          outlined
+          variant="outlined"
           :loading="loading"
+          data-test="service-url-change-button"
           @click="accept()"
-          >{{ $t(acceptButtonText) }}</v-btn
+          >{{ $t(acceptButtonText) }}</xrd-button
         >
       </v-card-actions>
     </v-card>
@@ -56,29 +61,31 @@
 
 <script lang="ts">
 // A dialog for backend warnings
-import Vue from 'vue';
-import { Prop } from 'vue/types/options';
+import { defineComponent, PropType } from 'vue';
+import { CodeWithDetails } from '@/openapi-types';
+import { XrdButton } from '@niis/shared-ui';
 
-export default Vue.extend({
+export default defineComponent({
+  components: { XrdButton },
   props: {
     dialog: {
-      type: Boolean as Prop<boolean>,
+      type: Boolean,
       required: true,
     },
     warnings: {
-      type: Array as Prop<string[]>,
+      type: Array as PropType<CodeWithDetails[]>,
       required: true,
     },
     cancelButtonText: {
-      type: String as Prop<string>,
+      type: String,
       default: 'action.cancel',
     },
     acceptButtonText: {
-      type: String as Prop<string>,
+      type: String,
       default: 'action.continue',
     },
     maxWidth: {
-      type: String as Prop<string>,
+      type: String,
       default: '850',
     },
     loading: {
@@ -86,7 +93,7 @@ export default Vue.extend({
       default: false,
     },
   },
-
+  emits: ['cancel', 'accept'],
   methods: {
     cancel(): void {
       this.$emit('cancel');

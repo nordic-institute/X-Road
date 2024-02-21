@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.util;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 /**
  * Test util for working with persistence

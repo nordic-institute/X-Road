@@ -206,7 +206,7 @@ final class AsicHelper {
     }
 
     private static void verifyHashChainEntries(String hashChainResultEntryName, String hashChainResult,
-            String hashChainEntryName, String hashChain) {
+                                               String hashChainEntryName, String hashChain) {
         if (isBlank(hashChainResult) && isBlank(hashChain)) {
             return;
         }

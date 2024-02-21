@@ -48,8 +48,8 @@ class RequestScopedAuditDataHolder {
 
     @Autowired
     RequestScopedAuditDataHolder(@Lazy RequestScopedAuditEventData requestScopedAuditEventData,
-            @Lazy RequestScopedLoggedAuditEvents requestScopedLoggedAuditEvents,
-            RequestHelper requestHelper) {
+                                 @Lazy RequestScopedLoggedAuditEvents requestScopedLoggedAuditEvents,
+                                 RequestHelper requestHelper) {
         this.requestScopedLoggedAuditEvents = requestScopedLoggedAuditEvents;
         this.requestScopedAuditEventData = requestScopedAuditEventData;
         this.requestHelper = requestHelper;
@@ -62,7 +62,7 @@ class RequestScopedAuditDataHolder {
 
     RestApiAuditEvent getAuditEvent() {
         return (RestApiAuditEvent) requestHelper.runInRequestScope(() ->
-            requestScopedAuditEventData.getRequestScopedEvent());
+                requestScopedAuditEventData.getRequestScopedEvent());
     }
 
     Map<RestApiAuditProperty, Object> getEventData() {

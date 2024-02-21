@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.33
+Version: 2.41  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -25,7 +25,7 @@ Doc. ID: UG-CS
 | 21.09.2015 | 1.9     | References fixed                                                                                                                                                                                                                                                                                                                                                                                                                        |                     |
 | 22.10.2015 | 1.10    | Corrections in Chapter 17                                                                                                                                                                                                                                                                                                                                                                                                               |                     |
 | 04.11.2015 | 1.11    | Updates related to backup and restore (Chapter 13)                                                                                                                                                                                                                                                                                                                                                                                      |                     |
-| 30.11.2015 | 2.0     | Management service provider configuration updated (Section 4.2); management requests system updated (Chapter 6); key label added to configuration signing key generation (Section 5.4.1); section about adding a subsystem to an X-Road member added (Section 7.3); only subsystems can be registered as security server clients or be members of global groups; certification service settings updated (11.1). Editorial changes made. |                     |
+| 30.11.2015 | 2.0     | Management service provider configuration updated (Section 4.2); management requests system updated (Chapter 6); key label added to configuration signing key generation (Section 5.4.1); section about adding a subsystem to an X-Road member added (Section 7.3); only subsystems can be registered as Security Server clients or be members of global groups; certification service settings updated (11.1). Editorial changes made. |                     |
 | 17.12.2015 | 2.1     | Added user instructions for monitoring.                                                                                                                                                                                                                                                                                                                                                                                                 |                     |
 | 14.4.2016  | 2.2     | Added chapter for additional configuration options.                                                                                                                                                                                                                                                                                                                                                                                     |                     |
 | 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval.                                                                                                                                                                                                                                                                                                                                                                                 |                     |
@@ -34,7 +34,7 @@ Doc. ID: UG-CS
 | 18.08.2018 | 2.6     | Corrected `ocspFetchInterval` default value (Chapter 16.2)                                                                                                                                                                                                                                                                                                                                                                              | Petteri Kivimäki    |
 | 15.11.2018 | 2.7     | Minor corrections for Ubuntu 18                                                                                                                                                                                                                                                                                                                                                                                                         | Jarkko Hyöty        |
 | 23.01.2019 | 2.8     | Information about automatic approval of auth cert registration requests added. Updates in Chapters 6-8.                                                                                                                                                                                                                                                                                                                                 | Petteri Kivimäki    |
-| 06.02.2019 | 2.9     | Information about automatic approval of security server client registration requests added. Updates in Chapters 6-8.                                                                                                                                                                                                                                                                                                                    | Petteri Kivimäki    |
+| 06.02.2019 | 2.9     | Information about automatic approval of Security Server client registration requests added. Updates in Chapters 6-8.                                                                                                                                                                                                                                                                                                                    | Petteri Kivimäki    |
 | 02.07.2019 | 2.10    | Security Server owner change added (Chapter 7.10)                                                                                                                                                                                                                                                                                                                                                                                       | Petteri Kivimäki    |
 | 14.08.2019 | 2.11    | Added automatic backups                                                                                                                                                                                                                                                                                                                                                                                                                 | Ilkka Seppälä       |
 | 11.09.2019 | 2.12    | Remove Ubuntu 14.04 support                                                                                                                                                                                                                                                                                                                                                                                                             | Jarkko Hyöty        |
@@ -59,11 +59,18 @@ Doc. ID: UG-CS
 | 28.06.2023 | 2.31    | Update database properties to match new Spring datasource style                                                                                                                                                                                                                                                                                                                                                                         | Raido Kaju          |
 | 10.07.2023 | 2.32    | Update system services                                                                                                                                                                                                                                                                                                                                                                                                                  | Petteri Kivimäki    |
 | 11.07.2023 | 2.33    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
-
+| 20.11.2023 | 2.34    | Security server address change management request                                                                                                                                                                                                                                                                                                                                                                                       | Justas Samuolis     |
+| 09.12.2023 | 2.35    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki    |
+| 09.12.2023 | 2.36    | Management service TLS certificate                                                                                                                                                                                                                                                                                                                                                                                                      | Eneli Reimets       |
+| 12.12.2023 | 2.37    | Add a reference to LDAP configuration in Security Server guide                                                                                                                                                                                                                                                                                                                                                                          | Ričardas Bučiūnas   |
+| 12.12.2023 | 2.38    | Client subsystem disabling and enabling management requests                                                                                                                                                                                                                                                                                                                                                                             | Madis Loitmaa       | 
+| 15.12.2023 | 2.39    | Publishing global configuration over HTTPS                                                                                                                                                                                                                                                                                                                                                                                              | Eneli Reimets       |
+| 20.12.2023 | 2.40    | Automatic configuration signing key rotation                                                                                                                                                                                                                                                                                                                                                                                            | Andres Rosenthal    |
+| 19.01.2024 | 2.41    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Eneli Reimets       |
 ## Table of Contents <!-- omit in toc --> 
-<!-- toc -->
 
-  * [License](#license)
+<!-- toc -->
+- [License](#license)
 - [1. Introduction](#1-introduction)
   - [1.1 Target Audience](#11-target-audience)
   - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
@@ -71,7 +78,8 @@ Doc. ID: UG-CS
 - [2. User and Role Management](#2-user-and-role-management)
   - [2.1 User Roles](#21-user-roles)
   - [2.2 Managing the Users](#22-managing-the-users)
-  - [2.3 Managing API Keys](#23-managing-api-keys)
+  - [2.3 LDAP User Authentication](#23-ldap-user-authentication)
+  - [2.4 Managing API Keys](#24-managing-api-keys)
 - [3. Standalone and High-Availability Systems](#3-standalone-and-high-availability-systems)
   - [3.1 Detecting the Type of Deployment in the User Interface](#31-detecting-the-type-of-deployment-in-the-user-interface)
   - [3.2 Checking the Status of the Nodes of the Cluster](#32-checking-the-status-of-the-nodes-of-the-cluster)
@@ -85,6 +93,9 @@ Doc. ID: UG-CS
   - [4.3 Configuring the Central Server Address](#43-configuring-the-central-server-address)
     - [4.3.1 Notes on HA Setup](#431-notes-on-ha-setup)
     - [4.3.2 Changing the Central Server Address](#432-changing-the-central-server-address)
+  - [4.4 Managing the TLS certificates](#44-managing-the-tls-certificates)
+    - [4.4.1 Registration and Management Service TLS certificate](#441-registration-and-management-service-tls-certificate)
+      - [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate) 
 - [5. Configuration Management](#5-configuration-management)
   - [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
   - [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
@@ -97,11 +108,14 @@ Doc. ID: UG-CS
   - [5.6 Uploading a Trusted Anchor](#56-uploading-a-trusted-anchor)
   - [5.7 Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
   - [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
+  - [5.9 Publishing global configuration over HTTPS](#59-publishing-global-configuration-over-https)
 - [6. The Management Requests System](#6-the-management-requests-system)
   - [6.1 Registration Requests](#61-registration-requests)
     - [6.1.1 State Model for Registration Requests](#611-state-model-for-registration-requests)
   - [6.2 Deletion Requests](#62-deletion-requests)
-  - [6.3 Viewing the Management Request Details](#63-viewing-the-management-request-details)
+  - [6.3 Address Change Request](#63-address-change-request)
+  - [6.4 Temporarily Disabling Client Requests](#64-temporarily-disabling-client-requests)
+  - [6.5 Viewing the Management Request Details](#65-viewing-the-management-request-details)
 - [7 Managing the X-Road Members](#7-managing-the-x-road-members)
   - [7.1 Adding a Member](#71-adding-a-member)
   - [7.2 Viewing the Member Details](#72-viewing-the-member-details)
@@ -148,23 +162,21 @@ Doc. ID: UG-CS
   - [15.1 Verify next update](#151-verify-next-update)
   - [15.2 OCSP fetch interval](#152-ocsp-fetch-interval)
 - [16. Logs and System Services](#16-logs-and-system-services)
-- [17. Management REST API](#17-management-rest-api)
-  - [17.1 API keys Management operations](#171-api-key-management-operations)
-    - [17.1.1 Creating API keys](#1711-creating-new-api-keys)
+- [17 Management REST API](#17-management-rest-api)
+  - [17.1 API key management operations](#171-api-key-management-operations)
+    - [17.1.1 Creating new API keys](#1711-creating-new-api-keys)
     - [17.1.2 Listing API keys](#1712-listing-api-keys)
     - [17.1.3 Updating API keys](#1713-updating-api-keys)
     - [17.1.4 Revoking API keys](#1714-revoking-api-keys)
   - [17.2 Executing REST calls](#172-executing-rest-calls)
-  - [17.3 Correlation id HTTP header](#173-correlation-id-http-header)
+  - [17.3 Correlation ID HTTP header](#173-correlation-id-http-header)
   - [17.4 Data Integrity errors](#174-data-integrity-errors)
   - [17.5 Warning responses](#175-warning-responses)
 - [18. Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
-- [19. Additional Security Hardening](#19-additional-security-hardening)
-
+  - [19 Additional Security Hardening](#19-additional-security-hardening)
 <!-- tocstop -->
 
-
-## License
+# License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
@@ -193,6 +205,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 9. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 10. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 11. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Central Server Admin API OpenAPI Specification: <https://github.com/nordic-institute/X-Road/blob/develop/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml>.
+12. [UG-SS] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 # 2. User and Role Management
 
@@ -234,7 +247,14 @@ To remove a user, enter:
 
 `deluser username`
 
-## 2.3 Managing API Keys
+## 2.3 LDAP user authentication
+
+X-Road leverages PAM (Pluggable Authentication Modules) for user authentication, which facilitates LDAP integration.
+
+A detailed setup guide can be found under security server user guide [2.3 LDAP user authentication](ug-ss_x-road_6_security_server_user_guide.md#23-ldap-user-authentication).
+Please note that x-road property path will be different in case of Central Server. Refer to [ug-syspar_x-road_v6_system_parameters.md](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) for relevant properties.
+
+## 2.4 Managing API Keys
 
 API keys are used to authenticate API calls to Central Server's management REST API. API keys are associated with roles that define the permissions granted to the API key. If an API key is lost, it can be revoked.
 
@@ -329,11 +349,11 @@ Only the member classes that are used by none of the X-Road members can be delet
 
 ## 4.2 Configuring the Management Service Provider
 
-The Central Server provides management services to the security servers that are part of the (local) X-Road infrastructure (see Chapter 6).
+The Central Server provides management services to the Security Servers that are part of the (local) X-Road infrastructure (see Chapter 6).
 
-A subsystem of an X-Road member acting as a service provider for the management services must be appointed in the Central Server (see 4.2.1), registered as a client of the management services’ security server (see 4.2.2) and configured to provide the services in the management services’ security server (see 4.2.3).
+A subsystem of an X-Road member acting as a service provider for the management services must be appointed in the Central Server (see 4.2.1), registered as a client of the management services’ Security Server (see 4.2.2) and configured to provide the services in the management services’ Security Server (see 4.2.3).
 
-The management services’ security server must be installed and registered in the Central Server before the management service provider can be registered as a client of the security server and the management services can be configured (see [SSI](#13-references)).
+The management services’ Security Server must be installed and registered in the Central Server before the management service provider can be registered as a client of the Security Server and the management services can be configured (see [SSI](#13-references)).
 
 ### 4.2.1 Appointing the Management Service Provider
 
@@ -347,26 +367,26 @@ To appoint the management service provider in the Central Server, follow these s
 
 ### 4.2.2 Registering the Management Service Provider as a Security Server Client
 
-The management service provider can be registered as a security server client as described in this section only if the management service provider is not registered as a client of any security servers. In case the management service provider is already a client of a security server then the Edit button is not shown next to the identifier of the Management Services' Security Server.
+The management service provider can be registered as a Security Server client as described in this section only if the management service provider is not registered as a client of any Security Servers. In case the management service provider is already a client of a Security Server then the Edit button is not shown next to the identifier of the Management Services' Security Server.
 
-To register the appointed management service provider as a security server client to the management services’ security server, follow these steps.
+To register the appointed management service provider as a Security Server client to the management services’ Security Server, follow these steps.
 
 1. In the Navigation tabs, select Settings --> System Settings.
 2. Locate the Management Services section and click Edit button next to the identifier of the Management Services' Security Server.
-3. In the window that opens, find the security server that will be used as the management services’ security server and check checkbox.
+3. In the window that opens, find the Security Server that will be used as the management services’ Security Server and check checkbox.
 4. Click Select button to submit the registration request.
 
-On successful registration the identifier of the management services’ security server is displayed and Edit button should hide.
+On successful registration the identifier of the management services’ Security Server is displayed and Edit button should hide.
 
 ### 4.2.3 Configuring the Management Services in the Management Services’ Security Server
 
 Access rights: Security server’s Service Administrator
 
-The data necessary for configuring the management services in the security server can be found at the Central Server Settings tab -> System Settings -> Management Services section.
+The data necessary for configuring the management services in the Security Server can be found at the Central Server Settings tab -> System Settings -> Management Services section.
 
-To configure management services in the management services’ security server, follow these steps.
+To configure management services in the management services’ Security Server, follow these steps.
 
-1. In the Clients tab of the security server, select the client who will provide the management services. On the details view click Services sub-tab.
+1. In the Clients tab of the Security Server, select the client who will provide the management services. On the details view click Services sub-tab.
 2. Click Add WSDL, enter the management services WSDL address in the window that opens and click Add.
 3. Expand the WSDL, by clicking the > icon, select a service by click Service Code.
 4. In the window that opens, enter the management services address. If necessary, edit other service parameters. Check the Apply to All in WSDL checkbox and click Save. Ensure that the parameters of all the management services have changed.
@@ -379,12 +399,12 @@ To configure management services in the management services’ security server, 
 
 Access rights: Security Officer
 
-In the System Settings view (Settings tab --> System Settings), the Central Server's public DNS name or its external IP address is displayed. This address is used by the security servers to access the services provided by the Central Server (configuration download, management services).
+In the System Settings view (Settings tab --> System Settings), the Central Server's public DNS name or its external IP address is displayed. This address is used by the Security Servers to access the services provided by the Central Server (configuration download, management services).
 
 **ATTENTION!** When the Central Server address is changed,
 
-- the management services address in the management services’ security server needs to be reconfigured,
-- the internal configuration anchor need to be redistributed to the security server administrators and
+- the management services address in the management services’ Security Server needs to be reconfigured,
+- the internal configuration anchor need to be redistributed to the Security Server administrators and
 - the external configuration anchor needs to be redistributed to the federation partners.
 
 The services provided by the Central Server must be available from both the new and old address, until all servers using the services have uploaded the configuration anchor containing the new address.
@@ -407,9 +427,60 @@ To change the Central Server address, follow these steps.
   - changes the configuration source addresses,
   - generates new configuration anchors for the internal and external configuration sources.
 4. After the Central Server address is changed, act as follows.
-  - Download the internal configuration source anchor and distribute the anchor along with the anchor’s hash value to the security server administrators of the local X-Road infrastructure.
+  - Download the internal configuration source anchor and distribute the anchor along with the anchor’s hash value to the Security Server administrators of the local X-Road infrastructure.
   - In case of federated X-Road systems, download the external configuration source anchor and distribute the anchor along with the anchor’s hash value to the federation partners.
-  - Reconfigure the management services addresses in the management service security server.
+  - Reconfigure the management services addresses in the management service Security Server.
+
+## 4.4 Managing the TLS certificates
+
+Access rights: Security Officer
+
+### 4.4.1 Registration and Management Service TLS certificate
+
+Registration and Management Service TLS certificate is used to secure the communication between:
+- the management Security Server and the member management web service;
+- a Security Server and the registration web service.
+
+To see Registration and Management Service TLS certificate info, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click certificate hash.
+
+To download Management Service TLS certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section.
+3. Click button Download certificate and save the prompted file.
+
+To re-create Management Service key and self-signed certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Re-create key.
+3. Confirm the re-creating by clicking Confirm.
+4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
+
+To generate Management Service certificate signing request, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Generate CSR.
+3. Read the information and enter Distinguished name and click button Generate CSR.
+4. Save prompted file into a safe place.
+5. Apply for a TSL/SSL certificate from a trusted Certificate Authority (CA) using the CSR file.
+
+To upload Management Service certificate, follow these steps.
+
+1. In the Navigation tabs, select Settings --> TLS certificates.
+2. Locate the Management service TLS certificate section and click button Upload certificate.
+3. Find the proper certificate file and click Open, to finish certificate uploading click button Upload.
+4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
+
+#### 4.4.1.1 Necessary activities after changing certificate
+
+When the key and certificate are rotated, and mTLS is enabled between the management Security Server and the management services, the new certificate must be updated to the management Security Server. To add new certificate follow Security Server User Guide [UG-SS](#13-references) instruction in section "Managing Information System TLS Certificates".
+
+**ATTENTION!** 
+- The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
+- The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
 
 # 5. Configuration Management
 
@@ -418,9 +489,9 @@ To change the Central Server address, follow these steps.
 Access rights: Security Officer, System Administrator
 
 The Global Configuration view consists of three sub-tabs.
-- The Internal Configuration view. The internal configuration is distributed by the Central Server to the security servers of the local X-Road infrastructure. The information needed to download and verify the internal configuration is included in the internal configuration anchor, which must be distributed to the security server administrators and uploaded to the security servers. Along with the internal configuration anchor, the anchor file hash value must be distributed. The hash value is used by the security server administrators to verify the integrity of the anchor file.
-- The External Configuration view. The external configuration is distributed by the Central Server to the federation partners (either to the security servers directly or through a configuration proxy). The information needed to download and verify the external configuration is included in the external configuration anchor, which must be distributed to the federation partner’s Central Server (or configuration proxy) administrators and uploaded to the Central Server (or configuration proxy). Along with the external configuration anchor, the anchor file hash value must be distributed. The hash value is used by the federation partners to verify the integrity of the anchor file.
-- The Trusted Anchors view. A trusted anchor is the configuration anchor of the configuration source(s) distributing the external configuration of a federation partner. Upon loading the trusted anchor into the Central Server, the anchor is included into the internal configuration, allowing the security servers to download the external configuration of a federation partner as well as the internal configuration of the local X-Road infrastructure.
+- The Internal Configuration view. The internal configuration is distributed by the Central Server to the Security Servers of the local X-Road infrastructure. The information needed to download and verify the internal configuration is included in the internal configuration anchor, which must be distributed to the Security Server administrators and uploaded to the Security Servers. Along with the internal configuration anchor, the anchor file hash value must be distributed. The hash value is used by the Security Server administrators to verify the integrity of the anchor file.
+- The External Configuration view. The external configuration is distributed by the Central Server to the federation partners (either to the Security Servers directly or through a configuration proxy). The information needed to download and verify the external configuration is included in the external configuration anchor, which must be distributed to the federation partner’s Central Server (or configuration proxy) administrators and uploaded to the Central Server (or configuration proxy). Along with the external configuration anchor, the anchor file hash value must be distributed. The hash value is used by the federation partners to verify the integrity of the anchor file.
+- The Trusted Anchors view. A trusted anchor is the configuration anchor of the configuration source(s) distributing the external configuration of a federation partner. Upon loading the trusted anchor into the Central Server, the anchor is included into the internal configuration, allowing the Security Servers to download the external configuration of a federation partner as well as the internal configuration of the local X-Road infrastructure.
 
 ## 5.2 Downloading the Configuration Anchor
 
@@ -435,7 +506,7 @@ To download a configuration anchor, follow these steps.
 
 Access rights: Security Officer
 
-Normally, the configuration anchors are generated (and in an HA setup, distributed to every node) automatically by the system upon changes in the data included in the anchor (one or more Central Server addresses, signing keys). The re-creation of an anchor is necessary only for recovering from error situations.
+Normally, the configuration anchors are generated (and in an HA setup, distributed to every node) automatically by the system upon changes in the data included in the anchor (one or more Central Server addresses, signing keys). The re-creation of an anchor is necessary mostly for recovering from error situations.
 
 To re-create an anchor, follow these steps.
 
@@ -457,18 +528,19 @@ Note that in an HA setup, each node has its own set of configuration signing key
 The steps of key change are as follows:
 
 - First, a new key is generated (on each node in HA setups) and the configuration anchor containing the public key part(s) of the key(s) is distributed to X-Road participants. Until all participants have received the public key(s), the old (i.e. current) key(s) is/are used for signing configuration.
-- Then, after all participants have received and uploaded the new public key(s), the old key(s) is/are removed and the new key(s) is/are used to sign configuration.
+- Then, after all participants have received & applied the new public key(s), the old key(s) is/are removed and the new key(s) is/are used to sign configuration.
 
 To perform a regular key change, follow these steps.
 
 1. Generate, but do not activate a new configuration signing key (see 5.4.1) (in an HA setup, for each node). The system uses the old (active) key(s) to sign the configuration. Upon the generation of a new key, the system generates a new anchor for the corresponding configuration sources.
-2. Download the anchor (see 5.2) containing the public key part(s) of the new signing key(s) and distribute the anchor along with the anchor file hash value either to the security server administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor).
+2. If there are pre 7.4.0 Security Servers within the ecosystem (including federations) then download the anchor (see 5.2) containing the public key part(s) of the new signing key(s) and distribute the anchor along with the anchor file hash value either to these Security Servers' administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor).
+   > **NOTE**: Starting from version 7.4.0 new configuration signing keys are automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles.
 3. Activate the new signing key(s) (see 5.4.2).
-The new signing key(s) should only be activated after all the affected server administrators have received and uploaded the distributed anchor. The Central Servers use the active key to sign configuration. If a server administrator has not uploaded the configuration anchor containing the public key part of the new key before the new key is activated, the verification of the downloaded configuration in the security servers will fail and the services exchange with the X-Road participants described in the configuration will be discontinued.
+The new signing key(s) should only be activated after all the affected Security Servers have received & applied the new public key (either through automatic configuration signing key rotation or uploading the distributed anchor manually). The Central Servers use the active key to sign configuration. If a server administrator has not applied the new public key before the key is activated, the verification of the downloaded configuration in the Security Servers will fail and the services exchange with the X-Road participants described in the configuration will be discontinued.
 4. Delete the old signing key (in an HA setup, delete the old keys on all the nodes) (see 5.4.3). Upon the deletion of a key, the system generates a new configuration anchor.
-5. Download the generated anchor (it does not contain the public key part(s) of the old signing key(s)) and distribute the anchor along with the anchor file hash value either to the security server administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor).
+5. Download the generated anchor (it does not contain the public key part(s) of the old signing key(s)) and distribute the anchor along with the anchor file hash value either to the Security Server administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor).
 
-To perform an emergency key change, the new key must be activated and the old key deleted immediately after the generation of the new key (in the steps described above, step 2 is skipped). The configuration anchor distributed to the security server administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor) must only contain the public key part of the new signing key.
+To perform an emergency key change, the new key must be activated and the old key deleted immediately after the generation of the new key (in the steps described above, step 2 is skipped). The configuration anchor distributed to the Security Server administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor) must only contain the public key part of the new signing key.
 
 ### 5.4.1 Generating a Configuration Signing Key
 
@@ -546,34 +618,44 @@ To delete an anchor file, follow these steps.
 2. In the anchor section, click Delete.
 3. Confirm the deletion by clicking Yes.
 
+## 5.9 Publishing global configuration over HTTPS
+
+Starting from version 7.4.0, the Central Server supports publishing global configuration over HTTP and HTTPS. Instead, before version 7.4.0, only HTTP was supported.
+
+Starting from version 7.4.0, a new private key and a self-signed TLS certificate are created automatically when installing a new Central Server or upgrading an existing installation from an older version. After the installation or upgrade, the Central Server Administrator must manually apply for a TLS certificate from a trusted Certificate Authority (CA) and then configure the certificate. The CA must be trusted by the Security Server's Java installation. More information about configuring the TLS certificate on the Central Server is available in the Central Server Installation Guide [CSI](#13-references).
+
+Applying for a TLS certificate issued by a trusted CA is required, because the Security Server does not trust the new automatically generated self-signed certificate by default. The Security Server supports disabling certificate verification, but disabling it in production environments is not recommended. More information is available in the `[configuration-client]` section of the System Parameters User Guide [UG-SYSPAR](#13-references).
+
+When upgrading from a version < 7.4.0 to a version >= 7.4.0, the configuration anchor must be re-generated and imported to all the Security Servers to enable downloading global configuration over HTTPS.
+
 # 6. The Management Requests System
 ## 6.1 Registration Requests
 
 As the registration of associations in the X-Road governing authority is security-critical, the following measures are applied to increase security by default:
 
-- The registration request must be submitted to the X-Road Central Server through the security server. Manual approval is still required by default.
+- The registration request must be submitted to the X-Road Central Server through the Security Server. Manual approval is still required by default.
 - The association must be approved by the X-Road governing authority.
 
 There are three types of registration requests:
 
 - authentication certificate registration request (see Sections 7.4 and 8.3);
-- security server client registration request (see Section 7.5);
-- security server owner change request (see Section 7.7)
+- Security Server client registration request (see Section 7.5);
+- Security Server owner change request (see Section 7.7)
 
-It is possible to streamline the registration process of authentication certificates and security server clients by enabling automatic approval.
+It is possible to streamline the registration process of authentication certificates and Security Server clients by enabling automatic approval.
  
 - authentication certificate registration requests
-  - When automatic approval is enabled, it is enough to submit an authentication certificate registration request to the X-Road Central Server through the security server, and the request will be automatically approved immediately.
+  - When automatic approval is enabled, it is enough to submit an authentication certificate registration request to the X-Road Central Server through the Security Server, and the request will be automatically approved immediately.
   - Automatic approval is applied to existing members only.
   - By default, automatic approval of authentication certificate registration requests is disabled. It can be enabled by setting the `auto-approve-auth-cert-reg-requests` property value to `true` on Central Server.
-- security server client registration requests
-  - When automatic approval is enabled, it is enough to submit a security server client registration request to the X-Road Central Server through the security server, and the request will be automatically approved immediately.
-  - Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a security server client.
-  - By default, automatic approval of security server client registration requests is disabled. It can be enabled by setting the `auto-approve-client-reg-requests` property value to `true` on Central Server.
-- security server owner change requests
-  - When automatic approval is enabled, it is enough to submit a security server owner change request to the X-Road Central Server through the security server, and the request will be automatically approved immediately.
+- Security Server client registration requests
+  - When automatic approval is enabled, it is enough to submit a Security Server client registration request to the X-Road Central Server through the Security Server, and the request will be automatically approved immediately.
+  - Automatic approval is applied to existing members only. In addition, automatic approval is applied only if the client registration request has been signed by the member owning the subsystem to be registered as a Security Server client.
+  - By default, automatic approval of Security Server client registration requests is disabled. It can be enabled by setting the `auto-approve-client-reg-requests` property value to `true` on Central Server.
+- Security Server owner change requests
+  - When automatic approval is enabled, it is enough to submit a Security Server owner change request to the X-Road Central Server through the Security Server, and the request will be automatically approved immediately.
   - Automatic approval is applied to existing members only.
-  - By default, automatic approval of security server owner change requests is disabled. It can be enabled by setting the `auto-approve-owner-change-requests` property value to `true` on Central Server.
+  - By default, automatic approval of Security Server owner change requests is disabled. It can be enabled by setting the `auto-approve-owner-change-requests` property value to `true` on Central Server.
     
 ### 6.1.1 State Model for Registration Requests
 
@@ -583,23 +665,32 @@ A registration request can be in one of the following states. See Figure 1 for t
 
 Figure 1. State diagram for registration requests
 
-Pending – a registration request has been submitted from a security server. From this state, the request can move to the following states.
+Pending – a registration request has been submitted from a Security Server. From this state, the request can move to the following states.
 - “Approved”, if the registration request is approved in the Central Server (see 7.4, 7.5 and 8.3). The association between the objects of the registration request has been created.
 - “Rejected”, if the registration request is declined in the Central Server (see 7.4, 7.5 and 8.3).
 - “Revoked”.
-  - Registration request received from a security server are automatically revoked by deletion requests sent from the security server for the same object that was submitted for registration with the registration request.
+  - Registration request received from a Security Server are automatically revoked by deletion requests sent from the Security Server for the same object that was submitted for registration with the registration request.
 
-If automatic approval of authentication certificate registration requests, security server client registration requests and/or security server owner change requests is enabled, the request is approved automatically. Therefore, the request moves directly to Approved state.
+If automatic approval of authentication certificate registration requests, Security Server client registration requests and/or Security Server owner change requests is enabled, the request is approved automatically. Therefore, the request moves directly to Approved state.
 
 ## 6.2 Deletion Requests
 
-Deleted requests is submitted through a security server or formalized in the Central Server.
+Deleted requests is submitted through a Security Server or formalized in the Central Server.
 
 Deletion requests are
 - authentication certificate deletion request (see Section 8.4);
-- security server client deletion request (see Section 7.6).
+- Security Server client deletion request (see Section 7.6).
 
-## 6.3 Viewing the Management Request Details
+## 6.3 Address Change Request
+
+Address change request is submitted through a Security Server to change its address. The request does not require any additional approvals on the Central Server.
+
+## 6.4 Temporarily Disabling Client Requests
+
+Security Server can disable client subsystem temporarily by issuing "Disable client" request. Disabled client can be enabled again to with "Enable client" request.
+These requests do not require any additional approvals on Central Server.
+
+## 6.5 Viewing the Management Request Details
 
 Access rights: Registration Officer
 
@@ -613,15 +704,15 @@ There are three data sections in the view.
 1. Information about the request.
   - Request ID – the identifier of the request;
   - Received – the date and time of saving the request in the Central Server;
-  - Source – the source of the request. The request can be either submitted through a security server (SECURITY_SERVER) or automatically generated in the Central Server (CENTER);
+  - Source – the source of the request. The request can be either submitted through a Security Server (SECURITY_SERVER) or automatically generated in the Central Server (CENTER);
   - Status (only for registration requests) – the state of the request, see Figure 1;
-  - Comments – the source event for the automatic generation of the request. For example, when a security server is deleted from the Central Server, deletion requests are automatically generated for all the clients and authentication certificates registered for this security server. In the "Comments" field of the generated requests, a comment with the server identifier is added in such case. This field is left empty for requests that are not automatically generated by the Central Server.
-2. Information about the security server associated with the request.
-  - Owner Name – the name of the security server owner (X-Road member);
-  - Owner Class – the member class of the security server owner;
-  - Owner Code – the member code of the security server owner;
-  - Server Code – the code of the security server;
-  - Address – the address of the security server. The field is filled only for authentication certificate registration requests.
+  - Comments – the source event for the automatic generation of the request. For example, when a Security Server is deleted from the Central Server, deletion requests are automatically generated for all the clients and authentication certificates registered for this Security Server. In the "Comments" field of the generated requests, a comment with the server identifier is added in such case. This field is left empty for requests that are not automatically generated by the Central Server.
+2. Information about the Security Server associated with the request.
+  - Owner Name – the name of the Security Server owner (X-Road member);
+  - Owner Class – the member class of the Security Server owner;
+  - Owner Code – the member code of the Security Server owner;
+  - Server Code – the code of the Security Server;
+  - Address – the address of the Security Server. The field is filled only for authentication certificate registration and Security Server address change requests.
 3. Information about the request object – that is, the client or the authentication certificate being registered or deleted.
 
   For the authentication certificate:
@@ -630,7 +721,7 @@ There are three data sections in the view.
   - Subject – all attributes of the certificate's Subject field;
   - Expires – the expiration date of the certificate;
 
-  For the security server client:
+  For the Security Server client:
 
   - Name – the name of the X-Road member managing the subsystem;
   - Class – the member class of the X-Road member managing the subsystem;
@@ -660,7 +751,7 @@ The view consists of five sections and a tab Subsystems.
 3. "Member code"
 4. "Owned Servers" – displays the codes of servers owned by this member.
 5. "Global Groups" – displays information about the group membership of the member or its subsystems.
-6. "Subsystems" tab – displays a list of member's subsystems. If a subsystem is not a client of any security servers, then subsystem status is UNREGISTERED.
+6. "Subsystems" tab – displays a list of member's subsystems. If a subsystem is not a client of any Security Servers, then subsystem status is UNREGISTERED.
 
 ## 7.3 Adding a Subsystem to an X-Road Member
 
@@ -675,21 +766,21 @@ To add a subsystem to an X-Road member, follow these steps.
 
 Access rights: Registration Officer
 
-The actions required to register an X-Road member's security server depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
+The actions required to register an X-Road member's Security Server depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
 
 When automatic approval of authentication certificate registration requests is enabled, the following action must be taken:
-- An authentication certificate registration request must be sent from the security server to the Central Server by the security server administrator.
+- An authentication certificate registration request must be sent from the Security Server to the Central Server by the Security Server administrator.
 
-Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register an X-Road member's security server, the following actions must be taken.
-- An authentication certificate registration request must be sent from the security server to the Central Server by the security server administrator;
+Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register an X-Road member's Security Server, the following actions must be taken.
+- An authentication certificate registration request must be sent from the Security Server to the Central Server by the Security Server administrator;
 - The requests must be approved or declined by the Central Server administrator.
 
 To approve a request, it can be done either through in the Management request view list or in the Management request details view.
 
 On the approval of the request
 - the request moves to the "Approved" state;
-- the registered security server appears both in the "Owned Servers" section of its owner’s detail view and in the list of security servers (in the Security Servers tab);
-- the security server's owner is added to the global "security-server-owners" group.
+- the registered Security Server appears both in the "Owned Servers" section of its owner’s detail view and in the list of Security Servers (in the Security Servers tab);
+- the Security Server's owner is added to the global "security-server-owners" group.
 
 To decline a request, it can be done either through in the Management request view list or in the Management request details view.
 On the decline of the request
@@ -699,20 +790,20 @@ On the decline of the request
 
 Access rights: Registration Officer
 
-The actions required to register a subsystem of an X-Road member as a security server client depend on whether automatic approval of security server client registration requests is enabled or disabled (_default_).
+The actions required to register a subsystem of an X-Road member as a Security Server client depend on whether automatic approval of Security Server client registration requests is enabled or disabled (_default_).
 
-When automatic approval of security server client registration requests is enabled, the following action must be taken:
-- A security server client registration request must be sent from the security server to the Central Server by the security server administrator.
+When automatic approval of Security Server client registration requests is enabled, the following action must be taken:
+- A Security Server client registration request must be sent from the Security Server to the Central Server by the Security Server administrator.
 
-Automatic approval of security server client registration requests is disabled by default. In that case, to register a subsystem of an X-Road member as a security server client, the following actions must be taken.
-- A security server client registration request must be sent from the security server to the Central Server by the security server administrator;
+Automatic approval of Security Server client registration requests is disabled by default. In that case, to register a subsystem of an X-Road member as a Security Server client, the following actions must be taken.
+- A Security Server client registration request must be sent from the Security Server to the Central Server by the Security Server administrator;
 - The requests must be approved or declined by the Central Server administrator.
 
 To approve a request, it can be done either through in the Management request view list or in the Management request details view.
 
 On the approval of the request, follow these steps.
 - The request moves to the "Approved" state.
-- The client's information is displayed in the "Clients" section of the detailed view of the security server to which the client was registered.
+- The client's information is displayed in the "Clients" section of the detailed view of the Security Server to which the client was registered.
 
 To decline a request, it can be done either through in the Management request view list or in the Management request details view.
 On the decline of the request
@@ -722,14 +813,14 @@ On the decline of the request
 
 Access rights: Registration Officer
 
-The association between an X-Road member and a security server is deleted by the corresponding security server's client deletion request. The request can be submitted through the security server or in the Central Server.
+The association between an X-Road member and a Security Server is deleted by the corresponding Security Server's client deletion request. The request can be submitted through the Security Server or in the Central Server.
 
-The association between the security server's owner and the security server cannot be deleted.
+The association between the Security Server's owner and the Security Server cannot be deleted.
 
-Removing a client from the security server clients can be carried out through a member's detail view.
+Removing a client from the Security Server clients can be carried out through a member's detail view.
 
-To submit a security server client deletion request through a member's detail view, follow these steps.
-1. In the Members tab, select the member whose subsystem is to be removed from a security server and click members name.
+To submit a Security Server client deletion request through a member's detail view, follow these steps.
+1. In the Members tab, select the member whose subsystem is to be removed from a Security Server and click members name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Unregister.
 3. Review the information displayed on the client deletion request and click Delete to submit the request.
 
@@ -737,13 +828,13 @@ To submit a security server client deletion request through a member's detail vi
 
 Access rights: Registration Officer
 
-The actions required to change a security server's owner depend on whether automatic approval of security server owner change requests is enabled or disabled (_default_).
+The actions required to change a Security Server's owner depend on whether automatic approval of Security Server owner change requests is enabled or disabled (_default_).
 
-When automatic approval of security server owner change requests is enabled, the following action must be taken:
-- A security server owner change request must be sent from the security server to the Central Server by the security server administrator.
+When automatic approval of Security Server owner change requests is enabled, the following action must be taken:
+- A Security Server owner change request must be sent from the Security Server to the Central Server by the Security Server administrator.
 
-Automatic approval of security server owner change requests is disabled by default. In that case, to change the owner of a security server, the following action must be taken.
-- A security server owner change request must be sent from the security server to the Central Server by the security server administrator.
+Automatic approval of Security Server owner change requests is disabled by default. In that case, to change the owner of a Security Server, the following action must be taken.
+- A Security Server owner change request must be sent from the Security Server to the Central Server by the Security Server administrator.
 - The requests must be approved or declined by the Central Server administrator.
 
 To approve/decline a request, it can be done either through in the Management request view list or in the Management request details view.
@@ -752,17 +843,17 @@ To approve/decline a request, it can be done either through in the Management re
 
 Access rights: Registration Officer
 
-In the Central Server, the X-Road member's subsystem can be deleted only if the subsystem is not associated with any security servers, that is, not registered as a client of any security servers.
+In the Central Server, the X-Road member's subsystem can be deleted only if the subsystem is not associated with any Security Servers, that is, not registered as a client of any Security Servers.
 
 To delete an X-Road member's subsystem, follow these steps.
 1. In the Members tab, select the member whose subsystem you wish to delete and click members name.
-2. In the window that opens, select Subsystems tab and select the client subsystem, and click Delete. Note: The "Delete" button is displayed only if the subsystem is not a client of any security servers.
+2. In the window that opens, select Subsystems tab and select the client subsystem, and click Delete. Note: The "Delete" button is displayed only if the subsystem is not a client of any Security Servers.
 
 ## 7.9 Deleting an X-Road Member
 
 Access rights: Registration Officer
 
-When an X-Road member is deleted, information about all security servers in its ownership will be deleted as well.
+When an X-Road member is deleted, information about all Security Servers in its ownership will be deleted as well.
 
 To delete an X-Road member, follow these steps.
 1. In the Members tab, select a member that you wish to delete, and click members name.
@@ -775,48 +866,50 @@ Access rights: Registration Officer
 
 To open the detail view, follow these steps. In the Members tab, select a member that you wish to delete, and click members name.
 1. In the Security Servers tab.
-2. Choose from the table a security server and click server code.
+2. Choose from the table a Security Server and click server code.
 
 The view contains three sections.
 - "Details" – information about the server and its owner.
-- "Clients" – information about clients registered for this security server.
+- "Clients" – information about clients registered for this Security Server.
 Hint: Click a client's member name to open the client's detail view.
-- "Authentication Certificates" – information about the security server's registered authentication certificates.
+- "Authentication Certificates" – information about the Security Server's registered authentication certificates.
 Hint: Click a certificate's certification authority to open the certificate's detail view.
 
 ## 8.2 Changing the Security Server Address
 
 Access rights: Registration Officer
 
-By default, the security server's address is provided in the registration request of the authentication certificate sent from the security server. The address must be changed if it was not set when the request was submitted or if it is no longer valid.
+By default, the Security Server's address is provided in the registration request of the authentication certificate sent from the Security Server. The address must be changed if it was not set when the request was submitted or if it is no longer valid.
 
-There are several reasons why setting the security server’s address matters.
-- The services that are relayed through a security server become available once the security server’s address is set.
-- By registering the addresses of security servers, the service clients are certain to receive a response to their queries in a reasonable time, even if the relaying security server is overloaded with service requests (e.g., the requests from addresses belonging to registered security servers are served before requests coming from unknown addresses).
+There are several reasons why setting the Security Server’s address matters.
+- The services that are relayed through a Security Server become available once the Security Server’s address is set.
+- By registering the addresses of Security Servers, the service clients are certain to receive a response to their queries in a reasonable time, even if the relaying Security Server is overloaded with service requests (e.g., the requests from addresses belonging to registered Security Servers are served before requests coming from unknown addresses).
 
-To change the security server address, follow these steps.
-1. In the Security Servers tab, select the security server whose address you wish to change and click server code.
+The request can be submitted through the Security Server or changed in the Central Server.
+
+To change the Security Server address from the Central Server, follow these steps.
+1. In the Security Servers tab, select the Security Server whose address you wish to change and click server code.
 2. In the view that opens, locate the "Address" section and click Edit adjacent to the "Address" field.
-3. Enter the security server's address and click Save.
+3. Enter the Security Server's address and click Save.
 
 ## 8.3 Registering a Security Server's Authentication Certificate
 
 Access rights: Registration Officer
 
-The actions required to register a security server's authentication certificate depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
+The actions required to register a Security Server's authentication certificate depend on whether automatic approval of authentication certificate registration requests is enabled or disabled (_default_).
 
 When automatic approval of authentication certificate registration requests is enabled, the following action must be taken:
-- An authentication certificate registration request must be sent from the security server to the Central Server by the security server administrator.
+- An authentication certificate registration request must be sent from the Security Server to the Central Server by the Security Server administrator.
 
-Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register a security server's authentication certificate, the following actions must be taken.
-- An authentication certificate registration request must be sent from the security server to the Central Server by the security server administrator;
+Automatic approval of authentication certificate registration requests is disabled by default. In that case, to register a Security Server's authentication certificate, the following actions must be taken.
+- An authentication certificate registration request must be sent from the Security Server to the Central Server by the Security Server administrator;
 - The requests must be approved or declined by the Central Server administrator.
 
 To approve/decline a request, it can be done either through in the Management request view list or in the Management request details view.
 
 Upon approving the request
 - the request moves to the "Approved" state;
-- the registered authentication certificate appears in the security server's detail view, in the "Authentication Certificates" section.
+- the registered authentication certificate appears in the Security Server's detail view, in the "Authentication Certificates" section.
 
 To decline the request
 - the request moves to the "Rejected" state;
@@ -825,23 +918,23 @@ To decline the request
 
 Access rights: Registration Officer
 
-The authentication certificate registered for a security server is deleted when an authentication certificate deletion request is received for that certificate. The request can be submitted through the security server or in the Central Server.
+The authentication certificate registered for a Security Server is deleted when an authentication certificate deletion request is received for that certificate. The request can be submitted through the Security Server or in the Central Server.
 
 To submit an authentication certificate deletion request in the Central Server, follow these steps.
-1. In the Security Servers tab, select the security server whose certificate you wish to delete and click server code.
+1. In the Security Servers tab, select the Security Server whose certificate you wish to delete and click server code.
 2. In the view that opens, locate the Authentication Certificates section, find the correct authentication certificate and click Delete.
-3. Review the information displayed on the deletion request and enter security server code and click Delete to submit the request.
+3. Review the information displayed on the deletion request and enter Security Server code and click Delete to submit the request.
 4. The submitted request appears in the management requests view (Management Requests tab).
 
 ## 8.5 Deleting a Security Server
 
 Access rights: Registration Officer
 
-To delete a security server, follow these steps.
-1. In the Security Servers tab, select the security server that you wish to delete and click server code.
-2. In the view that opens, on the bottom left, click Delete Security Server "\<server code\>". Confirm the action by entering security server code and clicking Delete.
+To delete a Security Server, follow these steps.
+1. In the Security Servers tab, select the Security Server that you wish to delete and click server code.
+2. In the view that opens, on the bottom left, click Delete Security Server "\<server code\>". Confirm the action by entering Security Server code and clicking Delete.
 
-If the security server being deleted has registered clients or authentication certificates, deletion requests for those associations are automatically generated.
+If the Security Server being deleted has registered clients or authentication certificates, deletion requests for those associations are automatically generated.
 
 # 9. Managing the Global Groups
 ## 9.1 Adding a Global Group
@@ -877,7 +970,7 @@ Access rights: Registration Officer
 
 Note that the members of the global group security-server-owners are managed automatically by the Central Server and cannot be added or removed manually.
 
-To add subsystems of X-Road members to a global group, follow these steps.
+To add members (can be X-Road members or subsystems) to a global group, follow these steps.
 1. In the Navigation tabs, select Settings --> Global Resources.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Add Members.
@@ -1211,7 +1304,7 @@ The X-Road software does not offer special tools for archiving the audit log. Th
 
 Monitoring is taken to use by installing the monitoring support (see [IG-CS](#13-references) and appointing the central monitoring client as specified below.
 
-Identity of central monitoring client (if any) is configured using Central Server's admin user interface. Configuration is done by updating a specific optional configuration file (see [UC-GCONF](#13-references)) monitoring-params.xml. This configuration file is distributed to all security servers through the global configuration distribution process (see [UC-GCONF](#13-references)).
+Identity of central monitoring client (if any) is configured using Central Server's admin user interface. Configuration is done by updating a specific optional configuration file (see [UC-GCONF](#13-references)) monitoring-params.xml. This configuration file is distributed to all Security Servers through the global configuration distribution process (see [UC-GCONF](#13-references)).
 
 ```xml
 <tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
@@ -1242,7 +1335,7 @@ To disable central monitoring client altogether, update configuration to one whi
 
 For additional robustness the OCSP [RFC-OCSP](#13-references) response verifier can be configured to skip checking of nextUpdate parameter. By default the checking is turned on and to turn it off the user has to take action.
 
-Configuration is done by updating a specific optional configuration file (see [UC-GCONF](#13-references)) nextupdate-params.xml. This configuration file is distributed to all security servers through the global configuration distribution process (see [UC-GCONF](#13-references)).
+Configuration is done by updating a specific optional configuration file (see [UC-GCONF](#13-references)) nextupdate-params.xml. This configuration file is distributed to all Security Servers through the global configuration distribution process (see [UC-GCONF](#13-references)).
 
 ```xml
 <xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">

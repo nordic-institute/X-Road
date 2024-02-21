@@ -34,10 +34,10 @@
       <div class="pl-4">
         <section>
           <div class="dtlv-cert-hash mt-8">
-            <certificateHash :hash="certificateDetails.hash" />
+            <certificate-hash :hash="certificateDetails.hash" />
           </div>
           <div class="mt-6">
-            <certificateInfo :certificate="certificateDetails" />
+            <certificate-info :certificate="certificateDetails" />
           </div>
         </section>
       </div>
@@ -45,30 +45,24 @@
   </main>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { useRouter } from 'vue-router';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import { CertificateDetails } from '@/openapi-types';
 
-export default defineComponent({
-  name: 'CertificateDetails',
-  components: {
-    CertificateInfo,
-    CertificateHash,
-  },
-  props: {
-    certificateDetails: {
-      type: Object as () => CertificateDetails,
-      required: true,
-    },
-  },
-  methods: {
-    close(): void {
-      this.$router.go(-1);
-    },
+defineProps({
+  certificateDetails: {
+    type: Object as () => CertificateDetails,
+    required: true,
   },
 });
+
+const router = useRouter();
+
+function close() {
+  router.go(-1);
+}
 </script>
 
 <style lang="scss" scoped>

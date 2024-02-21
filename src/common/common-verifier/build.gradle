@@ -1,9 +1,9 @@
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 testJar.enabled = true
 
 sourceSets {
     main {
-        java.srcDirs = ["src/main/java", "${buildDir}/generated-sources"]
+        java.srcDirs = ["src/main/java", schemaTargetDir]
         resources.srcDirs = ['src/main/resources']
     }
 }
@@ -19,47 +19,33 @@ dependencies {
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
 }
 
-task createDirs() {
+tasks.register('createDirs') {
     doLast {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
 
-task xjc(dependsOn: ':common:common-util:xjc') {
-    inputs.files fileTree(dir:'src/main/resources', include: '*.xsd')
+tasks.register('xjc') {
+    dependsOn ':common:common-util:xjc'
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
     doLast {
         ant.taskdef(name: 'xjc',
-                classname: 'com.sun.tools.xjc.XJCTask',
-                classpath: configurations.xjc.asPath)
+            classname: 'com.sun.tools.xjc.XJCTask',
+            classpath: configurations.xjc.asPath)
         ant.xjc(
-                destdir: project.ext.schemaTargetDir,
-                package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
-                schema: 'src/main/resources/ocsp-nextupdate-conf.xsd'
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
+            schema: 'src/main/resources/ocsp-nextupdate-conf.xsd'
         )
         ant.xjc(
-                destdir: project.ext.schemaTargetDir,
-                package: 'ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters',
-                schema: 'src/main/resources/ocsp-fetchinterval-conf.xsd'
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters',
+            schema: 'src/main/resources/ocsp-fetchinterval-conf.xsd'
         )
     }
 }
-
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
 
 xjc.dependsOn createDirs
 xjc.dependsOn processResources

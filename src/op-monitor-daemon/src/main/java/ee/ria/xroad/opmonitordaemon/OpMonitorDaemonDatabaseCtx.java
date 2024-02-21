@@ -30,7 +30,6 @@ import ee.ria.xroad.common.db.TransactionCallback;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.EmptyInterceptor;
-import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 
 import java.io.Serializable;
@@ -65,7 +64,7 @@ final class OpMonitorDaemonDatabaseCtx {
         return CTX.doInTransaction(callback);
     }
 
-    private static class StringValueTruncator extends EmptyInterceptor {
+    private static final class StringValueTruncator extends EmptyInterceptor {
         private static final long serialVersionUID = 1L;
 
         private static final String SOAP_FAULT_STRING = "faultString";
@@ -75,8 +74,8 @@ final class OpMonitorDaemonDatabaseCtx {
 
         @Override
         public boolean onFlushDirty(Object entity, Serializable id,
-                Object[] currentState, Object[] previousState,
-                String[] propertyNames, Type[] types) {
+                                    Object[] currentState, Object[] previousState,
+                                    String[] propertyNames, Type[] types) {
             if (entity instanceof OperationalDataRecord) {
                 truncateStringProperties(currentState, propertyNames, types);
                 return true;
@@ -87,7 +86,7 @@ final class OpMonitorDaemonDatabaseCtx {
 
         @Override
         public boolean onSave(Object entity, Serializable id, Object[] state,
-                String[] propertyNames, Type[] types) {
+                              String[] propertyNames, Type[] types) {
             if (entity instanceof OperationalDataRecord) {
                 truncateStringProperties(state, propertyNames, types);
                 return true;
@@ -97,9 +96,9 @@ final class OpMonitorDaemonDatabaseCtx {
         }
 
         private static void truncateStringProperties(Object[] state,
-                String[] propertyNames, Type[] types) {
+                                                     String[] propertyNames, Type[] types) {
             for (int i = 0; i < types.length; i++) {
-                if (types[i] instanceof StringType) {
+                if (types[i].getReturnedClass() == String.class) {
                     int maxLength = MAX_LENGTH;
                     if (propertyNames[i].equals(SOAP_FAULT_STRING)) {
                         maxLength = FAULT_MAX_LENGTH;

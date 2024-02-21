@@ -1,11 +1,9 @@
-
 dependencies {
     implementation project(':central-server:admin-service:core-api')
     implementation project(':central-server:openapi-model')
     implementation project(':common:common-util')
     implementation project(':common:common-verifier')
     implementation project(':signer-protocol')
-    implementation project(':common:common-ui')
     implementation project(':common:common-admin-api')
 
     implementation('org.springframework.boot:spring-boot-starter-security')
@@ -22,7 +20,7 @@ sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            "${buildDir}/generated/sources/annotationProcessor/java/main"
+            layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
         ]
     }
 }

@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -40,8 +41,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.TeeInputStream;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -51,7 +52,6 @@ import org.xml.sax.ext.DefaultHandler2;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.soap.SOAPException;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -227,13 +227,13 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     private static Soap createSoapMessage(String contentType, String charset,
-            XRoadSoapHandler handler, byte[] xmlBytes) throws Exception {
+                                          XRoadSoapHandler handler, byte[] xmlBytes) throws Exception {
         return new SoapMessageImpl(xmlBytes, charset, handler.getHeader(),
                 null, handler.getServiceName(), handler.isRpc(), contentType);
     }
 
     private static Soap createSoapFault(String charset,
-            ByteArrayOutputStream rawXml, CodedException fault) {
+                                        ByteArrayOutputStream rawXml, CodedException fault) {
         return new SoapFault(fault.getFaultCode(), fault.getFaultString(),
                 fault.getFaultActor(), fault.getFaultDetail(),
                 rawXml.toByteArray(), charset);
@@ -297,7 +297,7 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     @RequiredArgsConstructor
-    private class XRoadSoapHandler extends DefaultHandler2 {
+    private final class XRoadSoapHandler extends DefaultHandler2 {
         private static final String NAMESPACE_PREFIX_SEPARATOR = ":";
 
         private static final String XML_VERSION_ENCODING = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
@@ -479,7 +479,7 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     private static void validateDuplicateHeader(QName qName,
-            Object existing) {
+                                                Object existing) {
         if (existing != null) {
             throw new CodedException(X_DUPLICATE_HEADER_FIELD, DUPLICATE_HEADER_MESSAGE, qName);
         }
@@ -567,7 +567,7 @@ public class SaxSoapParserImpl implements SoapParser {
     /**
      * Handler that ignores the element in it's entirety.
      */
-    private static class NoOpHandler extends XmlElementHandler {
+    private static final class NoOpHandler extends XmlElementHandler {
 
         public static final XmlElementHandler INSTANCE = new NoOpHandler();
 
@@ -582,7 +582,7 @@ public class SaxSoapParserImpl implements SoapParser {
      * SOAP header and the SOAP body.
      */
     @RequiredArgsConstructor
-    private static class SoapEnvelopeHandler extends XmlElementHandler {
+    private static final class SoapEnvelopeHandler extends XmlElementHandler {
         private final SoapHeaderHandler headerHandler;
         private SoapBodyHandler bodyHandler;
 
@@ -699,7 +699,7 @@ public class SaxSoapParserImpl implements SoapParser {
             header.setService(serviceId);
         }
 
-         /**
+        /**
          * Called when a represented party header has been paresed.
          * @param representedParty the represented party
          */
@@ -751,12 +751,12 @@ public class SaxSoapParserImpl implements SoapParser {
             finished = true;
         }
 
-        private class XRoadRequestHashElementHandler extends XmlElementHandler {
+        private final class XRoadRequestHashElementHandler extends XmlElementHandler {
             private String hashAlgoId;
 
             @Override
             public void openTag() {
-                hashAlgoId =  getAttributes().getValue("", ATTR_ALGORITHM_ID);
+                hashAlgoId = getAttributes().getValue("", ATTR_ALGORITHM_ID);
             }
 
             @Override
@@ -805,7 +805,7 @@ public class SaxSoapParserImpl implements SoapParser {
         }
 
         @RequiredArgsConstructor
-        private class IdentifierElementHandler extends XmlElementHandler {
+        private final class IdentifierElementHandler extends XmlElementHandler {
             private final QName key;
 
             @Override
@@ -902,21 +902,17 @@ public class SaxSoapParserImpl implements SoapParser {
      * Handler for the XRoad protocol extension represented party header.
      */
     @RequiredArgsConstructor
-    private static class XRoadRepresentedPartyHeaderHandler
+    private static final class XRoadRepresentedPartyHeaderHandler
             extends XmlElementHandler {
-        protected static final List<QName> REPRESENTED_PARTY_PARTS =
+        private static final List<QName> REPRESENTED_PARTY_PARTS =
                 Arrays.asList(QNAME_PARTY_CLASS, QNAME_PARTY_CODE);
 
         private final Consumer<RepresentedParty> onRepresentedPartyCallback;
 
-        private Map<QName, String> representedPartyValues = new HashMap<>();
+        private final Map<QName, String> representedPartyValues = new HashMap<>();
 
-        protected String getValue(QName key) {
+        private String getValue(QName key) {
             return representedPartyValues.get(key);
-        }
-
-        protected void setValue(QName key, String value) {
-            representedPartyValues.put(key, value);
         }
 
         private List<QName> getAllowedChildElements() {
@@ -935,7 +931,7 @@ public class SaxSoapParserImpl implements SoapParser {
         }
 
         @RequiredArgsConstructor
-        private class RepresentedPartyElementHandler extends XmlElementHandler {
+        private final class RepresentedPartyElementHandler extends XmlElementHandler {
             private final QName key;
 
             @Override
@@ -945,7 +941,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
             @Override
             protected void value(String val) {
-                setValue(key, val);
+                representedPartyValues.put(key, val);
             }
         }
 
@@ -960,9 +956,9 @@ public class SaxSoapParserImpl implements SoapParser {
     /**
      * Handler for the XRoad protocol security server header.
      */
-    private static class XRoadSecurityServerHeaderHandler extends XRoadIdentifierHeaderHandler {
+    private static final class XRoadSecurityServerHeaderHandler extends XRoadIdentifierHeaderHandler {
 
-        protected static final List<QName> SECURITY_SERVER_ID_PARTS =
+        private static final List<QName> SECURITY_SERVER_ID_PARTS =
                 Arrays.asList(QNAME_ID_INSTANCE, QNAME_ID_MEMBER_CLASS,
                         QNAME_ID_MEMBER_CODE, QNAME_ID_SERVER_CODE);
 
@@ -993,7 +989,7 @@ public class SaxSoapParserImpl implements SoapParser {
      * the service code or the SOAP fault element, should it exists.
      * Ignores everything else.
      */
-    private static class SoapBodyHandler extends XmlElementHandler {
+    private static final class SoapBodyHandler extends XmlElementHandler {
         private SoapFaultHandler soapFaultHandler;
 
         @Getter
@@ -1035,16 +1031,13 @@ public class SaxSoapParserImpl implements SoapParser {
     /**
      * Handler that extracts information from the SOAP fault.
      */
-    private static class SoapFaultHandler extends XmlElementHandler {
+    @Getter
+    private static final class SoapFaultHandler extends XmlElementHandler {
         private static final String DETAIL = "faultDetail";
 
-        @Getter
         private String faultCode;
-        @Getter
         private String faultString;
-        @Getter
         private String faultActor;
-        @Getter
         private String faultDetail;
 
         @Override

@@ -25,12 +25,11 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -370,8 +369,8 @@ public final class HashChainBuilder {
         // Combine them and store in the current node.
         byte[] stepDigest = digestHashStep(hashAlgorithm,
                 leftValue, rightValue);
-        LOG.trace("Fixing: {} + {} -> {}", new Object[] {
-                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx });
+        LOG.trace("Fixing: {} + {} -> {}", new Object[]{
+                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx});
         nodes[nodeIdx] = stepDigest;
         return stepDigest;
     }

@@ -18,7 +18,6 @@ include "common:common-domain"
 include "common:common-management-request"
 include "common:common-messagelog"
 include "common:common-op-monitoring"
-include "common:common-ui"
 include "common:common-util"
 include "common:common-verifier"
 include "common:common-rpc"
@@ -35,7 +34,6 @@ include "monitor"
 include "monitor-common"
 include "op-monitor-daemon"
 include "shared-ui"
-include "shared-ui-3"
 
 include "central-server"
 include "central-server:openapi-model"
@@ -78,6 +76,7 @@ include "common:common-test"
 include "addons:hwtoken"
 include "addons:messagelog:messagelog-addon"
 include "addons:messagelog:messagelog-archiver"
+include 'addons:messagelog:messagelog-archive-verifier'
 include "addons:messagelog:messagelog-db"
 include "addons:metaservice"
 
@@ -89,5 +88,4 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
-
 

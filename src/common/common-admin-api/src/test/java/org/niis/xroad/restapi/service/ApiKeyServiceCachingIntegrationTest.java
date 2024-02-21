@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.junit.jupiter.api.Test;
@@ -37,8 +38,6 @@ import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
-
-import javax.persistence.EntityManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;

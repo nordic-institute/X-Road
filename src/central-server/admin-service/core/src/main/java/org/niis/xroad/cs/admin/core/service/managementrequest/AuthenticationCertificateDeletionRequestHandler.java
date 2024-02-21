@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
@@ -40,8 +41,6 @@ import org.niis.xroad.cs.admin.core.repository.AuthenticationCertificateRegistra
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 import java.util.Set;
 

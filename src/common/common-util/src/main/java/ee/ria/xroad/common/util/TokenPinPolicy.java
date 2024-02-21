@@ -72,7 +72,7 @@ public final class TokenPinPolicy {
          * @return character class
          */
         public static CharacterClass of(char ch) {
-            if (ch <  MIN_ACCEPTED || ch > MAX_ACCEPTED) return INVALID;
+            if (ch < MIN_ACCEPTED || ch > MAX_ACCEPTED) return INVALID;
             if (ch >= '0' && ch <= '9') return DIGIT;
             if (ch >= 'A' && ch <= 'Z') return UPPERCASE;
             if (ch >= 'a' && ch <= 'z') return LOWERCASE;

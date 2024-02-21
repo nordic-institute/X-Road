@@ -296,7 +296,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private ResponseEntity<Object> createInitialServerConf(String securityServerCode, String ownerMemberClass,
-            String ownerMemberCode) {
+                                                           String ownerMemberCode) {
         InitialServerConf initialServerConf = new InitialServerConf()
                 .securityServerCode(securityServerCode)
                 .ownerMemberClass(ownerMemberClass)
@@ -306,7 +306,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertInitialServerConfValidationError(String securityServerCode, String ownerMemberClass,
-            String ownerMemberCode) {
+                                                        String ownerMemberCode) {
         ResponseEntity<Object> response = createInitialServerConf(securityServerCode, ownerMemberClass,
                 ownerMemberCode);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -339,7 +339,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertAddClientFieldValidationErrorMessages(String memberCode, String subsystemCode,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                                             Map<String, List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response = createTestClient(memberCode, subsystemCode);
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
@@ -436,13 +436,13 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertAddLocalGroupValidationError(String localGroupCode, String localGroupDescription,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                                    Map<String, List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response = createTestLocalGroup(localGroupCode, localGroupDescription);
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
 
     private void assertAddKeyValidationError(String tokenIdParam, String keyLabelParam,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                             Map<String, List<String>> expectedFieldValidationErrors) {
         KeyLabel keyLabel = new KeyLabel().label(keyLabelParam);
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys", keyLabel, Object.class);
@@ -450,7 +450,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertKeyNameValidationError(String idParam, KeyName keyNameParam,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                              Map<String, List<String>> expectedFieldValidationErrors) {
         HttpEntity<KeyName> keyNameEntity = new HttpEntity<>(keyNameParam);
         ResponseEntity<Object> response = restTemplate.exchange("/api/v1/keys/" + idParam,
                 HttpMethod.PATCH,
@@ -460,7 +460,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertTokenNameValidationError(String tokenIdParam, String tokenNameParam,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                                Map<String, List<String>> expectedFieldValidationErrors) {
         TokenName tokenName = new TokenName().name(tokenNameParam);
         HttpEntity<TokenName> tokenNameEntity = new HttpEntity<>(tokenName);
         ResponseEntity<Object> response = restTemplate.exchange("/api/v1/tokens/" + tokenIdParam,
@@ -471,7 +471,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertAddKeyAndCsrValidationError(String tokenIdParam,
-            KeyLabelWithCsrGenerate keyLabelWithCsrGenerateParam, Map<String,
+                                                   KeyLabelWithCsrGenerate keyLabelWithCsrGenerateParam, Map<String,
             List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys-with-csrs",
@@ -480,7 +480,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertUpdateLocalGroupDescValidationError(String localGroupDescription,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                                           Map<String, List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response = updateLocalGroupDesc(localGroupDescription);
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
@@ -501,7 +501,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertUpdateServiceValidationError(String idParam, ServiceUpdate serviceUpdate,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                                    Map<String, List<String>> expectedFieldValidationErrors) {
         HttpEntity<ServiceUpdate> serviceUpdateEntity = new HttpEntity<>(serviceUpdate);
         ResponseEntity<Object> response = restTemplate.exchange("/api/v1/services/" + idParam,
                 HttpMethod.PATCH,
@@ -511,7 +511,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertEndpointUpdateValidationError(String idParam, EndpointUpdate update,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                                     Map<String, List<String>> expectedFieldValidationErrors) {
         HttpEntity<EndpointUpdate> updateEntity = new HttpEntity<>(update);
         ResponseEntity<Object> response = restTemplate.exchange("/api/v1/endpoints/" + idParam,
                 HttpMethod.PATCH,
@@ -521,7 +521,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertEndpointValidationError(String idParam, Endpoint endpoint,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                               Map<String, List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/services/" + idParam + "/endpoints",
                         endpoint, Object.class);
@@ -529,7 +529,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertValidationErrors(ResponseEntity<Object> response,
-            Map<String, List<String>> expectedFieldValidationErrors) {
+                                        Map<String, List<String>> expectedFieldValidationErrors) {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         ErrorInfo errorResponse = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
         assertNotNull(errorResponse);

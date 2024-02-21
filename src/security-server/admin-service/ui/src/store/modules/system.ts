@@ -35,7 +35,9 @@ export const useSystem = defineStore('system', {
       securityServerNodeType: undefined as undefined | NodeType,
     };
   },
-  persist: true, // This store is saved into browser local storage (pinia-plugin-persistedstate)
+  persist: {
+    storage: localStorage,
+  },
   getters: {
     isSecondaryNode(state) {
       return state.securityServerNodeType === NodeType.SECONDARY;

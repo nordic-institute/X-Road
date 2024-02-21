@@ -41,16 +41,20 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +68,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 
 /**
  * Main program of configuration client.
@@ -73,7 +78,7 @@ public final class ConfigurationClientMain {
 
     private static final String APP_NAME = "xroad-confclient";
 
-    private static ConfigurationClientJobListener listener;
+    private static final ConfigurationClientJobListener LISTENER;
 
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
@@ -84,7 +89,7 @@ public final class ConfigurationClientMain {
                 .with(CONF_FILE_PROXY, "configuration-client")
                 .load();
 
-        listener = new ConfigurationClientJobListener();
+        LISTENER = new ConfigurationClientJobListener();
     }
 
     private static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS = "verifyPrivateParamsExists";
@@ -112,7 +117,7 @@ public final class ConfigurationClientMain {
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
             // Run configuration client in one-shot mode downloading the specified global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1]));
+            System.exit(download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2])));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
             // Run configuration client in one-shot mode downloading the current global configuration version.
             System.exit(download(actualArgs[0], actualArgs[1]));
@@ -137,6 +142,23 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
+    private static int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
+        log.debug("Downloading configuration using anchor {} path = {})", configurationAnchorFile, configurationPath);
+
+        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
+
+        client = new ConfigurationClient(configurationPath, configurationVersion) {
+            @Override
+            protected void deleteExtraConfigurationDirectories(
+                    List<ConfigurationSource> configurationSources,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
+            }
+        };
+
+        return execute();
+    }
+
     private static int download(String configurationAnchorFile, String configurationPath) {
         log.debug("Downloading configuration using anchor {} path = {})",
                 configurationAnchorFile, configurationPath);
@@ -146,7 +168,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    PrivateParametersV2 privateParameters,
+                    List<ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -155,15 +177,16 @@ public final class ConfigurationClientMain {
         return execute();
     }
 
-    private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator) {
+    private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator)
+            throws Exception {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
 
         // Create configuration that does not persist files to disk.
         final String configurationPath = SystemProperties.getConfigurationPath();
 
-        ConfigurationDownloader configurationDownloader = new ConfigurationDownloader(configurationPath) {
+        var configurationDownloader = new ConfigurationDownloader(configurationPath) {
             @Override
-            void handleContent(byte[] content, ConfigurationFile file) throws Exception {
+            void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
                 validateContent(file);
                 super.handleContent(content, file);
             }
@@ -188,10 +211,10 @@ public final class ConfigurationClientMain {
 
         };
 
-        ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
+        ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
         client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
+            protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
@@ -250,7 +273,7 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(Request request, Response response) {
                 log.info("handler /execute");
 
                 try {
@@ -263,13 +286,12 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
+            public void handle(Request request, Response response) {
+                try (var writer = new PrintWriter(Content.Sink.asOutputStream(response))) {
                     log.info("handler /status");
 
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getObjectWriter()
-                            .writeValue(response.getWriter(), ConfigurationClientJobListener.getStatus());
+                    setContentType(response, MimeTypes.Type.APPLICATION_JSON_UTF_8);
+                    JsonUtils.getObjectWriter().writeValue(writer, ConfigurationClientJobListener.getStatus());
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }
@@ -283,7 +305,7 @@ public final class ConfigurationClientMain {
         adminPort.start();
 
         jobManager = new JobManager();
-        jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
+        jobManager.getJobScheduler().getListenerManager().addJobListener(LISTENER);
 
         JobDataMap data = new JobDataMap();
         data.put("client", client);
@@ -324,7 +346,7 @@ public final class ConfigurationClientMain {
      * Listens for daemon job completions and collects results.
      */
     @Slf4j
-    private static class ConfigurationClientJobListener implements JobListener {
+    private static final class ConfigurationClientJobListener implements JobListener {
         public static final String LISTENER_NAME = "confClientJobListener";
 
         // Access only via synchronized getter/setter.

@@ -32,6 +32,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,8 +40,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.net.URI;
@@ -134,7 +133,7 @@ public class MaintenanceModeTest {
         testPort.setMaintenanceMode(true);
         try (CloseableHttpResponse response = testClient.execute(healthCheckGet)) {
             verify(testProvider, times(0)).get();
-            assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE_503, response.getStatusLine().getStatusCode());
             HttpEntity responseEntity = response.getEntity();
             assertNotNull("HealthCheckPorts's response did not contain a message", responseEntity);
             String responseMessage = IOUtils.toString(responseEntity.getContent());
@@ -154,7 +153,7 @@ public class MaintenanceModeTest {
         testPort.setMaintenanceMode(false);
         try (CloseableHttpResponse response = testClient.execute(healthCheckGet)) {
             verify(testProvider, times(1)).get();
-            assertEquals(HttpServletResponse.SC_OK, response.getStatusLine().getStatusCode());
+            assertEquals(HttpStatus.OK_200, response.getStatusLine().getStatusCode());
         }
     }
 }

@@ -1,23 +1,25 @@
 plugins {
-  id 'java-library'
+    id 'java-library'
 }
 
 dependencies {
-  implementation project(':common:common-util')
-  implementation project(':common:common-verifier')
-  implementation 'org.antlr:ST4:4.0.7'
-  // JUnit is needed for ExpectedCodedException
-  implementation "org.junit.vintage:junit-vintage-engine:$junitVersion"
-  api "org.mockito:mockito-junit-jupiter:$mockitoVersion"
-  api("org.awaitility:awaitility:$awaitilityVersion")
+    implementation project(':common:common-util')
+    implementation project(':common:common-verifier')
+    implementation 'org.antlr:ST4:4.3.4'
+    implementation "io.vavr:vavr:$vavrVersion"
+    // JUnit is needed for ExpectedCodedException
+    implementation "org.junit.vintage:junit-vintage-engine:$junitVersion"
 
-  implementation "io.vavr:vavr:$vavrVersion"
+    api "org.mockito:mockito-junit-jupiter:$mockitoVersion"
+    api "org.awaitility:awaitility:$awaitilityVersion"
+    api "com.github.stefanbirkner:system-rules:$systemRulesVersion"
+    api "org.assertj:assertj-core:$assertjVersion"
 }
 
 sourceSets {
-  main {
-    resources {
-      srcDir 'src/test/certs'
+    main {
+        resources {
+            srcDir 'src/test/certs'
+        }
     }
-  }
 }

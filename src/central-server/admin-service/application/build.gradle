@@ -1,4 +1,6 @@
-archivesBaseName = 'centralserver-admin-service'
+base {
+    archivesName = 'centralserver-admin-service'
+}
 
 configurations {
     dist {
@@ -27,10 +29,6 @@ dependencies {
     testImplementation("org.liquibase:liquibase-core")
 }
 
-test {
-    useJUnitPlatform()
-}
-
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
     if (project.hasProperty('args')) {
@@ -39,20 +37,22 @@ bootRun {
     }
 }
 
-task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
+tasks.register('copyUi', ProcessResources) {
+    dependsOn(configurations.dist)
     from configurations.dist
-    into "${buildDir}/admin-service/ui/public"
+    into layout.buildDirectory.dir("admin-service/ui/public")
 }
 
 jar {
     enabled = false
 }
+
 bootJar {
     enabled = true
 
     if (!project.hasProperty('skip-frontend-build')) {
         dependsOn copyUi
-        classpath += file("${buildDir}/admin-service/ui")
+        classpath += layout.buildDirectory.dir("admin-service/ui")
     } else {
         println("Warning: Excluding frontend from boot jar")
     }
@@ -64,11 +64,13 @@ bootJar {
     }
 }
 
-task downloadLiquibaseLibs(type: Copy) {
-    mkdir "${buildDir}/libs/"
+tasks.register('moveLiquibaseLibs', Copy) {
+    mkdir layout.buildDirectory.dir("libs")
 
     from configurations.liquibaseLibs
-    into "${buildDir}/libs"
+    into layout.buildDirectory.dir("libs")
 }
 
-build.dependsOn downloadLiquibaseLibs
+build {
+    dependsOn moveLiquibaseLibs
+}

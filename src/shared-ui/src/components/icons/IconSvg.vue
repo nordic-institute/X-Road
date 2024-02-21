@@ -33,7 +33,7 @@
     :aria-labelledby="iconName"
     role="presentation"
   >
-    <title :id="iconName" lang="en">{{ iconName }} icon</title>
+    <title :id="iconName" lang="en">{{ iconName + ' icon'}}</title>
     <g :fill="iconColor">
       <template v-if="iconName === 'addUser'">
         <path
@@ -144,28 +144,23 @@
   </svg>
 </template>
 
-<script lang="ts">
-import Vue from 'vue';
-
-export default Vue.extend({
-  name: 'IconSvg',
-  props: {
-    iconName: {
-      type: String,
-      default: 'box',
-    },
-    width: {
-      type: [Number, String],
-      default: 24,
-    },
-    height: {
-      type: [Number, String],
-      default: 24,
-    },
-    iconColor: {
-      type: String,
-      default: 'currentColor',
-    },
+<script setup lang="ts">
+defineProps({
+  iconName: {
+    type: String,
+    default: 'box',
+  },
+  width: {
+    type: [Number, String],
+    default: 24,
+  },
+  height: {
+    type: [Number, String],
+    default: 24,
+  },
+  iconColor: {
+    type: String,
+    default: 'currentColor',
   },
 });
 </script>

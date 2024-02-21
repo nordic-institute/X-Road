@@ -124,7 +124,7 @@ public final class JsonUtils {
 
         @Override
         public void serialize(ClientId value, JsonGenerator gen,
-                SerializerProvider serializers) throws IOException {
+                              SerializerProvider serializers) throws IOException {
             gen.writeStartObject();
             gen.writeStringField("xRoadInstance", value.getXRoadInstance());
             gen.writeStringField("memberClass", value.getMemberClass());

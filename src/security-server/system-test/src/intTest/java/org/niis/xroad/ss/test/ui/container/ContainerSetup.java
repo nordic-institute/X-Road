@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.ss.test.ui.container;
 
+import com.google.common.base.Suppliers;
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
@@ -38,17 +39,20 @@ import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.File;
+import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 @Slf4j
 @Configuration
 @SuppressWarnings("checkstyle:MagicNumber")
 public class ContainerSetup {
-
+    public static final Supplier<Integer> JMX_PORT_SUPPLIER = Suppliers.memoize(ContainerSetup::findRandomPort);
+    public static final String JMX_PORT_PROPERTY_KEY = "CONTAINER_JMX_PORT";
     private static final String NETWORK_ALIAS = "ss1";
 
     @Bean
@@ -81,19 +85,19 @@ public class ContainerSetup {
             @NotNull
             @Override
             public Map<String, String> environmentalVariables() {
-                return new HashMap<>();
+                return Map.of(JMX_PORT_PROPERTY_KEY, String.valueOf(ContainerSetup.JMX_PORT_SUPPLIER.get()));
             }
 
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(Port.UI, Port.SERVICE, Port.DB);
+                return List.of(Port.UI, Port.SERVICE, Port.DB, Port.HEALTHCHECK);
             }
 
             @NotNull
             @Override
             public List<Integer> fixedExposedPorts() {
-                return List.of(Port.JMX);
+                return List.of(ContainerSetup.JMX_PORT_SUPPLIER.get());
             }
         };
     }
@@ -104,7 +108,9 @@ public class ContainerSetup {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                genericContainer.withNetworkAliases(NETWORK_ALIAS);
+                genericContainer
+                        .withNetworkAliases(NETWORK_ALIAS)
+                        .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(2048 * 1024 * 1024L));
             }
 
             @Override
@@ -123,4 +129,13 @@ public class ContainerSetup {
         };
     }
 
+    /**
+     * Get random available port for use.
+     */
+    @SneakyThrows
+    private static Integer findRandomPort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        }
+    }
 }

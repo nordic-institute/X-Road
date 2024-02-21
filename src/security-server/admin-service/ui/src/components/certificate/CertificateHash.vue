@@ -26,14 +26,14 @@
 <template>
   <div class="cert-hash">
     <div class="hash-info">{{ $t('cert.hashInfo') }}</div>
-    <div data-test="cert-hash-value">{{ hash | colonize }}</div>
+    <div data-test="cert-hash-value">{{ $filters.colonize(hash) }}</div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 
-export default Vue.extend({
+export default defineComponent({
   props: {
     hash: {
       type: String,
@@ -45,7 +45,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 .cert-hash {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   letter-spacing: 0.5px;
   line-height: 30px;
