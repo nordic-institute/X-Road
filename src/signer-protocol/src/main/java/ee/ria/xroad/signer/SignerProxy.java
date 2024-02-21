@@ -27,6 +27,7 @@ package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -36,7 +37,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.protocol.mapper.SecurityServerIdMapper;
-import ee.ria.xroad.common.util.PasswordStore;
 
 import com.google.protobuf.ByteString;
 import lombok.AccessLevel;
