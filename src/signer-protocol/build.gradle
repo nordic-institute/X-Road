@@ -32,6 +32,10 @@ protobuf {
 
 compileJava.dependsOn generateProto
 
+test {
+    jvmArgs '-Djava.library.path=../../lib'
+}
+
 if (Os.isName("linux")) {
     tasks.register('make', Exec) {
         def javaCompiler = javaToolchains.compilerFor(java.toolchain)
