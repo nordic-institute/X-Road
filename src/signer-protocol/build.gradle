@@ -33,7 +33,7 @@ protobuf {
 compileJava.dependsOn generateProto
 
 if (Os.isName("linux")) {
-    task make(type: Exec) {
+    tasks.register('make', Exec) {
         def javaCompiler = javaToolchains.compilerFor(java.toolchain)
         def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
@@ -41,12 +41,12 @@ if (Os.isName("linux")) {
         inputs.dir file("${javaHome}/include")
         outputs.dir file('../lib')
 
-        workingDir '../../'
+        workingDir '../'
         commandLine 'make', 'clean', 'all'
     }
 
-    task makeClean(type: Exec) {
-        workingDir '../../'
+    tasks.register('makeClean', Exec) {
+        workingDir '../'
         commandLine 'make', 'clean'
     }
 
