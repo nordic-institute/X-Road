@@ -308,7 +308,6 @@ docker run --detach \
   -e XROAD_ADMIN_PASSWORD=secret \
   -v sidecar_config_volume:/etc/xroad \
   -v sidecar_backup_volume:/var/lib/xroad \
-  -v sidecar_logs_volume:/var/log/xroad \
   -v sidecar_db_volume:/var/lib/postgresql/12/main \
   niis/xroad-security-server-sidecar:7.4.1
 ```
