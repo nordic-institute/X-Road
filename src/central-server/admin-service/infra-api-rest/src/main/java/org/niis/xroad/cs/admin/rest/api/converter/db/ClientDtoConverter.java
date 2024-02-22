@@ -47,7 +47,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static ee.ria.xroad.common.util.Fn.self;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 
@@ -70,8 +69,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         ClientDto clientDto = new ClientDto();
         clientDto.setClientId(clientIdDto);
 
-        if (source instanceof XRoadMember) {
-            XRoadMember xRoadMember = (XRoadMember) source;
+        if (source instanceof XRoadMember xRoadMember) {
             clientDto.setMemberName(xRoadMember.getName());
         } else if (source instanceof Subsystem) {
             // do nothing
@@ -107,7 +105,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                 case SUBSYSTEM:
                     XRoadMember xRoadMember = memberService
                             .findMember(clientId.getMemberId())
-                            .getOrElseThrow(() -> new NotFoundException(
+                            .orElseThrow(() -> new NotFoundException(
                                     MEMBER_NOT_FOUND,
                                     "code",
                                     clientIdDto.getMemberCode()
@@ -131,20 +129,19 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
 
         @Override
         public ClientDto toDto(FlattenedSecurityServerClientView source) {
-            return self(new ClientDto(), clientDto -> {
-                clientDto.setMemberName(source.getMemberName());
-                clientDto.setClientId(self(new ClientIdDto(), clientIdDto -> {
-                    clientIdDto.setInstanceId(source.getXroadInstance());
-                    MemberClass memberClass = source.getMemberClass();
-                    Optional.ofNullable(memberClass)
-                            .map(MemberClass::getCode)
-                            .ifPresent(clientIdDto::setMemberClass);
-                    clientIdDto.setMemberCode(source.getMemberCode());
-                    clientIdDto.setSubsystemCode(source.getSubsystemCode());
-                    clientIdDto.setType(xRoadObjectTypeDtoMapper.convert(source.getType()));
-                    clientIdDto.setEncodedId(toEncodedId(clientIdDto));
-                }));
-            });
+            var clientIdDto = new ClientIdDto()
+                    .instanceId(source.getXroadInstance())
+                    .memberClass(Optional.ofNullable(source.getMemberClass()).map(MemberClass::getCode)
+                            .orElse(null))
+
+                    .memberCode(source.getMemberCode())
+                    .subsystemCode(source.getSubsystemCode())
+                    .type(xRoadObjectTypeDtoMapper.convert(source.getType()));
+            clientIdDto.encodedId(toEncodedId(clientIdDto));
+
+            return new ClientDto()
+                    .memberName(source.getMemberName())
+                    .clientId(clientIdDto);
         }
 
         @Override

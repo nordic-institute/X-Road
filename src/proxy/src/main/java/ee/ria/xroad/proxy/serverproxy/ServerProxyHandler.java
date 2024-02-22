@@ -30,9 +30,9 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
-import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+import ee.ria.xroad.proxy.util.PerformanceLogger;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;

@@ -1,0 +1,53 @@
+plugins {
+    id 'java-library'
+}
+
+configurations {
+    xjc
+}
+
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', schemaTargetDir]
+    }
+}
+
+
+dependencies {
+    api project(':common:common-core')
+    api project(':common:common-domain')
+
+    api("org.apache.james:apache-mime4j-core:$mime4jVersion")
+    api("org.glassfish.jaxb:jaxb-runtime:$jaxbVersion")
+    api("org.eclipse.jetty:jetty-http:$jettyVersion")
+    api("org.apache.httpcomponents:httpclient:$httpClientVersion")
+    api("com.sun.xml.messaging.saaj:saaj-impl:$saa4jVersion")
+
+    testImplementation project(':common:common-test')
+
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+}
+
+
+tasks.register('xjc') {
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
+    doLast {
+        ant.taskdef(name: 'xjc',
+            classname: 'com.sun.tools.xjc.XJCTask',
+            classpath: configurations.xjc.asPath)
+
+        // Generate classes for hash chains
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.hashchain',
+            schema: 'src/main/resources/hashchain.xsd',
+        )
+    }
+}
+
+compileJava.dependsOn xjc

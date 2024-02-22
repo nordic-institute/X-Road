@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import ee.ria.xroad.common.util.SystemMetrics;
+import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.EndPoint;

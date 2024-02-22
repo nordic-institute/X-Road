@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,7 +73,7 @@ public class ServiceService {
 
     /**
      * get ServiceType by ClientId and service code that includes service version
-     * see {@link FormatUtils#getServiceFullName(ServiceType)}.
+     * see {@link ServiceFormatter#getServiceFullName(ServiceType)}.
      * ServiceType has serviceType.serviceDescription.client.endpoints lazy field fetched.
      *
      * @param clientId
@@ -107,7 +108,7 @@ public class ServiceService {
                 .stream()
                 .map(ServiceDescriptionType::getService)
                 .flatMap(List::stream)
-                .filter(serviceType -> FormatUtils.getServiceFullName(serviceType).equals(fullServiceCode))
+                .filter(serviceType -> ServiceFormatter.getServiceFullName(serviceType).equals(fullServiceCode))
                 .findFirst();
         return foundService.orElseThrow(() -> new ServiceNotFoundException("Service "
                 + fullServiceCode + NOT_FOUND));
@@ -118,7 +119,7 @@ public class ServiceService {
      *
      * @param clientId clientId of the client associated with the service
      * @param fullServiceCode service code that includes service version
-     * see {@link FormatUtils#getServiceFullName(ServiceType)}
+     * see {@link ServiceFormatter#getServiceFullName(ServiceType)}
      * @param url
      * @param urlAll
      * @param timeout
@@ -220,7 +221,7 @@ public class ServiceService {
             // new audit log data item
             HashMap<RestApiAuditProperty, Object> serviceAuditData = new LinkedHashMap<>();
             auditDataHelper.addListPropertyItem(RestApiAuditProperty.SERVICES, serviceAuditData);
-            serviceAuditData.put(RestApiAuditProperty.ID, FormatUtils.getServiceFullName(serviceFromSameDefinition));
+            serviceAuditData.put(RestApiAuditProperty.ID, ServiceFormatter.getServiceFullName(serviceFromSameDefinition));
             serviceAuditData.put(RestApiAuditProperty.URL, serviceFromSameDefinition.getUrl());
             serviceAuditData.put(RestApiAuditProperty.TIMEOUT, serviceFromSameDefinition.getTimeout());
             serviceAuditData.put(RestApiAuditProperty.TLS_AUTH, serviceFromSameDefinition.getSslAuthentication());

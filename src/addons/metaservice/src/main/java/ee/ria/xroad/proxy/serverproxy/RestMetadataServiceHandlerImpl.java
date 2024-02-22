@@ -36,10 +36,10 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.OpenapiDescriptionFiletype;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
+import ee.ria.xroad.proxy.util.OpenapiDescriptionFiletype;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,10 +68,10 @@ import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_OPENAPI;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.GET_OPENAPI;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 
 /**
  * Handler for REST metadata services

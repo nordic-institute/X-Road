@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -64,6 +63,7 @@ import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -122,10 +122,10 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("should create client when not already present")
         void shouldCreateClientWhenNotAlreadyPresent() {
-            when(subsystemRepository.findOneBy(subsystemId)).thenReturn(Option.none());
+            when(subsystemRepository.findOneBy(subsystemId)).thenReturn(Optional.empty());
             when(subsystemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            when(xRoadMemberRepository.findMember(memberId)).thenReturn(Option.of(xRoadMember));
+            when(xRoadMemberRepository.findMember(memberId)).thenReturn(Optional.of(xRoadMember));
 
             SecurityServerClient result = subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId));
 
@@ -143,7 +143,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @DisplayName("should not create client when already present")
         void shouldNotCreateClientWhenAlreadyPresent() {
             SubsystemEntity presentSecurityServerClient = mock(SubsystemEntity.class);
-            when(subsystemRepository.findOneBy(subsystemId)).thenReturn(Option.of(presentSecurityServerClient));
+            when(subsystemRepository.findOneBy(subsystemId)).thenReturn(Optional.of(presentSecurityServerClient));
 
             Executable testable = () -> subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId));
 
@@ -181,7 +181,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @DisplayName("Should unregister subsystem")
         void shouldUnregisterSubsystem() {
             Set<ServerClientEntity> serverClients = Stream.of(serverClient).collect(toSet());
-            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Optional.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
             doReturn(serverClients).when(subsystem).getServerClients();
             doReturn(securityServer).when(serverClient).getSecurityServer();
             doReturn(securityServerId).when(securityServer).getServerId();
@@ -204,7 +204,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("Should not unregister subsystem if it does not exist")
         void shouldThrowNotFoundExceptionWhenSubsystemNotFound() {
-            doReturn(Option.none()).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Optional.empty()).when(subsystemRepository).findOneBy(subsystemClientId);
 
             Executable testable = () -> subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
 
@@ -220,7 +220,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("Should not unregister subsystem from server if not already registered")
         void shouldThrowNotFoundExceptionWhenSubsystemNotRegisteredToGivenServer() {
-            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Optional.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
             doReturn(Set.of()).when(subsystem).getServerClients();
 
             Executable testable = () -> subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
@@ -252,7 +252,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("Should delete subsystem")
         void shouldDeleteSubsystem() {
-            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Optional.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
             doReturn(Set.of()).when(subsystem).getServerClients();
 
             subsystemService.deleteSubsystem(subsystemClientId);
@@ -269,7 +269,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("Should not delete subsystem if it does not exist")
         void shouldThrowNotFoundExceptionWhenSubsystemNotFound() {
-            doReturn(Option.none()).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Optional.empty()).when(subsystemRepository).findOneBy(subsystemClientId);
 
             Executable testable = () -> subsystemService.deleteSubsystem(subsystemClientId);
 
@@ -285,7 +285,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
         @Test
         @DisplayName("Should not delete subsystem if it is already registered")
         void shouldThrowValidationExceptionWhenSubsystemRegistered() {
-            doReturn(Option.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
+            doReturn(Optional.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
             doReturn(Set.of(mock(ServerClient.class))).when(subsystem).getServerClients();
 
             Executable testable = () -> subsystemService.deleteSubsystem(subsystemClientId);

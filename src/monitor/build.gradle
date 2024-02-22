@@ -15,7 +15,7 @@ jar {
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-    implementation project(':common:common-util')
+    implementation project(':common:common-domain')
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
     implementation project(':serverconf')

@@ -30,13 +30,13 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.SystemMetrics;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.DummySslServerProxy;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
+import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;

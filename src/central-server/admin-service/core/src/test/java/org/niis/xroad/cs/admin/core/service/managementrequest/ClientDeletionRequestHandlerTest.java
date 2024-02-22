@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.vavr.control.Option;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +53,7 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.isA;
@@ -108,7 +108,7 @@ class ClientDeletionRequestHandlerTest {
 
         when(serverIdRepository.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
         when(clientIdRepository.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
-        when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Option.none());
+        when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.empty());
 
         Assertions.assertThatThrownBy(() -> handler.add(request))
                 .isInstanceOf(NotFoundException.class)
@@ -126,7 +126,7 @@ class ClientDeletionRequestHandlerTest {
 
         when(serverIdRepository.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
         when(clientIdRepository.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
-        when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Option.none());
+        when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.empty());
         when(registrationRequestRepository.findBy(mockServerId, mockClientId, Set.of(WAITING))).thenReturn(List.of());
         when(registrationRequestRepository.findBy(mockServerId, mockClientId, Set.of(DECLINED)))
                 .thenReturn(List.of(mockDeclinedClientRegistrationRequest));

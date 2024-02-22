@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+
+    api project(":common:common-core")
+    api project(":common:common-domain")
+    api project(':common:common-jetty')
+
+    testImplementation project(':common:common-test')
+}
+

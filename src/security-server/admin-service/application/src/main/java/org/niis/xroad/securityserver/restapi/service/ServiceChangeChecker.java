@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import lombok.Data;
-import org.niis.xroad.restapi.util.FormatUtils;
+import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -54,18 +54,18 @@ public class ServiceChangeChecker {
 
         List<ServiceType> addedServices = new ArrayList<>(newServices);
         addedServices.removeIf(serviceType -> oldFullServiceCodes
-                .contains(FormatUtils.getServiceFullName(serviceType)));
+                .contains(ServiceFormatter.getServiceFullName(serviceType)));
 
         List<ServiceType> removedServices = new ArrayList<>(oldServices);
         removedServices.removeIf(serviceType -> newFullServiceCodes
-                .contains(FormatUtils.getServiceFullName(serviceType)));
+                .contains(ServiceFormatter.getServiceFullName(serviceType)));
 
         return new ServiceChanges(addedServices, removedServices);
     }
 
     private List<String> toFullServiceCodes(List<ServiceType> newServices) {
         return newServices.stream()
-                .map(service -> FormatUtils.getServiceFullName(service))
+                .map(ServiceFormatter::getServiceFullName)
                 .collect(Collectors.toList());
     }
 

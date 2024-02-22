@@ -66,7 +66,7 @@ public class AddressChangeRequestHandler implements RequestHandler<AddressChange
                 request.getServerAddress());
 
         securityServerRepository.findBy(serverId)
-                .peek(server -> {
+                .ifPresent(server -> {
                     requestEntity.setComments(formatComment(server.getAddress(), request.getComments()));
                     server.setAddress(request.getServerAddress());
                 });

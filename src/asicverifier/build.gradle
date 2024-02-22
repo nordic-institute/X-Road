@@ -6,7 +6,7 @@ dependencies {
     implementation project(':common:common-verifier'),
         project(':asic-util')
 
-    implementation(project(':common:common-util'))
+    implementation(project(':common:common-core'))
 
     testImplementation project(':common:common-test')
 }

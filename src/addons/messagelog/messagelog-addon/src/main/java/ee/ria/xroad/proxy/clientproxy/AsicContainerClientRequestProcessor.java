@@ -75,10 +75,10 @@ import java.util.zip.ZipOutputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.METADATA_SUFFIX;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
-import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ASIC;
+import static ee.ria.xroad.proxy.util.MetadataRequests.VERIFICATIONCONF;
 import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404;

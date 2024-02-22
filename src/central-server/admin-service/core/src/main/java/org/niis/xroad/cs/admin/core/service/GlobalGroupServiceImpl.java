@@ -27,7 +27,6 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.vavr.control.Try;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -57,6 +56,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -105,9 +105,9 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
 
     @Override
     public GlobalGroup getGlobalGroup(String groupCode) {
-        return Try.success(findGlobalGroupOrThrowException(groupCode))
+        return Optional.of(findGlobalGroupOrThrowException(groupCode))
                 .map(globalGroupMapper::toTarget)
-                .get();
+                .orElse(null);
     }
 
     @Override

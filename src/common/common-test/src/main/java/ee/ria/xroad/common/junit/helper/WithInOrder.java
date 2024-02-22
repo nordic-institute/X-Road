@@ -28,9 +28,6 @@ package ee.ria.xroad.common.junit.helper;
 
 import ee.ria.xroad.common.util.NoCoverage;
 
-import io.vavr.CheckedConsumer;
-import io.vavr.collection.HashSet;
-import io.vavr.control.Option;
 import lombok.SneakyThrows;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -39,8 +36,10 @@ import org.mockito.verification.VerificationMode;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-
-import static ee.ria.xroad.common.junit.helper.WithInOrder.Private.ENCLOSING_OBJECT_FIELD;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public interface WithInOrder {
 
@@ -86,8 +85,8 @@ public interface WithInOrder {
             inOrder.verifyNoMoreInteractions();
         }
 
-        public void verify(CheckedConsumer<org.mockito.InOrder> inOrderConsumer) {
-            inOrderConsumer.unchecked().accept(inOrder);
+        public void verify(Consumer<org.mockito.InOrder> inOrderConsumer) {
+            inOrderConsumer.accept(inOrder);
             verifyNoMoreInteractions();
         }
     }
@@ -102,54 +101,55 @@ public interface WithInOrder {
             }
             return field.get(thiz);
         } finally {
-            if (isAccessible) {
-                field.setAccessible(isAccessible);
+            if (!isAccessible) {
+                field.setAccessible(false);
             }
         }
     }
 
     @NoCoverage
-    private HashSet getClassDeclaredFieldMocks(Object thiz, Class aClass) {
-        return Option.of(aClass)
-                .filter(WithInOrder.class::isAssignableFrom)
-                .fold(HashSet::empty, __ -> Option.of(aClass)
-                        .map(Class::getDeclaredFields)
-                        .map(io.vavr.collection.HashSet::of).get()
-                        .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                        .map(field -> getFieldValue(thiz, field))
-                        .filter(maybeMock -> MockUtil.isMock(maybeMock) || MockUtil.isSpy(maybeMock))
-                )
-                .transform(testClassMocks -> {
-                    Class superClass = aClass.getSuperclass();
-                    boolean hasSuperClass = superClass != null;
-                    if (hasSuperClass) {
-                        testClassMocks = testClassMocks.addAll(getClassDeclaredFieldMocks(thiz, superClass));
+    private Set<Object> getClassDeclaredFieldMocks(Object thiz, Class<?> aClass) {
+        Set<Object> testClassMocks = new HashSet<>();
+        if (WithInOrder.class.isAssignableFrom(aClass)) {
+            Field[] declaredFields = aClass.getDeclaredFields();
+            for (Field field : declaredFields) {
+                if (!Modifier.isStatic(field.getModifiers())) {
+                    Object fieldValue = getFieldValue(thiz, field);
+                    if (MockUtil.isMock(fieldValue) || MockUtil.isSpy(fieldValue)) {
+                        testClassMocks.add(fieldValue);
                     }
-                    return testClassMocks;
-                });
+                }
+            }
+        }
+        Class<?> superClass = aClass.getSuperclass();
+        if (superClass != null) {
+            testClassMocks.addAll(getClassDeclaredFieldMocks(thiz, superClass));
+        }
+        return testClassMocks;
     }
 
     @SneakyThrows
     @NoCoverage
     default InOrder inOrder(Object... additionalMocks) {
         Object thiz = this;
-        Class aClass = this.getClass();
+        Class<?> aClass = this.getClass();
 
-        HashSet testClassMocks = getClassDeclaredFieldMocks(thiz, aClass);
+        Set<Object> testClassMocks = getClassDeclaredFieldMocks(thiz, aClass);
 
         while (aClass.getEnclosingClass() != null) {
-            thiz = getFieldValue(thiz, aClass.getDeclaredField(ENCLOSING_OBJECT_FIELD));
+            thiz = getFieldValue(thiz, aClass.getDeclaredField(Private.ENCLOSING_OBJECT_FIELD));
             aClass = aClass.getEnclosingClass();
 
-            boolean enclosingClassWithInOrder = WithInOrder.class.isAssignableFrom(aClass);
-            if (enclosingClassWithInOrder) {
-                testClassMocks = testClassMocks.addAll(getClassDeclaredFieldMocks(thiz, aClass));
+            if (WithInOrder.class.isAssignableFrom(aClass)) {
+                testClassMocks.addAll(getClassDeclaredFieldMocks(thiz, aClass));
             }
         }
 
-        Object[] mocks = testClassMocks.addAll(HashSet.of(additionalMocks)).toJavaArray();
+        Set<Object> allMocks = new HashSet<>(testClassMocks);
+        allMocks.addAll(Arrays.asList(additionalMocks));
+
+        Object[] mocks = allMocks.toArray();
 
         return new InOrder(Mockito.inOrder(mocks));
     }
-
 }

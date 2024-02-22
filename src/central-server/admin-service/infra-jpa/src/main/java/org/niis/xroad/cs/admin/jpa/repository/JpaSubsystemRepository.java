@@ -44,7 +44,7 @@ public interface JpaSubsystemRepository extends JpaSecurityServerClientRepositor
     default Optional<SubsystemEntity> findByIdentifier(ClientId clientId) {
         ClientId memberId = clientId.getObjectType().equals(XRoadObjectType.SUBSYSTEM) ? clientId
                 : SubsystemId.create(clientId);
-        return findOneBy(memberId).toJavaOptional();
+        return findOneBy(memberId);
     }
 
 }

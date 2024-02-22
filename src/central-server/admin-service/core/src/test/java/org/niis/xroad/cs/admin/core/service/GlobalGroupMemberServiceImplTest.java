@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -76,7 +75,7 @@ class GlobalGroupMemberServiceImplTest {
     @Test
     void addMemberToGlobalGroup() {
         GlobalGroupEntity globalGroupEntity = new GlobalGroupEntity(GROUP_CODE);
-        when(xRoadMemberRepository.findMember(memberId)).thenReturn(Option.of(memberEntityMock));
+        when(xRoadMemberRepository.findMember(memberId)).thenReturn(Optional.of(memberEntityMock));
         when(memberEntityMock.getIdentifier()).thenReturn(memberIdEntity);
         when(globalGroupRepository.getByGroupCode(GROUP_CODE))
                 .thenReturn(Optional.of(globalGroupEntity));
@@ -95,7 +94,7 @@ class GlobalGroupMemberServiceImplTest {
     @Test
     void addMemberToGlobalGroupAlreadyMember() {
         GlobalGroupEntity globalGroupEntity = new GlobalGroupEntity(GROUP_CODE);
-        when(xRoadMemberRepository.findMember(memberId)).thenReturn(Option.of(memberEntityMock));
+        when(xRoadMemberRepository.findMember(memberId)).thenReturn(Optional.of(memberEntityMock));
         when(memberEntityMock.getIdentifier()).thenReturn(memberIdEntity);
         when(globalGroupRepository.getByGroupCode(GROUP_CODE))
                 .thenReturn(Optional.of(globalGroupEntity));
@@ -118,7 +117,7 @@ class GlobalGroupMemberServiceImplTest {
         final MemberId memberToDeleteId = MemberId.create(INSTANCE, MEMBER_CLASS, codeToDelete);
         final MemberIdEntity memberToDeleteIdEntity = MemberIdEntity.create(INSTANCE, MEMBER_CLASS, codeToDelete);
 
-        when(xRoadMemberRepository.findMember(memberToDeleteId)).thenReturn(Option.of(memberEntityMock));
+        when(xRoadMemberRepository.findMember(memberToDeleteId)).thenReturn(Optional.of(memberEntityMock));
         when(memberEntityMock.getIdentifier()).thenReturn(memberToDeleteIdEntity);
         when(globalGroupRepository.getByGroupCode(GROUP_CODE))
                 .thenReturn(Optional.of(globalGroupEntity));
@@ -141,7 +140,7 @@ class GlobalGroupMemberServiceImplTest {
     void removeMemberFromGlobalGroupMemberNotInGroup() {
         GlobalGroupEntity globalGroupEntity = new GlobalGroupEntity(GROUP_CODE);
 
-        when(xRoadMemberRepository.findMember(memberId)).thenReturn(Option.of(memberEntityMock));
+        when(xRoadMemberRepository.findMember(memberId)).thenReturn(Optional.of(memberEntityMock));
         when(memberEntityMock.getIdentifier()).thenReturn(memberIdEntity);
         when(globalGroupRepository.getByGroupCode(GROUP_CODE))
                 .thenReturn(Optional.of(globalGroupEntity));

@@ -13,7 +13,9 @@ configurations {
 }
 
 dependencies {
-    implementation project(':common:common-util')
+    implementation project(':common:common-message')
+    implementation project(':common:common-globalconf')
+    implementation project(':common:common-scheduler')
     testImplementation project(':common:common-test')
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
@@ -26,7 +28,7 @@ tasks.register('createDirs') {
 }
 
 tasks.register('xjc') {
-    dependsOn ':common:common-util:xjc'
+    dependsOn ':common:common-domain:xjc'
     inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
