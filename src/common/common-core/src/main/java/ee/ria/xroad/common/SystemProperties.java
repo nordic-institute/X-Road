@@ -1757,7 +1757,7 @@ public final class SystemProperties {
         return System.getProperty(DATASPACES_PUBLIC_PORT, "9293");
     }
 
-    public static String dataspacesProtocolPort(){
+    public static String dataspacesProtocolPort() {
         return System.getProperty(DATASPACES_PROTOCOL_PORT, "9194");
     }
 

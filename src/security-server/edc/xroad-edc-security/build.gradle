@@ -4,8 +4,12 @@ plugins {
 
 
 dependencies {
-    api project(':common:common-util')
-    api project(':common:common-verifier')
+    api(project(':common:common-globalconf')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    api(project(':common:common-verifier')) {
+        exclude group: 'org.eclipse.jetty'
+    }
     api project(':signer-protocol')
 
     api "eu.europa.ec.joinup.sd-dss:dss-jades:$dssVersion"

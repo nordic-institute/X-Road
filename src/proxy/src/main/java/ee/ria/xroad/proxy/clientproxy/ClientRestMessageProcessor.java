@@ -99,7 +99,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     }
 
-    //TODO: rethink what should happen in constructor and what in process..
+    //TODO rethink what should happen in constructor and what in process..
     @Override
     public void process() throws Exception {
         opMonitoringData.setXRequestId(restRequest.getXRequestId());

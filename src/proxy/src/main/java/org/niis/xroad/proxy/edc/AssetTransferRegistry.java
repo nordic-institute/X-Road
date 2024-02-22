@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@SuppressWarnings("checkstyle:MagicNumber")
 public class AssetTransferRegistry {
     private final Cache<String, AssetInTransfer> cache = Caffeine.newBuilder()
             .expireAfterWrite(30, TimeUnit.MINUTES)

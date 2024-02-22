@@ -45,10 +45,17 @@ dependencies {
     sqlDependencies("org.eclipse.edc:transfer-process-store-sql:$edcVersion")
 
     // x-road extensions
-    implementation(project(":security-server:edc:extensions:xroad-messagelog"))
-    implementation(project(":security-server:edc:extensions:xroad-payload-signer"))
+    implementation(project(":security-server:edc:extensions:xroad-messagelog")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":security-server:edc:extensions:xroad-payload-signer")) {
+        exclude group: 'org.eclipse.jetty'
+    }
 
     testImplementation("org.eclipse.edc:junit:$edcVersion")
+    testImplementation(project(':common:common-test')) {
+        exclude group: 'org.eclipse.jetty'
+    }
 }
 
 application {

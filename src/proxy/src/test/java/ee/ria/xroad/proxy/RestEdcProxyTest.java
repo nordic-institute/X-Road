@@ -151,6 +151,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
+    @Ignore("broken as it requires signer")
     public void shouldHandleSimplePost() {
         given()
                 .baseUri("http://127.0.0.1")
@@ -267,6 +268,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
     }
 
     @Test
+    @Ignore("broken as it requires signer")
     public void shouldGetLargeBinaryMessage() throws Exception {
         service.setHandler(LARGE_OBJECT_HANDLER);
         final int requestedBytes = 13 * 1024 * 1024 + 104729;

@@ -26,19 +26,22 @@
  */
 package org.niis.xroad.edc;
 
+import ee.ria.xroad.common.TestPortUtils;
+
 import org.eclipse.edc.junit.extensions.EdcExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 @ExtendWith(EdcExtension.class)
 class EdcIntegrationTest {
 
     @BeforeEach
-    void setUp(EdcExtension extension) {
+    void setUp(EdcExtension extension) throws IOException {
         System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
 
         var resourcesDir = new File("src/main/resources").getAbsolutePath();
@@ -48,7 +51,9 @@ class EdcIntegrationTest {
                 "edc.keystore", "%s/certs/cert.pfx".formatted(resourcesDir),
                 "edc.keystore.password", "123456",
                 "edc.receiver.http.endpoint", "http://localhost:4000/asset-authorization-callback",
-                "edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"
+                "edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token",
+                //edc somehow fails if no property is found
+                "web.http.xroad.public.port", TestPortUtils.findRandomPort().toString()
         ));
     }
 
@@ -56,4 +61,5 @@ class EdcIntegrationTest {
     void shouldStartup() {
 
     }
+
 }

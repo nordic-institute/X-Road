@@ -33,7 +33,6 @@ import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.util.CertUtils;
 
 import com.nimbusds.jose.JWSObject;

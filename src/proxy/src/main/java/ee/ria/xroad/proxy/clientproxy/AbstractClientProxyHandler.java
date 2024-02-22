@@ -48,8 +48,6 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
@@ -71,7 +69,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     protected final boolean storeOpMonitoringData;
 
     abstract Optional<MessageProcessorBase> createRequestProcessor(Request request, Response response,
-                                                         OpMonitoringData opMonitoringData) throws Exception;
+                                                                   OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {

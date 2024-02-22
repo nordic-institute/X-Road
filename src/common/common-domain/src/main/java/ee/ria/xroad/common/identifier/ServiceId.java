@@ -246,6 +246,7 @@ public interface ServiceId extends XRoadId {
         }
 
         //TODO xroad8 add validation
+        @SuppressWarnings("checkstyle:magicnumber")
         public static ServiceId.Conf fromEncodedId(String serverIdStr) {
             String[] serviceIdSplit = serverIdStr.split(":");
             return ServiceId.Conf.create(serviceIdSplit[0], serviceIdSplit[1], serviceIdSplit[2], serviceIdSplit[3], serviceIdSplit[4]);

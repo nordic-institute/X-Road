@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry {
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private final Cache<CacheKey, GrantedAssetInfo> cache = Caffeine.newBuilder()
             .expireAfter(new Expiry<CacheKey, GrantedAssetInfo>() {
                 @Override
@@ -77,13 +78,22 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
         cache.put(new CacheKey(clientId, serviceId), assetInfo);
     }
 
-
-
-
     public record CacheKey(String clientId, String serviceId) {
         @Override
         public int hashCode() {
             return clientId.hashCode() + serviceId.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != this.getClass()) {
+                return false;
+            }
+            CacheKey other = (CacheKey) obj;
+            return clientId.equals(other.clientId) && serviceId.equals(other.serviceId);
         }
     }
 

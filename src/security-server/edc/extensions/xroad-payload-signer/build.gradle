@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(':signer-protocol')
-    implementation project(':common:common-util')
+    implementation project(':common:common-core')
     implementation project(':security-server:edc:xroad-edc-security')
 
     implementation("org.eclipse.edc:core-spi:$edcVersion")

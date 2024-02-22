@@ -54,7 +54,8 @@ public class MetadataHandler extends AbstractClientProxyHandler {
 
     @Override
     Optional<MessageProcessorBase> createRequestProcessor(Request request, Response response,
-                                                          OpMonitoringData opMonitoringData) {var target = getTarget(request);
+                                                          OpMonitoringData opMonitoringData) {
+        var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);
 
         // opMonitoringData is null, do not use it.

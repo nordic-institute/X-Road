@@ -43,7 +43,7 @@ import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static org.eclipse.jetty.server.Request.asInputStream;
 
 /**
- * TODO: xroad8
+ * TODO xroad8
  * <p>
  * Upgrade to Jetty 12, use async.
  * Protect this endpoint, no authorization at this momment.

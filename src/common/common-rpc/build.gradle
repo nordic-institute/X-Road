@@ -14,7 +14,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation project(':common:common-core')
+    implementation project(':common:common-domain')
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
     api "io.grpc:grpc-protobuf:$grpcVersion"

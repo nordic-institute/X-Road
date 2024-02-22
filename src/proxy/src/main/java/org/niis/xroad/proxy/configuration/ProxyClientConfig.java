@@ -47,6 +47,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -68,7 +69,7 @@ public class ProxyClientConfig {
 
     @Bean
     ClientRestMessageHandler clientRestMessageHandler(@Qualifier("proxyHttpClient") HttpClient httpClient,
-                                                      AssetAuthorizationManager assetAuthorizationManager) {
+                                                      @Autowired(required = false) AssetAuthorizationManager assetAuthorizationManager) {
         return new ClientRestMessageHandler(httpClient, assetAuthorizationManager);
     }
 

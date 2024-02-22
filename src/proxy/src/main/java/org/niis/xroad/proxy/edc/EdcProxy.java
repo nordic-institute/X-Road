@@ -87,6 +87,7 @@ public class EdcProxy {
         new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private void createConnector() {
         log.trace("createConnector()");
 

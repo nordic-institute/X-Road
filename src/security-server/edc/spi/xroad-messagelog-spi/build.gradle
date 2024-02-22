@@ -5,5 +5,5 @@ plugins {
 dependencies {
     api("org.eclipse.edc:core-spi:$edcVersion")
 
-    implementation(project(":common:common-util"))  // for the ClientId, ServiceId identifiers
+    implementation(project(":common:common-domain"))  // for the ClientId, ServiceId identifiers
 }

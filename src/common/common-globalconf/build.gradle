@@ -5,9 +5,8 @@ plugins {
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-    api project(":common:common-core")
-    api project(":common:common-domain")
-    api project(':common:common-jetty')
+    api project(":common:common-message")
+    api("org.eclipse.jetty:jetty-http:$jettyVersion")
 
     testImplementation project(':common:common-test')
 }

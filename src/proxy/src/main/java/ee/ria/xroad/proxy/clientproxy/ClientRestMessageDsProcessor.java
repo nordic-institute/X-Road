@@ -130,6 +130,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         }
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private void processResponse(HttpSender httpSender) throws Exception {
         //TODO handle statuses
         jResponse.setStatus(200);

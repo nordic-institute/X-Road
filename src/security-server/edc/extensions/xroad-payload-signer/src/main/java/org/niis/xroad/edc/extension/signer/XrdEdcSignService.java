@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.edc.extension.signer;
 
-import ee.ria.xroad.common.message.RestMessage;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
@@ -39,6 +39,8 @@ import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 
 @RequiredArgsConstructor
 public class XrdEdcSignService {
@@ -61,9 +63,22 @@ public class XrdEdcSignService {
     }
 
     public void verifyRequest(ContainerRequestContextApiImpl contextApi) throws XrdSignatureVerificationException {
-        var clientId = RestMessage.decodeClientId(contextApi.headers().get("X-Road-Client"));
+        var clientId = decodeClientId(contextApi.headers().get("X-Road-Client"));
         signService.verify(contextApi.headers(), contextApi.body().getBytes(StandardCharsets.UTF_8), clientId);
 
     }
 
+    @SuppressWarnings("checkstyle:magicnumber")
+    public static ClientId decodeClientId(String value) {
+        final String[] parts = value.split("/", 5);
+        if (parts.length < 3 || parts.length > 4) {
+            throw new IllegalArgumentException("Invalid Client Id");
+        }
+        return ClientId.Conf.create(
+                uriSegmentPercentDecode(parts[0]),
+                uriSegmentPercentDecode(parts[1]),
+                uriSegmentPercentDecode(parts[2]),
+                parts.length == 4 ? uriSegmentPercentDecode(parts[3]) : null
+        );
+    }
 }

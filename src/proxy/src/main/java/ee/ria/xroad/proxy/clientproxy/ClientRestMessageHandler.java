@@ -53,7 +53,6 @@ import org.w3c.dom.Element;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -65,6 +64,7 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static java.lang.Boolean.TRUE;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 
 /**
@@ -93,7 +93,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     @Override
     Optional<MessageProcessorBase> createRequestProcessor(Request request, Response response,
                                                           OpMonitoringData opMonitoringData) throws Exception {
-final var target = getTarget(request);
+        final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
 
@@ -101,7 +101,7 @@ final var target = getTarget(request);
             var proxyCtx = new ProxyRequestCtx(target, request, response, opMonitoringData,
                     resolveTargetSecurityServers(restRequest.getServiceId().getClientId()));
 
-            boolean forceLegacyTransport = Boolean.TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
+            boolean forceLegacyTransport = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
             if (proxyCtx.targetSecurityServers().dsEnabledServers() && !forceLegacyTransport) {
                 //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
                 return Optional.of(new ClientRestMessageDsProcessor(proxyCtx, restRequest, client,
@@ -154,6 +154,7 @@ final var target = getTarget(request);
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
         }
+
         response.getHeaders().put("X-Road-Error", ex.getFaultCode());
 
         final String responseContentType = decideErrorResponseContentType(request.getHeaders().getValues("Accept"));

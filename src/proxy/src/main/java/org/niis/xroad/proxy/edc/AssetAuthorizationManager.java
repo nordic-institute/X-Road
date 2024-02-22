@@ -37,6 +37,8 @@ import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNego
 import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.niis.xroad.edc.management.client.FeignCatalogApi;
+import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -74,7 +76,9 @@ import static org.eclipse.edc.spi.types.domain.DataAddress.SIMPLE_TYPE;
 
 @Slf4j
 @Component
+@Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
 @RequiredArgsConstructor
+@SuppressWarnings("checkstyle:MagicNumber")
 public class AssetAuthorizationManager {
     private final FeignCatalogApi catalogApi;
     private final ContractNegotiationApi contractNegotiationApi;
