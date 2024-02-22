@@ -49,7 +49,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class GlobalConfVer3Test {
-    private static final String GOOD_CONF_DIR = "../common-util/src/test/resources/globalconf_good_v3";
+    private static final String GOOD_CONF_DIR = "../common-globalconf/src/test/resources/globalconf_good_v3";
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
     @Rule

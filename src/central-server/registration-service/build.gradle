@@ -29,10 +29,7 @@ dependencies {
     implementation(project(":common:common-api-throttling"))
     implementation(project(":central-server:admin-service:api-client"))
     implementation(project(':central-server:openapi-model'))
-    implementation(project(':common:common-util')) {
-        exclude group: 'org.eclipse.jetty'
-        exclude group: 'org.quartz-scheduler'
-    }
+    implementation(project(':common:common-globalconf'))
 
     implementation(project(':common:common-management-request')) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
@@ -56,6 +53,6 @@ dependencies {
     }
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
-    testImplementation('org.wiremock:wiremock-standalone:3.3.1')
+    testImplementation('org.wiremock:wiremock-standalone:3.4.1')
 }
 

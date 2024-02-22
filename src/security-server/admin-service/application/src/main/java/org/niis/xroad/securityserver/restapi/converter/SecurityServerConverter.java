@@ -56,7 +56,7 @@ public class SecurityServerConverter {
      */
     public SecurityServer convert(SecurityServerId securityServerId) {
         SecurityServer securityServer = new SecurityServer();
-        securityServer.setId(securityServerIdConverter.convert(securityServerId));
+        securityServer.setId(securityServerIdConverter.convertId(securityServerId));
         securityServer.setInstanceId(securityServerId.getXRoadInstance());
         securityServer.setMemberClass(securityServerId.getMemberClass());
         securityServer.setMemberCode(securityServerId.getMemberCode());

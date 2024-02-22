@@ -18,10 +18,14 @@ include "common:common-domain"
 include "common:common-management-request"
 include "common:common-messagelog"
 include "common:common-op-monitoring"
-include "common:common-util"
 include "common:common-verifier"
 include "common:common-rpc"
 include "common:common-int-test"
+include 'common:common-globalconf'
+include 'common:common-core'
+include 'common:common-jetty'
+include 'common:common-message'
+include 'common:common-scheduler'
 
 // Main projects
 include "proxy"

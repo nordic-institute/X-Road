@@ -26,8 +26,9 @@
  */
 package org.niis.xroad.common.exception;
 
+import ee.ria.xroad.common.HttpStatus;
+
 import lombok.NonNull;
-import org.apache.http.HttpStatus;
 import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.DeviationProvider;
 

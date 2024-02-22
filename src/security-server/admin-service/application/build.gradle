@@ -27,7 +27,7 @@ dependencyManagement {
 dependencies {
     dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
 
-    implementation project(":common:common-util")
+    implementation project(":common:common-globalconf")
     implementation project(":signer-protocol")
     implementation project(":serverconf")
     implementation project(":common:common-admin-api")

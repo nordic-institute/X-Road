@@ -110,7 +110,7 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
         auditData.put(CLIENT_IDENTIFIER, clientId.asEncodedId());
 
         final SecurityServerClientEntity subsystem = clients.findOneBy(serviceProviderClientId)
-                .getOrElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
         if (!subsystem.getServerClients().isEmpty()) {
             throw new ValidationFailureException(SUBSYSTEM_ALREADY_REGISTERED_TO_SECURITY_SERVER);
         }
@@ -128,7 +128,7 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
     public ManagementServicesConfiguration getManagementServicesConfiguration() {
         return Optional.ofNullable(systemParameterService.getManagementServiceProviderId()).map(serviceProviderClientId -> {
             var xRoadMember = memberService.findMember(serviceProviderClientId)
-                    .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+                    .orElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
 
             return getFullConfiguration(xRoadMember, serviceProviderClientId);
         }).orElseGet(this::getBasicConfiguration);

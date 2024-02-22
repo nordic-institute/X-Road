@@ -3,7 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common:common-util')
+    implementation project(':common:common-globalconf')
+    implementation project(':common:common-jetty')
     implementation project(':signer-protocol')
 
     implementation "commons-cli:commons-cli:$commonsCliVersion"

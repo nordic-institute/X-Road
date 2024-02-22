@@ -106,7 +106,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
 
         if (CENTER.equals(origin)) {
             members.findOneBy(serverId.getOwner())
-                    .getOrElseThrow(() -> new NotFoundException(MR_SERVER_OWNER_NOT_FOUND));
+                    .orElseThrow(() -> new NotFoundException(MR_SERVER_OWNER_NOT_FOUND));
         }
 
         final byte[] validatedCert;
@@ -197,12 +197,12 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         //check prerequisites (member exists)
         XRoadMemberEntity owner = members
                 .findOneBy(serverId.getOwner())
-                .getOrElseThrow(() -> new SecurityServerNotFoundException(serverId));
+                .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
 
         //create new security server if necessary
         final String serverCode = serverId.getServerCode();
         SecurityServerEntity server = servers.findByOwnerIdAndServerCode(owner.getId(), serverCode)
-                .getOrElse(() -> new SecurityServerEntity(owner, serverCode));
+                .orElseGet(() -> new SecurityServerEntity(owner, serverCode));
         server.setAddress(requestEntity.getAddress());
         servers.saveAndFlush(server);
 

@@ -51,6 +51,7 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
 import org.niis.xroad.securityserver.restapi.util.SecurityServerFormatUtils;
+import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
@@ -424,12 +425,12 @@ public class ServiceDescriptionService {
 
         Set<ServiceType> duplicateServices = serviceDescription.getService().stream()
                 .filter(candidateService -> {
-                    String candidateFullServiceCode = FormatUtils.getServiceFullName(candidateService);
+                    String candidateFullServiceCode = ServiceFormatter.getServiceFullName(candidateService);
                     boolean existsByServiceCode = existingServices.stream()
-                            .map(s -> s.getServiceCode())
+                            .map(ServiceType::getServiceCode)
                             .anyMatch(serviceCode -> serviceCode.equalsIgnoreCase(candidateService.getServiceCode()));
                     boolean existsByFullServiceCode = existingServices.stream()
-                            .map(s -> FormatUtils.getServiceFullName(s))
+                            .map(ServiceFormatter::getServiceFullName)
                             .anyMatch(fullServiceCode -> fullServiceCode.equalsIgnoreCase(candidateFullServiceCode));
                     return existsByFullServiceCode || existsByServiceCode;
                 })
@@ -437,10 +438,10 @@ public class ServiceDescriptionService {
 
         // throw error with service metadata if conflicted
         if (!duplicateServices.isEmpty()) {
-            List<String> errorMetadata = new ArrayList();
+            List<String> errorMetadata = new ArrayList<>();
             for (ServiceType service : duplicateServices) {
                 // error metadata contains service name and service description url
-                errorMetadata.add(FormatUtils.getServiceFullName(service));
+                errorMetadata.add(ServiceFormatter.getServiceFullName(service));
                 errorMetadata.add(service.getServiceDescription().getUrl());
             }
             throw new ServiceCodeAlreadyExistsException(errorMetadata);
@@ -1019,16 +1020,16 @@ public class ServiceDescriptionService {
                                                      List<ServiceType> newServices) {
         return newServices.stream()
                 .map(newService -> {
-                    String newServiceFullName = FormatUtils.getServiceFullName(newService);
+                    String newServiceFullName = ServiceFormatter.getServiceFullName(newService);
                     serviceDescriptionType.getService().forEach(s -> {
-                        if (newServiceFullName.equals(FormatUtils.getServiceFullName(s))) {
+                        if (newServiceFullName.equals(ServiceFormatter.getServiceFullName(s))) {
                             newService.setUrl(s.getUrl());
                             newService.setTimeout(s.getTimeout());
                             newService.setSslAuthentication(s.getSslAuthentication());
                         }
                     });
                     return newService;
-                }).collect(Collectors.toList());
+                }).toList();
     }
 
     /**
@@ -1130,7 +1131,7 @@ public class ServiceDescriptionService {
                 .stream()
                 .filter(serviceDescriptionType -> !Objects.equals(serviceDescriptionType.getId(), idToSkip))
                 .map(ServiceDescriptionType::getService)
-                .flatMap(List::stream).collect(Collectors.toList());
+                .flatMap(List::stream).toList();
     }
 
     /**
@@ -1146,16 +1147,16 @@ public class ServiceDescriptionService {
                 .stream()
                 .flatMap(newService -> existingServices
                         .stream()
-                        .filter(existingService -> FormatUtils.getServiceFullName(existingService)
+                        .filter(existingService -> ServiceFormatter.getServiceFullName(existingService)
                                 .equalsIgnoreCase(SecurityServerFormatUtils.getServiceFullName(newService))))
                 .collect(Collectors.toSet());
 
         // throw error with service metadata if conflicted
         if (!conflictedServices.isEmpty()) {
-            List<String> errorMetadata = new ArrayList();
+            List<String> errorMetadata = new ArrayList<>();
             for (ServiceType conflictedService : conflictedServices) {
                 // error metadata contains service name and service description url
-                errorMetadata.add(FormatUtils.getServiceFullName(conflictedService));
+                errorMetadata.add(ServiceFormatter.getServiceFullName(conflictedService));
                 errorMetadata.add(conflictedService.getServiceDescription().getUrl());
             }
             throw new ServiceAlreadyExistsException(errorMetadata);

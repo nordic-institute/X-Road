@@ -26,9 +26,9 @@
  */
 package org.niis.xroad.common.exception;
 
+import ee.ria.xroad.common.HttpStatus;
+
 import lombok.NonNull;
-import org.apache.http.HttpStatus;
-import org.bouncycastle.util.Arrays;
 import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationProvider;
@@ -80,7 +80,7 @@ public class ServiceException extends DeviationAwareRuntimeException {
     }
 
     private static String[] resolveMetadata(Object[] metadataObjects) {
-        if (Arrays.isNullOrEmpty(metadataObjects)) {
+        if (metadataObjects == null || metadataObjects.length == 0) {
             return new String[0];
         }
         return Stream.of(metadataObjects)

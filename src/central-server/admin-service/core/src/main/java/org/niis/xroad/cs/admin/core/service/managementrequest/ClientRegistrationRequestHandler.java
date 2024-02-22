@@ -88,7 +88,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
                 && request.getOrigin() == SECURITY_SERVER
                 && servers.count(request.getSecurityServerId()) > 0
-                && members.findMember(request.getClientId()).isDefined();
+                && members.findMember(request.getClientId()).isPresent();
     }
 
     @Override
@@ -103,15 +103,15 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         }
 
         if (Origin.CENTER.equals(origin)) {
-            XRoadMemberEntity owner = members.findOneBy(ownerId).getOrElseThrow(
+            XRoadMemberEntity owner = members.findOneBy(ownerId).orElseThrow(
                     () -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
                             ownerId.toString()));
 
-            servers.findByOwnerIdAndServerCode(owner.getId(), serverId.getServerCode()).getOrElseThrow(
+            servers.findByOwnerIdAndServerCode(owner.getId(), serverId.getServerCode()).orElseThrow(
                     () -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
                             serverId.toString()));
 
-            members.findMember(clientId).getOrElseThrow(() ->
+            members.findMember(clientId).orElseThrow(() ->
                     new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                             request.getClientId().toString()));
         }
@@ -158,9 +158,9 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         }
 
         SecurityServerEntity server = servers.findBy(clientRegistrationRequest.getSecurityServerId())
-                .getOrElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND));
+                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND));
 
-        XRoadMemberEntity clientMember = members.findMember(clientRegistrationRequest.getClientId()).getOrElseThrow(() ->
+        XRoadMemberEntity clientMember = members.findMember(clientRegistrationRequest.getClientId()).orElseThrow(() ->
                 new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                         clientRegistrationRequest.getClientId().toString()));
 
@@ -173,7 +173,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 // create new subsystem if necessary
                 client = clients
                         .findOneBy(clientRegistrationRequest.getClientId())
-                        .getOrElse(() -> clients.save(new SubsystemEntity(clientMember, clientRegistrationRequest.getClientId())));
+                        .orElseGet(() -> clients.save(new SubsystemEntity(clientMember, clientRegistrationRequest.getClientId())));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid client type");
