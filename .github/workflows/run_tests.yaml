@@ -104,18 +104,18 @@ jobs:
         with:
           cache-read-only: true
       - name: Initialize docker setup
-        working-directory: ./.github/docker/centralserver
+        working-directory: ./.github/e2e-containers/centralserver
         run: ./init_context.sh
       - name: Download debian packages
         uses: actions/download-artifact@v4
         with:
           name: debian-packages
-          path: ./.github/docker/centralserver/build/packages/develop/debian
+          path: ./.github/e2e-containers/centralserver/build/packages/develop/debian
       - name: List docker build files
-        run: ls -lah .github/docker/centralserver/build
+        run: ls -lah .github/e2e-containers/centralserver/build
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/docker/centralserver
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/e2e-containers/centralserver
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -152,7 +152,7 @@ jobs:
           path: ./src/security-server/system-test/src/intTest/resources/container-files/packages/develop/debian
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/docker/securityserver
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/e2e-containers/securityserver
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
