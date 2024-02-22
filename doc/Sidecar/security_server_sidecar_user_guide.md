@@ -291,7 +291,7 @@ It is recommended to configure persistent [storage](https://docs.docker.com/stor
 | /var/lib/xroad               | Backups and messagelog archives                           |
 | /var/lib/postgresql/12/main  | Local database files (not applicable to external database |
 
-*Note* To avoid permissions issues when mapping local database files, is the easiest way to use docker volume (not bind mount). More information see: [Volumes](https://docs.docker.com/storage/volumes/)
+*Note* Use docker volume instead of bind mount for local database files to avoid permissions issues. For more information see: [Volumes](https://docs.docker.com/storage/volumes/)
 
 For example, to use a volume for the configuration folder, add the following parameter to the docker run command:
 ```bash
