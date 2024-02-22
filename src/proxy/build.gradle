@@ -30,7 +30,7 @@ dependencies {
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-    implementation 'org.semver4j:semver4j:5.0.0'
+    implementation 'org.semver4j:semver4j:5.2.2'
 
     testImplementation project(':common:common-test')
 
