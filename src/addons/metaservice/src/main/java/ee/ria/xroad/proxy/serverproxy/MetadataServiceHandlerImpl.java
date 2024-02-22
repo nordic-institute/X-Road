@@ -120,16 +120,6 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         try {
             SAXTransformerFactory factory = (SAXTransformerFactory) TransformerFactory.newInstance();
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            try {
-                factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            } catch (IllegalArgumentException e) {
-                log.warn("XMLConstants.ACCESS_EXTERNAL_DTD not supported");
-            }
-            try {
-                factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-            } catch (IllegalArgumentException e) {
-                log.warn("XMLConstants.ACCESS_EXTERNAL_SCHEMA not supported");
-            }
             return factory;
         } catch (TransformerConfigurationException e) {
             throw new RuntimeException("unable to create SAX transformer factory", e);
