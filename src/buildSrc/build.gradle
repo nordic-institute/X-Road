@@ -17,7 +17,7 @@ gradlePlugin {
 
 dependencies {
     // force newer version, older conflicts with owasp dependency check
-    implementation 'commons-codec:commons-codec:1.16.0'
+    implementation 'commons-codec:commons-codec:1.16.1'
     implementation 'org.openapi4j:openapi-parser:1.0.7'
     implementation 'org.openapitools.openapistylevalidator:openapi-style-validator-lib:1.10'
     implementation 'io.swagger.parser.v3:swagger-parser:2.1.19'
