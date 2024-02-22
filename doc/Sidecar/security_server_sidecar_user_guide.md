@@ -293,7 +293,7 @@ It is recommended to configure persistent [storage](https://docs.docker.com/stor
 
 *Note* Use docker volume instead of bind mount for local database files to avoid permissions issues. For more information see: [Volumes](https://docs.docker.com/storage/volumes/)
 
-For example, to use volumes for the configuration folder, add the following parameter to the docker run command:
+For example, to use volumes for the configuration folder, add the following parameters to the docker run command:
 ```bash
 docker run --detach \
   --name sss-7.4.1 \
