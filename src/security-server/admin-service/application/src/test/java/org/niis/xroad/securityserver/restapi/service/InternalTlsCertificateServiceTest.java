@@ -80,7 +80,7 @@ public class InternalTlsCertificateServiceTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private InternalTlsCertificateService internalTlsCertificateService = new InternalTlsCertificateService(
+    private final InternalTlsCertificateService internalTlsCertificateService = new InternalTlsCertificateService(
             new InternalTlsCertificateRepository(),
             new ExternalProcessRunner() {
                 @Override
@@ -159,7 +159,7 @@ public class InternalTlsCertificateServiceTest {
              GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(byteArrayInputStream);
              TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
             TarArchiveEntry entry;
-            while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
+            while ((entry = tarIn.getNextEntry()) != null) {
                 if (entry.isFile()) {
                     if (entry.getSize() > Integer.MAX_VALUE) {
                         throw new IllegalStateException("can work with so large files: " + entry.getSize());

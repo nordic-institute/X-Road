@@ -8,13 +8,15 @@ project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get
 sourceSets {
     main {
         java.srcDirs = ["src/main/java", schemaTargetDir]
-        resources.srcDirs = ['src/main/resources', '../../../common/common-util/src/main/resources']
+        resources.srcDirs = ['src/main/resources', '../../../common/common-domain/src/main/resources']
     }
 }
 
 dependencies {
     implementation project(':proxy')
-    implementation project(':common:common-util')
+    implementation project(':common:common-message')
+    implementation project(':common:common-domain')
+    implementation project(':common:common-jetty')
     implementation project(":serverconf")
     implementation project(":common:common-op-monitoring")
     implementation project(":common:common-verifier")
@@ -25,7 +27,6 @@ dependencies {
 
     implementation "com.google.guava:guava:$guavaVersion"
 
-    testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
     testImplementation project(path: ":proxy", configuration: 'testArtifacts')
     testImplementation project(':common:common-test')
     testImplementation 'org.hamcrest:hamcrest:2.2'

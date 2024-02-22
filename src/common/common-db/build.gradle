@@ -5,7 +5,7 @@ plugins {
 dependencies {
     api "org.hibernate.orm:hibernate-core:$hibernateVersion"
 
-    implementation project(':common:common-util')
+    implementation project(':common:common-core')
     implementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
     implementation "com.zaxxer:HikariCP:$hikariCpVersion"
 

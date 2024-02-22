@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -171,7 +170,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void find() {
-            when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
 
             final Optional<SecurityServer> result = securityServerService.find(serverId);
@@ -181,7 +180,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void findShouldReturnEmpty() {
-            when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
 
             final Optional<SecurityServer> result = securityServerService.find(serverId);
 
@@ -202,7 +201,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void findClients() {
-            when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerEntity.getId()).thenReturn(securityServerId);
             when(clientService.find(any(ClientService.SearchParameters.class)))
                     .thenReturn(List.of(securityServerClientView1, securityServerClientView2));
@@ -216,7 +215,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void findClientsShouldThrowExceptionWhenSecurityServerNotFound() {
-            when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> securityServerService.findClients(serverId))
                     .isInstanceOf(NotFoundException.class)
@@ -235,7 +234,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
         void shouldUpdateSecurityServerAddress() {
             String newAddress = "http://localhost:443";
             when(serverId.getOwner()).thenReturn(ownerId);
-            when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
             when(securityServer.getAddress()).thenReturn(newAddress);
 
@@ -253,7 +252,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
         void securityServerNotFound() {
             String newAddress = "http://localhost:443";
             when(serverId.getOwner()).thenReturn(ownerId);
-            when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
 
             var result = securityServerService.updateSecurityServerAddress(serverId, newAddress);
 
@@ -275,7 +274,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
             var certificateDetailsMock = new SecurityServerAuthenticationCertificateDetails(1);
             AuthCertEntity authCertMock = new AuthCertEntity();
             authCertMock.setCert("test".getBytes());
-            when(securityServerRepository.findBy(serverId)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerEntity.getAuthCerts()).thenReturn(Set.of(authCertMock));
             when(certificateConverter.toCertificateDetails(authCertMock)).thenReturn(certificateDetailsMock);
             var result = securityServerService.findAuthCertificates(serverId);
@@ -284,7 +283,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void securityServerNotFound() {
-            when(securityServerRepository.findBy(serverId)).thenReturn(Option.none());
+            when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
 
             assertThrows(NotFoundException.class, () -> securityServerService.findAuthCertificates(serverId));
         }
@@ -306,7 +305,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void delete() {
-            when(securityServerRepository.findBy(id)).thenReturn(Option.of(securityServerEntity));
+            when(securityServerRepository.findBy(id)).thenReturn(Optional.of(securityServerEntity));
             when(securityServerEntity.getServerId()).thenReturn(securityServerIdEntity);
             when(securityServerEntity.getServerClients()).thenReturn(
                     Set.of(serverClientEntity("client-1"), serverClientEntity("client-2")));
@@ -366,7 +365,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         @Test
         void deleteShouldThrowSecurityServerNotFound() {
-            when(securityServerRepository.findBy(id)).thenReturn(Option.none());
+            when(securityServerRepository.findBy(id)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> securityServerService.delete(id))
                     .isInstanceOf(NotFoundException.class)

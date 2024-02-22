@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
@@ -45,6 +44,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.Optional;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SUBSYSTEM_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SUBSYSTEM;
@@ -69,12 +70,12 @@ public class SubsystemsApiController implements SubsystemsApi {
     @PreAuthorize("hasAuthority('ADD_MEMBER_SUBSYSTEM')")
     @AuditEventMethod(event = ADD_SUBSYSTEM)
     public ResponseEntity<ClientDto> addSubsystem(SubsystemAddDto subsystemAddDto) {
-        return Try.success(subsystemAddDto)
+        return Optional.ofNullable(subsystemAddDto)
                 .map(subsystemCreationRequestMapper::toTarget)
                 .map(subsystemService::add)
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity.status(CREATED)::body)
-                .get();
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @Override

@@ -109,7 +109,23 @@ excludes:
       reason: "TEST_OF"
       comment: "This directory contains tests."
 
-    - pattern: "src/common/common-util/src/test/**"
+    - pattern: "src/common/common-core/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-jetty/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-globalconf/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-message/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-scheduler/src/test/**"
       reason: "TEST_OF"
       comment: "This directory contains tests."
 

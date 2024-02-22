@@ -52,8 +52,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Enumeration;
 
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_CLIENTS;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 
 /**

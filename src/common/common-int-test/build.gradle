@@ -3,7 +3,8 @@ plugins {
 }
 
 dependencies {
-    api project(':common:common-util')
+    api project(':common:common-message')
+    api project(':common:common-globalconf')
     api project(':signer-protocol')
     api project(':addons:hwtoken')
 

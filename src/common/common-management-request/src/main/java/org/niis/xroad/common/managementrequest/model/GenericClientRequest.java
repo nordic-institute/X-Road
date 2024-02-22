@@ -30,12 +30,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MultiPartOutputStream;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.util.MultiPartOutputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

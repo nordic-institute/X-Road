@@ -49,7 +49,7 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
+import static ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
 
 /**
  * This class is responsible for verifying the server proxy SSL certificate.

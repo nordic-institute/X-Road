@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxymonitor.util;
 
-import ee.ria.xroad.common.util.SystemMetrics;
+import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import com.sun.management.UnixOperatingSystemMXBean;
 import io.grpc.stub.StreamObserver;

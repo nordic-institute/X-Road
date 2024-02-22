@@ -16,7 +16,7 @@ sourceSets {
 dependencies {
     api project(':common:common-db')
 
-    implementation project(':common:common-util')
+    implementation project(':common:common-domain')
     implementation project(':common:common-verifier')
 
     // DB layer tests use HSQLDB with in-memory tables
@@ -25,7 +25,7 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
 
-    schema project(':common:common-util')
+    schema project(':common:common-domain')
     schema "org.apache.ant:ant:1.10.11"
     schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"
     schema "org.hibernate.tool:hibernate-tools-ant:$hibernateVersion"
