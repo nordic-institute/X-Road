@@ -36,7 +36,8 @@
           outlined
           data-test="delete-endpoint"
           @click="showDeletePopup()"
-          >{{ $t('action.delete') }}
+        >
+          {{ $t('action.delete') }}
         </xrd-button>
       </div>
     </div>
@@ -61,7 +62,7 @@
           name="path"
           :label="$t('endpoints.path')"
           data-test="endpoint-path"
-        ></v-text-field>
+        />
       </div>
 
       <div class="helper-text pl-2">
@@ -75,14 +76,16 @@
     </div>
     <div class="xrd-footer-buttons-wrap">
       <xrd-button outlined @click="close()"
-        >{{ $t('action.cancel') }}
+      >
+        {{ $t('action.cancel') }}
       </xrd-button>
       <xrd-button
         class="save-button"
         :loading="saving"
-        :disabled="!meta.touched || !meta.valid"
+        :disabled="!meta.dirty || !meta.valid"
         @click="save()"
-        >{{ $t('action.save') }}
+      >
+        {{ $t('action.save') }}
       </xrd-button>
     </div>
 
@@ -91,6 +94,7 @@
       v-if="confirmDelete"
       title="endpoints.deleteTitle"
       text="endpoints.deleteEndpointText"
+      :loading="deleting"
       @cancel="confirmDelete = false"
       @accept="remove(id)"
     />
@@ -139,6 +143,7 @@ export default defineComponent({
     return {
       confirmDelete: false,
       saving: false,
+      deleting: false,
       methods: [
         { title: this.$t('endpoints.all'), value: '*' },
         { title: 'GET', value: 'GET' },
@@ -169,6 +174,7 @@ export default defineComponent({
       this.confirmDelete = true;
     },
     remove(id: string): void {
+      this.deleting = true;
       this.deleteEndpoint(id)
         .then(() => {
           this.showSuccess(this.$t('endpoints.deleteSuccess'));
@@ -176,8 +182,9 @@ export default defineComponent({
         })
         .catch((error) => {
           this.showError(error);
-          this.confirmDelete = false;
-        });
+        })
+        .finally(() => (this.confirmDelete = false))
+        .finally(() => (this.deleting = false));
     },
     save(): void {
       this.saving = true;

@@ -173,3 +173,4 @@ jobs:
           path: |
             src/security-server/system-test/build/allure-report/
             src/security-server/system-test/build/ss-container-logs/
+            src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
