@@ -48,13 +48,13 @@ public class XrdEdcSignService {
 
     private final Monitor monitor;
 
-    public Map<String, String> signPayload(DataAddress dataAddress, String responseStr) {
+    public Map<String, String> signPayload(DataAddress dataAddress, byte[] body) {
         monitor.debug("Signing response payload..");
         var assetId = dataAddress.getStringProperty("assetId");
         try {
             Map<String, String> headers = new HashMap<>();
             headers.put("Content-Type", "application/json");
-            var headerWithSig = signService.sign(assetId, responseStr, headers);
+            var headerWithSig = signService.sign(assetId, body, headers);
             monitor.debug("Response payload signed. Signature: " + headerWithSig);
             return headerWithSig;
         } catch (XrdSignatureCreationException e) {

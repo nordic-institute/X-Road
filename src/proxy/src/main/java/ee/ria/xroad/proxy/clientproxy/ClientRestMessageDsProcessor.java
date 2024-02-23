@@ -32,14 +32,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.ByteArrayEntity;
 import org.eclipse.jetty.http.HttpField;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
@@ -140,25 +139,27 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
         xrdSignatureService.verify(httpSender.getResponseHeaders(), outputStream.toByteArray(),
                 restRequest.getServiceId().getClientId());
-        outputStream.writeTo(asOutputStream(jResponse));
 
         int headersSizeInBytes = 0;
         for (Map.Entry<String, String> entry : httpSender.getResponseHeaders().entrySet()) {
             // Each header has a name and value, and the ": " delimiter, and CRLF as overhead
             headersSizeInBytes += entry.getKey().length() + ": ".length() + entry.getValue().length() + "\r\n".length();
+            //TODO in POC we're adding all headers, but we should remove xrd specific ones
             jResponse.getHeaders().add(entry.getKey(), entry.getValue());
         }
+
+        outputStream.writeTo(asOutputStream(jResponse));
         log.info("EDC public api response headers size: {} KB", headersSizeInBytes / 1024.0);
     }
 
     private void sendRequest(HttpSender httpSender, AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
-        var rawJson = IOUtils.toString(asInputStream(jRequest), JettyUtils.getCharacterEncoding(jRequest));
+        byte[] response = IOUtils.toByteArray(asInputStream(jRequest));
 
         var headersToSign = getRequestHeaders();
         headersToSign.put(MimeUtils.HEADER_QUERY_ID, restRequest.getQueryId());
         headersToSign.put(assetInfo.authKey(), assetInfo.authCode());
 
-        var headers = xrdSignatureService.sign(restRequest.getClientId(), rawJson, headersToSign);
+        var headers = xrdSignatureService.sign(restRequest.getClientId(), response, headersToSign);
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             httpSender.addHeader(entry.getKey(), entry.getValue());
         }
@@ -179,7 +180,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 //        MessageLog.log(restRequest, new SignatureData(null, null, null), null, true, restRequest.getXRequestId());
         switch (restRequest.getVerb()) {
             case GET -> httpSender.doGet(url);
-            case POST -> httpSender.doPost(url, new StringEntity(rawJson));
+            case POST -> httpSender.doPost(url, new ByteArrayEntity(response));
             default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported verb");
         }
 

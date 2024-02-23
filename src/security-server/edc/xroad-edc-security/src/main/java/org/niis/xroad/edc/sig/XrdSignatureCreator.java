@@ -31,6 +31,6 @@ import ee.ria.xroad.signer.SignerProxy;
 import java.util.Map;
 
 public interface XrdSignatureCreator {
-    String sign(SignerProxy.MemberSigningInfoDto signingInfo, String messageBody, Map<String, String> messageHeaders)
+    String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException;
 }

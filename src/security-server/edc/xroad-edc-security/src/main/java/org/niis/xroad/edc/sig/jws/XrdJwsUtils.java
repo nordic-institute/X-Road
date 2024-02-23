@@ -35,7 +35,7 @@ import java.util.Map;
 @UtilityClass
 public class XrdJwsUtils {
 
-    static Payload createSignablePayload(final String messageBody, final Map<String, String> messageHeaders) {
+    static Payload createSignablePayload(final byte[] messageBody, final Map<String, String> messageHeaders) {
         final Map<String, Object> payload = new HashMap<>();
         payload.put("body", messageBody);
         payload.put("headers", messageHeaders);

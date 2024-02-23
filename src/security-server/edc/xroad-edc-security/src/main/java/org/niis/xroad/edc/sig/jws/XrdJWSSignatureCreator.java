@@ -54,7 +54,7 @@ public class XrdJWSSignatureCreator implements XrdSignatureCreator {
     private final XrdJWSSigner signer = new XrdJWSSigner();
 
     @Override
-    public String sign(final SignerProxy.MemberSigningInfoDto signingInfo, final String messageBody,
+    public String sign(final SignerProxy.MemberSigningInfoDto signingInfo, final byte[] messageBody,
                        final Map<String, String> messageHeaders) throws XrdSignatureCreationException {
         final var payload = XrdJwsUtils.createSignablePayload(messageBody, messageHeaders);
 

@@ -37,6 +37,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -45,6 +46,8 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import org.niis.xroad.edc.sig.XrdSignatureService;
+
+import java.util.concurrent.Executors;
 
 @SuppressWarnings("checkstyle:MagicNumber") //TODO xroad8
 //@Provides({ DataPlaneManager.class, PipelineService.class, DataTransferExecutorServiceContainer.class, TransferServiceRegistry.class })
@@ -56,6 +59,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     private static final String PUBLIC_API_CONFIG = "web.http.xroad.public";
     private static final String PUBLIC_CONTEXT_ALIAS = "xroad";
     private static final String PUBLIC_CONTEXT_PATH = "/xroad/public";
+    private static final int DEFAULT_THREAD_POOL = 10;
 
     @Setting
     private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
@@ -86,6 +90,9 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private ExecutorInstrumentation executorInstrumentation;
+
     @Override
     public String name() {
         return NAME;
@@ -101,10 +108,14 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
         var dataAddressResolver = new ConsumerPullTransferDataAddressResolver(httpClient, validationEndpoint, typeManager.getMapper());
         var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
+        var executorService = executorInstrumentation.instrument(
+                Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
+                "Data plane proxy transfers"
+        );
 
         var signService = new XrdSignatureService();
         var publicApiController = new XrdDataPlanePublicApiController(pipelineService, dataAddressResolver,
-                new XrdEdcSignService(signService, monitor), monitor);
+                new XrdEdcSignService(signService, monitor), monitor, executorService);
 
         //TODO xroad8 this added port mapping is added due to a strange behavior ir edc jersey registry. Consider refactor.
         webServer.addPortMapping(configuration.getContextAlias(), configuration.getPort(), configuration.getPath());

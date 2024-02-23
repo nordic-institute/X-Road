@@ -71,7 +71,7 @@ public class XrdJAdESSignatureCreator implements XrdSignatureCreator {
     private final JWSSerializationType jwsSerializationType;
 
     @Override
-    public String sign(final SignerProxy.MemberSigningInfoDto signingInfo, final String messageBody,
+    public String sign(final SignerProxy.MemberSigningInfoDto signingInfo, final byte[] messageBody,
                        final Map<String, String> messageHeaders) throws XrdSignatureCreationException {
         JAdESSignatureParameters parameters = new JAdESSignatureParameters();
         parameters.setSignaturePackaging(signatureLevel == JAdES_BASELINE_B ? DETACHED : ENVELOPING);
@@ -79,7 +79,7 @@ public class XrdJAdESSignatureCreator implements XrdSignatureCreator {
         parameters.setBase64UrlEncodedPayload(false);
 
         List<DSSDocument> documentsToSign = new ArrayList<>();
-        documentsToSign.add(new HTTPHeaderDigest(new InMemoryDocument(messageBody.getBytes()), DigestAlgorithm.SHA1)); //TODO sha1?
+        documentsToSign.add(new HTTPHeaderDigest(new InMemoryDocument(messageBody), DigestAlgorithm.SHA1)); //TODO sha1?
 
         if (messageHeaders != null && !messageHeaders.isEmpty()) {
             messageHeaders.forEach((k, v) -> documentsToSign.add(new HTTPHeader(k, v)));

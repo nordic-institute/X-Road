@@ -58,14 +58,14 @@ public class XrdSignatureService {
             "Date",
             "Content-Length"); //TODO length should not be ignored
 
-    public Map<String, String> sign(String assetId, String messageBody, Map<String, String> messageHeaders)
+    public Map<String, String> sign(String assetId, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
         var serviceId = ServiceId.Conf.fromEncodedId(assetId);
 
         return sign(serviceId.getClientId(), messageBody, messageHeaders);
     }
 
-    public Map<String, String> sign(ClientId signingClientId, String messageBody, Map<String, String> messageHeaders)
+    public Map<String, String> sign(ClientId signingClientId, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
 
         var signingInfo = getMemberSigningInfo(signingClientId);

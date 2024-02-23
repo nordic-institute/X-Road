@@ -15,7 +15,7 @@
 package org.niis.xroad.edc.extension.signer;
 
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApi;
-import org.eclipse.edc.connector.dataplane.util.sink.OutputStreamDataSinkFactory;
+import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -31,7 +31,6 @@ import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSche
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 
-@Deprecated //TODO might not be needed
 public class XrdDataFlowRequestSupplier implements BiFunction<ContainerRequestContextApi, DataAddress, DataFlowRequest> {
 
     /**
@@ -48,7 +47,7 @@ public class XrdDataFlowRequestSupplier implements BiFunction<ContainerRequestCo
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dataAddress)
                 .destinationDataAddress(DataAddress.Builder.newInstance()
-                        .type(OutputStreamDataSinkFactory.TYPE)
+                        .type(AsyncStreamingDataSink.TYPE)
                         .build())
                 .trackable(false)
                 .id(UUID.randomUUID().toString())
