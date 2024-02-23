@@ -26,7 +26,7 @@ dependencies {
 
     constraints {
         // org.owasp.dependencycheck needs at least this version of jackson.
-        add("implementation", "com.fasterxml.jackson:jackson-bom:2.16.0")
+        add("implementation", "com.fasterxml.jackson:jackson-bom:2.16.1")
         // org.owasp.dependencycheck needs these versions.
         add("implementation", "org.apache.commons:commons-lang3:3.14.0")
         add("implementation", "org.apache.commons:commons-text:1.11.0")
