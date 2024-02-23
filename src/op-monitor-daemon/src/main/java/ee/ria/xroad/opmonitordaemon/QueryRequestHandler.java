@@ -107,7 +107,6 @@ abstract class QueryRequestHandler {
         try {
             final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "file,jar:file");
             return factory.newSchema(ResourceUtils.getClasspathResource("op-monitoring.xsd"));
         } catch (SAXException e) {

@@ -52,7 +52,7 @@ import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
-import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -238,8 +238,7 @@ public class AsicContainerVerifier {
     private TimeStampToken getTimeStampToken() throws Exception {
         String timestampDerBase64 = asic.getEntryAsString(ENTRY_TIMESTAMP);
         byte[] tsDerDecoded = decodeBase64(timestampDerBase64);
-        return new TimeStampToken(new ContentInfo(
-                (ASN1Sequence) ASN1Sequence.fromByteArray(tsDerDecoded)));
+        return new TimeStampToken(ContentInfo.getInstance(ASN1Primitive.fromByteArray(tsDerDecoded)));
     }
 
     private static ClientId getSigner(String messageXml) {

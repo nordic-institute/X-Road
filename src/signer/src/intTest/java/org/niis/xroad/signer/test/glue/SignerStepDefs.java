@@ -273,7 +273,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo keyInToken = findKeyInToken(friendlyName, keyName);
 
         scenarioCert = SignerProxy.generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
-                "CN=" + client, Date.from(now().minus(5, DAYS)), Date.from(now().plus(5, DAYS)));
+                client, Date.from(now().minus(5, DAYS)), Date.from(now().plus(5, DAYS)));
         this.certHash = calculateCertHexHash(scenarioCert);
     }
 

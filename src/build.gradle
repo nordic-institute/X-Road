@@ -133,34 +133,28 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     dependencies {
         //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
         constraints {
-            add('implementation', 'com.fasterxml.jackson.core:jackson-databind') {
-                because("Vulnerability fix regarding CVE-2022-42003")
+            add('implementation', 'io.micrometer:micrometer-tracing-bridge-brave') {
+                because("Vulnerability fix regarding CVE-2022-47932")
                 version {
-                    require("$jacksonBomVersion")
+                    require("1.23.0")
                 }
             }
-            add('implementation', 'org.yaml:snakeyaml') {
-                because("Vulnerability fix regarding CVE-2022-25857")
+            add('implementation', 'org.springframework.security:spring-security-core') {
+                because("Vulnerability fix regarding CVE-2024-22234")
                 version {
-                    require("$snakeyamlVersion")
+                    require("$springSecurityVersion")
                 }
             }
-            add('implementation', 'org.apache.commons:commons-text') {
-                because("Vulnerability fix regarding CVE-2022-42889")
+            add('implementation', 'com.jayway.jsonpath:json-path') {
+                because("Vulnerability fix regarding CVE-2023-51074")
                 version {
-                    require("$commonsTextVersion")
-                }
-            }
-            add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
-                because("Vulnerability fix regarding CVE-2022-40152")
-                version {
-                    require("$woodstoxVersion")
+                    require("$jsonPathVersion")
                 }
             }
         }
 
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-        testImplementation("org.junit.vintage:junit-vintage-engine:$junitVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+        testImplementation("org.junit.vintage:junit-vintage-engine:$junitJupiterVersion")
 
         compileOnly "org.projectlombok:lombok:${lombokVersion}"
         annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
