@@ -1,4 +1,4 @@
-name: X-Road tests
+name: Build and test
 on: 
   # Capture this event so that gradle caches are updated when a PR is merged to develop
   # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
@@ -22,6 +22,7 @@ permissions:
   checks: write # Required for https://github.com/dorny/test-reporter
 jobs:
   BuildAndPackageWithUnitTests:
+    name: Build, test and package code
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -90,6 +91,7 @@ jobs:
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
   RunCSSystemTests:
+    name: Run Central Server system tests
     needs: BuildAndpackageWithUnitTests
     runs-on: ubuntu-22.04
     steps:
@@ -132,6 +134,7 @@ jobs:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
   RunSSSystemTests:
+    name: Run Security Server system tests
     needs: BuildAndpackageWithUnitTests
     runs-on: ubuntu-22.04
     steps:
