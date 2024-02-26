@@ -71,14 +71,6 @@ public final class CertHelper {
     }
 
     /**
-     * @param cert the certificate
-     * @return a fully constructed Client identifier from DN of the certificate.
-     */
-    public static ClientId getSubjectClientId(X509Certificate cert) {
-        return CertUtils.getSubjectClientId(cert);
-    }
-
-    /**
      * Verifies that the certificate <code>cert</code> can be used for
      * authenticating as member <code>member</code>.
      * The <code>ocspResponsec</code> is used to verify validity of the

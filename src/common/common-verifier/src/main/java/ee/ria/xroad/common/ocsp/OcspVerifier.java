@@ -34,7 +34,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
-import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.ocsp.ResponderID;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
@@ -351,7 +350,7 @@ public final class OcspVerifier {
             for (X509Certificate cert : knownCerts) {
                 X509CertificateHolder certHolder =
                         new X509CertificateHolder(cert.getEncoded());
-                DERBitString keyData =
+                var keyData =
                         certHolder.getSubjectPublicKeyInfo().getPublicKeyData();
                 byte[] d = calculateDigest(dc, keyData.getBytes());
                 if (MessageDigestAlgorithm.isEqual(respId.getKeyHash(), d)) {

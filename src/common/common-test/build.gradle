@@ -3,13 +3,14 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common:common-util')
+    implementation project(':common:common-message')
+    implementation project(':common:common-globalconf')
     implementation project(':common:common-verifier')
     implementation 'org.antlr:ST4:4.3.4'
-    implementation "io.vavr:vavr:$vavrVersion"
     // JUnit is needed for ExpectedCodedException
-    implementation "org.junit.vintage:junit-vintage-engine:$junitVersion"
+    implementation "org.junit.vintage:junit-vintage-engine:$junitJupiterVersion"
 
+    api("org.apache.httpcomponents:httpasyncclient:4.1.5")
     api "org.mockito:mockito-junit-jupiter:$mockitoVersion"
     api "org.awaitility:awaitility:$awaitilityVersion"
     api "com.github.stefanbirkner:system-rules:$systemRulesVersion"

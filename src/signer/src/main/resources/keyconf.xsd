@@ -3,7 +3,7 @@
     xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" jxb:version="3.0"
     targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
 
-    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../../../common/common-util/src/main/resources/identifiers.xsd"/>
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../../../common/common-domain/src/main/resources/identifiers.xsd"/>
     <element name="keyConf" type="tns:KeyConfType"/>
 
     <complexType name="KeyConfType">

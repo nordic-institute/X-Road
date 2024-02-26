@@ -28,22 +28,23 @@ package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.createResponse;
-import static junit.framework.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Testing static methods of ManagementRequestSender
  */
-public class ManagementRequestSenderTest {
+class ManagementRequestSenderTest {
 
     /**
      * Tests whether getting request id works as intended.
+     *
      * @throws Exception in case of unexpected errors
      */
     @Test
-    public void getRequestIdFromManagementServiceResponse() throws Exception {
+    void getRequestIdFromManagementServiceResponse() throws Exception {
         SoapMessageImpl response =
                 createResponse("response-with-requestId.answer");
 

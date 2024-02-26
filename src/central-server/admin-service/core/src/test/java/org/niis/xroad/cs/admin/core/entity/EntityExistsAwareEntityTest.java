@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
-import io.vavr.control.Option;
 import lombok.experimental.Accessors;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -156,9 +156,9 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
         void shouldCallFunctionIfEntityExist() {
             doReturn(otherEntity).when(entityFunction).apply(existingEntity);
 
-            Option<Entity> returnedEntityOption = existingEntity.ifExists(entityFunction);
+            Optional<Entity> returnedEntityOption = existingEntity.ifExists(entityFunction);
 
-            assertThat(returnedEntityOption.toJavaOptional())
+            assertThat(returnedEntityOption)
                     .isPresent()
                     .hasValue(otherEntity);
             inOrder().verify(inOrder -> {
@@ -170,9 +170,9 @@ public class EntityExistsAwareEntityTest implements WithInOrder {
         @DisplayName("should not call function if entity exist")
         void shouldNotCallFunctionIfEntityExist() {
 
-            Option<Entity> returnedEntityOption = notExistingEntity.ifExists(entityFunction);
+            Optional<Entity> returnedEntityOption = notExistingEntity.ifExists(entityFunction);
 
-            assertThat(returnedEntityOption.toJavaOptional())
+            assertThat(returnedEntityOption)
                     .isNotPresent();
             inOrder().verifyNoMoreInteractions();
         }

@@ -26,68 +26,33 @@
  */
 package org.niis.xroad.cs.admin.rest.api.converter.db;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
-import org.niis.xroad.cs.admin.api.domain.XRoadMember;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.niis.xroad.cs.admin.api.service.MemberService;
-import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
-import org.niis.xroad.restapi.converter.DtoConverter;
-import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
+import org.niis.xroad.restapi.converter.UniDirectionalDtoConverter;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
-import java.util.function.Supplier;
-
-import static ee.ria.xroad.common.util.Fn.self;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SecurityServerDtoConverter extends DtoConverter<SecurityServer, SecurityServerDto> {
-
+public class SecurityServerDtoConverter extends UniDirectionalDtoConverter<SecurityServer, SecurityServerDto> {
     private final ZoneOffset dtoZoneOffset;
 
-    private final SecurityServerService securityServerService;
-    private final MemberService memberService;
-
-    private final SecurityServerIdConverter securityServerIdConverter;
     private final SecurityServerIdDtoConverter securityServerIdDtoConverter;
 
     @Override
     public SecurityServerDto toDto(SecurityServer source) {
-        return self(new SecurityServerDto(), self -> {
-            self(source.getServerId(), securityServerId -> {
-                self.serverId(securityServerIdDtoConverter.toDto(securityServerId));
-            });
-            self.ownerName(source.getOwner().getName());
-            self.serverAddress(source.getAddress());
-            self.createdAt(source.getCreatedAt().atOffset(dtoZoneOffset));
-            self.updatedAt(source.getUpdatedAt().atOffset(dtoZoneOffset));
-        });
+        return new SecurityServerDto()
+                .serverId(securityServerIdDtoConverter.toDto(source.getServerId()))
+                .ownerName(source.getOwner().getName())
+                .serverAddress(source.getAddress())
+                .createdAt(source.getCreatedAt().atOffset(dtoZoneOffset))
+                .updatedAt(source.getUpdatedAt().atOffset(dtoZoneOffset));
     }
 
-    @Override
-    public SecurityServer fromDto(SecurityServerDto source) {
-        SecurityServerIdDto securityServerIdDto = source.getServerId();
-        SecurityServerId serverId = securityServerIdConverter.convert(securityServerIdDto);
-        XRoadMember owner = memberService.findMember(serverId.getOwner())
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
-        String serverCode = securityServerIdDto.getServerCode();
 
-        Supplier<SecurityServer> newMemberClass = () -> self(new SecurityServer(owner, serverCode), self -> {
-            self.setAddress(source.getServerAddress());
-        });
-
-        return securityServerService
-                .findByOwnerAndServerCode(owner, serverCode)
-                .orElseGet(newMemberClass);
-    }
 }

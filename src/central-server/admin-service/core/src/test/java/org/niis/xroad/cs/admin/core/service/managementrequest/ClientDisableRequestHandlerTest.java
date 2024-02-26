@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.vavr.control.Option;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,6 +50,7 @@ import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.isA;
@@ -102,7 +102,7 @@ class ClientDisableRequestHandlerTest {
 
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
         when(clientIds.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
-        when(servers.findBy(mockServerId, mockClientId)).thenReturn(Option.of(server));
+        when(servers.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(server));
 
         when(disableRequests.save(isA(ClientDisableRequestEntity.class))).thenReturn(managementRequest);
 
@@ -124,7 +124,7 @@ class ClientDisableRequestHandlerTest {
         when(server.getServerClients()).thenReturn(Set.of());
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
         when(clientIds.findOne(ClientIdEntity.ensure(unknownSubsystemId))).thenReturn(mockClientId);
-        when(servers.findBy(mockServerId, mockClientId)).thenReturn(Option.of(server));
+        when(servers.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(server));
 
         Assertions.assertThatThrownBy(() -> handler.add(request))
                 .isInstanceOf(DataIntegrityException.class)

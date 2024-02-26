@@ -107,11 +107,11 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.GET_WSDL;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.ALLOWED_METHODS_REQUEST;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.CodedExceptionMatcher.faultCodeEquals;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.GET_WSDL_REQUEST;

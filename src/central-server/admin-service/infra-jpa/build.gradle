@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(':central-server:admin-service:core')
-    implementation project(':common:common-util')
+    implementation project(':common:common-domain')
 
     api('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.hibernate.validator:hibernate-validator")

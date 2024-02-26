@@ -6,7 +6,7 @@ dependencies {
     implementation "commons-cli:commons-cli:$commonsCliVersion"
     implementation 'com.googlecode.clichemaven:cliche:110413'
 
-    implementation project(':common:common-util')
+    implementation project(':common:common-domain')
     implementation project(':signer-protocol')
 }
 

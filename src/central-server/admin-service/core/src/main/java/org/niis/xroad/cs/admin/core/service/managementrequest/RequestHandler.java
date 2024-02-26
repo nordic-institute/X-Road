@@ -26,8 +26,9 @@
  */
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.api.domain.Request;
+
+import java.util.Optional;
 
 /**
  * Interface for management request handlers.
@@ -50,8 +51,8 @@ interface RequestHandler<T extends Request> {
      * If the request can be handled by this handler, return the narrowed type,
      * otherwise return Optional.empty.
      */
-    default Option<T> narrow(T request) {
-        return Option.of(request)
+    default Optional<T> narrow(T request) {
+        return Optional.of(request)
                 .filter(r -> requestType().isAssignableFrom(r.getClass()));
     }
 

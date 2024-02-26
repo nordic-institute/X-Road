@@ -28,43 +28,30 @@ package org.niis.xroad.cs.admin.rest.api.converter.db;
 
 import ee.ria.xroad.common.junit.helper.WithInOrder;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
-import org.niis.xroad.cs.admin.api.service.MemberService;
-import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.AbstractDtoConverterTest;
 import org.niis.xroad.cs.admin.rest.api.converter.model.SecurityServerIdDtoConverter;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerIdDto;
-import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
-public class SecurityServerDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
+class SecurityServerDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
 
-    @Mock
-    private MemberId memberId;
     @Mock
     private SecurityServerId securityServerId;
     @Mock
@@ -75,29 +62,23 @@ public class SecurityServerDtoConverterTest extends AbstractDtoConverterTest imp
     private SecurityServerIdDto securityServerIdDto;
 
     @Mock
-    private SecurityServerService securityServerService;
-    @Mock
-    private MemberService memberService;
-    @Mock
-    private SecurityServerIdConverter securityServerIdConverter;
-    @Mock
     private SecurityServerIdDtoConverter securityServerIdDtoConverter;
 
     @InjectMocks
     SecurityServerDtoConverter converter;
 
     @BeforeEach
-    private void setZoneOffset() {
+    public void setZoneOffset() {
         ReflectionTestUtils.setField(converter, "dtoZoneOffset", dtoZoneOffset);
     }
 
     @Nested
     @DisplayName("toDto(SecurityServer source)")
-    public class ToDtoMethod implements WithInOrder {
+    class ToDtoMethod implements WithInOrder {
 
         @Test
         @DisplayName("should test for sanity")
-        public void shouldTestForSanity() {
+        void shouldTestForSanity() {
             doReturn(securityServerId).when(securityServer).getServerId();
             doReturn(securityServerIdDto).when(securityServerIdDtoConverter).toDto(securityServerId);
             doReturn(xRoadMember).when(securityServer).getOwner();
@@ -122,85 +103,6 @@ public class SecurityServerDtoConverterTest extends AbstractDtoConverterTest imp
                 inOrder.verify(securityServer).getAddress();
                 inOrder.verify(securityServer).getCreatedAt();
                 inOrder.verify(securityServer).getUpdatedAt();
-            });
-        }
-    }
-
-    @Nested
-    @DisplayName("fromDto(SecurityServerDto source)")
-    public class FromDtoMethod implements WithInOrder {
-
-        @Mock
-        private SecurityServerDto securityServerDto;
-
-        @Test
-        @DisplayName("should use persisted entity if present")
-        public void shouldUsePersistedEntityIfPresent() {
-            doReturn(securityServerIdDto).when(securityServerDto).getServerId();
-            doReturn(securityServerId).when(securityServerIdConverter).convert(securityServerIdDto);
-            doReturn(memberId).when(securityServerId).getOwner();
-            doReturn(Option.of(xRoadMember)).when(memberService).findMember(memberId);
-            doReturn(SERVER_CODE).when(securityServerIdDto).getServerCode();
-            doReturn(Optional.of(securityServer)).when(securityServerService).findByOwnerAndServerCode(xRoadMember, SERVER_CODE);
-
-            SecurityServer converted = converter.fromDto(securityServerDto);
-
-            assertEquals(securityServer, converted);
-            inOrder(securityServerDto).verify(inOrder -> {
-                inOrder.verify(securityServerDto).getServerId();
-                inOrder.verify(securityServerIdConverter).convert(securityServerIdDto);
-                inOrder.verify(securityServerId).getOwner();
-                inOrder.verify(memberService).findMember(memberId);
-                inOrder.verify(securityServerIdDto).getServerCode();
-                inOrder.verify(securityServerService).findByOwnerAndServerCode(xRoadMember, SERVER_CODE);
-            });
-        }
-
-        @Test
-        @DisplayName("should create new entity if missing")
-        public void shouldCreateNewEntityIfMissing() {
-            doReturn(securityServerIdDto).when(securityServerDto).getServerId();
-            doReturn(securityServerId).when(securityServerIdConverter).convert(securityServerIdDto);
-            doReturn(memberId).when(securityServerId).getOwner();
-            doReturn(Option.of(xRoadMember)).when(memberService).findMember(memberId);
-            doReturn(SERVER_CODE).when(securityServerIdDto).getServerCode();
-            doReturn(Optional.empty()).when(securityServerService).findByOwnerAndServerCode(xRoadMember, SERVER_CODE);
-            doReturn(SERVER_ADDRESS).when(securityServerDto).getServerAddress();
-
-            SecurityServer converted = converter.fromDto(securityServerDto);
-
-            assertNotNull(converted);
-            assertEquals(xRoadMember, converted.getOwner());
-            assertEquals(SERVER_CODE, converted.getServerCode());
-            assertEquals(SERVER_ADDRESS, converted.getAddress());
-            inOrder().verify(inOrder -> {
-                inOrder.verify(securityServerDto).getServerId();
-                inOrder.verify(securityServerIdConverter).convert(securityServerIdDto);
-                inOrder.verify(securityServerId).getOwner();
-                inOrder.verify(memberService).findMember(memberId);
-                inOrder.verify(securityServerIdDto).getServerCode();
-                inOrder.verify(securityServerService).findByOwnerAndServerCode(xRoadMember, SERVER_CODE);
-                inOrder.verify(securityServerDto).getServerAddress();
-            });
-        }
-
-        @Test
-        @DisplayName("should fail if X-Road member not found")
-        public void shouldFailIfXRoadMemberNotFound() {
-            doReturn(securityServerIdDto).when(securityServerDto).getServerId();
-            doReturn(securityServerId).when(securityServerIdConverter).convert(securityServerIdDto);
-            doReturn(memberId).when(securityServerId).getOwner();
-            doReturn(Option.none()).when(memberService).findMember(memberId);
-
-            Executable testable = () -> converter.fromDto(securityServerDto);
-
-            NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-            assertEquals(ErrorMessage.MEMBER_NOT_FOUND.getDescription(), actualThrown.getMessage());
-            inOrder().verify(inOrder -> {
-                inOrder.verify(securityServerDto).getServerId();
-                inOrder.verify(securityServerIdConverter).convert(securityServerIdDto);
-                inOrder.verify(securityServerId).getOwner();
-                inOrder.verify(memberService).findMember(memberId);
             });
         }
     }

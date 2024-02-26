@@ -14,7 +14,10 @@ sourceSets {
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-    implementation project(':common:common-util')
+    implementation project(':common:common-jetty')
+    implementation project(':common:common-message')
+    implementation project(':common:common-globalconf')
+    implementation project(':common:common-scheduler')
     implementation project(':common:common-verifier')
     implementation project(':serverconf')
     implementation project(':signer-protocol')
@@ -27,10 +30,9 @@ dependencies {
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-    implementation 'org.semver4j:semver4j:5.0.0'
+    implementation 'org.semver4j:semver4j:5.2.2'
 
     testImplementation project(':common:common-test')
-    testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
 
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
     testImplementation 'io.rest-assured:rest-assured:5.4.0'

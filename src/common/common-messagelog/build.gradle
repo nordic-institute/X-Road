@@ -1,10 +1,12 @@
 dependencies {
-    implementation project(':common:common-util')
+    implementation project(':common:common-message')
+    implementation project(':common:common-scheduler')
+    implementation project(':common:common-globalconf')
     implementation project(':common:common-verifier')
     implementation project(':asic-util')
 
     testImplementation project(':common:common-test')
-    testImplementation "org.bouncycastle:bcpg-jdk15on:${bouncyCastleVersion}"
+    testImplementation "org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 

@@ -54,7 +54,7 @@ import static java.util.Optional.ofNullable;
  */
 public final class CertificateTestUtils {
 
-    // this is base64 encoded DER certificate from common-util/test/configuration-anchor.xml
+    // this is base64 encoded DER certificate from common-globalconf/test/configuration-anchor.xml
 
     public static final String MOCK_CERTIFICATE_HASH = "FAAFA4860332289F3083DE6BF955D4DF9AEEFB2B33CBCC66BD0EF27AB05C708D";
     public static final String MOCK_AUTH_CERTIFICATE_HASH = "54E2586715084EBF37FE5CA8B761A208CD0D710699FC866A49684D8F62DA28D2";

@@ -32,7 +32,7 @@ import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import org.apache.commons.io.IOUtils;
-import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.junit.BeforeClass;
@@ -62,9 +62,9 @@ public class TimestampVerifierTest {
         TestSecurityUtil.initSecurity();
 
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
-                "../common-util/src/test/resources/globalconf_good_v2");
+                "../common-globalconf/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common-util/src/test/resources/configuration-anchor1.xml");
+                "../common-globalconf/src/test/resources/configuration-anchor1.xml");
         GlobalConf.reload();
     }
 
@@ -124,7 +124,7 @@ public class TimestampVerifierTest {
             throws Exception {
         byte[] data = getBytesFromFile(fileName);
         TimeStampToken token = new TimeStampToken(ContentInfo.getInstance(
-                ASN1Sequence.fromByteArray(data)));
+                ASN1Primitive.fromByteArray(data)));
         assertNotNull(token);
         return token;
     }

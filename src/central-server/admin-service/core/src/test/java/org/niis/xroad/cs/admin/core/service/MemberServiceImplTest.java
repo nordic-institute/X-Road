@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.vavr.control.Option;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -124,7 +123,7 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("should create client when not already present")
         void shouldCreateClientWhenNotAlreadyPresent() {
-            when(xRoadMemberRepository.findOneBy(memberId)).thenReturn(Option.none());
+            when(xRoadMemberRepository.findOneBy(memberId)).thenReturn(Optional.empty());
             when(xRoadMemberRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             when(memberClassRepository.findByCode(MEMBER_CLASS))
@@ -148,7 +147,7 @@ class MemberServiceImplTest {
         void shouldNotCreateClientWhenAlreadyPresent() {
             XRoadMemberEntity presentSecurityServerClient = mock(XRoadMemberEntity.class);
 
-            when(xRoadMemberRepository.findOneBy(memberId)).thenReturn((Option.of(presentSecurityServerClient)));
+            when(xRoadMemberRepository.findOneBy(memberId)).thenReturn((Optional.of(presentSecurityServerClient)));
 
             String clientIdentifier = memberId.toShortString();
 
@@ -181,11 +180,11 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("Should find client from xRoadMemberRepository")
         void shouldFindClient() {
-            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
 
             var result = memberService.findMember(clientId);
 
-            assertTrue(result.isDefined());
+            assertTrue(result.isPresent());
         }
     }
 
@@ -200,7 +199,7 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("Should delete client from xRoadMemberRepository")
         void shouldDeleteClient() {
-            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
 
             memberService.delete(clientId);
 
@@ -213,7 +212,7 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("Should not delete client when it's non-existent")
         void shouldThrowExceptionWhenClientNotFound() {
-            doReturn(Option.none()).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Optional.empty()).when(xRoadMemberRepository).findMember(clientId);
 
             Executable testable = () -> memberService.delete(clientId);
 
@@ -237,11 +236,11 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("Should set new name")
         void shouldUpdateName() {
-            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
 
             var result = memberService.updateMemberName(clientId, "new name");
 
-            assertTrue(result.isDefined());
+            assertTrue(result.isPresent());
             verify(xRoadMember).setName("new name");
 
             verify(auditData).put(MEMBER_NAME, "new name");
@@ -285,7 +284,7 @@ class MemberServiceImplTest {
             when(securityServerMapper.toTarget(ss0)).thenReturn(new SecurityServer(null, "SS0"));
             when(securityServerMapper.toTarget(ss1)).thenReturn(new SecurityServer(null, "SS1"));
 
-            doReturn(Option.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
             doReturn(securityServersMock).when(xRoadMember).getOwnedServers();
 
             final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
@@ -303,7 +302,7 @@ class MemberServiceImplTest {
 
         @Test
         void shouldReturnEmptySetWhenMemberNotFound() {
-            doReturn(Option.none()).when(xRoadMemberRepository).findMember(clientId);
+            doReturn(Optional.empty()).when(xRoadMemberRepository).findMember(clientId);
 
             final List<SecurityServer> result = memberService.getMemberOwnedServers(clientId);
 

@@ -1,6 +1,6 @@
 dependencies {
     implementation project(':proxy')
-    implementation project(':common:common-util')
+    implementation project(':common:common-jetty')
     implementation project(':serverconf')
     implementation project(":common:common-op-monitoring")
     implementation project(":common:common-verifier")
@@ -12,7 +12,7 @@ dependencies {
     testImplementation('org.wiremock:wiremock-standalone:3.4.1')
 
     testImplementation "wsdl4j:wsdl4j:$wsdl4jVersion"
-    testImplementation 'org.apache.httpcomponents:httpmime:4.5.13'
+    testImplementation 'org.apache.httpcomponents:httpmime:4.5.14'
     testImplementation "org.xmlunit:xmlunit-core:$xmlUnitVersion"
     testImplementation "org.xmlunit:xmlunit-matchers:$xmlUnitVersion"
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
