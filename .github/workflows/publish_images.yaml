@@ -1,4 +1,4 @@
-name: Publish Central Server and Security Server development images
+name: Publish images
 on:
   workflow_run:
     workflows: [Build and test]
