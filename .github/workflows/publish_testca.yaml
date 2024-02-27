@@ -1,0 +1,42 @@
+name: Publish test CA image
+on: 
+  # Capture this event so that gradle caches are updated when a PR is merged to develop
+  # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
+  push:
+    branches:
+      - develop
+    paths:
+      - '.github/dev-containers/testca/**'
+      - 'ansible/roles/xroad-ca/**'
+  # Temporary for testing
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/dev-containers/testca/**'
+      - 'ansible/roles/xroad-ca/**'
+env:
+  REGISTRY: ghcr.io
+jobs:
+  PublishCS:
+    name: Publish test CA image
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize docker setup
+        working-directory: ./.github/dev-containers/testca
+        run: ./init_context.sh
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ GITHUB_WORKSPACE }}/.github/dev-containers/testca
+          push: true
+          tags: ghcr.io/nordic-institute/xrddev-testca:latest
