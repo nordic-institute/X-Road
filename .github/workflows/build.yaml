@@ -15,6 +15,9 @@ on:
       - 'src/**'
       - '.github/**'
       - 'ansible/**'
+# Remove after testing
+env:
+  REGISTRY: ghcr.io
 permissions:
   contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
   pull-requests: write # https://github.com/gradle/actions/tree/main/setup-gradle#adding-job-summary-as-a-pull-request-comment
