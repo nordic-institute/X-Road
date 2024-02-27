@@ -1,25 +1,25 @@
 services:
   cs:
-    image: centralserver
+    image: ${CS_IMG}
     healthcheck: 
       test: ["CMD", "curl", "-f", "-k", "https://localhost:4000"]
     ports:
       - "4001:4000"
-      - "8088:8888"
   ssm:
-    image: securityserver
+    image: ${SS_IMG}
     healthcheck: 
       test: ["CMD", "curl", "-f", "-k", "https://localhost:4000"]
     ports:
       - "4002:4000"
   ss1:
-    image: securityserver
+    image: ${SS_IMG}
     healthcheck: 
       test: ["CMD", "curl", "-f", "-k", "https://localhost:4000"]
     ports:
       - "4003:4000"
+      - "8080:8080"
   testca:
-    image: testca
+    image: ${CA_IMG}
     healthcheck: 
       test: ["CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs"]
     volumes:
