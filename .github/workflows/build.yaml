@@ -92,7 +92,7 @@ jobs:
           compression-level: 0 #No point in compressing these
   RunCSSystemTests:
     name: Run Central Server system tests
-    needs: BuildAndpackageWithUnitTests
+    needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -135,7 +135,7 @@ jobs:
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
   RunSSSystemTests:
     name: Run Security Server system tests
-    needs: BuildAndpackageWithUnitTests
+    needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -177,3 +177,56 @@ jobs:
             src/security-server/system-test/build/allure-report/
             src/security-server/system-test/build/ss-container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
+  PublishCS:
+    name: Publish Central Server image
+    needs: BuildAndPackageWithUnitTests
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize docker setup
+        working-directory: ./.github/dev-containers/centralserver
+        run: ./init_context.sh
+      - name: Download debian packages
+        uses: actions/download-artifact@v4
+        with:
+          name: debian-packages
+          path: ./.github/dev-containers/centralserver/build/packages/develop/debian
+      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
+      - name: Download Debian packages
+        uses: actions/github-script@v6
+        with:
+          # run_id: context.payload.workflow_run.id,
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: `${process.env.GITHUB_RUN_ID}`
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "debian-packages"
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/debian-packages.zip`, Buffer.from(download.data));
+      - name: Unzip Debian packages
+        run: mkdir -p ${{ GITHUB_WORKSPACE }}/.github/dev-containers/centralserver/build/packages && unzip -d ${{ GITHUB_WORKSPACE }}/.github/dev-containers/centralserver/build/packages debian-packages.zip
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ GITHUB_WORKSPACE }}/.github/dev-containers/centralserver
+          push: true
+          tags: ghcr.io/nordic-institute/xroad-central-server:latest
