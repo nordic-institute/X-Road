@@ -37,6 +37,6 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ GITHUB_WORKSPACE }}/.github/dev-containers/testca
+          context: ${{ github.workspace }}/.github/dev-containers/testca
           push: true
           tags: ghcr.io/nordic-institute/xrddev-testca:latest
