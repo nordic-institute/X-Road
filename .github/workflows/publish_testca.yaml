@@ -1,16 +1,8 @@
 name: Publish test CA image
 on: 
-  # Capture this event so that gradle caches are updated when a PR is merged to develop
-  # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
   push:
     branches:
       - develop
-    paths:
-      - '.github/dev-containers/testca/**'
-      - 'ansible/roles/xroad-ca/**'
-  # Temporary for testing
-  pull_request:
-    types: [opened, synchronize, reopened]
     paths:
       - '.github/dev-containers/testca/**'
       - 'ansible/roles/xroad-ca/**'
