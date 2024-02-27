@@ -1,14 +1,11 @@
 name: Publish images
 on:
   workflow_run:
-    workflows: [Build and test]
-    types:
-      - completed
+    workflows: ["Build and test"]
+    types: [completed]
     #branches: [develop]
-
 env:
   REGISTRY: ghcr.io
-
 jobs:
   PublishCS:
     name: Publish Central Server image
