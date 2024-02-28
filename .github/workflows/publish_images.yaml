@@ -1,0 +1,113 @@
+name: Publish images
+on:
+  workflow_run:
+    workflows: ["Build and test"]
+    types: [completed]
+    branches: [develop]
+env:
+  REGISTRY: ghcr.io
+jobs:
+  PublishCS:
+    name: Publish Central Server image
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize docker setup
+        working-directory: ./.github/dev-containers/centralserver
+        run: ./init_context.sh
+      - name: Download debian packages
+        uses: actions/download-artifact@v4
+        with:
+          name: debian-packages
+          path: ./.github/dev-containers/centralserver/build/packages/develop/debian
+      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
+      - name: Download Debian packages
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "debian-packages"
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/debian-packages.zip`, Buffer.from(download.data));
+      - name: Unzip Debian packages
+        run: mkdir -p ${{ github.workspace }}/.github/dev-containers/centralserver/build/packages && unzip -d ${{ github.workspace }}/.github/dev-containers/centralserver/build/packages debian-packages.zip
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ github.workspace }}/.github/dev-containers/centralserver
+          push: true
+          tags: ghcr.io/nordic-institute/xrddev-central-server:latest
+  PublishSS:
+    name: Publish Security Server image
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize docker setup
+        working-directory: ./.github/dev-containers/securityserver
+        run: ./init_context.sh
+      - name: Download debian packages
+        uses: actions/download-artifact@v4
+        with:
+          name: debian-packages
+          path: ./.github/dev-containers/securityserver/build/packages/develop/debian
+      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
+      - name: Download Debian packages
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "debian-packages"
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/debian-packages.zip`, Buffer.from(download.data));
+      - name: Unzip Debian packages
+        run: mkdir -p ${{ github.workspace }}/.github/dev-containers/securityserver/build/packages && unzip -d ${{ github.workspace }}/.github/dev-containers/securityserver/build/packages debian-packages.zip
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ github.workspace }}/.github/dev-containers/securityserver
+          push: true
+          tags: ghcr.io/nordic-institute/xrddev-security-server:latest
