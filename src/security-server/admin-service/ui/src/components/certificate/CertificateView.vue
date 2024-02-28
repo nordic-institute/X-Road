@@ -24,45 +24,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <CertificateView v-if="certificate" :certificate-details="certificate" />
+  <div class="certificate-details-wrapper xrd-default-shadow">
+    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
+    <div class="pl-4">
+      <div v-if="$slots.tools" class="detail-view-tools">
+        <slot name="tools" />
+      </div>
+
+      <div class="detail-view-cert-hash">
+        <CertificateHash :hash="certificateDetails.hash" />
+      </div>
+      <CertificateInfo :certificate="certificateDetails" />
+    </div>
+    <slot />
+  </div>
 </template>
+<script lang="ts" setup>
+import { PropType, useSlots } from 'vue';
+import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
+import CertificateHash from '@/components/certificate/CertificateHash.vue';
+import { useRouter } from 'vue-router';
+import type { CertificateDetails } from '@/openapi-types';
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types';
-import { mapActions } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
-import CertificateView from '@/components/certificate/CertificateView.vue';
-
-export default defineComponent({
-  components: {
-    CertificateView,
-  },
-  props: {},
-  data() {
-    return {
-      certificate: undefined as CertificateDetails | undefined,
-    };
-  },
-  created() {
-    this.fetchData();
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError']),
-    fetchData(): void {
-      api
-        .get<CertificateDetails>('/system/certificate')
-        .then((res) => {
-          this.certificate = res.data;
-        })
-        .catch((error) => {
-          this.showError(error);
-        });
-    },
+defineProps({
+  certificateDetails: {
+    type: Object as PropType<CertificateDetails>,
+    required: true,
   },
 });
-</script>
 
+const slots = useSlots()
+
+const router = useRouter();
+
+function close() {
+  router.back();
+}
+</script>
 <style lang="scss" scoped>
+@import '@/assets/detail-views';
+@import '@/assets/wizards';
 </style>
