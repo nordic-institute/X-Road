@@ -21,11 +21,11 @@ settings:
 
 The compose file has the following port mappings for the UI-s:
 
-* 4001 - Central Server
-* 4002 - Management Security Server
-* 4003 - Consumer Security Server
-* 8080 - Consumer Security Server client port
-* 8888 - TestCA
+* 4001 - Central Server UI
+* 4002 - Management Security Server UI
+* 4003 - Consumer Security Server UI
+* 8080 - Consumer Security Server client information system port
+* 8888 - TestCA UI
 
 Please note that the containers do not have any persistent volume mappings, so once they are removed, all data is also
 lost.
@@ -54,7 +54,7 @@ as planned.
 
 ## Setting up an environment based on your own local code
 
-This step expects that you are able to build and package the X-Road source code. In that case the complest way to
+This step expects that you are able to build and package the X-Road source code. In that case the simplest way to
 deploy containers based on your own code is to use the script and environmental overrides for the compose file.
 
 Assuming that you are starting from the root of this repository, run the following commands:

@@ -33,11 +33,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/version
     fi
-    # Initialize TEST-CA if it has not been initialized yet and the directory exists
-    if [ -d /home/ca ] && [ ! -f /home/ca/CA/.init ]; then
-        log "Initializing TEST-CA..."
-        su ca -c 'cd /home/ca/CA && ./init.sh' >&/dev/null
-    fi
 else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi
@@ -50,7 +45,7 @@ then
 fi
 
 if ! crudini --get /etc/xroad/conf.d/local.ini registration-service api-token &>/dev/null; then
-  log "Creating API token for registration service..."
+  log "Creating API token for registration and management services..."
   TOKEN=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
   ENCODED=$(echo -n "$TOKEN" | sha256sum -b | cut -d' ' -f1)
   pg_ctlcluster 14 main start
