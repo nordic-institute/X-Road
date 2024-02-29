@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import feign.FeignException;
 import jakarta.annotation.PostConstruct;
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,8 @@ import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -149,35 +152,59 @@ public class AssetsRegistrationJob {
             for (ServiceId.Conf service : ServerConf.getAllServices(member)) {
                 String assetId = service.asEncodedId();
                 log.info("Processing service {}", assetId);
-                if (!assetExists(assetId)) {
-                    createAsset(service, assetId);
+                createOrUpdateAsset(service, assetId);
+                if (fetchAsset(assetId).isEmpty()) {
                     createContractDefinitionForAsset(assetId);
                 }
             }
         }
     }
 
-    private void createAsset(ServiceId.Conf service, String assetId) {
-        log.info("Creating asset for service {}", assetId);
-        assetApi.createAsset(createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, EDC_ASSET_TYPE)
-                .add(ID, assetId)
-                .add(EDC_ASSET_PROPERTIES, createObjectBuilder()
-                        .add(PROPERTY_NAME, "Asset for service %s".formatted(assetId))
-                        .add(PROPERTY_CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                        .build())
-                .add(EDC_ASSET_DATA_ADDRESS, createObjectBuilder()
-                        .add("type", "HttpData")
-                        .add("proxyPath", Boolean.TRUE.toString())
-                        .add("proxyMethod", Boolean.TRUE.toString())
-                        .add("proxyBody", Boolean.TRUE.toString())
-                        .add("proxyQueryParams", Boolean.TRUE.toString())
-                        .add("baseUrl", ServerConf.getServiceAddress(service))
-                        //pass custom parameters
-                        .add("assetId", assetId)
-                        .build())
-                .build());
+    private void createOrUpdateAsset(ServiceId.Conf service, String assetId) {
+        String serviceBaseUrl = ServerConf.getServiceAddress(service);
+
+        Optional<JsonObject> assetOptional = fetchAsset(assetId);
+        if (assetOptional.isEmpty()) {
+            log.info("Creating new asset for service {}", assetId);
+            assetApi.createAsset(createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                    .add(TYPE, EDC_ASSET_TYPE)
+                    .add(ID, assetId)
+                    .add(EDC_ASSET_PROPERTIES, createObjectBuilder()
+                            .add(PROPERTY_NAME, "Asset for service %s".formatted(assetId))
+                            .add(PROPERTY_CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                            .build())
+                    .add(EDC_ASSET_DATA_ADDRESS, createObjectBuilder()
+                            .add("type", "HttpData")
+                            .add("proxyPath", Boolean.TRUE.toString())
+                            .add("proxyMethod", Boolean.TRUE.toString())
+                            .add("proxyBody", Boolean.TRUE.toString())
+                            .add("proxyQueryParams", Boolean.TRUE.toString())
+                            .add("baseUrl", serviceBaseUrl)
+                            //pass custom parameters
+                            .add("assetId", assetId)
+                            .build())
+                    .build());
+        } else {
+            var savedAssetJson = assetOptional.get();
+            String savedBaseUrl = savedAssetJson.getJsonObject("dataAddress").getString("baseUrl");
+
+            if (!serviceBaseUrl.equals(savedBaseUrl)) {
+                log.info("Updating existing asset for service {}", assetId);
+
+                var updatedDataAddress = createObjectBuilder(savedAssetJson.getJsonObject("dataAddress"))
+                        .remove("baseUrl")
+                        .add("baseUrl", serviceBaseUrl)
+                        .build();
+
+                var updatedAsset = createObjectBuilder(savedAssetJson)
+                        .remove("dataAddress")
+                        .add("dataAddress", updatedDataAddress)
+                        .build();
+
+                assetApi.updateAsset(updatedAsset);
+            }
+        }
     }
 
     private void createContractDefinitionForAsset(String assetId) {
@@ -195,12 +222,11 @@ public class AssetsRegistrationJob {
                 .build());
     }
 
-    private boolean assetExists(String assetId) {
+    private Optional<JsonObject> fetchAsset(String assetId) {
         try {
-            assetApi.getAsset(assetId);
-            return true;
+            return Optional.of(assetApi.getAsset(assetId));
         } catch (FeignException.NotFound notFound) {
-            return false;
+            return Optional.empty();
         }
     }
 
