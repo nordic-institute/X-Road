@@ -53,10 +53,12 @@ import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG_OCSP;
 public class XrdSignatureService {
     private static final XrdSignatureMode MODE = XrdSignatureMode.JADES_B;
 
+    //TODO these headers are disabled as they can be modified by jetty server or http-client.
     private static final Set<String> IGNORED_HEADERS = Set.of(HEADER_XRD_SIG,
             "Accept-Encoding",
             "Date",
-            "Content-Length"); //TODO length should not be ignored
+            "Content-Type",
+            "Content-Length");
 
     public Map<String, String> sign(String assetId, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
@@ -75,18 +77,20 @@ public class XrdSignatureService {
             case JADES_B_LT -> new XrdJAdESSignatureCreator(JAdES_BASELINE_LT, JWSSerializationType.FLATTENED_JSON_SERIALIZATION);
         };
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
+        Map<String, String> headersToSign = new HashMap<>();
+        headersToSign.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
         for (Map.Entry<String, String> entry : messageHeaders.entrySet()) {
             if (!IGNORED_HEADERS.contains(entry.getKey()))
-                headers.put(entry.getKey(), entry.getValue());
+                headersToSign.put(entry.getKey(), entry.getValue());
         }
 
-        headers.forEach((key, value) -> log.info("Will sign header: {}={}", key, value));
-        var signature = signer.sign(signingInfo, messageBody, headers);
-        headers.put(HEADER_XRD_SIG, signature);
+        headersToSign.forEach((key, value) -> log.info("Will sign header: {}={}", key, value));
+        var signature = signer.sign(signingInfo, messageBody, headersToSign);
 
-        return headers;
+        Map<String, String> signatureHeaders = new HashMap<>();
+        signatureHeaders.put(HEADER_XRD_SIG, signature);
+        signatureHeaders.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
+        return signatureHeaders;
     }
 
     public void verify(Map<String, String> headers, byte[] detachedPayload, ClientId signerClientId)

@@ -80,15 +80,19 @@ public class ClientProxy implements StartStop {
 
     private final HttpClient client;
     private final ClientRestMessageHandler clientRestMessageHandler;
+    private final ClientSoapMessageHandler clientSoapMessageHandler;
 
     /**
      * Constructs and configures a new client proxy.
      *
      * @throws Exception in case of any errors
      */
-    public ClientProxy(HttpClient httpClient, ClientRestMessageHandler clientRestMessageHandler) throws Exception {
+    public ClientProxy(HttpClient httpClient,
+                       ClientRestMessageHandler clientRestMessageHandler,
+                       ClientSoapMessageHandler clientSoapMessageHandler) throws Exception {
         this.client = httpClient;
         this.clientRestMessageHandler = clientRestMessageHandler;
+        this.clientSoapMessageHandler = clientSoapMessageHandler;
 
         configureServer();
         createConnectors();
@@ -208,7 +212,7 @@ public class ClientProxy implements StartStop {
         }
 
         log.trace("Loading default client handler");
-        handlers.add(new ClientSoapMessageHandler(client)); // default handler
+        handlers.add(clientSoapMessageHandler); // default handler
 
         return handlers;
     }

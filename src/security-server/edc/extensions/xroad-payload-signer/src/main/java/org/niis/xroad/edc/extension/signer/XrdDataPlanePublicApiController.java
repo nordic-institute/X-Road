@@ -51,6 +51,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -141,7 +142,11 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            var resp = handleSuccess(outputStream.toByteArray(), dataAddress);
+
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", callback.mediaType());
+            //TODO edc is not passing response headers??
+            var resp = handleSuccess(outputStream.toByteArray(), headers, dataAddress);
 
             return response.resume(resp);
         };
@@ -160,10 +165,11 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                 });
     }
 
-    private Response handleSuccess(byte[] responseBody, DataAddress dataAddress) {
+    private Response handleSuccess(byte[] responseBody, Map<String, String> headers, DataAddress dataAddress) {
         try {
-            Map<String, String> additionalHeaders = this.signService.signPayload(dataAddress, responseBody);
+            Map<String, String> additionalHeaders = this.signService.signPayload(dataAddress, responseBody, headers);
             var builder = Response.ok(responseBody);
+            headers.forEach(builder::header);
             additionalHeaders.forEach(builder::header);
 
             return builder.build();

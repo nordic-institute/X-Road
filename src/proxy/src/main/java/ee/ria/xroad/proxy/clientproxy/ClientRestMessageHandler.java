@@ -66,6 +66,7 @@ import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static java.lang.Boolean.TRUE;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
+import static org.niis.xroad.proxy.edc.TargetSecurityServerLookup.resolveTargetSecurityServers;
 
 /**
  * Handles client messages. This handler must be the last handler in the

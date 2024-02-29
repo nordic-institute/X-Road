@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.configuration;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.clientproxy.ClientRestMessageHandler;
+import ee.ria.xroad.proxy.clientproxy.ClientSoapMessageHandler;
 import ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
@@ -63,14 +64,21 @@ public class ProxyClientConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     ClientProxy clientProxy(@Qualifier("proxyHttpClient") HttpClient httpClient,
-                            ClientRestMessageHandler clientRestMessageHandler) throws Exception {
-        return new ClientProxy(httpClient, clientRestMessageHandler);
+                            ClientRestMessageHandler clientRestMessageHandler,
+                            ClientSoapMessageHandler clientSoapMessageHandler) throws Exception {
+        return new ClientProxy(httpClient, clientRestMessageHandler, clientSoapMessageHandler);
     }
 
     @Bean
     ClientRestMessageHandler clientRestMessageHandler(@Qualifier("proxyHttpClient") HttpClient httpClient,
                                                       @Autowired(required = false) AssetAuthorizationManager assetAuthorizationManager) {
         return new ClientRestMessageHandler(httpClient, assetAuthorizationManager);
+    }
+
+    @Bean
+    ClientSoapMessageHandler clientSoapMessageHandler(@Qualifier("proxyHttpClient") HttpClient httpClient,
+                                                      @Autowired(required = false) AssetAuthorizationManager assetAuthorizationManager) {
+        return new ClientSoapMessageHandler(httpClient, assetAuthorizationManager);
     }
 
     @Conditional(ClientUseIdleConnectionMonitorEnabledCondition.class)

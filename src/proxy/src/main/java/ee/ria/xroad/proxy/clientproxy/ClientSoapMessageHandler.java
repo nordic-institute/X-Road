@@ -36,11 +36,13 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static java.lang.Boolean.TRUE;
 
 /**
  * Handles client messages. This handler must be the last handler in the
@@ -48,20 +50,31 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * the next handler (i.e. throws exception instead), if it cannot process
  * the request itself.
  */
-class ClientSoapMessageHandler extends AbstractClientProxyHandler {
+public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
+    private final AssetAuthorizationManager assetAuthorizationManager;
 
-    ClientSoapMessageHandler(HttpClient client) {
+    public ClientSoapMessageHandler(HttpClient client, AssetAuthorizationManager assetAuthorizationManager) {
         super(client, true);
+        this.assetAuthorizationManager = assetAuthorizationManager;
     }
 
     @Override
     Optional<MessageProcessorBase> createRequestProcessor(
-                                                          Request request, Response response,
-                                                          OpMonitoringData opMonitoringData) throws Exception {
+            Request request, Response response,
+            OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
-        return Optional.of(new ClientSoapMessageProcessor(request, response, client,
-                getIsAuthenticationData(request), opMonitoringData));
+
+        boolean forceLegacyTransport = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
+        if (!forceLegacyTransport) {
+            //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
+            return Optional.of(new ClientSoapMessageDsProcessor(request, response, client,
+                    getIsAuthenticationData(request), opMonitoringData, assetAuthorizationManager));
+        } else {
+            return Optional.of(new ClientSoapMessageProcessor(request, response, client,
+                    getIsAuthenticationData(request), opMonitoringData));
+        }
+
     }
 
     private void verifyCanProcess(Request request) {

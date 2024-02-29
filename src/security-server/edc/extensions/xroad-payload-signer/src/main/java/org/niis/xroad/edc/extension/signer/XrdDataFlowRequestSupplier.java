@@ -15,7 +15,6 @@
 package org.niis.xroad.edc.extension.signer;
 
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApi;
-import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowRequest;
 
@@ -47,7 +46,8 @@ public class XrdDataFlowRequestSupplier implements BiFunction<ContainerRequestCo
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dataAddress)
                 .destinationDataAddress(DataAddress.Builder.newInstance()
-                        .type(AsyncStreamingDataSink.TYPE)
+//                        .type(AsyncStreamingDataSink.TYPE)
+                        .type("HttpProxy")//TODO original type breaks proxy flow.
                         .build())
                 .trackable(false)
                 .id(UUID.randomUUID().toString())

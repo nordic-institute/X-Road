@@ -53,6 +53,7 @@ import org.apache.http.entity.AbstractHttpEntity;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
+import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -78,6 +79,7 @@ import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
+    private final RequestValidator requestValidator = new RequestValidator();
 
     private ServiceId requestServiceId;
     /**
@@ -92,8 +94,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     ClientRestMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
                                RestRequest restRequest,
-                               HttpClient httpClient, IsAuthenticationData clientCert)
-            throws Exception {
+                               HttpClient httpClient, IsAuthenticationData clientCert) throws Exception {
         super(proxyRequestCtx, httpClient, clientCert);
         this.restRequest = restRequest;
 
@@ -112,8 +113,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             senderId = restRequest.getClientId();
             requestServiceId = restRequest.getServiceId();
 
-            verifyClientStatus(senderId);
-            verifyClientAuthentication(senderId);
+            requestValidator.verifyClientStatus(senderId);
+            requestValidator.verifyClientAuthentication(senderId, clientCert);
 
             processRequest();
             if (response != null) {

@@ -175,7 +175,7 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
      * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */
-    protected static boolean checkIdentifier(final XRoadId id) {
+    public static boolean checkIdentifier(final XRoadId id) {
         if (id != null) {
             if (!validateIdentifierField(id.getXRoadInstance())) {
                 log.warn("Invalid character(s) in identifier {}", id.toString());

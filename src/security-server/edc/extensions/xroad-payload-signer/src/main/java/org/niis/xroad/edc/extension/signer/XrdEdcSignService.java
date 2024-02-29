@@ -37,7 +37,6 @@ import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
@@ -48,12 +47,10 @@ public class XrdEdcSignService {
 
     private final Monitor monitor;
 
-    public Map<String, String> signPayload(DataAddress dataAddress, byte[] body) {
+    public Map<String, String> signPayload(DataAddress dataAddress, byte[] body, Map<String, String> headers) {
         monitor.debug("Signing response payload..");
         var assetId = dataAddress.getStringProperty("assetId");
         try {
-            Map<String, String> headers = new HashMap<>();
-            headers.put("Content-Type", "application/json");
             var headerWithSig = signService.sign(assetId, body, headers);
             monitor.debug("Response payload signed. Signature: " + headerWithSig);
             return headerWithSig;

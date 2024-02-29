@@ -28,11 +28,7 @@ package ee.ria.xroad.proxy.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapUtils;
@@ -57,7 +53,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
@@ -212,24 +207,6 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         return httpSender.getResponseHeaders().get(HEADER_HASH_ALGO_ID);
     }
 
-    protected void verifyClientStatus(ClientId client) throws Exception {
-        if (client == null) {
-            throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
-        }
-
-        String status = ServerConf.getMemberStatus(client);
-        if (!ClientType.STATUS_REGISTERED.equals(status)) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
-        }
-    }
-
-    protected void verifyClientAuthentication(ClientId sender) throws Exception {
-        if (!SystemProperties.shouldVerifyClientCert()) {
-            return;
-        }
-        log.trace("verifyClientAuthentication()");
-        IsAuthentication.verifyClientAuthentication(sender, clientCert);
-    }
 
     @EqualsAndHashCode
     public static final class TargetHostsUserToken {

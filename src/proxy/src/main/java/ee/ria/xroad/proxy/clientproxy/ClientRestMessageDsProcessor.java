@@ -25,44 +25,43 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
-import org.apache.http.entity.ByteArrayEntity;
-import org.eclipse.jetty.http.HttpField;
+import org.eclipse.jetty.server.Response;
 import org.niis.xroad.edc.sig.XrdSignatureService;
+import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
+import org.niis.xroad.proxy.edc.EdcHttpResponse;
+import org.niis.xroad.proxy.edc.XrdDataSpaceClient;
 
-import java.io.ByteArrayOutputStream;
-import java.net.URI;
-import java.util.Map;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.server.Request.asInputStream;
 
 @Slf4j
 class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
+    private final RequestValidator requestValidator = new RequestValidator();
 
     private final RestRequest restRequest;
 
     private final AssetAuthorizationManager assetAuthorizationManager;
-
     private final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx;
+
+    private final XrdDataSpaceClient xrdDataSpaceClient = new XrdDataSpaceClient();
     private final XrdSignatureService xrdSignatureService = new XrdSignatureService();
 
     ClientRestMessageDsProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
@@ -78,15 +77,15 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     //TODO rethink what should happen in constructor and what in process..
     @Override
     public void process() throws Exception {
-//        opMonitoringData.setXRequestId(restRequest.getXRequestId());
+        opMonitoringData.setXRequestId(restRequest.getXRequestId());
         updateOpMonitoringClientSecurityServerAddress();
 
         try {
             ClientId senderId = restRequest.getClientId();
 
             checkRequestIdentifiers();
-            verifyClientStatus(senderId);
-            verifyClientAuthentication(senderId);
+            requestValidator.verifyClientStatus(senderId);
+            requestValidator.verifyClientAuthentication(senderId, clientCert);
 
             //TODO xroad8 in POC we're not selecting fastest server, neither handle failure with fallbacks
             var targetServerInfo = proxyRequestCtx.targetSecurityServers().servers().stream().findFirst().orElseThrow();
@@ -94,9 +93,46 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
             var assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(senderId, targetServerInfo, restRequest.getServiceId());
 
             processRequest(assetInfo);
-
         } finally {
             log.trace("DataSpace proxy request fully processed");
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
+        }
+    }
+
+    private void processRequest(AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+        if (restRequest.getQueryId() == null) {
+            restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID());
+        }
+//        //TODO op monitoring should know about DataSpace
+        updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
+
+
+        var clientRequest = new XrdDataSpaceClient.XrdClientRequest(
+                XrdDataSpaceClient.XrdClientSource.REST,
+                restRequest.getVerb().name(),
+                restRequest.getClientId(),
+                restRequest.getQuery(),
+                restRequest.getHeaders().stream()
+                        .collect(Collectors.toMap(Header::getName, Header::getValue)),
+                IOUtils.toByteArray(asInputStream(jRequest)),
+                restRequest.getServiceId(), restRequest.getServicePath());
+
+        var response = xrdDataSpaceClient.processRequest(clientRequest, assetInfo);
+        processResponse(clientRequest, response, jResponse);
+    }
+
+    private void processResponse(XrdDataSpaceClient.XrdClientRequest xrdClientRequest,
+                                 EdcHttpResponse response, Response jResponse) throws Exception {
+        log.trace("sendResponse()");
+        jResponse.setStatus(response.statusCode());
+
+        //TODO handle bad request/edc failure
+        xrdSignatureService.verify(response.headers(), response.body(), xrdClientRequest.providerServiceId().getClientId());
+
+        response.headers().forEach(jResponse.getHeaders()::add);
+
+        try (InputStream body = new ByteArrayInputStream(response.body())) {
+            IOUtils.copy(body, asOutputStream(jResponse));
         }
     }
 
@@ -115,80 +151,5 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void processRequest(AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
-        if (restRequest.getQueryId() == null) {
-            restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID());
-        }
-        //TODO op monitoring should know about DataSpace
-        updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
 
-        try (HttpSender httpSender = createHttpSender()) {
-            sendRequest(httpSender, assetInfo);
-
-            processResponse(httpSender);
-        }
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private void processResponse(HttpSender httpSender) throws Exception {
-        //TODO handle statuses
-        jResponse.setStatus(200);
-        //TODO also headers..
-        var outputStream = new ByteArrayOutputStream();
-        IOUtils.copy(httpSender.getResponseContent(), outputStream);
-
-        xrdSignatureService.verify(httpSender.getResponseHeaders(), outputStream.toByteArray(),
-                restRequest.getServiceId().getClientId());
-
-        int headersSizeInBytes = 0;
-        for (Map.Entry<String, String> entry : httpSender.getResponseHeaders().entrySet()) {
-            // Each header has a name and value, and the ": " delimiter, and CRLF as overhead
-            headersSizeInBytes += entry.getKey().length() + ": ".length() + entry.getValue().length() + "\r\n".length();
-            //TODO in POC we're adding all headers, but we should remove xrd specific ones
-            jResponse.getHeaders().add(entry.getKey(), entry.getValue());
-        }
-
-        outputStream.writeTo(asOutputStream(jResponse));
-        log.info("EDC public api response headers size: {} KB", headersSizeInBytes / 1024.0);
-    }
-
-    private void sendRequest(HttpSender httpSender, AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
-        byte[] response = IOUtils.toByteArray(asInputStream(jRequest));
-
-        var headersToSign = getRequestHeaders();
-        headersToSign.put(MimeUtils.HEADER_QUERY_ID, restRequest.getQueryId());
-        headersToSign.put(assetInfo.authKey(), assetInfo.authCode());
-
-        var headers = xrdSignatureService.sign(restRequest.getClientId(), response, headersToSign);
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            httpSender.addHeader(entry.getKey(), entry.getValue());
-        }
-
-        var path = assetInfo.endpoint();
-        if (restRequest.getServicePath() != null) {
-            path = path + restRequest.getServicePath();
-        }
-        if (StringUtils.isNotBlank(restRequest.getQuery())) {
-            path += "?" + restRequest.getQuery();
-        }
-
-        var url = URI.create(path);
-
-        log.info("Will send [{}] request to {}", restRequest.getVerb(), path);
-        // todo: signature is required for messagelog
-
-//        MessageLog.log(restRequest, new SignatureData(null, null, null), null, true, restRequest.getXRequestId());
-        switch (restRequest.getVerb()) {
-            case GET -> httpSender.doGet(url);
-            case POST -> httpSender.doPost(url, new ByteArrayEntity(response));
-            default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported verb");
-        }
-
-        opMonitoringData.setResponseInTs(getEpochMillisecond());
-    }
-
-    private Map<String, String> getRequestHeaders() {
-        return jRequest.getHeaders().stream()
-                .collect(Collectors.toMap(HttpField::getName, HttpField::getValue));
-    }
 }

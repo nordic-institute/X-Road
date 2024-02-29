@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
@@ -53,6 +52,8 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
+import org.niis.xroad.proxy.clientproxy.validate.SoapResponseValidator;
 
 import java.io.InputStream;
 import java.io.PipedInputStream;
@@ -65,7 +66,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
@@ -142,18 +142,17 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
      */
     private ProxyMessage response;
 
-    private static final ExecutorService SOAP_HANDLER_EXECUTOR =
-            createSoapHandlerExecutor();
+    private final RequestValidator requestValidator = new RequestValidator();
+    private final SoapResponseValidator responseValidator = new SoapResponseValidator();
+
+    private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
     private static ExecutorService createSoapHandlerExecutor() {
-        return Executors.newCachedThreadPool(new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread handlerThread = new Thread(r);
-                handlerThread.setName(Thread.currentThread().getName() + "-soap");
+        return Executors.newCachedThreadPool(r -> {
+            Thread handlerThread = new Thread(r);
+            handlerThread.setName(Thread.currentThread().getName() + "-soap");
 
-                return handlerThread;
-            }
+            return handlerThread;
         });
     }
 
@@ -182,15 +181,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             // If the handler thread excepted, do not continue.
             checkError();
 
-            // Check that incoming identifiers do not contain illegal characters
-            checkRequestIdentifiers();
-
-            // Verify that the client is registered.
-            ClientId client = requestSoap.getClient();
-            verifyClientStatus(client);
-
-            // Check client authentication mode.
-            verifyClientAuthentication(client);
+            requestValidator.validateSoap(requestSoap, clientCert);
 
             processRequest();
 
@@ -211,12 +202,6 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
                 response.consume();
             }
         }
-    }
-
-    private void checkRequestIdentifiers() {
-        checkIdentifier(requestSoap.getClient());
-        checkIdentifier(requestSoap.getService());
-        checkIdentifier(requestSoap.getSecurityServer());
     }
 
     @Override
@@ -246,7 +231,8 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             parseResponse(httpSender);
         }
 
-        checkConsistency();
+        responseValidator.checkConsistency(requestSoap, response.getSoap());
+        checkRequestHash();
 
         logResponseMessage();
     }
@@ -323,22 +309,6 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkConsistency() throws Exception {
-        log.trace("checkConsistency()");
-
-        try {
-            SoapUtils.checkConsistency(requestSoap, response.getSoap());
-        } catch (CodedException e) {
-            log.error("Inconsistent request-response", e);
-
-            // The error code includes ServiceFailed because it indicates
-            // faulty response from service (problem on the other side).
-            throw new CodedException(X_INCONSISTENT_RESPONSE,
-                    "Response from server proxy is not consistent with request").withPrefix(X_SERVICE_FAILED_X);
-        }
-
-        checkRequestHash();
-    }
 
     private void checkRequestHash() throws Exception {
         RequestHash requestHashFromResponse = response.getSoap().getHeader().getRequestHash();

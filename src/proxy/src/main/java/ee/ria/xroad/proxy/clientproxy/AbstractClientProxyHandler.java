@@ -27,11 +27,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.ServerAddressInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
@@ -46,6 +42,7 @@ import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.proxy.edc.TargetSecurityServerLookup;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -146,36 +143,13 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         return handled;
     }
 
-    protected TargetSecurityServers resolveTargetSecurityServers(ClientId clientId) {
-        // Resolve available security servers
-        var allServers = GlobalConf.getProviderSecurityServers(clientId);
-        if (SystemProperties.isDataspacesEnabled()) {
-            var dsEnabledServers = allServers.stream().filter(ServerAddressInfo::dsSupported).toList();
-            if (dsEnabledServers.isEmpty()) {
-                log.trace("Falling back to legacy protocol, there are no DataSpace compliant Security Servers for this service.");
-                return new TargetSecurityServers(allServers, false);
-            } else {
-                return new TargetSecurityServers(dsEnabledServers, true);
-            }
-        } else {
-            return new TargetSecurityServers(allServers, false);
-        }
-    }
-
     //TODO xroad8 this has an overlap with RestRequest object, possibly merge these
     record ProxyRequestCtx(
             String clientRequestUrl,
             Request clientRequest,
             Response clientResponse,
             OpMonitoringData opMonitoringData,
-
-            TargetSecurityServers targetSecurityServers
-    ) {
-    }
-
-    record TargetSecurityServers(
-            java.util.Collection<ServerAddressInfo> servers,
-            boolean dsEnabledServers
+            TargetSecurityServerLookup.TargetSecurityServers targetSecurityServers
     ) {
     }
 
