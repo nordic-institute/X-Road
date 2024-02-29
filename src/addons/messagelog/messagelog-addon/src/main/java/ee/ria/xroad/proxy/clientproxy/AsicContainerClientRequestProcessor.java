@@ -47,6 +47,8 @@ import ee.ria.xroad.common.messagelog.archive.GPGOutputStream;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
@@ -54,8 +56,6 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -75,7 +75,6 @@ import java.util.zip.ZipOutputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.METADATA_SUFFIX;
-import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
 import static ee.ria.xroad.proxy.util.MetadataRequests.ASIC;
 import static ee.ria.xroad.proxy.util.MetadataRequests.VERIFICATIONCONF;
@@ -83,7 +82,6 @@ import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404;
 import static org.eclipse.jetty.http.HttpStatus.UNAUTHORIZED_401;
-import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 
 @Slf4j
 public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
@@ -119,7 +117,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
     private final EncryptionConfigProvider encryptionConfigProvider;
 
-    public AsicContainerClientRequestProcessor(String target, Request request, Response response)
+    public AsicContainerClientRequestProcessor(String target, RequestWrapper request, ResponseWrapper response)
             throws IOException {
         super(request, response, null);
         this.target = target;
@@ -163,12 +161,15 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(SystemProperties.getConfigurationPath());
 
-        setContentType(jResponse, MimeTypes.ZIP);
-        jResponse.getHeaders().put(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
-        try (VerificationConfWriter writer = new VerificationConfWriter(confDir.getInstanceIdentifier(),
-                asOutputStream(jResponse))) {
+        jResponse.setContentType(MimeTypes.ZIP);
+        jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=\"verificationconf.zip\"");
+        try (var writer = verificationConfWriter(confDir.getInstanceIdentifier())) {
             confDir.eachFile(writer);
         }
+    }
+
+    private VerificationConfWriter verificationConfWriter(String instanceIdentifier) {
+        return new VerificationConfWriter(instanceIdentifier, jResponse.getOutputStream());
     }
 
     private void handleAsicRequest() throws Exception {
@@ -235,7 +236,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private boolean hasParameter(String param) throws Exception {
-        return Request.getParameters(jRequest).toStringArrayMap().containsKey(param);
+        return jRequest.getParametersMap().containsKey(param);
     }
 
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
@@ -247,10 +248,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             final String filename = AsicUtils.escapeString(queryId)
                     + (response == null ? "" : (response ? "-response" : "-request")) + ".zip";
             final CheckedSupplier<OutputStream> supplier = () -> {
-                setContentType(jResponse, MimeTypes.ZIP);
-                jResponse.getHeaders().put(HttpHeaders.CONTENT_DISPOSITION,
+                jResponse.setContentType(MimeTypes.ZIP);
+                jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
-                return asOutputStream(jResponse);
+                return jResponse.getOutputStream();
             };
 
             writeContainers(clientId, queryId, nameGen, response, supplier);
@@ -275,8 +276,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         try {
             final CheckedSupplier<OutputStream> supplier = () -> {
-                setContentType(jResponse, MimeTypes.BINARY);
-                jResponse.getHeaders().put(HttpHeaders.CONTENT_DISPOSITION,
+                jResponse.setContentType(MimeTypes.BINARY);
+                jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
                 return new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
                         encryptionConfig.getEncryptionKeys());
@@ -284,8 +285,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
             writeContainers(clientId, queryId, nameGen, response, supplier);
 
-            try (InputStream is = Files.newInputStream(tempFile)) {
-                IOUtils.copyLarge(is, asOutputStream(jResponse));
+            try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {
+                IOUtils.copyLarge(is, out);
             }
 
         } finally {
@@ -374,17 +375,17 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 String filename = nameGen.getArchiveFilename(queryId, response, record.getId());
                 if (encryptionEnabled) {
                     filename += ".gpg";
-                    setContentType(jResponse, MimeTypes.BINARY);
+                    jResponse.setContentType(MimeTypes.BINARY);
                 } else {
-                    setContentType(jResponse, MimeTypes.ASIC_ZIP);
+                    jResponse.setContentType(MimeTypes.ASIC_ZIP);
                 }
-                jResponse.getHeaders().put(HttpHeaders.CONTENT_DISPOSITION,
+                jResponse.putHeader(HttpHeaders.CONTENT_DISPOSITION,
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
 
                 if (encryptionEnabled) {
                     encryptContainer(encryptionConfig, asicContainer);
                 } else {
-                    asicContainer.write(asOutputStream(jResponse));
+                    asicContainer.write(jResponse.getOutputStream());
                 }
 
             } catch (CodedException ce) {
@@ -404,8 +405,8 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     encryptionConfig.getEncryptionKeys())) {
                 asicContainer.write(os);
             }
-            try (InputStream is = Files.newInputStream(tempFile)) {
-                IOUtils.copyLarge(is, asOutputStream(jResponse));
+            try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {
+                IOUtils.copyLarge(is, out);
             }
         } finally {
             Files.deleteIfExists(tempFile);
@@ -422,7 +423,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private String getParameter(String param, boolean optional) throws Exception {
-        String paramValue = Request.getParameters(jRequest).getValue(param);
+        String paramValue = jRequest.getParameter(param);
 
         if (paramValue == null && !optional) {
             throw new CodedExceptionWithHttpStatus(BAD_REQUEST_400, ErrorCodes.X_BAD_REQUEST,

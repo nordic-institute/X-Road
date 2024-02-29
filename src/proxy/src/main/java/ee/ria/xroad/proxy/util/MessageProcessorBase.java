@@ -35,11 +35,11 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -54,16 +54,16 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 public abstract class MessageProcessorBase {
 
     /** The servlet request. */
-    protected final Request jRequest;
+    protected final RequestWrapper jRequest;
 
     /** The servlet response. */
-    protected final Response jResponse;
+    protected final ResponseWrapper jResponse;
 
     /** The http client instance. */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(Request request,
-                                   Response response,
+    protected MessageProcessorBase(RequestWrapper request,
+                                   ResponseWrapper response,
                                    HttpClient httpClient) {
         this.jRequest = request;
         this.jResponse = response;
@@ -183,13 +183,13 @@ public abstract class MessageProcessorBase {
     protected static boolean checkIdentifier(final XRoadId id) {
         if (id != null) {
             if (!validateIdentifierField(id.getXRoadInstance())) {
-                log.warn("Invalid character(s) in identifier {}", id.toString());
+                log.warn("Invalid character(s) in identifier {}", id);
                 return false;
             }
 
             for (String f : id.getFieldsForStringFormat()) {
                 if (f != null && !validateIdentifierField(f)) {
-                    log.warn("Invalid character(s) in identifier {}", id.toString());
+                    log.warn("Invalid character(s) in identifier {}", id);
                     return false;
                 }
             }

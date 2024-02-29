@@ -33,6 +33,8 @@ import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
@@ -79,7 +81,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(Request request, Response response,
+    MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
                                                 OpMonitoringData opMonitoringData) throws Exception {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
@@ -135,6 +137,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 responseOut.write(XmlUtils.prettyPrintXml(doc, "UTF-8", 0).getBytes());
             } catch (Exception e) {
                 log.error("Unable to generate XML document");
+            } finally {
+                callback.failed(ex);
             }
         } else {
             try (JsonGenerator jsonGenerator = JsonUtils.getObjectWriter()
@@ -144,6 +148,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 jsonGenerator.writeStringField("message", ex.getFaultString());
                 jsonGenerator.writeStringField("detail", ex.getFaultDetail());
                 jsonGenerator.writeEndObject();
+            } finally {
+                callback.succeeded();
             }
         }
     }

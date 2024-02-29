@@ -42,6 +42,8 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
@@ -75,9 +77,6 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
-import org.eclipse.jetty.io.Content;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 
 import java.io.OutputStream;
 import java.security.cert.X509Certificate;
@@ -99,8 +98,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.JettyUtils.getContentType;
-import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
@@ -130,8 +127,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private String xRequestId;
 
-    ServerRestMessageProcessor(Request request,
-                               Response response,
+    ServerRestMessageProcessor(RequestWrapper request,
+                               ResponseWrapper response,
                                HttpClient httpClient,
                                X509Certificate[] clientSslCerts,
                                OpMonitoringData opMonitoringData) {
@@ -144,7 +141,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     @Override
     public void process() throws Exception {
-        log.info("process({})", getContentType(jRequest));
+        log.info("process({})", jRequest.getContentType());
 
         xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 
@@ -202,9 +199,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     @Override
     protected void preprocess() throws Exception {
-        encoder = new ProxyMessageEncoder(Content.Sink.asOutputStream(jResponse), CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
-        setContentType(jResponse, encoder.getContentType());
-        jResponse.getHeaders().put(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
+        encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+        jResponse.setContentType(encoder.getContentType());
+        jResponse.putHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
     }
 
     @Override
@@ -274,10 +271,10 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage, getContentType(jRequest), false,
+        decoder = new ProxyMessageDecoder(requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
         try {
-            decoder.parse(Content.Source.asInputStream(jRequest));
+            decoder.parse(jRequest.getInputStream());
         } catch (CodedException e) {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
@@ -428,7 +425,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         return clientSslCerts != null ? clientSslCerts[0] : null;
     }
 
-    private static String getHashAlgoId(Request request) {
+    private static String getHashAlgoId(RequestWrapper request) {
         String hashAlgoId = request.getHeaders().get(HEADER_HASH_ALGO_ID);
 
         if (hashAlgoId == null) {
@@ -472,7 +469,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void startHandling(Request request, ProxyMessage requestProxyMessage,
+        public void startHandling(RequestWrapper request, ProxyMessage requestProxyMessage,
                                   ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                                   HttpClient restClient, HttpClient opMonitorClient,
                                   OpMonitoringData monitoringData) throws Exception {

@@ -36,6 +36,7 @@ import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -51,7 +52,6 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -111,9 +111,8 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling(Request servletRequest,
-                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-                              OpMonitoringData opMonitoringData) throws Exception {
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
 
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the

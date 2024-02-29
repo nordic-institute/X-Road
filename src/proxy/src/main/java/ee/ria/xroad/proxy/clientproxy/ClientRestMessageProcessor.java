@@ -38,6 +38,8 @@ import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -54,8 +56,6 @@ import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,8 +79,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
-import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
@@ -96,9 +94,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private String xRequestId;
     private byte[] restBodyDigest;
 
-    ClientRestMessageProcessor(Request request, Response response,
-                               HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
-            throws Exception {
+    ClientRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
+                               HttpClient httpClient, IsAuthenticationData clientCert,
+                               OpMonitoringData opMonitoringData) throws Exception {
         super(request, response, httpClient, clientCert, opMonitoringData);
         this.xRequestId = UUID.randomUUID().toString();
     }
@@ -271,13 +269,15 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
         for (Header h : rest.getHeaders()) {
             if ("Date".equalsIgnoreCase(h.getName())) {
-                jResponse.getHeaders().put(h.getName(), h.getValue());
+                jResponse.putHeader(h.getName(), h.getValue());
             } else {
-                jResponse.getHeaders().add(h.getName(), h.getValue());
+                jResponse.addHeader(h.getName(), h.getValue());
             }
         }
         if (response.hasRestBody()) {
-            IOUtils.copy(response.getRestBody(), asOutputStream(jResponse));
+            try (var out = jResponse.getOutputStream()) {
+                IOUtils.copy(response.getRestBody(), out);
+            }
         }
     }
 
@@ -317,7 +317,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
                 //Optimize the case without request body (e.g. simple get requests)
                 //TBD: Optimize the case without body logging
-                try (InputStream in = asInputStream(jRequest)) {
+                try (InputStream in = jRequest.getInputStream()) {
                     @SuppressWarnings("checkstyle:magicnumber")
                     byte[] buf = new byte[4096];
                     int count = in.read(buf);
@@ -357,7 +357,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private List<Header> headers(Request req) {
+    private List<Header> headers(RequestWrapper req) {
         return req.getHeaders().stream()
                 .map(f -> new BasicHeader(f.getName(), f.getValue()))
                 .collect(Collectors.toCollection(ArrayList::new));

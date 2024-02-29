@@ -30,6 +30,8 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
@@ -39,13 +41,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import org.eclipse.jetty.http.HttpFields;
-import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpURI;
-import org.eclipse.jetty.io.Content.Sink;
-import org.eclipse.jetty.server.ConnectionMetaData;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.util.Fields;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -57,6 +53,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_CLIENTS;
@@ -68,9 +65,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -86,10 +81,9 @@ public class MetadataClientRequestProcessorTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private Request mockRequest;
-    private Request mockJsonRequest;
-    private Response mockResponse;
-    private HttpFields.Mutable mockResponseHeaders;
+    private RequestWrapper mockRequest;
+    private RequestWrapper mockJsonRequest;
+    private ResponseWrapper mockResponse;
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
 
 
@@ -110,18 +104,14 @@ public class MetadataClientRequestProcessorTest {
         GlobalConf.reload(new TestSuiteGlobalConf());
         KeyConf.reload(new TestSuiteKeyConf());
 
-        mockRequest = mock(Request.class);
-        mockJsonRequest = mock(Request.class);
-        mockResponse = mock(Response.class);
-        mockResponseHeaders = mock(HttpFields.Mutable.class);
+        mockRequest = mock(RequestWrapper.class);
+        mockJsonRequest = mock(RequestWrapper.class);
+        mockResponse = mock(ResponseWrapper.class);
         mockServletOutputStream = new MetaserviceTestUtil.StubServletOutputStream();
-        when(mockResponse.getHeaders()).thenReturn(mockResponseHeaders);
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
-        var connectionMetaData = mock(ConnectionMetaData.class);
         when(mockJsonRequest.getHeaders()).thenReturn(mockHeaders);
         when(mockJsonRequest.getHttpURI()).thenReturn(mockHttpUri);
-        when(mockJsonRequest.getConnectionMetaData()).thenReturn(connectionMetaData);
         when(mockHeaders.getValues("Accept"))
                 .thenReturn(Collections.enumeration(List.of("application/json")));
     }
@@ -167,22 +157,16 @@ public class MetadataClientRequestProcessorTest {
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
-        var connectionMetaData = mock(ConnectionMetaData.class);
         when(mockRequest.getHeaders()).thenReturn(mockHeaders);
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
-        when(mockRequest.getConnectionMetaData()).thenReturn(connectionMetaData);
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(LIST_CLIENTS, mockRequest, mockResponse);
-        try (
-                var mRequest = mockStatic(Request.class);
-                var mSink = mockStatic(Sink.class);
-        ) {
-            var mockFields = mock(Fields.class);
-            mRequest.when(() -> Request.getParameters(mockRequest)).thenReturn(mockFields);
-            mSink.when(() -> Sink.asOutputStream(mockResponse)).thenReturn(mockServletOutputStream);
-            processorToTest.process();
-        }
+
+        when(mockRequest.getParametersMap()).thenReturn(Map.of());
+        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
+        processorToTest.process();
+
         assertContentTypeIsIn(xmlUtf8ContentTypes());
 
         List<MemberInfo> members = unmarshaller.unmarshal(
@@ -218,16 +202,12 @@ public class MetadataClientRequestProcessorTest {
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(LIST_CLIENTS, mockJsonRequest, mockResponse);
-        try (
-                var mRequest = mockStatic(Request.class);
-                var mSink = mockStatic(Sink.class);
-        ) {
-            var mockFields = mock(Fields.class);
-            mRequest.when(() -> Request.getParameters(mockJsonRequest)).thenReturn(mockFields);
-            mSink.when(() -> Sink.asOutputStream(mockResponse)).thenReturn(mockServletOutputStream);
 
-            processorToTest.process();
-        }
+        when(mockJsonRequest.getParametersMap()).thenReturn(Map.of());
+        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
+
+        processorToTest.process();
+
         assertContentTypeIsIn(List.of("application/json; charset=utf-8"));
     }
 
@@ -255,7 +235,7 @@ public class MetadataClientRequestProcessorTest {
 
     private void assertContentTypeIsIn(List<String> allowedContentTypes) {
         ArgumentCaptor<String> contentTypeCaptor = ArgumentCaptor.forClass(String.class);
-        verify(mockResponseHeaders).put(eq(HttpHeader.CONTENT_TYPE), contentTypeCaptor.capture());
+        verify(mockResponse).setContentType(contentTypeCaptor.capture());
         assertThat("Wrong content type", contentTypeCaptor.getValue(), is(in(allowedContentTypes)));
     }
 
