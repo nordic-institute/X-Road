@@ -30,12 +30,15 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Configuration of the current proxy server.
@@ -150,6 +153,15 @@ public class ServerConf {
         log.trace("getAllServices({})", serviceProvider);
 
         return getInstance().getAllServices(serviceProvider);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param serviceCode service code
+     * @return Returns clients list with path globs for the given service.
+     */
+    public static Map<XRoadId, Set<String>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
+        return getInstance().getEndpointClients(serviceProvider, serviceCode);
     }
 
     /**

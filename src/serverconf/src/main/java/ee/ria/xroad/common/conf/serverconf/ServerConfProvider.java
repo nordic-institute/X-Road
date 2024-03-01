@@ -30,11 +30,14 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides API for implementing configuration providers.
@@ -77,6 +80,13 @@ public interface ServerConfProvider {
      * @return RestServiceDetailsListType containing list of REST services
      */
     RestServiceDetailsListType getRestServices(ClientId serviceProvider);
+
+    /**
+     * @param serviceProvider service provider identifier
+     * @param serviceCode service code
+     * @return clients that are allowed to invoke the service with allowed path glob
+     */
+    Map<XRoadId, Set<String>> getEndpointClients(ClientId serviceProvider, String serviceCode);
 
     /**
      * @param serviceProvider the service provider identifier

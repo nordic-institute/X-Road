@@ -68,8 +68,12 @@ import org.hibernate.SharedSessionContract;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
@@ -147,6 +151,26 @@ public class ServerConfImpl implements ServerConfProvider {
                         restServiceDetailsList.getService().add(serviceDetails);
                     });
             return restServiceDetailsList;
+        });
+    }
+
+    @Override
+    public Map<XRoadId, Set<String>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
+        return tx(session -> {
+            ClientType client = clientDao.getClient(session, serviceProvider);
+
+            Map<XRoadId, Set<String>> map = new HashMap<>();
+            for (AccessRightType acl : client.getAcl()) {
+                if (serviceCode.equals(acl.getEndpoint().getServiceCode())) {
+                    String endpoint = "%s %s".formatted(acl.getEndpoint().getMethod(), acl.getEndpoint().getPath());
+                    if (!map.containsKey(acl.getSubjectId())) {
+                        map.put(acl.getSubjectId(), new HashSet<>());
+                    }
+                    map.get(acl.getSubjectId()).add(endpoint);
+                }
+            }
+
+            return map;
         });
     }
 

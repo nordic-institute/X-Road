@@ -32,11 +32,16 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 
@@ -80,6 +85,11 @@ public class EmptyServerConf implements ServerConfProvider {
     public RestServiceDetailsListType getRestServices(
             ClientId serviceProvider) {
         return null;
+    }
+
+    @Override
+    public Map<XRoadId, Set<String>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
+        throw new NotImplementedException("Not implemented");
     }
 
     @Override

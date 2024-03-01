@@ -40,7 +40,7 @@ import ee.ria.xroad.proxy.testutil.TestGlobalConfWithDs;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
- import lombok.SneakyThrows;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
