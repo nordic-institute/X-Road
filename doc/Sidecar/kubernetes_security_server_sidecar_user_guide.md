@@ -259,7 +259,7 @@ kubectl describe pod -n <namespace name> <pod name>
 Get a shell to the container running in the Pod by running (**reference data: 3.1, 3.2**):
 
 ```bash
-kubectl exec -it -n <namespace name> <pod name> bash
+kubectl exec -it -n <namespace name> <pod name> -- bash
 ```
 
 Delete the Pod by running:
@@ -303,7 +303,7 @@ For the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load
 If you don't have an SSH key you can create one by running:
 
 ```bash
-ssh-keygen -f /path/to/.ssh/
+ssh-keygen -f /path/to/.ssh/id_rsa
 ```
 
 Then create a Kubernetes Secret for storing the SSH keys by running (**reference data: 3.1, 3.14**):
