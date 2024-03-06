@@ -61,11 +61,11 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4100',
+          target: env.PROXY_ADDRESS || 'https://ss0:4150',
         },
         '/login': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4100',
+          target: env.PROXY_ADDRESS || 'https://ss0:4150',
         },
       },
     },
