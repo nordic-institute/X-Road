@@ -165,8 +165,8 @@ Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) usin
 [Sign up](https://id.atlassian.com/signup) for an account and
 get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).
 
-Another alternative to report security issues and vulnerabilities is the X-Road bug bounty program that is run on the
-Intigrity platform. [Visit the program details](https://nordic-institute.atlassian.net/wiki/spaces/XRDBUGBOUNTY) to get
+Another alternative to report security issues and vulnerabilities is the X-Road bug bounty program. 
+[Visit the program details](https://nordic-institute.atlassian.net/wiki/spaces/XRDBUGBOUNTY) to get
 started.
 
 ### Your First Code Contribution
