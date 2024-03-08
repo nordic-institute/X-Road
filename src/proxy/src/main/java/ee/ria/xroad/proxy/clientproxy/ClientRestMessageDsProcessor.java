@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.HttpStatus;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -124,6 +126,9 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     private void processResponse(XrdDataSpaceClient.XrdClientRequest xrdClientRequest,
                                  EdcHttpResponse response, Response jResponse) throws Exception {
         log.trace("sendResponse()");
+        if (response.statusCode() == HttpStatus.SC_FORBIDDEN) {
+            throw new CodedException.Fault("Server.ServerProxy.AccessDenied", "Access denied");
+        }
         jResponse.setStatus(response.statusCode());
 
         //TODO handle bad request/edc failure

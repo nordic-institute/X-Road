@@ -31,83 +31,140 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import jakarta.annotation.PostConstruct;
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
-import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.api.management.asset.v3.AssetApi;
+import org.eclipse.edc.connector.api.management.configuration.transform.ManagementApiTypeTransformerRegistryImpl;
 import org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi;
 import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
+import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.policy.spi.PolicyDefinition;
+import org.eclipse.edc.core.transform.TransformerContextImpl;
+import org.eclipse.edc.core.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromCriterionTransformer;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.core.transform.transformer.from.JsonObjectFromQuerySpecTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToPolicyTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonObjectToQuerySpecTransformer;
+import org.eclipse.edc.core.transform.transformer.to.JsonValueToGenericTypeTransformer;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.AndConstraint;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
+import org.eclipse.edc.transform.spi.TransformerContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
-import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;
-import static org.eclipse.edc.connector.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
-import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
-import static org.eclipse.edc.connector.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_DATA_ADDRESS;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_PROPERTIES;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.EDC_ASSET_TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_CONTENT_TYPE;
-import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_NAME;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
-@RequiredArgsConstructor
 @Component
 @Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
 @Slf4j
 public class AssetsRegistrationJob {
 
+    private static final String XROAD_NAMESPACE = "https://x-road.eu/v0.1/ns/";
+    private static final String XROAD_JOB_MANAGED_PROPERTY = XROAD_NAMESPACE + "xroadJobManaged";
+
+    private static final String XROAD_CLIENT_ID_CONSTRAINT = "xroad:clientId";
+    private static final String XROAD_DATAPATH_CONSTRAINT = "xroad:datapath";
+    private static final String XROAD_GLOBALGROUP_CONSTRAINT = "xroad:globalGroupMember";
+
     private final DataplaneSelectorApi dataplaneSelectorApi;
     private final AssetApi assetApi;
     private final PolicyDefinitionApi policyDefinitionApi;
     private final ContractDefinitionApi contractDefinitionApi;
+    private final TransformerContext context;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final String providerDataplaneId = "http-provider-dataplane";
-    private final String allAllowedPolicyId = "allow-all-policy";
+
+    public AssetsRegistrationJob(DataplaneSelectorApi dataplaneSelectorApi, AssetApi assetApi,
+                                 PolicyDefinitionApi policyDefinitionApi, ContractDefinitionApi contractDefinitionApi) {
+        this.dataplaneSelectorApi = dataplaneSelectorApi;
+        this.assetApi = assetApi;
+        this.policyDefinitionApi = policyDefinitionApi;
+        this.contractDefinitionApi = contractDefinitionApi;
+        this.context = new TransformerContextImpl(registerTransformers());
+    }
+
+    private TypeTransformerRegistry registerTransformers() {
+        var jsonLdObjectMapper = JacksonJsonLd.createObjectMapper();
+        var registry = new ManagementApiTypeTransformerRegistryImpl(new TypeTransformerRegistryImpl());
+        var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
+
+        registry.register(new JsonValueToGenericTypeTransformer(jsonLdObjectMapper));
+
+        registry.register(new JsonObjectToPolicyTransformer());
+        registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory));
+
+        registry.register(new JsonObjectToPolicyDefinitionTransformer());
+        registry.register(new JsonObjectFromPolicyDefinitionTransformer(jsonBuilderFactory, JacksonJsonLd.createObjectMapper()));
+
+        registry.register(new JsonObjectToQuerySpecTransformer());
+        registry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
+
+        registry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
+        registry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, jsonLdObjectMapper));
+
+        return registry;
+    }
 
     @PostConstruct
     public void registerDataPlane() {
-        // todo: recheck
         log.info("Creating dataplane");
+        // creates or updates the dataplane
         dataplaneSelectorApi.addEntry(createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, DATAPLANE_INSTANCE_TYPE)
+                .add(TYPE, DataPlaneInstance.DATAPLANE_INSTANCE_TYPE)
                 .add(ID, providerDataplaneId)
 
                 .add(DataPlaneInstance.URL, "http://%s:%s/control/transfer"
                         .formatted(GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
                                 SystemProperties.dataspacesControlListenPort()))
-                .add(ALLOWED_SOURCE_TYPES, createArrayBuilder()
+                .add(DataPlaneInstance.ALLOWED_SOURCE_TYPES, createArrayBuilder()
                         .add("HttpData")
                         .build())
-                .add(ALLOWED_DEST_TYPES, createArrayBuilder()
+                .add(DataPlaneInstance.ALLOWED_DEST_TYPES, createArrayBuilder()
                         .add("HttpData")
                         .add("HttpProxy")
                         .build())
@@ -118,49 +175,188 @@ public class AssetsRegistrationJob {
                         .build())
                 .build()
         );
-
     }
 
     @Scheduled(initialDelay = 1, fixedDelay = 5 * 60, timeUnit = SECONDS) //every 5 minutes;
     public void registerAssets() throws Exception {
-        createAllowAllPolicy();
-        createAssets();
+        final JobContext jobContext = fetchAllJobManagedIds();
+        process(jobContext);
+        deleteNotRelevantObjects(jobContext);
     }
 
-    private void createAllowAllPolicy() {
-        // todo: all allowed policy for poc
-        try {
-            policyDefinitionApi.getPolicyDefinition(allAllowedPolicyId);
-            log.info("Policy definition {} exists.", allAllowedPolicyId);
-        } catch (FeignException.NotFound notFound) {
-            // policy does not exist, create new
-            log.info("Creating new policy definition {}", allAllowedPolicyId);
-            var createPolicyDefitinionResponse = policyDefinitionApi.createPolicyDefinition(createObjectBuilder()
-                    .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                    .add(TYPE, EDC_POLICY_DEFINITION_TYPE)
-                    .add(ID, allAllowedPolicyId)
-                    .add(EDC_POLICY_DEFINITION_POLICY, createObjectBuilder()
-                            .add("type", PolicyType.SET.getType()))
-                    .build());
-            log.info("Policy definition {} created. Api response: {}", allAllowedPolicyId, createPolicyDefitinionResponse);
-        }
+
+    private JobContext fetchAllJobManagedIds() {
+        JobContext jobContext = new JobContext();
+        Criterion criterion = criterion("privateProperties.'%s'".formatted(XROAD_JOB_MANAGED_PROPERTY),
+                "=",
+                Boolean.TRUE.toString());
+
+        assetApi.requestAssets(toJsonObject(QuerySpec.Builder.newInstance()
+                        .filter(criterion)
+                        .build()))
+                .stream()
+                .map(x -> (JsonObject) x)
+                .map(x -> x.getString(ID))
+                .forEach(jobContext.assetIds::add);
+
+        // query policy and contract definitions by property filter is not supported in EDC, using filter.
+        Predicate<JsonObject> xRoadManagedObjectFilter = jsonObject -> {
+            try {
+                return Boolean.TRUE.toString().equals(
+                        jsonObject.get("privateProperties").asJsonObject().getString(XROAD_JOB_MANAGED_PROPERTY));
+            } catch (Exception e) {
+                return false;
+            }
+        };
+
+        policyDefinitionApi.queryPolicyDefinitions(toJsonObject(QuerySpec.Builder.newInstance()
+                        // .filter(criterion)  // todo: edc: Querying Map types is not yet supported
+                        .build()))
+                .stream()
+                .map(x -> (JsonObject) x)
+                .filter(xRoadManagedObjectFilter)
+                .map(x -> x.getString(ID))
+                .forEach(jobContext.policyDefinitionIds::add);
+
+        contractDefinitionApi.queryAllContractDefinitions(toJsonObject(QuerySpec.Builder.newInstance()
+                        // .filter(criterion) // todo: edc: Querying Map types is not yet supported
+                        .build()))
+                .stream()
+                .map(x -> (JsonObject) x)
+                .filter(xRoadManagedObjectFilter)
+                .map(x -> x.getString(ID))
+                .forEach(jobContext.contractDefinitionIds::add);
+
+        return jobContext;
     }
 
-    private void createAssets() throws Exception {
-        log.info("Creating assets");
+    private void deleteNotRelevantObjects(JobContext jobContext) {
+        jobContext.assetIds.forEach(assetId -> {
+            try {
+                assetApi.removeAsset(assetId);
+            } catch (Exception e) {
+                log.info("Error deleting asset [{}]", assetId, e);
+            }
+        });
+
+        jobContext.policyDefinitionIds.forEach(policyId -> {
+            try {
+                policyDefinitionApi.deletePolicyDefinition(policyId);
+            } catch (Exception e) {
+                log.info("Error deleting policy definition [{}]", policyId, e);
+            }
+        });
+
+        jobContext.contractDefinitionIds.forEach(contractId -> {
+            try {
+                contractDefinitionApi.deleteContractDefinition(contractId);
+            } catch (Exception e) {
+                log.info("Error deleting contract definition [{}]", contractId, e);
+            }
+        });
+
+    }
+
+    private void process(JobContext jobContext) throws Exception {
+        log.info("Processing services");
         for (ClientId.Conf member : ServerConf.getMembers()) {
             for (ServiceId.Conf service : ServerConf.getAllServices(member)) {
-                String assetId = service.asEncodedId();
-                log.info("Processing service {}", assetId);
-                createOrUpdateAsset(service, assetId);
-                if (fetchAsset(assetId).isEmpty()) {
-                    createContractDefinitionForAsset(assetId);
+                if (ServerConf.getDisabledNotice(service) == null) {
+                    // service not disabled
+                    String assetId = service.asEncodedId();
+                    log.info("Processing service {}", assetId);
+                    createOrUpdateAsset(service, assetId, jobContext);
+                    createPolicyAndContractDefinition(service, assetId, member, jobContext);
                 }
             }
         }
     }
 
-    private void createOrUpdateAsset(ServiceId.Conf service, String assetId) {
+    private void createPolicyAndContractDefinition(ServiceId.Conf service, String assetId, ClientId.Conf member, JobContext jobContext) {
+        Map<XRoadId, Set<String>> allowedClients = ServerConf.getAllowedClients(member, service.getServiceCode());
+
+        for (XRoadId subjectId : allowedClients.keySet()) {
+            Set<String> endpointPatterns = allowedClients.get(subjectId);
+            if (!endpointPatterns.isEmpty()) {
+                AtomicConstraint clientConstraint;
+                if (subjectId instanceof GlobalGroupId) {
+                    clientConstraint = AtomicConstraint.Builder.newInstance()
+                            .leftExpression(new LiteralExpression(XROAD_GLOBALGROUP_CONSTRAINT))
+                            .operator(Operator.EQ)
+                            .rightExpression(new LiteralExpression(subjectId.asEncodedId()))
+                            .build();
+                } else if (subjectId instanceof LocalGroupId) {
+                    // todo: implement. not yet supported.
+                    continue;
+                } else {
+                    // single client id
+                    clientConstraint = AtomicConstraint.Builder.newInstance()
+                            .leftExpression(new LiteralExpression(XROAD_CLIENT_ID_CONSTRAINT))
+                            .operator(Operator.EQ)
+                            .rightExpression(new LiteralExpression(subjectId.asEncodedId()))
+                            .build();
+                }
+
+                AtomicConstraint datapathConstraint = AtomicConstraint.Builder.newInstance()
+                        .leftExpression(new LiteralExpression(XROAD_DATAPATH_CONSTRAINT))
+                        .operator(Operator.IS_ANY_OF)
+                        .rightExpression(new LiteralExpression(toJsonArrayString(endpointPatterns)))
+                        .build();
+
+                String policyDefinitionId = "%s:%s-policyDef".formatted(assetId, subjectId.asEncodedId());
+
+                PolicyDefinition policyDefinition = PolicyDefinition.Builder.newInstance()
+                        .id(policyDefinitionId)
+                        .policy(Policy.Builder.newInstance()
+                                .type(PolicyType.SET)
+                                .permission(Permission.Builder.newInstance()
+                                        .action(Action.Builder.newInstance().type("http://www.w3.org/ns/odrl/2/use").build())
+                                        .constraint(AndConstraint.Builder.newInstance()
+                                                .constraint(clientConstraint)
+                                                .constraint(datapathConstraint)
+                                                .build())
+                                        .build())
+                                .build())
+                        .privateProperties(Map.of(
+                                XROAD_JOB_MANAGED_PROPERTY, Boolean.TRUE.toString()))
+                        .build();
+
+                createOrUpdatePolicyDef(policyDefinitionId, policyDefinition, jobContext);
+                createContractDefinitionForAsset(assetId, policyDefinitionId, jobContext);
+            }
+        }
+    }
+
+    @SneakyThrows
+    private String toJsonArrayString(Set<String> endpointPatterns) {
+        return objectMapper.writeValueAsString(endpointPatterns);
+    }
+
+    private JsonObject toJsonObject(Object object) {
+        return context.transform(object, JsonObject.class);
+    }
+
+    private void createOrUpdatePolicyDef(String policyDefinitionId, PolicyDefinition policyDefinition, JobContext jobContext) {
+        JsonObject policyDefJson = toJsonObject(policyDefinition);
+        jobContext.policyDefinitionIds.remove(policyDefinitionId);
+        if (policyDefinitionExists(policyDefinitionId)) {
+            policyDefinitionApi.updatePolicyDefinition(policyDefinitionId, policyDefJson);
+        } else {
+            policyDefinitionApi.createPolicyDefinition(policyDefJson);
+        }
+    }
+
+    private boolean policyDefinitionExists(String policyDefinitionId) {
+        try {
+            policyDefinitionApi.getPolicyDefinition(policyDefinitionId);
+            return true;
+        } catch (FeignException.NotFound notFound) {
+            return false;
+        }
+    }
+
+    private void createOrUpdateAsset(ServiceId.Conf service, String assetId, JobContext jobContext) {
+        jobContext.assetIds.remove(assetId);
         String serviceBaseUrl = ServerConf.getServiceAddress(service);
 
         Optional<JsonObject> assetOptional = fetchAsset(assetId);
@@ -168,13 +364,16 @@ public class AssetsRegistrationJob {
             log.info("Creating new asset for service {}", assetId);
             assetApi.createAsset(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                    .add(TYPE, EDC_ASSET_TYPE)
+                    .add(TYPE, Asset.EDC_ASSET_TYPE)
                     .add(ID, assetId)
-                    .add(EDC_ASSET_PROPERTIES, createObjectBuilder()
-                            .add(PROPERTY_NAME, "Asset for service %s".formatted(assetId))
-                            .add(PROPERTY_CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .add(Asset.EDC_ASSET_PROPERTIES, createObjectBuilder()
+                            .add(Asset.PROPERTY_NAME, "Asset for service %s".formatted(assetId))
+                            .add(Asset.PROPERTY_CONTENT_TYPE, MediaType.APPLICATION_JSON)
                             .build())
-                    .add(EDC_ASSET_DATA_ADDRESS, createObjectBuilder()
+                    .add(Asset.EDC_ASSET_PRIVATE_PROPERTIES, createObjectBuilder()
+                            .add(XROAD_JOB_MANAGED_PROPERTY, Boolean.TRUE.toString())
+                            .build())
+                    .add(Asset.EDC_ASSET_DATA_ADDRESS, createObjectBuilder()
                             .add("type", "HttpData")
                             .add("proxyPath", Boolean.TRUE.toString())
                             .add("proxyMethod", Boolean.TRUE.toString())
@@ -207,19 +406,28 @@ public class AssetsRegistrationJob {
         }
     }
 
-    private void createContractDefinitionForAsset(String assetId) {
-        log.info("Creating contract definition for asset {}", assetId);
-        contractDefinitionApi.createContractDefinition(createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(ID, "%s-contract-definition".formatted(assetId))
-                .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, allAllowedPolicyId)
-                .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, allAllowedPolicyId)
-                .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createArrayBuilder()
-                        .add(createObjectBuilder()
-                                .add(CRITERION_OPERAND_LEFT, Asset.PROPERTY_ID)
-                                .add(CRITERION_OPERATOR, "=")
-                                .add(CRITERION_OPERAND_RIGHT, assetId)))
-                .build());
+    private void createContractDefinitionForAsset(String assetId, String policyId, JobContext jobContext) {
+        String contractDefId = "%s-contract-def".formatted(policyId);
+        jobContext.contractDefinitionIds.remove(contractDefId);
+        try {
+            contractDefinitionApi.getContractDefinition(contractDefId);
+        } catch (FeignException.NotFound notFound) {
+            log.info("Creating contract definition for asset {}", assetId);
+            contractDefinitionApi.createContractDefinition(createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                    .add(ID, contractDefId)
+                    .add(ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID, policyId)
+                    .add(ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID, policyId)
+                    .add(ContractDefinition.CONTRACT_DEFINITION_PRIVATE_PROPERTIES, createObjectBuilder()
+                            .add(XROAD_JOB_MANAGED_PROPERTY, Boolean.TRUE.toString())
+                            .build())
+                    .add(ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR, createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add(Criterion.CRITERION_OPERAND_LEFT, Asset.PROPERTY_ID)
+                                    .add(Criterion.CRITERION_OPERATOR, "=")
+                                    .add(Criterion.CRITERION_OPERAND_RIGHT, assetId)))
+                    .build());
+        }
     }
 
     private Optional<JsonObject> fetchAsset(String assetId) {
@@ -228,6 +436,12 @@ public class AssetsRegistrationJob {
         } catch (FeignException.NotFound notFound) {
             return Optional.empty();
         }
+    }
+
+    private final class JobContext {
+        private final Set<String> assetIds = new HashSet<>();
+        private final Set<String> policyDefinitionIds = new HashSet<>();
+        private final Set<String> contractDefinitionIds = new HashSet<>();
     }
 
 }

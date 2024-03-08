@@ -66,6 +66,7 @@ public class XrdDataSpaceClient {
 
         Map<String, String> headersToSign = new HashMap<>(xrdClientRequest.headers());
         headersToSign.put(assetInfo.authKey(), assetInfo.authCode());
+        headersToSign.put("x-contract-id", assetInfo.contractId()); // todo: maybe possible to get from somewhere else on edc?
 
         var additionalHeaders = xrdSignatureService.sign(xrdClientRequest.clientId(), xrdClientRequest.body(), headersToSign);
         for (Map.Entry<String, String> entry : headersToSign.entrySet()) {

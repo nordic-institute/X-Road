@@ -17,7 +17,7 @@ dependencies {
     implementation("org.eclipse.edc:dsp:$edcVersion")
     implementation("org.eclipse.edc:configuration-filesystem:$edcVersion")
     implementation("org.eclipse.edc:vault-filesystem:$edcVersion")
-    implementation("org.eclipse.edc:iam-mock:$edcVersion")
+//    implementation("org.eclipse.edc:iam-mock:$edcVersion")
     implementation("org.eclipse.edc:management-api:$edcVersion")
     implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
     implementation("org.eclipse.edc:transfer-pull-http-receiver:$edcVersion")
@@ -49,6 +49,9 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
     }
     implementation(project(":security-server:edc:extensions:xroad-payload-signer")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":security-server:edc:extensions:xroad-policy")) {
         exclude group: 'org.eclipse.jetty'
     }
 

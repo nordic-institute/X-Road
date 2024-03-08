@@ -1,0 +1,16 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation("org.eclipse.edc:core-spi:$edcVersion")
+    implementation("org.eclipse.edc:policy-engine-spi:$edcVersion")
+
+    implementation(project(':common:common-domain'))
+    implementation(project(':common:common-verifier')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+
+    testImplementation("org.eclipse.edc:junit:$edcVersion")
+    testImplementation("org.mockito:mockito-core:$mockitoVersion")
+}

@@ -30,8 +30,10 @@ package org.niis.xroad.edc.extension.signer;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
+import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.dataplane.api.validation.ConsumerPullTransferDataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -85,6 +87,12 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     private WebService webService;
 
     @Inject
+    private ContractNegotiationStore contractNegotiationStore;
+
+    @Inject
+    private PolicyEngine policyEngine;
+
+    @Inject
     private EdcHttpClient httpClient;
 
     @Inject
@@ -115,7 +123,8 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
 
         var signService = new XrdSignatureService();
         var publicApiController = new XrdDataPlanePublicApiController(pipelineService, dataAddressResolver,
-                new XrdEdcSignService(signService, monitor), monitor, executorService);
+                new XrdEdcSignService(signService, monitor), monitor, executorService,
+                contractNegotiationStore, policyEngine);
 
         //TODO xroad8 this added port mapping is added due to a strange behavior ir edc jersey registry. Consider refactor.
         webServer.addPortMapping(configuration.getContextAlias(), configuration.getPort(), configuration.getPath());
