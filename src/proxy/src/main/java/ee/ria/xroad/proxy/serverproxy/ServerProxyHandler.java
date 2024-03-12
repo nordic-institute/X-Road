@@ -30,6 +30,8 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import ee.ria.xroad.proxy.util.PerformanceLogger;
@@ -85,7 +87,8 @@ class ServerProxyHandler extends HandlerBase {
             GlobalConf.verifyValidity();
 
             ClientProxyVersionVerifier.check(request);
-            final MessageProcessorBase processor = createRequestProcessor(request, response, opMonitoringData);
+            final MessageProcessorBase processor = createRequestProcessor(RequestWrapper.of(request),
+                    ResponseWrapper.of(response), opMonitoringData);
             processor.process();
         } catch (Throwable e) { // We want to catch serious errors as well
             CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, e);
@@ -107,7 +110,7 @@ class ServerProxyHandler extends HandlerBase {
         return true;
     }
 
-    private MessageProcessorBase createRequestProcessor(Request request, Response response,
+    private MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
                                                         OpMonitoringData opMonitoringData) {
 
         if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeaders().get(HEADER_MESSAGE_TYPE))) {
@@ -125,7 +128,7 @@ class ServerProxyHandler extends HandlerBase {
         sendErrorResponse(request, response, callback, e);
     }
 
-    private static X509Certificate[] getClientSslCertChain(Request request) {
+    private static X509Certificate[] getClientSslCertChain(RequestWrapper request) {
         Object attribute = request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
         if (attribute != null) {
             return ((EndPoint.SslSessionData) attribute).peerCertificates();

@@ -31,18 +31,15 @@ import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.clientproxy.AsicContainerClientRequestProcessor;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
-import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
-import org.eclipse.jetty.io.Content;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.util.Fields;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -73,7 +70,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @RunWith(Parameterized.class)
@@ -89,23 +85,18 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Test
     public void assertVerificationConfiguration() throws IOException {
-        final var request = mock(Request.class);
-        final var response = mock(Response.class);
-        final var httpFields = mock(HttpFields.Mutable.class);
-
-        when(response.getHeaders()).thenReturn(httpFields);
+        final var request = mock(RequestWrapper.class);
+        final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
 
         final AsicContainerClientRequestProcessor proc = new AsicContainerClientRequestProcessor(
                 "/verificationconf", request, response);
-        try (
-                var sink = mockStatic(Content.Sink.class)
-        ) {
-            sink.when(() -> Content.Sink.asOutputStream(response)).thenReturn(mockOutputStream);
 
-            proc.process();
-        }
+        when(response.getOutputStream()).thenReturn(mockOutputStream);
+
+        proc.process();
+
 
         try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(mockOutputStream.bos.toByteArray()))) {
             ZipEntry entry = zip.getNextEntry();
@@ -132,35 +123,25 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         startTimestamping();
         waitForTimestampSuccessful();
 
-        final var request = mock(Request.class);
-        final var fields = mock(Fields.class);
+        final var request = mock(RequestWrapper.class);
         final var httpURI = mock(HttpURI.class);
         when(request.getHttpURI()).thenReturn(httpURI);
-        when(fields.getValue(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
-        when(fields.getValue(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
-        when(fields.getValue(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
-        when(fields.getValue(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
-        when(fields.getValue(Mockito.eq("queryId"))).thenReturn(queryId);
+        when(request.getParameter(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
+        when(request.getParameter(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
+        when(request.getParameter(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
+        when(request.getParameter(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
+        when(request.getParameter(Mockito.eq("queryId"))).thenReturn(queryId);
 
-        final var response = mock(Response.class);
-        final var httpFields = mock(HttpFields.Mutable.class);
-
-        when(response.getHeaders()).thenReturn(httpFields);
+        final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
+        when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
                 new AsicContainerClientRequestProcessor("/asic", request, response);
 
-        try (
-                var sink = mockStatic(Content.Sink.class);
-                var mRequest = mockStatic(Request.class)
-        ) {
-            sink.when(() -> Content.Sink.asOutputStream(response)).thenReturn(mockOutputStream);
-            mRequest.when(() -> Request.getParameters(request)).thenReturn(fields);
+        processor.process();
 
-            processor.process();
-        }
 
         if (encrypted) {
             // sanity check, we are excepting a gpg encrypted archive
@@ -197,36 +178,25 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         params.put("unique", null);
         params.put("requestOnly", null);
 
-        final var request = mock(Request.class);
-        final var fields = mock(Fields.class);
+        final var request = mock(RequestWrapper.class);
         final var httpURI = mock(HttpURI.class);
         when(request.getHttpURI()).thenReturn(httpURI);
-        when(fields.getValue(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
-        when(fields.getValue(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
-        when(fields.getValue(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
-        when(fields.getValue(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
-        when(fields.getValue(Mockito.eq("queryId"))).thenReturn(queryId);
-        when(fields.toStringArrayMap()).thenReturn(params);
+        when(request.getParameter(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
+        when(request.getParameter(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
+        when(request.getParameter(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
+        when(request.getParameter(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
+        when(request.getParameter(Mockito.eq("queryId"))).thenReturn(queryId);
+        when(request.getParametersMap()).thenReturn(params);
 
-        final var response = mock(Response.class);
-        final var httpFields = mock(HttpFields.Mutable.class);
-        when(response.getHeaders()).thenReturn(httpFields);
+        final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
-        //when(response.getOutputStream()).thenReturn(mockOutputStream);
+        when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
                 new AsicContainerClientRequestProcessor("/asic", request, response);
 
-        try (
-                var sink = mockStatic(Content.Sink.class);
-                var mRequest = mockStatic(Request.class)
-        ) {
-            sink.when(() -> Content.Sink.asOutputStream(response)).thenReturn(mockOutputStream);
-            mRequest.when(() -> Request.getParameters(request)).thenReturn(fields);
-
-            processor.process();
-        }
+        processor.process();
 
         if (encrypted) {
             // sanity check, we are excepting a gpg encrypted archive

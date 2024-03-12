@@ -30,6 +30,8 @@ import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import ee.ria.xroad.proxy.util.PerformanceLogger;
@@ -63,7 +65,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     protected final boolean storeOpMonitoringData;
 
-    abstract MessageProcessorBase createRequestProcessor(Request request, Response response,
+    abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
+                                                         ResponseWrapper response,
                                                          OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
@@ -75,7 +78,10 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         MessageProcessorBase processor = null;
 
         try {
-            processor = createRequestProcessor(request, response, opMonitoringData);
+            processor = createRequestProcessor(
+                    RequestWrapper.of(request),
+                    ResponseWrapper.of(response),
+                    opMonitoringData);
 
             if (processor != null) {
                 handled = true;
@@ -102,7 +108,6 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             // contain full error code. Thus, we must not attach additional error code prefixes to them.
 
             failure(processor, request, response, callback, e, opMonitoringData);
-            callback.failed(e);
         } catch (CodedExceptionWithHttpStatus e) {
             handled = true;
 
@@ -113,7 +118,6 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             // No need to update operational monitoring fields here either.
 
             failure(response, callback, e, opMonitoringData);
-            callback.failed(e);
         } catch (Throwable e) { // We want to catch serious errors as well
             handled = true;
 
@@ -125,7 +129,6 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             updateOpMonitoringSoapFault(opMonitoringData, cex);
 
             failure(processor, request, response, callback, cex, opMonitoringData);
-            callback.failed(e);
         } finally {
             if (handled) {
                 if (storeOpMonitoringData) {
@@ -162,15 +165,15 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         sendPlainTextErrorResponse(response, callback, e.getStatus(), e.getFaultString());
     }
 
-    static boolean isGetRequest(Request request) {
+    static boolean isGetRequest(RequestWrapper request) {
         return request.getMethod().equalsIgnoreCase("GET");
     }
 
-    static boolean isPostRequest(Request request) {
+    static boolean isPostRequest(RequestWrapper request) {
         return request.getMethod().equalsIgnoreCase("POST");
     }
 
-    static IsAuthenticationData getIsAuthenticationData(Request request) {
+    static IsAuthenticationData getIsAuthenticationData(RequestWrapper request) {
         var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
 
         var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext

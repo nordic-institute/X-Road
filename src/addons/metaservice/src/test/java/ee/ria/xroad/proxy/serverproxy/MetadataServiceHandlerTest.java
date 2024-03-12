@@ -42,6 +42,8 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -70,9 +72,6 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.io.Content;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -128,7 +127,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 
@@ -163,8 +161,8 @@ public class MetadataServiceHandlerTest {
 
 
     private HttpClient httpClientMock;
-    private Request mockRequest;
-    private Response mockResponse;
+    private RequestWrapper mockRequest;
+    private ResponseWrapper mockResponse;
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
@@ -193,13 +191,10 @@ public class MetadataServiceHandlerTest {
         ServerConf.reload(new TestSuiteServerConf());
 
         httpClientMock = mock(HttpClient.class);
-        mockRequest = mock(Request.class);
-        mockResponse = mock(Response.class);
+        mockRequest = mock(RequestWrapper.class);
+        mockResponse = mock(ResponseWrapper.class);
 
         mockServletOutputStream = new MetaserviceTestUtil.StubServletOutputStream();
-        try (var util = mockStatic(Content.Sink.class)) {
-            util.when(() -> Content.Sink.asOutputStream(mockResponse)).thenReturn(mockServletOutputStream);
-        }
 
         mockProxyMessage = mock(ProxyMessage.class);
 
@@ -627,7 +622,7 @@ public class MetadataServiceHandlerTest {
      * Prepare TestMetadataServiceHandlerImpl, wiremock, et al for get WSDL tests
      */
     private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId, boolean isRest) throws
-            Exception {
+                                                                                                             Exception {
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
         TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl();
@@ -650,12 +645,6 @@ public class MetadataServiceHandlerTest {
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
                 .willReturn(aResponse().withBodyFile("wsdl.wsdl")));
         mockServer.start();
-
-
-        try (var util = mockStatic(Content.Sink.class)) {
-            util.when(() -> Content.Sink.asOutputStream(mockResponse)).thenReturn(mockServletOutputStream);
-        }
-
 
         handlerToTest.canHandle(serviceId, mockProxyMessage);
 

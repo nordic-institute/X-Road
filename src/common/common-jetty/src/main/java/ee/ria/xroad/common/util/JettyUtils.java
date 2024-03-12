@@ -65,6 +65,13 @@ public final class JettyUtils {
                 .orElse(null);
     }
 
+    public static String getTarget(final RequestWrapper request) {
+        return Optional.of(request)
+                .map(RequestWrapper::getHttpURI)
+                .map(HttpURI::getPath)
+                .orElse(null);
+    }
+
     public static void setContentType(final Response response, final MimeTypes.Type contentType) {
         setContentType(response, contentType == null ? null : contentType.asString());
     }
