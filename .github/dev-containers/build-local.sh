@@ -24,7 +24,7 @@ rm -rf build
 ./init_context.sh
 mkdir -p build/packages
 cp ../../../src/packages/build/ubuntu22.04/* build/packages/
-docker build -t centralserver .
+docker build -t securityserver .
 
 # Set up TestCA context and build container
 cd ../testca
