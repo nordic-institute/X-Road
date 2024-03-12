@@ -165,9 +165,7 @@ public class AssetsRegistrationJob {
                 String assetId = service.asEncodedId();
                 log.info("Processing service {}", assetId);
                 createOrUpdateAsset(service, assetId);
-                if (fetchAsset(assetId).isEmpty()) {
-                    createContractDefinitionForAsset(assetId);
-                }
+                createContractDefinitionForAsset(assetId);
             }
         }
     }
@@ -221,17 +219,22 @@ public class AssetsRegistrationJob {
 
     private void createContractDefinitionForAsset(String assetId) {
         log.info("Creating contract definition for asset {}", assetId);
-        contractDefinitionApi.createContractDefinition(createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(ID, "%s-contract-definition".formatted(assetId))
-                .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, allAllowedPolicyId)
-                .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, allAllowedPolicyId)
-                .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createArrayBuilder()
-                        .add(createObjectBuilder()
-                                .add(CRITERION_OPERAND_LEFT, Asset.PROPERTY_ID)
-                                .add(CRITERION_OPERATOR, "=")
-                                .add(CRITERION_OPERAND_RIGHT, assetId)))
-                .build());
+        String contractDefId = "%s-contract-definition".formatted(assetId);
+        try {
+            contractDefinitionApi.getContractDefinition(contractDefId);
+        } catch (FeignException.NotFound notFound) {
+            contractDefinitionApi.createContractDefinition(createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                    .add(ID, contractDefId)
+                    .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, allAllowedPolicyId)
+                    .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, allAllowedPolicyId)
+                    .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add(CRITERION_OPERAND_LEFT, Asset.PROPERTY_ID)
+                                    .add(CRITERION_OPERATOR, "=")
+                                    .add(CRITERION_OPERAND_RIGHT, assetId)))
+                    .build());
+        }
     }
 
     private Optional<JsonObject> fetchAsset(String assetId) {
