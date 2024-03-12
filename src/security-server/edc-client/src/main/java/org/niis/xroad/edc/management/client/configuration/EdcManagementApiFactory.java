@@ -34,6 +34,7 @@ import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
 import feign.jaxrs.JakartaContract;
 import jakarta.ws.rs.core.MediaType;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -43,7 +44,6 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.ssl.SSLContexts;
 import org.eclipse.edc.connector.api.management.asset.v3.AssetApi;
 import org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi;
 import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
@@ -57,6 +57,7 @@ import org.niis.xroad.edc.management.client.FeignContractDefinitionApi;
 import org.niis.xroad.edc.management.client.FeignContractNegotiationApi;
 import org.niis.xroad.edc.management.client.FeignPolicyDefinitionApi;
 import org.niis.xroad.edc.management.client.FeignTransferProcessApi;
+import org.niis.xroad.ssl.SSLContextBuilder;
 
 @Slf4j
 public class EdcManagementApiFactory {
@@ -127,10 +128,11 @@ public class EdcManagementApiFactory {
                 .build();
     }
 
+    @SneakyThrows
     private HttpClientConnectionManager buildConnectionManager() {
         final var sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
                 .setHostnameVerifier(new NoopHostnameVerifier())
-                .setSslContext(SSLContexts.createDefault())
+                .setSslContext(SSLContextBuilder.create().sslContext())
                 .build();
 
         return PoolingHttpClientConnectionManagerBuilder.create()

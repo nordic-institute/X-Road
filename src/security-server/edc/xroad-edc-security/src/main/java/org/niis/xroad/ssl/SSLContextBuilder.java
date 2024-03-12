@@ -24,22 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.ssl;
 
-package ee.ria.xroad.common.conf.globalconf;
+import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.proxy.conf.AuthKeyManager;
 
-import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
+import lombok.experimental.UtilityClass;
 
-public record ServerAddressInfo(
-        String address,
-        boolean dsSupported,
-        @Deprecated
-        String dsManagementUrl,
-        String baseDsProtocolUrl,
-        @Deprecated
-        String dsPublicUrl) {
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
-    public String getProtocolUrl() {
-        var protocol = isSslEnabled() ? "https" : "http";
-        return String.format("%s://%s", protocol, baseDsProtocolUrl);
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+import static org.niis.xroad.ssl.EdcSSLConstants.SSL_PROTOCOL;
+
+@UtilityClass
+public class SSLContextBuilder {
+    public static Result create() throws KeyManagementException, NoSuchAlgorithmException {
+        var trustManager = new AuthTrustManager();
+        SSLContext ctx = SSLContext.getInstance(SSL_PROTOCOL);
+        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()}, new TrustManager[]{trustManager},
+                new SecureRandom());
+        return new Result(ctx, trustManager);
+    }
+
+    public record Result(SSLContext sslContext, X509TrustManager trustManager) {
     }
 }

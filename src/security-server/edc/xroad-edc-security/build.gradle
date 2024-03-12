@@ -4,6 +4,7 @@ plugins {
 
 
 dependencies {
+    api(project(':common:common-keyconf'))
     api(project(':common:common-globalconf')) {
         exclude group: 'org.eclipse.jetty'
     }

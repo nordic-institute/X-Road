@@ -5,6 +5,9 @@ plugins {
 }
 
 dependencies {
+    implementation project(":common:common-keyconf")
+    implementation project(':security-server:edc:xroad-edc-security')
+
     api("io.github.openfeign:feign-jackson:$openFeignVersion")
     api("io.github.openfeign:feign-jakarta:$openFeignVersion")
     api("io.github.openfeign:feign-hc5:$openFeignVersion")

@@ -5,10 +5,13 @@ plugins {
 dependencies {
     implementation project(':signer-protocol')
     implementation project(':common:common-core')
+    implementation project(':common:common-keyconf')
     implementation project(':security-server:edc:xroad-edc-security')
 
     implementation("org.eclipse.edc:core-spi:$edcVersion")
-
+    implementation("org.eclipse.edc:connector-core:$edcVersion")
+    api("org.eclipse.jetty:jetty-servlet:$edcJettyVersion")
+//    api("org.eclipse.jetty:jetty-server:$edcJettyVersion")
     implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
 
     implementation("org.eclipse.edc:data-plane-core:$edcVersion")

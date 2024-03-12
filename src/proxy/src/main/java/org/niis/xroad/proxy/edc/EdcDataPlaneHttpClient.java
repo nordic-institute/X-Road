@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.proxy.edc;
 
+import ee.ria.xroad.common.CodedException;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,14 +37,23 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.niis.xroad.ssl.SSLContextBuilder;
 
-import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
 
 /**
@@ -52,7 +63,7 @@ import static org.apache.hc.core5.util.Timeout.ofSeconds;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EdcDataPlaneHttpClient {
 
-    public static EdcHttpResponse sendRequest(ClassicHttpRequest request) throws IOException {
+    public static EdcHttpResponse sendRequest(ClassicHttpRequest request) {
         log.info("Will send [{}] request to {}", request.getMethod(), request.getRequestUri());
         try (CloseableHttpClient httpClient = createHttpClient()) {
             return httpClient.execute(request, response -> {
@@ -79,15 +90,27 @@ public class EdcDataPlaneHttpClient {
                     );
                 }
             });
+        } catch (Exception e) {
+            throw new CodedException(X_INTERNAL_ERROR, e, "Error during edc dataplane request. Root Cause: " + e.getMessage());
         }
     }
 
-    private static CloseableHttpClient createHttpClient() {
+    private static CloseableHttpClient createHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
         var httpClientProperties = new HttpClientProperties();
 
-        var connectionManager = new BasicHttpClientConnectionManager();
+
+        final SSLConnectionSocketFactory sslsf =
+                new SSLConnectionSocketFactory(SSLContextBuilder.create().sslContext(), NoopHostnameVerifier.INSTANCE);
+        final Registry<ConnectionSocketFactory> socketFactoryRegistry =
+                RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("https", sslsf)
+                        .register("http", new PlainConnectionSocketFactory())
+                        .build();
+
+        var connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
         connectionManager.setConnectionConfig(ConnectionConfig.custom()
                 .setConnectTimeout(ofSeconds(httpClientProperties.getConnectionTimeoutSeconds()))
+
                 .build());
 
         return HttpClientBuilder.create()

@@ -24,22 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.ssl;
 
-package ee.ria.xroad.common.conf.globalconf;
+import lombok.experimental.UtilityClass;
 
-import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
+import static io.grpc.netty.shaded.io.netty.handler.ssl.Ciphers.TLS_AES_128_GCM_SHA256;
+import static io.grpc.netty.shaded.io.netty.handler.ssl.Ciphers.TLS_AES_256_GCM_SHA384;
 
-public record ServerAddressInfo(
-        String address,
-        boolean dsSupported,
-        @Deprecated
-        String dsManagementUrl,
-        String baseDsProtocolUrl,
-        @Deprecated
-        String dsPublicUrl) {
+@UtilityClass
+public class EdcSSLConstants {
+    public static final String SSL_PROTOCOL = "TLSv1.3";
+    public static final String[] SSL_CYPHER_SUITES = new String[]{TLS_AES_128_GCM_SHA256, TLS_AES_256_GCM_SHA384};
 
-    public String getProtocolUrl() {
-        var protocol = isSslEnabled() ? "https" : "http";
-        return String.format("%s://%s", protocol, baseDsProtocolUrl);
-    }
 }

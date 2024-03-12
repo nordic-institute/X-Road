@@ -28,6 +28,7 @@
 package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -41,22 +42,31 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.resource.ResourceFactory;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
+import org.niis.xroad.ssl.EdcSSLConstants;
+import org.niis.xroad.ssl.SSLContextBuilder;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.SystemProperties.DEFAULT_CONNECTOR_HOST;
 
+/**
+ * Handles edc dataplane callback. Config is somewhat similar to ServerProxy. Might be reused.
+ */
 @Component
 @Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
 @RequiredArgsConstructor
 @Slf4j
 public class EdcProxy {
+    private static final int SSL_SESSION_TIMEOUT = 600;
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());
     private static final String EDC_CONNECTOR_NAME = "EdcProxyConnector";
 
@@ -88,13 +98,13 @@ public class EdcProxy {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private void createConnector() {
+    private void createConnector() throws Exception {
         log.trace("createConnector()");
 
         int port = SystemProperties.getEdcProxyListenPort();
 
-        // todo: poc. ssl/antidos can be configured
-        ServerConnector connector = new ServerConnector(server, ACCEPTOR_COUNT, -1);
+        ServerConnector connector = SystemProperties.isSslEnabled()
+                ? createClientProxySslConnector(server) : createClientProxyConnector(server);
 
         connector.setName(EDC_CONNECTOR_NAME);
         connector.setPort(port);
@@ -134,4 +144,23 @@ public class EdcProxy {
         server.setHandler(handlers);
     }
 
+
+    private static ServerConnector createClientProxyConnector(Server server) {
+        return SystemProperties.isAntiDosEnabled()
+                ? new AntiDosConnector(server, ACCEPTOR_COUNT) : new ServerConnector(server, ACCEPTOR_COUNT, -1);
+    }
+
+    private static ServerConnector createClientProxySslConnector(Server server) throws NoSuchAlgorithmException, KeyManagementException {
+        var cf = new SslContextFactory.Server();
+        cf.setNeedClientAuth(true);
+        cf.setIncludeProtocols(EdcSSLConstants.SSL_PROTOCOL);
+        cf.setIncludeCipherSuites(EdcSSLConstants.SSL_CYPHER_SUITES);
+        cf.setSessionCachingEnabled(true);
+        cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
+        cf.setSslContext(SSLContextBuilder.create().sslContext());
+
+        return SystemProperties.isAntiDosEnabled()
+                ? new AntiDosConnector(server, ACCEPTOR_COUNT, cf)
+                : new ServerConnector(server, ACCEPTOR_COUNT, -1, cf);
+    }
 }

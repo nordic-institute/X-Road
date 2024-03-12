@@ -52,6 +52,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -88,37 +90,47 @@ public class AssetsRegistrationJob {
     private final AssetApi assetApi;
     private final PolicyDefinitionApi policyDefinitionApi;
     private final ContractDefinitionApi contractDefinitionApi;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private final String providerDataplaneId = "http-provider-dataplane";
     private final String allAllowedPolicyId = "allow-all-policy";
 
     @PostConstruct
+    public void onInit() {
+        scheduler.schedule(this::registerDataPlane, 5, SECONDS);
+    }
+
     public void registerDataPlane() {
         // todo: recheck
-        log.info("Creating dataplane");
-        dataplaneSelectorApi.addEntry(createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add(TYPE, DATAPLANE_INSTANCE_TYPE)
-                .add(ID, providerDataplaneId)
+        try {
+            log.info("Creating dataplane");
+            dataplaneSelectorApi.addEntry(createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                    .add(TYPE, DATAPLANE_INSTANCE_TYPE)
+                    .add(ID, providerDataplaneId)
 
-                .add(DataPlaneInstance.URL, "http://%s:%s/control/transfer"
-                        .formatted(GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
-                                SystemProperties.dataspacesControlListenPort()))
-                .add(ALLOWED_SOURCE_TYPES, createArrayBuilder()
-                        .add("HttpData")
-                        .build())
-                .add(ALLOWED_DEST_TYPES, createArrayBuilder()
-                        .add("HttpData")
-                        .add("HttpProxy")
-                        .build())
-                .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
-                        .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "http://%s:%s/xroad/public/"
-                                .formatted(GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
-                                        SystemProperties.dataspacesPublicListenPort()))
-                        .build())
-                .build()
-        );
-
+                    .add(DataPlaneInstance.URL, "%s://%s:%s/control/transfer"
+                            .formatted(SystemProperties.isSslEnabled() ? "https" : "http",
+                                    GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
+                                    SystemProperties.dataspacesControlListenPort()))
+                    .add(ALLOWED_SOURCE_TYPES, createArrayBuilder()
+                            .add("HttpData")
+                            .build())
+                    .add(ALLOWED_DEST_TYPES, createArrayBuilder()
+                            .add("HttpData")
+                            .add("HttpProxy")
+                            .build())
+                    .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
+                            .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "%s://%s:%s/xroad/public/"
+                                    .formatted(SystemProperties.isSslEnabled() ? "https" : "http",
+                                            GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
+                                            SystemProperties.dataspacesPublicListenPort()))
+                            .build())
+                    .build()
+            );
+        } catch (Exception e) {
+            log.error("Failed to create dataplane and its assets", e);
+        }
     }
 
     @Scheduled(initialDelay = 1, fixedDelay = 5 * 60, timeUnit = SECONDS) //every 5 minutes;

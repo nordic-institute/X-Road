@@ -8,9 +8,16 @@ plugins {
 
 configurations {
     sqlDependencies
+
+    configureEach {
+        exclude group: 'org.eclipse.edc', module: 'jetty-core'
+    }
+
 }
 
 dependencies {
+    implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:$edcJettyVersion")
+
     implementation("org.eclipse.edc:control-plane-api-client:$edcVersion")
     implementation("org.eclipse.edc:control-plane-api:$edcVersion")
     implementation("org.eclipse.edc:control-plane-core:$edcVersion")

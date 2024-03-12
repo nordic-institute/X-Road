@@ -52,7 +52,8 @@ public class ProxyEdcConfig {
 
     @Bean
     EdcManagementApiFactory edcManagementApiFactory() {
-        return new EdcManagementApiFactory(String.format("http://%s:%s",
+        return new EdcManagementApiFactory(String.format("%s://%s:%s",
+                SystemProperties.isSslEnabled() ? "https" : "http",
                 SystemProperties.dataspacesManagementListenAddress(),
                 SystemProperties.dataspacesManagementListenPort()));
     }
