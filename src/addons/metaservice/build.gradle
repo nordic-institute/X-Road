@@ -1,6 +1,7 @@
 dependencies {
     implementation project(':proxy')
     implementation project(':common:common-jetty')
+    implementation project(':common:common-keyconf')
     implementation project(':serverconf')
     implementation project(":common:common-op-monitoring")
     implementation project(":common:common-verifier")

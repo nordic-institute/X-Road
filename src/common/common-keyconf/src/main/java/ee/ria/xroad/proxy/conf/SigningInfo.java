@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,7 @@ import java.util.Date;
 @Slf4j
 @Getter
 @RequiredArgsConstructor
-class SigningInfo extends AbstractDateValidatableInfo {
+public class SigningInfo extends AbstractDateValidatableInfo {
 
     private final String keyId;
     private final String signMechanismName;
@@ -52,9 +51,5 @@ class SigningInfo extends AbstractDateValidatableInfo {
     @Override
     boolean verifyValidity(Date atDate) {
         return !(notAfter.before(atDate) || notBefore.after(atDate));
-    }
-
-    SigningCtx getSigningCtx() {
-        return new SigningCtxImpl(clientId, new SignerSigningKey(keyId, signMechanismName), cert);
     }
 }

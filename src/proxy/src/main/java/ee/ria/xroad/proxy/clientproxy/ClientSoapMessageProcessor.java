@@ -40,6 +40,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -479,7 +480,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             updateOpMonitoringData();
 
             try {
-                request.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
+                request.sign(SigningCtxProvider.getSigningCtx(requestSoap.getClient()));
                 logRequestMessage();
                 request.writeSignature();
             } catch (Exception ex) {

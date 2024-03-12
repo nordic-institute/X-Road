@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite;
+package ee.ria.xroad.common.conf;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;

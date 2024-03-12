@@ -105,9 +105,9 @@ public final class KeyConf {
      * @param memberId the member client ID
      * @return signing context for given member
      */
-    public static SigningCtx getSigningCtx(ClientId memberId) {
+    public static SigningInfo getSigningInfo(ClientId memberId) {
         if (LOG.isTraceEnabled()) LOG.trace("getSigningCtx({})", memberId);
-        return getInstance().getSigningCtx(memberId);
+        return getInstance().getSigningInfo(memberId);
     }
 
     /**

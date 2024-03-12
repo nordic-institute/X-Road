@@ -32,10 +32,11 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
@@ -44,6 +45,8 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
@@ -53,25 +56,32 @@ import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.proxy.conf.CachingKeyConfImpl.calculateNotAfter;
 
 /**
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 class KeyConfImpl implements KeyConfProvider {
 
-    KeyConfImpl() {
+    @Override
+    public SigningInfo getSigningInfo(ClientId clientId) {
+        return createSigningInfo(clientId);
     }
 
-    @Override
-    public SigningCtx getSigningCtx(ClientId clientId) {
+    public SigningInfo createSigningInfo(ClientId clientId) {
         log.debug("Retrieving signing info for member '{}'", clientId);
-
         try {
             SignerProxy.MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
+            X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
+            OCSPResp ocsp = new OCSPResp(signingInfo.getCert().getOcspBytes());
 
-            return createSigningCtx(clientId, signingInfo.getKeyId(), signingInfo.getCert().getCertificateBytes(),
-                    signingInfo.getSignMechanismName());
+            //Signer already checks the validity of the signing certificate. Just record the bounds
+            //the certificate and ocsp response is valid for.
+            Date notAfter = calculateNotAfter(Collections.singletonList(ocsp), cert.getNotAfter());
+            return new SigningInfo(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert, new Date(),
+                    notAfter);
         } catch (Exception e) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
@@ -151,11 +161,6 @@ class KeyConfImpl implements KeyConfProvider {
         }
 
         SignerProxy.setOcspResponses(getSha1Hashes(certs), base64EncodedResponses);
-    }
-
-    static SigningCtx createSigningCtx(ClientId subject, String keyId,
-                                       byte[] certBytes, String signMechanismName) {
-        return new SigningCtxImpl(subject, new SignerSigningKey(keyId, signMechanismName), readCertificate(certBytes));
     }
 
     static CertChain getAuthCertChain(String instanceIdentifier,

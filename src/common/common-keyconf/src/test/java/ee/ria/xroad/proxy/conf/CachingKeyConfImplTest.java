@@ -25,6 +25,7 @@ package ee.ria.xroad.proxy.conf;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.conf.EmptyServerConf;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -32,14 +33,16 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
-import ee.ria.xroad.proxy.testsuite.EmptyServerConf;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,21 +62,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.core.AllOf.allOf;
 import static org.junit.Assert.assertEquals;
 
 /**
  * Test to verify that CachingKeyConf works as expected when it comes to threading
  */
 @Slf4j
-public class CachingKeyConfImplTest {
+class CachingKeyConfImplTest {
 
     // booleanSuppliers for different uses
     // some duplicates for more readability
@@ -88,7 +88,7 @@ public class CachingKeyConfImplTest {
     public static final int NO_DELAY = 0;
     private static final Path KEY_CONF = Paths.get("build", "tmp", "keyConf.xml");
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         System.setProperty(SystemProperties.CONF_PATH, "build/tmp/");
         GlobalConf.reload(new EmptyGlobalConf() {
@@ -107,13 +107,14 @@ public class CachingKeyConfImplTest {
         Files.createFile(KEY_CONF);
     }
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         Files.deleteIfExists(KEY_CONF);
     }
 
-    @Test(timeout = 5000)
-    public void testSigningInfoReads() throws Exception {
+    @Test
+    @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+    void testSigningInfoReads() throws Exception {
         AtomicInteger callsToGetInfo = new AtomicInteger(0);
         ClientId client1 = ClientId.Conf.create("FI", "GOV", "1");
         ClientId client2 = ClientId.Conf.create("FI", "GOV", "1", "SS");
@@ -156,14 +157,17 @@ public class CachingKeyConfImplTest {
                 CHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 100);
         int expectedMinimumCacheHits = expectedCacheHits + 1;
         int expectedMaximumCacheHits = expectedCacheHits + 5;
-        assertThat(callsToGetInfo.get(), allOf(
-                greaterThanOrEqualTo(expectedMinimumCacheHits),
-                lessThanOrEqualTo(expectedMaximumCacheHits)));
+        Assertions.assertDoesNotThrow(() -> {
+            int actualValue = callsToGetInfo.get();
+            Assertions.assertTrue(actualValue >= expectedMinimumCacheHits);
+            Assertions.assertTrue(actualValue <= expectedMaximumCacheHits);
+        });
         log.debug("total cache hits: {}", callsToGetInfo.get());
     }
 
-    @Test(timeout = 15000)
-    public void testAuthKeyReadsWithChangedKeyConf() throws Exception {
+    @Test
+    @Timeout(value = 15000, unit = TimeUnit.MILLISECONDS)
+    void testAuthKeyReadsWithChangedKeyConf() throws Exception {
 
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         ToggleableBooleanSupplier keyConfHasChanged = new ToggleableBooleanSupplier(false);
@@ -198,7 +202,8 @@ public class CachingKeyConfImplTest {
         }
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
     public void testCachedAuthKeyIsInvalid() throws Exception {
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         // read:
@@ -243,14 +248,17 @@ public class CachingKeyConfImplTest {
         int expectedMinimumCacheHits = expectedCacheHits + 1;
         int expectedMaximumCacheHits = expectedCacheHits + 5;
         log.debug("total cache hits: {}", callsToGetAuthKeyInfo.get());
-        assertThat(callsToGetAuthKeyInfo.get(), allOf(
-                greaterThanOrEqualTo(expectedMinimumCacheHits),
-                lessThanOrEqualTo(expectedMaximumCacheHits)));
+        Assertions.assertDoesNotThrow(() -> {
+            int actualValue = callsToGetAuthKeyInfo.get();
+            Assertions.assertTrue(actualValue >= expectedMinimumCacheHits);
+            Assertions.assertTrue(actualValue <= expectedMaximumCacheHits);
+        });
         testCachingKeyConf.destroy();
     }
 
-    @Test(timeout = 5000)
-    public void testAuthKeyReadsWithChangedServerId() throws Exception {
+    @Test
+    @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
+    void testAuthKeyReadsWithChangedServerId() throws Exception {
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         int expectedCacheHits = 0;
         // first read keys from cache with 5 threads, server id is not changing
@@ -274,7 +282,7 @@ public class CachingKeyConfImplTest {
     }
 
     @Test
-    public void testCalculateNotAfter() throws Exception {
+    void testCalculateNotAfter() throws Exception {
         final X509Certificate ca = TestCertUtil.getCaCert();
         final TestCertUtil.PKCS12 consumer = TestCertUtil.getConsumer();
         final TestCertUtil.PKCS12 ocsp = TestCertUtil.getOcspSigner();
@@ -309,12 +317,13 @@ public class CachingKeyConfImplTest {
 
     /**
      * Test signing info reads from cache concurrently with 1..n threads
-     * @param dataRefreshes counter for cache refreshes
-     * @param keyConfHasChanged tells if key conf has changed
-     * @param authKeyIsValid tells if key is valid (only set for new items added to cache)
-     * @param signingInfoIsValid tells if signing info is valid
-     * @param concurrentThreads how many threads read from cache
-     * @param loops how many times each thread does its thing, on average
+     *
+     * @param dataRefreshes       counter for cache refreshes
+     * @param keyConfHasChanged   tells if key conf has changed
+     * @param authKeyIsValid      tells if key is valid (only set for new items added to cache)
+     * @param signingInfoIsValid  tells if signing info is valid
+     * @param concurrentThreads   how many threads read from cache
+     * @param loops               how many times each thread does its thing, on average
      * @param slowCacheReadTimeMs how much cache refresh is slowed
      */
     private void doConcurrentSigningInfoReads(AtomicInteger dataRefreshes,
@@ -342,7 +351,7 @@ public class CachingKeyConfImplTest {
                 int realIndex = index % clients.size();
                 ClientId id = clients.get(realIndex);
                 log.debug("reading for client #{} [{}]", realIndex, id);
-                return testCachingKeyConf.getSigningCtx(id);
+                return testCachingKeyConf.getSigningInfo(id);
             }
         };
         doConcurrentCacheReads(readOperation, concurrentThreads, loops);
@@ -351,12 +360,13 @@ public class CachingKeyConfImplTest {
 
     /**
      * Test auth key reads from cache concurrently with 1..n threads
-     * @param dataRefreshes counter for cache refreshes
-     * @param keyConfHasChanged tells if key conf has changed
-     * @param authKeyIsValid tells if key is valid (only set for new items added to cache)
-     * @param signingInfoIsValid tells if signing info is valid
-     * @param concurrentThreads how many threads read from cache
-     * @param loops how many times each thread does its thing, on average
+     *
+     * @param dataRefreshes       counter for cache refreshes
+     * @param keyConfHasChanged   tells if key conf has changed
+     * @param authKeyIsValid      tells if key is valid (only set for new items added to cache)
+     * @param signingInfoIsValid  tells if signing info is valid
+     * @param concurrentThreads   how many threads read from cache
+     * @param loops               how many times each thread does its thing, on average
      * @param slowCacheReadTimeMs how much cache refresh is slowed
      */
     private void doConcurrentAuthKeyReads(AtomicInteger dataRefreshes,
@@ -490,7 +500,8 @@ public class CachingKeyConfImplTest {
         }
 
         @Override
-        protected SigningInfo getSigningInfo(ClientId clientId) throws Exception {
+        @SneakyThrows
+        public SigningInfo createSigningInfo(ClientId clientId) {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
             return new SigningInfo("keyid", "signmechanismname", null, null, null, null) {

@@ -23,58 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite;
+package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.proxy.conf.SigningCtx;
+import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 
-import org.bouncycastle.cert.ocsp.OCSPResp;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
+@Slf4j
+@UtilityClass
+public class SigningCtxProvider {
+    private static DefaultSigningCtxProvider ctxProvider = new DefaultSigningCtxProvider();
 
-/**
- * Empty keyconf implementation.
- */
-public class EmptyKeyConf implements KeyConfProvider {
-
-    @Override
-    public SigningCtx getSigningCtx(ClientId memberId) {
-        return null;
+    public static SigningCtx getSigningCtx(ClientId clientId) {
+        return ctxProvider.getSigningCtx(clientId);
     }
 
-    @Override
-    public AuthKey getAuthKey() {
-        return null;
+
+    public static void setSigningCtxProvider(DefaultSigningCtxProvider provider) {
+        log.warn("Setting signing context provider to '{}'", provider.getClass().getName());
+        ctxProvider = provider;
     }
 
-    @Override
-    public void setOcspResponses(List<X509Certificate> certs,
-                                 List<OCSPResp> response) throws Exception {
-    }
+    public static class DefaultSigningCtxProvider {
+        public SigningCtx getSigningCtx(ClientId clientId) {
+            log.debug("Retrieving signing info for member '{}'", clientId);
 
-    @Override
-    public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
-        return null;
-    }
+            var signingInfo = KeyConf.getSigningInfo(clientId);
 
-    @Override
-    public OCSPResp getOcspResponse(String certHash) throws Exception {
-        return null;
-    }
-
-    @Override
-    public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
-            throws Exception {
-        List<OCSPResp> ocspResponses = new ArrayList<>();
-        for (X509Certificate cert : certs) {
-            ocspResponses.add(getOcspResponse(cert));
+            return getSigningCtx(signingInfo);
         }
 
-        return ocspResponses;
+        private SigningCtx getSigningCtx(SigningInfo signingInfo) {
+            return new SigningCtxImpl(signingInfo.getClientId(),
+                    new SignerSigningKey(signingInfo.getKeyId(), signingInfo.getSignMechanismName()), signingInfo.getCert());
+        }
     }
 
 }

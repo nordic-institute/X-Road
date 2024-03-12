@@ -38,7 +38,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -51,15 +50,12 @@ import org.bouncycastle.cert.ocsp.SingleResp;
 import java.lang.ref.WeakReference;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Encapsulates KeyConf related functionality.
@@ -94,14 +90,14 @@ class CachingKeyConfImpl extends KeyConfImpl {
     }
 
     @Override
-    public SigningCtx getSigningCtx(ClientId clientId) {
+    public SigningInfo getSigningInfo(ClientId clientId) {
         try {
-            SigningInfo signingInfo = signingInfoCache.get(clientId, () -> getSigningInfo(clientId));
+            SigningInfo signingInfo = signingInfoCache.get(clientId, () -> createSigningInfo(clientId));
             if (!signingInfo.verifyValidity(new Date())) {
                 signingInfoCache.invalidate(clientId);
-                signingInfo = signingInfoCache.get(clientId, () -> getSigningInfo(clientId));
+                signingInfo = signingInfoCache.get(clientId, () -> createSigningInfo(clientId));
             }
-            return signingInfo.getSigningCtx();
+            return signingInfo;
 
         } catch (ExecutionException e) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
@@ -159,20 +155,6 @@ class CachingKeyConfImpl extends KeyConfImpl {
 
         final Date notAfter = calculateNotAfter(ocspResponses, certChain.notAfter());
         return new AuthKeyInfo(key, certChain, notBefore, notAfter);
-    }
-
-    protected SigningInfo getSigningInfo(ClientId clientId) throws Exception {
-        log.debug("Retrieving signing info for member '{}'", clientId);
-
-        MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
-        X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
-        OCSPResp ocsp = new OCSPResp(signingInfo.getCert().getOcspBytes());
-
-        //Signer already checks the validity of the signing certificate. Just record the bounds
-        //the certificate and ocsp response is valid for.
-        Date notAfter = calculateNotAfter(Collections.singletonList(ocsp), cert.getNotAfter());
-        return new SigningInfo(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert, new Date(),
-                notAfter);
     }
 
     protected void watcherStarted() {

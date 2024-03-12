@@ -43,8 +43,8 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -267,7 +267,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
-                responseSigningCtx = KeyConf.getSigningCtx(requestServiceId.getClientId());
+                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId());
                 if (SystemProperties.isSslEnabled()) {
                     verifySslClientCert();
                 }

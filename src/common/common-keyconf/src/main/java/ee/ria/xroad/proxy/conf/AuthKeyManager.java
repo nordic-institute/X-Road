@@ -90,8 +90,9 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public PrivateKey getPrivateKey(String alias) {
-        log.trace("getPrivateKey {}", alias);
-        return KeyConf.getAuthKey().getKey();
+        PrivateKey key = KeyConf.getAuthKey().getKey();
+        log.debug("getPrivateKey {} exist? {} ", alias, key != null);
+        return key;
     }
 
     @Override

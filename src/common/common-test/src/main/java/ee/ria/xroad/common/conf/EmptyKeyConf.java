@@ -23,62 +23,58 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testutil;
+package ee.ria.xroad.common.conf;
 
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.TestCertUtil.PKCS12;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.conf.EmptyServerConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.conf.SigningInfo;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Test serverconf implementation.
+ * Empty keyconf implementation.
  */
-public class TestServerConf extends EmptyServerConf {
-
-    private int servicePort;
-
-    public TestServerConf(int servicePort) {
-        this.servicePort = servicePort;
-    }
+public class EmptyKeyConf implements KeyConfProvider {
 
     @Override
-    public SecurityServerId.Conf getIdentifier() {
-        return SecurityServerId.Conf.create("EE", "BUSINESS", "consumer", "proxytest");
-    }
-
-    @Override
-    public String getServiceAddress(ServiceId service) {
-        return "http://127.0.0.1:" + servicePort;
-    }
-
-    @Override
-    public boolean serviceExists(ServiceId service) {
-        return true;
-    }
-
-    @Override
-    public String getDisabledNotice(ServiceId service) {
+    public SigningInfo getSigningInfo(ClientId clientId) {
         return null;
     }
 
     @Override
-    public InternalSSLKey getSSLKey() {
-        PKCS12 internal = TestCertUtil.getInternalKey();
-        return new InternalSSLKey(internal.key, internal.certChain);
+    public AuthKey getAuthKey() {
+        return null;
     }
 
     @Override
-    public IsAuthentication getIsAuthentication(ClientId client) {
-        return IsAuthentication.NOSSL;
+    public void setOcspResponses(List<X509Certificate> certs,
+                                 List<OCSPResp> response) throws Exception {
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
-        return DescriptionType.REST;
+    public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
+        return null;
     }
+
+    @Override
+    public OCSPResp getOcspResponse(String certHash) throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
+            throws Exception {
+        List<OCSPResp> ocspResponses = new ArrayList<>();
+        for (X509Certificate cert : certs) {
+            ocspResponses.add(getOcspResponse(cert));
+        }
+
+        return ocspResponses;
+    }
+
 }

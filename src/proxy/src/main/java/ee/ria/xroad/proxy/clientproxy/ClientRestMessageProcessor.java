@@ -39,6 +39,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -316,14 +317,14 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
-                            enc.sign(KeyConf.getSigningCtx(senderId));
+                            enc.sign(SigningCtxProvider.getSigningCtx(senderId));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
                                     restRequest.getXRequestId());
                         } finally {
                             cache.consume();
                         }
                     } else {
-                        enc.sign(KeyConf.getSigningCtx(senderId));
+                        enc.sign(SigningCtxProvider.getSigningCtx(senderId));
                         MessageLog.log(restRequest, enc.getSignature(), null, true, restRequest.getXRequestId());
                     }
                 }
