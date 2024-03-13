@@ -1,0 +1,3 @@
+org.niis.xroad.edc.extension.iam.XrdIatpScopeExtension
+org.niis.xroad.edc.extension.iam.IdentityHubCredentialInsertionExtension
+org.niis.xroad.edc.extension.iam.IdentityHubPresentationSigningFixExtension
