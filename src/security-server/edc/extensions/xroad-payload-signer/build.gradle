@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation project(":serverconf")
     implementation project(':signer-protocol')
     implementation project(':common:common-core')
     implementation project(':common:common-keyconf')
@@ -12,6 +13,12 @@ dependencies {
     implementation("org.eclipse.edc:connector-core:$edcVersion")
     api("org.eclipse.jetty:jetty-servlet:$edcJettyVersion")
 //    api("org.eclipse.jetty:jetty-server:$edcJettyVersion")
+
+    implementation("org.eclipse.edc:jwt-spi:$edcVersion")
+    implementation("org.eclipse.edc:token-spi:$edcVersion")
+    implementation("org.eclipse.edc:crypto-common:$edcVersion")
+    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
+
     implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
 
     implementation("org.eclipse.edc:data-plane-core:$edcVersion")
@@ -21,4 +28,8 @@ dependencies {
 
     implementation("org.eclipse.edc:json-ld:$edcVersion")
     implementation("org.eclipse.edc:jws2020:$edcVersion")
+
+    testImplementation("org.eclipse.edc:junit:$edcVersion")
+    testImplementation("org.assertj:assertj-core:$assertjVersion")
+    testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
 }
