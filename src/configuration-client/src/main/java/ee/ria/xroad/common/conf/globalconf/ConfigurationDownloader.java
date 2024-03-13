@@ -139,6 +139,10 @@ class ConfigurationDownloader {
             }
 
             String url = cachedUrl.isPresent() ? cachedUrl.get() : location.getDownloadURL();
+
+            if (cachedUrl.isPresent()) {
+                log.info("Cached url is present: ", cachedUrl);
+            }
             try {
                 location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
@@ -149,6 +153,7 @@ class ConfigurationDownloader {
                 successfulLocations.remove(url);
                 result.addFailure(location, e);
             } catch (Exception e) {
+                log.warn("Unable to download Global Configuration. Because " + e);
                 successfulLocations.remove(url);
                 result.addFailure(location, e);
             }
