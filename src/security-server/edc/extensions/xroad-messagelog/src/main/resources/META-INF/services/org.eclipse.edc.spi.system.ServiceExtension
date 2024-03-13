@@ -1,1 +1,4 @@
 org.niis.xroad.edc.extension.messagelog.XRoadMessageLogExtension
+org.niis.xroad.edc.extension.messagelog.XrdIatpScopeExtension
+org.niis.xroad.edc.extension.messagelog.IdentityHubCredentialInsertionExtension
+org.niis.xroad.edc.extension.messagelog.IdentityHubPresentationSigningFixExtension

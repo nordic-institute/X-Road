@@ -17,7 +17,6 @@ dependencies {
     implementation("org.eclipse.edc:dsp:$edcVersion")
     implementation("org.eclipse.edc:configuration-filesystem:$edcVersion")
     implementation("org.eclipse.edc:vault-filesystem:$edcVersion")
-    implementation("org.eclipse.edc:iam-mock:$edcVersion")
     implementation("org.eclipse.edc:management-api:$edcVersion")
     implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
     implementation("org.eclipse.edc:transfer-pull-http-receiver:$edcVersion")
@@ -30,6 +29,19 @@ dependencies {
     implementation("org.eclipse.edc:data-plane-public-api:$edcVersion")
     implementation("org.eclipse.edc:data-plane-core:$edcVersion")
     implementation("org.eclipse.edc:data-plane-http:$edcVersion")
+
+//    implementation("org.eclipse.edc:iam-mock:$edcVersion")
+    implementation("org.eclipse.edc:identity-trust-core:$edcVersion")
+    implementation("org.eclipse.edc:identity-did-core:$edcVersion")
+    implementation("org.eclipse.edc:identity-did-web:$edcVersion")
+    implementation("org.eclipse.edc:identity-trust-issuers-configuration:$edcVersion")
+
+    // embedded Identity Hub
+    implementation("org.eclipse.edc:identity-hub-api:$edcVersion")
+    implementation("org.eclipse.edc:identity-hub-credentials:$edcVersion")
+    implementation("org.eclipse.edc:identity-hub-participants:$edcVersion")
+    implementation("org.eclipse.edc:identity-hub-keypairs:$edcVersion")
+    implementation("org.eclipse.edc:identity-hub-did:$edcVersion")
 
     // sql store
     sqlDependencies("org.postgresql:postgresql:$postgresqlVersion")
