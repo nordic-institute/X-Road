@@ -1,4 +1,3 @@
 org.niis.xroad.edc.extension.signer.XrdEdcHttpClientExtension
 org.niis.xroad.edc.extension.signer.XrdPayloadSignerExtension
 org.niis.xroad.edc.extension.signer.XrdJettyExtension
-org.eclipse.edc.token.TokenServicesExtension

@@ -1,0 +1,29 @@
+plugins {
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow'
+}
+
+dependencies {
+    implementation("org.eclipse.edc:policy-engine-spi:$edcVersion")
+
+    implementation("org.eclipse.edc:identity-trust-core:$edcVersion")
+
+    implementation("org.eclipse.edc:identity-hub-credentials:$edcVersion")
+    implementation("org.eclipse.edc:identity-hub-store-spi:$edcVersion")
+    implementation("org.eclipse.edc:ldp-verifiable-credentials:$edcVersion")
+    implementation("org.eclipse.edc:identity-hub-api:$edcVersion")
+    implementation("org.eclipse.edc:jersey-providers:$edcVersion")
+    implementation("org.eclipse.edc:identity-trust-transform:$edcVersion")
+    implementation("org.eclipse.edc:transform-core:$edcVersion")
+    implementation("org.eclipse.edc:crypto-common:$edcVersion")
+    implementation("org.eclipse.edc:json-ld-spi:$edcVersion")
+    implementation("org.eclipse.edc:jws2020:$edcVersion")
+    implementation("org.eclipse.edc:token-core:$edcVersion")
+}
+
+shadowJar {
+    archiveVersion = '1.0'
+    archiveClassifier = ''
+}
+
+assemble.dependsOn shadowJar
