@@ -11,7 +11,7 @@ configurations {
 
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
-        exclude group: 'org.eclipse.edc', module: 'token-core'
+        //exclude group: 'org.eclipse.edc', module: 'token-core'
     }
 
 }

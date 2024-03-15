@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.token;
+package org.eclipse.edc.tokendisabled;
 
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;

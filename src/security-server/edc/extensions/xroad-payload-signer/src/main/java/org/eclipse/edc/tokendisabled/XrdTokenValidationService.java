@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.eclipse.edc.token;
+package org.eclipse.edc.tokendisabled;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;

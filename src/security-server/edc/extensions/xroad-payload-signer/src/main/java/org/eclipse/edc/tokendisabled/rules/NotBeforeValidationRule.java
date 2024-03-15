@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.token.rules;
+package org.eclipse.edc.tokendisabled.rules;
 
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;

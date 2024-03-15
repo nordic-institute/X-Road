@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.token;
+package org.eclipse.edc.tokendisabled;
 
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.spi.iam.TokenParameters;

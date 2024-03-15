@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.token;
+package org.eclipse.edc.tokendisabled;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -21,7 +21,7 @@ import org.eclipse.edc.token.spi.TokenDecoratorRegistry;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 
-import static org.eclipse.edc.token.TokenServicesExtension.NAME;
+import static org.eclipse.edc.tokendisabled.TokenServicesExtension.NAME;
 
 /**
  * This extension registers the {@link TokenValidationService} and the {@link TokenValidationRulesRegistry}

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.token;
+package org.eclipse.edc.tokendisabled;
 
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.eclipse.edc.token.spi.TokenDecoratorRegistry;
