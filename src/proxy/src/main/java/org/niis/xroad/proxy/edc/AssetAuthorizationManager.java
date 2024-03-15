@@ -155,7 +155,7 @@ public class AssetAuthorizationManager {
             var getNegotiationResponse = contractNegotiationApi.getNegotiation(contractNegotiationId);
             log.info("======== getNegotiation: {}", getNegotiationResponse);
             var status = getNegotiationResponse.getString("state");
-            if ("VERIFIED".equalsIgnoreCase(status) || "ACCEPTED".equalsIgnoreCase(status) || "FINALIZED".equalsIgnoreCase(status)) {
+            if ("FINALIZED".equalsIgnoreCase(status)) {
                 return getNegotiationResponse.getString("contractAgreementId");
             }
 
