@@ -94,6 +94,11 @@ public final class VuetifyHelper {
             return this;
         }
 
+        public Checkbox shouldBe(WebElementCondition condition) {
+            input.shouldBe(condition);
+            return this;
+        }
+
         public Checkbox scrollIntoView(boolean alignToTop) {
             controlElement.scrollIntoView(alignToTop);
             return this;

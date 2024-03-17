@@ -348,10 +348,8 @@ public final class OcspVerifier {
         } else if (respId.getKeyHash() != null) {
             DigestCalculator dc = createDigestCalculator(SHA1_ID);
             for (X509Certificate cert : knownCerts) {
-                X509CertificateHolder certHolder =
-                        new X509CertificateHolder(cert.getEncoded());
-                var keyData =
-                        certHolder.getSubjectPublicKeyInfo().getPublicKeyData();
+                X509CertificateHolder certHolder = new X509CertificateHolder(cert.getEncoded());
+                var keyData = certHolder.getSubjectPublicKeyInfo().getPublicKeyData();
                 byte[] d = calculateDigest(dc, keyData.getBytes());
                 if (MessageDigestAlgorithm.isEqual(respId.getKeyHash(), d)) {
                     return cert;
