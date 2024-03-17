@@ -141,6 +141,14 @@ body,
   }
 }
 
+// Override for Vuetify checkbox input style
+.v-checkbox {
+
+  .v-input__details {
+    font-weight: 600 !important;
+  }
+}
+
 // Override for Vuetify tab style
 .v-tab {
   letter-spacing: normal !important;

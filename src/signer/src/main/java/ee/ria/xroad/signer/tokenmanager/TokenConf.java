@@ -300,7 +300,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
 
     private static CertRequest from(CertRequestType type) {
         return new CertRequest(getCertReqId(type), type.getMemberId(),
-                type.getSubjectName());
+                type.getSubjectName(), type.getSubjectAlternativeName(), type.getCertificateProfile());
     }
 
     private static CertRequestType from(CertRequest certRequest) {
@@ -308,6 +308,8 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         type.setId(certRequest.getId());
         type.setMemberId(certRequest.getMemberId());
         type.setSubjectName(certRequest.getSubjectName());
+        type.setSubjectAlternativeName(certRequest.getSubjectAltName());
+        type.setCertificateProfile(certRequest.getCertificateProfile());
 
         return type;
     }

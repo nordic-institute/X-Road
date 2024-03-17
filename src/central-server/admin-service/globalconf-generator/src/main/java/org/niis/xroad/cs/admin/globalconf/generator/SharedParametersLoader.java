@@ -129,6 +129,11 @@ class SharedParametersLoader {
         approvedCA.setCertificateProfileInfo(ca.getCertificateProfileInfo());
         approvedCA.setTopCA(new SharedParameters.CaInfo(toOcspInfos(ca.getOcspResponders()), ca.getCertificate()));
         approvedCA.setIntermediateCAs(toCaInfos(ca.getIntermediateCas()));
+        if (ca.getAcmeServerDirectoryUrl() != null) {
+            approvedCA.setAcmeServer(
+                    new SharedParameters.AcmeServer(ca.getAcmeServerDirectoryUrl(), ca.getAcmeServerIpAddress())
+            );
+        }
         return approvedCA;
     }
 

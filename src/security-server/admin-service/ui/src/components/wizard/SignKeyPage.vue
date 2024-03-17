@@ -83,7 +83,6 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useCsr, ['requestGenerateCsr']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -92,16 +91,6 @@ export default defineComponent({
     },
     done(): void {
       this.$emit('done');
-    },
-    generateCsr(): void {
-      this.requestGenerateCsr().then(
-        () => {
-          this.disableDone = false;
-        },
-        (error) => {
-          this.showError(error);
-        },
-      );
     },
   },
 });

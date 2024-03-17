@@ -359,15 +359,42 @@ public final class SignerProxy {
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
-                                                               KeyUsageInfo keyUsage, String subjectName,
+    public static GeneratedCertRequestInfo generateCertRequest(String keyId,
+                                                               ClientId.Conf memberId,
+                                                               KeyUsageInfo keyUsage,
+                                                               String subjectName,
                                                                CertificateRequestFormat format) throws Exception {
+        return generateCertRequest(keyId, memberId, keyUsage, subjectName, null, format, null);
+    }
+
+    /**
+     * Generates a certificate request for the given key and with provided parameters.
+     * @param keyId ID of the key
+     * @param memberId client ID of the certificate owner
+     * @param keyUsage specifies whether the certificate is for signing or authentication
+     * @param subjectName subject name of the certificate
+     * @param subjectAltName subject alternative name of the certificate
+     * @param format the format of the request
+     * @return GeneratedCertRequestInfo containing details and content of the certificate request
+     * @throws Exception if any errors occur
+     */
+    public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
+                                                               KeyUsageInfo keyUsage, String subjectName, String subjectAltName,
+                                                               CertificateRequestFormat format, String certificateProfile) throws Exception {
 
         var reqBuilder = GenerateCertRequestReq.newBuilder()
                 .setKeyId(keyId)
                 .setKeyUsage(keyUsage)
                 .setSubjectName(subjectName)
                 .setFormat(format);
+
+        if (subjectAltName != null) {
+            reqBuilder.setSubjectAltName(subjectAltName);
+        }
+
+        if (certificateProfile != null) {
+            reqBuilder.setCertificateProfile(certificateProfile);;
+        }
 
         ofNullable(memberId)
                 .map(ClientIdMapper::toDto)

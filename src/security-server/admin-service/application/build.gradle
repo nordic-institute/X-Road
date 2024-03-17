@@ -45,6 +45,7 @@ dependencies {
     implementation("org.kohsuke:libpam4j:$libpam4jVersion")
     implementation("org.apache.commons:commons-compress:$commonsCompressVersion")
     implementation("wsdl4j:wsdl4j:$wsdl4jVersion")
+    implementation("org.shredzone.acme4j:acme4j-client:3.1.1")
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
     implementation("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")

@@ -1,0 +1,17 @@
+# ACME external account binding credentials grouped by certification authorities(CA-s) and members,
+# where CA-s have their name as key and a single property named members. For members the key is the member code,
+# and they have two properties: kid and mac-key, which should be acquired externally from the CA.
+acme:
+  eab-credentials:
+    certificate-authorities:
+      '[X-Road Test CA CN]':
+        members:
+          0245437-2:
+            kid: keyid_1
+            mac-key: k21lms0bWFjXzAxdd39Dnsk2nr20am1WAx
+        is-mac-key-base64-encoded: true
+  contacts:
+    members:
+      0245437-2:
+        email: member1@example.org
+

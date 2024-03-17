@@ -90,6 +90,7 @@ import {
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
+import { useCsr } from "@/store/modules/certificateSignRequest";
 
 export default defineComponent({
   components: {
@@ -200,6 +201,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     ...mapActions(useTokens, ['fetchTokens', 'tokenLogout']),
+    ...mapActions(useCsr, ['fetchCertificateAuthorities']),
     fetchData(): void {
       // Fetch tokens from backend
       this.loading = true;
@@ -209,6 +211,10 @@ export default defineComponent({
         })
         .finally(() => {
           this.loading = false;
+        });
+      this.fetchCertificateAuthorities()
+        .catch((error) => {
+          this.showError(error);
         });
     },
     acceptTokenLogout(): void {

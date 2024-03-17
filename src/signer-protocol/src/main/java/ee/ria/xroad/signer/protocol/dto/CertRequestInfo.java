@@ -62,4 +62,14 @@ public class CertRequestInfo implements Serializable {
         return message.getSubjectName();
     }
 
+
+    @ToString.Include
+    public String getSubjectAltName() {
+        return message.getSubjectAltName();
+    }
+
+    public String getCertificateProfile() {
+        return message.getCertificateProfile();
+    }
+
 }

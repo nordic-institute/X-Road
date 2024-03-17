@@ -78,6 +78,9 @@ public class TokenCertificateSigningRequestConverter {
         if (csrInfo.getMemberId() != null) {
             request.setOwnerId(clientIdConverter.convertId(csrInfo.getMemberId()));
         }
+        if (csrInfo.getCertificateProfile() != null) {
+            request.setCertificateProfile(csrInfo.getCertificateProfile());
+        }
         return request;
     }
 
@@ -89,7 +92,7 @@ public class TokenCertificateSigningRequestConverter {
      */
     public List<TokenCertificateSigningRequest> convert(Iterable<CertRequestInfo> csrInfos) {
         return Streams.stream(csrInfos)
-                .map(c -> convert(c))
+                .map(this::convert)
                 .collect(Collectors.toList());
     }
 

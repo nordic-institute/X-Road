@@ -75,6 +75,7 @@ public class KeyAndCertificateRequestService {
 
     /**
      * Add a new key and create a csr for it
+     *
      * @param tokenId
      * @param keyLabel
      * @param memberId
@@ -82,20 +83,24 @@ public class KeyAndCertificateRequestService {
      * @param caName
      * @param subjectFieldValues
      * @param csrFormat
+     * @param isAcmeOrder
      * @return
-     * @throws ActionNotPossibleException if add key or generate csr was not possible
-     * @throws ClientNotFoundException if client with {@code memberId} id was not found
-     * @throws CertificateAuthorityNotFoundException if ca authority with name {@code caName} does not exist
-     * @throws TokenNotFoundException if token with {@code tokenId} was not found
+     * @throws ActionNotPossibleException                if add key or generate csr was not possible
+     * @throws ClientNotFoundException                   if client with {@code memberId} id was not found
+     * @throws CertificateAuthorityNotFoundException     if ca authority with name {@code caName} does not exist
+     * @throws TokenNotFoundException                    if token with {@code tokenId} was not found
      * @throws DnFieldHelper.InvalidDnParameterException if required dn parameters were missing, or if there
-     * were some extra parameters
+     *                                                   were some extra parameters
      */
     public KeyAndCertRequestInfo addKeyAndCertRequest(String tokenId, String keyLabel,
                                                       ClientId.Conf memberId, KeyUsageInfo keyUsageInfo, String caName,
-                                                      Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat)
+                                                      Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat,
+                                                      Boolean isAcmeOrder)
             throws ActionNotPossibleException,
             ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
-            DnFieldHelper.InvalidDnParameterException {
+            DnFieldHelper.InvalidDnParameterException, CertificateAlreadyExistsException, GlobalConfOutdatedException,
+            CsrNotFoundException, TokenCertificateService.WrongCertificateUsageException, InvalidCertificateException,
+            TokenCertificateService.AuthCertificateNotSupportedException {
 
         KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel);
         GeneratedCertRequestInfo csrInfo;
@@ -104,7 +109,7 @@ public class KeyAndCertificateRequestService {
         try {
             csrInfo = tokenCertificateService.generateCertRequest(keyInfo.getId(),
                     memberId, keyUsageInfo, caName,
-                    subjectFieldValues, csrFormat);
+                    subjectFieldValues, csrFormat, isAcmeOrder);
             csrGenerateSuccess = true;
         } catch (KeyNotFoundException | WrongKeyUsageException e) {
             csrGenerateException = e;

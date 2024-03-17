@@ -35,7 +35,9 @@ import {
   CsrFormat,
   TokenType,
   CsrGenerate,
-} from '@/openapi-types';
+  TokenCertificateSigningRequest,
+  AcmeEabCredentialsStatus
+} from "@/openapi-types";
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
@@ -54,6 +56,8 @@ export interface CsrState {
   tokenType: string | undefined;
   memberIds: string[];
   isNewMember: boolean;
+  acmeEabCredentialsStatus: AcmeEabCredentialsStatus | undefined;
+  acmeOrder: boolean;
 }
 
 export const useCsr = defineStore('csr', {
@@ -72,12 +76,26 @@ export const useCsr = defineStore('csr', {
       tokenType: undefined,
       memberIds: [],
       isNewMember: false,
+      acmeEabCredentialsStatus: undefined,
+      acmeOrder: false,
     };
   },
   getters: {
     csrForm: (state) => state.form,
 
     csrTokenId: (state) => state.tokenId,
+
+    acmeCapable: (state) =>
+      state.certificationServiceList.find(
+        (certificateAuthority) =>
+          certificateAuthority.name == state.certificationService,
+      )?.acme_capable,
+
+    eabRequired: (state) =>
+      state.certificationServiceList.find(
+        (certificateAuthority) =>
+          certificateAuthority.name == state.certificationService,
+      )?.acme_eab_required,
 
     csrRequestBody(state): CsrGenerate {
       // Creates an object that can be used as body for generate CSR request
@@ -93,6 +111,7 @@ export const useCsr = defineStore('csr', {
         csr_format: state.csrFormat as CsrFormat,
         subject_field_values: subjectFieldValues,
         member_id: state.csrClient,
+        acme_order: state.acmeOrder,
       };
     },
 
@@ -215,6 +234,9 @@ export const useCsr = defineStore('csr', {
           body,
         )
         .then((response) => {
+          if (crtObject.acme_order) {
+            return;
+          }
           // Fetch and save the CSR file data
           api
             .get(
@@ -239,10 +261,49 @@ export const useCsr = defineStore('csr', {
           responseType: 'arraybuffer',
         })
         .then((response) => {
+          if (requestBody.acme_order) {
+            return;
+          }
           saveResponseAsFile(
             response,
             `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
           );
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    orderAcmeCertificate(csr: TokenCertificateSigningRequest, caName: string, usage?: KeyUsageType) {
+      if (!usage) {
+        throw new Error('Key usage is missing');
+      }
+      return api.post(`/certificate-authorities/${encodePathParameter(caName)}/acme-order`,{
+        csr_id: csr.id,
+        key_usage_type: usage,
+      })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    hasAcmeEabCredentials(caName?: string, csrClientId?: string, keyUsage?: KeyUsageType) {
+      const extractMemberCode = (clientId: string | undefined) => clientId?.substring(clientId.lastIndexOf(':') + 1);
+      const memberCode = extractMemberCode(csrClientId ?? this.csrClient)
+      return api
+        .get<AcmeEabCredentialsStatus>(
+          `/certificate-authorities/${encodePathParameter(
+            caName ?? this.certificationService,
+          )}/has-acme-eab-credentials`, {
+            params: {
+              key_usage_type: keyUsage ?? this.usage,
+              member_code: memberCode
+            }
+          }
+        )
+        .then((res) => {
+          this.acmeEabCredentialsStatus = res.data;
+          return res.data;
         })
         .catch((error) => {
           throw error;

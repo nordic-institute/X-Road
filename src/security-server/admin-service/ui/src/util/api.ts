@@ -46,7 +46,7 @@ export type PostPutPatch = <T>(
  */
 export function post<T>(
   uri: string,
-  data: any,
+  data?: any,
   config?: AxiosRequestConfig,
 ): Promise<AxiosResponse<T>> {
   return axios.post<T>(uri, data, config);

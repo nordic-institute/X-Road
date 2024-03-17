@@ -64,7 +64,7 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
     @Override
     public TestCaContainer configure() {
         return new TestCaContainer(imageDefinition())
-                .withExposedPorts(8899, 8888, 8889)
+                .withExposedPorts(8899, 8887, 8888, 8889)
                 .withNetworkAliases(NETWORK_ALIAS)
                 .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(64 * 1024 * 1024L));
     }

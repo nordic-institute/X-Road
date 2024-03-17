@@ -1,0 +1,29 @@
+# ACME external account binding credentials grouped by certification authorities(CA-s) and members,
+# where CA-s have their name as key and a single property named members. For members the key is the member code,
+# and they have two properties: kid and mac-key, which should be acquired externally from the CA.
+acme:
+  eab-credentials:
+#    certificate-authorities:
+#      '[Example Root CA]':
+#        members:
+#          1234567-8:
+#            kid: key_1
+#            mac-key: YWJjZDEyMzRFRkdINjdpajg5S2xNMG5vcHFyc1RVVnd4
+#          9090909-1:
+#            kid: key_2
+#            mac-key: Z29vZGxvbmdzZWNyZXR3b3JkdGhhdGlzbm90c2hvcnQ=
+#        is-mac-key-base64-encoded: true
+#      '[Some Other CA]':
+#        members:
+#          1234567-8:
+#            kid: kid123
+#            mac-key: goodlongsecretwordthatisnotshort
+#        is-mac-key-base64-encoded: false
+
+# Contact emails for each member used when ordering certificates from the ACME Server
+  contacts:
+#    members:
+#      1234567-8:
+#        email: member1@example.org
+#      9090909-1:
+#        email: member2@example.org

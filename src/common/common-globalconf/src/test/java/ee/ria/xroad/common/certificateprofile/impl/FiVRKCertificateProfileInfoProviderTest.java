@@ -87,7 +87,10 @@ public class FiVRKCertificateProfileInfoProviderTest {
                         "XX/server/Foo")
                         .setReadOnly(true),
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.MEMBER_CODE, "Bar")
-                        .setReadOnly(true)
+                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("subjectAltName", DnFieldLabelLocalizationKey.SUBJECT_ALTERNATIVE_NAME,
+                    "")
+                    .setReadOnly(false)
         };
 
         assertTrue(
@@ -179,6 +182,9 @@ public class FiVRKCertificateProfileInfoProviderTest {
                         "XX/server/foo")
                         .setReadOnly(true),
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME, "")
+                        .setReadOnly(false),
+                new EnumLocalizedFieldDescriptionImpl("subjectAltName", DnFieldLabelLocalizationKey.SUBJECT_ALTERNATIVE_NAME,
+                        "")
                         .setReadOnly(false)
         };
 

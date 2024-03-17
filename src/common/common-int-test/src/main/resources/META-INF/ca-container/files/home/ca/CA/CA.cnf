@@ -1,7 +1,8 @@
 # OpenSSL root CA configuration file.
+[ default ]
 HOME		= .
 INTERMEDIATE    = intermediate
-INTERMEDIATE    = ${ENV::INTERMEDIATE}
+_INTERMEDIATE    = $ENV::INTERMEDIATE
 
 [ ca ]
 # `man ca`
@@ -38,7 +39,7 @@ policy            = policy_loose
 
 [ CA_intermediate ]
 # Directory and file locations.
-dir               = $HOME/$INTERMEDIATE
+dir               = $HOME/$_INTERMEDIATE
 certs             = $dir/certs
 crl_dir           = $dir/crl
 new_certs_dir     = $dir/newcerts
@@ -46,8 +47,8 @@ database          = $dir/index.txt
 serial            = $dir/serial
 
 # The root key and root certificate.
-private_key       = $dir/../private/$INTERMEDIATE.key.pem
-certificate       = $dir/../certs/$INTERMEDIATE.cert.pem
+private_key       = $dir/../private/$_INTERMEDIATE.key.pem
+certificate       = $dir/../certs/$_INTERMEDIATE.cert.pem
 
 # For certificate revocation lists.
 crlnumber         = $dir/crlnumber
@@ -176,6 +177,12 @@ keyUsage = critical,nonRepudiation
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
 extendedKeyUsage = clientAuth, serverAuth
+
+[extensions]
+basicConstraints = CA:FALSE
+keyUsage = critical,nonRepudiation
+#keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
+#extendedKeyUsage = clientAuth, serverAuth
 
 [ tsa ]
 default_tsa = tsa_config1 # the default TSA section

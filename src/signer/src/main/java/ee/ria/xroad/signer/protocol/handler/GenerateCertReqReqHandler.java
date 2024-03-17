@@ -64,11 +64,13 @@ public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateC
                     "Authentication certificate requests can only be created under software tokens");
         }
 
-        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, request.getSubjectName());
+        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
+                request.getSubjectAltName(), request.getKeyUsage());
 
         String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(),
                 request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
-                request.getSubjectName(), request.getKeyUsage());
+                request.getSubjectName(), request.getSubjectAltName(), request.getKeyUsage(),
+                request.getCertificateProfile());
 
         return GenerateCertRequestResp.newBuilder()
                 .setCertReqId(certReqId)

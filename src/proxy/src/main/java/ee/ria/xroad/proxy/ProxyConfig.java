@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.proxy.clientproxy.AcmeChallenge;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
@@ -60,6 +61,11 @@ public class ProxyConfig {
     @Bean(initMethod = "start", destroyMethod = "stop")
     ServerProxy serverProxy() throws Exception {
         return new ServerProxy();
+    }
+
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    AcmeChallenge acmeChallenge() {
+        return new AcmeChallenge();
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")

@@ -159,6 +159,16 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
                     <documentation>The DN component that went into the certification request. Encoded as string.</documentation>
                 </annotation>
             </element>
+            <element minOccurs="0" name="subjectAlternativeName" type="string">
+                <annotation>
+                    <documentation>The SAN extension that went into the certification request. Encoded as string.</documentation>
+                </annotation>
+            </element>
+            <element minOccurs="0" name="certificateProfile" type="string">
+                <annotation>
+                    <documentation>Fully qualified class name that was used to create the CSR. Implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface.</documentation>
+                </annotation>
+            </element>
         </sequence>
         <attribute name="id" type="ID" use="optional">
             <annotation>
