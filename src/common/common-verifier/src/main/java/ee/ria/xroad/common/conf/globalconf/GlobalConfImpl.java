@@ -472,7 +472,9 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return new ApprovedCAInfo(
                 ca.getName(),
                 ca.getAuthenticationOnly(),
-                ca.getCertificateProfileInfo()
+                ca.getCertificateProfileInfo(),
+                ca.getAcmeServer() != null ? ca.getAcmeServer().getDirectoryURL() : null,
+                ca.getAcmeServer() != null ? ca.getAcmeServer().getIpAddress() : null
         );
     }
 

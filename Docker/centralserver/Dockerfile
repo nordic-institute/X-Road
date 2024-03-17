@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
-  && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-17-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
+  && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-17-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev wget python3 python3-pip uwsgi uwsgi-plugin-python3 \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -77,6 +77,22 @@ RUN { nginx -s stop ||:; } \
   && rm -rf /tmp/repo \
   && apt-get remove -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
   && rm -rf var/lib/apt/lists/*
+
+# ACME
+ARG A2C_VER=0.33.3
+ADD https://github.com/grindsa/acme2certifier/releases/download/$A2C_VER/acme2certifier_$A2C_VER-1_all.deb /tmp/
+RUN apt update
+RUN apt -y install /tmp/acme2certifier_$A2C_VER-1_all.deb
+RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf \
+    && sed -i "s/80/8887/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf \
+    && cp /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf /etc/nginx/sites-available/acme_srv.conf \
+    && ln -s /etc/nginx/sites-available/acme_srv.conf /etc/nginx/sites-enabled/acme_srv.conf \
+    && sed -i "s/\/run\/uwsgi\/acme.sock/acme.sock/g" /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
+    && sed -i "s/nginx/www-data/g" /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
+    && echo "plugins = python3" >> /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
+    && cp /var/www/acme2certifier/examples/nginx/acme2certifier.ini /var/www/acme2certifier \
+    && usermod -a -G ca www-data
+COPY --chown=www-data:www-data files/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
 
 # Setup additional users
 ARG USER_PASSWD=secret

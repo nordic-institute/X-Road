@@ -39,13 +39,17 @@ import org.niis.xroad.ss.test.ui.page.KeyAndCertPageObj;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.awaitility.Awaitility.given;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 @Slf4j
@@ -190,7 +194,8 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
         keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(visible).click();
 
-        vTextField(keyAndCertPageObj.addKeyWizardGenerate.serverDNS()).setValue("ss1");
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.commonName()).setValue("ss1");
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.subjectAltName()).setValue("ss1");
         vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(randomAlphabetic(10));
 
         keyAndCertPageObj.addKeyWizardGenerate.generateButton().click();
@@ -203,20 +208,55 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
     }
 
     @SneakyThrows
-    @Step("Generate CSR is set to DNS {string}, Organization {string} and CSR successfully generated")
-    public void setGenerateCsr(String dns, String organization) {
+    @Step("Generate {string} CSR is set to DNS {string}, Organization {string} and CSR with extension {string} successfully generated")
+    public void setGenerateCsr(String usage, String dns, String organization, String format) {
         keyAndCertPageObj.addKeyWizardGenerate.generateButton().shouldBe(disabled);
         keyAndCertPageObj.addKeyWizardGenerate.doneButton().shouldBe(disabled);
 
         if (StringUtils.isNotBlank(dns)) {
-            vTextField(keyAndCertPageObj.addKeyWizardGenerate.serverDNS()).setValue(dns);
+            if ("AUTHENTICATION".equalsIgnoreCase(usage)) {
+                vTextField(keyAndCertPageObj.addKeyWizardGenerate.commonName()).setValue(dns);
+            }
+            vTextField(keyAndCertPageObj.addKeyWizardGenerate.subjectAltName()).setValue(dns);
         }
         vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(organization);
 
-        File certReq = keyAndCertPageObj.addKeyWizardGenerate.generateButton().download(FileFilters.withExtension("pem"));
+        File certReq = keyAndCertPageObj.addKeyWizardGenerate.generateButton().download(FileFilters.withExtension(format));
         log.info("Putting {} into downloaded file", certReq);
         putStepData(StepDataKey.DOWNLOADED_FILE, certReq);
 
+        keyAndCertPageObj.addKeyWizardGenerate.doneButton().click();
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @SneakyThrows
+    @Step("Generate {string} CSR is set to DNS {string}, Organization {string} and ACME order made")
+    public void setGenerateAcmeCsr(String usage, String dns, String organization) {
+        keyAndCertPageObj.addKeyWizardGenerate.generateButton().shouldBe(disabled);
+        keyAndCertPageObj.addKeyWizardGenerate.doneButton().shouldBe(disabled);
+
+        if (StringUtils.isNotBlank(dns)) {
+            if ("AUTHENTICATION".equalsIgnoreCase(usage)) {
+                vTextField(keyAndCertPageObj.addKeyWizardGenerate.commonName()).setValue(dns);
+            }
+            vTextField(keyAndCertPageObj.addKeyWizardGenerate.subjectAltName()).setValue(dns);
+        }
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(organization);
+
+        vCheckbox(keyAndCertPageObj.addKeyWizardGenerate.acmeOrder()).click();
+
+        keyAndCertPageObj.addKeyWizardGenerate.generateButton().click();
+
+        given()
+                .pollDelay(5, TimeUnit.SECONDS)
+                .pollInterval(5, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .pollInSameThread()
+                .await()
+                .untilAsserted(() -> {
+                    commonPageObj.snackBar.success().shouldBe(Condition.visible);
+                });
+        commonPageObj.snackBar.btnClose().click();
         keyAndCertPageObj.addKeyWizardGenerate.doneButton().click();
     }
 
@@ -264,9 +304,36 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnSave().click();
     }
 
+    @Step("Token: {} - CSR of key {string} is used to order certificate")
+    public void orderCertificateWithCsr(String tokenKey, String keyLabel) {
+
+        SelenideElement btnOrderCertificate = keyAndCertPageObj.section(tokenKey).btnAcmeOrderCertByLabel(keyLabel);
+
+        btnOrderCertificate.click();
+        commonPageObj.dialog.btnCancel().click();
+        btnOrderCertificate.click();
+        vSelect(keyAndCertPageObj.acmeOrderCertificateDialog.certificateAuthority()).clickAndSelect("X-Road Test CA CN");
+        commonPageObj.dialog.btnSave().click();
+    }
+
+    @Step("Token: {} - ACME order dialog is opened for key {string}")
+    public void acmeOrderDialogIsOpened(String tokenKey, String keyLabel) {
+        keyAndCertPageObj.section(tokenKey).btnAcmeOrderCertByLabel(keyLabel).click();
+    }
+
+    @Step("ACME order dialog order button is disabled")
+    public void acmeOrderDialogOrderButtonIsDisabled() {
+        commonPageObj.dialog.btnSave().shouldBe(disabled);
+    }
+
     @Step("Token: {}, key {string} generate CSR button is disabled")
     public void tokenKeyGenerateCSRButtonIsDisabled(String token, String keyLabel) {
         keyAndCertPageObj.section(token).tokenLabeledKeyGenerateCsrButton(keyLabel).shouldBe(disabled);
+    }
+
+    @Step("ACME order checkbox is disabled")
+    public void acmeOrderCheckboxIsDisabled() {
+        vCheckbox(keyAndCertPageObj.addKeyWizardGenerate.acmeOrder()).shouldBe(disabled);
     }
 
     @Step("Change the pin section is expanded")

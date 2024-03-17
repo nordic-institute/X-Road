@@ -454,12 +454,14 @@ public class MergeOntoFileTokenStrategyTest {
 
         final Key memKey = new Key(null, "memId");
 
-        memKey.addCertRequest(new CertRequest("memRequest 1", clientId, "CN=memRequest1"));
-        memKey.addCertRequest(new CertRequest("memRequest 2", clientId, "CN=memRequest2"));
+        memKey.addCertRequest(new CertRequest("memRequest 1", clientId, "CN=memRequest1", null, "org.example.TestProfileInfoProvider"));
+        memKey.addCertRequest(new CertRequest("memRequest 2", clientId, "CN=memRequest2", null, "org.example.TestProfileInfoProvider2"));
 
         final Key fileKey = new Key(null, "fileId");
-        final CertRequest fileRequest1 = new CertRequest("fileRequest 1", clientId, "CN=fileRequest1");
-        final CertRequest fileRequest2 = new CertRequest("fileRequest 2", clientId, "CN=fileRequest2");
+        final CertRequest fileRequest1 =
+                new CertRequest("fileRequest 1", clientId, "CN=fileRequest1", null, "org.example.TestProfileInfoProvider");
+        final CertRequest fileRequest2 =
+                new CertRequest("fileRequest 2", clientId, "CN=fileRequest2", null, "org.example.TestProfileInfoProvider2");
 
         fileKey.addCertRequest(fileRequest1);
         fileKey.addCertRequest(fileRequest2);

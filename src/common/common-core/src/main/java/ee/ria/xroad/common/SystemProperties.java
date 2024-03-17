@@ -100,6 +100,26 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
             PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
 
+    /** property name of the number of attempts to check whether the acme authorizations have completed */
+    public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS =
+            PREFIX + "proxy-ui-api.acme-authorization-wait-attempts";
+
+    /** property name of the amount of time to wait between acme authorization completion check attempts */
+    public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL =
+            PREFIX + "proxy-ui-api.acme-authorization-wait-interval";
+
+    /** property name of the number of attempts to check whether the acme certificate is ready */
+    public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS =
+            PREFIX + "proxy-ui-api.acme-certificate-wait-attempts";
+
+    /** property name of the amount of time to wait between acme certificate completion check attempts */
+    public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL =
+            PREFIX + "proxy-ui-api.acme-certificate-wait-interval";
+
+    /** property name of the amount of days the ACME server account's self-signed certificate is valid */
+    public static final String PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS =
+            PREFIX + "proxy-ui-api.acme-certificate-account-key-pair-expiration";
+
     // Proxy ------------------------------------------------------------------
 
     /** Property name of controlling SSL support between Proxies. */
@@ -787,6 +807,26 @@ public final class SystemProperties {
     public static boolean getAllowCsrForKeyWithCertificate() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE,
                 DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE));
+    }
+
+    public static int getAcmeAuthorizationWaitAttempts() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS, "5"));
+    }
+
+    public static long getAcmeAuthorizationWaitInterval() {
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5000"));
+    }
+
+    public static int getAcmeCertificateWaitAttempts() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS, "5"));
+    }
+
+    public static long getAcmeCertificateWaitInterval() {
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5000"));
+    }
+
+    public static long getAcmeAccountKeyPairExpirationInDays() {
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS, "365"));
     }
 
     /**

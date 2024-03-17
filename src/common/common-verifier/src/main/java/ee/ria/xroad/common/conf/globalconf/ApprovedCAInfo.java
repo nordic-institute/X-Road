@@ -38,4 +38,6 @@ public class ApprovedCAInfo {
     private final Boolean authenticationOnly;
 
     private final String certificateProfileInfo;
+    private final String acmeServerDirectoryUrl;
+    private final String acmeServerIpAddress;
 }
