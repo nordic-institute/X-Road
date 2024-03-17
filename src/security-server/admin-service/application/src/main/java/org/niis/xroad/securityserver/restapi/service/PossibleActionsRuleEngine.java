@@ -196,14 +196,10 @@ public class PossibleActionsRuleEngine {
         return actions;
     }
 
-    /**
-     * combined logic from keys.js and token_renderer.rb
-     */
     private boolean canDeleteCertOrCsr(TokenInfo tokenInfo,
                                        boolean savedToConfiguration,
                                        boolean canUnregister) {
 
-        // token_renderer.rb#230
         boolean canDeleteCertFromTokenRenderer;
         if (tokenInfo.isReadOnly() && !savedToConfiguration) {
             canDeleteCertFromTokenRenderer = false;
@@ -211,7 +207,6 @@ public class PossibleActionsRuleEngine {
             canDeleteCertFromTokenRenderer = true;
         }
 
-        // keys.js#77
         if (!canUnregister
                 && canDeleteCertFromTokenRenderer
                 && (savedToConfiguration || tokenInfo.isActive())) {

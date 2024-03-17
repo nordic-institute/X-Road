@@ -77,8 +77,10 @@ public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<Regener
         }
 
         String subjectName = certRequestInfo.getSubjectName();
+        String subjectAltName = certRequestInfo.getSubjectAltName();
 
-        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName);
+        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName, subjectAltName,
+                tokenAndKey.getKey().getUsage());
 
         final RegenerateCertRequestResp.Builder builder = RegenerateCertRequestResp.newBuilder()
                 .setCertReqId(message.getCertRequestId())

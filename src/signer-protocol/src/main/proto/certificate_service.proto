@@ -137,7 +137,9 @@ message GenerateCertRequestReq {
   optional ClientIdProto member_id = 2;
   KeyUsageInfo key_usage = 3;
   string subject_name = 4;
-  CertificateRequestFormat format = 5;
+  optional string subject_alt_name = 5;
+  CertificateRequestFormat format = 6;
+  optional string certificate_profile = 7;
 }
 
 message GenerateCertRequestResp {

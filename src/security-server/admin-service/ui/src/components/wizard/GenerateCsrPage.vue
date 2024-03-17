@@ -43,6 +43,19 @@
           ></v-text-field>
         </div>
       </div>
+      <div v-if="acmeCapable" class="wizard-row-wrap">
+        <div class="wizard-label pt-4">
+          {{ $t(`csr.orderAcmeCertificate`) }}
+        </div>
+        <v-checkbox
+          v-model="acmeOrder"
+          class="wizard-form-input"
+          :disabled="externalAccountBindingRequiredButMissing"
+          :hint="externalAccountBindingRequiredButMissingHint"
+          persistent-hint
+          data-test="order-acme-certificate-checkbox"
+        ></v-checkbox>
+      </div>
     </div>
     <div class="button-footer">
       <xrd-button outlined data-test="cancel-button" @click="cancel">{{
@@ -68,6 +81,7 @@ import { defineComponent, Ref } from 'vue';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { PublicPathState, useForm } from 'vee-validate';
 import { CsrSubjectFieldDescription } from '@/openapi-types';
+import { mapState, mapWritableState } from "pinia";
 
 export default defineComponent({
   props: {
@@ -114,6 +128,19 @@ export default defineComponent({
       {},
     );
     return { meta, values, ...componentBinds, csrForm, setCsrForm };
+  },
+  computed: {
+    ...mapState(useCsr, ["acmeCapable", "eabRequired", "acmeEabCredentialsStatus"]),
+    ...mapWritableState(useCsr, ["acmeOrder"]),
+    externalAccountBindingRequiredButMissing(): boolean {
+      return !!this.eabRequired && !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials;
+    },
+    externalAccountBindingRequiredButMissingHint(): string | undefined {
+      return this.externalAccountBindingRequiredButMissing ? this.$t('csr.eabCredRequired') : undefined;
+    },
+  },
+  created() {
+    this.acmeOrder = false;
   },
   methods: {
     componentRef(id: string): Ref {

@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.83  
+Version: 2.84  
 Doc. ID: UG-SS
 
 ---
@@ -112,6 +112,7 @@ Doc. ID: UG-SS
 | 11.12.2023 | 2.81    | Add a chapter about LDAP over PAM configuration                                                                                                                                                                                                                                                                                                                                                             | Ričardas Bučiūnas    |
 | 08.12.2023 | 2.82    | Disabled client state                                                                                                                                                                                                                                                                                                                                                                                       | Madis Loitmaa        |
 | 26.03.2024 | 2.83    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
+| 29.03.2024 | 2.84    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -626,6 +627,20 @@ To import a certificate from a security token, follow these steps.
 
 5.  Click the **Import** button on the row of the certificate. By default, the certificate is imported in the "Registered" state.
 
+#### 3.1.4 Ordering the Signing Certificate from the ACME server
+
+If an approved CA supports ACME, then an alternative to creating the CSR, sending it to be signed by the CA by some outside means and later importing it manually, is to order the certificate from the ACME server of the CA. In this case all these steps are done automatically. To do this:
+
+1. Start the same way as in Section [3.1.1](#331-registering-an-authentication-certificate) 
+
+2. In step 4.ii.d choose a **Certification Service** that supports ACME.
+
+3. Some Certification Services require their ACME Server account to be bound an external account for added security. If that is the case, the chosen **Client** in step 4.ii.b needs to have external accounts credentials configured in `/etc/xroad/conf.d/acme.yml`.
+
+4. In step 4.iii make sure the **SAN** field has the correct DNS name. This is used by the ACME server to check that the member owns the domain the certificate is ordered for.
+
+5. Check the **Order certificate from ACME Server with the created CSR** checkbox. Now when the **Generate CSR** button is clicked, it will also be used to order certificate from the ACME Server. When the order is successful, then certificate is returned and imported to the new key automatically.
+
 
 ### 3.2 Configuring the Authentication Key and Certificate for the Security Server
 
@@ -715,6 +730,21 @@ To import the authentication certificate to the Security Server, follow these st
 3.  Click **Import certificate**.
 
 4.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the authentication key's row is replaced with the information from the imported certificate. By default, the certificate is imported in the "Saved" (see Section [5.2.2](#522-registration-states-of-the-authentication-certificate)) and "Disabled" states (see Section [5.3](#53-validity-states-of-certificates)).
+
+
+#### 3.2.4 Ordering the Authentication Certificate from the ACME server
+
+If an approved CA supports ACME, then an alternative to creating the CSR, sending it to be signed by the CA by some outside means and later importing it manually, is to order the certificate from the ACME server of the CA. In this case all these steps are done automatically. To do this:
+
+1. Start the same way as in Section [3.2.1](#321-generating-an-authentication-key) or [3.2.2](#322-generating-a-certificate-signing-request-for-an-authentication-key).
+
+2. Choose a **Certification Service** that supports ACME.
+
+3. Some Certification Services require their ACME Server account to be bound an external account for added security. If that is the case, the security server owner needs to have external accounts credentials configured in `/etc/xroad/conf.d/acme.yml`.
+
+4. On the CSR fields page make sure the **CN** field (and **SAN** if present) field has the correct DNS name. This is used by the ACME server to check that the member owns the domain the certificate is ordered for.
+
+5. Check the **Order certificate from ACME Server with the created CSR** checkbox. Now when the **Generate CSR** button is clicked, it will also be used to order certificate from the ACME Server. When the order is successful, then certificate is returned and imported to the new key automatically.
 
 
 ### 3.3 Registering the Security Server in the X-Road Governing Authority

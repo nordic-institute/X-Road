@@ -55,6 +55,9 @@ public class CertificateAuthorityConverter {
                 .orElse(null));
         ca.setPath(String.join(":", approvedCaDto.getSubjectDnPath()));
         ca.setTopCa(approvedCaDto.isTopCa());
+        ca.acmeCapable(approvedCaDto.isAcmeCapable());
+        ca.acmeEabRequired(approvedCaDto.isAcmeEabRequired());
+        ca.certificateProfileInfo(approvedCaDto.getCertificateProfileInfo());
         return ca;
     }
 

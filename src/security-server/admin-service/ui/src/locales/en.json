@@ -51,6 +51,7 @@
     "next": "Next",
     "noData": "No data",
     "ok": "Ok",
+    "order": "Order",
     "previous": "Previous",
     "refresh": "Refresh",
     "register": "Register",
@@ -199,7 +200,8 @@
     "SERIAL_NUMBER": "Serial Number",
     "SERIAL_NUMBER_SN": "Serial Number (SN)",
     "SERVER_CODE": "Server Code (CN)",
-    "SERVER_DNS_NAME": "Server DNS Name (CN)"
+    "SERVER_DNS_NAME": "Server DNS Name (CN)",
+    "SUBJECT_ALTERNATIVE_NAME": "Subject Alternative Name (SAN)"
   },
   "client": {
     "action": {
@@ -275,13 +277,15 @@
     "client": "Client",
     "csrDetails": "CSR details",
     "csrFormat": "CSR Format",
+    "eabCredRequired": "Selected Certification Authority requires external account binding for ACME, but the credentials are missing from the configuration.",
     "generateCsr": "Generate CSR",
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
     "helpClient": "X-Road member the certificate will be issued for.",
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements.",
     "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
     "saveInfo": "Generate a new CSR and save it into a safe place.",
-    "usage": "Usage"
+    "usage": "Usage",
+    "orderAcmeCertificate": "Order certificate from ACME Server with the created CSR"
   },
   "customValidation": {
     "invalidEndpoint": "Endpoint contains illegal characters",
@@ -385,6 +389,23 @@
   },
   "error_code": {
     "accessright_not_found": "Access right not found",
+    "acme": {
+      "eab_credentials_missing": "External Account binding credentials missing, but required",
+      "eab_secret_length": "Invalid external account binding base64 secret length",
+      "account_key_pair_error": "Getting key pair for ACME server account failed",
+      "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
+      "account_creation_failure": "Creating Account on ACME server failed",
+      "order_creation_failure": "Creating new Order on ACME server failed",
+      "order_finalization_failure": "Finalizing the Order on ACME server failed",
+      "http_challenge_file_creation": "Creating ACME HTTP challenge file failed",
+      "http_challenge_file_deletion": "Deleting ACME HTTP challenge file failed",
+      "http_challenge_missing": "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server",
+      "challenge_trigger_failure": "Requesting the ACME server to validate the challenge failed",
+      "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
+      "authorization_wait_failure": "Waiting for the Authorization to complete failed",
+      "certificate_failure": "Getting the Certificate from the ACME server failed",
+      "certificate_wait_failure": "Waiting for the creation of the new Certificate failed"
+    },
     "action_not_possible": "Action is not possible",
     "additional_member_already_exists": "Additional member already exists",
     "anchor_already_exists": "Anchor already exists",
@@ -507,6 +528,9 @@
     "software_token_init_failed": "Software token initialisation failed",
     "timestamping_service_already_configured": "Timestamping service is already configured",
     "timestamping_service_not_found": "Timestamping service not found",
+    "token": {
+      "malformed_csr": "CSR data is malformed"
+    },
     "token_not_active": "Token is not active",
     "token_not_found": "Token not found",
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
@@ -565,6 +589,7 @@
     "serviceTimeout": "Timeout",
     "serviceType": "Service Type",
     "serviceUrl": "URL",
+    "subjectAltName": "Subject Alternative Name",
     "token": {
       "friendlyName": "Friendly name",
       "newPin": "New pin",
@@ -710,6 +735,8 @@
       "suspended": "Suspended",
       "unknown": "Unknown"
     },
+    "orderAcmeCertificate": "Order Certificate",
+    "acmeCertOrdered": "Certificate successfully ordered",
     "readOnly": "Read-only:",
     "registrationRequest": "Registration request",
     "request": "Request",
@@ -1084,6 +1111,9 @@
     "clientInfo1": "Specify the details of the Client you want to add.",
     "clientInfo2": "If the Client is already existing, you can select it from the Global list.",
     "finish": {
+      "acme": {
+        "infoLine": "All required information is collected. By clicking \"Submit\", the new client will be added to the Clients list and the new key and certificate will appear in the Keys and Certificates view. The certificate will be ordered from the CA's ACME Server and imported automatically. Then you can register the new client."
+      },
       "infoLine1": "All required information is collected. By clicking \"Submit\", the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.",
       "infoLine2": "In order to register the new client, please complete the following steps:",
       "note": "NOTE: if you click Cancel, all data will be lost",

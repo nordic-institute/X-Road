@@ -788,7 +788,9 @@ public final class TokenManager {
     public static synchronized String addCertRequest(String keyId,
                                                      ClientId.Conf memberId,
                                                      String subjectName,
-                                                     KeyUsageInfo keyUsage) {
+                                                     String subjectAltName,
+                                                     KeyUsageInfo keyUsage,
+                                                     String certificateProfile) {
         log.trace("addCertRequest({}, {})", keyId, memberId);
 
         Key key = findKey(keyId);
@@ -817,7 +819,7 @@ public final class TokenManager {
         }
 
         String certId = SignerUtil.randomId();
-        key.addCertRequest(new CertRequest(certId, memberId, subjectName));
+        key.addCertRequest(new CertRequest(certId, memberId, subjectName, subjectAltName, certificateProfile));
 
         log.info("Added new certificate request (memberId: {}, "
                         + "subjectId: {}) under key {}",
