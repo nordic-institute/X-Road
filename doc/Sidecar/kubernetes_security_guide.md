@@ -56,13 +56,13 @@ The document is intended for readers with a moderate knowledge of Linux server m
 
 Please check the Reference data in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#44-reference-data).
 
-**Ref** | **Value**                                | **Explanation**
-------- | ----------------------------------------- | ----------------------------------------------------------
-4.1    | &lt;role arn&gt;                    | The ARN of the IAM role to add.
-4.2    | &lt;kubernetes groups&gt;            | A list of groups within Kubernetes to which the role is mapped. Typically "system:masters" and "system:nodes".
-4.3    | &lt;user arn&gt;                    | The ARN of the IAM user to add.
-4.4    | &lt;user name&gt;                    | The user name within Kubernetes to map to the IAM user.
-4.5    | &lt;networkpolicy name&gt;                    | Unique name that identifies a NetworkPolicy inside a namespace.
+ **Ref** | **Value**             | **Explanation**                                                                                                
+---------|-----------------------|----------------------------------------------------------------------------------------------------------------
+ 4.1     | \<role arn>           | The ARN of the IAM role to add.                                                                                
+ 4.2     | \<kubernetes groups>  | A list of groups within Kubernetes to which the role is mapped. Typically "system:masters" and "system:nodes". 
+ 4.3     | \<user arn>           | The ARN of the IAM user to add.                                                                                
+ 4.4     | \<user name>          | The user name within Kubernetes to map to the IAM user.                                                        
+ 4.5     | \<networkpolicy name> | Unique name that identifies a NetworkPolicy inside a namespace.                                                
 
 ## 3 Handling passwords and secrets
 

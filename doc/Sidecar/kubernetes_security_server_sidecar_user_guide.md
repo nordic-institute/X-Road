@@ -5,17 +5,17 @@ Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                           | Author
- ---------- |---------|-------------------------------------------------------| --------------------
- 05.01.2021 | 1.0     | Initial version                                       | Alberto Fernandez Lorenzo
- 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                         | Alberto Fernandez Lorenzo
- 11.03.2021 | 1.2     | Add setup examples                                    | Alberto Fernandez Lorenzo
- 15.03.2021 | 1.3     | Add IP address options                                | Alberto Fernandez Lorenzo
- 22.03.2021 | 1.4     | Add Load Balancer setup example                       | Alberto Fernandez Lorenzo
- 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                  | Jarkko Hyöty
- 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process | Monika Liutkute
- 06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets
- 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets
+| Date       | Version | Description                                           | Author                    |
+|------------|---------|-------------------------------------------------------|---------------------------|
+| 05.01.2021 | 1.0     | Initial version                                       | Alberto Fernandez Lorenzo |
+| 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                         | Alberto Fernandez Lorenzo |
+| 11.03.2021 | 1.2     | Add setup examples                                    | Alberto Fernandez Lorenzo |
+| 15.03.2021 | 1.3     | Add IP address options                                | Alberto Fernandez Lorenzo |
+| 22.03.2021 | 1.4     | Add Load Balancer setup example                       | Alberto Fernandez Lorenzo |
+| 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                  | Jarkko Hyöty              |
+| 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process | Monika Liutkute           |
+| 06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets             |
+| 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets             |
 
 ## License
 
@@ -70,9 +70,9 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ### 1.1 Target Audience
 
-This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS environment.
+This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS or Azure Kubernetes Service (AKS) environment.
 
-The document is intended for readers with at least a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, AWS EKS and X-Road.
+The document is intended for readers with at least a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, AWS EKS, AKS and X-Road.
 
 ## 2 Deployment Options
 
@@ -98,9 +98,7 @@ This option enables scaling the number of Nodes and Pods on the cluster. The opt
 * *Load Balancer*: Redirects traffic from external Security Servers to the Secondary Pods.
 * *External database*: PostgreSQL instance that contains the Security Server configuration, message log, and operational monitoring database.
 
-<p align="center">
-  <img src="img/ig-load_balancer_deploy.svg" />
-</p>
+![Load balancer deployment](img/ig-load_balancer_deploy.svg)
 
 ## 3 X-Road Security Server Sidecar images for Kubernetes
 
@@ -131,53 +129,37 @@ See [Getting started with Amazon EKS](https://docs.aws.amazon.com/eks/latest/use
 
 The table below lists the required connections between different components.
 
-| Connection | Source                      | Target                       | Target Ports     | Protocol     | Note                    |
--------------|-----------------------------|------------------------------|------------------|--------------|-------------------------|
-| Inbound    | Other Security Servers      | Sidecar                      | 5500, 5577       | tcp          |                         |
-| Inbound    | Consumer Information System | Sidecar                      | 8080, 8443       | tcp          | From "internal" network |
-| Inbound    | Admin                       | Sidecar                      | 4000             | https        | From "internal" network |
-| Outbound   | Sidecar                     | Central Server               | 80, 4001         | http(s)      |                         |
-| Outbound   | Sidecar                     | OCSP Service                 | 80 / 443 / other | http(s)      |                         |
-| Outbound   | Sidecar                     | Timestamping Service         | 80 / 443 / other | http(s)      | Not used by *slim*      |
-| Outbound   | Sidecar                     | Other Security Server(s)     | 5500, 5577       | tcp          |                         |
-| Outbound   | Sidecar                     | Producer Information System  | 80, 443, other   | http(s)      | To "internal" network   |
-| Inbound    | Sidecar (secondary)         | Sidecar (primary)            | 22               | ssh          | Configuration synchronization |
+| Connection | Source                      | Target                      | Target Ports     | Protocol | Note                          |
+|------------|-----------------------------|-----------------------------|------------------|----------|-------------------------------|
+| Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                               |
+| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network       |
+| Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network       |
+| Outbound   | Sidecar                     | Central Server              | 80, 4001         | http(s)  |                               |
+| Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                               |
+| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*            |
+| Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                               |
+| Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network         |
+| Inbound    | Sidecar (secondary)         | Sidecar (primary)           | 22               | ssh      | Configuration synchronization |
 
 ### 4.4 Reference Data
 
 This is an extension of the Security Server Sidecar [Reference Data](security_server_sidecar_user_guide.md#22-reference-data)
 
-**Ref** | **Value**                            | **Explanation**
-------- | ----------------------------------- | ----------------------------------------------------------
-3.1    | \<namespace name>                    | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects inside the cluster.
-3.2    | \<pod name>                          | Unique name that identifies a Pod inside a Cluster namespace. If the Pod belongs to a deployment object a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment.
-3.3    | \<pod label>                         | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.
-3.4    | \<pvc name>                         | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.
-3.5    | \<volume storage class name>        | Name that matches the PVC with the PV for dynamic provisioning.
-3.6    | \<volume access mode>             | Defines the access mode to the volume, typically "ReadWriteOnce" which allows Read/Write access to a single Pod at a time. "ReadWriteMany" could be used for EFS volumes which allows multiple Pods access at the same time.
-3.7    | \<volume size>                       | Requested volume size, for example: 5Gi
-3.8    | \<pv name>                           | Unique name that identifies the PersistentVolume.
-3.9    | \<pv host path>                      | Path to the file or directory to mount in the PersistentVolume.
-3.10    | \<awsElasticBlockStore volume id>   | Volume ID of an AWS Elastic Block Store volume.
-3.11    | \<efs volume id>                    | Volume ID of an AWS Elastic File System volume.
-3.12    | \<container name>                    | Name of the image container deployed in a Kubernetes pod.
-3.13    | \<manifest volume name>  | Unique name that identifies a volume inside a manifest.
-3.14    | \<secret name>            | Unique name that identifies a secret inside a Cluster namespace.
-3.15    | \<service name>           | Unique name that identifies a Kubernetes Service object
-3.16    | \<pod private ip>           | private IP of a single Pod.
-3.17    | \<load balancer private ip>  | Fixed private IP of a Load Balancer, defined on a Kubernetes manifest.
-3.18    | \<number replicas>           | Number of Pod replicas to be deployed.
-3.19    | \<service selector>           | Name that identifies a Load Balancer with the Pods.
-3.20    | \<primary DNS>           | DNS of the service that identifies the Primary Pod composed by \<service name>.\<namespace name>.svc.cluster.local .
-3.21    | \<cluster name>           | Name of the AWS EKS cluster.
-3.22    | \<cluster region>           | Region where the AWS EKS cluster is deployed.
-3.23    | \<cloudwatch agent name>           | Name of the CloudWatch agent that collects the logs and metrics of the AWS EKS cluster. This name is automatically generated during the CloudWatch setup.
-3.24    | \<volume mount path>           | Local path on the EC2 instance where the volume is mounted.
-3.25    | \<bucket name>           | Name of an AWS S3 bucket.
-3.26    | \<arn encryption key>           | ARN encryption key used in an AWS S3 bucket, example: arn:aws:kms:eu-west-1:999999999:alias/aws/s3.
-3.27    | \<hosted zone domain>           | AWS Route 53 hosted zone domain name.
-3.28    | \<hosted zone ID>           | AWS Route 53 hosted zone ID.
-3.29    | \<external DNS name>           | Name for the Load Balancer AWS Routed 53 hosted record.
+| **Ref** | **Value**                         | **Explanation**                                                                                                                                                                                                              |
+|---------|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.1     | \<namespace name>                 | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects inside the cluster.                                                                                                                          |
+| 3.2     | \<pod name>                       | Unique name that identifies a Pod inside a Cluster namespace. If the Pod belongs to a deployment object a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment.         |
+| 3.3     | \<pod label>                      | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.                                                                                        |
+| 3.4     | \<pvc name>                       | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.                                                                                                                                            |
+| 3.12    | \<container name>                 | Name of the image container deployed in a Kubernetes pod.                                                                                                                                                                    |
+| 3.13    | \<manifest volume name>           | Unique name that identifies a volume inside a manifest.                                                                                                                                                                      |
+| 3.14    | \<secret name>                    | Unique name that identifies a secret inside a Cluster namespace.                                                                                                                                                             |
+| 3.15    | \<service name>                   | Unique name that identifies a Kubernetes Service object                                                                                                                                                                      |
+| 3.18    | \<number replicas>                | Number of Pod replicas to be deployed.                                                                                                                                                                                       |
+| 3.19    | \<service selector>               | Name that identifies a Load Balancer with the Pods.                                                                                                                                                                          |
+| 3.20    | \<primary DNS>                    | DNS of the service that identifies the Primary Pod composed by \<service name>.\<namespace name>.svc.cluster.local .                                                                                                         |
+| 3.21    | \<cluster name>                   | Name of the AWS EKS cluster.                                                                                                                                                                                                 |
+| 3.22    | \<cluster region>                 | Region where the AWS EKS cluster is deployed.                                                                                                                                                                                |
 
 ### 4.5 Installation Instructions
 
@@ -270,15 +252,18 @@ kubectl delete -f /path/to/manifest-file-name.yaml
 
 #### 4.5.3 Kubernetes Volumes
 
-Kubernetes has multiple types of persistent volumes. Please see [Kubernetes storage documentation](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types) and [Amazon EKS Storage classes](https://docs.aws.amazon.com/eks/latest/userguide/storage-classes.html) for more information. For the purposes of this guide, AWS Elastic Block Store volume type with dynamic provisioning is assumed.
+Kubernetes has multiple types of persistent volumes. For the purposes of this guide, [AWS EBS](https://github.com/kubernetes-sigs/aws-ebs-csi-driver) or [Azure Disk](https://github.com/kubernetes-sigs/azuredisk-csi-driver) storage driver with dynamic provisioning is assumed. For more information see:
+- [Kubernetes storage documentation](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types)
+- [Amazon EKS Storage](https://docs.aws.amazon.com/eks/latest/userguide/storage.html)
+- [AKS Storage](https://learn.microsoft.com/en-us/azure/aks/concepts-storage#volumes)
 
 It is recommended to configure persistent volumes for the files in the following locations:
 
-| Mount point                  | Description                                               |
-|------------------------------|-----------------------------------------------------------|
-| /etc/xroad                   | X-Road configuration                                      |
-| /var/lib/xroad               | Backups and messagelog archives                           |
-| /var/lib/postgresql/12/main  | Local database files (not applicable to load balancer or external DB configuration |
+| Mount point                 | Description                                                                        |
+|-----------------------------|------------------------------------------------------------------------------------|
+| /etc/xroad                  | X-Road configuration                                                               |
+| /var/lib/xroad              | Backups and messagelog archives                                                    |
+| /var/lib/postgresql/12/main | Local database files (not applicable to load balancer or external DB configuration |
 
 #### 4.5.4 Kubernetes Secrets
 
