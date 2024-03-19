@@ -83,7 +83,18 @@ CA_IMG=testca
 Then in the same directory, run the following command:
 
 ```bash
-docker compose --env-file .env.override up -d
+docker compose -f compose-initialized.yaml --env-file .env.local up -d
 ```
 
+Authenticate against the GitHub Container Registry with your username and personal access token the following command (replace PERSONAL_ACCESS_TOKEN and USERNAME with your own values)
+```bash
+export CR_PAT=<PERSONAL_ACCESS_TOKEN>
+echo $CR_PAT | docker login ghcr.io -u <USERNAME> --password-stdin
+```
+Additional information about the GitHub Container Registry can be found here:
+https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
+
+```bash
+docker compose -f compose-base.yaml --env-file .env.local run hurl --insecure --variables-file /hurl-src/vars.env --file-root /hurl-files /hurl-src/setup.hurl --very-verbose --retry 12 --retry-interval 10000
+```
 After that you can use the `hurl` command as shown in the previous example.

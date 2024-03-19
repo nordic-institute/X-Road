@@ -179,22 +179,22 @@ gconf_anchor: body
 # Initialize management Security Server
 
 # Check that the Security Server UI is up and running
-GET https://{{ssm_host}}:4000
+GET https://{{ss0_host}}:4000
 HTTP 200
 
 # Log in to the Security Server
-POST https://{{ssm_host}}:4000/login
+POST https://{{ss0_host}}:4000/login
 [FormParams]
 username: xrd
 password: secret
 
 HTTP 200
 [Captures]
-ssm_xsrf_token: cookie "XSRF-TOKEN"
+ss0_xsrf_token: cookie "XSRF-TOKEN"
 
 # Add configuration anchor
-POST https://{{ssm_host}}:4000/api/v1/system/anchor
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/system/anchor
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/octet-stream
 ```
 {{gconf_anchor}}
@@ -203,13 +203,13 @@ Content-Type: application/octet-stream
 HTTP 201
 
 # Initialize management Security Server
-POST https://{{ssm_host}}:4000/api/v1/initialization
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/initialization
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 {
   "owner_member_class": "COM",
   "owner_member_code": "1234",
-  "security_server_code": "SSM",
+  "security_server_code": "SS0",
   "software_token_pin": "Secret1234",
   "ignore_warnings": true
 }
@@ -217,8 +217,8 @@ Content-Type: application/json
 HTTP 201
 
 # Log in to the Security Servers token
-PUT https://{{ssm_host}}:4000/api/v1/tokens/0/login
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+PUT https://{{ss0_host}}:4000/api/v1/tokens/0/login
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 {
   "password": "Secret1234"
@@ -227,8 +227,8 @@ Content-Type: application/json
 HTTP 200
 
 # Get the CA name
-GET https://{{ssm_host}}:4000/api/v1/certificate-authorities
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+GET https://{{ss0_host}}:4000/api/v1/certificate-authorities
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 HTTP 200
 
@@ -236,8 +236,8 @@ HTTP 200
 ca_name: jsonpath "$[0].name"
 
 # Add auth key to the Security Server token
-POST https://{{ssm_host}}:4000/api/v1/tokens/0/keys-with-csrs
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/tokens/0/keys-with-csrs
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 {
   "key_label": "Auth key",
@@ -246,10 +246,10 @@ Content-Type: application/json
     "ca_name": "{{ca_name}}",
     "csr_format": "DER",
     "subject_field_values": {
-      "CN": "{{ssm_host}}",
+      "CN": "{{ss0_host}}",
       "C": "FI",
       "O": "Test member",
-      "serialNumber": "DEV/SSM/COM"
+      "serialNumber": "DEV/SS0/COM"
     }
   }
 }
@@ -258,17 +258,17 @@ Content-Type: application/json
 HTTP 200
 
 [Captures]
-ssm_auth_key_id: jsonpath "$.key.id"
-ssm_auth_key_csr_id: jsonpath "$.csr_id"
+ss0_auth_key_id: jsonpath "$.key.id"
+ss0_auth_key_csr_id: jsonpath "$.csr_id"
 
 # Get the auth key CSR
-GET https://{{ssm_host}}:4000/api/v1/keys/{{ssm_auth_key_id}}/csrs/{{ssm_auth_key_csr_id}}?csr_format=PEM
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+GET https://{{ss0_host}}:4000/api/v1/keys/{{ss0_auth_key_id}}/csrs/{{ss0_auth_key_csr_id}}?csr_format=PEM
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 HTTP 200
 
 [Captures]
-ssm_auth_key_csr: body
+ss0_auth_key_csr: body
 
 # Sign the auth key CSR (note that the test CA needs filename so we can't just send it under
 # [FormMultiPart] as we do with the other requests)
@@ -282,30 +282,30 @@ auth
 --certboundary
 Content-Disposition: form-data; name="certreq"; filename="auth.csr.pem"
 
-{{ssm_auth_key_csr}}
+{{ss0_auth_key_csr}}
 --certboundary--
 ```
 
 HTTP 200
 [Captures]
-ssm_auth_key_cert: body
+ss0_auth_key_cert: body
 
 # Import auth certificate
-POST https://{{ssm_host}}:4000/api/v1/token-certificates
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/token-certificates
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/octet-stream
 ```
-{{ssm_auth_key_cert}}
+{{ss0_auth_key_cert}}
 ```
 
 HTTP 201
 
 [Captures]
-ssm_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
+ss0_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
 # Add sign key to the Security Server token
-POST https://{{ssm_host}}:4000/api/v1/tokens/0/keys-with-csrs
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/tokens/0/keys-with-csrs
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 {
   "key_label": "Sign key",
@@ -315,10 +315,10 @@ Content-Type: application/json
     "csr_format": "DER",
     "member_id": "DEV:COM:1234",
     "subject_field_values": {
-      "CN": "{{ssm_host}}",
+      "CN": "{{ss0_host}}",
       "C": "FI",
       "O": "Test member",
-      "serialNumber": "DEV/SSM/COM"
+      "serialNumber": "DEV/SS0/COM"
     }
   }
 }
@@ -327,17 +327,17 @@ Content-Type: application/json
 HTTP 200
 
 [Captures]
-ssm_sign_key_id: jsonpath "$.key.id"
-ssm_sign_key_csr_id: jsonpath "$.csr_id"
+ss0_sign_key_id: jsonpath "$.key.id"
+ss0_sign_key_csr_id: jsonpath "$.csr_id"
 
 # Get the sign key CSR
-GET https://{{ssm_host}}:4000/api/v1/keys/{{ssm_sign_key_id}}/csrs/{{ssm_sign_key_csr_id}}?csr_format=PEM
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+GET https://{{ss0_host}}:4000/api/v1/keys/{{ss0_sign_key_id}}/csrs/{{ss0_sign_key_csr_id}}?csr_format=PEM
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 HTTP 200
 
 [Captures]
-ssm_sign_key_csr: body
+ss0_sign_key_csr: body
 
 # Sign the sign key CSR (note that the test CA needs filename so we can't just send it under
 # [FormMultiPart] as we do with the other requests)
@@ -351,33 +351,33 @@ sign
 --certboundary
 Content-Disposition: form-data; name="certreq"; filename="sign.csr.pem"
 
-{{ssm_sign_key_csr}}
+{{ss0_sign_key_csr}}
 --certboundary--
 ```
 
 HTTP 200
 [Captures]
-ssm_sign_key_cert: body
+ss0_sign_key_cert: body
 
 # Import auth certificate
-POST https://{{ssm_host}}:4000/api/v1/token-certificates
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/token-certificates
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/octet-stream
 ```
-{{ssm_sign_key_cert}}
+{{ss0_sign_key_cert}}
 ```
 
 HTTP 201
 
 [Captures]
-ssm_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
+ss0_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 
 
 # Register auth certificate
-PUT https://{{ssm_host}}:4000/api/v1/token-certificates/{{ssm_auth_key_cert_hash}}/register
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+PUT https://{{ss0_host}}:4000/api/v1/token-certificates/{{ss0_auth_key_cert_hash}}/register
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
-  "address": "{{ssm_host}}"
+  "address": "{{ss0_host}}"
 }
 
 # TODO: This should be 200 according to the OpenAPI description but is 204:
@@ -391,25 +391,25 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 HTTP 200
 
 [Captures]
-ssm_auth_cert_reg_req_id: jsonpath "$.items[0].id"
+ss0_auth_cert_reg_req_id: jsonpath "$.items[0].id"
 
-POST https://{{cs_host}}:4000/api/v1/management-requests/{{ssm_auth_cert_reg_req_id}}/approval
+POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss0_auth_cert_reg_req_id}}/approval
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
 
-# Register management subsystem to SSM Security Server
+# Register management subsystem to SS0 Security Server
 POST https://{{cs_host}}:4000/api/v1/management-services-configuration/register-provider
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 {
-  "security_server_id": "DEV:COM:1234:SSM"
+  "security_server_id": "DEV:COM:1234:SS0"
 }
 
 HTTP 200
 
 # Add MANAGEMENT to management Security Server
-POST https://{{ssm_host}}:4000/api/v1/clients
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/clients
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "ignore_warnings": true,
   "client": {
@@ -423,7 +423,7 @@ X-XSRF-TOKEN: {{ssm_xsrf_token}}
 HTTP 201
 
 [Captures]
-ssm_management_client_id: jsonpath "$.id"
+ss0_management_client_id: jsonpath "$.id"
 
 # Get Central Server management services settings
 GET https://{{cs_host}}:4000/api/v1/management-services-configuration
@@ -435,9 +435,9 @@ HTTP 200
 cs_management_service_address: jsonpath "$.services_address"
 cs_management_service_wsdl: jsonpath "$.wsdl_address"
 
-# Add Central Server management service to SSM Security Server
-POST https://{{ssm_host}}:4000/api/v1/clients/{{ssm_management_client_id}}/service-descriptions
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+# Add Central Server management service to SS0 Security Server
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_management_client_id}}/service-descriptions
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "url": "{{cs_management_service_wsdl}}",
   "type": "WSDL",
@@ -447,12 +447,12 @@ X-XSRF-TOKEN: {{ssm_xsrf_token}}
 HTTP 201
 
 [Captures]
-ssm_management_service_id: jsonpath "$.id"
-ssm_auth_cert_deletion_service_id: jsonpath "$.services[0].id"
+ss0_management_service_id: jsonpath "$.id"
+ss0_auth_cert_deletion_service_id: jsonpath "$.services[0].id"
 
 # Add security server owners group access to management services
-PATCH https://{{ssm_host}}:4000/api/v1/services/{{ssm_auth_cert_deletion_service_id}}
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+PATCH https://{{ss0_host}}:4000/api/v1/services/{{ss0_auth_cert_deletion_service_id}}
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "ignore_warnings": true,
   "ssl_auth": false,
@@ -464,8 +464,8 @@ X-XSRF-TOKEN: {{ssm_xsrf_token}}
 }
 
 # Add security server owners group access to management services
-POST https://{{ssm_host}}:4000/api/v1/clients/{{ssm_management_client_id}}/service-clients/DEV:security-server-owners/access-rights
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_management_client_id}}/service-clients/DEV:security-server-owners/access-rights
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "items": [
     {
@@ -484,22 +484,22 @@ X-XSRF-TOKEN: {{ssm_xsrf_token}}
 }
 
 # Enable management subsystem on management Security Server
-PUT https://{{ssm_host}}:4000/api/v1/service-descriptions/{{ssm_management_service_id}}/enable
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_management_service_id}}/enable
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 # TODO: This should be 204 according to the OpenAPI description but is 200:
 # https://github.com/nordic-institute/X-Road/blob/e14d198f704b34b4d1789c2972e816152b6a35f8/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml#L3908
 HTTP 200
 
-# Activate auth certificate on SSM Security Server
-PUT https://{{ssm_host}}:4000/api/v1/token-certificates/{{ssm_auth_key_cert_hash}}/activate
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+# Activate auth certificate on SS0 Security Server
+PUT https://{{ss0_host}}:4000/api/v1/token-certificates/{{ss0_auth_key_cert_hash}}/activate
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 HTTP 204
 
-# Set timestamping service on SSM Security Server
-GET https://{{ssm_host}}:4000/api/v1/timestamping-services
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+# Set timestamping service on SS0 Security Server
+GET https://{{ss0_host}}:4000/api/v1/timestamping-services
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 HTTP 200
 
@@ -507,8 +507,8 @@ HTTP 200
 tsa_name: jsonpath "$[0].name"
 tsa_url: jsonpath "$[0].url"
 
-POST https://{{ssm_host}}:4000/api/v1/system/timestamping-services
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/system/timestamping-services
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "name": "{{tsa_name}}",
   "url": "{{tsa_url}}"
@@ -784,8 +784,8 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 HTTP 200
 
 # Add TestService to Management Security Server
-POST https://{{ssm_host}}:4000/api/v1/clients
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/clients
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "ignore_warnings": true,
   "client": {
@@ -799,11 +799,11 @@ X-XSRF-TOKEN: {{ssm_xsrf_token}}
 HTTP 201
 
 [Captures]
-ssm_test_service_id: jsonpath "$.id"
+ss0_test_service_id: jsonpath "$.id"
 
 # Register TestService to management Security Server
-PUT https://{{ssm_host}}:4000/api/v1/clients/{{ssm_test_service_id}}/register
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+PUT https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/register
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 HTTP 204
 
@@ -814,17 +814,17 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 HTTP 200
 
 [Captures]
-ssm_test_service_req_id: jsonpath "$.items[0].id"
+ss0_test_service_req_id: jsonpath "$.items[0].id"
 
-POST https://{{cs_host}}:4000/api/v1/management-requests/{{ssm_test_service_req_id}}/approval
+POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss0_test_service_req_id}}/approval
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
 
 
-# Add Central Server management service to SSM Security Server
-POST https://{{ssm_host}}:4000/api/v1/clients/{{ssm_test_service_id}}/service-descriptions
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+# Add Central Server management service to SS0 Security Server
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-descriptions
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "url": "{{example_service_wsdl}}",
   "type": "WSDL",
@@ -834,13 +834,13 @@ X-XSRF-TOKEN: {{ssm_xsrf_token}}
 HTTP 201
 
 [Captures]
-ssm_test_service_service_id: jsonpath "$.id"
+ss0_test_service_service_id: jsonpath "$.id"
 # TODO: Needs better naming
-ssm_test_service_service_service_id: jsonpath "$.services[0].id"
+ss0_test_service_service_service_id: jsonpath "$.services[0].id"
 
 # Add test service URL
-PATCH https://{{ssm_host}}:4000/api/v1/services/{{ssm_test_service_service_service_id}}
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+PATCH https://{{ss0_host}}:4000/api/v1/services/{{ss0_test_service_service_service_id}}
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "ignore_warnings": true,
   "ssl_auth": false,
@@ -854,8 +854,8 @@ X-XSRF-TOKEN: {{ssm_xsrf_token}}
 HTTP 200
 
 # Add TestClient access to TestService
-POST https://{{ssm_host}}:4000/api/v1/clients/{{ssm_test_service_id}}/service-clients/{{ss1_test_client_id}}/access-rights
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-clients/{{ss1_test_client_id}}/access-rights
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "items": [
     {
@@ -875,45 +875,41 @@ X-XSRF-TOKEN: {{ssm_xsrf_token}}
 
 HTTP 201
 
-# Enable management subsystem on management Security Server
-PUT https://{{ssm_host}}:4000/api/v1/service-descriptions/{{ssm_test_service_service_id}}/enable
-X-XSRF-TOKEN: {{ssm_xsrf_token}}
+# Enable soap service on ss0
+PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_service_service_id}}/enable
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 # TODO: This should be 204 according to the OpenAPI description but is 200:
 # https://github.com/nordic-institute/X-Road/blob/e14d198f704b34b4d1789c2972e816152b6a35f8/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml#L3908
 HTTP 200
 
-# Test that random service works
-POST http://{{ss1_host}}:8080
-Content-Type: text/xml
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xro="http://x-road.eu/xsd/xroad.xsd" xmlns:iden="http://x-road.eu/xsd/identifiers" >
-    <soapenv:Header>
-        <xro:client iden:objectType="SUBSYSTEM">
-            <iden:xRoadInstance>DEV</iden:xRoadInstance>
-            <iden:memberClass>COM</iden:memberClass>
-            <iden:memberCode>4321</iden:memberCode>
-            <iden:subsystemCode>TestClient</iden:subsystemCode>
-        </xro:client>
-        <xro:service iden:objectType="SERVICE">
-            <iden:xRoadInstance>DEV</iden:xRoadInstance>
-            <iden:memberClass>COM</iden:memberClass>
-            <iden:memberCode>1234</iden:memberCode>
-            <iden:subsystemCode>TestService</iden:subsystemCode>
-            <iden:serviceCode>getRandom</iden:serviceCode>
-            <iden:serviceVersion>v1</iden:serviceVersion>
-        </xro:service>	  
-        <xro:id>ID11234</xro:id>
-        <xro:userId>EE1234567890</xro:userId>
-        <xro:protocolVersion>4.0</xro:protocolVersion>
-    </soapenv:Header>
-    <soapenv:Body>
-        <prod:getRandom xmlns:prod="http://test.x-road.fi/producer">
-            <prod:request/>
-        </prod:getRandom>   
-    </soapenv:Body>
-</soapenv:Envelope>
 
-HTTP 200
 
-[Asserts]
-xpath "number(//*[local-name() = 'data'])" isFloat
+#Register REST service
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-descriptions
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "url": "{{is_rest_url}}",
+  "type": "REST",
+  "rest_service_code": "{{is_rest_service_code}}"
+}
+
+HTTP 201
+
+[Captures]
+ss0_test_rest_service_service_id: jsonpath "$.id"
+
+# Enable REST service
+PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_rest_service_service_id}}/enable
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+# Grant access to rest service
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-clients/{{ss1_test_client_id}}/access-rights
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "items": [
+    {
+      "service_code": "{{is_rest_service_code}}"
+    }
+  ]
+}
