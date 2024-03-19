@@ -31,10 +31,26 @@ buildInDocker() {
     docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build  bash -c "./compile_code.sh -nodaemon" || errorExit "Error running build of binaries."
 }
 
+buildPasswordStoreInDocker() {
+    test -n "$HAS_DOCKER" || errorExit "Error, docker is not installed/running."
+    echo "Building passwordstore in docker..."
+    # check if running attached to terminal
+    # makes it possible to stop build with Ctrl+C
+    if [ -t 1 ]; then OPT="-it"; fi
+
+    docker build -q -t xroad-build --build-arg uid=$(id -u) --build-arg gid=$(id -g) $XROAD/packages/docker-compile || errorExit "Error building build image."
+    docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build  bash -c "./gradlew make -p signer-protocol" || errorExit "Error running build of binaries."
+}
+
 buildLocally() {
     echo "Building locally..."
     cd $XROAD || errorExit "Error 'cd $XROAD'."
     ./compile_code.sh "$@" || errorExit "Error running build of binaries."
+
+    if [ "$(uname)" == "Darwin" ]; then
+      echo "MacOS does not support passwordstore compilation. Compiling in docker..."
+     buildPasswordStoreInDocker
+    fi
 }
 
 if command -v docker &>/dev/null; then
@@ -53,11 +69,16 @@ if [ -n "$HAS_DOCKER" ]; then
     echo "Will build in docker. Package version: $PACKAGE_VERSION"
 
     if [ "$(uname)" != "Darwin" ]; then
+    echo "Preparing deb-focal image..."
     docker build -q -t xroad-deb-focal "$XROAD/packages/docker/deb-focal" || errorExit "Error building deb-focal image."
     fi
+    echo "Preparing deb-jammy image..."
     docker build -q -t xroad-deb-jammy "$XROAD/packages/docker/deb-jammy" || errorExit "Error building deb-jammy image."
+    echo "Preparing rhel7 image..."
     docker build -q -t xroad-rpm "$XROAD/packages/docker/rpm" || errorExit "Error building rpm image."
+    echo "Preparing rhel8 image..."
     docker build -q -t xroad-rpm-el8 "$XROAD/packages/docker/rpm-el8" || errorExit "Error building rpm-el8 image."
+    echo "Preparing rhel9 image..."
     docker build -q -t xroad-rpm-el9 "$XROAD/packages/docker/rpm-el9" || errorExit "Error building rpm-el9 image."
 
     OPTS=("--rm" "-v" "$XROAD/..:/workspace" "-u" "$(id -u):$(id -g)" "-e" "HOME=/workspace/src/packages")
@@ -65,15 +86,17 @@ if [ -n "$HAS_DOCKER" ]; then
     # makes it possible to stop build with Ctrl+C
     if [[ -t 1 ]]; then OPTS+=("-it"); fi
 
+    docker run "${OPTS[@]}" xroad-deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
+
     if [ "$(uname)" != "Darwin" ]; then
       docker run "${OPTS[@]}" xroad-deb-focal /workspace/src/packages/build-deb.sh focal "$PACKAGE_VERSION" || errorExit "Error building deb-focal packages."
+      docker run "${OPTS[@]}" xroad-rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm packages."
+      docker run "${OPTS[@]}" xroad-rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
+      docker run "${OPTS[@]}" xroad-rpm-el9 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el9 packages."
     else
-      echo "debian focal packages cannot be built under MacOS. Skipping.."
+      echo "debian focal, rhel7,rhel8,rhel9 packages cannot be built under MacOS. Skipping.."
     fi
-    docker run "${OPTS[@]}" xroad-deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
-    docker run "${OPTS[@]}" xroad-rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm packages."
-    docker run "${OPTS[@]}" xroad-rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
-    docker run "${OPTS[@]}" xroad-rpm-el9 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el9 packages."
+
 else
     echo "Docker not installed, building only .deb packages for this distribution"
     cd "$XROAD/packages"
