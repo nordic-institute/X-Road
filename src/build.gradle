@@ -278,3 +278,4 @@ tasks.register("installGitHooks", Copy) {
     fileMode 0775
 }
 assemble.dependsOn installGitHooks
+sonar.dependsOn testCodeCoverageReport
