@@ -47,7 +47,7 @@ Content-Type: application/json
   "password": "Secret1234"
 }
 
-HTTP 200
+HTTP *
 
 # Add internal signing key to Central Server
 POST https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/signing-keys
@@ -224,7 +224,7 @@ Content-Type: application/json
   "password": "Secret1234"
 }
 
-HTTP 200
+HTTP *
 
 # Get the CA name
 GET https://{{ss0_host}}:4000/api/v1/certificate-authorities
@@ -564,7 +564,7 @@ Content-Type: application/json
   "password": "Secret1234"
 }
 
-HTTP 200
+HTTP *
 
 # Add auth key to the Security Server token
 POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs

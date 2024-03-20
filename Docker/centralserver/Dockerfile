@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # internal or external
 ARG PACKAGE_SOURCE
 
@@ -19,32 +21,46 @@ RUN apt-get -qq update \
 
 # Xroad CS from external packages
 FROM base AS centralserver-external
-ARG DIST=jammy-current
-ARG REPO=https://artifactory.niis.org/xroad-release-deb
+ARG DIST=jammy-snapshot
+ARG REPO=https://artifactory.niis.org/xroad-snapshot-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
-  && apt-key add '/tmp/repokey.gpg'
+  && apt-key add '/tmp/repokey.gpg' \
+  # Install
+  && pg_ctlcluster 14 main start \
+  && apt-get -qq update \
+  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && pg_ctlcluster 14 main stop \
+  # Clean up
+  && rm -rf /tmp/repo \
+  && apt-get remove -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
+  && rm -rf var/lib/apt/lists/*
 
 #Xroad CS from internal packages
 FROM base AS centralserver-internal
 
-ADD ["build/packages", "/tmp/repo"]
-RUN cd /tmp/repo && dpkg-scanpackages -m . > Packages \
-  && echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list
+RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
+   cp -r /tmp/packages /tmp/repo \
+  && cd /tmp/repo && dpkg-scanpackages -m . > Packages \
+  && echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list \
+  # Install
+  && pg_ctlcluster 14 main start \
+  && apt-get -qq update \
+  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && pg_ctlcluster 14 main stop \
+  # Clean up
+  && rm -rf /tmp/repo \
+  && apt-get remove -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
+  && rm -rf var/lib/apt/lists/*
 
 # Build final image
 FROM centralserver-${PACKAGE_SOURCE} AS final
 
-RUN pg_ctlcluster 14 main start \
-  && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
-  && apt-get -qq clean \
-  && pg_ctlcluster 14 main stop \
-  && { nginx -s stop ||:; } \
+RUN { nginx -s stop ||:; } \
   && rm -f /var/run/nginx.pid \
   && rm -rf /tmp/xroad \
   # Back up read-only config (for volume support)
@@ -65,6 +81,8 @@ RUN pg_ctlcluster 14 main start \
 # Setup additional users
 ARG USER_PASSWD=secret
 RUN useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd"
+
+COPY --chown=xroad:xroad files/etc /etc/
 
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf

@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # internal or external
 ARG PACKAGE_SOURCE
 
@@ -23,32 +25,47 @@ RUN apt-get -qq update \
 # Xroad SS from external packages
 FROM base AS securityserver-external
 
-ARG DIST=jammy-current
-ARG REPO=https://artifactory.niis.org/xroad-release-deb
+ARG DIST=jammy-snapshot
+ARG REPO=https://artifactory.niis.org/xroad-snapshot-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
-    && apt-key add '/tmp/repokey.gpg'
+    && apt-key add '/tmp/repokey.gpg' \
+    # Install
+    && pg_ctlcluster 14 main start \
+    && apt-get update \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+    && pg_ctlcluster 14 main stop \
+    # Clean up
+    && rm -rf /tmp/repo \
+    && apt-get remove -y -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
+    && rm -rf var/lib/apt/lists/*
 
 # Xroad SS from internal packages
 FROM base AS securityserver-internal
 
-ADD ["build/packages", "/tmp/repo"]
-RUN cd /tmp/repo && dpkg-scanpackages -m . > Packages \
-    && echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list
-
-# Build final image
-FROM securityserver-${PACKAGE_SOURCE} AS final
-RUN pg_ctlcluster 14 main start \
+RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
+       cp -r /tmp/packages /tmp/repo \
+    && cd /tmp/repo && dpkg-scanpackages -m . > Packages \
+    && echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list \
+    # Install
+    && pg_ctlcluster 14 main start \
     && apt-get update \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
     && apt-get -qq clean \
     && pg_ctlcluster 14 main stop \
-    # Back up read-only config (for volume support)
-    && mkdir -p /root/etc/xroad \
+    # Clean up
+    && rm -rf /tmp/repo \
+    && apt-get remove -y -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
+    && rm -rf var/lib/apt/lists/*
+
+# Build final image
+FROM securityserver-${PACKAGE_SOURCE} AS final
+# Back up read-only config (for volume support)
+RUN mkdir -p /root/etc/xroad \
     && cp -a /etc/xroad /root/etc/ \
     && rm -f /root/etc/xroad/services/local.properties \
       /root/etc/xroad/conf.d/local.ini \
@@ -56,11 +73,7 @@ RUN pg_ctlcluster 14 main start \
       /root/etc/xroad/db.properties \
     && rm -rf /root/etc/xroad/signer/softtoken \
     && dpkg-query --showformat='${Version}' --show xroad-proxy >/root/VERSION \
-    && cp /root/VERSION /etc/xroad/VERSION \
-    # Clean up
-    && rm -rf /tmp/repo \
-    && apt-get remove -y -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
-    && rm -rf var/lib/apt/lists/* 
+    && cp /root/VERSION /etc/xroad/VERSION
 
 # Setup users
 ARG USER_PASSWD=secret
@@ -69,6 +82,8 @@ RUN useradd xrd-sec && adduser xrd-sec xroad-security-officer && sh -c "echo 'xr
     && useradd xrd-ser && adduser xrd-ser xroad-service-administrator && sh -c "echo 'xrd-ser:$USER_PASSWD' | chpasswd" \
     && useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd" \
     && useradd xrd-obs && adduser xrd-obs xroad-securityserver-observer && sh -c "echo 'xrd-obs:$USER_PASSWD' | chpasswd"
+
+COPY --chown=xroad:xroad files/etc /etc/
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/

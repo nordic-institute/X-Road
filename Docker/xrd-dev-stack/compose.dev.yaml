@@ -4,6 +4,8 @@
 
 services:
   cs:
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
     ports:
       - "4100:4000" # Frontend
       - "4120:5432" # Database
@@ -11,6 +13,8 @@ services:
       - "4191:9951" # Management debug
       - "4192:9952" # Registration debug
   ss0:
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
     ports:
       - "4200:4000" # Frontend
       - "4210:8080" # Proxy
@@ -19,6 +23,8 @@ services:
       - "4291:9998" # Signer debug port
       - "4292:9997" # Proxy UI debug port
   ss1:
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
     ports:
       - "4300:4000" # Frontend
       - "4310:8080" # Proxy

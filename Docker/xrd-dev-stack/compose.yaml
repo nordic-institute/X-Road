@@ -9,7 +9,7 @@ services:
           memory: 2G
     healthcheck:
       interval: 3s
-      retries: 20
+      retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss0:
     image: ${SS_IMG}
@@ -21,7 +21,7 @@ services:
           memory: 2G
     healthcheck:
       interval: 3s
-      retries: 20
+      retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss1:
     image: ${SS_IMG}
@@ -33,7 +33,7 @@ services:
           memory: 2G
     healthcheck:
       interval: 3s
-      retries: 20
+      retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   testca:
     image: ${CA_IMG}
@@ -45,7 +45,7 @@ services:
           memory: 128M
     healthcheck:
       interval: 3s
-      retries: 20
+      retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
     volumes:
       - ca-volume:/home/ca/certs
@@ -59,7 +59,7 @@ services:
           memory: 512M
     healthcheck:
       interval: 3s
-      retries: 20
+      retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
   isrest:
     image: wiremock/wiremock:latest
@@ -71,7 +71,7 @@ services:
           memory: 256M
     healthcheck:
       interval: 3s
-      retries: 20
+      retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/__admin/health" ]
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings

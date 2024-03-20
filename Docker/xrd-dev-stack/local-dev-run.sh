@@ -13,6 +13,11 @@ case "$i" in
 esac
 done
 
+if [[ $# -eq 0 ]]; then
+echo "Available args:"
+echo "--initialize: Initialize the environment"
+
+fi
 docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d
 
 if [[ -n "$INITIALIZE" ]]; then
