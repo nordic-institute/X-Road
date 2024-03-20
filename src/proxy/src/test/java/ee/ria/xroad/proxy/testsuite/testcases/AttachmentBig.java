@@ -113,8 +113,7 @@ public class AttachmentBig extends MessageTestCase {
                 // Write attachment
                 mpos.startPart("application/octet-stream",
                         new String[]{"Content-Transfer-Encoding: binary"});
-                for (int i = 0; i < (ATTACHMENT_SIZE_MBYTES * 1000000);
-                     i += RANDOM_BLOCK.length) {
+                for (int i = 0; i < (ATTACHMENT_SIZE_MBYTES * 1000000); i += RANDOM_BLOCK.length) {
                     mpos.write(RANDOM_BLOCK);
                 }
                 mpos.close();

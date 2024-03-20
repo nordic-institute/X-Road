@@ -96,6 +96,7 @@ public class AssetsRegistrationJob {
     private final String allAllowedPolicyId = "allow-all-policy";
 
     @PostConstruct
+    @SuppressWarnings("checkstyle:MagicNumber")
     public void onInit() {
         scheduler.schedule(this::registerDataPlane, 5, SECONDS);
     }
