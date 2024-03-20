@@ -127,7 +127,7 @@ class ConfigurationClient {
     private void downloadConfigurationFromAnchor() throws Exception {
         log.debug("downloadConfFromAnchor()");
 
-        handleResult(downloader.download(configurationAnchor), true);
+        handleResult(downloader.downloadFromAnchor(configurationAnchor), true);
     }
 
     private PrivateParameters loadPrivateParameters() {
@@ -176,7 +176,9 @@ class ConfigurationClient {
         if (configurationSources != null) {
             for (ConfigurationSource source : configurationSources) {
                 if (sourceFilter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {
-                    DownloadResult result = downloader.download(source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
+                    DownloadResult result = downloader.downloadFromAdditionalSource(
+                            source,
+                            ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
                     handleResult(result, false);
                 }
             }

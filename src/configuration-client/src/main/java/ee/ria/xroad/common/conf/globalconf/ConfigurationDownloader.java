@@ -48,15 +48,12 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.cert.CertificateEncodingException;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -64,7 +61,6 @@ import java.util.stream.Stream;
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
-import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -74,7 +70,7 @@ import static java.lang.String.valueOf;
 /**
  * Downloads configuration directory from a configuration location defined
  * in the configuration anchor.
- *
+ * <p>
  * When there is only one configuration location in the configuration anchor, it
  * is used. If there is more than one configuration location, then, for
  * high-availability concerns, list of configuration locations is shuffled and
@@ -86,25 +82,23 @@ import static java.lang.String.valueOf;
 class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
-
     private static final String VERSION_QUERY_PARAMETER = "version";
-
-    private static final String HTTPS = "https";
-
     protected final FileNameProvider fileNameProvider;
-
     private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
+    private final GetLocationsFromSharedParameters getLocationsFromSharedParameters;
 
     @Getter
     private final Integer configurationVersion;
 
     ConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
         fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+        this.getLocationsFromSharedParameters = new GetLocationsFromSharedParameters(fileNameProvider);
         this.configurationVersion = configurationVersion;
     }
 
     ConfigurationDownloader(String globalConfigurationDir) {
         fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+        this.getLocationsFromSharedParameters = new GetLocationsFromSharedParameters(fileNameProvider);
         this.configurationVersion = null;
     }
 
@@ -112,36 +106,44 @@ class ConfigurationDownloader {
         return new ConfigurationParser();
     }
 
-    /**
-     * Downloads the configuration from the given configuration source.
-     *
-     * @param source the configuration source
-     * @param contentIdentifiers the content identifier to include
-     * @return download result object which contains the state of the download and in case of success
-     * the downloaded files.
-     */
-    DownloadResult download(ConfigurationSource source, String... contentIdentifiers) {
-        DownloadResult result = new DownloadResult();
+    DownloadResult downloadFromAnchor(ConfigurationSource source, String... contentIdentifiers) {
+        log.debug("downloadFromAnchor");
+
+        List<ConfigurationLocation> sharedParameterLocations = getLocationsFromSharedParameters.execute(source);
 
         List<ConfigurationLocation> locations = new ArrayList<>();
-        Optional<String> cachedUrl = findLocationWithPreviousSuccess(source)
+        Optional<String> cachedUrlFromSharedParameter = findLocationWithPreviousSuccess(sharedParameterLocations)
                 .map(locationWithPreviousSuccess -> {
                     locations.add(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
                     return locationWithPreviousSuccess.getDownloadURL();
                 });
-        locations.addAll(getLocations(source));
+        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
+        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
 
+        return downloadResult(cachedUrlFromSharedParameter.orElse(null), locations, contentIdentifiers);
+    }
+
+    DownloadResult downloadFromAdditionalSource(ConfigurationSource source, String... contentIdentifiers) {
+        log.debug("downloadFromAdditionalSource with contentIdentifiers: {}", (Object) contentIdentifiers);
+
+        List<ConfigurationLocation> locations = new ArrayList<>();
+        Optional<String> cachedUrl = findLocationWithPreviousSuccess(source.getLocations())
+                .map(locationWithPreviousSuccess -> {
+                    locations.add(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
+                    return locationWithPreviousSuccess.getDownloadURL();
+                });
+        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
+
+        return downloadResult(cachedUrl.orElse(null), locations, contentIdentifiers);
+    }
+
+    private DownloadResult downloadResult(String cachedUrl, List<ConfigurationLocation> locations, String... contentIdentifiers) {
+        DownloadResult result = new DownloadResult();
         for (ConfigurationLocation location : locations) {
-            try {
-                supplementVerificationCerts(location);
-            } catch (CertificateEncodingException | IOException e) {
-                log.error("Unable to acquire additional verification certificates for instance " + location.getInstanceIdentifier(), e);
-            }
+            String url = cachedUrl != null ? cachedUrl : location.getDownloadURL();
 
-            String url = cachedUrl.isPresent() ? cachedUrl.get() : location.getDownloadURL();
-
-            if (cachedUrl.isPresent()) {
-                log.info("Cached url is present: ", cachedUrl);
+            if (cachedUrl != null) {
+                log.debug("Cached url is present: " + cachedUrl);
             }
             try {
                 location = toVersionedLocation(location);
@@ -161,8 +163,8 @@ class ConfigurationDownloader {
         return result.failure();
     }
 
-    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(ConfigurationSource source) {
-        for (ConfigurationLocation location : source.getLocations()) {
+    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(List<ConfigurationLocation> locations) {
+        for (ConfigurationLocation location : locations) {
             ConfigurationLocation successfulLocation = successfulLocations.get(location.getDownloadURL());
             if (successfulLocation != null) {
                 log.trace("Found location={} which corresponds to previously successful location={}", location, successfulLocation);
@@ -172,74 +174,9 @@ class ConfigurationDownloader {
         return Optional.empty();
     }
 
-    private void supplementVerificationCerts(ConfigurationLocation location)
-            throws CertificateEncodingException, IOException {
-        var sources = getAdditionalSources(location);
-        var verificationCerts = sources.stream()
-                .flatMap(src -> Stream.concat(src.getInternalVerificationCerts().stream(), src.getExternalVerificationCerts().stream()))
-                .toList();
-        addSupplementaryVerificationCerts(location, verificationCerts);
-    }
-
-    private List<SharedParameters.ConfigurationSource> getAdditionalSources(ConfigurationLocation location)
-            throws CertificateEncodingException, IOException {
-        Path sharedParamsPath = fileNameProvider.getConfigurationDirectory(location.getInstanceIdentifier())
-                .resolve(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
-        if (Files.exists(sharedParamsPath) && isCurrentVersion(sharedParamsPath)) {
-            SharedParameters sharedParams = new SharedParametersV3(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
-            return sharedParams.getSources().stream()
-                    .filter(source -> location.getDownloadURL().contains(source.getAddress()))
-                    .toList();
-        }
-        return List.of();
-    }
-
-    private void addSupplementaryVerificationCerts(ConfigurationLocation location, List<byte[]> potentialCertsToBeAdded) {
-        List<byte[]> certsToBeAdded = new ArrayList<>();
-        potentialCertsToBeAdded.forEach(potentialCert -> {
-            if (!contains(location.getVerificationCerts(), potentialCert) && !contains(certsToBeAdded, potentialCert)) {
-                certsToBeAdded.add(potentialCert);
-            }
-        });
-
-        if (!certsToBeAdded.isEmpty()) {
-            log.info("Adding supplementary verification certificates from shared parameters configuration file");
-            location.getVerificationCerts().addAll(certsToBeAdded);
-        }
-    }
-
-    private boolean contains(List<byte[]> bytearrayList, byte[] bytearray) {
-        return bytearrayList.stream().anyMatch(item -> Arrays.equals(item, bytearray));
-    }
-
     private void rememberLastSuccessfulLocation(String url, ConfigurationLocation location) {
         log.trace("rememberLastSuccessfulLocation url={} location={}", url, location);
         successfulLocations.put(url, location);
-    }
-
-    private List<ConfigurationLocation> getLocations(ConfigurationSource source) {
-        List<ConfigurationLocation> result = new ArrayList<>(getLocationsPreferHttps(source));
-        result.removeIf(Objects::isNull);
-        return result;
-    }
-
-    private List<ConfigurationLocation> getLocationsPreferHttps(ConfigurationSource source) {
-        List<ConfigurationLocation> result = new ArrayList<>();
-        result.addAll(getRandomizedLocations(source, true));
-        result.addAll(getRandomizedLocations(source, false));
-        return result;
-    }
-
-    private List<ConfigurationLocation> getRandomizedLocations(ConfigurationSource source, boolean startWithHttps) {
-        List<ConfigurationLocation> randomized = new ArrayList<>(source.getLocations().stream()
-                .filter(location -> assertStartWithHttps(location.getDownloadURL(), startWithHttps))
-                .toList());
-        Collections.shuffle(randomized);
-        return randomized;
-    }
-
-    private boolean assertStartWithHttps(String url, boolean expectedResult) {
-        return url.startsWith(HTTPS) == expectedResult;
     }
 
     Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {
