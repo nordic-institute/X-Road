@@ -94,6 +94,11 @@ jobs:
     name: Run Central Server system tests
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -110,6 +115,8 @@ jobs:
         run: ./init_context.sh
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
       - name: Download debian packages
         uses: actions/download-artifact@v4
         with:
@@ -121,12 +128,13 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./Docker/centralserver/
+          push: true
           build-args: |
             PACKAGE_SOURCE=internal
-          tags: xrd-centralserver:${{ github.sha }}
+          tags: localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=xrd-centralserver:${{ github.sha }}
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -146,6 +154,11 @@ jobs:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -159,6 +172,8 @@ jobs:
           cache-read-only: true
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
       - name: Initialize docker setup
         working-directory: ./Docker/securityserver
         run: ./init_context.sh
@@ -171,12 +186,13 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./Docker/securityserver/
+          push: true
           build-args: |
             PACKAGE_SOURCE=internal
-          tags: xrd-securityserver:${{ github.sha }}
+          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsImageName=xrd-securityserver:${{ github.sha }}
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
