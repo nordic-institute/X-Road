@@ -121,7 +121,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./Docker/centralserver/
-          args: --build-arg PACKAGE_SOURCE=internal
+          build-args: |
+            PACKAGE_SOURCE=internal
           tags: xrd-centralserver:${{ github.sha }}
       - name: Run Central Server system tests
         working-directory: ./src
@@ -170,7 +171,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./Docker/securityserver/
-          args: --build-arg PACKAGE_SOURCE=internal
+          build-args: |
+            PACKAGE_SOURCE=internal
           tags: xrd-securityserver:${{ github.sha }}
       - name: Run Security Server system tests
         working-directory: ./src

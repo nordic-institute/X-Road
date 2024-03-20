@@ -52,7 +52,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ github.workspace }}/Docker/centralserver
-          args: --build-arg PACKAGE_SOURCE=internal
+          build-args: |
+            PACKAGE_SOURCE=internal
           push: true
           tags: ghcr.io/nordic-institute/xrddev-central-server:latest
   PublishSS:
@@ -100,6 +101,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ github.workspace }}/Docker/securityserver
-          args: --build-arg PACKAGE_SOURCE=internal
+          build-args: |
+            PACKAGE_SOURCE=internal
           push: true
           tags: ghcr.io/nordic-institute/xrddev-security-server:latest
