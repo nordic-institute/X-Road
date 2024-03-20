@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
@@ -80,7 +79,9 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SER
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_ENDPOINTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_SERVICES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_ENDPOINTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_SERVICES;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_OPENAPI_VALIDATION_WARNINGS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS;
@@ -104,6 +105,7 @@ public class ServiceDescriptionService {
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ServiceChangeChecker serviceChangeChecker;
+    private final EndpointTypeChangeChecker endpointTypeChangeChecker;
     private final ServiceService serviceService;
     private final WsdlValidator wsdlValidator;
     private final UrlValidator urlValidator;
@@ -792,59 +794,61 @@ public class ServiceDescriptionService {
                                                    ServiceDescriptionType serviceDescription) throws
             OpenApiParser.ParsingException, UnhandledWarningsException, UnsupportedOpenApiVersionException {
         OpenApiParser.Result result = openApiParser.parse(url);
-        if (!ignoreWarnings && result.hasWarnings()) {
-            WarningDeviation openapiParserWarnings = new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS,
-                    result.getWarnings());
-            throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
-        }
-
-        List<EndpointType> oldServiceDescriptionEndpoints = endpointHelper.getEndpoints(serviceDescription);
 
         // Create endpoints from parsed results
-        List<EndpointType> parsedEndpoints = result.getOperations().stream()
-                .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(),
-                        true))
-                .collect(Collectors.toList());
-        parsedEndpoints.add(new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true));
+        List<EndpointType> newEndpoints = endpointHelper.getNewEndpoints(serviceCode, result);
+
+        List<EndpointType> oldEndpoints = endpointHelper.getEndpoints(serviceDescription);
 
         /*
           Change existing, manually added, endpoints to generated if they're found from parsedEndpoints and belong to
           the service description in question
          */
-        oldServiceDescriptionEndpoints.forEach(ep -> {
-            if (parsedEndpoints.stream().anyMatch(parsedEp -> parsedEp.isEquivalent(ep))) {
-                ep.setGenerated(true);
-            }
-        });
+        oldEndpoints.stream()
+                .filter(ep -> newEndpoints.stream().anyMatch(parsedEp -> parsedEp.isEquivalent(ep)))
+                .forEach(ep -> ep.setGenerated(true));
+
+        // find what services were added or removed
+        EndpointTypeChangeChecker.ServiceChanges serviceChanges = endpointTypeChangeChecker.check(
+                serviceDescription.getClient().getEndpoint(),
+                oldEndpoints,
+                newEndpoints,
+                serviceDescription.getClient().getAcl()
+        );
+
+        handleWarnings(ignoreWarnings, result, serviceChanges);
 
         // Remove ACLs that don't exist in the parsed endpoints list and belong to the service description in question
-        List<AccessRightType> aclToBeRemoved = serviceDescription.getClient().getAcl().stream()
-                .filter(accessRightType -> {
-                    EndpointType endpoint = accessRightType.getEndpoint();
-                    return endpoint.isGenerated()
-                            && oldServiceDescriptionEndpoints.contains(endpoint)
-                            && parsedEndpoints.stream()
-                            .noneMatch(parsedEndpoint -> parsedEndpoint.isEquivalent(endpoint));
-                })
-                .collect(Collectors.toList());
-        serviceDescription.getClient().getAcl().removeAll(aclToBeRemoved);
+        serviceDescription.getClient().getAcl().removeAll(serviceChanges.getRemovedAcls());
 
         /*
           Remove generated endpoints that are not found from the parsed endpoints and belong to the service
           description in question
         */
-        List<EndpointType> endpointsToBeRemoved = oldServiceDescriptionEndpoints.stream()
-                .filter(ep -> ep.isGenerated() && parsedEndpoints.stream()
-                        .noneMatch(parsedEp -> parsedEp.isEquivalent(ep)))
-                .collect(Collectors.toList());
-        serviceDescription.getClient().getEndpoint().removeAll(endpointsToBeRemoved);
+        serviceDescription.getClient().getEndpoint().removeAll(serviceChanges.getRemovedEndpoints());
 
         // Add parsed endpoints to endpoints list if it is not already there
-        List<EndpointType> endpointsToBeAdded = parsedEndpoints.stream()
-                .filter(parsedEp -> serviceDescription.getClient().getEndpoint().stream()
-                        .noneMatch(ep -> ep.isEquivalent(parsedEp)))
-                .collect(Collectors.toList());
-        serviceDescription.getClient().getEndpoint().addAll(endpointsToBeAdded);
+        serviceDescription.getClient().getEndpoint().addAll(serviceChanges.getAddedEndpoints());
+    }
+
+    private void handleWarnings(boolean ignoreWarnings,
+                                OpenApiParser.Result result,
+                                EndpointTypeChangeChecker.ServiceChanges serviceChanges)
+            throws UnhandledWarningsException {
+
+        if (ignoreWarnings || (!result.hasWarnings() && serviceChanges.isEmpty())) {
+            return;
+        }
+
+        // collect all types of warnings, throw Exception if not ignored
+        List<WarningDeviation> allWarnings = new ArrayList<>();
+        if (result.hasWarnings()) {
+            allWarnings.add(new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS, result.getWarnings()));
+        }
+        if (!serviceChanges.isEmpty()) {
+            allWarnings.addAll(createServiceChangeWarnings(serviceChanges));
+        }
+        throw new UnhandledWarningsException(allWarnings);
     }
 
     /**
@@ -1030,6 +1034,20 @@ public class ServiceDescriptionService {
                     });
                     return newService;
                 }).toList();
+    }
+
+    /**
+     * @return warnings about adding or deleting endpoints
+     */
+    private List<WarningDeviation> createServiceChangeWarnings(EndpointTypeChangeChecker.ServiceChanges changes) {
+        List<WarningDeviation> warnings = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(changes.getAddedEndpoints())) {
+            warnings.add(new WarningDeviation(WARNING_ADDING_ENDPOINTS, changes.getAddedEndpointsCodes()));
+        }
+        if (!CollectionUtils.isEmpty(changes.getRemovedEndpoints())) {
+            warnings.add(new WarningDeviation(WARNING_DELETING_ENDPOINTS, changes.getRemovedEndpointsCodes()));
+        }
+        return warnings;
     }
 
     /**
