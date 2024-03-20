@@ -57,6 +57,7 @@ import org.niis.xroad.edc.management.client.FeignContractDefinitionApi;
 import org.niis.xroad.edc.management.client.FeignContractNegotiationApi;
 import org.niis.xroad.edc.management.client.FeignPolicyDefinitionApi;
 import org.niis.xroad.edc.management.client.FeignTransferProcessApi;
+import org.niis.xroad.edc.management.client.FeignXroadEdrApi;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
 @Slf4j
@@ -96,6 +97,10 @@ public class EdcManagementApiFactory {
 
     public TransferProcessApi transferProcessApi() {
         return createFeignClient(FeignTransferProcessApi.class, "/v2/transferprocesses");
+    }
+
+    public FeignXroadEdrApi xrdEdrApi() {
+        return createFeignClient(FeignXroadEdrApi.class, "/v1/xrd-edr");
     }
 
     private <T> T createFeignClient(Class<T> apiClass, String path) {

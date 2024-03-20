@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,29 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.edc;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.stereotype.Component;
+package org.niis.xroad.edc.management.client;
 
-import java.util.concurrent.TimeUnit;
 
-@Component
-@SuppressWarnings("checkstyle:MagicNumber")
-public class AssetTransferRegistry {
-    private final Cache<String, AssetInTransfer> cache = Caffeine.newBuilder()
-            .expireAfterWrite(30, TimeUnit.MINUTES)
-            .build();
+import jakarta.json.JsonObject;
+import jakarta.ws.rs.POST;
 
-    public void registerAssetInTransfer(String transferId, String clientId, String assetId) {
-        cache.put(transferId, new AssetInTransfer(clientId, assetId));
-    }
+public interface FeignXroadEdrApi {
 
-    public AssetInTransfer getAssetInTransfer(String transferId) {
-        return cache.getIfPresent(transferId);
-    }
+    @POST
+    JsonObject requestAssetAccess(JsonObject request);
 
-    public record AssetInTransfer(String clientId, String assetId) {
-    }
 }

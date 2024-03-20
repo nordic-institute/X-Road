@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
 import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.niis.xroad.edc.management.client.FeignCatalogApi;
+import org.niis.xroad.edc.management.client.FeignXroadEdrApi;
 import org.niis.xroad.edc.management.client.configuration.EdcManagementApiFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -92,6 +93,11 @@ public class ProxyEdcConfig {
     @Bean
     TransferProcessApi transferProcessApi(EdcManagementApiFactory edcManagementApiFactory) {
         return edcManagementApiFactory.transferProcessApi();
+    }
+
+    @Bean
+    FeignXroadEdrApi xrdEdrApi(EdcManagementApiFactory edcManagementApiFactory) {
+        return edcManagementApiFactory.xrdEdrApi();
     }
 
     public static class DataspacesEnabledCondition implements Condition {

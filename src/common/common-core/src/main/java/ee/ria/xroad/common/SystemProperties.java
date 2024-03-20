@@ -142,10 +142,6 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_LISTEN_PORT =
             PREFIX + "proxy.server-listen-port";
 
-    /** Property name of the Server Proxy's listen port number. */
-    public static final String PROXY_EDC_LISTEN_PORT =
-            PREFIX + "proxy.edc-listen-port";
-
     /** Property name of the cached OCSP response path for signer operation. */
     public static final String OCSP_CACHE_PATH =
             PREFIX + "signer.ocsp-cache-path";
@@ -177,10 +173,6 @@ public final class SystemProperties {
     /** Property name of the ServerProxy Jetty server configuration file. */
     public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-serverproxy-configuration-file";
-
-    /** Property name of the EdcProxy Jetty server configuration file. */
-    public static final String JETTY_EDCPROXY_CONFIGURATION_FILE =
-            PREFIX + "proxy.jetty-edcproxy-configuration-file";
 
     /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
     public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
@@ -853,14 +845,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the edc proxy jetty server configuration file, '/etc/xroad/jetty/edcproxy.xml' by default.
-     */
-    public static String getJettyEdcProxyConfFile() {
-        return System.getProperty(JETTY_EDCPROXY_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.JETTY_EDCPROXY_CONFIGURATION_FILE);
-    }
-
-    /**
      * @return path to the cert hash based OCSP responder jetty server configuration file,
      * '/etc/xroad/jetty/ocsp-responder.xml' by default.
      */
@@ -954,13 +938,6 @@ public final class SystemProperties {
      */
     public static int getServerProxyListenPort() {
         return Integer.parseInt(System.getProperty(PROXY_SERVER_LISTEN_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
-    }
-
-    /**
-     * @return the HTTP port on which the edc proxy listens for messages, '19291' by default.
-     */
-    public static int getEdcProxyListenPort() {
-        return Integer.parseInt(System.getProperty(PROXY_EDC_LISTEN_PORT, Integer.toString(PortNumbers.PROXY_EDC_PORT)));
     }
 
     /**
