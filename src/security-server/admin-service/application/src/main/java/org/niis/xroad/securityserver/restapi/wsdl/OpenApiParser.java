@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -83,9 +82,6 @@ public class OpenApiParser {
         } catch (URISyntaxException e) {
             throw new ParsingException("Invalid URL", e);
         }
-
-        final ParseOptions options = new ParseOptions();
-        options.setResolve(false);
 
         final SwaggerParseResult result;
 
