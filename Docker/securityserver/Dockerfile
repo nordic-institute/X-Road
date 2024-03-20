@@ -5,8 +5,8 @@ FROM ubuntu:22.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
-    && apt-get -qq upgrade \
-    && apt-get -qq install --no-install-recommends \
+    && apt-get -qq -y upgrade \
+    && apt-get -qq -y install --no-install-recommends \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
         openjdk-17-jre-headless rlwrap ca-certificates-java \
         crudini adduser expect curl rsyslog dpkg-dev \
@@ -16,7 +16,7 @@ RUN apt-get -qq update \
     && adduser --quiet --system --uid 999 --home /var/lib/xroad --no-create-home --shell /bin/bash --group xroad \
     && useradd -m xrd -s /usr/sbin/nologin -p '$6$JeOzaeWnLAQSUVuO$GOJ0wUKSVQnOR4I2JgZxdKr.kMO.YGS21SGaAshaYhayv8kSV9WuIFCZHTGAX8WRRTB/2ojuLnJg4kMoyzpcu1' \
     && echo "xroad-proxy xroad-common/username string xrd" | debconf-set-selections \
-    && apt-get -qq install --no-install-recommends postgresql postgresql-contrib \
+    && apt-get -qq -y install --no-install-recommends postgresql postgresql-contrib \
     && apt-get -qq clean \
     && rm -rf var/lib/apt/lists/*
 
@@ -33,7 +33,7 @@ ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     && apt-key add '/tmp/repokey.gpg'
 
-# Xroad SS from external packages
+# Xroad SS from internal packages
 FROM base AS securityserver-internal
 
 ADD ["build/packages", "/tmp/repo"]
@@ -44,7 +44,7 @@ RUN cd /tmp/repo && dpkg-scanpackages -m . > Packages \
 FROM securityserver-${PACKAGE_SOURCE} AS final
 RUN pg_ctlcluster 14 main start \
     && apt-get update \
-    && apt-get -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
     && apt-get -qq clean \
     && pg_ctlcluster 14 main stop \
     # Back up read-only config (for volume support)
@@ -59,7 +59,7 @@ RUN pg_ctlcluster 14 main start \
     && cp /root/VERSION /etc/xroad/VERSION \
     # Clean up
     && rm -rf /tmp/repo \
-    && apt-get remove -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
+    && apt-get remove -y -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
     && rm -rf var/lib/apt/lists/* 
 
 # Setup users
@@ -70,10 +70,9 @@ RUN useradd xrd-sec && adduser xrd-sec xroad-security-officer && sh -c "echo 'xr
     && useradd xrd-sys && adduser xrd-sys xroad-system-administrator && sh -c "echo 'xrd-sys:$USER_PASSWD' | chpasswd" \
     && useradd xrd-obs && adduser xrd-obs xroad-securityserver-observer && sh -c "echo 'xrd-obs:$USER_PASSWD' | chpasswd"
 
-COPY --chown=xroad:xroad etc /etc
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 8080 8443 4000 5500 5577
+EXPOSE 8080 8443 4000 5432 5500 5577 5558

@@ -8,13 +8,8 @@ if [ -z "$XROAD_HOME" ]; then
   exit 1
 fi
 
-# Build X-Road
-
-#./gradlew clean build
-#./build_packages.sh --skip-tests
-# Package X-Road
-#cd packages
-#./build-deb.sh jammy
+# Build & package X-Road
+cd "$XROAD_HOME"/src/ && ./build_packages.sh "$@"
 
 # Set up Central Server context and build container
 cd "$XROAD_HOME"/Docker/centralserver

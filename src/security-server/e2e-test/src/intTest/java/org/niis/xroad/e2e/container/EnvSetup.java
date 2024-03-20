@@ -25,13 +25,10 @@
  */
 package org.niis.xroad.e2e.container;
 
-import com.nortal.test.testcontainers.TestContainerNetworkProvider;
-import com.nortal.test.testcontainers.TestContainerService;
-import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
-import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
+import com.nortal.test.testcontainers.TestableContainerInitializer;
 import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.e2e.CustomProperties;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -41,7 +38,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 
 import static org.awaitility.Awaitility.await;
@@ -52,7 +48,8 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 @Primary
 @Service
 @Slf4j
-public class EnvSetup extends TestContainerService {
+@RequiredArgsConstructor
+public class EnvSetup implements TestableContainerInitializer {
     private static final String COMPOSE_BASE_FILE = "../../../Docker/xrd-dev-stack/compose.yaml";
     private static final String COMPOSE_E2E_FILE = "../../../Docker/xrd-dev-stack/compose.e2e.yaml";
 
@@ -64,15 +61,6 @@ public class EnvSetup extends TestContainerService {
     private final CustomProperties customProperties;
 
     private ComposeContainer environment;
-
-    public EnvSetup(@NotNull TestContainerNetworkProvider testContainerNetworkProvider,
-                    @NotNull TestableContainerProperties testableContainerProperties,
-                    @NotNull TestContainerConfigurator testContainerConfigurator,
-                    @NotNull List<? extends TestContainerConfigurator.TestContainerInitListener> initListeners,
-                    @NotNull CustomProperties customProperties) {
-        super(testContainerNetworkProvider, testableContainerProperties, testContainerConfigurator, initListeners);
-        this.customProperties = customProperties;
-    }
 
     @Override
     public void initialize() {
@@ -123,17 +111,6 @@ public class EnvSetup extends TestContainerService {
         if (!customProperties.isUseCustomEnv()) {
             environment.stop();
         }
-    }
-
-    @Override
-    public int getPort() {
-        return -1;
-    }
-
-    @NotNull
-    @Override
-    public String getHost() {
-        return "localhost";
     }
 
     public Optional<ContainerState> getContainerByServiceName(String serviceName) {

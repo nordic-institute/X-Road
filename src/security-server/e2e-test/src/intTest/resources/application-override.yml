@@ -22,9 +22,9 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
-      reuse-between-runs: false
+      enabled: false
   custom:
-    use-custom-env: true
+    use-custom-env: false
     custom-env-mapping: # original : custom
       "ss0_8080": "ss0_4210"
       "ss1_8080": "ss1_4310"
