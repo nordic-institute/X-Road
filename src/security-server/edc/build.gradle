@@ -27,7 +27,6 @@ dependencies {
     implementation("org.eclipse.edc:vault-filesystem:$edcVersion")
     implementation("org.eclipse.edc:management-api:$edcVersion")
     implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
-    implementation("org.eclipse.edc:transfer-pull-http-receiver:$edcVersion")
 
     implementation("org.eclipse.edc:data-plane-selector-api:$edcVersion")
     implementation("org.eclipse.edc:data-plane-selector-core:$edcVersion")
@@ -69,6 +68,9 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
     }
     implementation(project(":security-server:edc:extensions:xroad-payload-signer")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":security-server:edc:extensions:xroad-edr")) {
         exclude group: 'org.eclipse.jetty'
     }
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
