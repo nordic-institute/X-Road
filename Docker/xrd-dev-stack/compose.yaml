@@ -6,9 +6,9 @@ services:
         reservations:
           memory: 512M
         limits:
-          memory: 2G
+          memory: 2560M
     healthcheck:
-      interval: 3s
+      interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss0:
@@ -18,9 +18,9 @@ services:
         reservations:
           memory: 512M
         limits:
-          memory: 2G
+          memory: 2560M
     healthcheck:
-      interval: 3s
+      interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss1:
@@ -30,9 +30,9 @@ services:
         reservations:
           memory: 512M
         limits:
-          memory: 2G
+          memory: 2560M
     healthcheck:
-      interval: 3s
+      interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   testca:
@@ -42,9 +42,9 @@ services:
         reservations:
           memory: 32M
         limits:
-          memory: 128M
+          memory: 512M
     healthcheck:
-      interval: 3s
+      interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
     volumes:
@@ -58,7 +58,7 @@ services:
         limits:
           memory: 512M
     healthcheck:
-      interval: 3s
+      interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
   isrest:
@@ -70,7 +70,7 @@ services:
         limits:
           memory: 256M
     healthcheck:
-      interval: 3s
+      interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/__admin/health" ]
     volumes:
