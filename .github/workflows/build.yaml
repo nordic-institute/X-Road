@@ -122,10 +122,10 @@ jobs:
         with:
           context: ./Docker/centralserver/
           args: --build-arg PACKAGE_SOURCE=internal
-          tags: xrd-centralserver:${{ GITHUB_SHA }}
+          tags: xrd-centralserver:${{ github.sha }}
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=xrd-centralserver:${{ GITHUB_SHA }}
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=xrd-centralserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -171,10 +171,10 @@ jobs:
         with:
           context: ./Docker/securityserver/
           args: --build-arg PACKAGE_SOURCE=internal
-          tags: xrd-securityserver:${{ GITHUB_SHA }}
+          tags: xrd-securityserver:${{ github.sha }}
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsImageName=xrd-securityserver:${{ GITHUB_SHA }}
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsImageName=xrd-securityserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
