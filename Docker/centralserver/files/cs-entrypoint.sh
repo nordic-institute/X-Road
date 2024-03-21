@@ -33,11 +33,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/version
     fi
-    # Initialize TEST-CA if it has not been initialized yet and the directory exists
-    if [ -d /home/ca ] && [ ! -f /home/ca/CA/.init ]; then
-        log "Initializing TEST-CA..."
-        su ca -c 'cd /home/ca/CA && ./init.sh' >&/dev/null
-    fi
 else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
 fi
@@ -78,7 +73,11 @@ if ! crudini --get /etc/xroad/conf.d/local.ini signer enforce-token-pin-policy &
   crudini --set /etc/xroad/conf.d/local.ini signer enforce-token-pin-policy "true"
 fi
 
-#initialize transport keys
+log "Enabling public postgres access.."
+sed -i 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /etc/postgresql/*/main/postgresql.conf
+sed -ri 's/host    replication     all             127.0.0.1\/32/host    all             all             0.0.0.0\/0/g' /etc/postgresql/*/main/pg_hba.conf
+
+log "initializing transport keys"
 mkdir -p -m0750 /var/run/xroad
 chown xroad:xroad /var/run/xroad
 su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh

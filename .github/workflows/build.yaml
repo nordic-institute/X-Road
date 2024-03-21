@@ -56,7 +56,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PnvdApiKey=$NVD_API_KEY -PxroadBuildType=RELEASE --stacktrace build sonar test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate -Pfrontend-npm-audit
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PnvdApiKey=$NVD_API_KEY -PxroadBuildType=RELEASE --stacktrace build sonar test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport -Pfrontend-npm-audit
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -94,6 +94,11 @@ jobs:
     name: Run Central Server system tests
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -106,18 +111,30 @@ jobs:
         with:
           cache-read-only: true
       - name: Initialize docker setup
-        working-directory: ./.github/e2e-containers/centralserver
+        working-directory: ./Docker/centralserver
         run: ./init_context.sh
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
       - name: Download debian packages
         uses: actions/download-artifact@v4
         with:
           name: debian-packages
-          path: ./.github/e2e-containers/centralserver/build/packages/develop/debian
+          path: ./Docker/centralserver/build/packages/
       - name: List docker build files
-        run: ls -lah .github/e2e-containers/centralserver/build
+        run: ls -lah ./Docker/centralserver/build
+      - name: Build CS docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Docker/centralserver/
+          push: true
+          build-args: |
+            PACKAGE_SOURCE=internal
+          tags: localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Run Central Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsPackageHost=packages -PsystemTestCsDockerRoot=${{ github.workspace }}/.github/e2e-containers/centralserver
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -137,6 +154,11 @@ jobs:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -148,14 +170,29 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
+      - name: Initialize docker setup
+        working-directory: ./Docker/securityserver
+        run: ./init_context.sh
       - name: Download debian packages
         uses: actions/download-artifact@v4
         with:
           name: debian-packages
-          path: ./src/security-server/system-test/src/intTest/resources/container-files/packages/develop/debian
+          path: ./Docker/securityserver/build/packages/
+      - name: Build SS docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Docker/securityserver/
+          push: true
+          build-args: |
+            PACKAGE_SOURCE=internal
+          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsPackageHost=packages -PsystemTestSsDockerRoot=${{ github.workspace }}/.github/e2e-containers/securityserver
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'

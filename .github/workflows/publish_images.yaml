@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Initialize docker setup
-        working-directory: ./.github/dev-containers/centralserver
+        working-directory: ${{ github.workspace }}/Docker/centralserver
         run: ./init_context.sh
       # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
       - name: Download Debian packages
@@ -41,7 +41,7 @@ jobs:
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/debian-packages.zip`, Buffer.from(download.data));
       - name: Unzip Debian packages
-        run: mkdir -p ${{ github.workspace }}/.github/dev-containers/centralserver/build/packages && unzip -d ${{ github.workspace }}/.github/dev-containers/centralserver/build/packages debian-packages.zip
+        run: mkdir -p ${{ github.workspace }}/Docker/centralserver/build/packages && unzip -d ${{ github.workspace }}/Docker/centralserver/build/packages debian-packages.zip
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -51,7 +51,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ github.workspace }}/.github/dev-containers/centralserver
+          context: ${{ github.workspace }}/Docker/centralserver
+          build-args: |
+            PACKAGE_SOURCE=internal
           push: true
           tags: ghcr.io/nordic-institute/xrddev-central-server:latest
   PublishSS:
@@ -64,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Initialize docker setup
-        working-directory: ./.github/dev-containers/securityserver
+        working-directory: ${{ github.workspace }}/Docker/securityserver
         run: ./init_context.sh
       # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
       - name: Download Debian packages
@@ -88,7 +90,7 @@ jobs:
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/debian-packages.zip`, Buffer.from(download.data));
       - name: Unzip Debian packages
-        run: mkdir -p ${{ github.workspace }}/.github/dev-containers/securityserver/build/packages && unzip -d ${{ github.workspace }}/.github/dev-containers/securityserver/build/packages debian-packages.zip
+        run: mkdir -p ${{ github.workspace }}/Docker/securityserver/build/packages && unzip -d ${{ github.workspace }}/Docker/securityserver/build/packages debian-packages.zip
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -98,6 +100,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ github.workspace }}/.github/dev-containers/securityserver
+          context: ${{ github.workspace }}/Docker/securityserver
+          build-args: |
+            PACKAGE_SOURCE=internal
           push: true
           tags: ghcr.io/nordic-institute/xrddev-security-server:latest

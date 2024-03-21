@@ -45,11 +45,7 @@ test-automation:
     proxy-host: 127.0.0.1
     file-download: proxy
   custom:
-    docker-root: "../../../Docker/securityserver/"
-    package-host: "replace-me"
-    package-source: develop
-    package-repo: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/debian"
-    package-repo-key: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/jenkins@niis.org.gpg"
+    image-name: "xrd-securityserver-dev:latest"
 
 # toggle for reusable containers. This allows quicker test development as containers are not destroyed between runs.
 # WARNING: this leaves containers running indefinitely. They have to be stopped manually.
