@@ -65,8 +65,8 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
         verifyCanProcess(request);
 
 
-        boolean forceLegacyTransport = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
-        if (!forceLegacyTransport) {
+        boolean useDs = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Use-DS-Transport"));
+        if (useDs) {
             //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
             return Optional.of(new ClientSoapMessageDsProcessor(request, response, client,
                     getIsAuthenticationData(request), opMonitoringData, assetAuthorizationManager));
