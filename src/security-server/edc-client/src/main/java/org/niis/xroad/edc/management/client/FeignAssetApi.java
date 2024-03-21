@@ -38,7 +38,7 @@ import jakarta.ws.rs.PathParam;
 import org.eclipse.edc.connector.api.management.asset.v3.AssetApi;
 
 /**
- * TODO: Workaround for missing annotations.. A bug  in EDC.
+ * TODO Workaround for missing annotations.. A bug  in EDC.
  */
 public interface FeignAssetApi extends AssetApi {
 

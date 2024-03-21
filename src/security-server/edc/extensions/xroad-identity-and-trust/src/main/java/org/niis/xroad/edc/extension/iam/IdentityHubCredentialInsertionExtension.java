@@ -57,6 +57,7 @@ import static org.niis.xroad.edc.extension.iam.IdentityHubCredentialInsertionExt
  * This extension is a "dirty" workaround to insert a Verifiable Credential into the Identity Hub.
  */
 @Extension(NAME)
+@SuppressWarnings("checkstyle:LineLength")
 public class IdentityHubCredentialInsertionExtension implements ServiceExtension {
 
     static final String NAME = "Credential insertion extension for Identity Hub";

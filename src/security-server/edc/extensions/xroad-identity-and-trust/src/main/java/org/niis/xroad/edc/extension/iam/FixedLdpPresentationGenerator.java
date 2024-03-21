@@ -66,6 +66,7 @@ import static org.eclipse.edc.identitytrust.VcConstants.PRESENTATION_EXCHANGE_UR
 import static org.eclipse.edc.identitytrust.VcConstants.W3C_CREDENTIALS_URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class FixedLdpPresentationGenerator implements PresentationGenerator<JsonObject> {
 
     private static final Map<String, String> ALIAS_CERT_MAP = Map.of(
@@ -86,7 +87,8 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
     private final ObjectMapper mapper;
 
     public FixedLdpPresentationGenerator(PrivateKeyResolver privateKeyResolver, String ownDid,
-                                         SignatureSuiteRegistry signatureSuiteRegistry, String defaultSignatureSuite, LdpIssuer ldpIssuer, ObjectMapper mapper) {
+                                         SignatureSuiteRegistry signatureSuiteRegistry, String defaultSignatureSuite, LdpIssuer ldpIssuer,
+                                         ObjectMapper mapper) {
         this.privateKeyResolver = privateKeyResolver;
         this.issuerId = ownDid;
         this.signatureSuiteRegistry = signatureSuiteRegistry;
@@ -121,7 +123,8 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
      *                                  or if one or more VerifiableCredentials cannot be represented in the JSON-LD format.
      */
     @Override
-    public JsonObject generatePresentation(List<VerifiableCredentialContainer> credentials, String keyId, Map<String, Object> additionalData) {
+    public JsonObject generatePresentation(List<VerifiableCredentialContainer> credentials, String keyId,
+                                           Map<String, Object> additionalData) {
         if (!additionalData.containsKey("types")) {
             throw new IllegalArgumentException("Must provide additional data: 'types'");
         }
@@ -135,7 +138,8 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
         }
 
         if (credentials.stream().anyMatch(c -> c.format() != CredentialFormat.JSON_LD)) {
-            throw new IllegalArgumentException("One or more VerifiableCredentials cannot be represented in the desired format " + CredentialFormat.JSON_LD);
+            throw new IllegalArgumentException("One or more VerifiableCredentials cannot be represented in the desired format "
+                    + CredentialFormat.JSON_LD);
         }
 
         // check if private key can be resolved
@@ -186,7 +190,8 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
     public static PublicKey getPublicKey(URI keyId) {
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            return certificateFactory.generateCertificate(new ByteArrayInputStream(ALIAS_CERT_MAP.get(keyId.toString()).getBytes())).getPublicKey();
+            return certificateFactory.generateCertificate(new ByteArrayInputStream(ALIAS_CERT_MAP.get(keyId.toString()).getBytes()))
+                    .getPublicKey();
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }

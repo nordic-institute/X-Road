@@ -68,7 +68,7 @@ import static org.niis.xroad.edc.extension.iam.IdentityHubPresentationSigningFix
 
 /**
  * "Dirty" fix for signing verifiable presentation with RSA keys. It injects a FixedLdpPresentationGenerator instead of
- *  the default LdpPresentationGenerator which provides a seemingly mandatory public key when creating JWK.
+ * the default LdpPresentationGenerator which provides a seemingly mandatory public key when creating JWK.
  */
 @Extension(NAME)
 public class IdentityHubPresentationSigningFixExtension implements ServiceExtension {
@@ -137,7 +137,8 @@ public class IdentityHubPresentationSigningFixExtension implements ServiceExtens
     public PresentationCreatorRegistry presentationCreatorRegistry(ServiceExtensionContext context) {
         if (presentationCreatorRegistry == null) {
             presentationCreatorRegistry = new PresentationCreatorRegistryImpl(keyPairService);
-            presentationCreatorRegistry.addCreator(new JwtPresentationGenerator(privateKeyResolver, clock, getOwnDid(context), new JwtGenerationService()), CredentialFormat.JWT);
+            presentationCreatorRegistry.addCreator(new JwtPresentationGenerator(privateKeyResolver, clock, getOwnDid(context),
+                    new JwtGenerationService()), CredentialFormat.JWT);
 
             var ldpIssuer = LdpIssuer.Builder.newInstance().jsonLd(jsonLd).monitor(context.getMonitor()).build();
             presentationCreatorRegistry.addCreator(new FixedLdpPresentationGenerator(privateKeyResolver, getOwnDid(context),

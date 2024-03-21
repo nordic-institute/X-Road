@@ -37,7 +37,8 @@ import org.eclipse.edc.connector.api.management.catalog.CatalogApi;
 public interface FeignCatalogApi extends CatalogApi {
 
     /**
-     * TODO: @Suspended is not supported by feign.
+     * TODO @Suspended is not supported by feign.
+     *
      * @param requestBody
      * @return
      */

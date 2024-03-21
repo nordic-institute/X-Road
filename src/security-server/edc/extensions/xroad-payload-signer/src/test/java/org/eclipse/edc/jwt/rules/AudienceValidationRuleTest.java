@@ -16,8 +16,8 @@ package org.eclipse.edc.jwt.rules;
 
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.tokendisabled.rules.AudienceValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
+import org.eclipse.edc.tokendisabled.rules.AudienceValidationRule;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

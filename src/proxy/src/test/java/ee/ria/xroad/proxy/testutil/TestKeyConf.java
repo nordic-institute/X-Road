@@ -30,6 +30,7 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.conf.EmptyKeyConf;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -38,7 +39,6 @@ import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
-import ee.ria.xroad.common.conf.EmptyKeyConf;
 import ee.ria.xroad.proxy.util.TestUtil;
 
 import lombok.extern.slf4j.Slf4j;

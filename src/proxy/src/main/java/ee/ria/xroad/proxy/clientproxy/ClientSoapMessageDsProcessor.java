@@ -39,7 +39,6 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Response;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.clientproxy.validate.SoapResponseValidator;
@@ -57,7 +56,6 @@ import java.util.UUID;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
-import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 
 /**
  * TODO missing opmon data
