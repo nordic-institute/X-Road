@@ -37,7 +37,7 @@ import java.util.Set;
 import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.NAME;
 
 /**
- * Scope claim is always empty in the consumer's JWT scope claim and is not configurable.
+ * Scope claim is always empty in the consumer's JWT and it's not configurable.
  * Provider expects one to be present in a specific format.
  */
 @Extension(NAME)
