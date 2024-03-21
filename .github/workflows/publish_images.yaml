@@ -6,6 +6,7 @@ on:
     branches: [develop]
 env:
   REGISTRY: ghcr.io
+  XROAD_HOME: ${{ github.workspace }}
 jobs:
   PublishCS:
     name: Publish Central Server image

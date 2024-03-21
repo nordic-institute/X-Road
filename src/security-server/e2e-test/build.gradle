@@ -17,6 +17,22 @@ tasks.register('e2eTest', Test) {
 
     def systemTestArgs = ["-XX:MaxMetaspaceSize=200m"]
 
+    if (project.hasProperty('e2eTestServeReport')) {
+        systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('e2eTestServeReport')
+    }
+    if (project.hasProperty('e2eTestCSImage')) {
+        systemTestArgs += "-Dtest-automation.custom.cs-image=" + project.getProperty('e2eTestCSImage')
+    }
+    if (project.hasProperty('e2eTestSSImage')) {
+        systemTestArgs += "-Dtest-automation.custom.ss-image=" + project.getProperty('e2eTestSSImage')
+    }
+    if (project.hasProperty('e2eTestCAImage')) {
+        systemTestArgs += "-Dtest-automation.custom.cs-image=" + project.getProperty('e2eTestCAImage')
+    }
+    if (project.hasProperty('e2eTestISSOAPImage')) {
+        systemTestArgs += "-Dtest-automation.custom.issoap-image=" + project.getProperty('e2eTestISSOAPImage')
+    }
+
     jvmArgs systemTestArgs
 
     maxHeapSize("256m")

@@ -50,7 +50,7 @@ services:
     volumes:
       - ca-volume:/home/ca/certs
   issoap:
-    image: ${IS_SOAP_IMG}
+    image: niis/example-adapter:latest
     deploy:
       resources:
         reservations:
@@ -61,6 +61,7 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
+    entrypoint: ["java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war"]
   isrest:
     image: wiremock/wiremock:latest
     deploy:

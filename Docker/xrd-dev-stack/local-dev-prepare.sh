@@ -47,7 +47,3 @@ echo "Building xrd-testca image.."
 cd "$XROAD_HOME"/Docker/testca
 ./init_context.sh
 docker build -t xrd-testca .
-
-echo "Building xrd-is-soap image.."
-cd "$XROAD_HOME"/Docker/is_soap/
-docker build -t xrd-is-soap .
