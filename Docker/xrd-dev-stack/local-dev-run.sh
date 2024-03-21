@@ -3,7 +3,7 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 
 ENV_FILE=".env"
-COMPOSE_FILE_ARGS="-f compose.yaml -f compose.dev.yaml"
+COMPOSE_FILE_ARGS="-f compose.yaml -f compose.dev.yaml -f compose.edc.yaml"
 
 for i in "$@"; do
   case "$i" in
