@@ -97,6 +97,7 @@ COPY files/edc/etc /etc/xroad-edc/
 COPY files/edc/setup_edc_db.sh /usr/share/xroad/scripts/setup_edc_db.sh
 COPY files/edc/xroad-edc /usr/share/xroad/bin/xroad-edc
 COPY --chown=xroad:xroad files/edc/edcproxy.xml /etc/xroad/jetty/edcproxy.xml
+
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost
 ENV EDC_DID_KEY_ID=key-id
