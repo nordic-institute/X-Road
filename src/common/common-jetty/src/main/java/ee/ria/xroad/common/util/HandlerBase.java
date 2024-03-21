@@ -28,9 +28,7 @@ package ee.ria.xroad.common.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.SoapFault;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -38,9 +36,6 @@ import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
 
 import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
@@ -90,19 +85,6 @@ public abstract class HandlerBase extends Handler.Abstract {
         setContentType(response, MimeTypes.TEXT_PLAIN_UTF8);
         setContentLength(response, messageBytes.length);
         response.write(true, ByteBuffer.wrap(messageBytes), callback);
-    }
-
-    /**
-     * Returns the client certificate from the SSL context.
-     */
-    protected List<X509Certificate> getClientCertificates(HttpServletRequest request) {
-        Object attribute = request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
-
-        if (attribute != null) {
-            return List.of(((EndPoint.SslSessionData) attribute).peerCertificates());
-        } else {
-            return new ArrayList<>();
-        }
     }
 
     protected void failure(Request request, Response response, Callback callback, CodedException ex)

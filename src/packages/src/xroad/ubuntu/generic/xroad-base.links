@@ -1,3 +1,3 @@
 usr/share/xroad/jlib/common-db-1.0.jar usr/share/xroad/jlib/common-db.jar
-usr/share/xroad/jlib/postgresql-42.5.4.jar usr/share/xroad/jlib/postgresql.jar
+usr/share/xroad/jlib/postgresql-42.6.1.jar usr/share/xroad/jlib/postgresql.jar
 usr/share/xroad/db/liquibase-core-4.19.0.jar usr/share/xroad/db/liquibase-core.jar

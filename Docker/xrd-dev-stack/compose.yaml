@@ -1,0 +1,103 @@
+services:
+  cs:
+    image: ${CS_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2560M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+  ss0:
+    image: ${SS_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2560M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+  ss1:
+    image: ${SS_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 2560M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+  testca:
+    image: ${CA_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 512M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
+    volumes:
+      - ca-volume:/home/ca/certs
+  issoap:
+    image: ${IS_SOAP_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
+  isrest:
+    image: wiremock/wiremock:latest
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/__admin/health" ]
+    volumes:
+      - ./wiremock_mappings:/home/wiremock/mappings
+  hurl:
+    image: ghcr.io/orange-opensource/hurl:latest
+    deploy:
+      resources:
+        reservations:
+          memory: 24M
+        limits:
+          memory: 128M
+    volumes:
+      - ./hurl-src:/hurl-src
+      - ca-volume:/hurl-files/ca
+    depends_on:
+      cs:
+        condition: service_healthy
+      testca:
+        condition: service_healthy
+      ss0:
+        condition: service_healthy
+      ss1:
+        condition: service_healthy
+      issoap:
+        condition: service_healthy
+      isrest:
+        condition: service_healthy
+volumes:
+  ca-volume:

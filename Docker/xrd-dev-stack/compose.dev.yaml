@@ -1,0 +1,43 @@
+# Additional settings for local dev env.
+# Rules:
+# 1. Each container has its own port range. Ex: 4100-4199, 4200-4299, etc.
+
+services:
+  cs:
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+    ports:
+      - "4100:4000" # Frontend
+      - "4120:5432" # Database
+      - "4190:9950" # Admin debug
+      - "4191:9951" # Management debug
+      - "4192:9952" # Registration debug
+  ss0:
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+    ports:
+      - "4200:4000" # Frontend
+      - "4210:8080" # Proxy
+      - "4220:5432" # Database
+      - "4290:9999" # Proxy debug port
+      - "4291:9998" # Signer debug port
+      - "4292:9997" # Proxy UI debug port
+  ss1:
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+    ports:
+      - "4300:4000" # Frontend
+      - "4310:8080" # Proxy
+      - "4320:5432" # Database
+      - "4390:9999" # Proxy debug port
+      - "4391:9998" # Signer debug port
+      - "4392:9997" # Proxy UI debug port
+  testca:
+    ports:
+      - "4400:8888"
+  isrest:
+    ports:
+      - "4500:8080"
+  issoap:
+    ports:
+      - "4600:8080"

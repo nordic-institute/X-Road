@@ -1,0 +1,12 @@
+# E2E specific hurl execution on boot.
+services:
+  hurl:
+    command: >
+      --insecure
+      --variables-file /hurl-src/vars.env
+      --file-root /hurl-files
+      /hurl-src/setup.hurl
+      --very-verbose
+      --retry 12
+      --retry-interval 10000
+

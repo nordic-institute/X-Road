@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -371,7 +373,7 @@ public final class WsdlParser {
                     }
             };
 
-            SSLContext ctx = SSLContext.getInstance("SSL");
+            SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
             ctx.init(new KeyManager[]{new ClientSslKeyManager()}, trustAllCerts, new SecureRandom());
 
             conn.setSSLSocketFactory(ctx.getSocketFactory());

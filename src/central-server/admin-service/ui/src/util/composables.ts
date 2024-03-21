@@ -29,20 +29,55 @@ import { ref, Ref } from 'vue';
 import { TranslateResult, useI18n } from 'vue-i18n';
 import { useNotifications } from '@/store/modules/notifications';
 import { MessageSchema } from '@/plugins/i18n';
+import { AxiosError } from 'axios';
+import { ErrorInfo } from '@/openapi-types';
+import { getErrorInfo, getTranslatedFieldErrors, isFieldError } from '@/util/helpers';
+
+type SetFieldError = (
+  field: string,
+  message: string | string[] | undefined,
+) => void;
 
 type BasicForm = {
   loading: Ref<boolean>;
   t: (key: string, props?: Record<string, unknown>) => string;
   showSuccess: (text: string | TranslateResult, preserve?: boolean) => void;
   showError: (error: unknown) => void;
+  showOrTranslateErrors: (error: AxiosError) => void;
 };
 
-export function useBasicForm(): BasicForm {
+function noopSetFieldError(
+  field: string,
+  message: string | string[] | undefined,
+) {
+}
+
+export function useBasicForm(
+  setFieldError: SetFieldError = noopSetFieldError,
+  errorMap: Record<string, string> = {},
+): BasicForm {
   const { showSuccess, showError } = useNotifications();
   const { t } = useI18n<{ message: MessageSchema }>({ useScope: 'global' });
   const loading = ref(false);
 
-  return { showSuccess, showError, loading, t };
+  function showOrTranslateErrors(error: AxiosError) {
+    const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
+    if (isFieldError(errorInfo)) {
+      const fieldErrors = errorInfo.error?.validation_errors;
+      if (fieldErrors) {
+        for (const field in errorMap) {
+          setFieldError(
+            field,
+            getTranslatedFieldErrors(errorMap[field], fieldErrors),
+          );
+        }
+      }
+    } else {
+      showError(error);
+    }
+  }
+
+  return { showSuccess, showError, loading, t, showOrTranslateErrors };
 }
 
 type FileN = File | undefined;

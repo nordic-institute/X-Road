@@ -53,6 +53,6 @@ dependencies {
     }
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
-    testImplementation('org.wiremock:wiremock-standalone:3.4.1')
+    testImplementation('org.wiremock:wiremock-standalone:3.4.2')
 }
 

@@ -10,10 +10,10 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation project(path: ":proxy", configuration: 'testArtifacts')
 
-    testImplementation('org.wiremock:wiremock-standalone:3.4.1')
+    testImplementation('org.wiremock:wiremock-standalone:3.4.2')
 
     testImplementation "wsdl4j:wsdl4j:$wsdl4jVersion"
-    testImplementation 'org.apache.httpcomponents:httpmime:4.5.13'
+    testImplementation 'org.apache.httpcomponents:httpmime:4.5.14'
     testImplementation "org.xmlunit:xmlunit-core:$xmlUnitVersion"
     testImplementation "org.xmlunit:xmlunit-matchers:$xmlUnitVersion"
     testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"

@@ -33,11 +33,12 @@ import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
@@ -54,11 +55,9 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.JettyUtils.getContentType;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 /**
  * TODO missing opmon data
@@ -73,7 +72,7 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
     private final RequestValidator requestValidator = new RequestValidator();
     private final SoapResponseValidator responseValidator = new SoapResponseValidator();
 
-    ClientSoapMessageDsProcessor(Request request, Response response,
+    ClientSoapMessageDsProcessor(RequestWrapper request, ResponseWrapper response,
                                  HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData,
                                  AssetAuthorizationManager assetAuthorizationManager)
             throws Exception {
@@ -89,7 +88,7 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
         updateOpMonitoringClientSecurityServerAddress();
 
 
-        SoapMessageImpl requestSoap = deserializeToSoap(getContentType(jRequest), asInputStream(jRequest));
+        SoapMessageImpl requestSoap = deserializeToSoap(jRequest.getContentType(), jRequest.getInputStream());
 
         updateOpMonitoringDataBySoapMessage(opMonitoringData, requestSoap);
         requestValidator.validateSoap(requestSoap, clientCert);
@@ -150,13 +149,13 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
 
     }
 
-    private void processResponse(EdcHttpResponse response, Response jResponse) throws Exception {
+    private void processResponse(EdcHttpResponse response, ResponseWrapper jResponse) throws Exception {
         log.trace("sendResponse()");
 
         jResponse.setStatus(OK_200);
         response.headers().forEach(jResponse.getHeaders()::add);
         try (InputStream body = new ByteArrayInputStream(response.body())) {
-            IOUtils.copy(body, asOutputStream(jResponse));
+            IOUtils.copy(body, jResponse.getOutputStream());
         }
 
         logResponseMessage();

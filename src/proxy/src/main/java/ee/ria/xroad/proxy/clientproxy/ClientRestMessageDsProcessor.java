@@ -30,12 +30,12 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Response;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
@@ -49,8 +49,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
-import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.eclipse.jetty.server.Request.asInputStream;
 
 @Slf4j
 class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
@@ -114,7 +112,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                 restRequest.getQuery(),
                 restRequest.getHeaders().stream()
                         .collect(Collectors.toMap(Header::getName, Header::getValue)),
-                IOUtils.toByteArray(asInputStream(jRequest)),
+                IOUtils.toByteArray(jRequest.getInputStream()),
                 restRequest.getServiceId(), restRequest.getServicePath());
 
         var response = xrdDataSpaceClient.processRequest(clientRequest, assetInfo);
@@ -122,7 +120,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
     }
 
     private void processResponse(XrdDataSpaceClient.XrdClientRequest xrdClientRequest,
-                                 EdcHttpResponse response, Response jResponse) throws Exception {
+                                 EdcHttpResponse response, ResponseWrapper jResponse) throws Exception {
         log.trace("sendResponse()");
         jResponse.setStatus(response.statusCode());
 
@@ -132,7 +130,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         response.headers().forEach(jResponse.getHeaders()::add);
 
         try (InputStream body = new ByteArrayInputStream(response.body())) {
-            IOUtils.copy(body, asOutputStream(jResponse));
+            IOUtils.copy(body, jResponse.getOutputStream());
         }
     }
 

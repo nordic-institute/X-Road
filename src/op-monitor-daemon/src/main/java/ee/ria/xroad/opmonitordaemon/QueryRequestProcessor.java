@@ -33,12 +33,11 @@ import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.codahale.metrics.MetricRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.io.Content;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -46,8 +45,6 @@ import java.util.function.Consumer;
 
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
-import static ee.ria.xroad.common.util.JettyUtils.getContentType;
-import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 
 /**
  * The processor class for operational monitoring query requests.
@@ -60,18 +57,18 @@ class QueryRequestProcessor {
     /**
      * The servlet request.
      */
-    private final Request request;
+    private final RequestWrapper request;
 
     /**
      * The servlet response.
      */
-    private final Response response;
+    private final ResponseWrapper response;
 
     private final OperationalDataRequestHandler operationalDataHandler;
     private final HealthDataRequestHandler healthDataHandler;
 
-    QueryRequestProcessor(Request request,
-                          Response response,
+    QueryRequestProcessor(RequestWrapper request,
+                          ResponseWrapper response,
                           MetricRegistry healthMetricRegistry) {
         this.request = request;
         this.response = response;
@@ -89,9 +86,9 @@ class QueryRequestProcessor {
      * @throws Exception in case of any errors
      */
     void process() throws Exception {
-        try (var handler = new QueryRequestHandler(); var requestIn = Content.Source.asInputStream(request)) {
+        try (var handler = new QueryRequestHandler(); var requestIn = request.getInputStream()) {
             SoapMessageDecoder soapMessageDecoder =
-                    new SoapMessageDecoder(getContentType(request),
+                    new SoapMessageDecoder(request.getContentType(),
                             handler, new SoapParserImpl());
 
             soapMessageDecoder.parse(requestIn);
@@ -108,9 +105,9 @@ class QueryRequestProcessor {
 
             SoapMessageImpl requestSoap = (SoapMessageImpl) message;
 
-            response.getHeaders().put("Connection", "close");
+            response.putHeader("Connection", "close");
 
-            try (var responseOut = Content.Sink.asOutputStream(response)) {
+            try (var responseOut = response.getOutputStream()) {
                 switch (requestSoap.getService().getServiceCode()) {
                     case GET_SECURITY_SERVER_OPERATIONAL_DATA:
                         operationalDataHandler.handle(requestSoap,
@@ -154,6 +151,6 @@ class QueryRequestProcessor {
     }
 
     private Consumer<String> responseContentTypeAssigner() {
-        return type -> setContentType(response, type);
+        return response::setContentType;
     }
 }

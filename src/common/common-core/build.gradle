@@ -17,7 +17,7 @@ dependencies {
     api("org.apache.santuario:xmlsec:$xmlsecVersion")
     api("org.apache.commons:commons-lang3:$commonsLang3Version")
     api("org.apache.commons:commons-text:$commonsTextVersion")
-    api("org.bouncycastle:bcpkix-jdk15on:$bouncyCastleVersion")
+    api("org.bouncycastle:bcpkix-jdk18on:$bouncyCastleVersion")
     api("com.google.guava:guava:$guavaVersion")
     api("com.fasterxml.jackson.core:jackson-annotations:$jacksonBomVersion")
     api("commons-io:commons-io:$commonsIOVersion")
