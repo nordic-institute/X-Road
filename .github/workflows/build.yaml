@@ -216,7 +216,7 @@ jobs:
             src/security-server/system-test/build/ss-container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
   RunE2ETests:
-    name: Run E2eE tests
+    name: Run E2E tests
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
     services:
