@@ -4,7 +4,7 @@ on:
     branches:
       - develop
     paths:
-      - '.github/dev-containers/testca/**'
+      - 'Docker/testca/**'
       - 'ansible/roles/xroad-ca/**'
 env:
   REGISTRY: ghcr.io
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Initialize docker setup
-        working-directory: ./.github/dev-containers/testca
+        working-directory: ./Docker/testca
         run: ./init_context.sh
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -29,6 +29,6 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ github.workspace }}/.github/dev-containers/testca
+          context: ${{ github.workspace }}/Docker/testca
           push: true
           tags: ghcr.io/nordic-institute/xrddev-testca:latest
