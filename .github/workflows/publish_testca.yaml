@@ -8,6 +8,7 @@ on:
       - 'ansible/roles/xroad-ca/**'
 env:
   REGISTRY: ghcr.io
+  XROAD_HOME: ${{ github.workspace }}
 jobs:
   PublishCS:
     name: Publish test CA image
