@@ -24,6 +24,10 @@ test-automation:
     testable-container:
       enabled: false
   custom:
+    cs-image: "ghcr.io/nordic-institute/xrddev-central-server:latest"
+    ss-image: "ghcr.io/nordic-institute/xrddev-security-server:latest"
+    ca-image: "ghcr.io/nordic-institute/xrddev-testca:latest"
+    issoap-image: "niis/example-adapter:latest"
     use-custom-env: false
     custom-env-mapping: # original : custom
       "ss0_8080": "ss0_4210"

@@ -79,10 +79,10 @@ public class EnvSetup implements TestableContainerInitializer {
                             .withExposedService(SS1, UI, forListeningPort())
                             .withExposedService(SS1, PROXY, forListeningPort())
 
-                            .withEnv("CS_IMG", "xrd-centralserver-dev")
-                            .withEnv("SS_IMG", "xrd-securityserver-dev")
-                            .withEnv("CA_IMG", "xrd-testca")
-                            .withEnv("IS_SOAP_IMG", "xrd-is-soap")
+                            .withEnv("CS_IMG", customProperties.getCsImage())
+                            .withEnv("SS_IMG", customProperties.getSsImage())
+                            .withEnv("CA_IMG", customProperties.getCaImage())
+                            .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
 
                             .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
 
