@@ -32,7 +32,7 @@ lost.
 
 ### Prerequisites:
 
-Authenticate against the GitHub Container Registry with your username and personal access token the following command (replace
+* Authenticate against the GitHub Container Registry with your username and personal access token the following command (replace
 PERSONAL_ACCESS_TOKEN and USERNAME with your own values)
 
 ```bash
@@ -42,6 +42,9 @@ echo $CR_PAT | docker login ghcr.io -u <USERNAME> --password-stdin
 
 Additional information about the GitHub Container Registry can be found here:
 https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
+
+* Add `XROAD_HOME` environment variable to your shell profile. This variable should point to the root directory of the X-Road
+  source code. This is needed for the scripts to find the correct files.
 
 ### Creating the environment
 
