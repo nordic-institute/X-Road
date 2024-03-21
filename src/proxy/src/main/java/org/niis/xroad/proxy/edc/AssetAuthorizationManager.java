@@ -46,6 +46,7 @@ import java.util.List;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 import static org.eclipse.edc.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
@@ -53,6 +54,7 @@ import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractR
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
+import static org.eclipse.edc.connector.contract.spi.types.negotiation.ContractRequest.PROVIDER_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
@@ -115,6 +117,7 @@ public class AssetAuthorizationManager {
                         .add(ODRL_PREFIX, ODRL_SCHEMA))
                 .add(TYPE, CATALOG_REQUEST_TYPE)
                 .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.getProtocolUrl())
+                .add(CATALOG_REQUEST_COUNTER_PARTY_ID, "did:web:did-server:ss1")
                 .add(CATALOG_REQUEST_PROTOCOL, "dataspace-protocol-http")
                 .add(CATALOG_REQUEST_QUERY_SPEC, createArrayBuilder(List.of(createObjectBuilder()
                         .add(TYPE, EDC_QUERY_SPEC_TYPE)
@@ -139,6 +142,7 @@ public class AssetAuthorizationManager {
                         .add(ODRL_PREFIX, ODRL_SCHEMA))
                 .add(TYPE, CONTRACT_REQUEST_TYPE)
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.getProtocolUrl())
+                .add(PROVIDER_ID, "did:web:did-server:ss1")
                 .add(PROTOCOL, "dataspace-protocol-http")
                 .add(POLICY, policy)
                 .build();

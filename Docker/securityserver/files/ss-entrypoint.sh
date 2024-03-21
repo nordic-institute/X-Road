@@ -38,6 +38,9 @@ chown xroad:xroad /var/run/xroad
 su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
 
 # dataspaces
+sed -i "s|edc.iam.trusted-issuer.localhost.id=did:web:localhost|edc.iam.trusted-issuer.${EDC_TRUSTED_ISSUER}.id=${EDC_TRUSTED_ISSUER_DID}|g" /etc/xroad-edc/edc-configuration.properties
+sed -i "s|did:web:localhost#key-id|${EDC_DID}#${EDC_DID_KEY_ID}|g" /etc/xroad-edc/edc-configuration.properties
+sed -i "s|did:web:localhost|${EDC_DID}|g" /etc/xroad-edc/edc-configuration.properties
 sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-configuration.properties
 
 chmod +x /usr/share/xroad/bin/xroad-edc

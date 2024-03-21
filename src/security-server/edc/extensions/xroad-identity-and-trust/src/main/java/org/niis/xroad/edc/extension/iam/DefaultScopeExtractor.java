@@ -37,7 +37,7 @@ public record DefaultScopeExtractor(Set<String> defaultScopes) implements BiFunc
     @Override
     public Boolean apply(Policy policy, PolicyContext policyContext) {
         var scopes = policyContext.getContextData(RequestScope.Builder.class);
-        scopes.scope(defaultScopes.iterator().next());
+        defaultScopes.forEach(scopes::scope);
         return true;
     }
 }
