@@ -95,7 +95,7 @@ public class EnvSetup implements TestableContainerInitializer {
     @SuppressWarnings("checkstyle:magicnumber")
     private void waitForHurl() {
         await()
-                .atMost(Duration.ofMinutes(10))
+                .atMost(Duration.ofMinutes(20))
                 .pollDelay(Duration.ofMinutes(1))
                 .pollInterval(Duration.ofSeconds(10))
                 .until(() -> {
