@@ -39,4 +39,9 @@ import java.util.Map;
 public class CustomProperties {
     private boolean useCustomEnv;
     private Map<String, String> customEnvMapping;
+
+    private String csImage;
+    private String ssImage;
+    private String caImage;
+    private String issoapImage;
 }
