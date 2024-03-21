@@ -50,7 +50,7 @@ services:
     volumes:
       - ca-volume:/home/ca/certs
   issoap:
-    image: niis/example-adapter:latest
+    image: ${IS_SOAP_IMG}
     deploy:
       resources:
         reservations:
