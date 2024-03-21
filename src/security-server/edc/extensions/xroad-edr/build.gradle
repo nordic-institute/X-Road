@@ -9,6 +9,8 @@ dependencies {
     implementation("org.eclipse.edc:web-spi:$edcVersion")
     implementation("org.eclipse.edc:json-ld:$edcVersion")
 
+    implementation(project(":security-server:edc:spi:xroad-core-spi"))
+
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
     implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
 

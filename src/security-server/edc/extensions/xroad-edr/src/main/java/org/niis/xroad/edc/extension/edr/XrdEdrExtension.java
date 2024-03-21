@@ -28,21 +28,18 @@
 package org.niis.xroad.edc.extension.edr;
 
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.spi.callback.CallbackProtocolResolverRegistry;
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 import org.niis.xroad.edc.extension.edr.callback.ContractNegotiationCallbackHandler;
-import org.niis.xroad.edc.extension.edr.callback.LocalCallbackMessageDispatcherImpl;
 import org.niis.xroad.edc.extension.edr.callback.LocalCallbackRegistryImpl;
 import org.niis.xroad.edc.extension.edr.callback.TransferProcessCallbackHandler;
 import org.niis.xroad.edc.extension.edr.service.AssetAuthorizationManager;
@@ -52,9 +49,8 @@ import org.niis.xroad.edc.extension.edr.service.InMemoryAuthorizedAssetRegistry;
 import org.niis.xroad.edc.extension.edr.transform.JsonObjectFromEndpointDataReferenceTransformer;
 import org.niis.xroad.edc.extension.edr.transform.JsonObjectToNegotiateAssetRequestDtoTransformer;
 
-import static org.niis.xroad.edc.extension.edr.callback.LocalCallbackMessageDispatcherImpl.CALLBACK_EVENT_LOCAL;
-import static org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto.XRD_NAMESPACE;
-import static org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto.XRD_PREFIX;
+import static org.niis.xroad.edc.spi.XrdConstants.XRD_NAMESPACE;
+import static org.niis.xroad.edc.spi.XrdConstants.XRD_PREFIX;
 
 @Extension(value = XrdEdrExtension.NAME)
 public class XrdEdrExtension implements ServiceExtension {
@@ -63,31 +59,23 @@ public class XrdEdrExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-
     @Inject
     private ManagementApiConfiguration apiConfig;
-
     @Inject
     private TypeTransformerRegistry transformerRegistry;
-
     @Inject
     private JsonLd jsonLdService;
-
     @Inject
     private CatalogService catalogService;
     @Inject
     private ContractNegotiationService contractNegotiationService;
     @Inject
     private TransferProcessService transferProcessService;
-
     @Inject
     private Monitor monitor;
 
     @Inject
-    private CallbackProtocolResolverRegistry callbackResolverRegistry;
-
-    @Inject
-    private RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry;
+    private LocalCallbackRegistryImpl localCallbackRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -100,25 +88,14 @@ public class XrdEdrExtension implements ServiceExtension {
         AssetAuthorizationManager assetAuthorizationManager = new AssetAuthorizationManager(catalogService,
                 contractNegotiationService, transformerRegistry, authorizedAssetRegistry, inProgressRegistry);
 
-        LocalCallbackRegistryImpl localCallbackRegistry = new LocalCallbackRegistryImpl();
         localCallbackRegistry.registerHandler(new ContractNegotiationCallbackHandler(transferProcessService,
                 inProgressRegistry, monitor));
         localCallbackRegistry.registerHandler(new TransferProcessCallbackHandler(transformerRegistry,
                 authorizedAssetRegistry,
                 inProgressRegistry, monitor));
 
-        remoteMessageDispatcherRegistry.register(new LocalCallbackMessageDispatcherImpl(localCallbackRegistry));
-        callbackResolverRegistry.registerResolver(this::resolveProtocol);
-
         webService.registerResource(apiConfig.getContextAlias(),
                 new XrdEdrController(transformerRegistry, assetAuthorizationManager));
-    }
-
-    private String resolveProtocol(String scheme) {
-        if (scheme.equalsIgnoreCase("local")) {
-            return CALLBACK_EVENT_LOCAL;
-        }
-        return null;
     }
 
 }

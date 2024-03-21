@@ -30,12 +30,9 @@ package org.niis.xroad.edc.extension.edr.dto;
 import lombok.Getter;
 
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.niis.xroad.edc.spi.XrdConstants.XRD_NAMESPACE;
 
 public class NegotiateAssetRequestDto {
-
-    // todo: move to common place
-    public static final String XRD_PREFIX = "xrd";
-    public static final String XRD_NAMESPACE = "https://x-road.eu/ds/v0.0.1/ns/";
 
     public static final String XRD_EDR_REQUEST_SIMPLE_DTO_TYPE = "NegotiateAssetRequestDto";
     public static final String XRD_EDR_REQUEST_DTO_TYPE = XRD_NAMESPACE + "NegotiateAssetRequestDto";
