@@ -76,6 +76,20 @@
       />
 
       <info-card
+        class="mb-6"
+        data-test="security-server-address"
+        :title-text="$t('securityServers.dataspace')"
+        :info-text="
+          securityServer.ds_enabled
+            ? 'Enabled (Protocol url: ' + securityServer.protocol_url + ')'
+            : 'Disabled'
+        "
+        :action-text="$t('action.edit')"
+        :show-action="canEditAddress"
+        @action-clicked="showEditDsDialog = true"
+      />
+
+      <info-card
         :title-text="$t('securityServers.registered')"
         data-test="security-server-registered"
         ><date-time :value="securityServer.created_at" with-seconds
@@ -111,9 +125,18 @@
     <edit-security-server-address-dialog
       v-if="address && showEditAddressDialog"
       :address="address"
+      :ds-config="dsConfig"
       :security-server-id="serverId"
       @cancel="showEditAddressDialog = false"
       @save="showEditAddressDialog = false"
+    />
+    <edit-security-server-dataspace-dialog
+      v-if="address && showEditDsDialog"
+      :address="address"
+      :ds-config="dsConfig"
+      :security-server-id="serverId"
+      @cancel="showEditDsDialog = false"
+      @save="showEditDsDialog = false"
     />
   </div>
 </template>
@@ -124,12 +147,13 @@ import InfoCard from '@/components/ui/InfoCard.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
-import { SecurityServer } from '@/openapi-types';
+import {SecurityServer, SecurityServerDataSpaceConfig} from '@/openapi-types';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerAddressDialog.vue';
 import DeleteSecurityServerDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
 import { useNotifications } from '@/store/modules/notifications';
 import DateTime from '@/components/ui/DateTime.vue';
+import EditSecurityServerDataspaceDialog from '@/views/SecurityServers/SecurityServer/EditSecurityServerDataspaceDialog.vue';
 
 /**
  * Component for a Security server details view
@@ -137,6 +161,7 @@ import DateTime from '@/components/ui/DateTime.vue';
 export default defineComponent({
   name: 'SecurityServerDetails',
   components: {
+    EditSecurityServerDataspaceDialog,
     DateTime,
     DeleteSecurityServerDialog,
     EditSecurityServerAddressDialog,
@@ -152,6 +177,7 @@ export default defineComponent({
     return {
       colors: Colors,
       showEditAddressDialog: false,
+      showEditDsDialog: false,
       showDeleteServerDialog: false,
     };
   },
@@ -172,6 +198,12 @@ export default defineComponent({
     },
     address(): string | null {
       return this.securityServer?.server_address || null;
+    },
+    dsConfig(): SecurityServerDataSpaceConfig {
+      return {
+        ds_enabled: this.securityServer?.ds_enabled || false,
+        protocol_url: this.securityServer?.protocol_url || '',
+      };
     },
     serverCode(): string | null {
       return this.securityServer?.server_id.server_code || null;

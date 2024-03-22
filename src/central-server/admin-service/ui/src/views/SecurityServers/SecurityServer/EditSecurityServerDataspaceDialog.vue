@@ -29,7 +29,7 @@
 -->
 <template>
   <xrd-simple-dialog
-    title="securityServers.dialogs.editAddress.title"
+    title="securityServers.dialogs.editDsConfig.title"
     data-test="security-server-address-edit-dialog"
     save-button-text="action.save"
     submittable
@@ -41,15 +41,25 @@
     @cancel="close"
   >
     <template #content>
-      <v-text-field
-        v-model="securityServerAddress"
-        v-bind="securityServerAddressAttrs"
-        data-test="security-server-address-edit-field"
+      <v-checkbox
+        v-model="securityServerDsEnabled"
+        v-bind="securityServerDsEnabledAttrs"
+        data-test="security-server-ds-protocl-edit-field"
         autofocus
         variant="outlined"
         class="dlg-row-input"
-        name="securityServerAddress"
-        :label="$t('securityServers.dialogs.editAddress.addressField')"
+        name="securityServerDsProtocol"
+        :label="$t('securityServers.dialogs.editDs.enabled')"
+      />
+      <v-text-field
+        v-model="securityServerDsProtocol"
+        v-bind="securityServerDsProtocolAttrs"
+        data-test="security-server-ds-protocl-edit-field"
+        autofocus
+        variant="outlined"
+        class="dlg-row-input"
+        name="securityServerDsProtocol"
+        :label="$t('securityServers.dialogs.editDs.protocolUrl')"
       />
     </template>
   </xrd-simple-dialog>
@@ -59,8 +69,8 @@
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
 import { useBasicForm } from '@/util/composables';
-import { PropType } from 'vue';
 import { SecurityServerDataSpaceConfig } from '@/openapi-types';
+import { PropType } from 'vue';
 
 /**
  * Component for a Security server details view
@@ -85,21 +95,30 @@ const emits = defineEmits(['save', 'cancel']);
 
 const { meta, resetForm, setFieldError, defineField, handleSubmit } = useForm({
   validationSchema: {
-    securityServerAddress: 'required|address',
+    securityServerDsEnabled: '',
+    securityServerDsProtocol: 'required',
   },
-  initialValues: { securityServerAddress: props.address },
+  initialValues: {
+    securityServerDsEnabled: props.dsConfig.ds_enabled,
+    securityServerDsProtocol: props.dsConfig.protocol_url,
+  },
 });
-const [securityServerAddress, securityServerAddressAttrs] = defineField(
-  'securityServerAddress',
+const [securityServerDsProtocol, securityServerDsProtocolAttrs] = defineField(
+  'securityServerDsProtocol',
   {
     props: (state) => ({ 'error-messages': state.errors }),
   },
 );
-
+const [securityServerDsEnabled, securityServerDsEnabledAttrs] = defineField(
+  'securityServerDsEnabled',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+  },
+);
 const { updateAddress } = useSecurityServer();
 const { showOrTranslateErrors, showSuccess, loading, t } = useBasicForm(
   setFieldError,
-  { securityServerAddress: 'securityServerAddressDto.serverAddress' },
+  { securityServerDsProtocol: 'securityServerDsProtocolDto.serverAddress' },
 );
 
 function close() {
@@ -111,9 +130,9 @@ const saveAddress = handleSubmit((values) => {
   loading.value = true;
   updateAddress(
     props.securityServerId,
-    values.securityServerAddress,
-    props.dsConfig.ds_enabled,
-    props.dsConfig.protocol_url!,
+    props.address,
+    values.securityServerDsEnabled,
+    values.securityServerDsProtocol!,
   )
     .then(() => {
       showSuccess(t('securityServers.dialogs.editAddress.success'));
