@@ -67,6 +67,7 @@ public class JsonObjectToNegotiateAssetRequestDtoTransformer extends AbstractJso
                     .actual(key)
                     .expected(XRD_EDR_REQUEST_DTO_CLIENT_ID)
                     .expected(XRD_EDR_REQUEST_ASSET_ID)
+                    .expected(XRD_EDR_REQUEST_DTO_COUNTERPARTY_ID)
                     .expected(XRD_EDR_REQUEST_DTO_COUNTERPARTY_ADDRESS)
                     .report();
         }
