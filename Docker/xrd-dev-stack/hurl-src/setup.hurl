@@ -913,3 +913,26 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     }
   ]
 }
+
+#Enable DS for ss0 and ss1
+PATCH https://{{cs_host}}:4000/api/v1/security-servers/DEV:COM:1234:SS0
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "server_address": "ss0",
+  "ds_enabled": true,
+  "protocol_url": "ss0:9194/protocol"
+}
+
+HTTP 200
+
+PATCH https://{{cs_host}}:4000/api/v1/security-servers/DEV:COM:4321:SS1
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "server_address": "ss1",
+  "ds_enabled": true,
+  "protocol_url": "ss1:9194/protocol"
+}
+
+HTTP 200
