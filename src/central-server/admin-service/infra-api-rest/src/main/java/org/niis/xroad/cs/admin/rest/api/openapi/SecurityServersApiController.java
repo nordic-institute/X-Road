@@ -39,9 +39,9 @@ import org.niis.xroad.cs.openapi.SecurityServersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
+import org.niis.xroad.cs.openapi.model.UpdateSecurityServerRequestDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -145,9 +145,12 @@ public class SecurityServersApiController implements SecurityServersApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = EDIT_SECURITY_SERVER_ADDRESS)
-    public ResponseEntity<SecurityServerDto> updateSecurityServerAddress(String id, SecurityServerAddressDto securityServerAddress) {
+    public ResponseEntity<SecurityServerDto> updateSecurityServer(String id, UpdateSecurityServerRequestDto requestDto) {
         var securityServerId = securityServerIdConverter.convertId(id);
-        return securityServerService.updateSecurityServerAddress(securityServerId, securityServerAddress.getServerAddress())
+        return securityServerService.updateSecurityServer(securityServerId,
+                        requestDto.getServerAddress(),
+                        requestDto.getDsEnabled(),
+                        requestDto.getProtocolUrl())
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND, id));

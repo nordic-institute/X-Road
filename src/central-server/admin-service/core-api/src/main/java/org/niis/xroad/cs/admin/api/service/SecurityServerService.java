@@ -57,7 +57,7 @@ public interface SecurityServerService {
 
     Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id);
 
-    Optional<SecurityServer> updateSecurityServerAddress(SecurityServerId serverId, String newAddress);
+    Optional<SecurityServer> updateSecurityServer(SecurityServerId serverId, String newAddress, boolean dsEnabled, String dsProtoclUrl);
 
     void delete(SecurityServerId serverId);
 

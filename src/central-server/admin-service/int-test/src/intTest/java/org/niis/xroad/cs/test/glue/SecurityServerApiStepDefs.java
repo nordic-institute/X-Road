@@ -32,9 +32,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
+import org.niis.xroad.cs.openapi.model.UpdateSecurityServerRequestDto;
 import org.niis.xroad.cs.test.api.FeignSecurityServersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -182,7 +182,9 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
         final String[] idParts = StringUtils.split(serverId, ':');
         final String newAddress = "security-server-new-address-" + idParts[3];
         final ResponseEntity<SecurityServerDto> response =
-                securityServersApi.updateSecurityServerAddress(serverId, new SecurityServerAddressDto().serverAddress(newAddress));
+                securityServersApi.updateSecurityServer(serverId, new UpdateSecurityServerRequestDto()
+                        .serverAddress(newAddress)
+                        .dsEnabled(false));
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
@@ -193,8 +195,10 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     @Step("updating the address of a non-existing security server fails")
     public void updatingAddressOfNonExistingSecurityServerFails() {
         try {
-            securityServersApi.updateSecurityServerAddress(
-                    randomSecurityServerId(), new SecurityServerAddressDto().serverAddress("localhost"));
+            securityServersApi.updateSecurityServer(
+                    randomSecurityServerId(), new UpdateSecurityServerRequestDto()
+                            .serverAddress("localhost")
+                            .dsEnabled(false));
             fail("Should throw exception");
         } catch (FeignException exception) {
             validate(exception.status())

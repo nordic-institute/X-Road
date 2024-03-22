@@ -278,9 +278,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     private ServerAddressInfo mapServerAddressInfo(SharedParameters.ServerAddress serverAddress) {
         return new ServerAddressInfo(serverAddress.getAddress(),
                 serverAddress.isDsSupported(),
-                serverAddress.getDsManagementUrl(),
-                serverAddress.getDsProtocolUrl(),
-                serverAddress.getDsPublicUrl()
+                serverAddress.getDsProtocolUrl()
         );
     }
 
