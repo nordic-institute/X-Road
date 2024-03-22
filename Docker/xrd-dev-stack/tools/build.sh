@@ -27,6 +27,9 @@ case $1 in
   gradleModule="central-server/management-service"
   gradleArgs+="-xintTest"
   ;;
+"edc")
+  gradleModule="security-server/edc"
+  ;;
 esac
 
 cd "$XROAD_HOME"/src/

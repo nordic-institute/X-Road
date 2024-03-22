@@ -48,6 +48,10 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/central-server/registration-service/build/libs/centralserver-registration-service-1.0.jar"
     service_name="xroad-center-registration-service"
     ;;
+  "edc")
+    jar_path="$XROAD_HOME/src/security-server/edc/build/libs/connector.jar"
+    service_name="xroad-edc"
+    ;;
   *)
     echo "Unknown module: $module_name"
     return 1
@@ -63,7 +67,7 @@ deploy_module() {
 set -o xtrace
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "op-monitor-daemon")
+"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "op-monitor-daemon" | "edc")
   deploy_module "$1" "xrd-dev-stack-ss0-1" "xrd-dev-stack-ss1-1"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service")
