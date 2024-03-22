@@ -84,6 +84,7 @@ import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_NAME;
 @Component
 @Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
 @Slf4j
+@SuppressWarnings("checkstyle:MagicNumber")
 public class AssetsRegistrationJob {
 
     private final DataplaneSelectorApi dataplaneSelectorApi;

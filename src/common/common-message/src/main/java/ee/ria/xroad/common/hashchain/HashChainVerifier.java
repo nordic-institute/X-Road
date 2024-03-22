@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.xml.security.signature.XMLSignatureInput;
+import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.transforms.Transforms;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -317,11 +318,11 @@ public final class HashChainVerifier {
 
         Transforms tr = new Transforms(document.getDocumentElement(), null);
 
-        XMLSignatureInput before = new XMLSignatureInput(referenceResolver.resolve(uri));
+        XMLSignatureInput before = new XMLSignatureStreamInput(referenceResolver.resolve(uri));
 
         XMLSignatureInput after = tr.performTransforms(before);
 
-        return after.getOctetStream();
+        return after.getUnprocessedInput();
     }
 
     /**

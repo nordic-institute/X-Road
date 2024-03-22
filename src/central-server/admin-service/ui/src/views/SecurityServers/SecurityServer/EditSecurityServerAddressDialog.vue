@@ -56,18 +56,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
 import { useSecurityServer } from '@/store/modules/security-servers';
-import { useNotifications } from '@/store/modules/notifications';
-import { ErrorInfo } from '@/openapi-types';
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
-import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useBasicForm } from '@/util/composables';
 
 /**
  * Component for a Security server details view
@@ -100,15 +91,16 @@ const [securityServerAddress, securityServerAddressAttrs] = defineField(
 );
 
 const { updateAddress } = useSecurityServer();
-const { showError, showSuccess } = useNotifications();
+const { showOrTranslateErrors, showSuccess, loading, t } = useBasicForm(
+  setFieldError,
+  { securityServerAddress: 'securityServerAddressDto.serverAddress' },
+);
 
 function close() {
   resetForm();
   emits('cancel');
 }
 
-const loading = ref(false);
-const { t } = i18n.global;
 const saveAddress = handleSubmit((values) => {
   loading.value = true;
   updateAddress(props.securityServerId, values.securityServerAddress)
@@ -116,25 +108,7 @@ const saveAddress = handleSubmit((values) => {
       showSuccess(t('securityServers.dialogs.editAddress.success'));
       emits('save');
     })
-    .catch((updateError) => {
-      const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
-      if (isFieldError(errorInfo)) {
-        // backend validation error
-        let fieldErrors = errorInfo.error?.validation_errors;
-        if (fieldErrors) {
-          setFieldError(
-            'securityServerAddress',
-            getTranslatedFieldErrors(
-              'securityServerAddressDto.serverAddress',
-              fieldErrors,
-            ),
-          );
-        }
-      } else {
-        showError(updateError);
-        close();
-      }
-    })
+    .catch((error) => showOrTranslateErrors(error))
     .finally(() => (loading.value = false));
 });
 </script>

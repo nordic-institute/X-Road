@@ -31,6 +31,8 @@ import ee.ria.xroad.common.metadata.ClientType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -44,17 +46,13 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Enumeration;
 
-import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_CLIENTS;
-import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 
 /**
  * Soap metadata client request processor
@@ -78,7 +76,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
     private final String target;
 
-    MetadataClientRequestProcessor(String target, Request request, Response response) {
+    MetadataClientRequestProcessor(String target, RequestWrapper request, ResponseWrapper response) {
         super(request, response, null);
 
         this.target = target;
@@ -123,20 +121,18 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeResponseXml(Object object) throws Exception {
-        setContentType(jResponse, MimeTypes.TEXT_XML_UTF8);
-        marshal(object, asOutputStream(jResponse));
+        jResponse.setContentType(MimeTypes.TEXT_XML_UTF8);
+        marshal(object, jResponse.getOutputStream());
     }
 
     private void writeResponseJson(Object object) throws Exception {
-        setContentType(jResponse,
-                MimeUtils.contentTypeWithCharset(MimeTypes.JSON, StandardCharsets.UTF_8.name().toLowerCase()),
-                StandardCharsets.UTF_8.name());
-        MAPPER.writeValue(asOutputStream(jResponse), object);
+        jResponse.setContentType(MimeUtils.contentTypeWithCharset(MimeTypes.JSON,
+                StandardCharsets.UTF_8.name().toLowerCase()));
+        MAPPER.writeValue(jResponse.getOutputStream(), object);
     }
 
     private String getInstanceIdentifierFromRequest() throws Exception {
-        String instanceIdentifier =
-                Request.getParameters(jRequest).getValue(PARAM_INSTANCE_IDENTIFIER);
+        String instanceIdentifier = jRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (StringUtils.isBlank(instanceIdentifier)) {
             instanceIdentifier = GlobalConf.getInstanceIdentifier();
         }

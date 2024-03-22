@@ -156,17 +156,16 @@ public class CertHashBasedOcspResponder implements StartStop {
 
         log.debug("Returning OCSP responses for cert hashes: " + hashes);
 
-        MultiPartOutputStream mpResponse = new MultiPartOutputStream(Content.Sink.asOutputStream(response));
+        try (MultiPartOutputStream mpResponse = new MultiPartOutputStream(Content.Sink.asOutputStream(response))) {
 
-        JettyUtils.setContentType(response, MimeUtils.mpRelatedContentType(mpResponse.getBoundary(), MimeTypes.OCSP_RESPONSE));
-        response.setStatus(OK_200);
+            JettyUtils.setContentType(response, MimeUtils.mpRelatedContentType(mpResponse.getBoundary(), MimeTypes.OCSP_RESPONSE));
+            response.setStatus(OK_200);
 
-        for (OCSPResp ocsp : ocspResponses) {
-            mpResponse.startPart(MimeTypes.OCSP_RESPONSE);
-            mpResponse.write(ocsp.getEncoded());
+            for (OCSPResp ocsp : ocspResponses) {
+                mpResponse.startPart(MimeTypes.OCSP_RESPONSE);
+                mpResponse.write(ocsp.getEncoded());
+            }
         }
-
-        mpResponse.close();
     }
 
     private final class RequestHandler extends Handler.Abstract {

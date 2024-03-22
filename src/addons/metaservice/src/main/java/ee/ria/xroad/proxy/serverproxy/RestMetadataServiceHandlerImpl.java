@@ -36,6 +36,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
@@ -56,7 +57,6 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.eclipse.jetty.server.Request;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -123,7 +123,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     @Override
-    public void startHandling(Request servletRequest, ProxyMessage requestProxyMessage,
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage requestProxyMessage,
                               ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                               HttpClient restClient, HttpClient opMonitorClient,
                               OpMonitoringData opMonitoringData) throws Exception {
@@ -171,8 +171,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         );
     }
 
-    private void handleGetOpenApi(ProxyMessage requestProxyMessage) throws IOException,
-            HttpClientCreator.HttpClientCreatorException, URISyntaxException {
+    private void handleGetOpenApi(ProxyMessage requestProxyMessage)
+            throws IOException, HttpClientCreator.HttpClientCreatorException, URISyntaxException {
         List<NameValuePair> pairs = URLEncodedUtils.parse(requestProxyMessage.getRest().getQuery(),
                 StandardCharsets.UTF_8);
         String targetServiceCode = null;

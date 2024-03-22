@@ -81,6 +81,7 @@ include 'security-server:edc:extensions:xroad-identity-and-trust'
 include 'security-server:edc-client'
 include 'security-server:edc:xroad-edc-security'
 include "security-server:system-test"
+include 'security-server:e2e-test'
 
 // Utils
 include "signer-console"
@@ -104,4 +105,5 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
+
 

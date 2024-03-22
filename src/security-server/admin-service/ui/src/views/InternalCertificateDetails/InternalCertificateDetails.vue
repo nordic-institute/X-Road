@@ -24,32 +24,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="certificate-details-wrapper xrd-default-shadow">
-    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
-    <div class="pl-4">
-      <template v-if="certificate">
-        <div class="detail-view-cert-hash">
-          <certificateHash :hash="certificate.hash" />
-        </div>
-        <certificateInfo :certificate="certificate" />
-      </template>
-    </div>
-  </div>
+  <CertificateView v-if="certificate" :certificate-details="certificate" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
-import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
-import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
+import CertificateView from '@/components/certificate/CertificateView.vue';
 
 export default defineComponent({
   components: {
-    CertificateInfo,
-    CertificateHash,
+    CertificateView,
   },
   props: {},
   data() {
@@ -62,9 +50,6 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
-    close(): void {
-      this.$router.back();
-    },
     fetchData(): void {
       api
         .get<CertificateDetails>('/system/certificate')
@@ -80,6 +65,4 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/detail-views';
-@import '@/assets/wizards';
 </style>

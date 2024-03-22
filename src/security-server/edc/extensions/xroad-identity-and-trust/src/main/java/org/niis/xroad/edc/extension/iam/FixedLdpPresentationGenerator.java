@@ -66,7 +66,13 @@ import static org.eclipse.edc.identitytrust.VcConstants.PRESENTATION_EXCHANGE_UR
 import static org.eclipse.edc.identitytrust.VcConstants.W3C_CREDENTIALS_URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class FixedLdpPresentationGenerator implements PresentationGenerator<JsonObject> {
+
+    private static final Map<String, String> ALIAS_CERT_MAP = Map.of(
+            "did:web:did-server:ss0", "-----BEGIN CERTIFICATE-----\nMIIEOzCCAiOgAwIBAgIBBjANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yMTAzMTAwODI2NTdaFw00MTAzMDUwODI2NTdaMEgxCzAJBgNVBAYTAkZJMRAwDgYDVQQKDAdUZXN0T3JnMRIwEAYDVQQDDAkyOTA4NzU4LTQxEzARBgNVBAUTCkNTL1NTMC9PUkcwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDhTvUommNFnntSWkAMX3zQ5F8yvd5re+5mEYaY4OQu54943p+N3WgXK7+90Jwmj2JcS2cDoMT0MU6FLXvdAtrhMk/NeQD481r24cDWvUvMZ935C4DPx8JHtaip4/Y63LtYnCfRcWA4zpcmUnZR1UWgUgpnCdVmWYV9quxj211LxNYf/ChZjUrf+FOPCc5HCH5H1grI+NkQHgpTG17K2UoVU6ho4S9ohrKDBrl3e85O7xS5TXPUT/wfP7hCO+R8DO2aegxmIy5FF/EPRzjpjQ4JVwsOzrAXS09d1cGJL9/ooqSq8oqLc+uTL0a/bte0BHH2dW/m6Kbk0kLAp8rrmlnhAgMBAAGjHTAbMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgZAMA0GCSqGSIb3DQEBCwUAA4ICAQA86e5eogjRWMV/+Qmwe0vNA12a5VELpJ2/WlxooqKyzT4j4BBEuCLJHPWUuG0p9I2fQ6XLUSsG43x0ZT19c1cy3QljXWI7DUA4+y03eZuSXw5DHKOdRoAQrmfJfqf9q+G1b6jqzYLZsrZYnuOzt9KmFjJMNIpcRFcAEhODu6raZJKgc37AHkuDFFQyQicjpH2SKNY/u8nyQXMI/TqKJWb92HDh+tgSeumdaHrTXXlzC0Gdx5qYgXjZVkzfK1b3eZi2N3Tp3HccNrND84GoLrHLsBwZNL0uS6+U3yKPfNGsz6gUFoXRKhVyxxDnUsCm7RCA7x2Wxxj2g7/CSQBcKKrY1ETuzc0ksla5cttQdU7TnGB3Acai3VnfDs+w5kxkUg8HMTH6ygEjPKGcxESKwmWwG0wH0ICYY3D4S3q+gIs8BvjB/6gC0UxJeu4yiR72uco9EFIikRI9w/+s3GGBr2NbJAJn+EEmK32BPoBky4GNI0BpjVUUcukJMXXJPdnq3ifto8CJT8ZF4XCAkhWD12nA+9JdNIBq1/AFqrpZ4J0oKlzhXyETbrLi2AIcJQg5/3QR5Pbvv/N5FdZG8DZPJNFlqfqpBrgCUQWQlJIqB85EPh2Qyq4JW/bTVavqS2igW8QRKXsxjQMC10dH0VRBFG6HVss1SrkCF6Fpm4R32tC5CA==\n-----END CERTIFICATE-----",
+            "did:web:did-server:ss1", "-----BEGIN CERTIFICATE-----\nMIIEezCCAmOgAwIBAgIBFDANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yNDAyMjAxNDM2MDRaFw00NDAyMTUxNDM2MDRaMEgxCzAJBgNVBAYTAkZJMRAwDgYDVQQKDAdUZXN0R292MRIwEAYDVQQDDAkwMjQ1NDM3LTIxEzARBgNVBAUTCkNTL1NTMS9HT1YwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDCmqhLyC57snFixbLNAyN4srSrgVbJEuI/VRAJtslqqENn+NSX/ZSDMd5PJg3J4UkJFL80IC5Z7eEb5FS8oN4XqjV5WWmhVfQxGs3CCCjjrnL1iU437PvJdQZC9uWYkMRsEShhXnUkchIUJMHj+0d3BIGDrM8fPFbgox1A50ecbSS6Kl622UJ2/B/bUsKz1Ngrsfz8aPfRWKVIk7hsF6C2DvkmOAMOKnAT924rWBELAV/HUmZGrbYJTwSnGghehFB+fONQIbZUklh54kxbyIO9OnZJDckrgcl0yJyYH/2Mk9GzU40S6aMLBEXgiC1fmuch49s7AXqC0hLNAbj9YHQDAgMBAAGjXTBbMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgZAMB0GA1UdDgQWBBSe5JAV+CU0PQ1CVtbl4MPTf1/kaDAfBgNVHSMEGDAWgBTOdbt9k88MTU+r8w/+KsgVICpQnDANBgkqhkiG9w0BAQsFAAOCAgEARtcWa0crF7x+JbeS1GyCLRuBaxw12Tro8UcqyzA3nCccZV+3LqobQ8BfV+CF0bNuszpuWOH2nTGwTTNlVAHtuydHNg3LmGhHyhFPG3SZ8C8OeYFvtMG07ilcTejIfc6Ekc6L3y43tyOW12ecSHNdUAtb2il6FVRuoi39/M27W1cWKL8YaKEzct9ZQUZMc3x2DAPb1k4u6QzP5JVH/UrA97Pr6uAmiOR5S9XaBjXXr8vVEMjA+ZpxbDnfAuFc53wexwqvNzRUhStZqXgqtX8LGEFpDWMSNecV09zQDfnQBtATDN1FmlGbYwXar13jX0ctN8SXWwlZCJ7BNMcqLzPPg5lWVNrf9awZjSW63l43xHQS5pWVpy2LfUOhv5w+4UAOK/5uHhfFmdAdq+Hnp3j4PBTrv5ayr9yuaqToZBYBlHqJX7hriL8c7t/UhOaCiNI42QFFwozlg4vpzDmfV1xSV8E2A2SsD4QCgjaU+n95hahxAzm8LMJ3fpib6MOEqMphmV+18UrnEfyS0zgjyhxME7GHUu612DWVzHFSApHc8uD4g0BXJi2CJrsxJ9iYeg/0K1h866NU7l3pneGJuN9AXAdYDVu6lq7/U3b+MvAZbSHlA016fzNn3UYCQL+CLzes6FqDx6gOV9XujiGTSpBsOFpxBbEDSSLPKQFfNIpUmZQ=\n-----END CERTIFICATE-----"
+    );
 
     public static final String ID_PROPERTY = "id";
 
@@ -81,7 +87,8 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
     private final ObjectMapper mapper;
 
     public FixedLdpPresentationGenerator(PrivateKeyResolver privateKeyResolver, String ownDid,
-                                         SignatureSuiteRegistry signatureSuiteRegistry, String defaultSignatureSuite, LdpIssuer ldpIssuer, ObjectMapper mapper) {
+                                         SignatureSuiteRegistry signatureSuiteRegistry, String defaultSignatureSuite, LdpIssuer ldpIssuer,
+                                         ObjectMapper mapper) {
         this.privateKeyResolver = privateKeyResolver;
         this.issuerId = ownDid;
         this.signatureSuiteRegistry = signatureSuiteRegistry;
@@ -116,7 +123,8 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
      *                                  or if one or more VerifiableCredentials cannot be represented in the JSON-LD format.
      */
     @Override
-    public JsonObject generatePresentation(List<VerifiableCredentialContainer> credentials, String keyId, Map<String, Object> additionalData) {
+    public JsonObject generatePresentation(List<VerifiableCredentialContainer> credentials, String keyId,
+                                           Map<String, Object> additionalData) {
         if (!additionalData.containsKey("types")) {
             throw new IllegalArgumentException("Must provide additional data: 'types'");
         }
@@ -130,7 +138,8 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
         }
 
         if (credentials.stream().anyMatch(c -> c.format() != CredentialFormat.JSON_LD)) {
-            throw new IllegalArgumentException("One or more VerifiableCredentials cannot be represented in the desired format " + CredentialFormat.JSON_LD);
+            throw new IllegalArgumentException("One or more VerifiableCredentials cannot be represented in the desired format "
+                    + CredentialFormat.JSON_LD);
         }
 
         // check if private key can be resolved
@@ -168,7 +177,7 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
     private JsonObject signPresentation(JsonObject presentationObject, SignatureSuite suite, PrivateKey pk, URI keyId) {
         var type = URI.create(suite.getId().toString());
 
-        var jwk = CryptoConverter.createJwk(new KeyPair(getPublicKey(), pk));
+        var jwk = CryptoConverter.createJwk(new KeyPair(getPublicKey(keyId), pk));
         var keypair = new JwkMethod(keyId, type, null, jwk);
 
         var options = (DataIntegrityProofOptions) suite.createOptions();
@@ -178,11 +187,11 @@ public class FixedLdpPresentationGenerator implements PresentationGenerator<Json
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
-    public static PublicKey getPublicKey() {
+    public static PublicKey getPublicKey(URI keyId) {
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            return certificateFactory.generateCertificate(new ByteArrayInputStream(("-----BEGIN " +
-                    "CERTIFICATE-----\nMIIENTCCAh2gAwIBAgIBDjANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yMzAyMTUxMDMwNDBaFw00MzAyMTAxMDMwNDBaMEIxCzAJBgNVBAYTAkZJMQ8wDQYDVQQKDAZPUkFOR0UxDDAKBgNVBAMMAzIyMjEUMBIGA1UEBRMLREVWL1NTMS9DT00wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCb8FQOy6Q+S3U5BNlZEhvPKW/VyESWCxJNcAANuNNypSQ5lgX+ROms/CK8y0epvyL1j6UNlIkaq7Kte0xWNzcipDpwjwdtjWwNrvgDq0nZs0e+UwqVjlhzyn50FocgK+IPLYOFj8ctumT/Dr/MlfdNvDqq7m5VGvNM2hgsu8OY/YsRQ3WZJh5tFrlpDeA/QXZBlmytHSa3n1WHppqIaDoqS0Skwxc+LhhOa+ttu8u+TJlsAIJaP8+eAO/M2snHrZvoJ1s/NeNsTzaptn/Mg4tQi5p5zNHCnkSkzJTP/C5FCR+u9FXe4hjGOyhdjxliAkn6InWhOS6+vbjkbjJS/KktAgMBAAGjHTAbMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgZAMA0GCSqGSIb3DQEBCwUAA4ICAQASYHbhw7HFsGCtawnu9TmFt/TxtKbWuEkXCYg98NVs6/6u4J2Pf/krg1JoHpV2xkCYkNxGtWM5NCNm+WaDffkn0MY/sC8IsrliwQ89BDoEbaH4VpjOYDsQkW0EuhqMdwvxWR2PXD67cFzKcPR+ju+HjINeSX7kZxoVSvh7vPWYysrhOLegqo2xIMdTP1QyAGuzD0Chb5LqXQnDe8d9imJXOIAhJYh73SEYw05eHpZeWB0Z217pXh9zE2iJvpSRakbd8SqM02HmpvyQmKUtA3zTaOYoKMMP5wQ4JMYztNcb6Oy3uLEOpK2jOSoHuZFs9FpVWkLI7OSjqpWjSeDp/bRHtKnmUbAkn+IdZ5jkfmO6f84xWjkLsYXCFAkZ2n6X26LotOkuFVtPsmyk+jHbbG0gDJ199+X+fdmw+rDpCV4YHP5Lkmf7XsV8wFnW5J8DleOW0FjPW9q55Yxz2+/TFGI5RZcU/HG2U0zissHKeKSmWSGDsiaqgm8TKxy0Cj6Z+cDl2sCglITJvA5LkzmaEWv/IbMxlwNWv13ca6qj5ltk1oWSTuwngDA/fYCpSzUUEuMPX+tfjY2XhmV8bc8hn0woips8R8suAH0kQ54ub6cFt+pgIZob+XaRUI78cCe8xUYjnaWYOeShf13acubsb/4FSW88X0fA6OPN2joWqGwdAg==\n-----END CERTIFICATE-----").getBytes())).getPublicKey();
+            return certificateFactory.generateCertificate(new ByteArrayInputStream(ALIAS_CERT_MAP.get(keyId.toString()).getBytes()))
+                    .getPublicKey();
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         }

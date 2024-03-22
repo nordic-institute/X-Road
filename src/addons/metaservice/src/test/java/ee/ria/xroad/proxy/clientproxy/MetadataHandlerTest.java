@@ -27,6 +27,8 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
@@ -34,8 +36,6 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpURI;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -62,9 +62,9 @@ public class MetadataHandlerTest {
     public ExpectedException thrown = ExpectedException.none();
 
     private HttpClient httpClientMock;
-    private Request mockRequest;
+    private RequestWrapper mockRequest;
     private HttpURI mockHttpUri;
-    private Response mockResponse;
+    private ResponseWrapper mockResponse;
 
 
     /**
@@ -76,8 +76,8 @@ public class MetadataHandlerTest {
         KeyConf.reload(new TestSuiteKeyConf());
 
         httpClientMock = mock(HttpClient.class);
-        mockRequest = mock(Request.class);
-        mockResponse = mock(Response.class);
+        mockRequest = mock(RequestWrapper.class);
+        mockResponse = mock(ResponseWrapper.class);
         mockHttpUri = mock(HttpURI.class);
 
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);

@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.CodedException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.xml.security.c14n.Canonicalizer;
@@ -59,6 +61,8 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Contains various XML-related utility methods.
@@ -317,22 +321,7 @@ public final class XmlUtils {
         try {
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         } catch (ParserConfigurationException e) {
-            log.warn("XMLConstants.FEATURE_SECURE_PROCESSING not supported");
-        }
-        try {
-            dbf.setFeature(FEATURE_DISALLOW_DOCTYPE, true);
-        } catch (ParserConfigurationException e) {
-            log.warn("disallow-doctype-decl not supported");
-        }
-        try {
-            dbf.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
-        } catch (ParserConfigurationException e) {
-            log.warn("external-general-entities not supported");
-        }
-        try {
-            dbf.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
-        } catch (ParserConfigurationException e) {
-            log.warn("external-parameter-entities not supported");
+            throw new CodedException(X_INTERNAL_ERROR, e);
         }
         return dbf;
     }

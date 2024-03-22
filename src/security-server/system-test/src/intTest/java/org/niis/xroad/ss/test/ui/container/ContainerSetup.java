@@ -28,7 +28,6 @@ package org.niis.xroad.ss.test.ui.container;
 import com.google.common.base.Suppliers;
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
-import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +36,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.LazyFuture;
 
-import java.io.File;
 import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -57,29 +56,18 @@ public class ContainerSetup {
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
-
             TestableContainerProperties testableContainerProperties,
-            @Value("${test-automation.custom.docker-root}") String dockerRoot,
-            @Value("${test-automation.custom.package-repo}") String packageRepo,
-            @Value("${test-automation.custom.package-repo-key}") String packageRepoKey) {
+            @Value("${test-automation.custom.image-name}") String imageName) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
-            public ImageFromDockerfile imageDefinition() {
-                Path dockerfileRoot = Paths.get(dockerRoot);
-                File filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
-
+            public LazyFuture<String> imageDefinition() {
+                Path dockerfileRoot = Paths.get("src/intTest/resources/container-files/");
                 return new ReusableImageFromDockerfile("ss-system-test",
                         !testableContainerProperties.getReuseBetweenRuns(),
                         testableContainerProperties.getReuseBetweenRuns())
-                        .withBuildArg("DIST", "jammy")
-                        .withBuildArg("REPO", packageRepo)
-                        .withBuildArg("REPO_KEY", packageRepoKey)
-                        .withFileFromPath("Dockerfile", dockerfileRoot.resolve("Dockerfile"))
-                        .withFileFromPath("files/ss-entrypoint.sh", dockerfileRoot.resolve("files/ss-entrypoint.sh"))
-                        .withFileFromPath("files/ss-xroad.conf", dockerfileRoot.resolve("files/ss-xroad.conf"))
-                        .withFileFromPath("files/override-docker.ini", dockerfileRoot.resolve("files/override-docker.ini"))
-                        .withFileFromFile(".", filesToAdd);
+                        .withBuildArg("BASE_IMAGE", imageName)
+                        .withFileFromFile(".", dockerfileRoot.toFile());
             }
 
             @NotNull

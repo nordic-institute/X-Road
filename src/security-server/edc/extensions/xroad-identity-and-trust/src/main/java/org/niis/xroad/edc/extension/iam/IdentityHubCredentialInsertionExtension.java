@@ -48,13 +48,16 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import java.time.Instant;
 import java.util.Map;
 
+import static org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY;
+import static org.eclipse.edc.spi.system.ServiceExtensionContext.PARTICIPANT_ID;
 import static org.niis.xroad.edc.extension.iam.IdentityHubCredentialInsertionExtension.NAME;
 
 /**
- * Identity Hub's management API is missing an endpoint for inserting credentials. This extension is a "dirty"
- * workaround to insert a Verifiable Credential into the Identity Hub's store.
+ * Identity Hub's management API is missing an endpoint for inserting credentials.
+ * This extension is a "dirty" workaround to insert a Verifiable Credential into the Identity Hub.
  */
 @Extension(NAME)
+@SuppressWarnings("checkstyle:LineLength")
 public class IdentityHubCredentialInsertionExtension implements ServiceExtension {
 
     static final String NAME = "Credential insertion extension for Identity Hub";
@@ -71,38 +74,56 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
     @Override
     @SneakyThrows
     public void initialize(ServiceExtensionContext context) {
-        var participantId = "did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com";
+        Map<String, String> participantPubKeyMap = Map.of(
+                "did:web:did-server:ss0", """
+                        -----BEGIN PUBLIC KEY-----
+                        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4U71KJpjRZ57UlpADF98
+                        0ORfMr3ea3vuZhGGmODkLuePeN6fjd1oFyu/vdCcJo9iXEtnA6DE9DFOhS173QLa
+                        4TJPzXkA+PNa9uHA1r1LzGfd+QuAz8fCR7WoqeP2Oty7WJwn0XFgOM6XJlJ2UdVF
+                        oFIKZwnVZlmFfarsY9tdS8TWH/woWY1K3/hTjwnORwh+R9YKyPjZEB4KUxteytlK
+                        FVOoaOEvaIaygwa5d3vOTu8UuU1z1E/8Hz+4QjvkfAztmnoMZiMuRRfxD0c46Y0O
+                        CVcLDs6wF0tPXdXBiS/f6KKkqvKKi3Prky9Gv27XtARx9nVv5uim5NJCwKfK65pZ
+                        4QIDAQAB
+                        -----END PUBLIC KEY-----
+                        """,
+                "did:web:did-server:ss1", """
+                        -----BEGIN PUBLIC KEY-----
+                        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwpqoS8gue7JxYsWyzQMj
+                        eLK0q4FWyRLiP1UQCbbJaqhDZ/jUl/2UgzHeTyYNyeFJCRS/NCAuWe3hG+RUvKDe
+                        F6o1eVlpoVX0MRrNwggo465y9YlON+z7yXUGQvblmJDEbBEoYV51JHISFCTB4/tH
+                        dwSBg6zPHzxW4KMdQOdHnG0kuipettlCdvwf21LCs9TYK7H8/Gj30VilSJO4bBeg
+                        tg75JjgDDipwE/duK1gRCwFfx1JmRq22CU8EpxoIXoRQfnzjUCG2VJJYeeJMW8iD
+                        vTp2SQ3JK4HJdMicmB/9jJPRs1ONEumjCwRF4IgtX5rnIePbOwF6gtISzQG4/WB0
+                        AwIDAQAB
+                        -----END PUBLIC KEY-----
+                        """
+        );
+        Map<String, String> participantRawVCMap = Map.of(
+                "did:web:did-server:ss0", "{\"type\":\"VerifiableCredential\",\"id\":\"did:web:did-server:ss0\",\"issuer\":\"did:web:did-server:ss0\",\"issuanceDate\":\"2024-03-15T14:20:56.969Z\",\"credentialSubject\":{\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#clientId\":\"did:web:did-server:ss0\",\"id\":\"did:web:did-server:ss0\"},\"sec:proof\":{\"type\":\"JsonWebSignature2020\",\"created\":\"2024-03-19T13:44:47.560850Z\",\"proofPurpose\":\"assertionMethod\",\"verificationMethod\":{\"type\":\"JsonWebKey2020\",\"publicKeyJwk\":{\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"4U71KJpjRZ57UlpADF980ORfMr3ea3vuZhGGmODkLuePeN6fjd1oFyu_vdCcJo9iXEtnA6DE9DFOhS173QLa4TJPzXkA-PNa9uHA1r1LzGfd-QuAz8fCR7WoqeP2Oty7WJwn0XFgOM6XJlJ2UdVFoFIKZwnVZlmFfarsY9tdS8TWH_woWY1K3_hTjwnORwh-R9YKyPjZEB4KUxteytlKFVOoaOEvaIaygwa5d3vOTu8UuU1z1E_8Hz-4QjvkfAztmnoMZiMuRRfxD0c46Y0OCVcLDs6wF0tPXdXBiS_f6KKkqvKKi3Prky9Gv27XtARx9nVv5uim5NJCwKfK65pZ4Q\"},\"id\":\"did:web:did-server:ss0\"},\"jws\":\"eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJSUzUxMiJ9..fuqko7UhtqYtm6VBu7k4dopqqn-lIwh9LrkrKpFF6EvAZ-R-3ef6DprPn7agRpRvBNPtAhnyg2Oj2ANi6UtHQa1eInOPRAAiluq8o4IEKyrpPRh-btTXFYbOkskXY01TnDqgGdpn0sXSHO-5GIPyKKBMj4o2P5h39AbpIKveblPVmZTubtLqwguMhshwbkhFFO5l0cpeAu2Z4ul8fFKyyqQdlfzGXQSGT92P-kp_IY3O8J_TqObt-Tdx1kXDlh61LpO6ugRw0TWPfRdTGi_ab6N3vpKq_JjX5Yy-6D8odJGxrPNy-t1kV___uZRUEOUQDIjNNn0ipH8_TabYYCwZgA\"},\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://w3id.org/security/suites/jws-2020/v1\",\"https://www.w3.org/ns/did/v1\"]}",
+                "did:web:did-server:ss1", "{\"type\":\"VerifiableCredential\",\"id\":\"did:web:did-server:ss1\",\"issuer\":\"did:web:did-server:ss1\",\"issuanceDate\":\"2024-03-15T14:20:56.969Z\",\"credentialSubject\":{\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#clientId\":\"did:web:did-server:ss1\",\"id\":\"did:web:did-server:ss1\"},\"sec:proof\":{\"type\":\"JsonWebSignature2020\",\"created\":\"2024-03-19T13:47:22.933834Z\",\"proofPurpose\":\"assertionMethod\",\"verificationMethod\":{\"type\":\"JsonWebKey2020\",\"publicKeyJwk\":{\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"wpqoS8gue7JxYsWyzQMjeLK0q4FWyRLiP1UQCbbJaqhDZ_jUl_2UgzHeTyYNyeFJCRS_NCAuWe3hG-RUvKDeF6o1eVlpoVX0MRrNwggo465y9YlON-z7yXUGQvblmJDEbBEoYV51JHISFCTB4_tHdwSBg6zPHzxW4KMdQOdHnG0kuipettlCdvwf21LCs9TYK7H8_Gj30VilSJO4bBegtg75JjgDDipwE_duK1gRCwFfx1JmRq22CU8EpxoIXoRQfnzjUCG2VJJYeeJMW8iDvTp2SQ3JK4HJdMicmB_9jJPRs1ONEumjCwRF4IgtX5rnIePbOwF6gtISzQG4_WB0Aw\"},\"id\":\"did:web:did-server:ss1\"},\"jws\":\"eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJSUzUxMiJ9..VJIwwRWjO6RWHyvFghBE7qn3F6nwml7XPhez4uscnKJPn94jOkPb01eztTImrDA8443qqnFCGl4fdgw3W7Mx4EuRiSGfKTNhrrT7cNAORt5AtRtof75yg9gQbqYxmAjYP7aIttXT7i09u3ViHtYzaNJpQd5hF7EF0qLbAEChzUlLIZWkPOg-tjOG2hTuJ8-HQYH4A6TzG3smiCVcfSqHiuP5ljghdvkH9_k270FLwX01OpzHGTIWsLlue2DcNovtvJmYqK4TiEIzgj24dSeYfYEUL1BFISidfgmRzDWuf0wl2f9tEfz1H5Y7D11WcLfuYzPz5BlIyH6KvEgLv8z0qQ\"},\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://w3id.org/security/suites/jws-2020/v1\",\"https://www.w3.org/ns/did/v1\"]}"
+        );
+
+        String participantId = context.getConfig().getString(PARTICIPANT_ID);
         var manifest = ParticipantManifest.Builder.newInstance()
                 .participantId(participantId)
-                .did("did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com")
+                .did(participantId)
                 .active(true)
                 .key(KeyDescriptor.Builder.newInstance()
-                        .publicKeyPem("""
-                                -----BEGIN PUBLIC KEY-----
-                                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAm/BUDsukPkt1OQTZWRIb
-                                zylv1chElgsSTXAADbjTcqUkOZYF/kTprPwivMtHqb8i9Y+lDZSJGquyrXtMVjc3
-                                IqQ6cI8HbY1sDa74A6tJ2bNHvlMKlY5Yc8p+dBaHICviDy2DhY/HLbpk/w6/zJX3
-                                Tbw6qu5uVRrzTNoYLLvDmP2LEUN1mSYebRa5aQ3gP0F2QZZsrR0mt59Vh6aaiGg6
-                                KktEpMMXPi4YTmvrbbvLvkyZbACCWj/PngDvzNrJx62b6CdbPzXjbE82qbZ/zIOL
-                                UIuaeczRwp5EpMyUz/wuRQkfrvRV3uIYxjsoXY8ZYgJJ+iJ1oTkuvr245G4yUvyp
-                                LQIDAQAB
-                                -----END PUBLIC KEY-----
-                                """)
+                        .publicKeyPem(participantPubKeyMap.get(participantId))
                         .build())
                 .build();
         participantContextService.createParticipantContext(manifest);
 
+        String connectorDid = context.getConfig().getString(CONNECTOR_DID_PROPERTY);
         var verifiableCredential = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(CredentialSubject.Builder.newInstance().id("test-subject").claim("test-key", "test-val").build())
                 .issuanceDate(Instant.now())
                 .type("VerifiableCredential")
-                .issuer(new Issuer("did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com", Map.of()))
-                .id("https://xroad-8-member1.s3.eu-west-1.amazonaws.com/participant.json")
+                .issuer(new Issuer(connectorDid, Map.of()))
+                .id(connectorDid)
                 .build();
 
-        var rawVc = "{\"type\":\"VerifiableCredential\",\"id\":\"https://xroad-8-member1.s3.eu-west-1.amazonaws.com/participant.json\",\"issuer\":\"did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com\",\"issuanceDate\":\"2024-02-15T14:20:56.969Z\",\"credentialSubject\":{\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#clientId\":\"did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com\",\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#legalName\":\"NIIS\",\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#headquarterAddress\":{\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#countrySubdivisionCode\":\"EE-37\"},\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#legalRegistrationNumber\":{\"id\":\"https://xroad-8-member1.s3.eu-west-1.amazonaws.com/lrn.json#cs\"},\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#legalAddress\":{\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#countrySubdivisionCode\":\"EE-37\"},\"type\":\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#LegalParticipant\",\"gx-terms-and-conditions:gaiaxTermsAndConditions\":\"70c1d713215f95191a11d38fe2341faed27d19e083917bc8732ca4fea4976700\",\"id\":\"did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com\"},\"sec:proof\":{\"type\":\"JsonWebSignature2020\",\"created\":\"2024-03-15T09:16:16.303556Z\",\"proofPurpose\":\"assertionMethod\",\"verificationMethod\":{\"type\":\"JsonWebKey2020\",\"publicKeyJwk\":{\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"m_BUDsukPkt1OQTZWRIbzylv1chElgsSTXAADbjTcqUkOZYF_kTprPwivMtHqb8i9Y-lDZSJGquyrXtMVjc3IqQ6cI8HbY1sDa74A6tJ2bNHvlMKlY5Yc8p-dBaHICviDy2DhY_HLbpk_w6_zJX3Tbw6qu5uVRrzTNoYLLvDmP2LEUN1mSYebRa5aQ3gP0F2QZZsrR0mt59Vh6aaiGg6KktEpMMXPi4YTmvrbbvLvkyZbACCWj_PngDvzNrJx62b6CdbPzXjbE82qbZ_zIOLUIuaeczRwp5EpMyUz_wuRQkfrvRV3uIYxjsoXY8ZYgJJ-iJ1oTkuvr245G4yUvypLQ\"},\"id\":\"did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com\"},\"jws\":\"eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJSUzUxMiJ9..R3LOIeqe1y5TM6gtphe8Vu6LgAQ7TZfGgVgHmj_E6U00eQGllHaH5INNhWuxjkXdGiJEEiY350EMG5FILDigdilTjlSoRVq2CfwthWI9lIMGGyeTwMLhHLxJZDJEzEpuakr3tYuuz9kvUoFtxNuaiMvjZ4w3hrnbg5p0yhNS232T-z4YBt01YuQm7cUbHLmoDFFIcWMYuYa1AdKn2KhPnmSHF-m3DlEhicYISJO92PP_Ly78GxhygaNOOhYk0ay7W3-lozZUDPbOnm3Ux5pSEuSxNaivOQ2tt3cLsSmziMxn3TDsC6RIxD9xRhDIboFYb8qIKusuWbwS-Gzf0BGbYQ\"},\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://w3id.org/security/suites/jws-2020/v1\",\"https://www.w3.org/ns/did/v1\"]}";
-        var verifiableCredentialContainer = new VerifiableCredentialContainer(rawVc, CredentialFormat.JSON_LD,
-                verifiableCredential);
+        var verifiableCredentialContainer = new VerifiableCredentialContainer(participantRawVCMap.get(participantId), CredentialFormat.JSON_LD, verifiableCredential);
         var verifiableCredentialResource = VerifiableCredentialResource.Builder.newInstance()
                 .issuerId("test-issuer")
                 .holderId("test-holder")
@@ -114,21 +135,11 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         credentialStore.create(verifiableCredentialResource);
 
         var keyPairResource = KeyPairResource.Builder.newInstance()
-                .keyId("did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com")
-                .privateKeyAlias("did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com")
+                .keyId(participantId)
+                .privateKeyAlias(participantId)
                 .isDefaultPair(true)
                 .participantId(participantId)
-                .serializedPublicKey("""
-                                -----BEGIN PUBLIC KEY-----
-                                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAm/BUDsukPkt1OQTZWRIb
-                                zylv1chElgsSTXAADbjTcqUkOZYF/kTprPwivMtHqb8i9Y+lDZSJGquyrXtMVjc3
-                                IqQ6cI8HbY1sDa74A6tJ2bNHvlMKlY5Yc8p+dBaHICviDy2DhY/HLbpk/w6/zJX3
-                                Tbw6qu5uVRrzTNoYLLvDmP2LEUN1mSYebRa5aQ3gP0F2QZZsrR0mt59Vh6aaiGg6
-                                KktEpMMXPi4YTmvrbbvLvkyZbACCWj/PngDvzNrJx62b6CdbPzXjbE82qbZ/zIOL
-                                UIuaeczRwp5EpMyUz/wuRQkfrvRV3uIYxjsoXY8ZYgJJ+iJ1oTkuvr245G4yUvyp
-                                LQIDAQAB
-                                -----END PUBLIC KEY-----
-                                """)
+                .serializedPublicKey(participantPubKeyMap.get(participantId))
                 .build();
         keyPairResourceStore.create(keyPairResource);
     }

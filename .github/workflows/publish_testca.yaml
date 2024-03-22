@@ -1,0 +1,35 @@
+name: Publish test CA image
+on: 
+  push:
+    branches:
+      - develop
+    paths:
+      - 'Docker/testca/**'
+      - 'ansible/roles/xroad-ca/**'
+env:
+  REGISTRY: ghcr.io
+  XROAD_HOME: ${{ github.workspace }}
+jobs:
+  PublishCS:
+    name: Publish test CA image
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize docker setup
+        working-directory: ./Docker/testca
+        run: ./init_context.sh
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ github.workspace }}/Docker/testca
+          push: true
+          tags: ghcr.io/nordic-institute/xrddev-testca:latest

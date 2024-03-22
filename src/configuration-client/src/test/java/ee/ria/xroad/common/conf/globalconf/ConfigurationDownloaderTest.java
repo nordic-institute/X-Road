@@ -55,8 +55,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
-    private static final String LOCATION_URL_SUCCESS = "http://www.example.com";
-    private static final String LOCATION_HTTPS_URL_SUCCESS = "https://www.example.com";
+    private static final String LOCATION_URL_SUCCESS = "http://x-road.global/";
+    private static final String LOCATION_HTTPS_URL_SUCCESS = "https://x-road.global/";
 
     /**
      * For better HA, the order of sources to be tried to download configuration

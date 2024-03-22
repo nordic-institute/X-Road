@@ -44,6 +44,7 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -64,7 +65,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.eclipse.jetty.server.Request;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -160,7 +160,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling(Request servletRequest,
+    public void startHandling(RequestWrapper servletRequest,
                               ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
                               OpMonitoringData opMonitoringData) throws Exception {
 

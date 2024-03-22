@@ -64,6 +64,11 @@ public class SettingsGlobalResourcesPageObj {
             return $x("//div[@data-test='add-global-group-code-input']");
         }
 
+        public SelenideElement groupCodeErrorMessageWithText(String partialText) {
+            var xpath = "//div[@data-test='add-global-group-code-input']//div[text()[contains(.,'%s')]]";
+            return $x(String.format(xpath, partialText));
+        }
+
         public SelenideElement inputGroupDescription() {
             return $x("//div[@data-test='add-global-group-description-input']");
         }
