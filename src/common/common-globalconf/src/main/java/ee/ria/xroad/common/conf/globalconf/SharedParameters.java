@@ -277,9 +277,7 @@ public class SharedParameters {
     public static class ServerAddress {
         private String address;
         private boolean dsSupported;
-        private String dsManagementUrl;
         private String dsProtocolUrl;
-        private String dsPublicUrl;
 
         public ServerAddress(String address) {
             this.address = address;

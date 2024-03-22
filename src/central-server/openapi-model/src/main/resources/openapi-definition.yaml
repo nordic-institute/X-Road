@@ -2295,13 +2295,15 @@ paths:
         - security-servers
     patch:
       description: <h3>CS administrator changes the address of a security server.</h3>
-      operationId: updateSecurityServerAddress
+      operationId: updateSecurityServer
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SecurityServerAddress'
-        description: security server address
+              allOf:
+                - $ref: '#/components/schemas/SecurityServerAddress'
+                - $ref: '#/components/schemas/SecurityServerDataSpaceConfig'
+        description: security server address and other options
         required: true
       responses:
         '200':
@@ -4118,6 +4120,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/SecurityServerAddress'
         - $ref: '#/components/schemas/ModificationTimestamps'
+        - $ref: "#/components/schemas/SecurityServerDataSpaceConfig"
       description: security server information
       properties:
         server_id:
@@ -4588,6 +4591,16 @@ components:
           type: string
       required:
         - server_code
+    SecurityServerDataSpaceConfig:
+      description: security server dataspace configuration
+      properties:
+        ds_enabled:
+          type: boolean
+        protocol_url:
+          type: string
+      required:
+        - ds_enabled
+      type: object
     ManagementRequestDetailedView:
       type: object
       description: Management Request detailed view

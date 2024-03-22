@@ -32,11 +32,7 @@ import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 public record ServerAddressInfo(
         String address,
         boolean dsSupported,
-        @Deprecated
-        String dsManagementUrl,
-        String baseDsProtocolUrl,
-        @Deprecated
-        String dsPublicUrl) {
+        String baseDsProtocolUrl) {
 
     public String getProtocolUrl() {
         var protocol = isSslEnabled() ? "https" : "http";
