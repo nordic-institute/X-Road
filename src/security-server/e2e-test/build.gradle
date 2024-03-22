@@ -32,7 +32,9 @@ tasks.register('e2eTest', Test) {
     if (project.hasProperty('e2eTestISSOAPImage')) {
         systemTestArgs += "-Dtest-automation.custom.issoap-image=" + project.getProperty('e2eTestISSOAPImage')
     }
-
+    if (project.hasProperty('e2eTestUseCustomEnv')) {
+        systemTestArgs += "-Dtest-automation.custom.use-custom-env=" + project.getProperty('e2eTestUseCustomEnv')
+    }
     jvmArgs systemTestArgs
 
     maxHeapSize("256m")
