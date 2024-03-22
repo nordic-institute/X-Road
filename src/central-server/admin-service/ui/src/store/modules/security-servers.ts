@@ -30,6 +30,7 @@ import {
   PagingMetadata,
   SecurityServer,
   SecurityServerAddress,
+  SecurityServerDataSpaceConfig,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
 import { DataQuery } from '@/ui-types';
@@ -83,10 +84,14 @@ export const useSecurityServer = defineStore('securityServer', {
         })
         .finally(() => (this.currentSecurityServerLoading = false));
     },
-    async updateAddress(securityServerId: string, address: string) {
+    async updateAddress(securityServerId: string, address: string, dsEnabled: boolean, dsProtocolUrl: string) {
       this.currentSecurityServerLoading = true;
-      const securityServerAddress: SecurityServerAddress = {
+      const securityServerAddress:
+        | SecurityServerAddress
+        | SecurityServerDataSpaceConfig = {
         server_address: address,
+        ds_enabled: dsEnabled,
+        protocol_url: dsProtocolUrl,
       };
       return axios
         .patch<SecurityServer>(

@@ -67,8 +67,8 @@ public class TestGlobalConfWithDs extends EmptyGlobalConf {
     @Override
     public Collection<ServerAddressInfo> getProviderSecurityServers(ClientId clientId) {
         return Set.of(
-                new ServerAddressInfo("127.0.0.1", true, "",
-                        "http://127.0.0.1:%s/protocol".formatted(SystemProperties.dataspacesProtocolPort()), ""));
+                new ServerAddressInfo("127.0.0.1", true,
+                        "http://127.0.0.1:%s/protocol".formatted(SystemProperties.dataspacesProtocolPort())));
     }
 
     @Override
