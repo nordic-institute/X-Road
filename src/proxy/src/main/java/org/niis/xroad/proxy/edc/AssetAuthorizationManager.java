@@ -70,6 +70,7 @@ public class AssetAuthorizationManager {
                 .add(TYPE, "NegotiateAssetRequestDto")
                 .add("xrd:clientId", senderId.asEncodedId())
                 .add("assetId", providerServiceId.asEncodedId())
+                .add("counterPartyId", "did:web:did-server:ss0")
                 .add("counterPartyAddress", providerServerAddress.getProtocolUrl())
                 .build();
         JsonObject response = xrdEdrApi.requestAssetAccess(request);
