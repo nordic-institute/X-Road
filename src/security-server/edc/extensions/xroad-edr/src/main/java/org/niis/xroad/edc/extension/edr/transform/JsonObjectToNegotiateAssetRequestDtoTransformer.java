@@ -38,6 +38,7 @@ import org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto;
 import static org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto.XRD_EDR_REQUEST_ASSET_ID;
 import static org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto.XRD_EDR_REQUEST_DTO_CLIENT_ID;
 import static org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto.XRD_EDR_REQUEST_DTO_COUNTERPARTY_ADDRESS;
+import static org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto.XRD_EDR_REQUEST_DTO_COUNTERPARTY_ID;
 import static org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto.XRD_EDR_REQUEST_DTO_TYPE;
 
 public class JsonObjectToNegotiateAssetRequestDtoTransformer extends AbstractJsonLdTransformer<JsonObject, NegotiateAssetRequestDto> {
@@ -58,6 +59,7 @@ public class JsonObjectToNegotiateAssetRequestDtoTransformer extends AbstractJso
             case XRD_EDR_REQUEST_DTO_CLIENT_ID -> transformString(value, builder::clientId, context);
             case XRD_EDR_REQUEST_ASSET_ID -> transformString(value, builder::assetId, context);
             case XRD_EDR_REQUEST_DTO_COUNTERPARTY_ADDRESS -> transformString(value, builder::counterPartyAddress, context);
+            case XRD_EDR_REQUEST_DTO_COUNTERPARTY_ID -> transformString(value, builder::counterPartyId, context);
             default -> context.problem()
                     .unexpectedType()
                     .type(XRD_EDR_REQUEST_DTO_TYPE)

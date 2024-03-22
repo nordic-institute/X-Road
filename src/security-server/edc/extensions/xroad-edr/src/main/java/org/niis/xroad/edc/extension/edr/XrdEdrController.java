@@ -56,8 +56,7 @@ public class XrdEdrController implements XrdEdrApi {
                 .orElseThrow(InvalidRequestException::new);
 
         try {
-            var response = assetAuthorizationManager.getOrRequestAssetAccess(requestDto.getClientId(),
-                    requestDto.getCounterPartyAddress(), requestDto.getAssetId());
+            var response = assetAuthorizationManager.getOrRequestAssetAccess(requestDto);
 
             return transformerRegistry.transform(response, JsonObject.class)
                     .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));

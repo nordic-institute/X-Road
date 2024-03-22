@@ -39,11 +39,14 @@ public class NegotiateAssetRequestDto {
     public static final String XRD_EDR_REQUEST_DTO_CLIENT_ID = XRD_NAMESPACE + "clientId";
     public static final String XRD_EDR_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String XRD_EDR_REQUEST_DTO_COUNTERPARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
+    public static final String XRD_EDR_REQUEST_DTO_COUNTERPARTY_ID = EDC_NAMESPACE + "counterPartyId";
 
     @Getter
     private String clientId;
     @Getter
     private String assetId;
+    @Getter
+    private String counterPartyId;
     @Getter
     private String counterPartyAddress;
 
@@ -61,6 +64,11 @@ public class NegotiateAssetRequestDto {
 
         public Builder assetId(String assetId) {
             dto.assetId = assetId;
+            return this;
+        }
+
+        public Builder counterPartyId(String counterPartyId) {
+            dto.counterPartyId = counterPartyId;
             return this;
         }
 

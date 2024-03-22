@@ -46,6 +46,7 @@ import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.spi.types.domain.offer.ContractOffer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -73,19 +74,20 @@ public class AssetAuthorizationManager {
             .events(Set.of("contract.negotiation.finalized"))
             .build();
 
-    public EndpointDataReference getOrRequestAssetAccess(String clientId,
-                                                         String providerServerAddress,
-                                                         String providerServiceId) {
+    public EndpointDataReference getOrRequestAssetAccess(NegotiateAssetRequestDto requestDto) {
 
-        return authorizedAssetRegistry.getAssetInfo(clientId, providerServiceId)
-                .orElseGet(() -> requestAccess(clientId, providerServerAddress, providerServiceId));
+        return authorizedAssetRegistry.getAssetInfo(requestDto.getClientId(), requestDto.getAssetId())
+                .orElseGet(() -> requestAccess(requestDto));
     }
 
-    public EndpointDataReference requestAccess(String clientId,
-                                               String providerServerAddress,
-                                               String serviceId) {
+    public EndpointDataReference requestAccess(NegotiateAssetRequestDto requestDto) {
 
-        var catalog = getCatalog(serviceId, providerServerAddress);
+        var clientId = requestDto.getClientId();
+        var serviceId = requestDto.getAssetId();
+        var counterPartyId = requestDto.getCounterPartyId();
+        var providerServerAddress = requestDto.getCounterPartyAddress();
+
+        var catalog = getCatalog(serviceId, counterPartyId, providerServerAddress);
         var contractOffer = createContractOffer(serviceId, catalog);
         String participantId = Optional.ofNullable(catalog.getProperties())
                 .map(x -> x.get("https://w3id.org/edc/v0.0.1/ns/participantId"))
@@ -105,8 +107,8 @@ public class AssetAuthorizationManager {
     }
 
     @SneakyThrows
-    private Catalog getCatalog(String assetId, String counterPartyAddress) {
-        CompletableFuture<StatusResult<byte[]>> result = catalogService.requestCatalog(counterPartyAddress,
+    private Catalog getCatalog(String assetId, String counterPartyId, String counterPartyAddress) {
+        CompletableFuture<StatusResult<byte[]>> result = catalogService.requestCatalog(counterPartyId,
                 counterPartyAddress,
                 "dataspace-protocol-http", assetIdQuery(assetId));
 
