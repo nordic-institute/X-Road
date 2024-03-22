@@ -14,4 +14,5 @@ exec java -Dedc.keystore="/etc/xroad-edc/certs/cert.pfx" \
     -Dedc.keystore.password=123456 \
     -Dedc.vault="/etc/xroad-edc/edc-vault.properties" \
     -Dedc.fs.config="/etc/xroad-edc/edc-configuration.properties" \
-    -Xmx128m -jar /usr/share/xroad/jlib/connector.jar
+    -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9953,server=y,suspend=n \
+    -Xmx256m -jar /usr/share/xroad/jlib/connector.jar

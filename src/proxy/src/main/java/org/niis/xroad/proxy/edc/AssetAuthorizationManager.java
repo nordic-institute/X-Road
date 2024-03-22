@@ -117,7 +117,7 @@ public class AssetAuthorizationManager {
                         .add(ODRL_PREFIX, ODRL_SCHEMA))
                 .add(TYPE, CATALOG_REQUEST_TYPE)
                 .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.getProtocolUrl())
-                .add(CATALOG_REQUEST_COUNTER_PARTY_ID, "did:web:did-server:ss1")
+                .add(CATALOG_REQUEST_COUNTER_PARTY_ID, "did:web:did-server:ss0")
                 .add(CATALOG_REQUEST_PROTOCOL, "dataspace-protocol-http")
                 .add(CATALOG_REQUEST_QUERY_SPEC, createArrayBuilder(List.of(createObjectBuilder()
                         .add(TYPE, EDC_QUERY_SPEC_TYPE)
@@ -142,7 +142,7 @@ public class AssetAuthorizationManager {
                         .add(ODRL_PREFIX, ODRL_SCHEMA))
                 .add(TYPE, CONTRACT_REQUEST_TYPE)
                 .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, targetServerInfo.getProtocolUrl())
-                .add(PROVIDER_ID, "did:web:did-server:ss1")
+                .add(PROVIDER_ID, "did:web:did-server:ss0")
                 .add(PROTOCOL, "dataspace-protocol-http")
                 .add(POLICY, policy)
                 .build();
