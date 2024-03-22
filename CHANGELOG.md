@@ -1,5 +1,9 @@
 # Change Log
 
+## 7.4.2 - 2024-03-18
+- XRDDEV-2592: Central Server regenerates shared-params.xml with a new hash if two sign keys are present
+- XRDDEV-2610: Signer does not allow using SoftToken if HSM connection fails
+
 ## 7.4.1 - 2024-02-02
 - XRDDEV-2568: Client list and add client flow breaks with 7.4.0
 - XRDDEV-2565: Global group access not working correctly
