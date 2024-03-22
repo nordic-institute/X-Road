@@ -34,6 +34,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationDownloadTestDataG
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class ConfigurationDownloadUtilsTest {
 
@@ -63,5 +64,10 @@ public class ConfigurationDownloadUtilsTest {
         assertTrue(shuffledLocations.get(1).getDownloadURL().startsWith("http"));
         assertTrue(shuffledLocations.get(2).getDownloadURL().startsWith("http"));
         assertTrue(shuffledLocations.get(3).getDownloadURL().startsWith("http"));
+    }
+
+    @Test
+    public void withHttpsReturnStartWithHttpAndNotWithHttpsFalse() {
+        assertFalse(ConfigurationDownloadUtils.startWithHttpAndNotWithHttps("https://"));
     }
 }

@@ -41,7 +41,7 @@ public final class ConfigurationDownloadUtils {
     public static List<ConfigurationLocation> shuffleLocationsPreferHttps(List<ConfigurationLocation> locations) {
         List<ConfigurationLocation> urls = new ArrayList<>(getLocationUrls(locations));
         List<ConfigurationLocation> httpsUrls = urls.stream()
-                .filter(location -> assertThatStartWithHttp(location.getDownloadURL()))
+                .filter(location -> startWithHttpAndNotWithHttps(location.getDownloadURL()))
                 .map(location -> new ConfigurationLocation(
                         location.getSource(),
                         location.getDownloadURL().replaceFirst(HTTP, HTTPS),
@@ -57,15 +57,15 @@ public final class ConfigurationDownloadUtils {
 
     private static List<ConfigurationLocation> getLocationUrls(List<ConfigurationLocation> locations) {
         return locations.stream()
-                .filter(location -> assertThatNotStartWithHttps(location.getDownloadURL()))
+                .filter(location -> notStartWithHttps(location.getDownloadURL()))
                 .toList();
     }
 
-    public static boolean assertThatNotStartWithHttps(String url) {
+    public static boolean notStartWithHttps(String url) {
         return !url.startsWith(HTTPS);
     }
 
-    public static boolean assertThatStartWithHttp(String url) {
+    public static boolean startWithHttpAndNotWithHttps(String url) {
         return url.startsWith(HTTP) && !url.startsWith(HTTPS);
     }
 }

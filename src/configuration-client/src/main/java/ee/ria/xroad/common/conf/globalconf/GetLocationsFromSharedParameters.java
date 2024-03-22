@@ -83,7 +83,7 @@ class GetLocationsFromSharedParameters {
     private String getConfigurationDirectory(ConfigurationSource source) {
         var firstHttpDownloadUrl = source.getLocations().stream()
                 .map(ConfigurationLocation::getDownloadURL)
-                .filter(ConfigurationDownloadUtils::assertThatStartWithHttp).findFirst();
+                .filter(ConfigurationDownloadUtils::startWithHttpAndNotWithHttps).findFirst();
         if (firstHttpDownloadUrl.isPresent()) {
             Matcher matcher = CONF_PATTERN.matcher(firstHttpDownloadUrl.get());
             if (matcher.find()) {

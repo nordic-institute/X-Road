@@ -106,10 +106,11 @@ class ConfigurationDownloader {
         return new ConfigurationParser();
     }
 
-    DownloadResult downloadFromAnchor(ConfigurationSource source, String... contentIdentifiers) {
+    DownloadResult downloadFromAnchor(ConfigurationSource source) {
         log.debug("downloadFromAnchor");
 
         List<ConfigurationLocation> sharedParameterLocations = getLocationsFromSharedParameters.execute(source);
+        log.debug("downloadFromAnchor -> sharedParameterLocations.size = " + sharedParameterLocations.size());
 
         List<ConfigurationLocation> locations = new ArrayList<>();
         Optional<String> cachedUrlFromSharedParameter = findLocationWithPreviousSuccess(sharedParameterLocations)
@@ -120,7 +121,7 @@ class ConfigurationDownloader {
         locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
         locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
 
-        return downloadResult(cachedUrlFromSharedParameter.orElse(null), locations, contentIdentifiers);
+        return downloadResult(cachedUrlFromSharedParameter.orElse(null), locations);
     }
 
     DownloadResult downloadFromAdditionalSource(ConfigurationSource source, String... contentIdentifiers) {
@@ -141,10 +142,8 @@ class ConfigurationDownloader {
         DownloadResult result = new DownloadResult();
         for (ConfigurationLocation location : locations) {
             String url = cachedUrl != null ? cachedUrl : location.getDownloadURL();
+            log.debug("Cached url: " + cachedUrl);
 
-            if (cachedUrl != null) {
-                log.debug("Cached url is present: " + cachedUrl);
-            }
             try {
                 location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
