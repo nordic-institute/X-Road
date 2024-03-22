@@ -81,7 +81,7 @@
         :title-text="$t('securityServers.dataspace')"
         :info-text="
           securityServer.ds_enabled
-            ? 'Enabled (Protocol url: ' + securityServer.protocol_url + ')'
+            ? 'Enabled (Id: ' + securityServer.ds_id + ', protocol url: ' + securityServer.protocol_url + ')'
             : 'Disabled'
         "
         :action-text="$t('action.edit')"
@@ -202,6 +202,7 @@ export default defineComponent({
     dsConfig(): SecurityServerDataSpaceConfig {
       return {
         ds_enabled: this.securityServer?.ds_enabled || false,
+        ds_id: this.securityServer?.ds_id || '',
         protocol_url: this.securityServer?.protocol_url || '',
       };
     },

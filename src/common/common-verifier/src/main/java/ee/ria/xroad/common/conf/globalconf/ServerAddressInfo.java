@@ -32,6 +32,7 @@ import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 public record ServerAddressInfo(
         String address,
         boolean dsSupported,
+        String dsId,
         String baseDsProtocolUrl) {
 
     public String getProtocolUrl() {

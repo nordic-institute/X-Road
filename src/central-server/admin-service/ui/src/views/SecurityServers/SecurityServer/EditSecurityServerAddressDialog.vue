@@ -113,6 +113,7 @@ const saveAddress = handleSubmit((values) => {
     props.securityServerId,
     values.securityServerAddress,
     props.dsConfig.ds_enabled,
+    props.dsConfig.ds_id!,
     props.dsConfig.protocol_url!,
   )
     .then(() => {

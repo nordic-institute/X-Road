@@ -921,6 +921,7 @@ Content-Type: application/json
 {
   "server_address": "ss0",
   "ds_enabled": true,
+  "ds_id": "did:web:did-server:ss0",
   "protocol_url": "ss0:9194/protocol"
 }
 
@@ -932,6 +933,7 @@ Content-Type: application/json
 {
   "server_address": "ss1",
   "ds_enabled": true,
+  "ds_id": "did:web:did-server:ss1",
   "protocol_url": "ss1:9194/protocol"
 }
 

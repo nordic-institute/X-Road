@@ -10,6 +10,7 @@
             <column name="ds_enabled" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="ds_id" type="VARCHAR(255)"/>
             <column name="ds_protocol_url" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>

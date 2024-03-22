@@ -172,8 +172,8 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     @Override
-    public Optional<SecurityServer> updateSecurityServer(SecurityServerId serverId, String newAddress,
-                                                         boolean dsEnabled, String dsProtocolUrl) {
+    public Optional<SecurityServer> updateSecurityServer(SecurityServerId serverId, String newAddress, boolean dsEnabled,
+                                                         String dsId, String dsProtocolUrl) {
         auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
         auditDataHelper.put(OWNER_CODE, serverId.getOwner().getMemberCode());
         auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
@@ -183,6 +183,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
                 .map(securityServer -> {
                     securityServer.setAddress(newAddress);
                     securityServer.setDsEnabled(dsEnabled);
+                    securityServer.setDsId(dsId);
                     securityServer.setDsProtocolUrl(dsProtocolUrl);
                     return securityServer;
                 })

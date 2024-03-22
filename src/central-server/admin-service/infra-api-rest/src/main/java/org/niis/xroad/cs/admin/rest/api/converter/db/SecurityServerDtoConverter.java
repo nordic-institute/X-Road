@@ -52,6 +52,7 @@ public class SecurityServerDtoConverter extends UniDirectionalDtoConverter<Secur
                 .serverAddress(source.getAddress())
 
                 .dsEnabled(source.isDsEnabled())
+                .dsId(source.getDsId())
                 .protocolUrl(source.getDsProtocolUrl())
 
                 .createdAt(source.getCreatedAt().atOffset(dtoZoneOffset))

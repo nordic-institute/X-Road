@@ -256,6 +256,7 @@ public class SharedParametersV3Converter {
                     .get(SecurityServerId.Conf.create(target.getOwner(), target.getServerCode()));
             if (dsServer != null) {
                 serverAddress.setDsSupported(true);
+                serverAddress.setDsId(dsServer.getDsId());
                 serverAddress.setDsProtocolUrl(dsServer.getProtocolUrl());
             }
 

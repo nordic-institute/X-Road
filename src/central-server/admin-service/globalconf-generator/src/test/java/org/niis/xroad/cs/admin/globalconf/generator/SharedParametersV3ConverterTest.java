@@ -115,9 +115,8 @@ class SharedParametersV3ConverterTest {
                         .map(s -> {
                             var ss = new DataspaceSettingsType.SecurityServer();
                             ss.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
-                            ss.setManagementUrl(s.getDsManagementUrl());
+                            ss.setDsId(s.getDsId());
                             ss.setProtocolUrl(s.getDsProtocolUrl());
-                            ss.setPublicUrl(s.getDsPublicUrl());
                             return ss;
                         })
                         .toList();
@@ -234,9 +233,8 @@ class SharedParametersV3ConverterTest {
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCerts(List.of("ss-auth-cert".getBytes(UTF_8)));
         securityServer.setDsEnabled(true);
-        securityServer.setDsManagementUrl("ds-management-url");
+        securityServer.setDsId("ds-id");
         securityServer.setDsProtocolUrl("ds-protocol-url");
-        securityServer.setDsPublicUrl("ds-public-url");
         return securityServer;
     }
 

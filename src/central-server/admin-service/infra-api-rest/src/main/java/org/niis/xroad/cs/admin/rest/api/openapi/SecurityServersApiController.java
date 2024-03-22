@@ -150,6 +150,7 @@ public class SecurityServersApiController implements SecurityServersApi {
         return securityServerService.updateSecurityServer(securityServerId,
                         requestDto.getServerAddress(),
                         requestDto.getDsEnabled(),
+                        requestDto.getDsId(),
                         requestDto.getProtocolUrl())
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)

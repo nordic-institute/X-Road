@@ -84,13 +84,14 @@ export const useSecurityServer = defineStore('securityServer', {
         })
         .finally(() => (this.currentSecurityServerLoading = false));
     },
-    async updateAddress(securityServerId: string, address: string, dsEnabled: boolean, dsProtocolUrl: string) {
+    async updateAddress(securityServerId: string, address: string, dsEnabled: boolean, dsId: string, dsProtocolUrl: string) {
       this.currentSecurityServerLoading = true;
       const securityServerAddress:
         | SecurityServerAddress
         | SecurityServerDataSpaceConfig = {
         server_address: address,
         ds_enabled: dsEnabled,
+        ds_id: dsId,
         protocol_url: dsProtocolUrl,
       };
       return axios

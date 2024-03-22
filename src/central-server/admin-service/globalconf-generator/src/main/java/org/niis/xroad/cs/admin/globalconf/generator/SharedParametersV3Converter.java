@@ -84,9 +84,8 @@ abstract class SharedParametersV3Converter {
                     .map(s -> {
                         var securityServer = new DataspaceSettingsType.SecurityServer();
                         securityServer.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
-                        securityServer.setManagementUrl(s.getDsManagementUrl());
+                        securityServer.setDsId(s.getDsId());
                         securityServer.setProtocolUrl(s.getDsProtocolUrl());
-                        securityServer.setPublicUrl(s.getDsPublicUrl());
                         return securityServer;
                     })
                     .collect(Collectors.toSet());

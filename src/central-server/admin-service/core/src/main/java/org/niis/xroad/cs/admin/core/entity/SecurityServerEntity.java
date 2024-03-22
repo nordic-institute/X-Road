@@ -98,6 +98,11 @@ public class SecurityServerEntity extends AuditableEntity {
     @Setter
     private boolean dsEnabled;
 
+    @Column(name = "ds_id")
+    @Getter
+    @Setter
+    private String dsId;
+
     @Column(name = "ds_protocol_url")
     @Getter
     @Setter

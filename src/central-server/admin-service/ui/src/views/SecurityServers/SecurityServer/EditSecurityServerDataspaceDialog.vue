@@ -44,7 +44,7 @@
       <v-checkbox
         v-model="securityServerDsEnabled"
         v-bind="securityServerDsEnabledAttrs"
-        data-test="security-server-ds-protocl-edit-field"
+        data-test="security-server-ds-enable-checkbox"
         autofocus
         variant="outlined"
         class="dlg-row-input"
@@ -52,9 +52,19 @@
         :label="$t('securityServers.dialogs.editDs.enabled')"
       />
       <v-text-field
+        v-model="securityServerDsId"
+        v-bind="securityServerDsIdAttrs"
+        data-test="security-server-ds-id-edit-field"
+        autofocus
+        variant="outlined"
+        class="dlg-row-input"
+        name="securityServerDsId"
+        :label="$t('securityServers.dialogs.editDs.dsId')"
+      />
+      <v-text-field
         v-model="securityServerDsProtocol"
         v-bind="securityServerDsProtocolAttrs"
-        data-test="security-server-ds-protocl-edit-field"
+        data-test="security-server-ds-protocol-edit-field"
         autofocus
         variant="outlined"
         class="dlg-row-input"
@@ -96,14 +106,21 @@ const emits = defineEmits(['save', 'cancel']);
 const { meta, resetForm, setFieldError, defineField, handleSubmit } = useForm({
   validationSchema: {
     securityServerDsEnabled: '',
+    securityServerDsId: 'required',
     securityServerDsProtocol: 'required',
   },
   initialValues: {
     securityServerDsEnabled: props.dsConfig.ds_enabled,
+    securityServerDsId: props.dsConfig.ds_id,
     securityServerDsProtocol: props.dsConfig.protocol_url,
   },
 });
-const [securityServerDsProtocol, securityServerDsProtocolAttrs] = defineField(
+const [securityServerDsId, securityServerDsIdAttrs] = defineField(
+  'securityServerDsId',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+  },
+);const [securityServerDsProtocol, securityServerDsProtocolAttrs] = defineField(
   'securityServerDsProtocol',
   {
     props: (state) => ({ 'error-messages': state.errors }),
@@ -119,6 +136,8 @@ const { updateAddress } = useSecurityServer();
 const { showOrTranslateErrors, showSuccess, loading, t } = useBasicForm(
   setFieldError,
   { securityServerDsProtocol: 'securityServerDsProtocolDto.serverAddress' },
+  //{ securityServerDsProtocol: 'securityServerDsProtocolDto.serverAddress',
+  // securityServerDsId: 'securityServerDsIdDto.serverAddress' },
 );
 
 function close() {
@@ -132,6 +151,7 @@ const saveAddress = handleSubmit((values) => {
     props.securityServerId,
     props.address,
     values.securityServerDsEnabled,
+    values.securityServerDsId!,
     values.securityServerDsProtocol!,
   )
     .then(() => {

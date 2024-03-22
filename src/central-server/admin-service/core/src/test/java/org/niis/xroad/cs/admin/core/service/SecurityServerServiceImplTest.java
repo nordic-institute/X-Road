@@ -238,7 +238,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
             when(securityServerMapper.toTarget(securityServerEntity)).thenReturn(securityServer);
             when(securityServer.getAddress()).thenReturn(newAddress);
 
-            var result = securityServerService.updateSecurityServer(serverId, newAddress, false, null);
+            var result = securityServerService.updateSecurityServer(serverId, newAddress, false, null, null);
 
             assertThat(result.get().getAddress()).isEqualTo(newAddress);
             verify(auditDataHelper).put(SERVER_CODE, serverId.getServerCode());
@@ -254,7 +254,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
             when(serverId.getOwner()).thenReturn(ownerId);
             when(securityServerRepository.findBy(serverId)).thenReturn(Optional.empty());
 
-            var result = securityServerService.updateSecurityServer(serverId, newAddress, false, null);
+            var result = securityServerService.updateSecurityServer(serverId, newAddress, false, null, null);
 
             assertThat(result.isEmpty()).isTrue();
             verify(auditDataHelper).put(SERVER_CODE, serverId.getServerCode());

@@ -199,6 +199,7 @@
                 <complexType>
                     <sequence>
                         <element name="serverId" type="string"/>
+                        <element name="dsId" type="string"/>
                         <element name="protocolUrl" type="string" minOccurs="0"/>
                     </sequence>
                 </complexType>

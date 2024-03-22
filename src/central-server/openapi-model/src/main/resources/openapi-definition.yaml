@@ -4596,6 +4596,8 @@ components:
       properties:
         ds_enabled:
           type: boolean
+        ds_id:
+          type: string
         protocol_url:
           type: string
       required:
