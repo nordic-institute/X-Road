@@ -29,3 +29,10 @@ services:
       - "59193:9193" #edc management port
       - "59194:9194" #edc protocol port
       - "59291:9291" #edc public port
+  did-server:
+    image: nginx
+    container_name: did-server
+    volumes:
+      - ./edc-did:/usr/share/nginx/html
+    ports:
+      - "4700:80"
