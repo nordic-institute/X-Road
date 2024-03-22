@@ -66,6 +66,8 @@ public enum CommonDeviationMessage implements DeviationProvider {
             "Configuration verification failed: signature_invalid"),
     CONF_VERIFICATION_UNREACHABLE("conf_verification.unreachable",
             "Configuration verification failed: unreachable"),
+    INVALID_DOWNLOAD_URL_FORMAT("conf_download.invalid_download_url_format",
+            "Error reading locations from shared parameters: not supported format of download url"),
 
     ERROR_READING_OPENAPI_FILE("openapi_file_error", "Error reading open api definition file"),
     INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted");

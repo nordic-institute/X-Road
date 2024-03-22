@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.DataIntegrityException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DOWNLOAD_URL_FORMAT;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -65,7 +67,7 @@ class GetLocationsFromSharedParameters {
                             source, getDownloadUrl(confSource.getAddress(), configurationDirectory),
                             getVerificationCerts(configurationDirectory, confSource)))
                     .collect(Collectors.toList());
-        } catch (CertificateEncodingException | RuntimeException | IOException e) {
+        } catch (CertificateEncodingException | DataIntegrityException | IOException e) {
             log.error("Unable to acquire additional verification certificates for instance " + source.getInstanceIdentifier(), e);
         }
 
@@ -90,7 +92,7 @@ class GetLocationsFromSharedParameters {
                 return firstHttpDownloadUrl.get().substring(matcher.end());
             }
         }
-        throw new RuntimeException("Not supported downloadURL format from configuration location");
+        throw new DataIntegrityException(INVALID_DOWNLOAD_URL_FORMAT);
     }
 
     private List<byte[]> getVerificationCerts(String confLocation, SharedParameters.ConfigurationSource confSource) {
@@ -100,7 +102,7 @@ class GetLocationsFromSharedParameters {
             return confSource.getExternalVerificationCerts();
         }
         return Stream.concat(confSource.getInternalVerificationCerts().stream(), confSource.getExternalVerificationCerts().stream())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private boolean isInternalConfiguration(String confLocation) {
