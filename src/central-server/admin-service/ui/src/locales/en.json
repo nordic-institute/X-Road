@@ -179,7 +179,7 @@
     "management_request_unknown_type": "Unknown request type",
     "management_service_provider_not_set": "Management service provider not set",
     "member_class_exists": "Member class with the same code already exists.",
-    "member_class_is_in_use": "Cannot delete member class: Found X-Road members belonging to the class. Only classes with no registered members can be deleted.",
+    "member_class_is_in_use": "Cannot delete member class: Found CamDX members belonging to the class. Only classes with no registered members can be deleted.",
     "member_class_not_found": "No member class with the specified code found.",
     "member_exists": "Member with the same code already exists.",
     "member_not_found": "No member with the specified code/id found.",
@@ -299,14 +299,14 @@
   },
   "footer": {
     "copyright": {
-      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
+      "company": "Cambodia Data Exchange (CamDX)",
       "licenceInfo": "Licence info",
       "title": "Copyright"
     },
     "software": {
       "feedback": "Feedback",
       "title": "Software",
-      "versionPrefix": "X-Road"
+      "versionPrefix": "CamDX"
     }
   },
   "global": {
@@ -429,7 +429,7 @@
     "csIdentification": "Central Server Identification",
     "initialConfiguration": "Initial Configuration",
     "instanceIdentifier": {
-      "info": "X-Road instance code, uniquely identifies this X-Road instance."
+      "info": "CamDX instance code, uniquely identifies this CamDX instance."
     },
     "notification": "The Central Server initialized! Now continue with the full configuration.",
     "pin": {
@@ -607,7 +607,7 @@
         "status": "Status",
         "subsystemcode": "Subsystem code",
         "subsystemSuccessfullyAdded": "Subsystem {subsystemCode} is added to the system configuration",
-        "areYouSureDelete": "Are you sure you want to delete the Subsystem {subsystemCode} from the X-Road member {memberId} from the system configuration?",
+        "areYouSureDelete": "Are you sure you want to delete the Subsystem {subsystemCode} from the CamDX member {memberId} from the system configuration?",
         "subsystemSuccessfullyDeleted": "Subsystem {subsystemCode} has been deleted from the system configuration",
         "areYouSureUnregister": "Are you sure you want to delete the Subsystem {subsystemCode} from server {serverCode} from the system configuration?",
         "subsystemSuccessfullyUnregistered": "Subsystem {subsystemCode} from server {serverCode} has been deleted"
