@@ -310,7 +310,7 @@
     }
   },
   "global": {
-    "appTitle": "X-Road Central Server",
+    "appTitle": "CamDX Central Server",
     "pageNotFound": "oops, page not found",
     "approve": "Approve",
     "class": "Class",

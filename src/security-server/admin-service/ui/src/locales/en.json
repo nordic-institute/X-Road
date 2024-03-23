@@ -590,7 +590,7 @@
   },
   "global": {
     "name": "Name",
-    "appTitle": "X-Road Security Server"
+    "appTitle": "CamDX Security Server"
   },
   "general": {
     "instance": "Instance",

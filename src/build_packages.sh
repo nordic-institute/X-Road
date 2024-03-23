@@ -28,7 +28,7 @@ buildInDocker() {
     if [ -t 1 ]; then OPT="-it"; fi
 
     docker build -q -t xroad-build --build-arg uid=$(id -u) --build-arg gid=$(id -g) $XROAD/packages/docker-compile || errorExit "Error building build image."
-    docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build  bash -c "./compile_code.sh -nodaemon" || errorExit "Error running build of binaries."
+    docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build  bash -c "./compile_code.sh -release" || errorExit "Error running build of binaries."
 }
 
 buildLocally() {
@@ -50,6 +50,7 @@ esac
 
 if [ -n "$HAS_DOCKER" ]; then
     PACKAGE_VERSION="$(date -u -r $(git show -s --format=%ct) +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
+    PACKAGE_VERSION="-release"
     echo "Will build in docker. Package version: $PACKAGE_VERSION"
 
     if [ "$(uname)" != "Darwin" ]; then
@@ -65,13 +66,13 @@ if [ -n "$HAS_DOCKER" ]; then
     if [[ -t 1 ]]; then OPTS+=("-it"); fi
 
     if [ "$(uname)" != "Darwin" ]; then
-      docker run "${OPTS[@]}" xroad-deb-focal /workspace/src/packages/build-deb.sh focal "$PACKAGE_VERSION" || errorExit "Error building deb-focal packages."
+      docker run "${OPTS[@]}" xroad-deb-focal /workspace/src/packages/build-deb.sh focal "$PACKAGE_VERSION"|| errorExit "Error building deb-focal packages."
     else
       echo "debian focal packages cannot be built under MacOS. Skipping.."
     fi
-    docker run "${OPTS[@]}" xroad-deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
-    docker run "${OPTS[@]}" xroad-rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm packages."
-    docker run "${OPTS[@]}" xroad-rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
+    docker run "${OPTS[@]}" xroad-deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION"|| errorExit "Error building deb-jammy packages."
+    docker run "${OPTS[@]}" xroad-rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION"|| errorExit "Error building rpm packages."
+    docker run "${OPTS[@]}" xroad-rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION"|| errorExit "Error building rpm-el8 packages."
 else
     echo "Docker not installed, building only .deb packages for this distribution"
     cd "$XROAD/packages"
