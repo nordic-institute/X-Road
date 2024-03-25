@@ -44,6 +44,7 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
+import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -65,6 +66,7 @@ public class ProxyAdminPortConfig {
     private final AddOnStatusDiagnostics addOnStatus;
     private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
+    private final Optional<AssetsRegistrationJob> assetsRegistrationJobProvider;
     private final Optional<HealthCheckPort> healthCheckPort;
 
     @Bean(initMethod = "start", destroyMethod = "stop")
@@ -82,6 +84,9 @@ public class ProxyAdminPortConfig {
         addBackupEncryptionStatus(adminPort);
 
         addMessageLogEncryptionStatus(adminPort);
+
+        assetsRegistrationJobProvider.ifPresent(assetsRegistrationJob ->
+                addDsAssetCreationTriggerHandler(adminPort, assetsRegistrationJob));
 
         return adminPort;
     }
@@ -183,6 +188,21 @@ public class ProxyAdminPortConfig {
                 }
 
                 writeJsonResponse(result, response);
+            }
+        });
+    }
+
+    private void addDsAssetCreationTriggerHandler(AdminPort adminPort, AssetsRegistrationJob assetsRegistrationJob) {
+        adminPort.addHandler("/trigger-ds-asset-creation", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
+                assetsRegistrationJob.registerAssets();
+
+                try (var pw = new PrintWriter(response.getOutputStream())) {
+                    response.setContentType(MimeTypes.Type.TEXT_PLAIN_UTF_8);
+                    pw.println("OK");
+                    response.setStatus(HttpURLConnection.HTTP_OK);
+                }
             }
         });
     }

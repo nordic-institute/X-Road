@@ -52,12 +52,14 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 @RequiredArgsConstructor
 public class EnvSetup implements TestableContainerInitializer {
     private static final String COMPOSE_BASE_FILE = "../../../Docker/xrd-dev-stack/compose.yaml";
+    private static final String COMPOSE_EDC_FILE = "../../../Docker/xrd-dev-stack/compose.edc.yaml";
     private static final String COMPOSE_E2E_FILE = "../../../Docker/xrd-dev-stack/compose.e2e.yaml";
 
     public static final String CS = "cs";
     public static final String SS0 = "ss0";
     public static final String SS1 = "ss1";
     public static final String HURL = "hurl";
+    public static final String DID_SERVER = "did-server";
 
     private final ComposeLoggerFactory composeLoggerFactory;
     private final CustomProperties customProperties;
@@ -70,7 +72,7 @@ public class EnvSetup implements TestableContainerInitializer {
             log.warn("Using custom environment. Docker compose is not used.");
         } else {
             environment =
-                    new ComposeContainer(new File(COMPOSE_BASE_FILE), new File(COMPOSE_E2E_FILE))
+                    new ComposeContainer(new File(COMPOSE_BASE_FILE), new File(COMPOSE_EDC_FILE), new File(COMPOSE_E2E_FILE))
                             .withLocalCompose(true)
 
                             .withExposedService(CS, UI, forListeningPort())
@@ -80,6 +82,8 @@ public class EnvSetup implements TestableContainerInitializer {
 
                             .withExposedService(SS1, UI, forListeningPort())
                             .withExposedService(SS1, PROXY, forListeningPort())
+
+                            .withExposedService(DID_SERVER, 80, forListeningPort())
 
                             .withEnv("CS_IMG", customProperties.getCsImage())
                             .withEnv("SS_IMG", customProperties.getSsImage())
@@ -98,7 +102,7 @@ public class EnvSetup implements TestableContainerInitializer {
     }
 
     private Slf4jLogConsumer createLogConsumer(String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create(containerName));
+        return new Slf4jLogConsumer(composeLoggerFactory.create(containerName));
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
