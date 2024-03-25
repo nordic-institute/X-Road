@@ -24,6 +24,7 @@ test-automation:
     browser-size: "1280x900"
     driver-manager-enabled: true
     headless: true
+    chrome-options-args: "--guest,--disable-features=OptimizationHints"
     timeout: 10000
     page-load-timeout: 10000
     screenshots: true
