@@ -27,11 +27,8 @@ tasks.register('systemTest', Test) {
     if (project.hasProperty('systemTestSsServeReport')) {
         systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('systemTestSsServeReport')
     }
-    if (project.hasProperty('systemTestSsPackageHost')) {
-        systemTestArgs += "-Dtest-automation.custom.package-host=" + project.getProperty('systemTestSsPackageHost')
-    }
-    if (project.hasProperty('systemTestSsDockerRoot')) {
-        systemTestArgs += "-Dtest-automation.custom.docker-root=" + project.getProperty('systemTestSsDockerRoot')
+    if (project.hasProperty('systemTestSsImageName')) {
+        systemTestArgs += "-Dtest-automation.custom.image-name=" + project.getProperty('systemTestSsImageName')
     }
     jvmArgs systemTestArgs
 

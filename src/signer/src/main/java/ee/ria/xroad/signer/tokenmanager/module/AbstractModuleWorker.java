@@ -89,6 +89,12 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         }
     }
 
+    @Override
+    public void stop() {
+        stopLostTokenWorkers(tokenWorkers, List.of());
+        tokenWorkers = Collections.emptyMap();
+    }
+
     protected abstract List<TokenType> listTokens() throws Exception;
 
     protected abstract AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType);

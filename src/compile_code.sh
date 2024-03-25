@@ -14,10 +14,19 @@ case "$i" in
     "-nodaemon")
         NODAEMON=1
         ;;
+    "--skip-tests")
+        SKIP_TESTS=1
+        ;;
 esac
 done
 
-ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
+ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build )
+
+if [[ -n "$SKIP_TESTS" ]]; then
+    ARGUMENTS+=(-xtest -xintegrationTest -xintTest)
+else
+    ARGUMENTS+=(runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
+fi
 
 if [[ -n "$SONAR" ]]; then
     ARGUMENTS+=(dependencyCheckAnalyze sonarqube)

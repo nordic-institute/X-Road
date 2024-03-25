@@ -39,7 +39,7 @@ import java.util.Set;
 
 public interface ConfigurationService {
 
-    Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys();
+    Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithOrderedConfigurationSigningKeys();
 
     boolean hasSigningKeys(ConfigurationSourceType sourceType);
 
