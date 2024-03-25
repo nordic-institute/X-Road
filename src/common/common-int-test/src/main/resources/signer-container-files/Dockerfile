@@ -1,5 +1,5 @@
 # Explicitly defining linux/amd64 ubuntu:22.04 image
-FROM ubuntu@sha256:77906da86b60585ce12215807090eb327e7386c8fafb5402369e421f44eff17e
+FROM ubuntu@sha256:aa772c98400ef833586d1d517d3e8de670f7e712bf581ce6053165081773259d
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get clean && apt-get -qq update && apt-get -qq upgrade && apt-get install -qq locales && locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
