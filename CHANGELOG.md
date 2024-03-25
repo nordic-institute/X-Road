@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.4.3 - UNRELEASED
+
 ## 7.4.2 - 2024-03-18
 - XRDDEV-2592: Central Server regenerates shared-params.xml with a new hash if two sign keys are present
 - XRDDEV-2610: Signer does not allow using SoftToken if HSM connection fails
