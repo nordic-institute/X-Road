@@ -87,7 +87,7 @@ class SharedParametersLoader {
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
-        return configurationService.getNodeAddressesWithConfigurationSigningKeys().entrySet().stream()
+        return configurationService.getNodeAddressesWithOrderedConfigurationSigningKeys().entrySet().stream()
                 .map(this::toSource)
                 .toList();
     }
