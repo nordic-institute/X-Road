@@ -69,6 +69,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -103,11 +104,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
 
     @Override
-    public Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithConfigurationSigningKeys() {
+    public Map<String, List<ConfigurationSigningKey>> getNodeAddressesWithOrderedConfigurationSigningKeys() {
         return configurationSourceRepository.findAll().stream().collect(toMap(
                 src -> systemParameterService.getCentralServerAddress(src.getHaNodeName()),
                 src -> src.getConfigurationSigningKeys().stream()
                         .map(configurationSigningKeyMapper::toTarget)
+                        // ensure consistent order to prevent shared-params hash's dynamism
+                        .sorted(comparing(ConfigurationSigningKey::getId))
                         .collect(toList()),
                 (signingKeys1, signingKeys2) -> {
                     signingKeys1.addAll(signingKeys2);
