@@ -35,7 +35,6 @@ services:
       - "4356:9293" #EDC XRD public port
   did-server:
     image: nginx
-    container_name: did-server
     deploy:
       resources:
         reservations:
@@ -48,5 +47,3 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost/hc" ]
     volumes:
       - ./edc-did:/usr/share/nginx/html
-    ports:
-      - "4700:80"
