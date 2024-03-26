@@ -30,6 +30,7 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class Port {
+    public static final int DID_HTTP = 80;
     public static final int UI = 4000;
     public static final int PROXY = 8080;
 }

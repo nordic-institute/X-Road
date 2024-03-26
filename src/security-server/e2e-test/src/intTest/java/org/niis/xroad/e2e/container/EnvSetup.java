@@ -42,6 +42,7 @@ import java.time.Duration;
 import java.util.Optional;
 
 import static org.awaitility.Awaitility.await;
+import static org.niis.xroad.e2e.container.Port.DID_HTTP;
 import static org.niis.xroad.e2e.container.Port.PROXY;
 import static org.niis.xroad.e2e.container.Port.UI;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
@@ -83,7 +84,7 @@ public class EnvSetup implements TestableContainerInitializer {
                             .withExposedService(SS1, UI, forListeningPort())
                             .withExposedService(SS1, PROXY, forListeningPort())
 
-                            .withExposedService(DID_SERVER, 80, forListeningPort())
+                            .withExposedService(DID_SERVER, DID_HTTP, forListeningPort())
 
                             .withEnv("CS_IMG", customProperties.getCsImage())
                             .withEnv("SS_IMG", customProperties.getSsImage())

@@ -33,5 +33,5 @@ if [[ -n "$INITIALIZE" ]]; then
     --file-root /hurl-files /hurl-src/setup.hurl \
     --very-verbose \
     --retry 12 \
-    --retry-interval 10000
+    --retry-interval 8000
 fi

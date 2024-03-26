@@ -938,3 +938,13 @@ Content-Type: application/json
 }
 
 HTTP 200
+
+GET https://{{ss0_host}}:4000/api/v1/ds/trigger-asset-update
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+HTTP 200
+
+GET https://{{ss1_host}}:4000/api/v1/ds/trigger-asset-update
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
