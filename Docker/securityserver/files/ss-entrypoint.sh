@@ -1,5 +1,7 @@
 #!/bin/bash
 
+log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $*"; }
+
 # Update X-Road configuration on startup, if necessary
 INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
