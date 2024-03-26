@@ -86,6 +86,7 @@ import static org.eclipse.edc.spi.types.domain.asset.Asset.PROPERTY_NAME;
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
 public class AssetsRegistrationJob {
+    private static final int FIVE_MINUTES = 5 * 60;
 
     private final DataplaneSelectorApi dataplaneSelectorApi;
     private final AssetApi assetApi;
@@ -99,7 +100,8 @@ public class AssetsRegistrationJob {
     @PostConstruct
     @SuppressWarnings("checkstyle:MagicNumber")
     public void onInit() {
-        scheduler.schedule(this::registerDataPlane, 5, SECONDS);
+        //TODO disabled for now. Initialized by hurl
+        //scheduler.schedule(this::registerDataPlane, 5, SECONDS);
     }
 
     public void registerDataPlane() {
@@ -135,7 +137,7 @@ public class AssetsRegistrationJob {
         }
     }
 
-    @Scheduled(initialDelay = 1, fixedDelay = 5 * 60, timeUnit = SECONDS) //every 5 minutes;
+    @Scheduled(initialDelay = FIVE_MINUTES, fixedDelay = FIVE_MINUTES, timeUnit = SECONDS) //every 5 minutes;
     public void registerAssets() throws Exception {
         createAllowAllPolicy();
         createAssets();

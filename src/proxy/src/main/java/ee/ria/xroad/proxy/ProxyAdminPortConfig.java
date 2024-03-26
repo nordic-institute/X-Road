@@ -196,6 +196,7 @@ public class ProxyAdminPortConfig {
         adminPort.addHandler("/trigger-ds-asset-creation", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
+                assetsRegistrationJob.registerDataPlane();
                 assetsRegistrationJob.registerAssets();
 
                 try (var pw = new PrintWriter(response.getOutputStream())) {
