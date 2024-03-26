@@ -7,7 +7,10 @@ if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
   set +a
 fi
 
-# set dataspaces enabled for poc.
+echo "DS: Running liquibase.."
+source /usr/share/xroad/scripts/setup_edc_db.sh
+
+echo "DS: enabling dataspaces.."
 crudini --set /etc/xroad/conf.d/local.ini dataspaces enabled true
 
 exec java -Dedc.keystore="/etc/xroad-edc/certs/cert.pfx" \
