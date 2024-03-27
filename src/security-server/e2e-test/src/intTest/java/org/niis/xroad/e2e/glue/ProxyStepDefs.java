@@ -49,6 +49,11 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("SOAP request is sent to {string} proxy")
     public void requestSoapIsSentToProxy(String targetProxy, DocString docString) {
+        requestSoapIsSentToProxy(targetProxy, "legacy", docString);
+    }
+
+    @Step("SOAP request is sent to {string} proxy using {string} transport")
+    public void requestSoapIsSentToProxy(String targetProxy, String transport, DocString docString) {
         var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
 
         response = given()
@@ -58,6 +63,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                                 .declareNamespace("soapenv", "http://schemas.xmlsoap.org/soap/envelope/")))
                 .body(docString.getContent())
                 .header(HttpHeaders.CONTENT_TYPE, "text/xml")
+                .header("X-Road-Use-DS-Transport", transport.equals("legacy") ? "false" : "true")
                 .post("http://%s:%s".formatted(mapping.host(), mapping.port()))
                 .then();
     }
@@ -78,12 +84,18 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("REST request is sent to {string} proxy")
     public void requestRestIsSentToProxy(String targetProxy, DocString docString) {
+        requestRestIsSentToProxy(targetProxy, "legacy", docString);
+    }
+
+    @Step("REST request is sent to {string} proxy using {string} transport")
+    public void requestRestIsSentToProxy(String targetProxy, String transport, DocString docString) {
         var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
 
         response = given()
                 .body(docString.getContent())
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
                 .header(HEADER_CLIENT_ID, "DEV/COM/4321/TestClient")
+                .header("X-Road-Force-Legacy-Transport", transport.equals("legacy") ? "true" : "false")
                 .post("http://%s:%s/r1/DEV/COM/1234/TestService/mock1".formatted(mapping.host(), mapping.port()))
                 .then();
     }
