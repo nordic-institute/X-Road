@@ -59,6 +59,10 @@ class ApprovedCaMapperTest {
         source.setIdentifierDecoderMethodName("DecoderMethodName");
         source.setCertProfileInfo("certProfileInfo");
         source.getIntermediateCaInfos().add(getCaInfoEntity());
+        source.setAcmeServerDirectoryUrl("http://test-acme-server");
+        source.setAcmeServerIpAddress("12.34.56.78");
+        source.setAuthCertProfileId("5");
+        source.setSignCertProfileId("6");
 
         var result = approvedCaMapper.toTarget(source);
 
@@ -69,6 +73,10 @@ class ApprovedCaMapperTest {
         assertThat(result.getIdentifierDecoderMethodName()).isEqualTo(source.getIdentifierDecoderMethodName());
         assertThat(result.getCertProfileInfo()).isEqualTo(source.getCertProfileInfo());
         assertThat(result.getIntermediateCaInfos()).hasSize(1);
+        assertThat(result.getAcmeServerDirectoryUrl()).isEqualTo(source.getAcmeServerDirectoryUrl());
+        assertThat(result.getAcmeServerIpAddress()).isEqualTo(source.getAcmeServerIpAddress());
+        assertThat(result.getAuthenticationCertificateProfileId()).isEqualTo(source.getAuthCertProfileId());
+        assertThat(result.getSigningCertificateProfileId()).isEqualTo(source.getSignCertProfileId());
 
         assertThat(result.getCaInfo().getCert()).isEmpty();
         assertThat(result.getCaInfo().getValidFrom()).isEqualTo(DATE_FROM);

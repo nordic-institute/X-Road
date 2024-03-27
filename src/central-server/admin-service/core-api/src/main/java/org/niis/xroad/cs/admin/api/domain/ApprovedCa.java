@@ -42,6 +42,10 @@ public class ApprovedCa extends Auditable {
     private String identifierDecoderMemberClass;
     private String identifierDecoderMethodName;
     private String certProfileInfo;
+    private String acmeServerDirectoryUrl;
+    private String acmeServerIpAddress;
+    private String authenticationCertificateProfileId;
+    private String signingCertificateProfileId;
     private Set<CaInfo> intermediateCaInfos = new HashSet<>(0);
 
 }

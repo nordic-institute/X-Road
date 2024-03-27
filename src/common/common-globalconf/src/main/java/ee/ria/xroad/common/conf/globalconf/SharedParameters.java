@@ -236,6 +236,8 @@ public class SharedParameters {
     public static class AcmeServer {
         private String directoryURL;
         private String ipAddress;
+        private String authenticationCertificateProfileId;
+        private String signingCertificateProfileId;
     }
 
     @Data

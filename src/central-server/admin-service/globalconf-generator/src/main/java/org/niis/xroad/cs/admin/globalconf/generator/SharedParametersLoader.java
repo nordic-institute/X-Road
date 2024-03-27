@@ -131,7 +131,10 @@ class SharedParametersLoader {
         approvedCA.setIntermediateCAs(toCaInfos(ca.getIntermediateCas()));
         if (ca.getAcmeServerDirectoryUrl() != null) {
             approvedCA.setAcmeServer(
-                    new SharedParameters.AcmeServer(ca.getAcmeServerDirectoryUrl(), ca.getAcmeServerIpAddress())
+                    new SharedParameters.AcmeServer(ca.getAcmeServerDirectoryUrl(),
+                            ca.getAcmeServerIpAddress(),
+                            ca.getAuthenticationCertificateProfileId(),
+                            ca.getSigningCertificateProfileId())
             );
         }
         return approvedCA;

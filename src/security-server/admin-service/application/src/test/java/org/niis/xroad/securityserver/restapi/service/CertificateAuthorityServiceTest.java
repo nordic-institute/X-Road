@@ -87,15 +87,16 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         evictCache(); // start with empty cache
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("fi-not-auth-only", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", "http://ca-with-acme", null));
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
+                "http://ca-with-acme", null, null, null));
         // @deprecated The {@link SkEsteIdCertificateProfileInfoProvider} profile has been marked deprecated starting
         // from X-Road 7.2.0 and will be removed in a future version. This test should then also be cleaned up.
         approvedCAInfos.add(new ApprovedCAInfo("est-auth-only", true,
-                "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider", null, null));
+                "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider", null, null, null, null));
         approvedCAInfos.add(new ApprovedCAInfo("mock-top-ca", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null));
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
         approvedCAInfos.add(new ApprovedCAInfo("mock-intermediate-ca", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null));
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
         when(globalConfFacade.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         List<X509Certificate> caCerts = new ArrayList<>();
@@ -361,7 +362,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         // cant instantiate
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("provider-class-does-not-exist", false,
-                "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider", null, null));
+                "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider", null, null, null, null));
         when(globalConfFacade.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         try {

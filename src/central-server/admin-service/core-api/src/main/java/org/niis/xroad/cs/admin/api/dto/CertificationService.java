@@ -47,6 +47,8 @@ public class CertificationService {
     private Boolean tlsAuth;
     private String acmeServerDirectoryUrl;
     private String acmeServerIpAddress;
+    private String authenticationCertificateProfileId;
+    private String signingCertificateProfileId;
 
     private byte[] certificate;
     private List<OcspResponder> ocspResponders;

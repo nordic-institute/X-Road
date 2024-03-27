@@ -42,10 +42,10 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.config.AcmeProperties;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.securityserver.restapi.util.AcmeHelper;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -84,7 +84,8 @@ public class CertificateAuthorityService {
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
     private final CurrentSecurityServerId currentSecurityServerId;
-    private final AcmeHelper acmeHelper;
+    private final AcmeService acmeService;
+    private final AcmeProperties acmeProperties;
 
     /**
      * {@link CertificateAuthorityService#getCertificateAuthorities(KeyUsageInfo, boolean)}
@@ -187,12 +188,13 @@ public class CertificateAuthorityService {
         builder.authenticationOnly(Boolean.TRUE.equals(approvedCAInfo.getAuthenticationOnly()));
         builder.name(approvedCAInfo.getName());
         builder.certificateProfileInfo(approvedCAInfo.getCertificateProfileInfo());
+        builder.acmeServerIpAddress(approvedCAInfo.getAcmeServerIpAddress());
         boolean acmeCapable = approvedCAInfo.getAcmeServerDirectoryUrl() != null;
         builder.acmeCapable(acmeCapable);
         if (acmeCapable) {
             try {
                 builder.acmeEabRequired(
-                        acmeHelper.isExternalAccountBindingRequired(approvedCAInfo.getAcmeServerDirectoryUrl()));
+                        acmeService.isExternalAccountBindingRequired(approvedCAInfo.getAcmeServerDirectoryUrl()));
             } catch (AcmeServiceException e) {
                 log.warn("Acme Server for {} not reachable: {}", approvedCAInfo.getName(), e.getCause().getMessage());
                 builder.acmeEabRequired(false);
@@ -240,7 +242,7 @@ public class CertificateAuthorityService {
     }
 
     public boolean hasAcmeExternalAccountBindingCredentials(String caName, String memberCode) {
-        return acmeHelper.hasExternalAccountBindingCredentials(
+        return acmeProperties.hasEabCredentials(
                 caName,
                 Objects.requireNonNullElse(memberCode, currentSecurityServerId.getServerId().getMemberCode())
         );

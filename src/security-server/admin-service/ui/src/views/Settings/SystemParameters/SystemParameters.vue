@@ -251,6 +251,13 @@
                   <th>
                     {{
                       $t(
+                        'systemParameters.approvedCertificateAuthorities.table.header.acmeIpAddresses',
+                      )
+                    }}
+                  </th>
+                  <th>
+                    {{
+                      $t(
                         'systemParameters.approvedCertificateAuthorities.table.header.ocspResponse',
                       )
                     }}
@@ -276,6 +283,13 @@
                     }"
                   >
                     {{ approvedCA.subject_distinguished_name }}
+                  </td>
+                  <td v-if="approvedCA.acme_server_ip_addresses
+                  && approvedCA.acme_server_ip_addresses.length > 0">
+                    <p v-for="ipAddress in approvedCA.acme_server_ip_addresses">{{ ipAddress }}</p>
+                  </td>
+                  <td v-else>
+                    {{ $t('systemParameters.approvedCertificateAuthorities.table.notAvailable') }}
                   </td>
                   <td v-if="approvedCA.top_ca">
                     {{
@@ -338,7 +352,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { XrdButton, XrdIconDownload } from '@niis/shared-ui';
-import EditSecurityServerAddressDialog from "@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue";
+import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
 
 export default defineComponent({
   components: {
@@ -363,7 +377,7 @@ export default defineComponent({
       messageLogEnabled: false,
       showEditServerAddressDialog: false,
       addressChangeInProgress: false,
-      serverAddress: "",
+      serverAddress: '',
     };
   },
   computed: {

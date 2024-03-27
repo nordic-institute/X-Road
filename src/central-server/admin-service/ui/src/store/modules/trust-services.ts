@@ -85,6 +85,14 @@ export const useCertificationService = defineStore('certificationService', {
         'acme_server_ip_address',
         newCas.acme_server_ip_address || '',
       );
+      formData.append(
+        'authentication_certificate_profile_id',
+        newCas.authentication_certificate_profile_id || '',
+      );
+      formData.append(
+        'signing_certificate_profile_id',
+        newCas.signing_certificate_profile_id || '',
+      );
       return axios
         .post('/certification-services', formData)
         .finally(() => this.fetchAll());

@@ -50,4 +50,5 @@ public class ApprovedCaDto {
     private final String certificateProfileInfo;
     private final boolean acmeCapable;
     private final boolean acmeEabRequired;
+    private final String acmeServerIpAddress;
 }

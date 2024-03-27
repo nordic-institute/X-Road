@@ -184,6 +184,22 @@
                     </documentation>
                 </annotation>
             </element>
+            <element name="authenticationCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        an authentication certificate.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="signingCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        a signing certificate.
+                    </documentation>
+                </annotation>
+            </element>
         </sequence>
     </complexType>
 </schema>

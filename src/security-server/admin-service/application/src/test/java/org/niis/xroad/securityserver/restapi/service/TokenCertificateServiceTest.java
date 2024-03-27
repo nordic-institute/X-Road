@@ -53,7 +53,6 @@ import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
-import org.niis.xroad.securityserver.restapi.util.AcmeHelper;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
@@ -175,7 +174,7 @@ public class TokenCertificateServiceTest {
     private TokenService tokenService;
 
     @MockBean
-    private AcmeHelper acmeHelper;
+    private AcmeService acmeService;
 
     private final ClientId.Conf client = ClientId.Conf.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);
@@ -185,7 +184,7 @@ public class TokenCertificateServiceTest {
             new CertificateTestUtils.CertificateInfoBuilder().id(EXISTING_CERT_IN_AUTH_KEY_HASH)
                     .certificate(CertificateTestUtils.getMockAuthCertificate()).build();
     private final ApprovedCAInfo acmeCA = new ApprovedCAInfo(CA_NAME, false, PROFILE_CLASS,
-            "http://test-ca/acme", "123.4.5.6");
+            "http://test-ca/acme", "123.4.5.6", "5", "6");
 
     private CertRequestInfo newCertRequestInfo(String id) {
         return new CertRequestInfo(CertRequestInfoProto.newBuilder()
@@ -488,7 +487,7 @@ public class TokenCertificateServiceTest {
                 .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, CertificateTestUtils.getMockSignCsrBytes(),
                         null, null, null));
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
-        when(acmeHelper.orderCertificateFromACMEServer(any(), any(), any(), any(), any()))
+        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
         tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
                 KeyUsageInfo.SIGNING, CA_NAME,
@@ -645,12 +644,12 @@ public class TokenCertificateServiceTest {
     public void orderAcmeCertificate() throws Exception {
         byte[] csrBytes = CertificateTestUtils.getMockSignCsrBytes();
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
-        when(acmeHelper.orderCertificateFromACMEServer(any(), any(), any(), any(), any()))
+        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
         when(signerProxyFacade.regenerateCertRequest(any(), any()))
                 .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, csrBytes, null, null, null));
         tokenCertificateService.orderAcmeCertificate(CA_NAME, GOOD_CSR_ID, KeyUsageType.SIGNING);
-        verify(acmeHelper).orderCertificateFromACMEServer("common name",
+        verify(acmeService).orderCertificateFromACMEServer("common name",
                 "ss0",
                 acmeCA,
                 client.getMemberCode(),

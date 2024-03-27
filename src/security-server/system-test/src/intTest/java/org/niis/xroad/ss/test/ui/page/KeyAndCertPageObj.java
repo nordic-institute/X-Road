@@ -242,6 +242,10 @@ public class KeyAndCertPageObj {
             return $x("//button[@data-test='generate-csr-button']");
         }
 
+        public SelenideElement acmeOrderButton() {
+            return $x("//button[@data-test='acme-order-certificate-button']");
+        }
+
         public SelenideElement organizationName() {
             return $x("//div[@data-test='dynamic-csr-input_O']");
         }
@@ -254,9 +258,6 @@ public class KeyAndCertPageObj {
             return $x("//div[@data-test='dynamic-csr-input_subjectAltName']");
         }
 
-        public SelenideElement acmeOrder() {
-            return $x("//div[@data-test='order-acme-certificate-checkbox']");
-        }
     }
 
     public static class AcmeOrderCertificateDialog {

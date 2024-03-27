@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.util;
+package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
@@ -35,10 +35,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
-import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
-import org.niis.xroad.securityserver.restapi.config.AcmeEabProperties;
-import org.niis.xroad.securityserver.restapi.service.AcmeServiceException;
+import org.niis.xroad.securityserver.restapi.config.AcmeProperties;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Authorization;
@@ -51,7 +49,9 @@ import org.shredzone.acme4j.challenge.Http01Challenge;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.exception.AcmeRetryAfterException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.spec.SecretKeySpec;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -76,6 +76,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
+import static org.niis.xroad.securityserver.restapi.service.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.AUTHORIZATION_FAILURE;
@@ -83,7 +84,6 @@ import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.CERTIFICATE_FAILURE;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.CERTIFICATE_WAIT_FAILURE;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.CHALLENGE_TRIGGER_FAILURE;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.EAB_CREDENTIALS_MISSING;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.EAB_SECRET_LENGTH;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.FETCHING_METADATA_ERROR;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.HTTP_CHALLENGE_FILE_CREATION;
@@ -93,33 +93,22 @@ import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE;
 
 @Slf4j
-@EnableConfigurationProperties(AcmeEabProperties.class)
-@Component
+@EnableConfigurationProperties(AcmeProperties.class)
+@Service
 @RequiredArgsConstructor
-public final class AcmeHelper {
+public final class AcmeService {
 
     @Setter
     private String acmeAccountKeystorePath = SystemProperties.getConfPath() + "ssl/acme.p12";
     private final String acmeAccountKeystorePassword = "acme";
     private final String acmeChallengePath = SystemProperties.getConfPath() + "acme-challenge/";
 
-    private final AcmeEabProperties acmeEabProperties;
+    private final AcmeProperties acmeProperties;
 
     public boolean isExternalAccountBindingRequired(String acmeServerDirectoryUrl) {
         Session session = new Session(acmeServerDirectoryUrl);
         return getMetadata(session).isExternalAccountRequired();
     }
-
-    public boolean hasExternalAccountBindingCredentials(String caName, String memberCode) {
-        Optional<AcmeEabProperties.Credentials> credentials =
-                Optional.ofNullable(acmeEabProperties.getEabCredentials())
-                        .map(AcmeEabProperties.EabCredentials::getCertificateAuthorities)
-                        .map(certAuthorities -> certAuthorities.get(caName))
-                        .map(AcmeEabProperties.CA::getMembers)
-                        .map(members -> members.get(memberCode));
-        return credentials.isPresent();
-    }
-
 
     public List<X509Certificate> orderCertificateFromACMEServer(String commonName,
                                                                        String subjectAltName,
@@ -199,42 +188,42 @@ public final class AcmeHelper {
 
     private Account startSession(ApprovedCAInfo caInfo, KeyPair keyPair, String memberCode) throws AcmeException {
         log.info("Creating session with directory url: {}", caInfo.getAcmeServerDirectoryUrl());
-        Session session = new Session(caInfo.getAcmeServerDirectoryUrl());
+        String acmeUri;
+        if (caInfo.getAuthenticationCertificateProfileId() != null) {
+            acmeUri = caInfo.getAcmeServerDirectoryUrl().replaceFirst("http", XRD_ACME_PROFILE_ID.getSchema());
+        } else {
+            acmeUri = caInfo.getAcmeServerDirectoryUrl();
+        }
+        Session session = new Session(acmeUri);
         Metadata metadata = getMetadata(session);
         log.debug("ACME server metadata: {}", metadata.getJSON().toString());
         log.debug("Creating account");
         AccountBuilder accountBuilder = new AccountBuilder()
                 .agreeToTermsOfService()
                 .useKeyPair(keyPair);
-        Optional.ofNullable(acmeEabProperties.getContacts())
-                .map(AcmeEabProperties.Contacts::getMembers)
-                .map(members -> members.get(memberCode))
-                .map(AcmeEabProperties.Contact::getEmail)
+        Optional.ofNullable(acmeProperties.getContacts())
+                .map(contacts -> contacts.get(memberCode))
                 .ifPresent(accountBuilder::addContact);
         if (metadata.isExternalAccountRequired()) {
-            AcmeEabProperties.Credentials credential =
-                    Optional.ofNullable(acmeEabProperties.getEabCredentials())
-                            .map(AcmeEabProperties.EabCredentials::getCertificateAuthorities)
-                            .map(certAuthorities -> certAuthorities.get(caInfo.getName()))
-                            .map(AcmeEabProperties.CA::getMembers)
-                            .map(members -> members.get(memberCode))
-                            .orElseThrow(() -> new NotFoundException(EAB_CREDENTIALS_MISSING));
+            AcmeProperties.Credentials credential = acmeProperties.getEabCredentials(caInfo.getName(), memberCode);
             String secret = credential.getMacKey();
-            String secretWithPadding = padBase64(secret);
-            accountBuilder.withKeyIdentifier(credential.getKid(), secretWithPadding);
+            if (acmeProperties.isEabMacKeyBase64Encoded(caInfo.getName())) {
+                String secretWithPadding = padBase64(secret);
+                accountBuilder.withKeyIdentifier(credential.getKid(), secretWithPadding);
+            } else {
+                accountBuilder.withKeyIdentifier(credential.getKid(), new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HMAC"));
+            }
             accountBuilder.withMacAlgorithm(AlgorithmIdentifiers.HMAC_SHA256);
         }
         return accountBuilder.create(session);
     }
 
     private static Metadata getMetadata(Session session) {
-        Metadata metadata;
         try {
-            metadata = session.getMetadata();
+            return session.getMetadata();
         } catch (AcmeException e) {
             throw new AcmeServiceException(FETCHING_METADATA_ERROR, e);
         }
-        return metadata;
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")

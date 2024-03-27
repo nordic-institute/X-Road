@@ -5941,6 +5941,13 @@ components:
         acme_eab_required:
           type: boolean
           description: if certificate authority required external account binding for ACME
+        acme_server_ip_addresses:
+          type: array
+          description: ACME server IP address(es) that can be helpful in configuring the firewall rules.
+          example: [ "12.34.5.6", "AB:cd:67::89" ]
+          items:
+            type: string
+            format: text
     CertificateStatus:
       type: string
       format: enum
