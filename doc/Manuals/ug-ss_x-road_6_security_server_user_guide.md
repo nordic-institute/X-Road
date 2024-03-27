@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.82  
+Version: 2.83  
 Doc. ID: UG-SS
 
 ---
@@ -254,11 +254,10 @@ Doc. ID: UG-SS
   - [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
   - [19.4 Validation errors](#194-validation-errors)
   - [19.5 Warning responses](#195-warning-responses)
-- [20 Remote Database Host](#20-remote-database-host)
--   [20.1 Migrating to Remote Database Host](#201-migrating-to-remote-database-host)
--   [20.2 Passing additional parameters to psql](#202-passing-additional-parameters-to-psql)
+- [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 - [21 Adding command line arguments](#21-adding-command-line-arguments)
 - [22 Additional Security Hardening](#22-additional-security-hardening)
+- [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -2975,8 +2974,7 @@ Warning example when trying to register a WSDL that produces non-fatal validatio
 
 Note that when you are using the admin UI and you encounter warnings, you will always be provided with a popup window with a `CONTINUE` button in it. When you click the `CONTINUE` button in the popup, the request is sent again but this time warnings will be ignored.
 
-## 20 Remote Database Host
-### 20.1 Migrating to Remote Database Host
+## 20 Migrating to Remote Database Host
 
 Since version `6.22.0` Security Server supports using remote databases. In case you have an already running Security Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
 
@@ -3125,21 +3123,6 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     systemctl start "xroad*"
     ```
 
-## 20.2 Passing additional parameters to psql
-
-By default any scripts(for example backup/restore) that uses `psql` utility tries to parse `/etc/xroad/db.properties` file for database related configurations like: database name, user, password, host, port. If the file is not found, the script may use default values which will point to local database. When such behaviour doesn't cover the requirements, it is possible to pass additional configurations to `psql` utility using environment variables from file.
-First step to pass additional configurations is to create `db_libpq.env` file in `/etc/xroad/` folder if it isn't created yet. It may also require adjustments of access rights to file.
-Example of file contents:
-```bash
-export PGSSLMODE="verify-full"
-export PGSSLCERT="/etc/xroad/ssl/internal.crt"
-export PGSSLKEY="/etc/xroad/ssl/internal.key"
-export PGSSLROOTCERT="/etc/xroad/ssl/root.crt"
-#export PGTARGETSESSIONATTRS="read-write"
-```
-This example shows how SSL configurations for _psql_ could look like. List of possible environment variables can be found in [Postgres documentation](https://www.postgresql.org/docs/current/libpq-envars.html).
-Some of the variables like `PGOPTIONS`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` are already used by scripts(created and initialized with values from `/etc/xroad/db.properties` file) so adding same variables to `db_libpq.env` won't have any effect on script behaviour.
-
 ## 21 Adding command line arguments
 
 If you need to add command line arguments for the Security Server, for example if you wish to increase Java's maximum heap size, you can do it with the properties file `/etc/xroad/services/local.properties`. The file is also included in the backup archive file when taking a backup of the Security Server's configuration.
@@ -3168,3 +3151,22 @@ XROAD_SIGNER_CONSOLE_PARAMS
 ## 22 Additional Security Hardening
 
 For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
+
+## 23 Passing additional parameters to psql
+
+By default any scripts(for example backup/restore) that uses `psql` utility tries to parse `/etc/xroad/db.properties` file for database related configurations like: database name, user, password, host, port. If the file is not found, the script may use default values which will point to local database. When such behaviour doesn't cover the requirements, it is possible to pass additional configurations to `psql` utility using environment variables from file.
+First step to pass additional configurations is to create `db_libpq.env` file in `/etc/xroad/` folder if it isn't created yet. It may also require adjustments of access rights to file.
+Example of file contents:
+
+```bash
+export PGSSLMODE="verify-full"
+export PGSSLCERT="/etc/xroad/ssl/internal.crt"
+export PGSSLKEY="/etc/xroad/ssl/internal.key"
+export PGSSLROOTCERT="/etc/xroad/ssl/root.crt"
+#export PGTARGETSESSIONATTRS="read-write"
+```
+
+This example shows how SSL configurations for _psql_ could look like. List of possible environment variables can be found in [Postgres documentation](https://www.postgresql.org/docs/current/libpq-envars.html).
+
+Some of the variables like `PGOPTIONS`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` are already used by scripts(created and initialized with values from `/etc/xroad/db.properties` file) so adding same variables to `db_libpq.env` won't have any effect on script behaviour.
+

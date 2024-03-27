@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.41  
+Version: 2.42  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -173,10 +173,9 @@ Doc. ID: UG-CS
   - [17.3 Correlation ID HTTP header](#173-correlation-id-http-header)
   - [17.4 Data Integrity errors](#174-data-integrity-errors)
   - [17.5 Warning responses](#175-warning-responses)
-- [18. Remote Database Host](#18-remote-database-host)
-  - [18.1 Migrating to Remote Database Host](#181-migrating-to-remote-database-host)
-  - [18.2 Passing additional parameters to psql](#182-passing-additional-parameters-to-psql)
+- [18 Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
 - [19 Additional Security Hardening](#19-additional-security-hardening)
+- [20 Passing additional parameters to psql](#20-passing-additional-parameters-to-psql)
 <!-- tocstop -->
 
 # License
@@ -1630,9 +1629,7 @@ Response:
 
 Note that when you are using the admin UI and you encounter warnings, you will always be provided with a popup window with a `CONTINUE` button in it. When you click the `CONTINUE` button in the popup, the request is sent again but this time warnings will be ignored.
 
-# 18. Remote Database Host
-
-# 18.1 Migrating to Remote Database Host
+# 18 Migrating to Remote Database Host
 
 Since version 6.23.0 Central Server supports using remote databases. In case you have an already running standalone Central Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
 
@@ -1723,7 +1720,11 @@ pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n center
 systemctl start "xroad*"
 ```
 
-## 18.2 Passing additional parameters to psql
+# 19 Additional Security Hardening
+
+For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
+
+# 20 Passing additional parameters to psql
 
 By default any scripts(for example backup/restore) that uses `psql` utility tries to parse `/etc/xroad/db.properties` file for database related configurations like: database name, user, password, host, port. If the file is not found, the script may use default values which will point to local database. When such behaviour doesn't cover the requirements, it is possible to pass additional configurations to `psql` utility using environment variables from file.
 
@@ -1737,7 +1738,9 @@ export PGSSLCERT="/etc/xroad/ssl/internal.crt"
 export PGSSLKEY="/etc/xroad/ssl/internal.key"
 export PGSSLROOTCERT="/etc/xroad/ssl/root.crt"
 #export PGTARGETSESSIONATTRS="read-write"
+```
 
-# 19 Additional Security Hardening
+This example shows how SSL configurations for _psql_ could look like. List of possible environment variables can be found in [Postgres documentation](https://www.postgresql.org/docs/current/libpq-envars.html).
 
-For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
+Some of the variables like `PGOPTIONS`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` are already used by scripts(created and initialized with values from `/etc/xroad/db.properties` file) so adding same variables to `db_libpq.env` won't have any effect on script behaviour.
+
