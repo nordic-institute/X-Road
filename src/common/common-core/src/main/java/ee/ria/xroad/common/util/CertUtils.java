@@ -209,11 +209,8 @@ public final class CertUtils {
 
     public static String getSubjectAlternativeNameFromCsr(byte[] certRequest) throws IOException {
         PKCS10CertificationRequest csr = new PKCS10CertificationRequest(certRequest);
-        return Optional.ofNullable(csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest))
-                .filter(ArrayUtils::isNotEmpty)
-                .map(attributes -> attributes[0].getAttributeValues())
-                .filter(ArrayUtils::isNotEmpty)
-                .map(attributeValues -> Extensions.getInstance(attributeValues[0]).getExtension(Extension.subjectAlternativeName))
+        return Optional.ofNullable(csr.getRequestedExtensions())
+                .map(extensions -> extensions.getExtension(Extension.subjectAlternativeName))
                 .map(sanExtension -> GeneralNames.getInstance(sanExtension.getExtnValue().getOctets()))
                 .map(GeneralNames::getNames)
                 .filter(ArrayUtils::isNotEmpty)

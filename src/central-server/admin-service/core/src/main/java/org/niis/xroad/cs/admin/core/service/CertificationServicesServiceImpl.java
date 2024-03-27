@@ -95,6 +95,12 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
     @Override
     public CertificationService add(ApprovedCertificationService certificationService) {
         CertificateProfileInfoValidator.validate(certificationService.getCertificateProfileInfo());
+        if (isNotBlank(certificationService.getAcmeServerDirectoryUrl())) {
+            urlValidator.validateUrl(certificationService.getAcmeServerDirectoryUrl());
+        }
+        if (isNotBlank(certificationService.getAcmeServerIpAddress())) {
+            ipAddressValidator.validateCommaSeparatedIpAddresses(certificationService.getAcmeServerIpAddress());
+        }
 
         final var approvedCaEntity = new ApprovedCaEntity();
         approvedCaEntity.setCertProfileInfo(certificationService.getCertificateProfileInfo());
@@ -103,6 +109,8 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         approvedCaEntity.setName(CertUtils.getSubjectCommonName(certificate));
         approvedCaEntity.setAcmeServerDirectoryUrl(certificationService.getAcmeServerDirectoryUrl());
         approvedCaEntity.setAcmeServerIpAddress(certificationService.getAcmeServerIpAddress());
+        approvedCaEntity.setAuthCertProfileId(certificationService.getAuthenticationCertificateProfileId());
+        approvedCaEntity.setSignCertProfileId(certificationService.getSigningCertificateProfileId());
 
         final var caInfo = new CaInfoEntity();
         caInfo.setCert(certificationService.getCertificate());
@@ -160,6 +168,10 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
             }
             persistedApprovedCa.setAcmeServerIpAddress(acmeServerIpAddress);
         });
+        Optional.ofNullable(approvedCa.getAuthenticationCertificateProfileId())
+                .ifPresent(persistedApprovedCa::setAuthCertProfileId);
+        Optional.ofNullable(approvedCa.getSigningCertificateProfileId())
+                .ifPresent(persistedApprovedCa::setSignCertProfileId);
         final ApprovedCaEntity updatedApprovedCa = approvedCaRepository.save(persistedApprovedCa);
         addAuditData(updatedApprovedCa);
 

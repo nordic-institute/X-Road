@@ -3219,6 +3219,14 @@ components:
           type: string
           format: text
           minLength: 1
+        authentication_certificate_profile_id:
+          format: text
+          type: string
+          minLength: 1
+        signing_certificate_profile_id:
+          format: text
+          type: string
+          minLength: 1
       required:
         - id
         - tls_auth
@@ -3447,6 +3455,12 @@ components:
           format: url
           type: string
         acme_server_ip_address:
+          format: text
+          type: string
+        authentication_certificate_profile_id:
+          format: text
+          type: string
+        signing_certificate_profile_id:
           format: text
           type: string
       type: object

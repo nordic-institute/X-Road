@@ -59,7 +59,6 @@ import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
-import org.niis.xroad.securityserver.restapi.util.AcmeHelper;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -119,7 +118,7 @@ public class TokenCertificateService {
     private final SecurityHelper securityHelper;
     private final AuditDataHelper auditDataHelper;
     private final AuditEventHelper auditEventHelper;
-    private final AcmeHelper acmeHelper;
+    private final AcmeService acmeService;
 
     /**
      * Create a CSR
@@ -218,7 +217,7 @@ public class TokenCertificateService {
             String memberCode = keyUsage == KeyUsageInfo.SIGNING
                     ? memberId.getMemberCode()
                     : ServerConf.getIdentifier().getOwner().getMemberCode();
-            List<X509Certificate> chain = acmeHelper.orderCertificateFromACMEServer(
+            List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
                     subjectFieldValues.get("CN"), subjectAltName, caInfo, memberCode, generatedCertRequestInfo.getCertRequest());
             if (chain != null) {
                 log.info("Acme order was successful, importing certificate");
@@ -1075,7 +1074,7 @@ public class TokenCertificateService {
             String memberCode = keyUsage == KeyUsageType.SIGNING
                     ? certRequestInfo.getMemberId().getMemberCode()
                     : ServerConf.getIdentifier().getOwner().getMemberCode();
-            List<X509Certificate> chain = acmeHelper.orderCertificateFromACMEServer(
+            List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
                     commonName,
                     subjectAltName,
                     caInfo,

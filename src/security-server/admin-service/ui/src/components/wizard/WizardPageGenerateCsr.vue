@@ -44,27 +44,34 @@
           ></v-text-field>
         </div>
       </div>
-      <div v-if="acmeCapable" class="wizard-row-wrap">
-        <div class="wizard-label pt-4">
-          {{ $t(`csr.orderAcmeCertificate`) }}
-        </div>
-        <v-checkbox
-          v-model="acmeOrder"
-          class="wizard-form-input"
-          :disabled="externalAccountBindingRequiredButMissing"
-          :hint="externalAccountBindingRequiredButMissingHint"
-          persistent-hint
-          data-test="order-acme-certificate-checkbox"
-        ></v-checkbox>
-      </div>
       <div class="generate-row">
         <div>{{ $t('csr.saveInfo') }}</div>
         <xrd-button
           :disabled="!meta.valid || !disableDone"
           data-test="generate-csr-button"
           :loading="genCsrLoading"
-          @click="generateCsr"
+          @click="generateCsr(false)"
           >{{ $t('csr.generateCsr') }}
+        </xrd-button>
+      </div>
+      <div v-if="acmeCapable" class="generate-row">
+        <div>{{ $t('csr.orderAcmeCertificate') }}
+          <v-alert
+            v-if="externalAccountBindingRequiredButMissing"
+            border="start"
+            type="error"
+            variant="outlined"
+            density="compact"
+          >
+            {{ externalAccountBindingRequiredButMissingHint }}
+          </v-alert>
+        </div>
+        <xrd-button
+          :disabled="!meta.valid || !disableDone || externalAccountBindingRequiredButMissing"
+          data-test="acme-order-certificate-button"
+          :loading="genCsrLoading"
+          @click="generateCsr(true)"
+        >{{ $t('keys.orderAcmeCertificate') }}
         </xrd-button>
       </div>
     </div>
@@ -190,7 +197,7 @@ export default defineComponent({
     done(): void {
       this.$emit('done');
     },
-    async generateCsr(): Promise<void> {
+    async generateCsr(withAcmeOrder: boolean): Promise<void> {
       this.genCsrLoading = true;
       this.setCsrForm(
         this.csrForm.map((field: CsrSubjectFieldDescription) => ({
@@ -198,6 +205,7 @@ export default defineComponent({
           default_value: this.values[field.id],
         })),
       );
+      this.acmeOrder = withAcmeOrder;
       if (this.keyAndCsr) {
         // Create Key AND CSR
 

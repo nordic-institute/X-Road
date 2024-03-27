@@ -86,12 +86,20 @@ public class CertificationServicesController implements CertificationServicesApi
                                                                                    String certificateProfileInfo,
                                                                                    String tlsAuth,
                                                                                    String acmeServerDirectoryUrl,
-                                                                                   String acmeServerIpAddress) {
+                                                                                   String acmeServerIpAddress,
+                                                                                   String authenticationCertificateProfileId,
+                                                                                   String signingCertificateProfileId) {
         var isForTlsAuth = parseBoolean(tlsAuth);
         byte[] fileBytes = MultipartFileUtils.readBytes(certificate);
         fileVerifier.validateCertificate(certificate.getOriginalFilename(), fileBytes);
         var approvedCa = new ApprovedCertificationService(
-                fileBytes, certificateProfileInfo, isForTlsAuth, acmeServerDirectoryUrl, acmeServerIpAddress);
+                fileBytes,
+                certificateProfileInfo,
+                isForTlsAuth,
+                acmeServerDirectoryUrl,
+                acmeServerIpAddress,
+                authenticationCertificateProfileId,
+                signingCertificateProfileId);
 
         CertificationService persistedApprovedCa = certificationServicesService.add(approvedCa);
         return status(CREATED).body(approvedCertificationServiceDtoConverter.convert(persistedApprovedCa));
@@ -178,7 +186,9 @@ public class CertificationServicesController implements CertificationServicesApi
                 .setCertificateProfileInfo(settings.getCertificateProfileInfo())
                 .setTlsAuth(parseBoolean(settings.getTlsAuth()))
                 .setAcmeServerDirectoryUrl(settings.getAcmeServerDirectoryUrl())
-                .setAcmeServerIpAddress(settings.getAcmeServerIpAddress());
+                .setAcmeServerIpAddress(settings.getAcmeServerIpAddress())
+                .setAuthenticationCertificateProfileId(settings.getAuthenticationCertificateProfileId())
+                .setSigningCertificateProfileId(settings.getSigningCertificateProfileId());
 
         return ok(approvedCertificationServiceDtoConverter.convert(certificationServicesService.update(approvedCa)));
     }
