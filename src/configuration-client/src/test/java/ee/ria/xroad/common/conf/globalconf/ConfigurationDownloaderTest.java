@@ -96,12 +96,12 @@ public class ConfigurationDownloaderTest {
             List<String> locationUrls = getMixedLocationUrls();
 
             // When
-            downloader.download(getSource(locationUrls));
+            downloader.downloadFromAdditionalSource(getSource(locationUrls));
             resetParser(downloader);
-            downloader.download(getSource(locationUrls));
+            downloader.downloadFromAdditionalSource(getSource(locationUrls));
 
             // Then
-            verifySuccessfulLocation(downloader, version);
+            verifyOnlyOneSuccessfulLocation(downloader, version);
         }
     }
 
@@ -114,23 +114,24 @@ public class ConfigurationDownloaderTest {
         List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
 
         // When
-        downloader.download(getSource(locationUrls));
+        downloader.downloadFromAnchor(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, LOCATION_URL_SUCCESS, presetVersion);
+        verifySuccessfulLocation(downloader, presetVersion);
     }
 
     @Test
     public void v3PrevailsWhenVersionNeitherPresetNorEnforced() {
         // Given
-        ConfigurationDownloader downloader = getDownloader(LOCATION_HTTPS_URL_SUCCESS + "?version=" + 3);
-        List<String> locationUrls = List.of(LOCATION_HTTPS_URL_SUCCESS);
+        String url = LOCATION_URL_SUCCESS;
+        ConfigurationDownloader downloader = getDownloader(url + "?version=" + 3);
+        List<String> locationUrls = List.of(url);
 
         // When
-        downloader.download(getSource(locationUrls));
+        downloader.downloadFromAnchor(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, LOCATION_HTTPS_URL_SUCCESS, 3);
+        verifySuccessfulLocation(downloader, 3);
     }
 
     @Test
@@ -141,24 +142,25 @@ public class ConfigurationDownloaderTest {
         List<String> locationUrls = List.of(url);
 
         // When
-        downloader.download(getSource(locationUrls));
+        downloader.downloadFromAnchor(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, url, 2);
+        verifySuccessfulLocationNope(downloader, 2);
     }
 
     @Test
     public void enforcedVersionPrevailsPresetVersion() {
         // Given
+        String url = LOCATION_URL_SUCCESS;
         int enforcedVersion = 2;
-        ConfigurationDownloader downloader = getDownloader(enforcedVersion, LOCATION_HTTPS_URL_SUCCESS + "?version=" + enforcedVersion);
-        List<String> locationUrls = List.of(LOCATION_HTTPS_URL_SUCCESS + "?version=" + 3);
+        ConfigurationDownloader downloader = getDownloader(enforcedVersion, url + "?version=" + enforcedVersion);
+        List<String> locationUrls = List.of(url + "?version=" + 3);
 
         // When
-        downloader.download(getSource(locationUrls));
+        downloader.downloadFromAnchor(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, LOCATION_HTTPS_URL_SUCCESS, enforcedVersion);
+        verifySuccessfulLocation(downloader, enforcedVersion);
     }
 
     /**
@@ -196,16 +198,39 @@ public class ConfigurationDownloaderTest {
         getParser(downloader).reset();
     }
 
-    private void verifySuccessfulLocation(ConfigurationDownloader downloader, String expectedUrl, int expectedLocationVersion) {
+    private void verifySuccessfulLocationNope(ConfigurationDownloader downloader, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
-        MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(expectedUrl, expectedLocationVersion));
+        MatcherAssert.assertThat(successfulDownloadUrls, hasSuccessfulUrl(LOCATION_URL_SUCCESS + "/nope", expectedLocationVersion));
+        MatcherAssert.assertThat(successfulDownloadUrls, hasSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS + "/nope", expectedLocationVersion));
     }
 
     private void verifySuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
+        MatcherAssert.assertThat(successfulDownloadUrls, hasSuccessfulUrl(LOCATION_URL_SUCCESS, expectedLocationVersion));
+        MatcherAssert.assertThat(successfulDownloadUrls, hasSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
+    }
+
+    private void verifyOnlyOneSuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
+        List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
+
         MatcherAssert.assertThat(successfulDownloadUrls, hasOnlyOneSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
+    }
+
+    private Matcher<List<String>> hasSuccessfulUrl(String url, int version) {
+        return new TypeSafeMatcher<>() {
+            @Override
+            protected boolean matchesSafely(List<String> parsedUrls) {
+                return parsedUrls.size() == 2
+                        && parsedUrls.contains(url + "?version=" + version);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Only one successful URL contained");
+            }
+        };
     }
 
     private Matcher<List<String>> hasOnlyOneSuccessfulUrl(String url, int version) {
@@ -229,7 +254,7 @@ public class ConfigurationDownloaderTest {
         List<String> locationUrls = getAllFailedLocationUrls();
 
         // When
-        downloader.download(getSource(locationUrls));
+        downloader.downloadFromAnchor(getSource(locationUrls));
 
         // Then
         List<String> expectedLocationUrls = locationUrls.stream()
@@ -293,6 +318,9 @@ public class ConfigurationDownloaderTest {
         List<String> result = new ArrayList<>();
 
         result.add("http://www.example.com/loc1");
+        result.add("http://www.example.com/loc2");
+        result.add("http://www.example.com/loc3");
+        result.add("https://www.example.com/loc1");
         result.add("https://www.example.com/loc2");
         result.add("https://www.example.com/loc3");
 

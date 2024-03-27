@@ -141,7 +141,10 @@ public final class ConfigurationClientMain {
     }
 
     private static int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
-        log.debug("Downloading configuration using anchor {} path = {})", configurationAnchorFile, configurationPath);
+        log.debug("Downloading configuration using anchor {} path = {} version {}",
+                configurationAnchorFile,
+                configurationPath,
+                configurationVersion);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 
