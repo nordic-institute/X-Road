@@ -101,6 +101,24 @@
               variant="outlined"
               data-test="acme-server-ip-address-input"
             />
+            <v-text-field
+              v-model="authenticationCertificateProfileId"
+              v-bind="authenticationCertificateProfileIdAttrs"
+              :label="$t('fields.authenticationCertificateProfileId')"
+              :hint="$t('trustServices.acmeServerAuthProfileIdExplanation')"
+              persistent-hint
+              variant="outlined"
+              data-test="auth-cert-profile-id-input"
+            />
+            <v-text-field
+              v-model="signingCertificateProfileId"
+              v-bind="signingCertificateProfileIdAttrs"
+              :label="$t('fields.signingCertificateProfileId')"
+              :hint="$t('trustServices.acmeServerSignProfileIdExplanation')"
+              persistent-hint
+              variant="outlined"
+              data-test="sign-cert-profile-id-input"
+            />
           </v-sheet>
         </div>
       </template>
@@ -134,6 +152,8 @@ const { meta, defineField, handleSubmit } = useForm({
     certProfile: '',
     acmeServerDirectoryUrl: '',
     acmeServerIpAddress: '',
+    authenticationCertificateProfileId: '',
+    signingCertificateProfileId: '',
   },
 });
 const [tlsAuthOnly, tlsAuthOnlyAttrs] = defineField('tlsAuthOnly');
@@ -155,6 +175,16 @@ const [acmeServerIpAddress, acmeServerIpAddressAttrs] = defineField(
     validateOnModelUpdate: true,
   },
 );
+const [
+  authenticationCertificateProfileId,
+  authenticationCertificateProfileIdAttrs,
+] = defineField('authenticationCertificateProfileId', {
+  props: (state) => ({ 'error-messages': state.errors })
+});
+const [signingCertificateProfileId, signingCertificateProfileIdAttrs] =
+  defineField('signingCertificateProfileId', {
+    props: (state) => ({ 'error-messages': state.errors })
+  });
 
 const { loading, showSuccess, showError, t } = useBasicForm();
 const { add } = useCertificationService();
@@ -177,6 +207,9 @@ const onSave = handleSubmit((values) => {
       certificate_profile_info: values.certProfile,
       acme_server_directory_url: values.acmeServerDirectoryUrl,
       acme_server_ip_address: values.acmeServerIpAddress,
+      authentication_certificate_profile_id:
+        values.authenticationCertificateProfileId,
+      signing_certificate_profile_id: values.signingCertificateProfileId,
     };
     add(certService)
       .then(() => showSuccess(t('trustServices.certImportedSuccessfully')))

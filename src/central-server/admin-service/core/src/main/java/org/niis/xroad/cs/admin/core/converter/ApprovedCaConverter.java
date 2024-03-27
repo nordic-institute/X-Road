@@ -71,7 +71,9 @@ public class ApprovedCaConverter {
                 .setCreatedAt(entity.getCreatedAt())
                 .setUpdatedAt(entity.getUpdatedAt())
                 .setAcmeServerDirectoryUrl(entity.getAcmeServerDirectoryUrl())
-                .setAcmeServerIpAddress(entity.getAcmeServerIpAddress());
+                .setAcmeServerIpAddress(entity.getAcmeServerIpAddress())
+                .setAuthenticationCertificateProfileId(entity.getAuthCertProfileId())
+                .setSigningCertificateProfileId(entity.getSignCertProfileId());
     }
 
     public List<CertificationServiceListItem> toListItems(Collection<ApprovedCaEntity> entities) {

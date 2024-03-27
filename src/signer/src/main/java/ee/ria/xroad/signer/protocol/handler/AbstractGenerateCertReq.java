@@ -88,15 +88,21 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
                 new X500Name(subjectName), publicKey);
 
+        ExtensionsGenerator extGen = new ExtensionsGenerator();
         // Add subject alternative name (SAN) extension if subjectAltName is not null or empty
         if (subjectAltName != null && !subjectAltName.isEmpty()) {
-            ExtensionsGenerator extGen = new ExtensionsGenerator();
             GeneralName subjectAlternativeName = new GeneralName(GeneralName.dNSName, subjectAltName);
             GeneralNames subjectAltNames = new GeneralNames(subjectAlternativeName);
             extGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames.toASN1Primitive());
+        }
+        if (KeyUsageInfo.SIGNING.equals(keyUsage)) {
             extGen.addExtension(Extension.keyUsage, false, new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.keyCertSign));
+        }
+        if (KeyUsageInfo.AUTHENTICATION.equals(keyUsage)) {
+            extGen.addExtension(Extension.keyUsage, false, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.dataEncipherment | KeyUsage.keyEncipherment));
+        }
+        if (!extGen.isEmpty()) {
             certRequestBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
-
         }
 
         ContentSigner signer = new TokenContentSigner(tokenWorkerProvider, tokenAndKey);

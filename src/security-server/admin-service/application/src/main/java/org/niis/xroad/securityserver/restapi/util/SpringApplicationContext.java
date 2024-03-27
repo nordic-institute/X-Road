@@ -23,57 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.securityserver.restapi.util;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
-import java.util.Map;
+@Component
+public class SpringApplicationContext implements ApplicationContextAware {
 
-@Configuration
-@ConfigurationProperties(prefix = "acme")
-@Getter
-@Setter
-public class AcmeEabProperties {
+    private static ApplicationContext applicationContext;
 
-    private EabCredentials eabCredentials;
-    private Contacts contacts;
-
-    @Getter
-    @Setter
-    public static class EabCredentials {
-        Map<String, CA> certificateAuthorities;
-
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        SpringApplicationContext.applicationContext = applicationContext;
     }
 
-    @Getter
-    @Setter
-    public static class CA {
-
-        Map<String, Credentials> members;
-        boolean isMacKeyBase64Encoded;
+    public static <T> T getBean(Class<T> beanClass) {
+        return applicationContext.getBean(beanClass);
     }
-
-    @Getter
-    @Setter
-    public static class Credentials {
-
-        private String kid;
-        private String macKey;
-    }
-
-    @Getter
-    @Setter
-    public static class Contacts {
-        Map<String, Contact> members;
-    }
-
-    @Getter
-    @Setter
-    public static class Contact {
-        private String email;
-    }
-
 }
