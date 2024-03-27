@@ -285,7 +285,7 @@
     "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
     "saveInfo": "Generate a new CSR and save it into a safe place.",
     "usage": "Usage",
-    "orderAcmeCertificate": "Order certificate from ACME Server with the created CSR"
+    "orderAcmeCertificate": "Generate a new CSR, order certificate from ACME Server with it and import the returned certificate to the token."
   },
   "customValidation": {
     "invalidEndpoint": "Endpoint contains illegal characters",
@@ -944,8 +944,10 @@
         "header": {
           "distinguishedName": "Distinguished Name",
           "expires": "Expires",
-          "ocspResponse": "OCSP Response"
+          "ocspResponse": "OCSP Response",
+          "acmeIpAddresses": "ACME Server IP"
         },
+        "notAvailable": "N/A",
         "ocspResponse": {
           "NOT_AVAILABLE": "N/A",
           "OCSP_RESPONSE_GOOD": "Good",

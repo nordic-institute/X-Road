@@ -243,9 +243,7 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         }
         vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(organization);
 
-        vCheckbox(keyAndCertPageObj.addKeyWizardGenerate.acmeOrder()).click();
-
-        keyAndCertPageObj.addKeyWizardGenerate.generateButton().click();
+        keyAndCertPageObj.addKeyWizardGenerate.acmeOrderButton().click();
 
         given()
                 .pollDelay(5, TimeUnit.SECONDS)
@@ -333,7 +331,7 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
     @Step("ACME order checkbox is disabled")
     public void acmeOrderCheckboxIsDisabled() {
-        vCheckbox(keyAndCertPageObj.addKeyWizardGenerate.acmeOrder()).shouldBe(disabled);
+        vCheckbox(keyAndCertPageObj.addKeyWizardGenerate.acmeOrderButton()).shouldBe(disabled);
     }
 
     @Step("Change the pin section is expanded")

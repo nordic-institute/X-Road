@@ -134,8 +134,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                 new ApprovedCAInfo(MOCK_CA,
                         false,
                         "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
-                        null,
-                        null)));
+                        null, null, null, null)));
         ClientId.Conf ownerId = ClientId.Conf.create("FI", "GOV", "M1");
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);

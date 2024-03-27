@@ -161,9 +161,9 @@ public class SharedParametersV3Converter {
     private SharedParameters.AcmeServer toAcmeServer(AcmeServer source) {
         var acmeServer = new SharedParameters.AcmeServer();
         acmeServer.setDirectoryURL(source.getDirectoryURL());
-        if (source.getIpAddress() != null) {
-            acmeServer.setIpAddress(source.getIpAddress());
-        }
+        acmeServer.setIpAddress(source.getIpAddress());
+        acmeServer.setAuthenticationCertificateProfileId(source.getAuthenticationCertificateProfileId());
+        acmeServer.setSigningCertificateProfileId(source.getSigningCertificateProfileId());
         return acmeServer;
     }
 

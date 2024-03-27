@@ -281,7 +281,9 @@
     "certFile": "Certificate File",
     "distinguishedName": "Distinguished Name",
     "acmeServerDirectoryUrl": "ACME server directory URL",
-    "acmeServerIpAddress": "ACME server IP address(es)"
+    "acmeServerIpAddress": "ACME server IP address(es)",
+    "authenticationCertificateProfileId": "Authentication certificate profile id",
+    "signingCertificateProfileId": "Signing certificate profile id"
   },
   "filters": {
     "apply": "Apply",
@@ -795,6 +797,8 @@
     "certProfileInputExplanation": "Fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
     "acmeServerDirectoryUrlExplanation": "Used by the Security Servers to do certificate related operations via the ACME Server API.",
     "acmeServerIpAddressExplanation": "A list of ACME Server source IPs that are used to complete the ACME HTTP challenge with the Security Server. Multiple addresses are separated by a comma. This information is shown in the Security Server UI.",
+    "acmeServerAuthProfileIdExplanation": "Profile ID used for some ACME servers to let them know the certificate usage type when ordering an authentication certificate.",
+    "acmeServerSignProfileIdExplanation": "Profile ID used for some ACME servers to let them know the certificate usage type when ordering a signing certificate.",
     "timestampingServices": "Timestamping Services",
     "validFrom": "Valid from",
     "validTo": "Valid to",
