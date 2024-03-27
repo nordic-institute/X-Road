@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-    id 'org.sonarqube' version '4.4.1.3373'
+    id 'org.sonarqube' version '5.0.0.4638'
     id 'org.owasp.dependencycheck' version '9.0.10'
     id 'jacoco-report-aggregation'
     id 'java'
