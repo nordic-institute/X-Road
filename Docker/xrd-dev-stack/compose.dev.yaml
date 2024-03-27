@@ -35,6 +35,7 @@ services:
   testca:
     ports:
       - "4400:8888"
+      - "4403:9998"
   isrest:
     ports:
       - "4500:8080"
