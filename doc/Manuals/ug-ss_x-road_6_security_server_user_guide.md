@@ -3155,7 +3155,9 @@ For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road
 ## 23 Passing additional parameters to psql
 
 By default any scripts(for example backup/restore) that uses `psql` utility tries to parse `/etc/xroad/db.properties` file for database related configurations like: database name, user, password, host, port. If the file is not found, the script may use default values which will point to local database. When such behaviour doesn't cover the requirements, it is possible to pass additional configurations to `psql` utility using environment variables from file.
+
 First step to pass additional configurations is to create `db_libpq.env` file in `/etc/xroad/` folder if it isn't created yet. It may also require adjustments of access rights to file.
+
 Example of file contents:
 
 ```bash
