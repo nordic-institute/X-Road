@@ -1631,6 +1631,7 @@ Response:
 Note that when you are using the admin UI and you encounter warnings, you will always be provided with a popup window with a `CONTINUE` button in it. When you click the `CONTINUE` button in the popup, the request is sent again but this time warnings will be ignored.
 
 # 18. Remote Database Host
+
 # 18.1 Migrating to Remote Database Host
 
 Since version 6.23.0 Central Server supports using remote databases. In case you have an already running standalone Central Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
