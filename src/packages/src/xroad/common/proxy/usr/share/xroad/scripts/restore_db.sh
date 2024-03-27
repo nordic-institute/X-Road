@@ -42,11 +42,11 @@ remote_psql() {
 }
 
 psql_adminuser() {
-  PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql
+  PGOPTIONS="$pg_options ${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql
 }
 
 psql_dbuser() {
-  PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql
+  PGOPTIONS="$pg_options ${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql
 }
 
 pgrestore() {
