@@ -49,7 +49,12 @@ setup_database() {
   fi
   local db_admin_user="${db_admin_conn_user%%@*}"
 
-  export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
+  # Reading custom libpq ENV variables
+  if [ -f /etc/xroad/db_libpq.env ]; then
+    source /etc/xroad/db_libpq.env
+  fi
+
+  export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public ${PGOPTIONS_EXTRA-}"
 
   pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
   if [[ "$db_url" =~ $pat ]]; then
