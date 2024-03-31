@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.ContainerState;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
@@ -58,6 +59,7 @@ public class EnvSetup implements TestableContainerInitializer {
     public static final String SS1 = "ss1";
     public static final String HURL = "hurl";
 
+    private final ComposeLoggerFactory composeLoggerFactory;
     private final CustomProperties customProperties;
 
     private ComposeContainer environment;
@@ -83,13 +85,20 @@ public class EnvSetup implements TestableContainerInitializer {
                             .withEnv("SS_IMG", customProperties.getSsImage())
                             .withEnv("CA_IMG", customProperties.getCaImage())
                             .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
-
+                            .withLogConsumer(HURL, createLogConsumer(HURL))
+                            .withLogConsumer(CS, createLogConsumer(CS))
+                            .withLogConsumer(SS0, createLogConsumer(SS0))
+                            .withLogConsumer(SS1, createLogConsumer(SS1))
                             .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
 
             environment.start();
 
             waitForHurl();
         }
+    }
+
+    private Slf4jLogConsumer createLogConsumer(String containerName) {
+        return new Slf4jLogConsumer(new ComposeLoggerFactory().create(containerName));
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
@@ -104,6 +113,10 @@ public class EnvSetup implements TestableContainerInitializer {
                             .map(container -> !container.isRunning())
                             .orElse(false);
                 });
+
+        var gracePeriod = Duration.ofSeconds(30);
+        log.info("Waiting grace period of {} before continuing..", gracePeriod);
+        await().pollDelay(gracePeriod).timeout(gracePeriod.plusMinutes(1)).until(() -> true);
     }
 
     @PreDestroy

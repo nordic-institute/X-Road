@@ -32,16 +32,21 @@ db_admin_user=$(get_db_prop ${root_properties} 'serverconf.database.admin_user' 
 db_admin_password=$(get_db_prop ${root_properties} 'serverconf.database.admin_password' "$db_password")
 pg_options="-c client-min-messages=warning -c search_path=$db_schema,public"
 
+# Reading custom libpq ENV variables
+if [ -f /etc/xroad/db_libpq.env ]; then
+  source /etc/xroad/db_libpq.env
+fi
+
 remote_psql() {
   psql -v ON_ERROR_STOP=1 -h "$db_addr" -p "$db_port" -qtA
 }
 
 psql_adminuser() {
-  PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql
+  PGOPTIONS="$pg_options ${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql
 }
 
 psql_dbuser() {
-  PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql
+  PGOPTIONS="$pg_options ${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql
 }
 
 pgrestore() {
