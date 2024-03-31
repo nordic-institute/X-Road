@@ -107,8 +107,6 @@ class ConfigurationDownloader {
     }
 
     DownloadResult downloadFromAnchor(ConfigurationSource source) {
-        log.debug("downloadFromAnchor");
-
         List<ConfigurationLocation> sharedParameterLocations = getLocationsFromSharedParameters.execute(source);
         log.debug("downloadFromAnchor -> sharedParameterLocations.size = " + sharedParameterLocations.size());
 
@@ -142,7 +140,7 @@ class ConfigurationDownloader {
         DownloadResult result = new DownloadResult();
         for (ConfigurationLocation location : locations) {
             String url = cachedUrl != null ? cachedUrl : location.getDownloadURL();
-            log.debug("Cached url: " + cachedUrl);
+            log.debug("Cached url key: " + cachedUrl);
 
             try {
                 location = toVersionedLocation(location);
@@ -174,7 +172,7 @@ class ConfigurationDownloader {
     }
 
     private void rememberLastSuccessfulLocation(String url, ConfigurationLocation location) {
-        log.trace("rememberLastSuccessfulLocation url={} location={}", url, location);
+        log.trace("rememberLastSuccessfulLocation url key = {} location = {}", url, location);
         successfulLocations.put(url, location);
     }
 
