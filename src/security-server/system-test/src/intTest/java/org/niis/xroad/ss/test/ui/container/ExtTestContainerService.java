@@ -44,7 +44,7 @@ import java.util.List;
 @Slf4j
 public class ExtTestContainerService extends TestContainerService {
     @Value("${test-automation.custom.security-server-url-override:#{null}}")
-    private String centralServerUrlOverride;
+    private String securityServerUrlOverride;
 
     public ExtTestContainerService(@NotNull final TestContainerNetworkProvider testContainerNetworkProvider,
                                    @NotNull final TestableContainerProperties testableContainerProperties,
@@ -84,10 +84,10 @@ public class ExtTestContainerService extends TestContainerService {
     }
 
     private String[] getUrlParts() {
-        return StringUtils.split(centralServerUrlOverride, ':');
+        return StringUtils.split(securityServerUrlOverride, ':');
     }
 
     private boolean isUrlOverridden() {
-        return centralServerUrlOverride != null;
+        return securityServerUrlOverride != null;
     }
 }

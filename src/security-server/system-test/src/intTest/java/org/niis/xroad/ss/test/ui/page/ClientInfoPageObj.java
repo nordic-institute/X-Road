@@ -41,6 +41,7 @@ public class ClientInfoPageObj {
     public final LocalGroups localGroups = new LocalGroups();
     public final InternalServers internalServers = new InternalServers();
     public final Services services = new Services();
+    public final ServiceWarningDialog warningDialog = new ServiceWarningDialog();
 
     public static class Details {
         public SelenideElement rowMemberName() {
@@ -527,6 +528,18 @@ public class ClientInfoPageObj {
 
         public SelenideElement btnCancelWizardMemberPage() {
             return $x("(//button[@data-test='cancel-button'])[1]");
+        }
+    }
+
+    public static class ServiceWarningDialog {
+        public SelenideElement title() {
+            return $x("//div[@data-test='service-warning-dialog-title']");
+        }
+        public SelenideElement btnCancel() {
+            return $x("//button[@data-test='dialog-cancel-button']");
+        }
+        public SelenideElement btnContinue() {
+            return $x("//button[@data-test='service-url-change-button']");
         }
     }
 }

@@ -864,9 +864,12 @@
     "urlTooltip": "The URL where requests targeted at the service are directed",
     "warning": "Warning",
     "warningCode": {
+      "adding_endpoints": "Adding endpoints:",
       "adding_services": "Adding services:",
+      "deleting_endpoints": "Deleting endpoints:",
       "deleting_services": "Deleting services:",
-      "wsdl_validation_warnings": "Validation warnings:"
+      "wsdl_validation_warnings": "Validation warnings:",
+      "openapi_validation_warnings": "Validation warnings:"
     },
     "verifyTls": "Verify TLS certificate",
     "wsdlAdded": "WSDL added",

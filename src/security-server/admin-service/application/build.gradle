@@ -81,9 +81,12 @@ jar {
 bootJar {
     enabled = true
 
-    dependsOn copyUi
-    classpath += layout.buildDirectory.dir("admin-service/ui")
-
+    if (!project.hasProperty('skip-frontend-build')) {
+        dependsOn copyUi
+        classpath += layout.buildDirectory.dir("admin-service/ui")
+    } else {
+        println("Warning: Excluding frontend from boot jar")
+    }
     manifest {
         attributes(
             'Implementation-Title': 'X-Road Security Server Admin Service',
