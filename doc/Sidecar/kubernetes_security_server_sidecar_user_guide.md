@@ -507,8 +507,6 @@ kind: Service
 metadata:
   name: <service name>
   namespace: <namespace name>
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: nlb
 spec:
   type: LoadBalancer
   selector:

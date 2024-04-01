@@ -101,8 +101,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: balancer-security-server-sidecar
-  annotations:
-    service.beta.Kubernetes.io/aws-load-balancer-type: nlb
   labels:
     run: balancer-security-server-sidecar
   namespace: sidecar
