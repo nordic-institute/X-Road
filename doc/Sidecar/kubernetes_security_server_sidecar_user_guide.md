@@ -149,21 +149,21 @@ The table below lists the required connections between different components.
 
 This is an extension of the Security Server Sidecar [Reference Data](security_server_sidecar_user_guide.md#22-reference-data)
 
-| **Ref** | **Value**                         | **Explanation**                                                                                                                                                                                                              |
-|---------|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 3.1     | \<namespace name>                 | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects inside the cluster.                                                                                                                          |
-| 3.2     | \<pod name>                       | Unique name that identifies a Pod inside a Cluster namespace. If the Pod belongs to a deployment object a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment.         |
-| 3.3     | \<pod label>                      | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.                                                                                        |
-| 3.4     | \<pvc name>                       | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.                                                                                                                                            |
-| 3.12    | \<container name>                 | Name of the image container deployed in a Kubernetes pod.                                                                                                                                                                    |
-| 3.13    | \<manifest volume name>           | Unique name that identifies a volume inside a manifest.                                                                                                                                                                      |
-| 3.14    | \<secret name>                    | Unique name that identifies a secret inside a Cluster namespace.                                                                                                                                                             |
-| 3.15    | \<service name>                   | Unique name that identifies a Kubernetes Service object                                                                                                                                                                      |
-| 3.18    | \<number replicas>                | Number of Pod replicas to be deployed.                                                                                                                                                                                       |
-| 3.19    | \<service selector>               | Name that identifies a Load Balancer with the Pods.                                                                                                                                                                          |
-| 3.20    | \<primary DNS>                    | DNS of the service that identifies the Primary Pod composed by \<service name>.\<namespace name>.svc.cluster.local .                                                                                                         |
-| 3.21    | \<cluster name>                   | Name of the AWS EKS cluster.                                                                                                                                                                                                 |
-| 3.22    | \<cluster region>                 | Region where the AWS EKS cluster is deployed.                                                                                                                                                                                |
+| **Ref** | **Value**               | **Explanation**                                                                                                                                                                                                      |
+|---------|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.1     | \<namespace name>       | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects inside the cluster.                                                                                                                  |
+| 3.2     | \<pod name>             | Unique name that identifies a Pod inside a Cluster namespace. If the Pod belongs to a deployment object a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment. |
+| 3.3     | \<pod label>            | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.                                                                                |
+| 3.4     | \<pvc name>             | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.                                                                                                                                    |
+| 3.5     | \<container name>       | Name of the image container deployed in a Kubernetes pod.                                                                                                                                                            |
+| 3.6     | \<manifest volume name> | Unique name that identifies a volume inside a manifest.                                                                                                                                                              |
+| 3.7     | \<secret name>          | Unique name that identifies a secret inside a Cluster namespace.                                                                                                                                                     |
+| 3.8     | \<service name>         | Unique name that identifies a Kubernetes Service object                                                                                                                                                              |
+| 3.9     | \<number replicas>      | Number of Pod replicas to be deployed.                                                                                                                                                                               |
+| 3.10    | \<service selector>     | Name that identifies a Load Balancer with the Pods.                                                                                                                                                                  |
+| 3.11    | \<primary DNS>          | DNS of the service that identifies the Primary Pod composed by \<service name>.\<namespace name>.svc.cluster.local .                                                                                                 |
+| 3.12    | \<cluster name>         | Name of the AWS EKS cluster.                                                                                                                                                                                         |
+| 3.13    | \<cluster region>       | Region where the AWS EKS cluster is deployed.                                                                                                                                                                        |
 
 ### 4.5 Installation Instructions
 
@@ -171,7 +171,7 @@ This is an extension of the Security Server Sidecar [Reference Data](security_se
 
 It's recommended to use namespaces in a Kubernetes deployment since namespaces will allow you to organize the resources of a shared cluster better. The use of a namespace for the Security Server Sidecar resources is optional. If no namespace is created, they will be included in the "default" namespace.
 
-Create a new namespace by running (**reference data: 3.1**):
+Create a new namespace by running (**Reference Data: 3.1**):
 
 ```bash
 kubectl create namespace <namespace name>
@@ -179,7 +179,7 @@ kubectl create namespace <namespace name>
 
 #### 4.5.2 Single Pod deployment
 
-For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following `yaml` manifest (**reference data: 3.1, 3.2, 3.12, 1.4, 1.5, 1.6, 1.10**):
+For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following `yaml` manifest (**Reference Data: 3.1, 3.2, 3.5, 1.4, 1.5, 1.6, 1.10**):
 
 ``` yaml
 apiVersion: v1
@@ -211,7 +211,7 @@ spec:
 ```
 
 Any of the Security Server Sidecar images described in the [Security Server Sidecar user guide](security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) can be used as image tag.
-Optionally, you can use an external database by adding the following environment variables of the deployment (**reference data: 1.7, 1.8, 1.9, 1.11**):
+Optionally, you can use an external database by adding the following environment variables of the deployment (**Reference Data: 1.7, 1.8, 1.9, 1.11**):
 
 ``` yaml
     - name: XROAD_DB_HOST
@@ -230,19 +230,19 @@ Once the deployment is ready save it on a file and run:
 kubectl apply -f /path/to/manifest-file-name.yaml
 ```
 
-Check that the Pod is deployed by running (**reference data: 3.1**):
+Check that the Pod is deployed by running (**Reference Data: 3.1**):
 
 ```bash
 kubectl get pods -n <namespace name>
 ```
 
-Get the Pod information by running (**reference data: 3.1, 3.2**):
+Get the Pod information by running (**Reference Data: 3.1, 3.2**):
 
 ```bash
 kubectl describe pod -n <namespace name> <pod name>
 ```
 
-Get a shell to the container running in the Pod by running (**reference data: 3.1, 3.2**):
+Get a shell to the container running in the Pod by running (**Reference Data: 3.1, 3.2**):
 
 ```bash
 kubectl exec -it -n <namespace name> <pod name> -- bash
@@ -295,7 +295,7 @@ If you don't have an SSH key you can create one by running:
 ssh-keygen -f /path/to/.ssh/id_rsa
 ```
 
-Then create a Kubernetes Secret for storing the SSH keys by running (**reference data: 3.1, 3.14**):
+Then create a Kubernetes Secret for storing the SSH keys by running (**Reference Data: 3.1, 3.7**):
 
 ```bash
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
@@ -305,7 +305,7 @@ kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ss
 
 This example shows how to create a secret for the Security Server Sidecar environment variables with sensitive data.
 
-1. Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 3.1**):
+1. Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **Reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 3.1**):
 
     ```yaml
     apiVersion: v1
@@ -329,7 +329,7 @@ This example shows how to create a secret for the Security Server Sidecar enviro
 
 ##### Consume secrets
 
-The Secrets that store keys can be consumed in a similar way to volumes. To do this, you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign permissions to it, then mount the volume in a folder on the container (**reference Data: 3.13, 3.14**):
+The Secrets that store keys can be consumed in a similar way to volumes. To do this, you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign permissions to it, then mount the volume in a folder on the container (**Reference Data: 3.6, 3.7**):
 
 ``` yaml
 [...]
@@ -410,7 +410,7 @@ Readiness probe on the Security Server health check interface is useful for clus
 
 ##### Primary Pod installation
 
-An example of how to install the Primary Pod is shown in the manifest below (**reference data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14, 3.15, 3.19 1.4, 1.5, 1.6, 1.10**):
+An example of how to install the Primary Pod is shown in the manifest below (**Reference Data: 3.1, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.10 1.4, 1.5, 1.6, 1.10**):
 
 ```yaml
 apiVersion: v1
@@ -503,7 +503,7 @@ curl -i <private pod ip>:5588
 
 ##### Secondary Pods installation
 
-An example of how to install the Secondary Pod is shown in the manifest below (**reference Data: 3.1, 3.2, 3.4, 3.12, 3.13, 3.14, 3.15, 3.17, 3.18, 3.19, 3.20, 1.4, 1.5, 1.6, 1.10**). The example uses Kubernetes Service with `LoadBalancer` type (https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer). Cloud providers may require additional deployment and configuration for `LoadBalancer` Service type. For more details see:
+An example of how to install the Secondary Pod is shown in the manifest below (**Reference Data: 3.1, 3.2, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 1.4, 1.5, 1.6, 1.10**). The example uses Kubernetes Service with `LoadBalancer` type (https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer). Cloud providers may require additional deployment and configuration for `LoadBalancer` Service type. For more details see:
 -  [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
 -  [Use a public standard load balancer in Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard)
 
@@ -616,7 +616,7 @@ The pods have a secrets volume for the public and private SSH keys which are req
 
 The secondary pods also have a readiness probe, this test will run a healthcheck every 10 seconds. As long as the healthcheck result is not positive, the Pod status will remain in "NotReady" and will not be included in the Load Balancer Service.
 
-After the manifest is deployed, you can scale the secondary pods by running (**reference data: 3.1, 3.18**):
+After the manifest is deployed, you can scale the secondary pods by running (**Reference Data: 3.1, 3.9**):
 
 ```bash
 kubectl scale -n <namespace name> --replicas=<number replicas> deployment/<pod name>
@@ -692,14 +692,14 @@ The [load_balancer_setup manifest template](files/load_balancer_setup.yaml) cont
 
     * \<public key base64> Public key encoded in base64 (`base64 -w0 path/to/id_rsa.pub`).
     * \<private key base64> Private key encoded in base64 (`base64 -w0 path/to/id_rsa`).
-    * \<token pin> (**reference data: 1.4**)
-    * \<admin user> (**reference data: 1.5**)
-    * \<admin password> (**reference data: 1.6**)
-    * \<database host> (**reference data: 1.7**)
-    * \<database password> (**reference data: 1.9**)
-    * \<database port> (**reference data: 1.8**)
-    * \<xroad log level> (**reference data: 1.10**)
-    * \<xroad database name> (**reference data: 1.11**)
+    * \<token pin> (**Reference Data: 1.4**)
+    * \<admin user> (**Reference Data: 1.5**)
+    * \<admin password> (**Reference Data: 1.6**)
+    * \<database host> (**Reference Data: 1.7**)
+    * \<database password> (**Reference Data: 1.9**)
+    * \<database port> (**Reference Data: 1.8**)
+    * \<xroad log level> (**Reference Data: 1.10**)
+    * \<xroad database name> (**Reference Data: 1.11**)
     * \<version primary>, (`7.0.0-primary[-slim][-variant]`)
     * \<version secondary>, (`7.0.0-secondary[-slim][-variant]`)
 

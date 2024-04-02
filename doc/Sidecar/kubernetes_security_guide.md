@@ -83,7 +83,7 @@ If you don't have an existing SSH key, you can create one by running:
 ssh-keygen -f /path/to/.ssh/
 ```
 
-Then create a Kubernetes Secret to store the SSH key by running (**Reference Data: 3.1, 3.14**);
+Then create a Kubernetes Secret to store the SSH key by running (**Reference Data: 3.1, 3.7**);
 
 ```bash
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
@@ -91,7 +91,7 @@ kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ss
 
 We can then consume these secrets as a volume in Kubernetes, i.e. by including the Secret under the definition of volumes in the Pod deployment manifest. We should define the key name, path and permissions, and then mount the volume on a path inside the container.
 
-Below is an example of using Secrets in a Pod deployment manifest file (**Reference Data: 3.13, 3.14**):
+Below is an example of using Secrets in a Pod deployment manifest file (**Reference Data: 3.6, 3.7**):
 
 ``` yaml
 [...]
@@ -197,7 +197,7 @@ A kubeconfig file is a file used to configure access to Kubernetes when used in 
 
 To create a kubeconfig file, we should first be authenticated through the AWS CLI. More information on how to authenticate with AWS CLI can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/).
 
-Then, open a terminal and run the following command (**Reference Data: 3.21, 3.22**):
+Then, open a terminal and run the following command (**Reference Data: 3.12, 3.13**):
 
 ```bash
 aws eks --region <cluster region> update-kubeconfig --name <cluster name>
@@ -297,7 +297,7 @@ kubectl proxy
 
 Kubectl will make Dashboard available at `http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/`.
 
-In the login view, you will be required to enter a token, as described in section [4 User Accounts](#4-user-accounts). AWS EKS provides authentication to the Kubernetes Cluster through the `aws eks get-token` command, so in order to get the token you can run (**Reference Data: 3.21**):
+In the login view, you will be required to enter a token, as described in section [4 User Accounts](#4-user-accounts). AWS EKS provides authentication to the Kubernetes Cluster through the `aws eks get-token` command, so in order to get the token you can run (**Reference Data: 3.12**):
 
 ```bash
 aws eks get-token --cluster-name <cluster name>
