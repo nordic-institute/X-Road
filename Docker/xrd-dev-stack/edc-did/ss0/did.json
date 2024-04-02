@@ -7,7 +7,7 @@
     {
       "id": "#credential-service-url",
       "type": "CredentialService",
-      "serviceEndpoint": "https://ss0:20001/resolution/v1/participants/did:web:did-server:ss0"
+      "serviceEndpoint": "https://ss0:20001/resolution/v1/participants/ZGlkOndlYjpkaWQtc2VydmVyOnNzMA=="
     }
   ],
   "verificationMethod": [

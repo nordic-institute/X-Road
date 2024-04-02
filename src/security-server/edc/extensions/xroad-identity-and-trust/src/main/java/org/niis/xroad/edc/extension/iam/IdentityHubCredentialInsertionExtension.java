@@ -30,6 +30,7 @@ import lombok.SneakyThrows;
 import org.eclipse.edc.boot.BootServicesExtension;
 import org.eclipse.edc.identityhub.spi.ParticipantContextService;
 import org.eclipse.edc.identityhub.spi.model.KeyPairResource;
+import org.eclipse.edc.identityhub.spi.model.KeyPairState;
 import org.eclipse.edc.identityhub.spi.model.VcState;
 import org.eclipse.edc.identityhub.spi.model.VerifiableCredentialResource;
 import org.eclipse.edc.identityhub.spi.model.participant.KeyDescriptor;
@@ -50,6 +51,7 @@ import java.time.Instant;
 import java.util.Map;
 
 import static org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY;
+import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.CREDENTIAL_FORMAT;
 import static org.niis.xroad.edc.extension.iam.IdentityHubCredentialInsertionExtension.NAME;
 
 /**
@@ -118,7 +120,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         var verifiableCredential = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(CredentialSubject.Builder.newInstance().id("test-subject").claim("test-key", "test-val").build())
                 .issuanceDate(Instant.now())
-                .type("VerifiableCredential")
+                .type(CREDENTIAL_FORMAT)
                 .issuer(new Issuer(connectorDid, Map.of()))
                 .id(connectorDid)
                 .build();
@@ -140,6 +142,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
                 .isDefaultPair(true)
                 .participantId(participantId)
                 .serializedPublicKey(participantPubKeyMap.get(participantId))
+                .state(KeyPairState.ACTIVE)
                 .build();
         keyPairResourceStore.create(keyPairResource);
     }
