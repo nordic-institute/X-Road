@@ -16,7 +16,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation libs.jakarta.validation.api
+    implementation libs.jakarta.validationApi
     implementation libs.bundles.metrics
 
     implementation project(':common:common-domain')

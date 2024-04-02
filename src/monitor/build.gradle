@@ -13,7 +13,7 @@ jar {
 }
 
 dependencies {
-    implementation(platform(libs.spring.boot.dependencies))
+    implementation(platform(libs.springBoot.dependencies))
 
     implementation project(':common:common-domain')
     implementation project(':monitor-common')

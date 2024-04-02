@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.spring.dependency.management)
-    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependencyManagement)
+    alias(libs.plugins.springBoot)
 }
 
 bootJar {
@@ -20,7 +20,7 @@ dependencies {
     annotationProcessor "org.springframework:spring-context-indexer"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-    implementation(platform(libs.spring.cloud.dependencies))
+    implementation(platform(libs.springCloud.dependencies))
     implementation(project(":common:common-api-throttling"))
     implementation(project(":central-server:admin-service:api-client"))
     implementation(project(':central-server:openapi-model'))
@@ -39,7 +39,7 @@ dependencies {
 
     implementation('org.springframework.boot:spring-boot-starter-jetty')
 
-    implementation(libs.jakarta.validation.api)
+    implementation(libs.jakarta.validationApi)
     implementation(libs.bucket4j.core)
 
     testImplementation project(':common:common-test')

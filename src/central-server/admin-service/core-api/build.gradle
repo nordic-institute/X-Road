@@ -9,7 +9,7 @@ dependencies {
     api project(':common:common-management-request')
     api project(':common:common-verifier')
 
-    implementation(libs.jakarta.validation.api)
+    implementation(libs.jakarta.validationApi)
 
     testImplementation project(':common:common-test')
 }

@@ -15,8 +15,8 @@ plugins {
     id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
-    alias(libs.plugins.spring.dependency.management) apply false
-    alias(libs.plugins.spring.boot) apply false
+    alias(libs.plugins.spring.dependencyManagement) apply false
+    alias(libs.plugins.springBoot) apply false
     id 'com.google.protobuf' version "0.9.4" apply false
     id 'org.siouan.frontend-jdk17' version "8.0.0" apply false
 }
@@ -128,8 +128,8 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     dependencies {
         //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
 
-        testImplementation(libs.junit.jupiter.engine)
-        testImplementation(libs.junit.vintage.engine)
+        testImplementation(libs.junit.jupiterEngine)
+        testImplementation(libs.junit.vintageEngine)
 
         compileOnly libs.lombok
         annotationProcessor libs.lombok

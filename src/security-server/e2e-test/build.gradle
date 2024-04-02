@@ -1,7 +1,7 @@
 dependencies {
     intTestImplementation project(":common:common-int-test")
-    intTestImplementation(libs.test.automation.assert)
-    intTestImplementation(libs.test.automation.restassured)
+    intTestImplementation(libs.testAutomation.assert)
+    intTestImplementation(libs.testAutomation.restassured)
 
     intTestImplementation(libs.feign.hc5)
 }

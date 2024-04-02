@@ -3,8 +3,8 @@ dependencies {
     intTestImplementation project(":addons:proxymonitor-common")
 
     intTestImplementation project(":common:common-int-test")
-    intTestImplementation(libs.test.automation.assert)
-    intTestImplementation(libs.test.automation.selenide) {
+    intTestImplementation(libs.testAutomation.assert)
+    intTestImplementation(libs.testAutomation.selenide) {
         exclude group: "org.slf4j", module: "*"
     }
     intTestImplementation(libs.feign.hc5)

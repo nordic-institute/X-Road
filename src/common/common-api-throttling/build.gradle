@@ -4,14 +4,14 @@ plugins {
 }
 
 dependencies {
-    compileOnly(libs.jakarta.servlet.api)
+    compileOnly(libs.jakarta.servletApi)
 
     api(libs.guava)
     api(libs.bucket4j.core)
 
     implementation(libs.slf4j.api)
 
-    testFixturesImplementation(libs.spring.boot.starter.test)
+    testFixturesImplementation(libs.springBoot.starter.test)
     testFixturesCompileOnly(libs.lombok)
     testFixturesAnnotationProcessor(libs.lombok)
 }

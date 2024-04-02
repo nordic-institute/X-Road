@@ -8,11 +8,11 @@ dependencies {
     api project(':signer-protocol')
     api project(':addons:hwtoken')
 
-    api(libs.test.automation.core)
-    api(libs.test.automation.allure)
-    api(libs.test.automation.containers)
-    api(libs.test.automation.feign)
-    api(libs.test.automation.selenide) {
+    api(libs.testAutomation.core)
+    api(libs.testAutomation.allure)
+    api(libs.testAutomation.containers)
+    api(libs.testAutomation.feign)
+    api(libs.testAutomation.selenide) {
         exclude group: "org.slf4j", module: "*"
     }
     api(libs.bouncyCastle.bcpkix)

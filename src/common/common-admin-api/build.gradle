@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
-    alias(libs.plugins.spring.dependency.management)
-    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependencyManagement)
+    alias(libs.plugins.springBoot)
     alias(libs.plugins.openapi.generator)
     id 'org.niis.xroad.oasvalidatorplugin'
 }
@@ -18,7 +18,7 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':serverconf')
 
-    implementation(platform(libs.spring.boot.dependencies))
+    implementation(platform(libs.springBoot.dependencies))
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
@@ -37,7 +37,7 @@ dependencies {
     testImplementation(libs.hsqldb)
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation(libs.jakarta.validation.api)
+    implementation(libs.jakarta.validationApi)
     implementation("org.apache.tika:tika-core:2.9.1")
 
     api("com.github.ben-manes.caffeine:caffeine")

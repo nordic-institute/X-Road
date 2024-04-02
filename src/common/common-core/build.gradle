@@ -29,7 +29,7 @@ dependencies {
     api("jakarta.inject:jakarta.inject-api:2.0.1")
     api("jakarta.xml.bind:jakarta.xml.bind-api:4.0.1")
     api("jakarta.xml.soap:jakarta.xml.soap-api:3.0.1")
-    api(libs.jakarta.servlet.api)
+    api(libs.jakarta.servletApi)
 
     implementation libs.logback.classic
 

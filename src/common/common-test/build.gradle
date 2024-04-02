@@ -8,7 +8,7 @@ dependencies {
     implementation project(':common:common-verifier')
     implementation 'org.antlr:ST4:4.3.4'
     // JUnit is needed for ExpectedCodedException
-    implementation libs.junit.vintage.engine
+    implementation libs.junit.vintageEngine
 
     api("org.apache.httpcomponents:httpasyncclient:4.1.5")
     api "org.mockito:mockito-junit-jupiter:${libs.versions.mockito.get()}"

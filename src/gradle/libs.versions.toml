@@ -26,14 +26,14 @@ jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
 jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
 
-spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
-spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
-spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+springBoot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
+springBoot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+springBoot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 
-spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.0" }
+springCloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.0" }
 
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
-junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
+junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
+junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
 
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlUnit" }
 xmlunit-matchers = { module = "org.xmlunit:xmlunit-matchers", version.ref = "xmlUnit" }
@@ -49,16 +49,16 @@ grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "slf4j" }
 
-test-automation-core = { module = "com.nortal.test:test-automation-core", version.ref = "testAutomationFramework" }
-test-automation-allure = { module = "com.nortal.test:test-automation-allure", version.ref = "testAutomationFramework" }
-test-automation-containers = { module = "com.nortal.test:test-automation-containers", version.ref = "testAutomationFramework" }
-test-automation-feign = { module = "com.nortal.test:test-automation-feign", version.ref = "testAutomationFramework" }
-test-automation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
-test-automation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
-test-automation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
+testAutomation-core = { module = "com.nortal.test:test-automation-core", version.ref = "testAutomationFramework" }
+testAutomation-allure = { module = "com.nortal.test:test-automation-allure", version.ref = "testAutomationFramework" }
+testAutomation-containers = { module = "com.nortal.test:test-automation-containers", version.ref = "testAutomationFramework" }
+testAutomation-feign = { module = "com.nortal.test:test-automation-feign", version.ref = "testAutomationFramework" }
+testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
+testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
+testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
 
-jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
-jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.0.0" }
+jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
+jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.0.0" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 assertj-core = { module = "org.assertj:assertj-core", version = "3.24.2" }
@@ -87,6 +87,6 @@ metrics = ["metrics-core", "metrics-jmx"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 
 [plugins]
-spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
-spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.4" }
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+spring-dependencyManagement = { id = "io.spring.dependency-management", version = "1.1.4" }
 openapi-generator = { id = "org.openapi.generator", version = "7.1.0" }

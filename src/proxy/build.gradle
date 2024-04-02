@@ -12,7 +12,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform(libs.spring.boot.dependencies))
+    implementation(platform(libs.springBoot.dependencies))
 
     implementation project(':common:common-jetty')
     implementation project(':common:common-message')

@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.spring.dependency.management)
-    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependencyManagement)
+    alias(libs.plugins.springBoot)
 }
 
 base {
@@ -21,7 +21,7 @@ configurations.configureEach {
 dependencies {
     dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
 
-    implementation platform(libs.spring.cloud.dependencies)
+    implementation platform(libs.springCloud.dependencies)
     implementation project(":common:common-globalconf")
     implementation project(":signer-protocol")
     implementation project(":serverconf")
@@ -43,7 +43,7 @@ dependencies {
     implementation(libs.bucket4j.core)
     implementation(libs.swagger.parser.v3)
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-    implementation(libs.jakarta.validation.api)
+    implementation(libs.jakarta.validationApi)
     implementation 'ch.qos.logback:logback-access:1.4.14'
 
     testImplementation project(":common:common-test")
@@ -52,7 +52,7 @@ dependencies {
     testImplementation(libs.hsqldb)
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation(testFixtures(project(":common:common-api-throttling")))
-    testRuntimeOnly(libs.junit.vintage.engine)
+    testRuntimeOnly(libs.junit.vintageEngine)
 }
 
 tasks.register('copyUi', ProcessResources) {

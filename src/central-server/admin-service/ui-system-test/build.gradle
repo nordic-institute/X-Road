@@ -1,13 +1,13 @@
 dependencies {
     intTestImplementation project(":central-server:openapi-model")
     intTestImplementation project(":common:common-int-test")
-    intTestImplementation(libs.test.automation.core)
-    intTestImplementation(libs.test.automation.selenide) {
+    intTestImplementation(libs.testAutomation.core)
+    intTestImplementation(libs.testAutomation.selenide) {
         exclude group: "org.slf4j", module: "*"
     }
-    intTestImplementation(libs.test.automation.allure)
-    intTestImplementation(libs.test.automation.containers)
-    intTestImplementation(libs.test.automation.feign)
+    intTestImplementation(libs.testAutomation.allure)
+    intTestImplementation(libs.testAutomation.containers)
+    intTestImplementation(libs.testAutomation.feign)
     intTestImplementation(libs.bouncyCastle.bcpkix)
     intTestImplementation(libs.awaitility)
 }

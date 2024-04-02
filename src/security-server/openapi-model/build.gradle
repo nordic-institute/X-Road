@@ -5,11 +5,11 @@ plugins {
 }
 
 dependencies {
-    compileOnly(libs.spring.boot.starter.web)
+    compileOnly(libs.springBoot.starter.web)
     compileOnly(libs.swagger.parser.v3)
 
     api(libs.swagger.annotations)
-    api(libs.jakarta.validation.api)
+    api(libs.jakarta.validationApi)
 }
 
 sourceSets {

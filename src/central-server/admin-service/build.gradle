@@ -19,7 +19,7 @@ subprojects {
             annotationProcessor("org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}")
             annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 
-            implementation platform(libs.spring.cloud.dependencies)
+            implementation platform(libs.springCloud.dependencies)
             implementation "org.mapstruct:mapstruct:${libs.versions.mapstruct.get()}"
 
             testAnnotationProcessor "org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}"
