@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.8  
+Version: 1.9  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -16,6 +16,7 @@ Doc. ID: UG-K-SS-SIDECAR
 | 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process | Monika Liutkute           |
 | 06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets             |
 | 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets             |
+| 02.04.2024 | 1.9     | Add Azure Kubernetes Service (AKS) references         | Madis Loitmaa             |
 
 ## License
 
@@ -123,7 +124,10 @@ The resource requirements depend on the messaging workload, a minimum for the sl
 
 ### 4.2 Prerequisites to Installation
 
-See [Getting started with Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html). In this guide, the command line utilities (AWS CLI, eksctl, kubectl) are used.
+In this guide, the `kubectl` command line utility is used. It is expected, that `kubectl` is configured to connect to existing Kubernetes cluster. For the details of setting up Kubernetes cluster and connecting to it with `kubectl`, see:
+* [Getting started with Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html). 
+* [Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/)
+* [kubectl reference](https://kubernetes.io/docs/reference/kubectl/)
 
 ### 4.3 Network configuration
 
@@ -499,7 +503,9 @@ curl -i <private pod ip>:5588
 
 ##### Secondary Pods installation
 
-An example of how to install the Secondary Pod is shown in the manifest below (**reference Data: 3.1, 3.2, 3.4, 3.12, 3.13, 3.14, 3.15, 3.17, 3.18, 3.19, 3.20, 1.4, 1.5, 1.6, 1.10**). The example uses the built-in Kubernetes AWS cloud provider load balancer controller (https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer). Please also see [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html), which needs to be separately deployed and uses partially different annotations.
+An example of how to install the Secondary Pod is shown in the manifest below (**reference Data: 3.1, 3.2, 3.4, 3.12, 3.13, 3.14, 3.15, 3.17, 3.18, 3.19, 3.20, 1.4, 1.5, 1.6, 1.10**). The example uses Kubernetes Service with `LoadBalancer` type (https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer). Cloud providers may require additional deployment and configuration for `LoadBalancer` Service type. For more details see:
+-  [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
+-  [Use a public standard load balancer in Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard)
 
 ``` yaml
 apiVersion: v1
@@ -635,6 +641,8 @@ The backup system of the Security Servers described in the [User Guide](../Manua
 **Amazon CloudWatch** monitors the Amazon Web Services (AWS) resources and the applications that run on AWS in real time. CloudWatch can be used to collect and track metrics, which are variables that can be uses to measure resources and applications. For more information about CloudWatch check the [Amazon CloudWatch documentation](https://docs.aws.amazon.com/cloudwatch/index.html).
 
 **CloudWatch container insights** is a tool available for AWS EKS that can be used to collect, aggregate, and summarize metrics and logs from containerized applications and microservices. See [Setting up Container Insights on Amazon EKS and Kubernetes](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html) for more details.
+
+**Azure Monitor** is a monitoring solution for cloud and on-premises environments. See [AKS documentation](https://learn.microsoft.com/en-us/azure/aks/monitor-aks) for details on integration with Azure Monitor.
 
 **Fluentd** is an open-source data collector that can be set up on Kubernetes nodes to tail container log files, filter and transform the log data, and deliver it to the Elasticsearch cluster, where it will be indexed and stored. See [Fluentd documentation](https://docs.fluentd.org/container-deployment/kubernetes) for details.
 
