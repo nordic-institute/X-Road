@@ -46,7 +46,7 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALI
 
 @Slf4j
 @RequiredArgsConstructor
-class GetLocationsFromSharedParameters {
+class SharedParametersConfigurationLocations {
     private static final String HTTP = "http";
     private static final String HTTPS = "https";
     private static final String INTERNAL_CONF = "internalconf";
@@ -55,7 +55,7 @@ class GetLocationsFromSharedParameters {
 
     private final FileNameProvider fileNameProvider;
 
-    List<ConfigurationLocation> execute(ConfigurationSource source) {
+    List<ConfigurationLocation> get(ConfigurationSource source) {
         List<ConfigurationLocation> locations = new ArrayList<>();
 
         try {

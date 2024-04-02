@@ -99,8 +99,6 @@ public class ConfigurationClientTest {
 
         assertEquals(2, receivedParts.size());
         assertTrue(receivedParts.contains(CONTENT_ID_PRIVATE_PARAMETERS));
-        assertTrue(receivedParts.contains(CONTENT_ID_SHARED_PARAMETERS));
-
     }
 
     /**

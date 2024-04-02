@@ -37,20 +37,24 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
-public class GetLocationFromSharedParametersTest {
+public class SharedParametersConfigurationLocationsTest {
 
     @Test
     public void whenLocationDownloadUrlNotMatchFormatThenNoSharedParametersReturned() {
-        var getLocationsFromSharedParameters = new GetLocationsFromSharedParameters(new FileNameProviderImpl("f"));
+        var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
+                new FileNameProviderImpl("f"));
 
-        assertEquals(0, getLocationsFromSharedParameters.execute(getSource(List.of("http://notMatchFormat"))).size());
+        assertEquals(0,
+                sharedParametersConfigurationLocations.get(getSource(List.of("http://notMatchFormat"))).size());
     }
 
     @Test
     public void getInternalconfLocationsFromSharedParameters() {
-        var getLocationsFromSharedParameters = new GetLocationsFromSharedParameters(new FileNameProviderImpl("src/test/resources/V3"));
+        var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
+                new FileNameProviderImpl("src/test/resources/V3"));
 
-        var locations = getLocationsFromSharedParameters.execute(getSource(List.of("http://domainAddress/internalconf")));
+        var locations = sharedParametersConfigurationLocations.get(
+                getSource(List.of("http://domainAddress/internalconf")));
 
         assertEquals(2, locations.size());
         assertEquals("https://node1/internalconf", locations.get(0).getDownloadURL());
@@ -61,9 +65,11 @@ public class GetLocationFromSharedParametersTest {
 
     @Test
     public void getExtarnalconfLocationsFromSharedParameters() {
-        var getLocationsFromSharedParameters = new GetLocationsFromSharedParameters(new FileNameProviderImpl("src/test/resources/V3"));
+        var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
+                new FileNameProviderImpl("src/test/resources/V3"));
 
-        var locations = getLocationsFromSharedParameters.execute(getSource(List.of("http://domainAddress/externalconf")));
+        var locations = sharedParametersConfigurationLocations.get(
+                getSource(List.of("http://domainAddress/externalconf")));
 
         assertEquals(2, locations.size());
         assertEquals("https://node1/externalconf", locations.get(0).getDownloadURL());
@@ -74,9 +80,11 @@ public class GetLocationFromSharedParametersTest {
 
     @Test
     public void getProxyConfLocationsFromSharedParameters() {
-        var getLocationsFromSharedParameters = new GetLocationsFromSharedParameters(new FileNameProviderImpl("src/test/resources/V3"));
+        var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
+                new FileNameProviderImpl("src/test/resources/V3"));
 
-        var locations = getLocationsFromSharedParameters.execute(getSource(List.of("http://domainAddress/PROXY/conf")));
+        var locations = sharedParametersConfigurationLocations.get(
+                getSource(List.of("http://domainAddress/PROXY/conf")));
 
         assertEquals(2, locations.size());
         assertEquals("https://node1/PROXY/conf", locations.get(0).getDownloadURL());
@@ -87,10 +95,11 @@ public class GetLocationFromSharedParametersTest {
 
     @Test
     public void getManyInternalconfLocationsFromSharedParameters() {
-        var getLocationsFromSharedParameters = new GetLocationsFromSharedParameters(
+        var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
                 new FileNameProviderImpl("src/test/resources/V3-many-nodes"));
 
-        var locations = getLocationsFromSharedParameters.execute(getSource(List.of("http://domainAddress/internalconf")));
+        var locations = sharedParametersConfigurationLocations.get(
+                getSource(List.of("http://domainAddress/internalconf")));
 
         assertEquals(6, locations.size());
         assertTrue(locations.get(0).getDownloadURL().startsWith("https://"));
@@ -103,8 +112,10 @@ public class GetLocationFromSharedParametersTest {
 
     @Test
     public void whenGetLocationsFromVersion2SharedParametersThenNothingReturned() {
-        var getLocationsFromSharedParameters = new GetLocationsFromSharedParameters(new FileNameProviderImpl("src/test/resources/V2"));
+        var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
+                new FileNameProviderImpl("src/test/resources/V2"));
 
-        assertEquals(0, getLocationsFromSharedParameters.execute(getSource(List.of("http://domainAddress/confDir"))).size());
+        assertEquals(0, sharedParametersConfigurationLocations.get(
+                getSource(List.of("http://domainAddress/confDir"))).size());
     }
 }
