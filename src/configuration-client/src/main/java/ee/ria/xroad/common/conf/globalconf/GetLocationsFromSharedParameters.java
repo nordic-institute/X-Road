@@ -68,7 +68,7 @@ class GetLocationsFromSharedParameters {
                             getVerificationCerts(configurationDirectory, confSource)))
                     .collect(Collectors.toList());
         } catch (CertificateEncodingException | DataIntegrityException | IOException e) {
-            log.error("Unable to acquire additional verification certificates for instance " + source.getInstanceIdentifier(), e);
+            log.error("Unable to acquire shared parameters for instance " + source.getInstanceIdentifier(), e);
         }
 
         locations.addAll(locations.stream()
