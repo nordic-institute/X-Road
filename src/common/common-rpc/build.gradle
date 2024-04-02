@@ -15,19 +15,19 @@ sourceSets {
 
 dependencies {
     implementation project(':common:common-core')
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation libs.slf4j.api
 
-    api "io.grpc:grpc-protobuf:$grpcVersion"
-    api "io.grpc:grpc-stub:$grpcVersion"
-    api "io.grpc:grpc-netty-shaded:$grpcVersion"
-    api "com.google.protobuf:protobuf-java-util:$protocVersion"
-    api "jakarta.annotation:jakarta.annotation-api:$jakartaAnnotationsApiVersion"
+    api libs.grpc.protobuf
+    api libs.grpc.stub
+    api libs.grpc.netty.shaded
+    api libs.protobuf.java.util
+    api "jakarta.annotation:jakarta.annotation-api:1.3.5"
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:$protocVersion" }
+    protoc { artifact = "com.google.protobuf:protoc:${libs.versions.protoc.get()}" }
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion" }
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}" }
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }

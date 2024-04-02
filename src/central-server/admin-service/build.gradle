@@ -15,19 +15,14 @@ subprojects {
             ]
         }
 
-        dependencyManagement {
-            imports {
-                mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
-            }
-        }
-
         dependencies {
-            annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
-            annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBinding")
+            annotationProcessor("org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}")
+            annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 
-            implementation "org.mapstruct:mapstruct:$mapStructVersion"
+            implementation platform(libs.spring.cloud.dependencies)
+            implementation "org.mapstruct:mapstruct:${libs.versions.mapstruct.get()}"
 
-            testAnnotationProcessor "org.mapstruct:mapstruct-processor:$mapStructVersion"
+            testAnnotationProcessor "org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}"
         }
 
         bootJar {

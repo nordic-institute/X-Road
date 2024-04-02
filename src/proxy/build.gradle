@@ -12,7 +12,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform(libs.spring.boot.dependencies))
 
     implementation project(':common:common-jetty')
     implementation project(':common:common-message')
@@ -25,8 +25,8 @@ dependencies {
     implementation project(':common:common-op-monitoring')
 
     implementation('org.springframework:spring-context')
-    implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
-    implementation "xerces:xercesImpl:$xercesVersion"
+    implementation libs.jetty.xml
+    implementation libs.xerces.impl
 
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
@@ -34,9 +34,9 @@ dependencies {
 
     testImplementation project(':common:common-test')
 
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
+    testImplementation libs.hsqldb
     testImplementation 'io.rest-assured:rest-assured:5.4.0'
-    testImplementation "wsdl4j:wsdl4j:$wsdl4jVersion"
+    testImplementation libs.wsdl4j
 
     intTestRuntimeOnly project(':signer')
     intTestImplementation project(":common:common-test")

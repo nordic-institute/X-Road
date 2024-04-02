@@ -25,7 +25,7 @@ dependencies {
     implementation project(':monitoring-conf')
     implementation project(':addons:proxymonitor-common')
 
-    implementation "com.google.guava:guava:$guavaVersion"
+    implementation libs.guava
 
     testImplementation project(path: ":proxy", configuration: 'testArtifacts')
     testImplementation project(':common:common-test')

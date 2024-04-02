@@ -7,10 +7,9 @@ subprojects {
             plugin 'com.github.hierynomus.license'
 
         }
-        dependencyManagement {
-            imports {
-                mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-            }
+
+        dependencies {
+            implementation(platform(libs.spring.cloud.dependencies))
         }
 
         bootJar {

@@ -3,16 +3,16 @@ plugins {
 }
 
 dependencies {
-    api "org.hibernate.orm:hibernate-core:$hibernateVersion"
+    api "org.hibernate.orm:hibernate-core:${libs.versions.hibernate.get()}"
 
     implementation project(':common:common-core')
-    implementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
-    implementation "com.zaxxer:HikariCP:$hikariCpVersion"
+    implementation libs.hibernate.hikaricp
+    implementation "com.zaxxer:HikariCP:5.0.1"
 
-    implementation "org.postgresql:postgresql:$postgresqlVersion"
+    implementation libs.postgresql
 
     // DB layer tests use HSQLDB with in-memory tables
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
+    testImplementation libs.hsqldb
     testImplementation project(':common:common-test')
 }
 

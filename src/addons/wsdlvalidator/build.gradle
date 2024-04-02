@@ -14,7 +14,7 @@ jar {
 }
 
 dependencies {
-    implementation "org.apache.cxf:cxf-tools-validator:$cxfVersion"
+    implementation "org.apache.cxf:cxf-tools-validator:3.4.10"
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
 }
 

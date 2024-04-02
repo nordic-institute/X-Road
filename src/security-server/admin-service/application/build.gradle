@@ -1,6 +1,6 @@
 plugins {
-    id 'io.spring.dependency-management'
-    id 'org.springframework.boot'
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.spring.boot)
 }
 
 base {
@@ -18,15 +18,10 @@ configurations.configureEach {
     exclude(module: 'jetty-jakarta-servlet-api')
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
 dependencies {
     dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
 
+    implementation platform(libs.spring.cloud.dependencies)
     implementation project(":common:common-globalconf")
     implementation project(":signer-protocol")
     implementation project(":serverconf")
@@ -42,22 +37,22 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
-    implementation("org.kohsuke:libpam4j:$libpam4jVersion")
-    implementation("org.apache.commons:commons-compress:$commonsCompressVersion")
-    implementation("wsdl4j:wsdl4j:$wsdl4jVersion")
-    implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
-    implementation("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
+    implementation(libs.libpam4j)
+    implementation(libs.commons.compress)
+    implementation(libs.wsdl4j)
+    implementation(libs.bucket4j.core)
+    implementation(libs.swagger.parser.v3)
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-    implementation("jakarta.validation:jakarta.validation-api")
+    implementation(libs.jakarta.validation.api)
     implementation 'ch.qos.logback:logback-access:1.4.14'
 
     testImplementation project(":common:common-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.hsqldb:hsqldb:$hsqldbVersion")
+    testImplementation(libs.hsqldb)
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation(testFixtures(project(":common:common-api-throttling")))
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+    testRuntimeOnly(libs.junit.vintage.engine)
 }
 
 tasks.register('copyUi', ProcessResources) {

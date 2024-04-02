@@ -8,8 +8,8 @@ dependencies {
     implementation project(':common:common-core')
     implementation project(':common:common-verifier')
 
-    compileOnly("jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
+    compileOnly(libs.jakarta.servlet.api)
 
     api("org.springframework.cloud:spring-cloud-starter-openfeign")
-    api("io.github.openfeign:feign-hc5:$openFeignVersion")
+    api(libs.feign.hc5)
 }

@@ -1,15 +1,15 @@
 plugins {
     id 'java-library'
-    id 'org.openapi.generator' version "$openApiGeneratorVersion"
+    alias(libs.plugins.openapi.generator)
     id 'org.niis.xroad.oasvalidatorplugin'
 }
 
 dependencies {
-    compileOnly("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
-    compileOnly("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
+    compileOnly(libs.spring.boot.starter.web)
+    compileOnly(libs.swagger.parser.v3)
 
-    api("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
-    api("jakarta.validation:jakarta.validation-api:$jakartaValidationApiVersion")
+    api(libs.swagger.annotations)
+    api(libs.jakarta.validation.api)
 }
 
 sourceSets {

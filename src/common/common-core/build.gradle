@@ -8,30 +8,30 @@ plugins {
  * This is xroad core library. It should only contain dependencies that are relevant to all xroad modules.
  */
 dependencies {
-    api platform("com.fasterxml.jackson:jackson-bom:$jacksonBomVersion")
+    api platform("com.fasterxml.jackson:jackson-bom:${libs.versions.jackson.get()}")
 
     api "com.fasterxml.jackson.core:jackson-databind"
     api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-    api("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-    api("org.apache.santuario:xmlsec:$xmlsecVersion")
-    api("org.apache.commons:commons-lang3:$commonsLang3Version")
-    api("org.apache.commons:commons-text:$commonsTextVersion")
-    api("org.bouncycastle:bcpkix-jdk18on:$bouncyCastleVersion")
-    api("com.google.guava:guava:$guavaVersion")
-    api("com.fasterxml.jackson.core:jackson-annotations:$jacksonBomVersion")
-    api("commons-io:commons-io:$commonsIOVersion")
-    api("org.apache.commons:commons-configuration2:$commonsConfiguration2Version") {
+    api(libs.jcl.over.slf4j)
+    api("org.apache.santuario:xmlsec:4.0.1")
+    api("org.apache.commons:commons-lang3:3.14.0")
+    api("org.apache.commons:commons-text:1.11.0")
+    api(libs.bouncyCastle.bcpkix)
+    api(libs.guava)
+    api("com.fasterxml.jackson.core:jackson-annotations:${libs.versions.jackson.get()}")
+    api("commons-io:commons-io:2.15.1")
+    api("org.apache.commons:commons-configuration2:2.9.0") {
         exclude group: 'org.apache.commons', module: 'commons-text'
     }
-    api("org.apache.httpcomponents.client5:httpclient5:$httpClient5Version")
+    api("org.apache.httpcomponents.client5:httpclient5:5.3.1")
 
-    api("jakarta.inject:jakarta.inject-api:$jakartaInjectApiVersion")
-    api("jakarta.xml.bind:jakarta.xml.bind-api:$jakartaBindApiVersion")
-    api("jakarta.xml.soap:jakarta.xml.soap-api:$jakartaSoapApiVersion")
-    api("jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
+    api("jakarta.inject:jakarta.inject-api:2.0.1")
+    api("jakarta.xml.bind:jakarta.xml.bind-api:4.0.1")
+    api("jakarta.xml.soap:jakarta.xml.soap-api:3.0.1")
+    api(libs.jakarta.servlet.api)
 
-    implementation "ch.qos.logback:logback-classic:$logbackVersion"
+    implementation libs.logback.classic
 
     testImplementation project(':common:common-test')
 }

@@ -20,18 +20,18 @@ dependencies {
     implementation project(':common:common-verifier')
 
     // DB layer tests use HSQLDB with in-memory tables
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
+    testImplementation libs.hsqldb
     testImplementation project(':common:common-db')
     testImplementation project(':common:common-test')
-    testImplementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
+    testImplementation libs.hibernate.hikaricp
 
     schema project(':common:common-domain')
     schema "org.apache.ant:ant:1.10.14"
-    schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"
-    schema "org.hibernate.tool:hibernate-tools-ant:$hibernateVersion"
+    schema libs.hibernate.hikaricp
+    schema "org.hibernate.tool:hibernate-tools-ant:${libs.versions.hibernate.get()}"
     schema 'commons-collections:commons-collections:3.2.2'
-    schema "ch.qos.logback:logback-classic:${logbackVersion}"
-    schema "org.hsqldb:hsqldb:$hsqldbVersion"
+    schema libs.logback.classic
+    schema libs.hsqldb
 }
 
 tasks.register('schemaExport') {

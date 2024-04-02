@@ -15,14 +15,14 @@ sourceSets {
 
 dependencies {
     api project(':common:common-rpc')
-    implementation "com.google.guava:guava:$guavaVersion"
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation libs.guava
+    implementation libs.slf4j.api
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:$protocVersion" }
+    protoc { artifact = "com.google.protobuf:protoc:${libs.versions.protoc.get()}" }
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion" }
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}" }
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }

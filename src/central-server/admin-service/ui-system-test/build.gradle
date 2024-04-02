@@ -1,15 +1,15 @@
 dependencies {
     intTestImplementation project(":central-server:openapi-model")
     intTestImplementation project(":common:common-int-test")
-    intTestImplementation("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
-    intTestImplementation("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}") {
+    intTestImplementation(libs.test.automation.core)
+    intTestImplementation(libs.test.automation.selenide) {
         exclude group: "org.slf4j", module: "*"
     }
-    intTestImplementation("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
-    intTestImplementation("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
-    intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
-    intTestImplementation("org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}")
-    intTestImplementation("org.awaitility:awaitility:${awaitilityVersion}")
+    intTestImplementation(libs.test.automation.allure)
+    intTestImplementation(libs.test.automation.containers)
+    intTestImplementation(libs.test.automation.feign)
+    intTestImplementation(libs.bouncyCastle.bcpkix)
+    intTestImplementation(libs.awaitility)
 }
 
 task systemTest(type: Test) {

@@ -1,0 +1,92 @@
+[versions]
+metrics = "4.1.26"
+jetty = "12.0.6"
+jaxb = "4.0.4"
+hibernate = "6.4.4.Final"
+mapstruct = "1.5.5.Final"
+jackson = "2.16.1"
+mockito = "5.7.0"
+springBoot = "3.2.3"
+junitJupiter = "5.10.2"
+xmlUnit = "2.9.1"
+bouncyCastle = "1.77"
+slf4j = "2.0.11"
+testAutomationFramework = "0.2.17"
+protoc = "3.24.3"
+grpc = "1.61.1"
+
+[libraries]
+metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
+metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "metrics" }
+
+jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
+jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
+jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
+
+jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
+jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
+
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+
+spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.0" }
+
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
+junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
+
+xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlUnit" }
+xmlunit-matchers = { module = "org.xmlunit:xmlunit-matchers", version.ref = "xmlUnit" }
+xmlunit-assertj3 = { module = "org.xmlunit:xmlunit-assertj3", version.ref = "xmlUnit" }
+
+bouncyCastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle" }
+bouncyCastle-bcpg = { module = "org.bouncycastle:bcpg-jdk18on", version.ref = "bouncyCastle" }
+
+grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
+
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+jcl-over-slf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "slf4j" }
+
+test-automation-core = { module = "com.nortal.test:test-automation-core", version.ref = "testAutomationFramework" }
+test-automation-allure = { module = "com.nortal.test:test-automation-allure", version.ref = "testAutomationFramework" }
+test-automation-containers = { module = "com.nortal.test:test-automation-containers", version.ref = "testAutomationFramework" }
+test-automation-feign = { module = "com.nortal.test:test-automation-feign", version.ref = "testAutomationFramework" }
+test-automation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
+test-automation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
+test-automation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
+
+jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.0.0" }
+
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+assertj-core = { module = "org.assertj:assertj-core", version = "3.24.2" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.5.2" }
+hibernate-hikaricp = { module = "org.hibernate:hibernate-hikaricp", version.ref = "hibernate" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.6.1" }
+hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.1" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.25.0" }
+xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
+feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "12.3" }
+guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.4.14" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.30" }
+swagger-parser-v3 = { module = "io.swagger.parser.v3:swagger-parser-v3", version = "2.1.20" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.17" }
+awaitility = { module = "org.awaitility:awaitility", version = "4.2.1" }
+bucket4j-core = { module = "com.github.vladimir-bukhtoyarov:bucket4j-core", version = "7.4.0" }
+protobuf-java-util = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protoc" }
+libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
+wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
+commons-cli = { module = "commons-cli:commons-cli", version = "1.6.0" }
+commons-compress = { module = "org.apache.commons:commons-compress", version = "1.26.0" }
+
+[bundles]
+metrics = ["metrics-core", "metrics-jmx"]
+jaxb = ["jaxb-runtime", "jaxb-xjc"]
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.4" }
+openapi-generator = { id = "org.openapi.generator", version = "7.1.0" }

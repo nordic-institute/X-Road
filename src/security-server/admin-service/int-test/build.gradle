@@ -12,14 +12,14 @@ dependencies {
     intTestImplementation project(path: ":security-server:admin-service:infra-jpa", configuration: "changelogJar")
     intTestImplementation project(":security-server:openapi-model")
 
-    intTestImplementation("com.nortal.test:test-automation-core:$testAutomationFrameworkVersion")
-    intTestImplementation("com.nortal.test:test-automation-assert:$testAutomationFrameworkVersion")
-    intTestImplementation("com.nortal.test:test-automation-containers:$testAutomationFrameworkVersion")
-    intTestImplementation("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
-    intTestImplementation("com.nortal.test:test-automation-allure:$testAutomationFrameworkVersion")
-    intTestImplementation("org.liquibase:liquibase-core:$liquibaseVersion")
-    intTestImplementation("org.postgresql:postgresql:$postgresqlVersion")
-    intTestImplementation("org.projectlombok:lombok:${lombokVersion}")
+    intTestImplementation(libs.test.automation.core)
+    intTestImplementation(libs.test.automation.assert)
+    intTestImplementation(libs.test.automation.containers)
+    intTestImplementation(libs.test.automation.feign)
+    intTestImplementation(libs.test.automation.allure)
+    intTestImplementation(libs.liquibase.core)
+    intTestImplementation(libs.postgresql)
+    intTestImplementation(libs.lombok)
 }
 
 test {

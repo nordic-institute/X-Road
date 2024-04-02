@@ -15,10 +15,10 @@ plugins {
     id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
-    id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
-    id 'org.springframework.boot' version "${springBootVersion}" apply false
-    id 'com.google.protobuf' version "$protobufGradleVersion" apply false
-    id 'org.siouan.frontend-jdk17' version "$frontendPluginVersion" apply false
+    alias(libs.plugins.spring.dependency.management) apply false
+    alias(libs.plugins.spring.boot) apply false
+    id 'com.google.protobuf' version "0.9.4" apply false
+    id 'org.siouan.frontend-jdk17' version "8.0.0" apply false
 }
 
 sonarqube {
@@ -90,11 +90,6 @@ subprojects {
 
 allprojects {
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-
     version = '1.0'
 
     tasks.register('allDependencies', DependencyReportTask) {}
@@ -133,17 +128,17 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     dependencies {
         //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
 
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-        testImplementation("org.junit.vintage:junit-vintage-engine:$junitJupiterVersion")
+        testImplementation(libs.junit.jupiter.engine)
+        testImplementation(libs.junit.vintage.engine)
 
-        compileOnly "org.projectlombok:lombok:${lombokVersion}"
-        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        compileOnly libs.lombok
+        annotationProcessor libs.lombok
 
-        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        testCompileOnly libs.lombok
+        testAnnotationProcessor libs.lombok
 
-        intTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-        intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        intTestCompileOnly libs.lombok
+        intTestAnnotationProcessor libs.lombok
     }
 
     test {

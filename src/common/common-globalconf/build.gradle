@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform(libs.spring.boot.dependencies))
 
     api project(":common:common-core")
     api project(":common:common-domain")

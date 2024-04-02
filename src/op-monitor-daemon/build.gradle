@@ -16,9 +16,8 @@ sourceSets {
 }
 
 dependencies {
-    implementation "jakarta.validation:jakarta.validation-api:$jakartaValidationApiVersion"
-    implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
-    implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
+    implementation libs.jakarta.validation.api
+    implementation libs.bundles.metrics
 
     implementation project(':common:common-domain')
     implementation project(':common:common-scheduler')
@@ -29,11 +28,10 @@ dependencies {
     implementation project(':monitoring-conf')
 
     // Using HSQLDB for an in-memory database in tests.
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation "commons-cli:commons-cli:$commonsCliVersion"
+    testImplementation libs.hsqldb
+    testImplementation libs.commons.cli
 
-    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
-    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    xjc libs.bundles.jaxb
 }
 
 tasks.register('createDirs') {

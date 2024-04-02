@@ -1,7 +1,15 @@
 pluginManagement {
-  plugins {
-    id 'com.github.johnrengelman.shadow' version "$shadowJarVersion"
-  }
+    plugins {
+        id 'com.github.johnrengelman.shadow' version "$shadowJarVersion"
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
 }
 
 // Common projects

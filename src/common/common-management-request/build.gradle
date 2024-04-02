@@ -9,18 +9,18 @@ dependencies {
     implementation project(":common:common-globalconf")
     implementation project(":signer-protocol")
 
-    implementation("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+    implementation(libs.spring.boot.starter.web)
 
     testImplementation project(":common:common-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+    testImplementation(libs.spring.boot.starter.test)
 
     testFixturesApi project(":common:common-message")
     testFixturesApi project(":common:common-test")
     testFixturesApi project(":signer-protocol")
     testFixturesApi project(":common:common-verifier")
 
-    testFixturesCompileOnly("org.projectlombok:lombok:${lombokVersion}")
-    testFixturesAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+    testFixturesCompileOnly(libs.lombok)
+    testFixturesAnnotationProcessor(libs.lombok)
 }
 
 test {

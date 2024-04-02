@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation "commons-cli:commons-cli:$commonsCliVersion"
+    implementation libs.commons.cli
     implementation 'com.googlecode.clichemaven:cliche:110413'
 
     implementation project(':common:common-domain')
