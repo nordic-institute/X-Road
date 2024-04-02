@@ -50,7 +50,6 @@ import org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -89,11 +88,8 @@ public class AssetAuthorizationManager {
 
         var catalog = getCatalog(serviceId, counterPartyId, providerServerAddress);
         var contractOffer = createContractOffer(serviceId, catalog);
-        String participantId = Optional.ofNullable(catalog.getProperties())
-                .map(x -> x.get("https://w3id.org/edc/v0.0.1/ns/participantId"))
-                .map(String.class::cast)
-                .orElseThrow(() -> new EdcException("Can't resolve participant id"));
-        String negotiationId = initiateNegotiation(providerServerAddress, participantId, contractOffer);
+
+        String negotiationId = initiateNegotiation(providerServerAddress, contractOffer);
 
         CompletableFuture<Void> future = inProgressRegistry.register(negotiationId, clientId, serviceId);
 
@@ -143,11 +139,10 @@ public class AssetAuthorizationManager {
                 .build();
     }
 
-    private String initiateNegotiation(String counterPartyAddress, String participantId, ContractOffer contractOffer) {
+    private String initiateNegotiation(String counterPartyAddress, ContractOffer contractOffer) {
         ContractRequest contractRequest = ContractRequest.Builder.newInstance()
                 .protocol("dataspace-protocol-http")
                 .counterPartyAddress(counterPartyAddress)
-                .providerId(participantId)
                 .contractOffer(contractOffer)
                 .callbackAddresses(List.of(negotiationCallback))
                 .build();

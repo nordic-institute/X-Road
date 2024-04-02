@@ -16,7 +16,8 @@ dependencies {
 
     implementation("org.eclipse.edc:jwt-spi:$edcVersion")
     implementation("org.eclipse.edc:token-spi:$edcVersion")
-    implementation("org.eclipse.edc:crypto-common:$edcVersion")
+    implementation("org.eclipse.edc:crypto-common-lib:$edcVersion")
+    implementation("org.eclipse.edc:http-lib:$edcVersion")
     implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
 
     implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
