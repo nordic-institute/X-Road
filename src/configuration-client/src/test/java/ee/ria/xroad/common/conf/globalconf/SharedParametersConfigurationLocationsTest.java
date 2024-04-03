@@ -26,8 +26,6 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
@@ -36,7 +34,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@ExtendWith(MockitoExtension.class)
 public class SharedParametersConfigurationLocationsTest {
 
     @Test
