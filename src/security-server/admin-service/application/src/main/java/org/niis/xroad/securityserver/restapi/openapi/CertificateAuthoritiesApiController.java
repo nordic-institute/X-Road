@@ -33,6 +33,8 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
@@ -189,9 +191,11 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             + " (#acmeOrder.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
             + " or (hasAuthority('IMPORT_SIGN_CERT') and "
             + "(#acmeOrder.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING))")
+    @AuditEventMethod(event = RestApiAuditEvent.ACME_ORDER_CERTIFICATE)
     public ResponseEntity<Void> orderAcmeCertificate(String caName, AcmeOrder acmeOrder) {
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(acmeOrder.getKeyUsageType()).get();
         try {
-            tokenCertificateService.orderAcmeCertificate(caName, acmeOrder.getCsrId(), acmeOrder.getKeyUsageType());
+            tokenCertificateService.orderAcmeCertificate(caName, acmeOrder.getCsrId(), keyUsageInfo);
         } catch (ClientNotFoundException | CertificateAuthorityNotFoundException | KeyNotFoundException
                  | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);

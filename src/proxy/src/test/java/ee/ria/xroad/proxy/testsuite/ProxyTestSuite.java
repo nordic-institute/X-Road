@@ -30,6 +30,7 @@ import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.proxy.ProxyMain;
+import ee.ria.xroad.proxy.clientproxy.AcmeChallenge;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 
@@ -52,6 +53,7 @@ import java.util.TimerTask;
 import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static java.lang.String.valueOf;
+import static org.mockito.Mockito.mock;
 
 /**
  * Proxy test suite program.
@@ -281,6 +283,11 @@ public final class ProxyTestSuite {
         @Bean(initMethod = "start", destroyMethod = "stop")
         DummySslServerProxy dummySslServerProxy() throws Exception {
             return new DummySslServerProxy();
+        }
+
+        @Bean(initMethod = "start", destroyMethod = "stop")
+        AcmeChallenge acmeChallenge() {
+            return mock(AcmeChallenge.class);
         }
     }
 

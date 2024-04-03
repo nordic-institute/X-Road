@@ -109,6 +109,7 @@
               persistent-hint
               variant="outlined"
               data-test="auth-cert-profile-id-input"
+              class="pt-4"
             />
             <v-text-field
               v-model="signingCertificateProfileId"
@@ -118,6 +119,7 @@
               persistent-hint
               variant="outlined"
               data-test="sign-cert-profile-id-input"
+              class="pt-4"
             />
           </v-sheet>
         </div>

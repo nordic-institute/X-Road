@@ -380,7 +380,8 @@ public final class SignerProxy {
      */
     public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
                                                                KeyUsageInfo keyUsage, String subjectName, String subjectAltName,
-                                                               CertificateRequestFormat format, String certificateProfile) throws Exception {
+                                                               CertificateRequestFormat format, String certificateProfile)
+            throws Exception {
 
         var reqBuilder = GenerateCertRequestReq.newBuilder()
                 .setKeyId(keyId)
@@ -393,7 +394,7 @@ public final class SignerProxy {
         }
 
         if (certificateProfile != null) {
-            reqBuilder.setCertificateProfile(certificateProfile);;
+            reqBuilder.setCertificateProfile(certificateProfile);
         }
 
         ofNullable(memberId)

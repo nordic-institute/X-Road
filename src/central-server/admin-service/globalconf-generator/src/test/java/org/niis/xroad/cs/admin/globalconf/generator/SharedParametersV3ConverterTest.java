@@ -183,7 +183,7 @@ class SharedParametersV3ConverterTest {
         approvedCA.setTopCA(getCaInfo());
         approvedCA.setCertificateProfileInfo("certificateProfileInfo");
         approvedCA.setIntermediateCAs(List.of(getCaInfo()));
-        approvedCA.setAcmeServer(new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7"));
+        approvedCA.setAcmeServer(new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7", "1", "2"));
         return approvedCA;
     }
 

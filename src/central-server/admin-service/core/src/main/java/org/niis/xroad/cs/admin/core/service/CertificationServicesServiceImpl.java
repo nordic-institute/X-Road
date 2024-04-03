@@ -66,7 +66,10 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ACME_DIRECTORY_URL;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ACME_IP_ADDRESSES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTH_CERT_PROFILE_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CA_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERTIFICATE_PROFILE_INFO;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.INTERMEDIATE_CA_CERT_HASH;
@@ -76,6 +79,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_CERT_HASH_ALGORITHM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OCSP_URL;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SIGN_CERT_PROFILE_ID;
 
 @Service
 @Transactional
@@ -247,6 +251,18 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         auditDataHelper.putCertificationServiceData(Integer.toString(approvedCa.getId()), approvedCa.getCaInfo().getCert());
         auditDataHelper.put(AUTHENTICATION_ONLY, approvedCa.getAuthenticationOnly());
         auditDataHelper.put(CERTIFICATE_PROFILE_INFO, approvedCa.getCertProfileInfo());
+        if (approvedCa.getAcmeServerDirectoryUrl() != null) {
+            auditDataHelper.put(ACME_DIRECTORY_URL, approvedCa.getAcmeServerDirectoryUrl());
+        }
+        if (approvedCa.getAcmeServerIpAddress() != null) {
+            auditDataHelper.put(ACME_IP_ADDRESSES, approvedCa.getAcmeServerIpAddress());
+        }
+        if (approvedCa.getAuthCertProfileId() != null) {
+            auditDataHelper.put(AUTH_CERT_PROFILE_ID, approvedCa.getAuthCertProfileId());
+        }
+        if (approvedCa.getSignCertProfileId() != null) {
+            auditDataHelper.put(SIGN_CERT_PROFILE_ID, approvedCa.getSignCertProfileId());
+        }
     }
 
     private void addOcspAuditData(OcspInfoEntity ocspInfo) {

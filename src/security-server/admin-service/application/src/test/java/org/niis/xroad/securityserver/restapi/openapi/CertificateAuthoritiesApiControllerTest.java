@@ -198,8 +198,8 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
-    public void orderAcmeCertificateAuthWithSignPermission() throws Exception {
+    @WithMockUser(authorities = { "IMPORT_SIGN_CERT" })
+    public void orderAcmeCertificateAuthWithSignPermission() {
         caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.SIGNING));
         try {
             caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.AUTHENTICATION));
@@ -209,8 +209,8 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
-    public void orderAcmeCertificateSignWithAuthPermission() throws Exception {
+    @WithMockUser(authorities = { "IMPORT_AUTH_CERT" })
+    public void orderAcmeCertificateSignWithAuthPermission() {
         caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.AUTHENTICATION));
         try {
             caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.SIGNING));

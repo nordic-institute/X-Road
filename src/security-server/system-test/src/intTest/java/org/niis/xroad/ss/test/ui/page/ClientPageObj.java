@@ -198,6 +198,11 @@ public class ClientPageObj {
             return $x("//div[@data-test='dynamic-csr-input_O']");
         }
 
+        public SelenideElement inputSubjectAltName() {
+            return $x("//div[@data-test='dynamic-csr-input_subjectAltName']");
+        }
+
+
         public SelenideElement btnNext() {
             return $x("(//button[@data-test='save-button'])[2]");
         }

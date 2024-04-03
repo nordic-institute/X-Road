@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -45,9 +46,9 @@ import org.shredzone.acme4j.Metadata;
 import org.shredzone.acme4j.Order;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.Status;
+import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;
 import org.shredzone.acme4j.exception.AcmeException;
-import org.shredzone.acme4j.exception.AcmeRetryAfterException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
 
@@ -73,9 +74,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
+import static org.niis.xroad.securityserver.restapi.service.AcmeCustomSchema.XRD_ACME;
 import static org.niis.xroad.securityserver.restapi.service.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE;
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR;
@@ -100,7 +101,6 @@ public final class AcmeService {
 
     @Setter
     private String acmeAccountKeystorePath = SystemProperties.getConfPath() + "ssl/acme.p12";
-    private final String acmeAccountKeystorePassword = "acme";
     private final String acmeChallengePath = SystemProperties.getConfPath() + "acme-challenge/";
 
     private final AcmeProperties acmeProperties;
@@ -111,10 +111,11 @@ public final class AcmeService {
     }
 
     public List<X509Certificate> orderCertificateFromACMEServer(String commonName,
-                                                                       String subjectAltName,
-                                                                       ApprovedCAInfo caInfo,
-                                                                       String memberCode,
-                                                                       byte[] certRequest) {
+                                                                String subjectAltName,
+                                                                KeyUsageInfo keyUsage,
+                                                                ApprovedCAInfo caInfo,
+                                                                String memberCode,
+                                                                byte[] certRequest) {
         KeyPair keyPair;
         try {
             keyPair = getAccountKeyPair(memberCode);
@@ -124,7 +125,7 @@ public final class AcmeService {
 
         Account account;
         try {
-            account = startSession(caInfo, keyPair, memberCode);
+            account = startSession(keyUsage, caInfo, keyPair, memberCode);
         } catch (AcmeException e) {
             throw new AcmeServiceException(ACCOUNT_CREATION_FAILURE, e);
         }
@@ -150,13 +151,12 @@ public final class AcmeService {
 
     private KeyPair getAccountKeyPair(String memberCode) throws GeneralSecurityException, IOException, OperatorCreationException {
         File acmeKeystoreFile = new File(acmeAccountKeystorePath);
-        char[] keystorePassword = acmeAccountKeystorePassword.toCharArray();
         KeyStore keyStore;
         if (acmeKeystoreFile.exists()) {
-            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, keystorePassword);
+            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, null);
         } else {
             keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(null, keystorePassword);
+            keyStore.load(null, null);
         }
         X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberCode);
         KeyPair keyPair;
@@ -179,20 +179,20 @@ public final class AcmeService {
                     memberCode.toCharArray(),
                     certificateChain);
             try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
-                keyStore.store(outputStream, keystorePassword);
+                keyStore.store(outputStream, null);
                 outputStream.flush();
             }
         }
         return keyPair;
     }
 
-    private Account startSession(ApprovedCAInfo caInfo, KeyPair keyPair, String memberCode) throws AcmeException {
+    private Account startSession(KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, KeyPair keyPair, String memberCode) throws AcmeException {
         log.info("Creating session with directory url: {}", caInfo.getAcmeServerDirectoryUrl());
         String acmeUri;
         if (caInfo.getAuthenticationCertificateProfileId() != null) {
             acmeUri = caInfo.getAcmeServerDirectoryUrl().replaceFirst("http", XRD_ACME_PROFILE_ID.getSchema());
         } else {
-            acmeUri = caInfo.getAcmeServerDirectoryUrl();
+            acmeUri = caInfo.getAcmeServerDirectoryUrl().replaceFirst("http", XRD_ACME.getSchema());
         }
         Session session = new Session(acmeUri);
         Metadata metadata = getMetadata(session);
@@ -206,12 +206,22 @@ public final class AcmeService {
                 .ifPresent(accountBuilder::addContact);
         if (metadata.isExternalAccountRequired()) {
             AcmeProperties.Credentials credential = acmeProperties.getEabCredentials(caInfo.getName(), memberCode);
-            String secret = credential.getMacKey();
+            String kid, secret;
+            if (credential.getAuthKid() != null && keyUsage == KeyUsageInfo.AUTHENTICATION) {
+                kid = credential.getAuthKid();
+                secret = credential.getAuthMacKey();
+            } else if (credential.getSignKid() != null && keyUsage == KeyUsageInfo.SIGNING) {
+                kid = credential.getSignKid();
+                secret = credential.getSignMacKey();
+            } else {
+                kid = credential.getKid();
+                secret = credential.getMacKey();
+            }
             if (acmeProperties.isEabMacKeyBase64Encoded(caInfo.getName())) {
                 String secretWithPadding = padBase64(secret);
-                accountBuilder.withKeyIdentifier(credential.getKid(), secretWithPadding);
+                accountBuilder.withKeyIdentifier(kid, secretWithPadding);
             } else {
-                accountBuilder.withKeyIdentifier(credential.getKid(), new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HMAC"));
+                accountBuilder.withKeyIdentifier(kid, new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HMAC"));
             }
             accountBuilder.withMacAlgorithm(AlgorithmIdentifiers.HMAC_SHA256);
         }
@@ -268,7 +278,7 @@ public final class AcmeService {
                 } catch (AcmeException e) {
                     throw new AcmeServiceException(CHALLENGE_TRIGGER_FAILURE, e);
                 }
-                waitForTheChallengeToBeCompleted(auth);
+                waitForTheChallengeToBeCompleted(httpChallenge);
                 try {
                     Files.delete(Path.of(acmeChallenge));
                 } catch (IOException e) {
@@ -280,26 +290,27 @@ public final class AcmeService {
         }
     }
 
-    private static void waitForTheChallengeToBeCompleted(Authorization auth) {
+    private static void waitForTheChallengeToBeCompleted(Challenge challenge) {
         log.debug("Waiting for challenge to be completed");
         int attempts = SystemProperties.getAcmeAuthorizationWaitAttempts();
         long interval = SystemProperties.getAcmeAuthorizationWaitInterval();
-        while (auth.getStatus() != Status.VALID  && attempts-- > 0) {
-            if (auth.getStatus() == Status.INVALID) {
+        while (challenge.getStatus() != Status.VALID  && attempts-- > 0) {
+            if (challenge.getStatus() == Status.INVALID) {
                 throw new AcmeServiceException(AUTHORIZATION_FAILURE);
             }
+            Instant now = Instant.now();
             try {
-                TimeUnit.MILLISECONDS.sleep(interval);
-                auth.update();
-            } catch (AcmeRetryAfterException e) {
-                log.debug("Retrying authorization after {}", e.getRetryAfter());
-                interval = Instant.now().until(e.getRetryAfter(), ChronoUnit.SECONDS);
+                Instant retryAfter = challenge.fetch().orElse(now.plusSeconds(interval));
+                Thread.sleep(now.until(retryAfter, ChronoUnit.MILLIS));
             } catch (AcmeException e) {
-                log.error("Authorization failed", e);
                 throw new AcmeServiceException(AUTHORIZATION_FAILURE, e);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new AcmeServiceException(AUTHORIZATION_WAIT_FAILURE, e);
             }
+        }
+        if (challenge.getStatus() != Status.VALID) {
+            throw new AcmeServiceException(AUTHORIZATION_WAIT_FAILURE);
         }
     }
 
@@ -311,20 +322,20 @@ public final class AcmeService {
             if (order.getStatus() == Status.INVALID) {
                 throw new AcmeServiceException(CERTIFICATE_FAILURE);
             }
+            Instant now = Instant.now();
             try {
-                TimeUnit.MILLISECONDS.sleep(interval);
-                order.update();
-            } catch (AcmeRetryAfterException e) {
-                log.debug("Retrying completing order after {}", e.getRetryAfter());
-                interval = Instant.now().until(e.getRetryAfter(), ChronoUnit.SECONDS);
+                Instant retryAfter = order.fetch().orElse(now.plusSeconds(interval));
+                Thread.sleep(now.until(retryAfter, ChronoUnit.MILLIS));
             } catch (AcmeException e) {
-                log.error("Certificate creation failed", e);
                 throw new AcmeServiceException(CERTIFICATE_FAILURE, e);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new AcmeServiceException(CERTIFICATE_WAIT_FAILURE, e);
             }
         }
-
+        if (order.getStatus() != Status.VALID) {
+            throw new AcmeServiceException(CERTIFICATE_WAIT_FAILURE);
+        }
         return order.getCertificate();
     }
 }

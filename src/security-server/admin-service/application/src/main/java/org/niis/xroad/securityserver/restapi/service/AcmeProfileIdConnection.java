@@ -63,18 +63,22 @@ public class AcmeProfileIdConnection extends DefaultConnection {
     protected int sendSignedRequest(URL url, JSONBuilder claims, Session session,
                                     KeyPair keypair, URL accountLocation, String accept) throws AcmeException {
         if (claims != null && claims.toMap().get("csr") != null) {
-            String csrBase64Encoded = (String) claims.toMap().get("csr");
-            byte[] csrBytes = Base64.getUrlDecoder().decode(csrBase64Encoded);
-            try {
-                PKCS10CertificationRequest csr = new PKCS10CertificationRequest(csrBytes);
-                keyUsage = Optional.ofNullable(csr.getRequestedExtensions())
-                        .map(KeyUsage::fromExtensions)
-                        .orElse(null);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            extractKeyUsageFromCsr(claims);
         }
         return super.sendSignedRequest(url, claims, session, keypair, accountLocation, accept);
+    }
+
+    private void extractKeyUsageFromCsr(JSONBuilder claims) throws AcmeException {
+        String csrBase64Encoded = (String) claims.toMap().get("csr");
+        byte[] csrBytes = Base64.getUrlDecoder().decode(csrBase64Encoded);
+        try {
+            PKCS10CertificationRequest csr = new PKCS10CertificationRequest(csrBytes);
+            keyUsage = Optional.ofNullable(csr.getRequestedExtensions())
+                    .map(KeyUsage::fromExtensions)
+                    .orElse(null);
+        } catch (IOException e) {
+            throw new AcmeException("Error reading csr for key usage information", e);
+        }
     }
 
     @Override
@@ -88,18 +92,7 @@ public class AcmeProfileIdConnection extends DefaultConnection {
         }
 
         if (keyUsage != null) {
-            GlobalConfService globalConfService = SpringApplicationContext.getBean(GlobalConfService.class);
-            Collection<ApprovedCAInfo> approvedCAsForThisInstance = globalConfService.getApprovedCAsForThisInstance();
-            ApprovedCAInfo approvedCA = approvedCAsForThisInstance.stream()
-                    .filter(ca -> isCABeingConnectedTo(session, ca))
-                    .findFirst().orElseThrow();
-            String profileId = "profileID=";
-            if (keyUsage.hasUsages(KeyUsage.nonRepudiation)) {
-                profileId += approvedCA.getSigningCertificateProfileId();
-            } else {
-                profileId += approvedCA.getAuthenticationCertificateProfileId();
-            }
-            profileId += " ";
+            String profileId = buildProfileIdHeader(session);
             builder.setHeader("User-Agent", profileId + XROAD_ACME_USER_AGENT);
         }
 
@@ -111,7 +104,26 @@ public class AcmeProfileIdConnection extends DefaultConnection {
         }
     }
 
+    private String buildProfileIdHeader(Session session) {
+        GlobalConfService globalConfService = SpringApplicationContext.getBean(GlobalConfService.class);
+        Collection<ApprovedCAInfo> approvedCAsForThisInstance = globalConfService.getApprovedCAsForThisInstance();
+        ApprovedCAInfo approvedCA = approvedCAsForThisInstance.stream()
+                .filter(ca -> isCABeingConnectedTo(session, ca))
+                .findFirst().orElseThrow();
+        String profileId = "profileID=";
+        if (keyUsage.hasUsages(KeyUsage.nonRepudiation)) {
+            profileId += approvedCA.getSigningCertificateProfileId();
+        } else {
+            profileId += approvedCA.getAuthenticationCertificateProfileId();
+        }
+        profileId += " ";
+        return profileId;
+    }
+
     private static boolean isCABeingConnectedTo(Session session, ApprovedCAInfo ca) {
+        if (ca.getAcmeServerDirectoryUrl() == null) {
+            return false;
+        }
         String dirUrlHost = URI.create(ca.getAcmeServerDirectoryUrl()).getHost();
         return session.getServerUri().getHost().equals(dirUrlHost);
     }

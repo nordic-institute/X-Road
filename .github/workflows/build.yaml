@@ -210,7 +210,7 @@ jobs:
           path: src/security-server/system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
       - name: Fix system-test build dir permissions
-        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/
+        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
         if: failure()
       - name: Upload SS report
         uses: actions/upload-artifact@v4
@@ -220,6 +220,7 @@ jobs:
           path: |
             src/security-server/system-test/build/allure-report/
             src/security-server/system-test/build/ss-container-logs/
+            src/security-server/system-test/build/ca-container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
   RunE2ETests:
     name: Run E2E tests
