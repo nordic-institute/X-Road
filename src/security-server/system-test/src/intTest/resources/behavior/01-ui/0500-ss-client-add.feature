@@ -20,7 +20,7 @@ Feature: 0500 - SS: Client Add
     And Add Client Token is set as "Token softToken-0"
     And Add Client Sign key label set to "<$label>"
     And Add Client CSR details Certification Service to "X-Road Test CA CN" and CSR format "PEM"
-    And Add Client Generate CSR is set to organization "test-org" and csr is created
+    And Add Client Generate CSR is set to organization "test-org" SAN is set to "ss1" and csr is created
     Then Client "<$client>" with status "<$status>" is present in the list
     Examples:
       | $label           | $client    | $clientIdentifier           | $status    |

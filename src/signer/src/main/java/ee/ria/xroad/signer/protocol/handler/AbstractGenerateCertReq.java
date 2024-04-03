@@ -99,7 +99,9 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
             extGen.addExtension(Extension.keyUsage, false, new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.keyCertSign));
         }
         if (KeyUsageInfo.AUTHENTICATION.equals(keyUsage)) {
-            extGen.addExtension(Extension.keyUsage, false, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.dataEncipherment | KeyUsage.keyEncipherment));
+            extGen.addExtension(Extension.keyUsage,
+                    false,
+                    new KeyUsage(KeyUsage.digitalSignature | KeyUsage.dataEncipherment | KeyUsage.keyEncipherment));
         }
         if (!extGen.isEmpty()) {
             certRequestBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());

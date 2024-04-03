@@ -34,6 +34,7 @@ public class SpringApplicationContext implements ApplicationContextAware {
 
     private static ApplicationContext applicationContext;
 
+    @SuppressWarnings("java:S2696")
     public void setApplicationContext(ApplicationContext applicationContext) {
         SpringApplicationContext.applicationContext = applicationContext;
     }

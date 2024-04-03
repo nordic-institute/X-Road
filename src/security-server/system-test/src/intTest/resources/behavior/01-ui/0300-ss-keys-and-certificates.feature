@@ -15,7 +15,8 @@ Feature: 0300 - SS: Keys and certificates
     When Token: <$token> - Add key wizard is opened
     And Key Label is set to "<$label>"
     And CSR details Usage is set to "<$usage>", Client set to "<$client>", Certification Service to "<$certService>" and CSR format "PEM"
-    And Generate "<$usage>" CSR is set to DNS "<$dns>", Organization "ui-test" and CSR with extension "pem" successfully generated
+    And Generate "<$usage>" CSR is set to DNS "<$dns>" and Organization "ui-test"
+    And CSR with extension "pem" successfully generated
     And Token: <$token> - has key with label "<$label>"
     Then CSR is processed by test CA
     And Token: <$token> - Generated certificate is imported
@@ -37,7 +38,8 @@ Feature: 0300 - SS: Keys and certificates
     When Token: <$token> - Add key wizard is opened
     And Key Label is set to "<$label>"
     And CSR details Usage is set to "<$usage>", Client set to "<$client>", Certification Service to "<$certService>" and CSR format "PEM"
-    And Generate "<$usage>" CSR is set to DNS "<$dns>", Organization "ui-test" and CSR with extension "pem" successfully generated
+    And Generate "<$usage>" CSR is set to DNS "<$dns>" and Organization "ui-test"
+    And CSR with extension "pem" successfully generated
     And Token: <$token> - has <$authKeyAmount> auth keys, <$signKeyAmount> sign keys
     Examples:
       | $token      | $usage         | $label | $client          | $dns | $certService      | $authKeyAmount | $signKeyAmount |
@@ -69,7 +71,8 @@ Feature: 0300 - SS: Keys and certificates
     When Token: softToken-0 - Add key wizard is opened
     And Key Label is set to "key for multiple csr"
     And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "X-Road Test CA CN" and CSR format "PEM"
-    And Generate "AUTHENTICATION" CSR is set to DNS "ss1", Organization "ui-test" and CSR with extension "pem" successfully generated
+    And Generate "AUTHENTICATION" CSR is set to DNS "ss1" and Organization "ui-test"
+    And CSR with extension "pem" successfully generated
     And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
     And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
     And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"

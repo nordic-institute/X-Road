@@ -56,8 +56,8 @@ public class AcmeProperties {
     @Setter
     public static class CA {
 
-        Map<String, Credentials> members;
         boolean isMacKeyBase64Encoded;
+        Map<String, Credentials> members;
     }
 
     @Getter
@@ -66,6 +66,10 @@ public class AcmeProperties {
 
         private String kid;
         private String macKey;
+        private String authKid;
+        private String authMacKey;
+        private String signKid;
+        private String signMacKey;
     }
 
     public AcmeProperties.Credentials getEabCredentials(String caName, String memberCode) {

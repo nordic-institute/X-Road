@@ -92,9 +92,10 @@ public class ClientAddStepDefs extends BaseUiStepDefs {
     }
 
     @SneakyThrows
-    @Step("Add Client Generate CSR is set to organization {string} and csr is created")
-    public void wizardGenerateCsr(String org) {
+    @Step("Add Client Generate CSR is set to organization {string} SAN is set to {string} and csr is created")
+    public void wizardGenerateCsr(String org, String san) {
         vTextField(clientPageObj.addClientGenerateCsr.inputOrganizationName()).setValue(org);
+        vTextField(clientPageObj.addClientGenerateCsr.inputSubjectAltName()).setValue(san);
         clientPageObj.addClientGenerateCsr.btnNext().click();
 
         File file = clientPageObj.addClientFinish.submitButton().download();

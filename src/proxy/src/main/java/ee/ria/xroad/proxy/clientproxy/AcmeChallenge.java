@@ -97,7 +97,7 @@ public class AcmeChallenge implements StartStop {
         connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
         applyConnectionFactoryConfig(connector);
         server.addConnector(connector);
-        log.info("Client HTTP connector created ({}:{})", hostname, port);
+        log.info("ACME Client HTTP connector created ({}:{})", hostname, port);
     }
 
     private void applyConnectionFactoryConfig(ServerConnector connector) {

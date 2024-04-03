@@ -249,6 +249,7 @@ Content-Type: application/json
       "CN": "{{ss0_host}}",
       "C": "FI",
       "O": "Test member",
+      "subjectAltName": "{{ss0_host}}",
       "serialNumber": "DEV/SS0/COM"
     }
   }
@@ -315,9 +316,10 @@ Content-Type: application/json
     "csr_format": "DER",
     "member_id": "DEV:COM:1234",
     "subject_field_values": {
-      "CN": "{{ss0_host}}",
+      "CN": "1234",
       "C": "FI",
       "O": "Test member",
+      "subjectAltName": "{{ss0_host}}",
       "serialNumber": "DEV/SS0/COM"
     }
   }
@@ -580,6 +582,7 @@ Content-Type: application/json
       "CN": "{{ss1_host}}",
       "C": "FI",
       "O": "Test client",
+      "subjectAltName": "{{ss1_host}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
@@ -646,9 +649,10 @@ Content-Type: application/json
     "csr_format": "DER",
     "member_id": "DEV:COM:4321",
     "subject_field_values": {
-      "CN": "{{ss1_host}}",
+      "CN": "4321",
       "C": "FI",
       "O": "Test client",
+      "subjectAltName": "{{ss1_host}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
