@@ -50,7 +50,6 @@ import org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -88,12 +87,9 @@ public class AssetAuthorizationManager {
         var providerServerAddress = requestDto.getCounterPartyAddress();
 
         var catalog = getCatalog(serviceId, counterPartyId, providerServerAddress);
-        var contractOffer = createContractOffer(serviceId, catalog);
-        String participantId = Optional.ofNullable(catalog.getProperties())
-                .map(x -> x.get("https://w3id.org/edc/v0.0.1/ns/participantId"))
-                .map(String.class::cast)
-                .orElseThrow(() -> new EdcException("Can't resolve participant id"));
-        String negotiationId = initiateNegotiation(providerServerAddress, participantId, contractOffer);
+        var contractOffer = createContractOffer(serviceId, counterPartyId, catalog);
+
+        String negotiationId = initiateNegotiation(providerServerAddress, contractOffer);
 
         CompletableFuture<Void> future = inProgressRegistry.register(negotiationId, clientId, serviceId);
 
@@ -120,7 +116,7 @@ public class AssetAuthorizationManager {
         }
     }
 
-    private ContractOffer createContractOffer(String assetId, Catalog catalog) {
+    private ContractOffer createContractOffer(String assetId, String counterPartyId, Catalog catalog) {
         if (catalog.getDatasets() == null) {
             throw new EdcException("Failed to get datasets from catalog");
         }
@@ -131,7 +127,10 @@ public class AssetAuthorizationManager {
                 .flatMap(entry -> entry)
                 .map(entry -> ContractOffer.Builder.newInstance()
                         .id(entry.getKey())
-                        .policy(entry.getValue())
+                        .policy(entry.getValue().toBuilder()
+                                .assigner(counterPartyId)
+                                .target(assetId)
+                                .build())
                         .assetId(assetId)
                         .build())
                 .orElseThrow(() -> new EdcException("Failed to get contract offer"));
@@ -143,11 +142,11 @@ public class AssetAuthorizationManager {
                 .build();
     }
 
-    private String initiateNegotiation(String counterPartyAddress, String participantId, ContractOffer contractOffer) {
+    private String initiateNegotiation(String counterPartyAddress, ContractOffer contractOffer) {
         ContractRequest contractRequest = ContractRequest.Builder.newInstance()
                 .protocol("dataspace-protocol-http")
+
                 .counterPartyAddress(counterPartyAddress)
-                .providerId(participantId)
                 .contractOffer(contractOffer)
                 .callbackAddresses(List.of(negotiationCallback))
                 .build();

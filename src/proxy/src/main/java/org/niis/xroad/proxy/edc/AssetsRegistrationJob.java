@@ -44,7 +44,6 @@ import org.eclipse.edc.connector.api.management.contractdefinition.ContractDefin
 import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.types.domain.asset.Asset;
 import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
 import org.springframework.context.annotation.Conditional;
@@ -70,6 +69,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
@@ -108,7 +108,7 @@ public class AssetsRegistrationJob {
         // todo: recheck
         try {
             log.info("Creating dataplane");
-            dataplaneSelectorApi.addEntry(createObjectBuilder()
+            dataplaneSelectorApi.addDataPlaneInstance(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, DATAPLANE_INSTANCE_TYPE)
                     .add(ID, providerDataplaneId)
@@ -155,8 +155,8 @@ public class AssetsRegistrationJob {
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, EDC_POLICY_DEFINITION_TYPE)
                     .add(ID, allAllowedPolicyId)
-                    .add(EDC_POLICY_DEFINITION_POLICY, createObjectBuilder()
-                            .add("type", PolicyType.SET.getType()))
+                    .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder()
+                            .add(createObjectBuilder().add(TYPE, createArrayBuilder().add(ODRL_POLICY_TYPE_SET))))
                     .build());
             log.info("Policy definition {} created. Api response: {}", allAllowedPolicyId, createPolicyDefitinionResponse);
         }

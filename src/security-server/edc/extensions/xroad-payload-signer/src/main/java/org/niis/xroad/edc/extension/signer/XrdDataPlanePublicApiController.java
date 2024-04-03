@@ -41,6 +41,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
+import org.eclipse.edc.connector.dataplane.api.controller.DataFlowRequestSupplier;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApi;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
@@ -69,7 +70,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
 
     private final PipelineService pipelineService;
     private final DataAddressResolver dataAddressResolver;
-    private final XrdDataFlowRequestSupplier requestSupplier;
+    private final DataFlowRequestSupplier requestSupplier;
     private final XrdEdcSignService signService;
     private final Monitor monitor;
     private final ExecutorService executorService;
@@ -82,7 +83,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         this.signService = xrdEdcSignService;
         this.monitor = monitor;
         this.executorService = executorService;
-        this.requestSupplier = new XrdDataFlowRequestSupplier();
+        this.requestSupplier = new DataFlowRequestSupplier();
     }
 
     @GET

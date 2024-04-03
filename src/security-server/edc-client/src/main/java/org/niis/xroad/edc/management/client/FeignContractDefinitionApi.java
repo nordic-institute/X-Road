@@ -42,7 +42,7 @@ public interface FeignContractDefinitionApi extends ContractDefinitionApi {
     @POST
     @Path("/request")
     @Override
-    JsonArray queryAllContractDefinitions(JsonObject querySpecJson);
+    JsonArray queryContractDefinitions(JsonObject querySpecJson);
 
     @GET
     @Path("{id}")

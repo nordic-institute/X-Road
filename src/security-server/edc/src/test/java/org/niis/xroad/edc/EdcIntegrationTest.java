@@ -45,15 +45,24 @@ class EdcIntegrationTest {
         System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
 
         var resourcesDir = new File("src/main/resources").getAbsolutePath();
-        extension.setConfiguration(Map.of(
-                "fs.config", "%s/configuration/provider-configuration.properties".formatted(resourcesDir),
-                "edc.vault", "%s/configuration/provider-vault.properties".formatted(resourcesDir),
-                "edc.keystore", "%s/certs/cert.pfx".formatted(resourcesDir),
-                "edc.keystore.password", "123456",
-                "edc.receiver.http.endpoint", "http://localhost:4000/asset-authorization-callback",
-                "edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token",
-                //edc somehow fails if no property is found
-                "web.http.xroad.public.port", TestPortUtils.findRandomPort().toString()
+        extension.setConfiguration(Map.ofEntries(
+                Map.entry("fs.config", "%s/configuration/provider-configuration.properties".formatted(resourcesDir)),
+                Map.entry("edc.vault", "%s/configuration/provider-vault.properties".formatted(resourcesDir)),
+                Map.entry("edc.keystore", "%s/certs/cert.pfx".formatted(resourcesDir)),
+                Map.entry("edc.keystore.password", "123456"),
+                Map.entry("edc.receiver.http.endpoint", "http://localhost:4000/asset-authorization-callback"),
+                Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"),
+                Map.entry("edc.iam.issuer.id", "did:web:localhost"),
+                Map.entry("edc.participant.id", "did:web:localhost"),
+                Map.entry("edc.iam.trusted-issuer.localhost.id", "did:web:localhost"),
+                Map.entry("edc.ih.iam.id", "did:web:localhost"),
+                Map.entry("edc.ih.iam.publickey.alias", "did:web:localhost"),
+                Map.entry("web.http.resolution.path", "/resolution"),
+                Map.entry("web.http.resolution.port", TestPortUtils.findRandomPort().toString()),
+                Map.entry("web.http.port", TestPortUtils.findRandomPort().toString()),
+                Map.entry("web.http.path", "/api"),
+                // edc somehow fails if no property is found
+                Map.entry("web.http.xroad.public.port", TestPortUtils.findRandomPort().toString())
         ));
     }
 

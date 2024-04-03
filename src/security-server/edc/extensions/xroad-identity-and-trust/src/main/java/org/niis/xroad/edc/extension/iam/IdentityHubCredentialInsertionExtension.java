@@ -27,8 +27,10 @@
 package org.niis.xroad.edc.extension.iam;
 
 import lombok.SneakyThrows;
+import org.eclipse.edc.boot.BootServicesExtension;
 import org.eclipse.edc.identityhub.spi.ParticipantContextService;
 import org.eclipse.edc.identityhub.spi.model.KeyPairResource;
+import org.eclipse.edc.identityhub.spi.model.KeyPairState;
 import org.eclipse.edc.identityhub.spi.model.VcState;
 import org.eclipse.edc.identityhub.spi.model.VerifiableCredentialResource;
 import org.eclipse.edc.identityhub.spi.model.participant.KeyDescriptor;
@@ -49,7 +51,7 @@ import java.time.Instant;
 import java.util.Map;
 
 import static org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY;
-import static org.eclipse.edc.spi.system.ServiceExtensionContext.PARTICIPANT_ID;
+import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.CREDENTIAL_FORMAT;
 import static org.niis.xroad.edc.extension.iam.IdentityHubCredentialInsertionExtension.NAME;
 
 /**
@@ -103,7 +105,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
                 "did:web:did-server:ss1", "{\"type\":\"VerifiableCredential\",\"id\":\"did:web:did-server:ss1\",\"issuer\":\"did:web:did-server:ss1\",\"issuanceDate\":\"2024-03-15T14:20:56.969Z\",\"credentialSubject\":{\"https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#clientId\":\"did:web:did-server:ss1\",\"id\":\"did:web:did-server:ss1\"},\"sec:proof\":{\"type\":\"JsonWebSignature2020\",\"created\":\"2024-03-19T13:47:22.933834Z\",\"proofPurpose\":\"assertionMethod\",\"verificationMethod\":{\"type\":\"JsonWebKey2020\",\"publicKeyJwk\":{\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"wpqoS8gue7JxYsWyzQMjeLK0q4FWyRLiP1UQCbbJaqhDZ_jUl_2UgzHeTyYNyeFJCRS_NCAuWe3hG-RUvKDeF6o1eVlpoVX0MRrNwggo465y9YlON-z7yXUGQvblmJDEbBEoYV51JHISFCTB4_tHdwSBg6zPHzxW4KMdQOdHnG0kuipettlCdvwf21LCs9TYK7H8_Gj30VilSJO4bBegtg75JjgDDipwE_duK1gRCwFfx1JmRq22CU8EpxoIXoRQfnzjUCG2VJJYeeJMW8iDvTp2SQ3JK4HJdMicmB_9jJPRs1ONEumjCwRF4IgtX5rnIePbOwF6gtISzQG4_WB0Aw\"},\"id\":\"did:web:did-server:ss1\"},\"jws\":\"eyJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdLCJhbGciOiJSUzUxMiJ9..VJIwwRWjO6RWHyvFghBE7qn3F6nwml7XPhez4uscnKJPn94jOkPb01eztTImrDA8443qqnFCGl4fdgw3W7Mx4EuRiSGfKTNhrrT7cNAORt5AtRtof75yg9gQbqYxmAjYP7aIttXT7i09u3ViHtYzaNJpQd5hF7EF0qLbAEChzUlLIZWkPOg-tjOG2hTuJ8-HQYH4A6TzG3smiCVcfSqHiuP5ljghdvkH9_k270FLwX01OpzHGTIWsLlue2DcNovtvJmYqK4TiEIzgj24dSeYfYEUL1BFISidfgmRzDWuf0wl2f9tEfz1H5Y7D11WcLfuYzPz5BlIyH6KvEgLv8z0qQ\"},\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://w3id.org/security/suites/jws-2020/v1\",\"https://www.w3.org/ns/did/v1\"]}"
         );
 
-        String participantId = context.getConfig().getString(PARTICIPANT_ID);
+        String participantId = context.getConfig().getString(BootServicesExtension.PARTICIPANT_ID);
         var manifest = ParticipantManifest.Builder.newInstance()
                 .participantId(participantId)
                 .did(participantId)
@@ -118,7 +120,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         var verifiableCredential = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(CredentialSubject.Builder.newInstance().id("test-subject").claim("test-key", "test-val").build())
                 .issuanceDate(Instant.now())
-                .type("VerifiableCredential")
+                .type(CREDENTIAL_FORMAT)
                 .issuer(new Issuer(connectorDid, Map.of()))
                 .id(connectorDid)
                 .build();
@@ -140,6 +142,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
                 .isDefaultPair(true)
                 .participantId(participantId)
                 .serializedPublicKey(participantPubKeyMap.get(participantId))
+                .state(KeyPairState.ACTIVE)
                 .build();
         keyPairResourceStore.create(keyPairResource);
     }
