@@ -31,9 +31,11 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.core.transform.transformer.odrl.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -47,6 +49,10 @@ import org.niis.xroad.edc.extension.edr.service.AssetInProgressRegistry;
 import org.niis.xroad.edc.extension.edr.service.AuthorizedAssetRegistry;
 import org.niis.xroad.edc.extension.edr.service.InMemoryAuthorizedAssetRegistry;
 import org.niis.xroad.edc.extension.edr.transform.JsonObjectFromEndpointDataReferenceTransformer;
+import org.niis.xroad.edc.extension.edr.transform.JsonObjectToCatalogTransformer;
+import org.niis.xroad.edc.extension.edr.transform.JsonObjectToDataServiceTransformer;
+import org.niis.xroad.edc.extension.edr.transform.JsonObjectToDatasetTransformer;
+import org.niis.xroad.edc.extension.edr.transform.JsonObjectToDistributionTransformer;
 import org.niis.xroad.edc.extension.edr.transform.JsonObjectToNegotiateAssetRequestDtoTransformer;
 
 import static org.niis.xroad.edc.spi.XrdConstants.XRD_NAMESPACE;
@@ -72,6 +78,9 @@ public class XrdEdrExtension implements ServiceExtension {
     @Inject
     private TransferProcessService transferProcessService;
     @Inject
+    private ParticipantIdMapper participantIdMapper;
+
+    @Inject
     private Monitor monitor;
 
     @Inject
@@ -82,6 +91,11 @@ public class XrdEdrExtension implements ServiceExtension {
         jsonLdService.registerNamespace(XRD_PREFIX, XRD_NAMESPACE);
         transformerRegistry.register(new JsonObjectToNegotiateAssetRequestDtoTransformer());
         transformerRegistry.register(new JsonObjectFromEndpointDataReferenceTransformer());
+        transformerRegistry.register(new JsonObjectToCatalogTransformer());
+        transformerRegistry.register(new JsonObjectToDataServiceTransformer());
+        transformerRegistry.register(new JsonObjectToDatasetTransformer());
+        transformerRegistry.register(new JsonObjectToDistributionTransformer());
+        transformerRegistry.register(new JsonObjectToPolicyTransformer(participantIdMapper));
 
         AssetInProgressRegistry inProgressRegistry = new AssetInProgressRegistry();
         AuthorizedAssetRegistry authorizedAssetRegistry = new InMemoryAuthorizedAssetRegistry(monitor);

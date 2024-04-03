@@ -87,7 +87,7 @@ public class AssetAuthorizationManager {
         var providerServerAddress = requestDto.getCounterPartyAddress();
 
         var catalog = getCatalog(serviceId, counterPartyId, providerServerAddress);
-        var contractOffer = createContractOffer(serviceId, catalog);
+        var contractOffer = createContractOffer(serviceId, counterPartyId, catalog);
 
         String negotiationId = initiateNegotiation(providerServerAddress, contractOffer);
 
@@ -116,7 +116,7 @@ public class AssetAuthorizationManager {
         }
     }
 
-    private ContractOffer createContractOffer(String assetId, Catalog catalog) {
+    private ContractOffer createContractOffer(String assetId, String counterPartyId, Catalog catalog) {
         if (catalog.getDatasets() == null) {
             throw new EdcException("Failed to get datasets from catalog");
         }
@@ -127,7 +127,10 @@ public class AssetAuthorizationManager {
                 .flatMap(entry -> entry)
                 .map(entry -> ContractOffer.Builder.newInstance()
                         .id(entry.getKey())
-                        .policy(entry.getValue())
+                        .policy(entry.getValue().toBuilder()
+                                .assigner(counterPartyId)
+                                .target(assetId)
+                                .build())
                         .assetId(assetId)
                         .build())
                 .orElseThrow(() -> new EdcException("Failed to get contract offer"));
@@ -142,6 +145,7 @@ public class AssetAuthorizationManager {
     private String initiateNegotiation(String counterPartyAddress, ContractOffer contractOffer) {
         ContractRequest contractRequest = ContractRequest.Builder.newInstance()
                 .protocol("dataspace-protocol-http")
+
                 .counterPartyAddress(counterPartyAddress)
                 .contractOffer(contractOffer)
                 .callbackAddresses(List.of(negotiationCallback))

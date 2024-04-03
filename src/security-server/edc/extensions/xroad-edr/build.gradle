@@ -9,6 +9,7 @@ dependencies {
     implementation("org.eclipse.edc:web-spi:$edcVersion")
     implementation("org.eclipse.edc:json-ld:$edcVersion")
     implementation("org.eclipse.edc:json-ld-lib:$edcVersion")
+    implementation("org.eclipse.edc:transform-core:$edcVersion")
 
     implementation(project(":security-server:edc:spi:xroad-core-spi"))
 

@@ -36,6 +36,13 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
   pending                    BOOLEAN  DEFAULT FALSE,
   transfer_type              VARCHAR,
   protocol_messages          JSON,
+  data_plane_id              VARCHAR,
+  correlation_id             VARCHAR,
+  counter_party_address      VARCHAR,
+  protocol                   VARCHAR,
+  asset_id                   VARCHAR,
+  contract_id                VARCHAR,
+  data_destination           JSON,
   lease_id                   VARCHAR
   CONSTRAINT transfer_process_lease_lease_id_fk
   REFERENCES edc_lease
