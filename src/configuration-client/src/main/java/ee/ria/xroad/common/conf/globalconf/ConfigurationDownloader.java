@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -106,9 +107,9 @@ class ConfigurationDownloader {
     }
 
     DownloadResult downloadFromAnchor(ConfigurationSource source) {
-        var cachedLocation = findLocationWithPreviousSuccess(source);
+        var cachedLocation = successfulLocations.get(source.getInstanceIdentifier());
         if (cachedLocation != null) {
-            var cachedDownloadResult = downloadResult(List.of(cachedLocation));
+            var cachedDownloadResult = downloadResult(source.getInstanceIdentifier(), List.of(cachedLocation));
             if (cachedDownloadResult.isSuccess()) {
                 log.debug("downloaded from anchor -> cachedLocation = " + cachedLocation);
                 return cachedDownloadResult;
@@ -122,55 +123,61 @@ class ConfigurationDownloader {
         locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
         locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
 
-        return downloadResult(locations);
+        return downloadResult(source.getInstanceIdentifier(), locations);
     }
 
     DownloadResult downloadFromAdditionalSource(ConfigurationSource source, String... contentIdentifiers) {
-        var cachedLocation = findLocationWithPreviousSuccess(source);
-        if (cachedLocation != null) {
-            var cachedDownloadResult = downloadResult(List.of(cachedLocation));
-            if (cachedDownloadResult.isSuccess()) {
-                log.debug("downloaded from additionalSource -> cachedLocation = " + cachedLocation);
-                return cachedDownloadResult;
-            }
-        }
-
         log.debug("downloadFromAdditionalSource with contentIdentifiers: {}", (Object) contentIdentifiers);
-        List<ConfigurationLocation> locations = new ArrayList<>(
-                ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
 
-        return downloadResult(locations, contentIdentifiers);
+        List<ConfigurationLocation> locations = new ArrayList<>();
+        Optional<String> prevCachedKey = findLocationWithPreviousSuccess(source.getLocations())
+                .map(locationWithPreviousSuccess -> {
+                    locations.add(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
+                    log.debug("Previously cached key: " + locationWithPreviousSuccess.getDownloadURL());
+                    return locationWithPreviousSuccess.getDownloadURL();
+                });
+        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
+
+        return downloadResult(prevCachedKey.orElse(null), locations, contentIdentifiers);
     }
 
-    private DownloadResult downloadResult(List<ConfigurationLocation> locations, String... contentIdentifiers) {
+    private DownloadResult downloadResult(String initCacheKey, List<ConfigurationLocation> locations, String... contentIdentifiers) {
         DownloadResult result = new DownloadResult();
         for (ConfigurationLocation location : locations) {
+            String cacheKey = initCacheKey != null ? initCacheKey : location.getDownloadURL();
+
             try {
                 location = toVersionedLocation(location);
                 Configuration config = download(location, contentIdentifiers);
-                rememberLastSuccessfulLocation(location);
+                rememberLastSuccessfulLocation(cacheKey, location);
                 return result.success(config);
             } catch (SSLHandshakeException e) {
                 log.warn("The Security Server can't download Global Configuration over HTTPS. Because " + e);
-                successfulLocations.remove(location.getInstanceIdentifier());
+                successfulLocations.remove(cacheKey);
                 result.addFailure(location, e);
             } catch (Exception e) {
                 log.warn("Unable to download Global Configuration. Because " + e);
-                successfulLocations.remove(location.getInstanceIdentifier());
+                successfulLocations.remove(cacheKey);
                 result.addFailure(location, e);
             }
         }
         return result.failure();
     }
 
-    private ConfigurationLocation findLocationWithPreviousSuccess(ConfigurationSource source) {
-        return successfulLocations.get(source.getInstanceIdentifier());
+    private Optional<ConfigurationLocation> findLocationWithPreviousSuccess(List<ConfigurationLocation> locations) {
+        for (ConfigurationLocation location : locations) {
+            ConfigurationLocation successfulLocation = successfulLocations.get(location.getDownloadURL());
+            if (successfulLocation != null) {
+                log.trace("Found location={} which corresponds to previously successful location={}", location, successfulLocation);
+                return Optional.of(location);
+            }
+        }
+        return Optional.empty();
     }
 
-    private void rememberLastSuccessfulLocation(ConfigurationLocation location) {
-        log.debug("rememberLastSuccessfulLocation instance = {} location = {}",
-                location.getInstanceIdentifier(), location);
-        successfulLocations.put(location.getInstanceIdentifier(), location);
+    private void rememberLastSuccessfulLocation(String cacheKey, ConfigurationLocation location) {
+        log.trace("rememberLastSuccessfulLocation cache key = {} location = {}", cacheKey, location);
+        successfulLocations.put(cacheKey, location);
     }
 
     Configuration download(ConfigurationLocation location, String[] contentIdentifiers) throws Exception {
