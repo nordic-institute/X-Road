@@ -28,7 +28,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation('io.micrometer:micrometer-tracing-bridge-brave')
     implementation(libs.libpam4j)
-    implementation(libs.swagger.parser.v3)
+    implementation(libs.swagger.parserV3)
     implementation(libs.swagger.annotations)
 
     testImplementation project(':common:common-test')

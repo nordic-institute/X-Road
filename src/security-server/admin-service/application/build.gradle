@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.wsdl4j)
     implementation(libs.bucket4j.core)
-    implementation(libs.swagger.parser.v3)
+    implementation(libs.swagger.parserV3)
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation(libs.jakarta.validationApi)
     implementation 'ch.qos.logback:logback-access:1.4.14'

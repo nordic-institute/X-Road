@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    compileOnly(libs.springBoot.starter.web)
-    compileOnly(libs.swagger.parser.v3)
+    compileOnly(libs.springBoot.starterWeb)
+    compileOnly(libs.swagger.parserV3)
 
     api(libs.swagger.annotations)
     api(libs.jakarta.validationApi)

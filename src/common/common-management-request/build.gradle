@@ -9,10 +9,10 @@ dependencies {
     implementation project(":common:common-globalconf")
     implementation project(":signer-protocol")
 
-    implementation(libs.springBoot.starter.web)
+    implementation(libs.springBoot.starterWeb)
 
     testImplementation project(":common:common-test")
-    testImplementation(libs.springBoot.starter.test)
+    testImplementation(libs.springBoot.starterTest)
 
     testFixturesApi project(":common:common-message")
     testFixturesApi project(":common:common-test")

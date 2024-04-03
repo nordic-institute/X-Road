@@ -8,18 +8,18 @@ plugins {
  * This is xroad core library. It should only contain dependencies that are relevant to all xroad modules.
  */
 dependencies {
-    api platform("com.fasterxml.jackson:jackson-bom:${libs.versions.jackson.get()}")
+    api platform(libs.jackson.bom)
 
     api "com.fasterxml.jackson.core:jackson-databind"
     api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-    api(libs.jcl.over.slf4j)
+    api(libs.jclOverSlf4j)
     api("org.apache.santuario:xmlsec:4.0.1")
     api("org.apache.commons:commons-lang3:3.14.0")
     api("org.apache.commons:commons-text:1.11.0")
     api(libs.bouncyCastle.bcpkix)
     api(libs.guava)
-    api("com.fasterxml.jackson.core:jackson-annotations:${libs.versions.jackson.get()}")
+    api(libs.jackson.annotations)
     api("commons-io:commons-io:2.15.1")
     api("org.apache.commons:commons-configuration2:2.9.0") {
         exclude group: 'org.apache.commons', module: 'commons-text'

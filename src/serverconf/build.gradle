@@ -28,7 +28,7 @@ dependencies {
     schema project(':common:common-domain')
     schema "org.apache.ant:ant:1.10.14"
     schema libs.hibernate.hikaricp
-    schema "org.hibernate.tool:hibernate-tools-ant:${libs.versions.hibernate.get()}"
+    schema libs.hibernate.toolsAnt
     schema 'commons-collections:commons-collections:3.2.2'
     schema libs.logback.classic
     schema libs.hsqldb

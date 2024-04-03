@@ -11,7 +11,7 @@ dependencies {
 
     implementation(libs.slf4j.api)
 
-    testFixturesImplementation(libs.springBoot.starter.test)
+    testFixturesImplementation(libs.springBoot.starterTest)
     testFixturesCompileOnly(libs.lombok)
     testFixturesAnnotationProcessor(libs.lombok)
 }

@@ -19,15 +19,15 @@ dependencies {
 
     api libs.grpc.protobuf
     api libs.grpc.stub
-    api libs.grpc.netty.shaded
-    api libs.protobuf.java.util
+    api libs.grpc.nettyShaded
+    api libs.protobuf.javaUtil
     api "jakarta.annotation:jakarta.annotation-api:1.3.5"
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:${libs.versions.protoc.get()}" }
+    protoc { artifact = libs.protobuf.protoc.get().toString() }
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.get()}" }
+        grpc { artifact = libs.grpc.protocGenGrpcJava.get().toString() }
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }

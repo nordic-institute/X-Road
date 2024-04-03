@@ -10,7 +10,7 @@ configurations {
 }
 
 dependencies {
-    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${libs.versions.hibernate.get()}")
+    annotationProcessor(libs.hibernate.jpamodelgen)
 
     api project(':central-server:admin-service:core-api')
     api project(':monitoring-conf')

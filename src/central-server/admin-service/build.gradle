@@ -16,13 +16,13 @@ subprojects {
         }
 
         dependencies {
-            annotationProcessor("org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}")
+            annotationProcessor(libs.mapstructProcessor)
             annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 
             implementation platform(libs.springCloud.dependencies)
-            implementation "org.mapstruct:mapstruct:${libs.versions.mapstruct.get()}"
+            implementation libs.mapstruct
 
-            testAnnotationProcessor "org.mapstruct:mapstruct-processor:${libs.versions.mapstruct.get()}"
+            testAnnotationProcessor libs.mapstructProcessor
         }
 
         bootJar {
