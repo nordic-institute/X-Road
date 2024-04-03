@@ -40,8 +40,8 @@ mkdir -p %{buildroot}/etc/xroad/conf.d
 cp -p %{_sourcedir}/proxy-ui-api/xroad-proxy-ui-api.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/proxy-ui-api.ini %{buildroot}/etc/xroad/conf.d
-cp -p %{srcdir}/default-configuration/acme.yml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/proxy-ui-api-logback.xml %{buildroot}/etc/xroad/conf.d
+cp -p %{srcdir}/default-configuration/acme.example.yml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
@@ -56,6 +56,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/services/proxy-ui-api.conf
 %config /etc/xroad/conf.d/proxy-ui-api.ini
 %config /etc/xroad/conf.d/proxy-ui-api-logback.xml
+%config /etc/xroad/conf.d/acme.example.yml
 %attr(644,root,root) %{_unitdir}/xroad-proxy-ui-api.service
 %attr(755,root,root) /usr/share/xroad/bin/xroad-proxy-ui-api
 %defattr(-,root,root,-)

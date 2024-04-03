@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.swagger.parserV3)
     implementation(libs.jakarta.validationApi)
     implementation(libs.logback.access)
+    implementation(libs.acme4j)
 
     testImplementation(platform(libs.springBoot.bom))
     testImplementation(project(":common:common-test"))

@@ -73,6 +73,7 @@
             :hint="$t('trustServices.acmeServerAuthProfileIdExplanation')"
             persistent-hint
             data-test="auth-cert-profile-id-input"
+            class="pt-4"
           />
           <v-text-field
             v-model="signingCertificateProfileId"
@@ -82,6 +83,7 @@
             :hint="$t('trustServices.acmeServerSignProfileIdExplanation')"
             persistent-hint
             data-test="sign-cert-profile-id-input"
+            class="pt-4"
           />
         </v-sheet>
       </div>

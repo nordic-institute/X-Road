@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.shredzone.acme4j.connector.Connection;
 import org.shredzone.acme4j.connector.NetworkSettings;
 
@@ -33,7 +34,7 @@ import java.net.URI;
 import java.net.URL;
 
 import static org.niis.xroad.securityserver.restapi.service.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
-
+@Slf4j
 public class AcmeProfileIdProvider extends AcmeXroadProvider {
 
     @Override
@@ -48,7 +49,7 @@ public class AcmeProfileIdProvider extends AcmeXroadProvider {
         try {
             return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
         } catch (MalformedURLException ex) {
-            throw new IllegalArgumentException("Bad generic server URI", ex);
+            throw new IllegalArgumentException("Bad server URI", ex);
         }
     }
 

@@ -394,7 +394,7 @@
       "eab_secret_length": "Invalid external account binding base64 secret length",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
       "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
-      "account_creation_failure": "Creating Account on ACME server failed",
+      "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "order_creation_failure": "Creating new Order on ACME server failed",
       "order_finalization_failure": "Finalizing the Order on ACME server failed",
       "http_challenge_file_creation": "Creating ACME HTTP challenge file failed",

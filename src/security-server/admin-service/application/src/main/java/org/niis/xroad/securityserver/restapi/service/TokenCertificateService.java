@@ -57,7 +57,6 @@ import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.security.access.AccessDeniedException;
@@ -103,6 +102,7 @@ public class TokenCertificateService {
     private static final String NOT_FOUND = "not found";
     private static final String IMPORT_AUTH_CERT = "IMPORT_AUTH_CERT";
     private static final String IMPORT_SIGN_CERT = "IMPORT_SIGN_CERT";
+    private static final String DN_SUBJECT_ALT_NAME = "subjectAltName";
 
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
@@ -156,6 +156,7 @@ public class TokenCertificateService {
         auditDataHelper.put(key);
         auditDataHelper.put(RestApiAuditProperty.KEY_USAGE, keyUsage);
         auditDataHelper.put(memberId);
+        auditDataHelper.put(RestApiAuditProperty.IS_ACME_ORDER, isAcmeOrder);
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
             // validate that the member exists or has a subsystem on this server
@@ -188,14 +189,15 @@ public class TokenCertificateService {
         }
 
         String subjectAltName = null;
-        if (subjectFieldValues.get("subjectAltName") != null
-                && !subjectFieldValues.get("subjectAltName").isEmpty()) {
+        if (subjectFieldValues.get(DN_SUBJECT_ALT_NAME) != null
+                && !subjectFieldValues.get(DN_SUBJECT_ALT_NAME).isEmpty()) {
             // Set subject alternative name (SAN)
-            subjectAltName = subjectFieldValues.get("subjectAltName");
+            subjectAltName = subjectFieldValues.get(DN_SUBJECT_ALT_NAME);
+            auditDataHelper.put(RestApiAuditProperty.SUBJECT_ALT_NAME, subjectAltName);
         }
         List<DnFieldValue> dnFieldValues = dnFieldHelper.processDnParameters(profile, subjectFieldValues);
         // Remove subjectAltName from dn field values since it's not a valid field value
-        List<DnFieldValue> filteredDnFieldValues = dnFieldValues.stream().filter(v -> !v.getId().equals("subjectAltName"))
+        List<DnFieldValue> filteredDnFieldValues = dnFieldValues.stream().filter(v -> !v.getId().equals(DN_SUBJECT_ALT_NAME))
                 .collect(Collectors.toList());
 
         String subjectName = dnFieldHelper.createSubjectName(filteredDnFieldValues);
@@ -214,21 +216,32 @@ public class TokenCertificateService {
             throw new SignerNotReachableException("Generate cert request failed", e);
         }
         if (isAcmeOrder && caInfo.getAcmeServerDirectoryUrl() != null) {
-            String memberCode = keyUsage == KeyUsageInfo.SIGNING
-                    ? memberId.getMemberCode()
-                    : ServerConf.getIdentifier().getOwner().getMemberCode();
-            List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
-                    subjectFieldValues.get("CN"), subjectAltName, caInfo, memberCode, generatedCertRequestInfo.getCertRequest());
-            if (chain != null) {
-                log.info("Acme order was successful, importing certificate");
-                try {
-                    importCertificate(chain.get(0).getEncoded(), false);
-                } catch (CertificateEncodingException e) {
-                    throw new InvalidCertificateException(e);
-                }
-            }
+            acmeOrderAndImportCert(memberId, keyUsage, subjectFieldValues, subjectAltName, caInfo, generatedCertRequestInfo);
         }
         return generatedCertRequestInfo;
+    }
+
+    private void acmeOrderAndImportCert(ClientId.Conf memberId,
+                           KeyUsageInfo keyUsage,
+                           Map<String, String> subjectFieldValues,
+                           String subjectAltName,
+                           ApprovedCAInfo caInfo,
+                           GeneratedCertRequestInfo generatedCertRequestInfo)
+            throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException, CertificateAlreadyExistsException,
+            WrongCertificateUsageException, CsrNotFoundException, AuthCertificateNotSupportedException, ClientNotFoundException {
+        String memberCode = keyUsage == KeyUsageInfo.SIGNING
+                ? memberId.getMemberCode()
+                : ServerConf.getIdentifier().getOwner().getMemberCode();
+        List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
+                subjectFieldValues.get("CN"), subjectAltName, keyUsage, caInfo, memberCode, generatedCertRequestInfo.getCertRequest());
+        if (chain != null) {
+            log.info("Acme order was successful, importing certificate");
+            try {
+                importCertificate(chain.get(0).getEncoded(), false);
+            } catch (CertificateEncodingException e) {
+                throw new InvalidCertificateException(e);
+            }
+        }
     }
 
     /**
@@ -1052,15 +1065,24 @@ public class TokenCertificateService {
     /**
      * Order certificate with the given csr from the given CA's ACME server
      */
-    public void orderAcmeCertificate(String caName, String csrId, KeyUsageType keyUsage)
+    public void orderAcmeCertificate(String caName, String csrId, KeyUsageInfo keyUsage)
             throws CertificateAuthorityNotFoundException, CsrNotFoundException, KeyNotFoundException,
             ActionNotPossibleException, CertificateAlreadyExistsException, ClientNotFoundException,
             GlobalConfOutdatedException, WrongCertificateUsageException, InvalidCertificateException,
             AuthCertificateNotSupportedException {
+        auditDataHelper.put(RestApiAuditProperty.KEY_USAGE, keyUsage);
+        auditDataHelper.put(RestApiAuditProperty.CERTIFICATION_SERVICE_NAME, caName);
+
         ApprovedCAInfo caInfo = certificateAuthorityService.getCertificateAuthorityInfo(caName);
         TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
         KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
+
+        auditDataHelper.put(tokenInfoAndKeyId.getTokenInfo());
+        auditDataHelper.put(keyInfo);
+
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
+        auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, certRequestInfo.getSubjectName());
+
         GeneratedCertRequestInfo generatedCertRequestInfo =
                 regenerateCertRequest(keyInfo.getId(), csrId, CertificateRequestFormat.DER);
         if (caInfo.getAcmeServerDirectoryUrl() != null) {
@@ -1068,15 +1090,19 @@ public class TokenCertificateService {
             String subjectAltName;
             try {
                 subjectAltName = getSubjectAlternativeNameFromCsr(generatedCertRequestInfo.getCertRequest());
+                if (subjectAltName != null) {
+                    auditDataHelper.put(RestApiAuditProperty.SUBJECT_ALT_NAME, subjectAltName);
+                }
             } catch (IOException e) {
                 throw new ValidationFailureException(MALFORMED_CSR, e);
             }
-            String memberCode = keyUsage == KeyUsageType.SIGNING
+            String memberCode = keyUsage == KeyUsageInfo.SIGNING
                     ? certRequestInfo.getMemberId().getMemberCode()
                     : ServerConf.getIdentifier().getOwner().getMemberCode();
             List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
                     commonName,
                     subjectAltName,
+                    keyUsage,
                     caInfo,
                     memberCode,
                     generatedCertRequestInfo.getCertRequest());

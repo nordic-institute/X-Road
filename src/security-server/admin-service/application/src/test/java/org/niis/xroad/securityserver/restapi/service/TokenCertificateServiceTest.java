@@ -51,7 +51,6 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -487,7 +486,7 @@ public class TokenCertificateServiceTest {
                 .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, CertificateTestUtils.getMockSignCsrBytes(),
                         null, null, null));
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
-        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any()))
+        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
         tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
                 KeyUsageInfo.SIGNING, CA_NAME,
@@ -644,13 +643,14 @@ public class TokenCertificateServiceTest {
     public void orderAcmeCertificate() throws Exception {
         byte[] csrBytes = CertificateTestUtils.getMockSignCsrBytes();
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
-        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any()))
+        when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
         when(signerProxyFacade.regenerateCertRequest(any(), any()))
                 .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, csrBytes, null, null, null));
-        tokenCertificateService.orderAcmeCertificate(CA_NAME, GOOD_CSR_ID, KeyUsageType.SIGNING);
+        tokenCertificateService.orderAcmeCertificate(CA_NAME, GOOD_CSR_ID, KeyUsageInfo.SIGNING);
         verify(acmeService).orderCertificateFromACMEServer("common name",
                 "ss0",
+                KeyUsageInfo.SIGNING,
                 acmeCA,
                 client.getMemberCode(),
                 csrBytes);

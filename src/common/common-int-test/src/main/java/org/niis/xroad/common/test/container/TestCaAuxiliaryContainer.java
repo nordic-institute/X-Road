@@ -35,11 +35,17 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Objects;
 import java.util.concurrent.Future;
 
@@ -63,9 +69,21 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
     @NotNull
     @Override
     public TestCaContainer configure() {
+        var logDirPath = Paths.get("build/ca-container-logs/");
+        var logDir = logDirPath.toFile();
+        logDir.mkdirs();
+
+        if (SystemUtils.IS_OS_UNIX) {
+            try {
+                Files.setPosixFilePermissions(logDirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return new TestCaContainer(imageDefinition())
                 .withExposedPorts(8899, 8887, 8888, 8889)
                 .withNetworkAliases(NETWORK_ALIAS)
+                .withFileSystemBind(logDir.getAbsolutePath(), "/var/www/acme2certifier/logs", BindMode.READ_WRITE)
                 .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(64 * 1024 * 1024L));
     }
 

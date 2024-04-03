@@ -21,6 +21,7 @@ RUN chown -R ca:ca /home/ca/CA \
   && touch /var/log/ocsp.log \
   && chown ca:ca /var/log/ocsp.log \
   && chmod 0664 /var/log/ocsp.log \
+  && chmod 0774 /home/ca/CA/newcerts \
   && chmod 0754 /home/ca/CA/ca.py \
   && chmod 0754 /home/ca/CA/sign_req.sh
 
@@ -37,6 +38,7 @@ RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/
     && sed -i "s/nginx/www-data/g" /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
     && echo "plugins = python3" >> /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
     && cp /var/www/acme2certifier/examples/nginx/acme2certifier.ini /var/www/acme2certifier \
+    && sed -i s/level=log_mode\)/level=log_mode,filename=\'logs\\/a2c_logs\'\)/g /var/www/acme2certifier/acme_srv/helper.py \
     && usermod -a -G ca www-data
 COPY --chown=www-data:www-data files/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
 COPY --chown=www-data:www-data files/key_file.csv /var/www/acme2certifier/examples/eab_handler/key_file.csv

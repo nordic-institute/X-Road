@@ -50,7 +50,7 @@ public class AcmeXroadProvider extends AbstractAcmeProvider {
         try {
             return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
         } catch (MalformedURLException ex) {
-            throw new IllegalArgumentException("Bad generic server URI", ex);
+            throw new IllegalArgumentException("Bad server URI", ex);
         }
     }
 

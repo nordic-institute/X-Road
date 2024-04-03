@@ -17,16 +17,20 @@ acme:
   eab-credentials:
     certificate-authorities:
       '[Example Root CA]':
-        is-mac-key-base64-encoded: true
+        mac-key-base64-encoded: true
         members:
           1234567-8:
             kid: key_1
             mac-key: YWJjZDEyMzRFRkdINjdpajg5S2xNMG5vcHFyc1RVVnd4
+            auth-kid: key_2
+            auth-mac-key: YXV0aGVudGljYXRpb25zZWNyZXRtYWNrZXk=
+            sign-kid: key_3
+            sign-mac-key: c2VjcmV0X21hY19rZXlfZm9yX3NpZ25pbmc=
           9090909-1:
             kid: key_2
             mac-key: Z29vZGxvbmdzZWNyZXR3b3JkdGhhdGlzbm90c2hvcnQ=
       '[Some Other CA]':
-        is-mac-key-base64-encoded: false
+        mac-key-base64-encoded: false
         members:
           1234567-8:
             kid: kid123

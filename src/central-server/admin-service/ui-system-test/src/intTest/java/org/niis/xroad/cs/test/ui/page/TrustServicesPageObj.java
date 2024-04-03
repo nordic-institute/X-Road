@@ -118,6 +118,14 @@ public class TrustServicesPageObj {
                 return $x("//div[@data-test='cert-acme-card']//div[@data-test='acme-server-ip-address']");
             }
 
+            public SelenideElement authenticationCertificateProfileId() {
+                return $x("//div[@data-test='cert-acme-card']//div[@data-test='authentication-certificate-profile-id']");
+            }
+
+            public SelenideElement signingCertificateProfileId() {
+                return $x("//div[@data-test='cert-acme-card']//div[@data-test='signing-certificate-profile-id']");
+            }
+
             public SelenideElement btnEditTlsAuth() {
                 return $x("//div[@data-test='tls-auth-card']//button[@data-test='info-card-edit-button']");
             }
@@ -145,6 +153,14 @@ public class TrustServicesPageObj {
             public SelenideElement inputAcmeServerIpAddress() {
                 return $x("//div[@data-test='dialog-simple']//div[@data-test='acme-server-ip-address-input']");
             }
+
+            public SelenideElement inputAuthCertProfileId() {
+                return $x("//div[@data-test='dialog-simple']//div[@data-test='auth-cert-profile-id-input']");
+            }
+
+            public SelenideElement inputSignCertProfileId() {
+                return $x("//div[@data-test='dialog-simple']//div[@data-test='sign-cert-profile-id-input']");
+            }
         }
 
     }
@@ -170,6 +186,14 @@ public class TrustServicesPageObj {
 
         public SelenideElement inputAcmeServerIpAddress() {
             return $x("//div[@data-test='acme-server-ip-address-input']");
+        }
+
+        public SelenideElement inputAuthCertProfileId() {
+            return $x("//div[@data-test='auth-cert-profile-id-input']");
+        }
+
+        public SelenideElement inputSignCertProfileId() {
+            return $x("//div[@data-test='sign-cert-profile-id-input']");
         }
     }
 }
