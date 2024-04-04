@@ -27,7 +27,7 @@ dependencies {
     api("org.eclipse.edc:data-plane-http-spi:$edcVersion")
 
     api("org.eclipse.edc:json-ld-spi:$edcVersion")
-    api("org.eclipse.edc:json-ld:$edcVersion")
+    api("org.eclipse.edc:json-ld-lib:$edcVersion")
     api("org.eclipse.edc:transform-core:$edcVersion")
     api("org.eclipse.edc:management-api-configuration:$edcVersion")
 

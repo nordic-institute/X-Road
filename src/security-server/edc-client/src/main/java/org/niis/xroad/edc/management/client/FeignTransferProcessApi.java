@@ -64,4 +64,14 @@ public interface FeignTransferProcessApi extends TransferProcessApi {
     @Path("/{id}/terminate")
     @Override
     void terminateTransferProcess(@PathParam("id") String id, JsonObject requestBody);
+
+    @POST
+    @Path("/{id}/suspend")
+    @Override
+    void suspendTransferProcess(@PathParam("id") String id, JsonObject jsonObject);
+
+    @POST
+    @Path("/{id}/resume")
+    @Override
+    void resumeTransferProcess(@PathParam("id") String id);
 }

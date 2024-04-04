@@ -61,7 +61,7 @@ public class XrdEdrController implements XrdEdrApi {
             return transformerRegistry.transform(response, JsonObject.class)
                     .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
         } catch (Exception e) {
-            throw new InvalidRequestException(e.getMessage());
+            throw new InvalidRequestException(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
         }
     }
 

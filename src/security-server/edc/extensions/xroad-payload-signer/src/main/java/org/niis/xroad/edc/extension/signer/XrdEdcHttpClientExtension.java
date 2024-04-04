@@ -30,16 +30,19 @@ import dev.failsafe.RetryPolicy;
 import lombok.SneakyThrows;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
-import org.eclipse.edc.connector.core.base.EdcHttpClientImpl;
+import org.eclipse.edc.connector.core.base.RetryPolicyConfiguration;
 import org.eclipse.edc.connector.core.base.RetryPolicyFactory;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.http.client.EdcHttpClientImpl;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
+import static java.lang.Integer.parseInt;
 import static java.util.Optional.ofNullable;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -48,6 +51,31 @@ public class XrdEdcHttpClientExtension implements ServiceExtension {
     public static final String NAME = "XRD Core Default Services";
 
     private static final int TIMEOUT = 10;
+
+    private static final String RETRY_POLICY_DEFAULT_RETRIES = "5";
+    private static final String RETRY_POLICY_DEFAULT_MIN_BACKOFF = "500";
+    private static final String RETRY_POLICY_DEFAULT_MAX_BACKOFF = "10000";
+    private static final String RETRY_POLICY_DEFAULT_LOG = "false";
+    @Setting(value = "RetryPolicy: Maximum retries before a failure is propagated",
+            defaultValue = RETRY_POLICY_DEFAULT_RETRIES)
+    private static final String RETRY_POLICY_MAX_RETRIES = "edc.core.retry.retries.max";
+    @Setting(value = "RetryPolicy: Minimum number of milliseconds for exponential backoff",
+            defaultValue = RETRY_POLICY_DEFAULT_MIN_BACKOFF)
+    private static final String RETRY_POLICY_BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
+    @Setting(value = "RetryPolicy: Maximum number of milliseconds for exponential backoff.",
+            defaultValue = RETRY_POLICY_DEFAULT_MAX_BACKOFF)
+    private static final String RETRY_POLICY_BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
+    @Setting(value = "RetryPolicy: Log onRetry events", defaultValue = RETRY_POLICY_DEFAULT_LOG)
+    static final String RETRY_POLICY_LOG_ON_RETRY = "edc.core.retry.log.on.retry";
+    @Setting(value = "RetryPolicy: Log onRetryScheduled events", defaultValue = RETRY_POLICY_DEFAULT_LOG)
+    static final String RETRY_POLICY_LOG_ON_RETRY_SCHEDULED = "edc.core.retry.log.on.retry.scheduled";
+    @Setting(value = "RetryPolicy: Log onRetriesExceeded events", defaultValue = RETRY_POLICY_DEFAULT_LOG)
+    static final String RETRY_POLICY_LOG_ON_RETRIES_EXCEEDED = "edc.core.retry.log.on.retries.exceeded";
+    @Setting(value = "RetryPolicy: Log onFailedAttempt events", defaultValue = RETRY_POLICY_DEFAULT_LOG)
+    static final String RETRY_POLICY_LOG_ON_FAILED_ATTEMPT = "edc.core.retry.log.on.failed.attempt";
+    @Setting(value = "RetryPolicy: Log onAbort events", defaultValue = RETRY_POLICY_DEFAULT_LOG)
+    static final String RETRY_POLICY_LOG_ON_ABORT = "edc.core.retry.log.on.abort";
+
     /**
      * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
      */
@@ -85,7 +113,18 @@ public class XrdEdcHttpClientExtension implements ServiceExtension {
 
     @Provider
     public <T> RetryPolicy<T> retryPolicy(ServiceExtensionContext context) {
-        return RetryPolicyFactory.create(context);
+        var configuration = RetryPolicyConfiguration.Builder.newInstance()
+                .maxRetries(context.getSetting(RETRY_POLICY_MAX_RETRIES, parseInt(RETRY_POLICY_DEFAULT_RETRIES)))
+                .minBackoff(context.getSetting(RETRY_POLICY_BACKOFF_MIN_MILLIS, parseInt(RETRY_POLICY_DEFAULT_MIN_BACKOFF)))
+                .maxBackoff(context.getSetting(RETRY_POLICY_BACKOFF_MAX_MILLIS, parseInt(RETRY_POLICY_DEFAULT_MAX_BACKOFF)))
+                .logOnRetry(context.getSetting(RETRY_POLICY_LOG_ON_RETRY, false))
+                .logOnRetryScheduled(context.getSetting(RETRY_POLICY_LOG_ON_RETRY_SCHEDULED, false))
+                .logOnRetriesExceeded(context.getSetting(RETRY_POLICY_LOG_ON_RETRIES_EXCEEDED, false))
+                .logOnFailedAttempt(context.getSetting(RETRY_POLICY_LOG_ON_FAILED_ATTEMPT, false))
+                .logOnAbort(context.getSetting(RETRY_POLICY_LOG_ON_ABORT, false))
+                .build();
+
+        return RetryPolicyFactory.create(configuration, context.getMonitor());
     }
 
 
