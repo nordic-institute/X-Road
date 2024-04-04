@@ -1,5 +1,4 @@
 plugins {
-    alias(libs.plugins.spring.dependencyManagement)
     alias(libs.plugins.springBoot)
 }
 
@@ -21,7 +20,9 @@ configurations.configureEach {
 dependencies {
     dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
 
-    implementation(platform(libs.springCloud.dependencies))
+    implementation(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
+
     implementation(project(":common:common-globalconf"))
     implementation(project(":signer-protocol"))
     implementation(project(":serverconf"))
@@ -46,6 +47,7 @@ dependencies {
     implementation(libs.jakarta.validationApi)
     implementation(libs.logback.access)
 
+    testImplementation(platform(libs.springBoot.bom))
     testImplementation(project(":common:common-test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

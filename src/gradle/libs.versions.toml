@@ -34,11 +34,11 @@ jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
 jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
 
+springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
-springBoot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 
-springCloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.0" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.0" }
 
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
@@ -153,7 +153,6 @@ jaxb = ["jaxb-runtime", "jaxb-xjc"]
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-spring-dependencyManagement = { id = "io.spring.dependency-management", version = "1.1.4" }
 openapi-generator = { id = "org.openapi.generator", version = "7.1.0" }
 sonarqube = { id = "org.sonarqube", version = "5.0.0.4638" }
 dependencycheck = { id = "org.owasp.dependencycheck", version = "9.1.0" }

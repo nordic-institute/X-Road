@@ -1,5 +1,4 @@
 plugins {
-    alias(libs.plugins.spring.dependencyManagement)
     alias(libs.plugins.springBoot)
 }
 
@@ -17,10 +16,13 @@ base {
 }
 
 dependencies {
+    implementation(platform(libs.springBoot.bom))
+    annotationProcessor(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
+
     annotationProcessor "org.springframework:spring-context-indexer"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-    implementation(platform(libs.springCloud.dependencies))
     implementation(project(":common:common-api-throttling"))
     implementation(project(":central-server:admin-service:api-client"))
     implementation(project(':central-server:openapi-model'))

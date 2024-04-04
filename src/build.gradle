@@ -15,7 +15,6 @@ plugins {
     id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
-    alias(libs.plugins.spring.dependencyManagement) apply false
     alias(libs.plugins.springBoot) apply false
     alias(libs.plugins.protobuf) apply false
     alias(libs.plugins.frontendJDK17) apply false

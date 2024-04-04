@@ -19,7 +19,7 @@ subprojects {
             annotationProcessor(libs.mapstructProcessor)
             annotationProcessor(libs.lombokMapstructBinding)
 
-            implementation(platform(libs.springCloud.dependencies))
+            implementation(platform(libs.springCloud.bom))
             implementation(libs.mapstruct)
 
             testAnnotationProcessor(libs.mapstructProcessor)

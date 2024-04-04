@@ -9,7 +9,7 @@ subprojects {
         }
 
         dependencies {
-            implementation(platform(libs.springCloud.dependencies))
+            implementation(platform(libs.springCloud.bom))
         }
 
         bootJar {

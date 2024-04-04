@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    alias(libs.plugins.spring.dependencyManagement)
     alias(libs.plugins.springBoot)
     alias(libs.plugins.openapi.generator)
     id 'org.niis.xroad.oasvalidatorplugin'
@@ -18,7 +17,8 @@ dependencies {
     implementation(project(':signer-protocol'))
     implementation(project(':serverconf'))
 
-    implementation(platform(libs.springBoot.dependencies))
+    implementation(platform(libs.springBoot.bom))
+
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
