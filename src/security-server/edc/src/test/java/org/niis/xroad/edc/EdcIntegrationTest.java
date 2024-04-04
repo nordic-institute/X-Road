@@ -50,7 +50,6 @@ class EdcIntegrationTest {
                 Map.entry("edc.vault", "%s/configuration/provider-vault.properties".formatted(resourcesDir)),
                 Map.entry("edc.keystore", "%s/certs/cert.pfx".formatted(resourcesDir)),
                 Map.entry("edc.keystore.password", "123456"),
-                Map.entry("edc.receiver.http.endpoint", "http://localhost:4000/asset-authorization-callback"),
                 Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"),
                 Map.entry("edc.iam.issuer.id", "did:web:localhost"),
                 Map.entry("edc.participant.id", "did:web:localhost"),
