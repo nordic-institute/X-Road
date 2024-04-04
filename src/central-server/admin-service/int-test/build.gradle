@@ -13,11 +13,8 @@ dependencies {
     intTestImplementation project(":central-server:openapi-model")
     intTestImplementation project(":common:common-core")
 
-    intTestImplementation(libs.testAutomation.core)
+    intTestImplementation(libs.bundles.testAutomation)
     intTestImplementation(libs.testAutomation.assert)
-    intTestImplementation(libs.testAutomation.containers)
-    intTestImplementation(libs.testAutomation.feign)
-    intTestImplementation(libs.testAutomation.allure)
     intTestImplementation(libs.liquibase.core)
     intTestImplementation(libs.postgresql)
     intTestImplementation(libs.lombok)

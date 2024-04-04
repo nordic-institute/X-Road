@@ -150,6 +150,7 @@ cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
+testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-allure", "testAutomation-feign"]
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
