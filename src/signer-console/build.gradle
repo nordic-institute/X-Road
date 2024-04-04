@@ -3,11 +3,11 @@ plugins {
 }
 
 dependencies {
-    implementation libs.commons.cli
-    implementation 'com.googlecode.clichemaven:cliche:110413'
+    implementation(libs.commons.cli)
+    implementation(libs.cliche)
 
-    implementation project(':common:common-domain')
-    implementation project(':signer-protocol')
+    implementation(project(':common:common-domain'))
+    implementation(project(':signer-protocol'))
 }
 
 ext {

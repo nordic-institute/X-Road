@@ -24,7 +24,7 @@ dependencies {
     api("jakarta.transaction:jakarta.transaction-api")
     api("jakarta.persistence:jakarta.persistence-api")
 
-    implementation(libs.commons.compress)
+    implementation(libs.apache.commonsCompress)
 
     testImplementation project(':common:common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')

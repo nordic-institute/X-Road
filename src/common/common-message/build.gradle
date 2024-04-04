@@ -16,18 +16,18 @@ sourceSets {
 
 
 dependencies {
-    api project(':common:common-core')
-    api project(':common:common-domain')
+    api(project(':common:common-core'))
+    api(project(':common:common-domain'))
 
-    api("org.apache.james:apache-mime4j-core:0.8.9")
-    api libs.jaxb.runtime
-    api libs.jetty.http
-    api("org.apache.httpcomponents:httpclient:4.5.14")
-    api("com.sun.xml.messaging.saaj:saaj-impl:3.0.3")
+    api(libs.apache.mime4jCore)
+    api(libs.jaxb.runtime)
+    api(libs.jetty.http)
+    api(libs.apache.httpclient)
+    api(libs.saajImpl)
 
-    testImplementation project(':common:common-test')
+    testImplementation(project(':common:common-test'))
 
-    xjc libs.bundles.jaxb
+    xjc(libs.bundles.jaxb)
 }
 
 

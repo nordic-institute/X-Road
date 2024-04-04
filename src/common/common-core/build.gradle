@@ -8,30 +8,30 @@ plugins {
  * This is xroad core library. It should only contain dependencies that are relevant to all xroad modules.
  */
 dependencies {
-    api platform(libs.jackson.bom)
+    api(platform(libs.jackson.bom))
 
-    api "com.fasterxml.jackson.core:jackson-databind"
-    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    api("com.fasterxml.jackson.core:jackson-databind")
+    api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     api(libs.jclOverSlf4j)
-    api("org.apache.santuario:xmlsec:4.0.1")
-    api("org.apache.commons:commons-lang3:3.14.0")
-    api("org.apache.commons:commons-text:1.11.0")
+    api(libs.apache.xmlsec)
+    api(libs.apache.commonsLang3)
+    api(libs.apache.commonsText)
     api(libs.bouncyCastle.bcpkix)
     api(libs.guava)
     api(libs.jackson.annotations)
-    api("commons-io:commons-io:2.15.1")
-    api("org.apache.commons:commons-configuration2:2.9.0") {
+    api(libs.commons.io)
+    api(libs.apache.commonsConfiguration2) {
         exclude group: 'org.apache.commons', module: 'commons-text'
     }
-    api("org.apache.httpcomponents.client5:httpclient5:5.3.1")
+    api(libs.apache.httpclient5)
 
-    api("jakarta.inject:jakarta.inject-api:2.0.1")
-    api("jakarta.xml.bind:jakarta.xml.bind-api:4.0.1")
-    api("jakarta.xml.soap:jakarta.xml.soap-api:3.0.1")
+    api(libs.jakarta.injectApi)
+    api(libs.jakarta.bindApi)
+    api(libs.jakarta.soapApi)
     api(libs.jakarta.servletApi)
 
-    implementation libs.logback.classic
+    implementation(libs.logback.classic)
 
     testImplementation project(':common:common-test')
 }

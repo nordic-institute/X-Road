@@ -17,12 +17,12 @@ subprojects {
 
         dependencies {
             annotationProcessor(libs.mapstructProcessor)
-            annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+            annotationProcessor(libs.lombokMapstructBinding)
 
-            implementation platform(libs.springCloud.dependencies)
-            implementation libs.mapstruct
+            implementation(platform(libs.springCloud.dependencies))
+            implementation(libs.mapstruct)
 
-            testAnnotationProcessor libs.mapstructProcessor
+            testAnnotationProcessor(libs.mapstructProcessor)
         }
 
         bootJar {

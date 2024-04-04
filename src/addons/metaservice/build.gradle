@@ -12,7 +12,7 @@ dependencies {
     testImplementation(libs.wiremock.standalone)
 
     testImplementation libs.wsdl4j
-    testImplementation 'org.apache.httpcomponents:httpmime:4.5.14'
+    testImplementation libs.apache.httpmime
     testImplementation libs.xmlunit.core
     testImplementation libs.xmlunit.matchers
     testImplementation libs.hsqldb

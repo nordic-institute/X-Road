@@ -3,22 +3,22 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1') {
+        classpath (libs.licenseGradlePlugin) {
             exclude group: 'org.springframework', module: 'spring-core'
         }
     }
 }
 
 plugins {
-    id 'org.sonarqube' version '5.0.0.4638'
-    id 'org.owasp.dependencycheck' version '9.1.0'
+    alias(libs.plugins.sonarqube)
+    alias(libs.plugins.dependencycheck)
     id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
     alias(libs.plugins.spring.dependencyManagement) apply false
     alias(libs.plugins.springBoot) apply false
-    id 'com.google.protobuf' version "0.9.4" apply false
-    id 'org.siouan.frontend-jdk17' version "8.0.0" apply false
+    alias(libs.plugins.protobuf) apply false
+    alias(libs.plugins.frontendJDK17) apply false
 }
 
 sonarqube {

@@ -14,24 +14,24 @@ sourceSets {
 }
 
 dependencies {
-    api project(':common:common-db')
+    api(project(':common:common-db'))
 
-    implementation project(':common:common-domain')
-    implementation project(':common:common-verifier')
+    implementation(project(':common:common-domain'))
+    implementation(project(':common:common-verifier'))
 
     // DB layer tests use HSQLDB with in-memory tables
-    testImplementation libs.hsqldb
-    testImplementation project(':common:common-db')
-    testImplementation project(':common:common-test')
-    testImplementation libs.hibernate.hikaricp
+    testImplementation(libs.hsqldb)
+    testImplementation(project(':common:common-db'))
+    testImplementation(project(':common:common-test'))
+    testImplementation(libs.hibernate.hikaricp)
 
-    schema project(':common:common-domain')
-    schema "org.apache.ant:ant:1.10.14"
-    schema libs.hibernate.hikaricp
-    schema libs.hibernate.toolsAnt
-    schema 'commons-collections:commons-collections:3.2.2'
-    schema libs.logback.classic
-    schema libs.hsqldb
+    schema(project(':common:common-domain'))
+    schema(libs.apache.ant)
+    schema(libs.hibernate.hikaricp)
+    schema(libs.hibernate.toolsAnt)
+    schema(libs.commons.collections)
+    schema(libs.logback.classic)
+    schema(libs.hsqldb)
 }
 
 tasks.register('schemaExport') {

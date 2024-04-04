@@ -1,4 +1,3 @@
-
 plugins {
     id 'com.github.johnrengelman.shadow'
 }
@@ -14,33 +13,31 @@ sourceSets {
 dependencies {
     implementation(platform(libs.springBoot.dependencies))
 
-    implementation project(':common:common-jetty')
-    implementation project(':common:common-message')
-    implementation project(':common:common-globalconf')
-    implementation project(':common:common-scheduler')
-    implementation project(':common:common-verifier')
-    implementation project(':serverconf')
-    implementation project(':signer-protocol')
-    implementation project(':common:common-messagelog')
-    implementation project(':common:common-op-monitoring')
+    implementation(project(':common:common-jetty'))
+    implementation(project(':common:common-message'))
+    implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-scheduler'))
+    implementation(project(':common:common-verifier'))
+    implementation(project(':serverconf'))
+    implementation(project(':signer-protocol'))
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':common:common-op-monitoring'))
 
     implementation('org.springframework:spring-context')
-    implementation libs.jetty.xml
-    implementation libs.xerces.impl
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation(libs.jetty.xml)
+    implementation(libs.xerces.impl)
+    implementation(libs.semver4j)
 
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+    testImplementation(project(':common:common-test'))
 
-    implementation 'org.semver4j:semver4j:5.2.2'
+    testImplementation(libs.hsqldb)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.wsdl4j)
 
-    testImplementation project(':common:common-test')
-
-    testImplementation libs.hsqldb
-    testImplementation 'io.rest-assured:rest-assured:5.4.0'
-    testImplementation libs.wsdl4j
-
-    intTestRuntimeOnly project(':signer')
-    intTestImplementation project(":common:common-test")
-    intTestImplementation project(":common:common-int-test")
+    intTestRuntimeOnly(project(':signer'))
+    intTestImplementation(project(":common:common-test"))
+    intTestImplementation(project(":common:common-int-test"))
 }
 
 jar {

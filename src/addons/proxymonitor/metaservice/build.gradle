@@ -29,7 +29,7 @@ dependencies {
 
     testImplementation project(path: ":proxy", configuration: 'testArtifacts')
     testImplementation project(':common:common-test')
-    testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation libs.hamcrest
 }
 
 tasks.register('createDirs') {

@@ -14,9 +14,9 @@ sourceSets {
 
 dependencies {
     api project(':common:common-domain')
-    implementation project(':common:common-core')
-    implementation project(':signer-protocol')
-    implementation project(':serverconf')
+    implementation(project(':common:common-core'))
+    implementation(project(':signer-protocol'))
+    implementation(project(':serverconf'))
 
     implementation(platform(libs.springBoot.dependencies))
     implementation('org.springframework.boot:spring-boot-starter-web')
@@ -31,14 +31,14 @@ dependencies {
     implementation(libs.swagger.parserV3)
     implementation(libs.swagger.annotations)
 
-    testImplementation project(':common:common-test')
+    testImplementation(project(':common:common-test'))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation(libs.hsqldb)
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation(libs.jakarta.validationApi)
-    implementation("org.apache.tika:tika-core:2.9.1")
+    implementation(libs.apache.tikaCore)
 
     api("com.github.ben-manes.caffeine:caffeine")
 }
