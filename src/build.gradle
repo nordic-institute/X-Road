@@ -125,8 +125,6 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     }
 
     dependencies {
-        //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
-
         testImplementation(libs.junit.jupiterEngine)
         testImplementation(libs.junit.vintageEngine)
 
