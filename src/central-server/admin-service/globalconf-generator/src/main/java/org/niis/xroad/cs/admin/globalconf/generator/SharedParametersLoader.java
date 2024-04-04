@@ -175,7 +175,6 @@ class SharedParametersLoader {
                 .map(AuthCert::getCert)
                 .toList());
         result.setDsEnabled(ss.isDsEnabled());
-        result.setDsId(ss.getDsId());
         result.setDsProtocolUrl(ss.getDsProtocolUrl());
         return result;
     }
@@ -252,6 +251,7 @@ class SharedParametersLoader {
             member.setMemberCode(client.getMemberCode());
             member.setName(client.getMemberName());
             member.setSubsystems(getSubsystemList(clientId));
+            member.setDid(client.getMemberDid());
             return member;
         }
 

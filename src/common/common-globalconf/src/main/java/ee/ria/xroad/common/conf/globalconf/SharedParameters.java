@@ -67,6 +67,7 @@ public class SharedParameters {
     private final Map<X509Certificate, List<OcspInfo>> caCertsAndOcspData = new HashMap<>();
     private final List<X509Certificate> verificationCaCerts = new ArrayList<>();
     private final Map<ClientId, Set<ServerAddress>> memberAddresses = new HashMap<>();
+    private final Map<ClientId, String> memberDids = new HashMap<>();
     private final Map<ClientId, Set<byte[]>> memberAuthCerts = new HashMap<>();
     private final Map<String, SecurityServer> serverByAuthCert = new HashMap<>();
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
@@ -203,6 +204,7 @@ public class SharedParameters {
         private String memberCode;
         private String name;
         private List<Subsystem> subsystems;
+        private String did;
     }
 
     @Data
@@ -277,8 +279,8 @@ public class SharedParameters {
     public static class ServerAddress {
         private String address;
         private boolean dsSupported;
-        private String dsId;
         private String dsProtocolUrl;
+        private String ownerDid;
 
         public ServerAddress(String address) {
             this.address = address;

@@ -142,7 +142,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
         for (SharedParameters p : getSharedParameters(instanceIdentifiers)) {
             for (SharedParameters.Member member : p.getMembers()) {
-                clients.add(new MemberInfo(createMemberId(p, member), member.getName()));
+                clients.add(new MemberInfo(createMemberId(p, member), member.getName(), member.getDid()));
 
                 for (SharedParameters.Subsystem subsystem : member.getSubsystems()) {
                     clients.add(new MemberInfo(createSubsystemId(p, member, subsystem), member.getName()));
@@ -278,7 +278,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     private ServerAddressInfo mapServerAddressInfo(SharedParameters.ServerAddress serverAddress) {
         return new ServerAddressInfo(serverAddress.getAddress(),
                 serverAddress.isDsSupported(),
-                serverAddress.getDsId(),
+                serverAddress.getOwnerDid(),
                 serverAddress.getDsProtocolUrl()
         );
     }

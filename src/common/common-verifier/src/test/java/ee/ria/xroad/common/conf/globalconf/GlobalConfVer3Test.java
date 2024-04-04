@@ -43,9 +43,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class GlobalConfVer3Test {
@@ -113,5 +116,26 @@ public class GlobalConfVer3Test {
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
         );
+    }
+
+    @Test
+    public void testMemberDid() {
+        List<MemberInfo> members = GlobalConf.getMembers("EE");
+
+        MemberInfo memberInfo = findMemberInfo(members, "consumer");
+        assertEquals("did:web:consumer", memberInfo.getDid());
+
+        memberInfo = findMemberInfo(members, "producer");
+        assertEquals("did:web:producer", memberInfo.getDid());
+
+        memberInfo = findMemberInfo(members, "foo");
+        assertNull(memberInfo.getDid());
+    }
+
+    private static MemberInfo findMemberInfo(List<MemberInfo> members, String memberCode) {
+        return members.stream()
+                .filter(m -> m.getId().equals(ClientId.Conf.create("EE", "BUSINESS", memberCode)))
+                .findFirst()
+                .orElseThrow();
     }
 }

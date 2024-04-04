@@ -238,10 +238,11 @@ class MemberServiceImplTest {
         void shouldUpdateName() {
             doReturn(Optional.of(xRoadMember)).when(xRoadMemberRepository).findMember(clientId);
 
-            var result = memberService.updateMemberName(clientId, "new name");
+            var result = memberService.updateMemberName(clientId, "new name", "did:new");
 
             assertTrue(result.isPresent());
             verify(xRoadMember).setName("new name");
+            verify(xRoadMember).setDid("did:new");
 
             verify(auditData).put(MEMBER_NAME, "new name");
             verify(auditData).put(RestApiAuditProperty.MEMBER_CLASS, MEMBER_CLASS);
