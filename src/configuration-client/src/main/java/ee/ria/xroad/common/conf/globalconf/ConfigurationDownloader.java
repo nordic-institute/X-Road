@@ -35,8 +35,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.bouncycastle.operator.DigestCalculator;
 
-import javax.net.ssl.SSLHandshakeException;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -151,10 +149,6 @@ class ConfigurationDownloader {
                 Configuration config = download(location, contentIdentifiers);
                 rememberLastSuccessfulLocation(cacheKey, location);
                 return result.success(config);
-            } catch (SSLHandshakeException e) {
-                log.warn("The Security Server can't download Global Configuration over HTTPS. Because " + e);
-                successfulLocations.remove(cacheKey);
-                result.addFailure(location, e);
             } catch (Exception e) {
                 log.warn("Unable to download Global Configuration. Because " + e);
                 successfulLocations.remove(cacheKey);
