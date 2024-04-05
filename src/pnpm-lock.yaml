@@ -15,8 +15,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(eslint@8.56.0)
       '@rushstack/eslint-patch':
-        specifier: ^1.6.1
-        version: 1.6.1
+        specifier: ^1.10.1
+        version: 1.10.1
       '@tsconfig/node18':
         specifier: ^2.0.1
         version: 2.0.1
@@ -732,8 +732,8 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@rushstack/eslint-patch@1.6.1:
-    resolution: {integrity: sha512-UY+FGM/2jjMkzQLn8pxcHGMaVLh9aEitG3zY2CiY7XHdLiz3bZOwa6oDxNqEMv7zZkV+cj5DOdz0cQ1BP5Hjgw==}
+  /@rushstack/eslint-patch@1.10.1:
+    resolution: {integrity: sha512-S3Kq8e7LqxkA9s7HKLqXGTGck1uwis5vAXan3FnU5yw1Ec5hsSGnq4s/UCaSqABPOnOTg7zASLyst7+ohgWexg==}
     dev: true
 
   /@sinclair/typebox@0.27.8:
