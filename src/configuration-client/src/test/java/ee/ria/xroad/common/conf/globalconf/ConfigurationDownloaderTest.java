@@ -96,9 +96,9 @@ public class ConfigurationDownloaderTest {
             List<String> locationUrls = getMixedLocationUrls();
 
             // When
-            downloader.downloadFromAdditionalSource(getSource(locationUrls));
+            downloader.download(getSource(locationUrls));
             resetParser(downloader);
-            downloader.downloadFromAdditionalSource(getSource(locationUrls));
+            downloader.download(getSource(locationUrls));
 
             // Then
             verifyOnlyOneSuccessfulLocation(downloader, version);
@@ -114,7 +114,7 @@ public class ConfigurationDownloaderTest {
         List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
 
         // When
-        downloader.downloadFromAnchor(getSource(locationUrls));
+        downloader.download(getSource(locationUrls));
 
         // Then
         verifySuccessfulLocation(downloader, presetVersion);
@@ -128,7 +128,7 @@ public class ConfigurationDownloaderTest {
         List<String> locationUrls = List.of(url);
 
         // When
-        downloader.downloadFromAnchor(getSource(locationUrls));
+        downloader.download(getSource(locationUrls));
 
         // Then
         verifySuccessfulLocation(downloader, 3);
@@ -142,7 +142,7 @@ public class ConfigurationDownloaderTest {
         List<String> locationUrls = List.of(url);
 
         // When
-        downloader.downloadFromAnchor(getSource(locationUrls));
+        downloader.download(getSource(locationUrls));
 
         // Then
         verifySuccessfulLocationNope(downloader, 2);
@@ -157,7 +157,7 @@ public class ConfigurationDownloaderTest {
         List<String> locationUrls = List.of(url + "?version=" + 3);
 
         // When
-        downloader.downloadFromAnchor(getSource(locationUrls));
+        downloader.download(getSource(locationUrls));
 
         // Then
         verifySuccessfulLocation(downloader, enforcedVersion);
@@ -254,7 +254,7 @@ public class ConfigurationDownloaderTest {
         List<String> locationUrls = getAllFailedLocationUrls();
 
         // When
-        downloader.downloadFromAnchor(getSource(locationUrls));
+        downloader.download(getSource(locationUrls));
 
         // Then
         List<String> expectedLocationUrls = locationUrls.stream()

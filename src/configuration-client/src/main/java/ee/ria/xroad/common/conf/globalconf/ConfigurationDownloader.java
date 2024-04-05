@@ -106,45 +106,37 @@ class ConfigurationDownloader {
         return new ConfigurationParser();
     }
 
-    DownloadResult downloadFromAnchor(ConfigurationSource source) {
-        var cachedLocation = successfulLocations.get(source.getInstanceIdentifier());
-        if (cachedLocation != null) {
-            var cachedDownloadResult = downloadResult(source.getInstanceIdentifier(), List.of(cachedLocation));
-            if (cachedDownloadResult.isSuccess()) {
-                log.debug("downloaded from anchor -> cachedLocation = " + cachedLocation);
-                return cachedDownloadResult;
-            }
-        }
+    DownloadResult download(ConfigurationSource source, String... contentIdentifiers) {
+        log.debug("download with contentIdentifiers: {}", (Object) contentIdentifiers);
 
         List<ConfigurationLocation> sharedParameterLocations = sharedParametersConfigurationLocations.get(source);
-        log.debug("downloadFromAnchor -> sharedParameterLocations.size = " + sharedParameterLocations.size());
 
-        List<ConfigurationLocation> locations = new ArrayList<>();
-        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
-        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
+        List<ConfigurationLocation> locations = new ArrayList<>(sharedParameterLocations);
+        var sourceLocations = source.getLocations();
+        locations.addAll(sourceLocations);
 
-        return downloadResult(source.getInstanceIdentifier(), locations);
-    }
-
-    DownloadResult downloadFromAdditionalSource(ConfigurationSource source, String... contentIdentifiers) {
-        log.debug("downloadFromAdditionalSource with contentIdentifiers: {}", (Object) contentIdentifiers);
-
-        List<ConfigurationLocation> locations = new ArrayList<>();
-        Optional<String> prevCachedKey = findLocationWithPreviousSuccess(source.getLocations())
+        List<ConfigurationLocation> orderedLocations = new ArrayList<>();
+        Optional<String> prevCachedKey = findLocationWithPreviousSuccess(locations)
                 .map(locationWithPreviousSuccess -> {
-                    locations.add(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
+                    orderedLocations.add(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
                     log.debug("Previously cached key: " + locationWithPreviousSuccess.getDownloadURL());
                     return locationWithPreviousSuccess.getDownloadURL();
                 });
-        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
 
-        return downloadResult(prevCachedKey.orElse(null), locations, contentIdentifiers);
+        if (!sharedParameterLocations.isEmpty()) {
+            orderedLocations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
+            log.debug("sharedParameterLocations.size = {}", sharedParameterLocations.size());
+        }
+
+        orderedLocations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sourceLocations));
+
+        return downloadResult(prevCachedKey.orElse(null), orderedLocations, contentIdentifiers);
     }
 
-    private DownloadResult downloadResult(String initCacheKey, List<ConfigurationLocation> locations, String... contentIdentifiers) {
+    private DownloadResult downloadResult(String prevCachedKey, List<ConfigurationLocation> locations, String... contentIdentifiers) {
         DownloadResult result = new DownloadResult();
         for (ConfigurationLocation location : locations) {
-            String cacheKey = initCacheKey != null ? initCacheKey : location.getDownloadURL();
+            String cacheKey = prevCachedKey != null ? prevCachedKey : location.getDownloadURL();
 
             try {
                 location = toVersionedLocation(location);
