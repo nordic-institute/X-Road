@@ -176,7 +176,9 @@ class ConfigurationClient {
         if (configurationSources != null) {
             for (ConfigurationSource source : configurationSources) {
                 if (sourceFilter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {
-                    DownloadResult result = downloader.download(source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
+                    DownloadResult result = downloader.download(
+                            source,
+                            ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
                     handleResult(result, false);
                 }
             }
