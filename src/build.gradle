@@ -150,6 +150,7 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
+        options.compilerArgs << '-parameters'
     }
 
     tasks.withType(JavaExec).configureEach {
