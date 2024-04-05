@@ -1,3 +1,7 @@
+plugins {
+    alias(libs.plugins.springBoot)
+}
+
 base {
     archivesName = 'centralserver-admin-service'
 }
@@ -11,6 +15,7 @@ configurations {
         apply plugin: 'base'
     }
 }
+
 dependencies {
     dist(project(path: ":central-server:admin-service:ui", configuration: "dist"))
 
