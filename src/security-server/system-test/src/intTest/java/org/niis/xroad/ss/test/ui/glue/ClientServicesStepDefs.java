@@ -382,6 +382,17 @@ public class ClientServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.success().shouldHave(text(message));
     }
 
+    @Step("Rest service details are saved with warnings and success message {string} is shown")
+    public void saveOpenApiServiceSuccess(String message) {
+        clientInfoPageObj.services.servicesEdit.btnSaveEdit().click();
+
+        clientInfoPageObj.warningDialog.title().shouldHave(text("Warning"));
+        clientInfoPageObj.warningDialog.btnContinue().click();
+
+        commonPageObj.snackBar.success().shouldHave(text(message));
+        commonPageObj.snackBar.btnClose().click();
+    }
+
     @Step("Service {string} is deleted")
     public void editRestService(String name) {
         clientInfoPageObj.services.headerServiceDescription(name).click();

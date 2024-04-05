@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
+import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -67,4 +68,15 @@ public class EndpointHelper {
                 .collect(Collectors.toList());
     }
 
+    public List<EndpointType> getNewEndpoints(String serviceCode, OpenApiParser.Result result) {
+        List<EndpointType> newEndpoints = result.getOperations().stream()
+                .map(operation -> mapOperationToEndpoint(serviceCode, operation))
+                .collect(Collectors.toList());
+        newEndpoints.add(new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true));
+        return newEndpoints;
+    }
+
+    private EndpointType mapOperationToEndpoint(String serviceCode, OpenApiParser.Operation operation) {
+        return new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true);
+    }
 }

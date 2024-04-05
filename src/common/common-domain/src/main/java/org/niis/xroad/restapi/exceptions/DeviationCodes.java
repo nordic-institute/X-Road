@@ -158,8 +158,10 @@ public final class DeviationCodes {
     public static final String ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE = "wsdl_validator_not_executable";
     public static final String ERROR_UNSUPPORTED_OPENAPI_VERSION = "unsupported_openapi_version";
 
+    public static final String WARNING_ADDING_ENDPOINTS = "adding_endpoints";
     public static final String WARNING_ADDING_SERVICES = "adding_services";
     public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_with_registered_cert_warning";
+    public static final String WARNING_DELETING_ENDPOINTS = "deleting_endpoints";
     public static final String WARNING_DELETING_SERVICES = "deleting_services";
     public static final String WARNING_FILE_ALREADY_EXISTS = "warning_file_already_exists";
     public static final String WARNING_INIT_SERVER_ID_EXISTS = "init_server_id_exists";
