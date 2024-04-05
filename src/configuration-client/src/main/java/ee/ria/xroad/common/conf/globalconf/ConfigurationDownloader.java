@@ -106,6 +106,14 @@ class ConfigurationDownloader {
         return new ConfigurationParser();
     }
 
+    /**
+     * Downloads the configuration from the given configuration source.
+     *
+     * @param source the configuration source
+     * @param contentIdentifiers the content identifier to include
+     * @return download result object which contains the state of the download and in case of success
+     * the downloaded files.
+     */
     DownloadResult download(ConfigurationSource source, String... contentIdentifiers) {
         log.debug("download with contentIdentifiers: {}", (Object) contentIdentifiers);
 
