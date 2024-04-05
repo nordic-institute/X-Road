@@ -1,10 +1,19 @@
 subprojects {
     def standaloneModules = ["int-test"]
     if (!standaloneModules.contains(it.name)) {
+        apply {
+            plugin libs.plugins.springBoot.get().pluginId
+            plugin 'com.github.hierynomus.license'
+
+        }
 
         dependencies {
             implementation(platform(libs.springCloud.bom))
             implementation(platform(libs.springBoot.bom))
+        }
+
+        bootJar {
+            enabled = false
         }
 
         test {

@@ -2,6 +2,11 @@ subprojects {
 
     def standaloneModules = ["ui", "ui-system-test", "int-test"]
     if (!standaloneModules.contains(it.name)) {
+        apply {
+            plugin libs.plugins.springBoot.get().pluginId
+            plugin 'com.github.hierynomus.license'
+        }
+
         tasks.withType(JavaCompile).configureEach {
             options.encoding = 'UTF-8'
             options.compilerArgs += [
@@ -18,6 +23,10 @@ subprojects {
             implementation(libs.mapstruct)
 
             testAnnotationProcessor(libs.mapstructProcessor)
+        }
+
+        bootJar {
+            enabled = false
         }
     }
 

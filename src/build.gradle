@@ -1,10 +1,21 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath (libs.licenseGradlePlugin) {
+            exclude group: 'org.springframework', module: 'spring-core'
+        }
+    }
+}
+
 plugins {
     alias(libs.plugins.sonarqube)
     alias(libs.plugins.dependencycheck)
     id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
-    alias(libs.plugins.license) apply false
+    alias(libs.plugins.springBoot) apply false
 }
 
 sonarqube {
@@ -195,17 +206,21 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
         enabled = false
     }
 
-    apply plugin: libs.plugins.license.get().pluginId
+    apply plugin: 'com.github.hierynomus.license'
 
     license {
         header rootProject.file('LICENSE.txt')
         include '**/*.java'
-        newLine = false
         skipExistingHeaders = true
-        style {
-            java = 'BLOCK_COMMENT'
+        mapping {
+            java = 'SLASHSTAR_STYLE'
         }
     }
+
+    licenseMain.source = fileTree('src/main')
+    licenseTest.source = fileTree('src/test')
+    licenseFormatMain.source = fileTree('src/main')
+    licenseFormatTest.source = fileTree('src/test')
 
     jar {
         from rootProject.file('LICENSE.txt')

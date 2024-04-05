@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.springBoot)
+    id 'org.springframework.boot'
 }
 
 base {
@@ -9,7 +9,6 @@ base {
 jar {
     enabled = false
 }
-
 bootJar {
     enabled = true
     manifest {
