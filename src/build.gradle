@@ -16,8 +16,6 @@ plugins {
     id 'java'
     id 'idea'
     alias(libs.plugins.springBoot) apply false
-    alias(libs.plugins.protobuf) apply false
-    alias(libs.plugins.frontendJDK17) apply false
 }
 
 sonarqube {

@@ -3,8 +3,7 @@ subprojects {
     def standaloneModules = ["ui", "ui-system-test", "int-test"]
     if (!standaloneModules.contains(it.name)) {
         apply {
-            plugin 'io.spring.dependency-management'
-            plugin 'org.springframework.boot'
+            plugin libs.plugins.springBoot.get().pluginId
             plugin 'com.github.hierynomus.license'
         }
 
@@ -19,6 +18,7 @@ subprojects {
             annotationProcessor(libs.mapstructProcessor)
             annotationProcessor(libs.lombokMapstructBinding)
 
+            implementation(platform(libs.springBoot.bom))
             implementation(platform(libs.springCloud.bom))
             implementation(libs.mapstruct)
 

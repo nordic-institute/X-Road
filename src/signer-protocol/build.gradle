@@ -2,7 +2,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
     id 'java-library'
-    id 'com.google.protobuf'
+    alias(libs.plugins.protobuf)
 }
 
 sourceSets {
