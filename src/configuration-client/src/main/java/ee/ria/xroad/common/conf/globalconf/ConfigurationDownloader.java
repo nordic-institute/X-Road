@@ -117,26 +117,22 @@ class ConfigurationDownloader {
 
         List<ConfigurationLocation> sharedParameterLocations = sharedParametersConfigurationLocations.get(source);
 
-        List<ConfigurationLocation> locations = new ArrayList<>(sharedParameterLocations);
-        var sourceLocations = source.getLocations();
-        locations.addAll(sourceLocations);
+        List<ConfigurationLocation> locations = new ArrayList<>();
+        if (!sharedParameterLocations.isEmpty()) {
+            locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
+            log.debug("sharedParameterLocations.size = {}", sharedParameterLocations.size());
+        }
 
-        List<ConfigurationLocation> orderedLocations = new ArrayList<>();
+        locations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(source.getLocations()));
+
         Optional<String> prevCachedKey = findLocationWithPreviousSuccess(locations)
                 .map(locationWithPreviousSuccess -> {
-                    orderedLocations.add(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
+                    locations.add(0, successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
                     log.debug("Previously cached key: " + locationWithPreviousSuccess.getDownloadURL());
                     return locationWithPreviousSuccess.getDownloadURL();
                 });
 
-        if (!sharedParameterLocations.isEmpty()) {
-            orderedLocations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sharedParameterLocations));
-            log.debug("sharedParameterLocations.size = {}", sharedParameterLocations.size());
-        }
-
-        orderedLocations.addAll(ConfigurationDownloadUtils.shuffleLocationsPreferHttps(sourceLocations));
-
-        return downloadResult(prevCachedKey.orElse(null), orderedLocations, contentIdentifiers);
+        return downloadResult(prevCachedKey.orElse(null), locations, contentIdentifiers);
     }
 
     private DownloadResult downloadResult(String prevCachedKey, List<ConfigurationLocation> locations, String... contentIdentifiers) {
