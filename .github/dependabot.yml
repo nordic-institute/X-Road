@@ -6,7 +6,7 @@ updates:
       interval: "daily"
     reviewers:
       - "nordic-institute/xrd-developers"
-  - package-ecosystem: "npm"
+  - package-ecosystem: "npmups"
     directory: "/src"
     schedule:
       interval: "daily"
