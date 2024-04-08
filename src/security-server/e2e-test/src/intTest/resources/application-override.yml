@@ -30,6 +30,7 @@ test-automation:
     issoap-image: "niis/example-adapter:latest"
     use-custom-env: false
     custom-env-mapping: # original : custom
+      "cs_9193": "ss0_4153"
       "ss0_8080": "ss0_4210"
       "ss1_8080": "ss1_4310"
 

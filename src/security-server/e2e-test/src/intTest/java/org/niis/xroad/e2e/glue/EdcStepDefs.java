@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,15 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e.container;
+package org.niis.xroad.e2e.glue;
 
-import lombok.experimental.UtilityClass;
+import io.cucumber.docstring.DocString;
+import io.cucumber.java.en.Step;
+import io.restassured.response.ValidatableResponseOptions;
+import org.niis.xroad.e2e.container.EnvSetup;
+import org.niis.xroad.e2e.container.Port;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 
-@UtilityClass
-public class Port {
-    public static final int DID_HTTP = 80;
-    public static final int UI = 4000;
-    public static final int PROXY = 8080;
+import static io.restassured.RestAssured.given;
 
-    public static final int EDC_MANAGEMENT = 9193;
+@SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
+public class EdcStepDefs extends BaseE2EStepDefs {
+    @Autowired
+    private EnvSetup envSetup;
+
+    private ValidatableResponseOptions<?, ?> response;
+
+
+    @Step("Federated catalog is queried")
+    public void requestSoapIsSentToProxy(DocString docString) {
+        var mapping = envSetup.getContainerMapping("cs", Port.EDC_MANAGEMENT);
+
+        response = given()
+                .relaxedHTTPSValidation()
+                .body(docString.getContent())
+                .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                .post("https://%s:%s/management/federatedcatalog".formatted(mapping.host(), mapping.port()))
+                .then();
+    }
+
+    @Step("response is sent of http status code {int}")
+    public void responseValidated(int httpStatus) {
+        response.assertThat()
+                .statusCode(httpStatus);
+    }
+
+
 }
