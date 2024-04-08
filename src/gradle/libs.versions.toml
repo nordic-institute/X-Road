@@ -20,7 +20,7 @@ slf4j = "2.0.11"
 testAutomationFramework = "0.2.17"
 protoc = "3.24.3"
 grpc = "1.61.1"
-swaggerParser = "2.1.21"
+swaggerParser = "2.1.22"
 logback = "1.4.14"
 
 [libraries]
