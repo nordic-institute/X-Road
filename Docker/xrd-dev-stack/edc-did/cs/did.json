@@ -1,0 +1,34 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1"
+  ],
+  "id": "did:web:did-server:cs",
+  "service": [
+    {
+      "id": "#credential-service-url",
+      "type": "CredentialService",
+      "serviceEndpoint": "https://cs:20001/resolution/v1/participants/ZGlkOndlYjpkaWQtc2VydmVyOmNz"
+    }
+  ],
+  "verificationMethod": [
+    {
+      "id": "did:web:did-server:cs#key-id",
+      "type": "JsonWebKey2020",
+      "controller": "did:web:did-server:cs",
+      "publicKeyJwk": {
+        "kty": "RSA",
+        "e": "AQAB",
+
+        "kid": "key-id",
+        "alg": "RS256",
+        "n": "nh15T1B2vCpFDLbS4RAFmf3YfNhYj24NFtXBlNUOZr85heKcbTy4rZcwbRysNTC2M-fFFpGFB3HSozmvSShbziQ_6P427-1oaE_jf5YLLeGQbvZY1bFoUMr7aQ3LBG9MhFECaSB-dmOpBrAoqrz5JK1dtirpEuHX_TyV0f_i8gZkmX9UY-PdLvc79C78RopgRVH_FwBhDiq6CP8hAqXXbX-IJYyRou5a9R3ONhBdxtuHkQpekToIDjpst75A81tzraWqn3ACBbDxDQFQXnOiYGL_DDEPXueXVUTrg6anhIOb2nz1OeKc-gRliagM7qi8YgNwLZiecQrOdIV33vN1HQ"
+      }
+    }
+  ],
+  "assertionMethod": [
+    "did:web:did-server:cs#key-id"
+  ],
+  "authentication": [
+    "did:web:did-server:cs#key-id"
+  ]
+}

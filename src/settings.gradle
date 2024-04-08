@@ -63,6 +63,8 @@ include 'central-server:management-service:int-test'
 
 include "central-server:registration-service"
 
+include 'central-server:ds-catalog-service'
+
 include "security-server"
 include "security-server:openapi-model"
 include "security-server:admin-service"

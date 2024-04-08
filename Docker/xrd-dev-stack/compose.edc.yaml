@@ -3,13 +3,25 @@
 # 1. Each container has its own port range. Ex: 4100-4199, 4200-4299, etc.
 
 services:
+  cs:
+    environment:
+      - EDC_HOSTNAME=cs
+      - EDC_DID=did:web:did-server:cs
+      - EDC_DID_KEY_ID=key-id
+      - EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
+    ports:
+      - "4193:9953" #EDC debug
+      - "4151:9191" #EDC api port
+      - "4152:9192" #EDC control port
+      - "4153:9193" #EDC management port
+      - "4154:9194" #EDC protocol port
+      - "4155:9291" #EDC public port
+      - "4156:9293" #EDC XRD public port
   ss0:
     environment:
       - EDC_HOSTNAME=ss0
       - EDC_DID=did:web:did-server:ss0
       - EDC_DID_KEY_ID=3D47895272492D2A5950CD3936D89B69374EDB22
-      - EDC_TRUSTED_ISSUER=ss1
-      - EDC_TRUSTED_ISSUER_DID=did:web:did-server:ss1
     ports:
       - "4293:9953" #EDC debug
       - "4251:9191" #EDC api port
@@ -23,8 +35,6 @@ services:
       - EDC_HOSTNAME=ss1
       - EDC_DID=did:web:did-server:ss1
       - EDC_DID_KEY_ID=ABB413254BE603BE8A1C94193041A2D82E8BDF4B
-      - EDC_TRUSTED_ISSUER=ss0
-      - EDC_TRUSTED_ISSUER_DID=did:web:did-server:ss0
     ports:
       - "4393:9953" #EDC debug
       - "4351:9191" #EDC api port

@@ -11,7 +11,7 @@ RUN apt-get -qq update \
     && apt-get -qq -y install --no-install-recommends \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
         openjdk-17-jre-headless rlwrap ca-certificates-java \
-        crudini adduser expect curl rsyslog dpkg-dev \
+        crudini adduser expect curl rsyslog dpkg-dev nano \
     && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
     && locale-gen en_US.UTF-8 \
     && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -100,8 +100,6 @@ COPY files/edc/xroad-edc /usr/share/xroad/bin/xroad-edc
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost
 ENV EDC_DID_KEY_ID=key-id
-ENV EDC_TRUSTED_ISSUER=localhost
-ENV EDC_TRUSTED_ISSUER_DID="did:web:localhost"
 # end of dataspaces
 
 CMD ["/root/entrypoint.sh"]

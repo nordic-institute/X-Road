@@ -30,6 +30,9 @@ case $1 in
 "edc")
   gradleModule="security-server/edc"
   ;;
+"cs-edc")
+  gradleModule="central-server/ds-catalog-service"
+  ;;
 esac
 
 cd "$XROAD_HOME"/src/

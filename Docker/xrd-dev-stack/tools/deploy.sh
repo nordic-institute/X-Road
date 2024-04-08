@@ -52,6 +52,10 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/security-server/edc/build/libs/connector.jar"
     service_name="xroad-edc"
     ;;
+    "cs-edc")
+      jar_path="$XROAD_HOME/src/central-server/ds-catalog-service/build/libs/ds-catalog-service.jar"
+      service_name="xroad-edc"
+      ;;
   *)
     echo "Unknown module: $module_name"
     return 1
@@ -70,7 +74,7 @@ case $1 in
 "proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "op-monitor-daemon" | "edc")
   deploy_module "$1" "xrd-dev-stack-ss0-1" "xrd-dev-stack-ss1-1"
   ;;
-"cs-admin-service" | "cs-management-service" | "cs-registration-service")
+"cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-edc")
   deploy_module "$1" "xrd-dev-stack-cs-1"
   ;;
 *)
