@@ -137,8 +137,8 @@ importers:
   shared-ui:
     dependencies:
       '@fontsource/open-sans':
-        specifier: ^5.0.20
-        version: 5.0.20
+        specifier: ^5.0.27
+        version: 5.0.27
       '@mdi/font':
         specifier: ^7.4.47
         version: 7.4.47
@@ -508,8 +508,8 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
-  /@fontsource/open-sans@5.0.20:
-    resolution: {integrity: sha512-Tgdqmp9QX8YZd5TO+rEv5n5cZkTaDf0I0eHUHMe3xKxUgGR/9uKS7VYL+kiVZfMNZ/8EyMLwzcNFWVsNG6nZAg==}
+  /@fontsource/open-sans@5.0.27:
+    resolution: {integrity: sha512-tFTqx2TE9srmM3pMEHldw0lTglqhKwFX6PVDEL0OF9xNT0x5W9brsezFHhV/U36pQV9So7S0vo4yVpnLzBBQew==}
     dev: false
 
   /@humanwhocodes/config-array@0.11.13:
