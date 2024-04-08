@@ -42,9 +42,9 @@ import org.niis.xroad.cs.openapi.MembersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.MemberAddDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
-import org.niis.xroad.cs.openapi.model.MemberNameDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
+import org.niis.xroad.cs.openapi.model.UpdateMemberRequestDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -151,11 +151,11 @@ public class MembersApiController implements MembersApi {
     @Override
     @PreAuthorize("hasAnyAuthority('EDIT_MEMBER_NAME')")
     @AuditEventMethod(event = EDIT_MEMBER_NAME)
-    public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
+    public ResponseEntity<ClientDto> updateMember(String id, UpdateMemberRequestDto requestDto) {
         verifyMemberId(id);
         return Optional.of(id)
                 .map(clientIdConverter::convertId)
-                .flatMap(clientId -> memberService.updateMemberName(clientId, memberName.getMemberName()))
+                .flatMap(clientId -> memberService.updateMemberName(clientId, requestDto.getMemberName(), requestDto.getDid()))
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));

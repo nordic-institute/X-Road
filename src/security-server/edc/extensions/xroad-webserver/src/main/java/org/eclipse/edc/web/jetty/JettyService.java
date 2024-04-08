@@ -93,6 +93,13 @@ public class JettyService implements WebServer {
     public void start() {
         try {
             server = new Server();
+
+            if (configuration.isSslDisabled()) {
+                monitor.warning("SSL is disabled!");
+                monitor.warning("Plain HTTP connectors will be created.");
+                monitor.warning("Not recommended for production use!");
+            }
+
             //create a connector for every port mapping
             configuration.getPortMappings().forEach(mapping -> {
                 if (!mapping.getPath().startsWith("/")) {
@@ -105,7 +112,8 @@ public class JettyService implements WebServer {
                 }
 
 
-                connector = httpsServerConnector(mapping.getPort());
+                connector = configuration.isSslDisabled()
+                        ? httpServerConnector(mapping.getPort()) : httpsServerConnector(mapping.getPort());
                 monitor.info("HTTPS context '" + mapping.getName() + "' listening on port " + mapping.getPort());
 
 
@@ -233,8 +241,10 @@ public class JettyService implements WebServer {
     }
 
     @NotNull
-    private ServerConnector httpServerConnector() {
-        return new ServerConnector(server, httpConnectionFactory());
+    private ServerConnector httpServerConnector(int port) {
+        var connector = new ServerConnector(server, httpConnectionFactory());
+        connector.setPort(port);
+        return connector;
     }
 
     private void configure(ServerConnector connector) {

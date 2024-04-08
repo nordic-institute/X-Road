@@ -50,7 +50,6 @@ public class SecurityServer extends Auditable {
 
     private Set<AuthCert> authCerts = new HashSet<>(0);
     private boolean dsEnabled;
-    private String dsId;
     private String dsProtocolUrl;
 
     public SecurityServer(XRoadMember owner, String serverCode) {

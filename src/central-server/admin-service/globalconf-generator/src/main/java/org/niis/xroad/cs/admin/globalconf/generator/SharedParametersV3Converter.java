@@ -43,6 +43,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.xml.bind.JAXBElement;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -77,24 +78,48 @@ abstract class SharedParametersV3Converter {
                                             @Context Map<ClientId, Object> clientMap);
 
     @Named("mapDataspacesSettings")
-    protected DataspaceSettingsType mapDataspacesSettings(SharedParameters sharedParameters) {
+    protected DataspaceSettingsType mapDataspacesSettings(SharedParameters sharedParameters,
+                                                          @Context Map<ClientId, Object> clientMap) {
+
+        DataspaceSettingsType result = new DataspaceSettingsType();
+
         if (sharedParameters.getSecurityServers() != null) {
             var servers = sharedParameters.getSecurityServers().stream()
                     .filter(SharedParameters.SecurityServer::isDsEnabled)
                     .map(s -> {
-                        var securityServer = new DataspaceSettingsType.SecurityServer();
+                        var securityServer = new DataspaceSettingsType.SecurityServers.SecurityServer();
                         securityServer.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
-                        securityServer.setDsId(s.getDsId());
                         securityServer.setProtocolUrl(s.getDsProtocolUrl());
                         return securityServer;
                     })
                     .collect(Collectors.toSet());
 
             if (!servers.isEmpty()) {
-                DataspaceSettingsType result = new DataspaceSettingsType();
-                result.getSecurityServer().addAll(servers);
-                return result;
+                if (result.getSecurityServers() == null) {
+                    result.setSecurityServers(new DataspaceSettingsType.SecurityServers());
+                }
+                result.setSecurityServers(new DataspaceSettingsType.SecurityServers());
+                result.getSecurityServers().getSecurityServer().addAll(servers);
             }
+        }
+
+        if (sharedParameters.getMembers() != null) {
+            for (SharedParameters.Member member : sharedParameters.getMembers()) {
+                if (StringUtils.isNotBlank(member.getDid())) {
+                    var xmlMember = new DataspaceSettingsType.Members.Member();
+                    xmlMember.setMember(clientMap.get(member.getId()));
+                    xmlMember.setDid(member.getDid());
+
+                    if (result.getMembers() == null) {
+                        result.setMembers(new DataspaceSettingsType.Members());
+                    }
+                    result.getMembers().getMember().add(xmlMember);
+                }
+            }
+        }
+
+        if (result.getSecurityServers() != null || result.getMembers() != null) {
+            return result;
         }
         return null;
     }

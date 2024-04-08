@@ -109,18 +109,17 @@ class SharedParametersV3ConverterTest {
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
                 .isEqualTo(CryptoUtils.certHash(sharedParameters.getSecurityServers().get(0).getAuthCerts().get(0)));
 
-        List<DataspaceSettingsType.SecurityServer> dsSupportedServers =
+        List<DataspaceSettingsType.SecurityServers.SecurityServer> dsSupportedServers =
                 sharedParameters.getSecurityServers().stream()
                         .filter(SharedParameters.SecurityServer::isDsEnabled)
                         .map(s -> {
-                            var ss = new DataspaceSettingsType.SecurityServer();
+                            var ss = new DataspaceSettingsType.SecurityServers.SecurityServer();
                             ss.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
-                            ss.setDsId(s.getDsId());
                             ss.setProtocolUrl(s.getDsProtocolUrl());
                             return ss;
                         })
                         .toList();
-        assertThat(xmlType.getDataspacesSettings().getSecurityServer())
+        assertThat(xmlType.getDataspacesSettings().getSecurityServers().getSecurityServer())
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactlyInAnyOrderElementsOf(dsSupportedServers);
     }
@@ -218,6 +217,7 @@ class SharedParametersV3ConverterTest {
         var clientId = memberId();
         member.setId(clientId);
         member.setSubsystems(List.of(subsystem(clientId, "SUB1")));
+        member.setDid("did:web:" + member.getMemberCode());
         return List.of(member);
     }
 
@@ -233,7 +233,6 @@ class SharedParametersV3ConverterTest {
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCerts(List.of("ss-auth-cert".getBytes(UTF_8)));
         securityServer.setDsEnabled(true);
-        securityServer.setDsId("ds-id");
         securityServer.setDsProtocolUrl("ds-protocol-url");
         return securityServer;
     }

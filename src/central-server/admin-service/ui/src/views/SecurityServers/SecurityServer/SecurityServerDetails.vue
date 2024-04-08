@@ -81,7 +81,7 @@
         :title-text="$t('securityServers.dataspace')"
         :info-text="
           securityServer.ds_enabled
-            ? 'Enabled (Id: ' + securityServer.ds_id + ', protocol url: ' + securityServer.protocol_url + ')'
+            ? 'Enabled (Protocol url: ' + securityServer.protocol_url + ')'
             : 'Disabled'
         "
         :action-text="$t('action.edit')"

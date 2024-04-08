@@ -32,18 +32,22 @@ public class JettyConfiguration {
     public static final int DEFAULT_PORT = 8181;
     @Setting
     private static final String HTTP_PORT = "web.http.port";
+    @Setting
+    private static final String XROAD_SSL_DISABLE = "xroad.web.ssl.disable";
     private final String keystorePassword;
     private final String keymanagerPassword;
     private final Set<PortMapping> portMappings;
+    private boolean sslDisable;
 
-    public JettyConfiguration(String keystorePassword, String keymanagerPassword) {
+    protected JettyConfiguration(String keystorePassword, String keymanagerPassword) {
         this.keystorePassword = keystorePassword;
         this.keymanagerPassword = keymanagerPassword;
         portMappings = new HashSet<>();
     }
 
-    public static JettyConfiguration createFromConfig(String keystorePassword, String keymanagerPassword, Config config) {
-        var jettyConfig = new JettyConfiguration(keystorePassword, keymanagerPassword);
+    public static JettyConfiguration createFromConfig(String keystorePassword, String keyManagerPassword, Config config) {
+        var jettyConfig = new JettyConfiguration(keystorePassword, keyManagerPassword);
+        jettyConfig.sslDisable = config.getBoolean(XROAD_SSL_DISABLE, false);
 
         var subConfig = config.getConfig(WEB_HTTP_PREFIX);
 
@@ -102,6 +106,10 @@ public class JettyConfiguration {
 
     public Set<PortMapping> getPortMappings() {
         return portMappings;
+    }
+
+    public boolean isSslDisabled() {
+        return sslDisable;
     }
 
     public void portMapping(PortMapping mapping) {

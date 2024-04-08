@@ -53,6 +53,15 @@
       />
     </div>
 
+    <info-card
+      class="mb-6"
+      :title-text="$t('member.dataspace')"
+      :info-text="'DID: ' + memberStore.currentMember.did || '' "
+      data-test="member-dataspace-card"
+      :action-text="$t('action.edit')"
+      @action-clicked="showEditDidDialog = true"
+    />
+
     <!-- Owned Servers -->
     <div id="owned-servers">
       <searchable-titled-view
@@ -144,6 +153,13 @@
       @save="memberNameChanged"
     />
 
+    <EditMemberDidDialog
+      v-if="showEditDidDialog"
+      :member="memberStore.currentMember"
+      @cancel="cancelEditMemberDid"
+      @save="memberDidChanged"
+    />
+
     <!-- Delete member - Check member code dialog -->
     <MemberDeleteDialog
       v-if="showDeleteDialog"
@@ -168,6 +184,7 @@ import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { DataTableHeader } from '@/ui-types';
+import EditMemberDidDialog from "@/views/Members/Member/Details/EditMemberDidDialog.vue";
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,6 +196,7 @@ let that: any;
 export default defineComponent({
   name: 'MemberDetails',
   components: {
+    EditMemberDidDialog,
     CustomDataTableFooter,
     DateTime,
     SearchableTitledView,
@@ -197,6 +215,7 @@ export default defineComponent({
       colors: Colors,
 
       showEditNameDialog: false,
+      showEditDidDialog: false,
       showDeleteDialog: false,
 
       loadingServers: false,
@@ -279,6 +298,12 @@ export default defineComponent({
     },
     memberNameChanged() {
       this.showEditNameDialog = false;
+    },
+    cancelEditMemberDid() {
+      this.showEditDidDialog = false;
+    },
+    memberDidChanged() {
+      this.showEditDidDialog = false;
     },
     cancelDelete() {
       this.showDeleteDialog = false;

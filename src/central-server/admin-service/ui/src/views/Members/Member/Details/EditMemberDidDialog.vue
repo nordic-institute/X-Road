@@ -24,102 +24,75 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<!--
-  Member details view
--->
+
 <template>
   <xrd-simple-dialog
-    title="securityServers.dialogs.editAddress.title"
-    data-test="security-server-address-edit-dialog"
-    save-button-text="action.save"
-    submittable
-    :scrollable="false"
-    :show-close="true"
     :loading="loading"
+    title="members.member.details.editMemberDid"
+    save-button-text="action.save"
+    cancel-button-text="action.cancel"
+    submittable
     :disable-save="!meta.valid || !meta.dirty"
-    @save="saveAddress"
-    @cancel="close"
+    @cancel="cancelEdit"
+    @save="saveNewMemberDid"
   >
     <template #content>
-      <v-text-field
-        v-model="securityServerAddress"
-        v-bind="securityServerAddressAttrs"
-        data-test="security-server-address-edit-field"
-        autofocus
-        variant="outlined"
-        class="dlg-row-input"
-        name="securityServerAddress"
-        :label="$t('securityServers.dialogs.editAddress.addressField')"
-      />
+      <div class="dlg-input-width">
+        <v-text-field
+          v-bind="memberDid"
+          variant="outlined"
+          data-test="edit-member-did"
+          autofocus
+          :error-messages="errors.memberDid"
+        ></v-text-field>
+      </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
 <script lang="ts" setup>
-import { useSecurityServer } from '@/store/modules/security-servers';
+import { useMember } from '@/store/modules/members';
+import { Client } from '@/openapi-types';
+import { useNotifications } from '@/store/modules/notifications';
+import { toIdentifier } from '@/util/helpers';
+import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { useBasicForm } from '@/util/composables';
-import { PropType } from 'vue';
-import { SecurityServerDataSpaceConfig } from '@/openapi-types';
-
-/**
- * Component for a Security server details view
- */
+import { i18n } from '@/plugins/i18n';
 
 const props = defineProps({
-  securityServerId: {
-    type: String,
-    required: true,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
-  dsConfig: {
-    type: Object as PropType<SecurityServerDataSpaceConfig>,
+  member: {
+    type: Object as PropType<Client>,
     required: true,
   },
 });
 
 const emits = defineEmits(['save', 'cancel']);
 
-const { meta, resetForm, setFieldError, defineField, handleSubmit } = useForm({
-  validationSchema: {
-    securityServerAddress: 'required|address',
-  },
-  initialValues: { securityServerAddress: props.address },
+const { defineComponentBinds, errors, meta, handleSubmit } = useForm({
+  initialValues: { memberDid: props.member.did },
 });
-const [securityServerAddress, securityServerAddressAttrs] = defineField(
-  'securityServerAddress',
-  {
-    props: (state) => ({ 'error-messages': state.errors }),
-  },
-);
+const memberDid = defineComponentBinds('memberDid');
 
-const { updateAddress } = useSecurityServer();
-const { showOrTranslateErrors, showSuccess, loading, t } = useBasicForm(
-  setFieldError,
-  { securityServerAddress: 'securityServerAddressDto.serverAddress' },
-);
+const { editMember } = useMember();
+const { showError, showSuccess } = useNotifications();
+const loading = ref(false);
 
-function close() {
-  resetForm();
+function cancelEdit() {
   emits('cancel');
 }
 
-const saveAddress = handleSubmit((values) => {
+const { t } = i18n.global;
+const saveNewMemberDid = handleSubmit((values) => {
   loading.value = true;
-  updateAddress(
-    props.securityServerId,
-    values.securityServerAddress,
-    props.dsConfig.ds_enabled,
-    props.dsConfig.protocol_url!,
+  editMember(toIdentifier(props.member.client_id),
+    { member_name: props.member.member_name },
+    { did: values.memberDid }
   )
     .then(() => {
-      showSuccess(t('securityServers.dialogs.editAddress.success'));
+      showSuccess(t('members.member.details.memberDidSaved'));
       emits('save');
     })
-    .catch((error) => showOrTranslateErrors(error))
+    .catch((error) => showError(error))
     .finally(() => (loading.value = false));
 });
 </script>

@@ -914,6 +914,27 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
   ]
 }
 
+#Set members DIDs
+PATCH https://{{cs_host}}:4000/api/v1/members/DEV:COM:1234
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "member_name":"Test member",
+  "did":"did:web:did-server:ss0"
+}
+
+HTTP 200
+
+PATCH https://{{cs_host}}:4000/api/v1/members/DEV:COM:4321
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "member_name":"Test client",
+  "did":"did:web:did-server:ss1"
+}
+
+HTTP 200
+
 #Enable DS for ss0 and ss1
 PATCH https://{{cs_host}}:4000/api/v1/security-servers/DEV:COM:1234:SS0
 X-XSRF-TOKEN: {{cs_xsrf_token}}
@@ -921,7 +942,6 @@ Content-Type: application/json
 {
   "server_address": "ss0",
   "ds_enabled": true,
-  "ds_id": "did:web:did-server:ss0",
   "protocol_url": "ss0:9194/protocol"
 }
 
@@ -933,7 +953,6 @@ Content-Type: application/json
 {
   "server_address": "ss1",
   "ds_enabled": true,
-  "ds_id": "did:web:did-server:ss1",
   "protocol_url": "ss1:9194/protocol"
 }
 

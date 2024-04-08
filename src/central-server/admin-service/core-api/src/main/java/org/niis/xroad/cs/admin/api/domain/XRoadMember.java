@@ -47,6 +47,7 @@ public class XRoadMember extends SecurityServerClient {
     private String memberCode;
     private String name;
     private String administrativeContact;
+    private String did;
 
     public XRoadMember(String name, ClientId identifier, MemberClass memberClass) {
         super(MemberId.ensure(identifier));

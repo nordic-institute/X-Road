@@ -195,12 +195,31 @@
 
     <complexType name="DataspaceSettingsType">
         <sequence>
-            <element name="securityServer" minOccurs="0" maxOccurs="unbounded">
+            <element name="securityServers" minOccurs="0">
                 <complexType>
                     <sequence>
-                        <element name="serverId" type="string"/>
-                        <element name="dsId" type="string"/>
-                        <element name="protocolUrl" type="string" minOccurs="0"/>
+                        <element name="securityServer" maxOccurs="unbounded">
+                            <complexType>
+                                <sequence>
+                                    <element name="serverId" type="string"/>
+                                    <element name="protocolUrl" type="string"/>
+                                </sequence>
+                            </complexType>
+                        </element>
+                    </sequence>
+                </complexType>
+            </element>
+            <element name="members" minOccurs="0">
+                <complexType>
+                    <sequence>
+                        <element name="member" maxOccurs="unbounded">
+                            <complexType>
+                                <sequence>
+                                    <element name="member" type="IDREF"/>
+                                    <element name="did" type="string"/>
+                                </sequence>
+                            </complexType>
+                        </element>
                     </sequence>
                 </complexType>
             </element>
