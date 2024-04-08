@@ -13,7 +13,7 @@
   "dependencies": {
     "@fontsource/open-sans": "^5.0.27",
     "@mdi/font": "^7.4.47",
-    "@vee-validate/i18n": "~4.12.4",
+    "@vee-validate/i18n": "~4.12.6",
     "@vee-validate/rules": "~4.12.6",
     "axios": "~1.6.8",
     "deepmerge": "^4.3.1",

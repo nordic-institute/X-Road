@@ -143,8 +143,8 @@ importers:
         specifier: ^7.4.47
         version: 7.4.47
       '@vee-validate/i18n':
-        specifier: ~4.12.4
-        version: 4.12.4
+        specifier: ~4.12.6
+        version: 4.12.6
       '@vee-validate/rules':
         specifier: ~4.12.6
         version: 4.12.6(vue@3.4.21)
@@ -905,8 +905,8 @@ packages:
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
     dev: true
 
-  /@vee-validate/i18n@4.12.4:
-    resolution: {integrity: sha512-/OJTonHFRtCHfR+W1IIFTDG1cAlIXZmLNPF6M/X2RbmVRefcQm4yDgdzq22HJm5dpllMw+2TflYqCShAscBI1A==}
+  /@vee-validate/i18n@4.12.6:
+    resolution: {integrity: sha512-K3xbjLIQQwDrllS18Ka5nyQDIF/1FuHnedXTr6bfmTm44/7C4MyMGo9KDahnrMWTcFkYIKR7XMshM3R6o54MFg==}
     dev: false
 
   /@vee-validate/rules@4.12.6(vue@3.4.21):
