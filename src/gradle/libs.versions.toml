@@ -6,7 +6,7 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.1.26"
-jetty = "12.0.6"
+jetty = "12.0.7"
 jaxb = "4.0.4"
 hibernate = "6.4.4.Final"
 mapstruct = "1.5.5.Final"
