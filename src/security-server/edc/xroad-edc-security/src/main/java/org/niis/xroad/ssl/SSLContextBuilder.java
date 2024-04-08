@@ -26,8 +26,10 @@
  */
 package org.niis.xroad.ssl;
 
+import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
+import ee.ria.xroad.proxy.conf.KeyConf;
 
 import lombok.experimental.UtilityClass;
 
@@ -39,15 +41,21 @@ import javax.net.ssl.X509TrustManager;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.function.Supplier;
 
 import static org.niis.xroad.ssl.EdcSSLConstants.SSL_PROTOCOL;
 
 @UtilityClass
 public class SSLContextBuilder {
+
     public static Result create() throws KeyManagementException, NoSuchAlgorithmException {
+        return create(KeyConf::getAuthKey);
+    }
+
+    public static Result create(Supplier<AuthKey> authKeySupplier) throws KeyManagementException, NoSuchAlgorithmException {
         var trustManager = new AuthTrustManager();
         SSLContext ctx = SSLContext.getInstance(SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()}, new TrustManager[]{trustManager},
+        ctx.init(new KeyManager[]{new AuthKeyManager(authKeySupplier)}, new TrustManager[]{trustManager},
                 new SecureRandom());
         return new Result(ctx, trustManager);
     }

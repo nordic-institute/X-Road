@@ -11,8 +11,6 @@ dependencies {
 
     implementation("org.eclipse.edc:core-spi:$edcVersion")
     implementation("org.eclipse.edc:connector-core:$edcVersion")
-    api("org.eclipse.jetty:jetty-servlet:$edcJettyVersion")
-//    api("org.eclipse.jetty:jetty-server:$edcJettyVersion")
 
     implementation("org.eclipse.edc:jwt-spi:$edcVersion")
     implementation("org.eclipse.edc:token-spi:$edcVersion")

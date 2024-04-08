@@ -26,6 +26,11 @@
  */
 package org.eclipse.edc.web.jetty;
 
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.conf.globalconf.AuthKey;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import jakarta.servlet.Servlet;
 import lombok.SneakyThrows;
 import org.eclipse.edc.spi.EdcException;
@@ -47,6 +52,10 @@ import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.ssl.EdcSSLConstants;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -186,7 +195,14 @@ public class JettyService implements WebServer {
         cf.setIncludeCipherSuites(EdcSSLConstants.SSL_CYPHER_SUITES);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setSslContext(SSLContextBuilder.create().sslContext());
+
+        var tlsCertPath = System.getenv("EDC_TLS_CERT_PATH");
+        if (tlsCertPath != null) {
+
+            cf.setSslContext(SSLContextBuilder.create(() -> getTlsCertificateChain(tlsCertPath)).sslContext());
+        } else {
+            cf.setSslContext(SSLContextBuilder.create().sslContext());
+        }
 
         cf.setSniRequired(sniEnabled);
 
@@ -198,6 +214,22 @@ public class JettyService implements WebServer {
         var httpConnectionFactory = new HttpConnectionFactory(httpsConfiguration);
         var sslConnectionFactory = new SslConnectionFactory(cf, HttpVersion.HTTP_1_1.asString());
         return new ServerConnector(server, sslConnectionFactory, httpConnectionFactory);
+    }
+
+    @SneakyThrows
+    private AuthKey getTlsCertificateChain(String pkcs12Path) {
+        KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(pkcs12Path).toFile(), "management-service".toCharArray());
+
+        keyStore.getKey("management-service", "management-service".toCharArray());
+
+
+        var cert = keyStore.getCertificate("management-service");
+        var certChain = CertChain.create("cs", new X509Certificate[]{
+                (X509Certificate) cert,
+                GlobalConf.getAllCaCerts().stream().findFirst().orElseThrow() //TODO for poc, use proper cert chain.
+        });
+        var pkey = (PrivateKey) keyStore.getKey("management-service", "management-service".toCharArray());
+        return new AuthKey(certChain, pkey);
     }
 
     @NotNull

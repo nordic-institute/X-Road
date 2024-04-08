@@ -12,7 +12,7 @@
  *
  */
 
-package org.niis.xroad.edc.extension.signer;
+package org.niis.xroad.edc.extension.webservice;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;

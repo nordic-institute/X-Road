@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.signer;
+package org.niis.xroad.edc.extension.webservice;
 
 import dev.failsafe.RetryPolicy;
 import lombok.SneakyThrows;

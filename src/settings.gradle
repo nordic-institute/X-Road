@@ -78,6 +78,7 @@ include 'security-server:edc:extensions:xroad-messagelog'
 include 'security-server:edc:extensions:xroad-payload-signer'
 include 'security-server:edc:extensions:xroad-policy'
 include 'security-server:edc:extensions:xroad-identity-and-trust'
+include 'security-server:edc:extensions:xroad-webserver'
 include 'security-server:edc-client'
 include 'security-server:edc:xroad-edc-security'
 include "security-server:system-test"

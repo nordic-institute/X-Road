@@ -74,6 +74,7 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
     }
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
+    implementation(project(":security-server:edc:extensions:xroad-webserver"))
 
     testImplementation("org.eclipse.edc:junit:$edcVersion")
     testImplementation(project(':common:common-test')) {
