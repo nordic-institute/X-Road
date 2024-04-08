@@ -8,15 +8,12 @@ dependencies {
     api project(':signer-protocol')
     api project(':addons:hwtoken')
 
-    api("com.nortal.test:test-automation-core:${testAutomationFrameworkVersion}")
-    api("com.nortal.test:test-automation-allure:${testAutomationFrameworkVersion}")
-    api("com.nortal.test:test-automation-containers:${testAutomationFrameworkVersion}")
-    api("com.nortal.test:test-automation-feign:$testAutomationFrameworkVersion")
-    api("com.nortal.test:test-automation-selenide:${testAutomationFrameworkVersion}") {
+    api(libs.bundles.testAutomation)
+    api(libs.testAutomation.selenide) {
         exclude group: "org.slf4j", module: "*"
     }
-    api("org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}")
-    api("org.awaitility:awaitility:${awaitilityVersion}")
+    api(libs.bouncyCastle.bcpkix)
+    api(libs.awaitility)
 }
 
 test {

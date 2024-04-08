@@ -3,22 +3,19 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1') {
+        classpath (libs.licenseGradlePlugin) {
             exclude group: 'org.springframework', module: 'spring-core'
         }
     }
 }
 
 plugins {
-    id 'org.sonarqube' version '5.0.0.4638'
-    id 'org.owasp.dependencycheck' version '9.1.0'
+    alias(libs.plugins.sonarqube)
+    alias(libs.plugins.dependencycheck)
     id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
-    id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
-    id 'org.springframework.boot' version "${springBootVersion}" apply false
-    id 'com.google.protobuf' version "$protobufGradleVersion" apply false
-    id 'org.siouan.frontend-jdk17' version "$frontendPluginVersion" apply false
+    alias(libs.plugins.springBoot) apply false
 }
 
 sonarqube {
@@ -90,11 +87,6 @@ subprojects {
 
 allprojects {
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-
     version = '1.0'
 
     tasks.register('allDependencies', DependencyReportTask) {}
@@ -131,19 +123,17 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     }
 
     dependencies {
-        //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
+        testImplementation(libs.junit.jupiterEngine)
+        testImplementation(libs.junit.vintageEngine)
 
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
-        testImplementation("org.junit.vintage:junit-vintage-engine:$junitJupiterVersion")
+        compileOnly libs.lombok
+        annotationProcessor libs.lombok
 
-        compileOnly "org.projectlombok:lombok:${lombokVersion}"
-        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        testCompileOnly libs.lombok
+        testAnnotationProcessor libs.lombok
 
-        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-
-        intTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-        intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        intTestCompileOnly libs.lombok
+        intTestAnnotationProcessor libs.lombok
     }
 
     test {
@@ -160,6 +150,7 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
+        options.compilerArgs << '-parameters'
     }
 
     tasks.withType(JavaExec).configureEach {

@@ -1,0 +1,162 @@
+[versions]
+# WARNING:
+# Dependabot does not properly handle version references in build files
+# for example 'implementation "io.dropwizard.metrics:metrics-core:${libs.versions.metrics.get()}"' will be ignored/won't get PR with version update if needed
+# In some cases referincing library directly like 'libs.protobuf.protoc' may not work, possible workaround could be:
+# protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
+
+metrics = "4.1.26"
+jetty = "12.0.6"
+jaxb = "4.0.4"
+hibernate = "6.4.4.Final"
+mapstruct = "1.5.5.Final"
+jackson = "2.17.0"
+mockito = "5.7.0"
+springBoot = "3.2.3"
+junitJupiter = "5.10.2"
+xmlUnit = "2.9.1"
+bouncyCastle = "1.77"
+slf4j = "2.0.11"
+testAutomationFramework = "0.2.17"
+protoc = "3.24.3"
+grpc = "1.61.1"
+swaggerParser = "2.1.21"
+logback = "1.4.14"
+
+[libraries]
+metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
+metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "metrics" }
+
+jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
+jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
+jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
+
+jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
+jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
+
+springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
+springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.0" }
+
+junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
+junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
+
+xmlunit-core = { module = "org.xmlunit:xmlunit-core", version.ref = "xmlUnit" }
+xmlunit-matchers = { module = "org.xmlunit:xmlunit-matchers", version.ref = "xmlUnit" }
+xmlunit-assertj3 = { module = "org.xmlunit:xmlunit-assertj3", version.ref = "xmlUnit" }
+
+bouncyCastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle" }
+bouncyCastle-bcpg = { module = "org.bouncycastle:bcpg-jdk18on", version.ref = "bouncyCastle" }
+
+protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protoc" }
+protobuf-javaUtil = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protoc" }
+
+grpc-nettyShaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
+grpc-protocGenGrpcJava = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
+
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+jclOverSlf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "slf4j" }
+
+testAutomation-core = { module = "com.nortal.test:test-automation-core", version.ref = "testAutomationFramework" }
+testAutomation-allure = { module = "com.nortal.test:test-automation-allure", version.ref = "testAutomationFramework" }
+testAutomation-containers = { module = "com.nortal.test:test-automation-containers", version.ref = "testAutomationFramework" }
+testAutomation-feign = { module = "com.nortal.test:test-automation-feign", version.ref = "testAutomationFramework" }
+testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide", version.ref = "testAutomationFramework" }
+testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
+testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
+
+jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
+jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.0.0" }
+jakarta-injectApi = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
+jakarta-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.1" }
+jakarta-soapApi = { module = "jakarta.xml.soap:jakarta.xml.soap-api", version = "3.0.1" }
+jakarta-annotationApi = { module = "jakarta.annotation:jakarta.annotation-api", version = "1.3.5" }
+
+mapstructProcessor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
+
+hibernate-hikaricp = { module = "org.hibernate:hibernate-hikaricp", version.ref = "hibernate" }
+hibernate-jpamodelgen = { module = "org.hibernate:hibernate-jpamodelgen", version.ref = "hibernate" }
+hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
+hibernate-toolsAnt = { module = "org.hibernate.tool:hibernate-tools-ant", version.ref = "hibernate" }
+
+jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
+
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+
+apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.26.0" }
+apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
+apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.11.0" }
+apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.9.0" }
+apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
+apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version = "3.4.10" }
+apache-tikaCore = { module = "org.apache.tika:tika-core", version = "2.9.1" }
+apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.1" }
+apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
+apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.3.1" }
+apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.9" }
+apache-ant = { module = "org.apache.ant:ant", version = "1.10.14" }
+
+commons-cli = { module = "commons-cli:commons-cli", version = "1.6.0" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.16.1" }
+commons-io = { module = "commons-io:commons-io", version = "2.15.1" }
+commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
+
+swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swaggerParser" }
+swagger-parserV3 = { module = "io.swagger.parser.v3:swagger-parser-v3", version.ref = "swaggerParser" }
+
+openapi-parser = { module = "org.openapi4j:openapi-parser", version = "1.0.7" }
+openapi-styleValidatorLib = { module = "org.openapitools.openapistylevalidator:openapi-style-validator-lib", version = "1.11" }
+openapi-empoaSwaggerCore = { module = "org.openapitools.empoa:empoa-swagger-core", version = "2.1.0" }
+
+lombok = { module = "org.projectlombok:lombok", version = "1.18.30" }
+lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
+
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logback-access = { module = "ch.qos.logback:logback-access", version.ref = "logback" }
+
+assertj-core = { module = "org.assertj:assertj-core", version = "3.24.2" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.5.2" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.6.1" }
+hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.1" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.25.0" }
+xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
+feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "12.3" }
+guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.17" }
+awaitility = { module = "org.awaitility:awaitility", version = "4.2.1" }
+bucket4j-core = { module = "com.github.vladimir-bukhtoyarov:bucket4j-core", version = "7.4.0" }
+libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
+wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
+licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
+hamcrest = { module = "org.hamcrest:hamcrest", version = "2.2" }
+javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
+hikariCP = { module = "com.zaxxer:HikariCP", version = "5.0.1" }
+saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.3" }
+quartz = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
+antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
+systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
+semver4j = { module = "org.semver4j:semver4j", version = "5.2.2" }
+restAssured = { module = "io.rest-assured:rest-assured", version = "5.4.0" }
+cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
+
+[bundles]
+metrics = ["metrics-core", "metrics-jmx"]
+jaxb = ["jaxb-runtime", "jaxb-xjc"]
+testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-allure", "testAutomation-feign"]
+
+[plugins]
+springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+openapi-generator = { id = "org.openapi.generator", version = "7.1.0" }
+sonarqube = { id = "org.sonarqube", version = "5.0.0.4638" }
+dependencycheck = { id = "org.owasp.dependencycheck", version = "9.1.0" }
+protobuf = { id = "com.google.protobuf", version = "0.9.4" }
+frontendJDK17 = { id = "org.siouan.frontend-jdk17", version = "8.0.0" }
+shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }

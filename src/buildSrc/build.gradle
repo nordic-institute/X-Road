@@ -2,10 +2,6 @@ plugins {
     id 'java-gradle-plugin'
 }
 
-repositories {
-    mavenCentral()
-}
-
 gradlePlugin {
     plugins {
         simplePlugin {
@@ -17,19 +13,19 @@ gradlePlugin {
 
 dependencies {
     // force newer version, older conflicts with owasp dependency check
-    implementation 'commons-codec:commons-codec:1.16.1'
-    implementation 'org.openapi4j:openapi-parser:1.0.7'
-    implementation 'org.openapitools.openapistylevalidator:openapi-style-validator-lib:1.11'
-    implementation 'io.swagger.parser.v3:swagger-parser:2.1.21'
-    implementation 'org.openapitools.empoa:empoa-swagger-core:2.1.0'
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    implementation libs.commons.codec
+    implementation libs.openapi.parser
+    implementation libs.openapi.styleValidatorLib
+    implementation libs.swagger.parser
+    implementation libs.openapi.empoaSwaggerCore
+    testImplementation libs.junit.jupiterEngine
 
     constraints {
         // org.owasp.dependencycheck needs at least this version of jackson.
-        add("implementation", "com.fasterxml.jackson:jackson-bom:2.17.0")
+        add("implementation", libs.jackson.bom)
         // org.owasp.dependencycheck needs these versions.
-        add("implementation", "org.apache.commons:commons-lang3:3.14.0")
-        add("implementation", "org.apache.commons:commons-text:1.11.0")
+        add("implementation", libs.apache.commonsLang3)
+        add("implementation", libs.apache.commonsText)
     }
 }
 

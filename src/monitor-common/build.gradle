@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id 'com.google.protobuf'
+    alias(libs.plugins.protobuf)
 }
 
 sourceSets {
@@ -15,14 +15,14 @@ sourceSets {
 
 dependencies {
     api project(':common:common-rpc')
-    implementation "com.google.guava:guava:$guavaVersion"
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation libs.guava
+    implementation libs.slf4j.api
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:$protocVersion" }
+    protoc { artifact = libs.protobuf.protoc.get().toString() }
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion" }
+        grpc { artifact = libs.grpc.protocGenGrpcJava.get().toString() }
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }

@@ -11,10 +11,9 @@ sourceSets {
 }
 
 dependencies {
-    implementation "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    implementation libs.jaxb.runtime
 
-    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
-    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc libs.bundles.jaxb
 }
 
 tasks.register('createDirs') {

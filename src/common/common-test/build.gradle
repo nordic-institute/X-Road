@@ -3,18 +3,18 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common:common-message')
-    implementation project(':common:common-globalconf')
-    implementation project(':common:common-verifier')
-    implementation 'org.antlr:ST4:4.3.4'
+    implementation(project(':common:common-message'))
+    implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-verifier'))
+    implementation(libs.antlrST4)
     // JUnit is needed for ExpectedCodedException
-    implementation "org.junit.vintage:junit-vintage-engine:$junitJupiterVersion"
+    implementation libs.junit.vintageEngine
 
-    api("org.apache.httpcomponents:httpasyncclient:4.1.5")
-    api "org.mockito:mockito-junit-jupiter:$mockitoVersion"
-    api "org.awaitility:awaitility:$awaitilityVersion"
-    api "com.github.stefanbirkner:system-rules:$systemRulesVersion"
-    api "org.assertj:assertj-core:$assertjVersion"
+    api(libs.apache.httpasyncclient)
+    api(libs.mockito.jupiter)
+    api(libs.awaitility)
+    api(libs.systemRules)
+    api(libs.assertj.core)
 }
 
 sourceSets {

@@ -9,14 +9,14 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation project(path: ":proxy", configuration: 'testArtifacts')
 
-    testImplementation('org.wiremock:wiremock-standalone:3.5.2')
+    testImplementation(libs.wiremock.standalone)
 
-    testImplementation "wsdl4j:wsdl4j:$wsdl4jVersion"
-    testImplementation 'org.apache.httpcomponents:httpmime:4.5.14'
-    testImplementation "org.xmlunit:xmlunit-core:$xmlUnitVersion"
-    testImplementation "org.xmlunit:xmlunit-matchers:$xmlUnitVersion"
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation libs.wsdl4j
+    testImplementation libs.apache.httpmime
+    testImplementation libs.xmlunit.core
+    testImplementation libs.xmlunit.matchers
+    testImplementation libs.hsqldb
+    testImplementation libs.mockito.core
 }
 
 tasks.register('runMetaserviceTest', JavaExec) {
