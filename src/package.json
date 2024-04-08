@@ -14,7 +14,7 @@
     "@intlify/eslint-plugin-vue-i18n": "^2.0.0",
     "@rushstack/eslint-patch": "^1.10.1",
     "@tsconfig/node18": "^18.2.4",
-    "@types/node": "^18.16.17",
+    "@types/node": "^20.12.5",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-prettier": "^9.0.0",
