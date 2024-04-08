@@ -161,8 +161,8 @@ importers:
         specifier: ^3.2.1
         version: 3.2.1(pinia@2.1.7)
       vee-validate:
-        specifier: ^4.12.4
-        version: 4.12.4(vue@3.4.21)
+        specifier: ^4.12.6
+        version: 4.12.6(vue@3.4.21)
       vue:
         specifier: ^3.4.21
         version: 3.4.21(typescript@5.4.4)
@@ -3094,6 +3094,16 @@ packages:
 
   /vee-validate@4.12.4(vue@3.4.21):
     resolution: {integrity: sha512-rqSjMdl0l/RiGKywKhkXttUKwDlQOoxTxe31uMQiMlwK4Hbtlvr3OcQvpREp/qPTARxNKudKWCUVW/mfzuxUVQ==}
+    peerDependencies:
+      vue: ^3.3.11
+    dependencies:
+      '@vue/devtools-api': 6.5.1
+      type-fest: 4.9.0
+      vue: 3.4.21(typescript@5.4.4)
+    dev: false
+
+  /vee-validate@4.12.6(vue@3.4.21):
+    resolution: {integrity: sha512-EKM3YHy8t1miPh30d5X6xOrfG/Ctq0nbN4eMpCK7ezvI6T98/S66vswP+ihL4QqAK/k5KqreWOxof09+JG7N/A==}
     peerDependencies:
       vue: ^3.3.11
     dependencies:
