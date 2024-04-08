@@ -124,7 +124,7 @@ logback-access = { module = "ch.qos.logback:logback-access", version.ref = "logb
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.24.2" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.5.2" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.6.1" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.1" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.25.0" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
