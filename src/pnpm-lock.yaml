@@ -146,8 +146,8 @@ importers:
         specifier: ~4.12.4
         version: 4.12.4
       '@vee-validate/rules':
-        specifier: ~4.12.4
-        version: 4.12.4(vue@3.4.21)
+        specifier: ~4.12.6
+        version: 4.12.6(vue@3.4.21)
       axios:
         specifier: ~1.6.8
         version: 1.6.8
@@ -909,10 +909,10 @@ packages:
     resolution: {integrity: sha512-/OJTonHFRtCHfR+W1IIFTDG1cAlIXZmLNPF6M/X2RbmVRefcQm4yDgdzq22HJm5dpllMw+2TflYqCShAscBI1A==}
     dev: false
 
-  /@vee-validate/rules@4.12.4(vue@3.4.21):
-    resolution: {integrity: sha512-r/BGZAst/0OkFJ9m+YGOzULVPZc7WQAFbAZk4UO9epDzz6KYt9fEC0rh6BbzwSf/Xw9U0JSCDOkNZ1gYNDoR5g==}
+  /@vee-validate/rules@4.12.6(vue@3.4.21):
+    resolution: {integrity: sha512-vXhunbllildEbCWaBI2m6mij7U4pDTeoqX9CQ7/0gVMhtkTZh+QhKsDSaGI2evatECINH2cpLOBaMkubdN82VQ==}
     dependencies:
-      vee-validate: 4.12.4(vue@3.4.21)
+      vee-validate: 4.12.6(vue@3.4.21)
     transitivePeerDependencies:
       - vue
     dev: false
@@ -3094,6 +3094,16 @@ packages:
 
   /vee-validate@4.12.4(vue@3.4.21):
     resolution: {integrity: sha512-rqSjMdl0l/RiGKywKhkXttUKwDlQOoxTxe31uMQiMlwK4Hbtlvr3OcQvpREp/qPTARxNKudKWCUVW/mfzuxUVQ==}
+    peerDependencies:
+      vue: ^3.3.11
+    dependencies:
+      '@vue/devtools-api': 6.5.1
+      type-fest: 4.9.0
+      vue: 3.4.21(typescript@5.4.4)
+    dev: false
+
+  /vee-validate@4.12.6(vue@3.4.21):
+    resolution: {integrity: sha512-EKM3YHy8t1miPh30d5X6xOrfG/Ctq0nbN4eMpCK7ezvI6T98/S66vswP+ihL4QqAK/k5KqreWOxof09+JG7N/A==}
     peerDependencies:
       vue: ^3.3.11
     dependencies:
