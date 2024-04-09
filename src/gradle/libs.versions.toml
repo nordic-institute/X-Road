@@ -95,7 +95,7 @@ apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.11.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.9.0" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
-apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version = "3.4.10" }
+apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version = "4.0.4" }
 apache-tikaCore = { module = "org.apache.tika:tika-core", version = "2.9.1" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.1" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
