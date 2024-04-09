@@ -125,7 +125,7 @@ logback-access = { module = "ch.qos.logback:logback-access", version.ref = "logb
 assertj-core = { module = "org.assertj:assertj-core", version = "3.25.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.5.2" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
-hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.1" }
+hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.2" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.27.0" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.2.1" }
