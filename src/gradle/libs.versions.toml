@@ -101,7 +101,7 @@ apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.1" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
 apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.3.1" }
-apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.10" }
+apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.11" }
 apache-ant = { module = "org.apache.ant:ant", version = "1.10.14" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.6.0" }
