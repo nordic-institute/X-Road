@@ -51,8 +51,8 @@ importers:
         specifier: ^9.24.1
         version: 9.24.1(eslint@8.57.0)
       eslint-plugin-vuetify:
-        specifier: ^2.2.0
-        version: 2.2.0(eslint@8.57.0)(vuetify@3.5.14)
+        specifier: ^2.3.0
+        version: 2.3.0(eslint@8.57.0)(vuetify@3.5.14)
       happy-dom:
         specifier: ^14.7.1
         version: 14.7.1
@@ -1653,8 +1653,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-vuetify@2.2.0(eslint@8.57.0)(vuetify@3.5.14):
-    resolution: {integrity: sha512-JcG1QflqACrLF0pFxxtCvC/vYoA4IBYq1yMQZUiPqksEJFPi94kG0yNAum2Z8ehW5ac+lw0vPnQvGEdxLuVx6Q==}
+  /eslint-plugin-vuetify@2.3.0(eslint@8.57.0)(vuetify@3.5.14):
+    resolution: {integrity: sha512-3cQJ401LW89meE0m3HdhUAQhe2ukVJ84fYcPbr0179lm4GjaTNsv83zPvnGvUE2dli65f4/hzj9YqU+1bFYdCA==}
     peerDependencies:
       eslint: ^8.0.0
       vuetify: ^3.0.0
