@@ -1,17 +1,18 @@
 # Kubernetes Security Server Sidecar Security User Guide <!-- omit in toc -->
 
-Version: 1.4  
+Version: 1.5  
 Doc. ID: UG-K-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                  | Author
- ---------- |---------|----------------------------------------------| --------------------
- 25.01.2021 | 1.0     | Initial version                              | Alberto Fernandez Lorenzo
- 09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices | Alberto Fernandez Lorenzo
- 28.11.2021 | 1.2     | Add license info                             | Petteri Kivimäki
- 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute
- 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets
+| Date       | Version | Description                                  | Author                    |
+| ---------- | ------- | -------------------------------------------- | ------------------------- |
+| 25.01.2021 | 1.0     | Initial version                              | Alberto Fernandez Lorenzo |
+| 09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices | Alberto Fernandez Lorenzo |
+| 28.11.2021 | 1.2     | Add license info                             | Petteri Kivimäki          |
+| 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute           |
+| 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets             |
+| 02.04.2024 | 1.5     | Updated reference data                       | Madis Loitmaa             |
 
 ## License
 
@@ -20,49 +21,54 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ## Table of contents
 
-* [License](#license)
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-* [2 Reference Data](#2-reference-data)
-* [3 Handling passwords and secrets](#3-handling-passwords-and-secrets)
-  * [3.1 Secrets as volume](#31-secrets-as-volume)
-  * [3.2 Secrets as environment variables](#32-secrets-as-environment-variables)
-* [4 User accounts](#4-user-accounts)
-  * [4.1 Create a kubeconfig](#41-create-a-kubeconfig)
-  * [4.2 Grant Cluster access to users](#42-grant-cluster-access-to-users)
-  * [4.3 Restrict namespace access to a cluster](#43-restrict-namespace-access-to-a-cluster)
-  * [4.4 Kubernetes Dashboard](#44-kubernetes-dashboard)
-* [5 Network policies](#5-network-policies)
-  * [5.1 Create Network policies](#51-create-network-policies)
-* [6 Pod Security Policies](#6-pod-security-policies)
-  * [6.1 Pod Security Policies in AWS EKS](#61-pod-security-policies-in-aws-eks)
-  * [6.2 Creating a Pod Security Policy](#62-creating-a-pod-security-policy)
-* [7 Assign Resources to Containers and Pods](#7-assign-resources-to-containers-and-pods)
-* [8 Monitoring](#8-monitoring)
-* [9 Backups](#9-backups)
-* [10 Message logs](#10-message-logs)
-* [11 Horizontal Pod Autoscaler best practices](#11-horizontal-pod-autoscaler-best-practices)
+- [License](#license)
+- [Table of contents](#table-of-contents)
+- [1 Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+- [2 Reference Data](#2-reference-data)
+- [3 Handling passwords and secrets](#3-handling-passwords-and-secrets)
+  - [3.1 Secrets as volume](#31-secrets-as-volume)
+  - [3.2 Secrets as environment variables](#32-secrets-as-environment-variables)
+- [4 User accounts](#4-user-accounts)
+  - [4.1 Create a kubeconfig](#41-create-a-kubeconfig)
+    - [4.1.2 Create a kubeconfig for AWS EKS](#412-create-a-kubeconfig-for-aws-eks)
+    - [4.1.2 Create a kubeconfig for Azure AKS](#412-create-a-kubeconfig-for-azure-aks)
+    - [4.1.3 Test the configuration](#413-test-the-configuration)
+  - [4.2 Grant cluster access to users](#42-grant-cluster-access-to-users)
+  - [4.3 Restrict namespace access to a cluster](#43-restrict-namespace-access-to-a-cluster)
+  - [4.4 Kubernetes Dashboard](#44-kubernetes-dashboard)
+- [5 Network policies](#5-network-policies)
+  - [5.1 Create Network policies](#51-create-network-policies)
+- [6 Pod Security Policies](#6-pod-security-policies)
+  - [6.1 Pod Security Policies in AWS EKS](#61-pod-security-policies-in-aws-eks)
+  - [6.2 Creating a Pod Security Policy](#62-creating-a-pod-security-policy)
+- [7 Assign Resources to Containers and Pods](#7-assign-resources-to-containers-and-pods)
+- [8 Monitoring](#8-monitoring)
+- [9 Backups](#9-backups)
+- [10 Message logs](#10-message-logs)
+- [11 Horizontal Pod Autoscaler best practices](#11-horizontal-pod-autoscaler-best-practices)
 
 ## 1 Introduction
 
 ### 1.1 Target Audience
 
-This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS environment.
+This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS or Azure Kubernetes Service (AKS) environment.
 
 This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md).
-The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, AWS EKS and X-Road.
+The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes (including it's cloud provider's specialties (AWS EKS or Azure AKS)) and X-Road.
 
 ## 2 Reference Data
 
 Please check the Reference data in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#44-reference-data).
 
- **Ref** | **Value**             | **Explanation**                                                                                                
----------|-----------------------|----------------------------------------------------------------------------------------------------------------
- 4.1     | \<role arn>           | The ARN of the IAM role to add.                                                                                
- 4.2     | \<kubernetes groups>  | A list of groups within Kubernetes to which the role is mapped. Typically "system:masters" and "system:nodes". 
- 4.3     | \<user arn>           | The ARN of the IAM user to add.                                                                                
- 4.4     | \<user name>          | The user name within Kubernetes to map to the IAM user.                                                        
- 4.5     | \<networkpolicy name> | Unique name that identifies a NetworkPolicy inside a namespace.                                                
+| **Ref** | **Value**              | **Explanation**                                                                                                |
+| ------- | ---------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 4.1     | \<role arn>            | The ARN of the IAM role to add.                                                                                |
+| 4.2     | \<kubernetes groups>   | A list of groups within Kubernetes to which the role is mapped. Typically "system:masters" and "system:nodes". |
+| 4.3     | \<user arn>            | The ARN of the IAM user to add.                                                                                |
+| 4.4     | \<user name>           | The user name within Kubernetes to map to the IAM user.                                                        |
+| 4.5     | \<network policy name> | Unique name that identifies a NetworkPolicy inside a namespace.                                                |
+| 4.6     | \<resource group>      | Name of resource group in AKS.                                                                                 |
 
 ## 3 Handling passwords and secrets
 
@@ -80,7 +86,7 @@ For the Security Server Sidecar container, the first option is used to store the
 If you don't have an existing SSH key, you can create one by running:
 
 ```bash
-ssh-keygen -f /path/to/.ssh/
+ssh-keygen -f /path/to/.ssh/id_rsa
 ```
 
 Then create a Kubernetes Secret to store the SSH key by running (**Reference Data: 3.1, 3.7**);
@@ -93,7 +99,7 @@ We can then consume these secrets as a volume in Kubernetes, i.e. by including t
 
 Below is an example of using Secrets in a Pod deployment manifest file (**Reference Data: 3.6, 3.7**):
 
-``` yaml
+```yaml
 [...]
 volumes:
 - name: <manifest volume name>
@@ -117,7 +123,7 @@ volumes:
 
 This example shows how to create a secret for the Security Server Sidecar as environment variables with sensitive data.
 
-1. Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **Reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
+1. Create a manifest file called for example `secret-env-variables.yaml` and fill it with the desired values of the environment variables ( **Reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
 
     ```yaml
     apiVersion: v1
@@ -144,7 +150,7 @@ This example shows how to create a secret for the Security Server Sidecar as env
 
 Then we can consume the Secrets as environment variables by modifying the deployment Pod manifest of each container that requires the secret as follows (the Secret key becomes the environment variable name in the Pod):
 
-``` yaml
+```yaml
 [...]
 containers:
   - name: security-server-sidecar
@@ -158,7 +164,7 @@ containers:
 
 Alternatively, if we don't want to include all the environment variables in a single Secret, we can reference it by key in the environment variable definition. Below is an example of how to do that with the variable "XROAD_DB_PWD":
 
-``` yaml
+```yaml
 [...]
 containers:
   - name: security-server-sidecar
@@ -189,12 +195,15 @@ containers:
 
 ## 4 User accounts
 
-Amazon EKS uses IAM to provide authentication to your Kubernetes cluster through the `aws eks get-token` command (available in AWS CLI version 1.16.156 or later, or on the AWS IAM Authenticator for Kubernetes). However, for authorization, it still relies on native Kubernetes Role Based Access Control (RBAC). This means that IAM is only used for authentication of valid IAM entities. All the permissions required for interacting with the Kubernetes API of your Amazon EKS cluster are managed through the native Kubernetes RBAC system.
+Amazon EKS and Azure AKS command line utilities can be used to authenticate user to your Kubernetes cluster.However, for authorization, they still rely on native Kubernetes Role Based Access Control (RBAC). All the permissions required for interacting with the Kubernetes API of your cluster are managed through the native Kubernetes RBAC system.
 
 ### 4.1 Create a kubeconfig
 
 A kubeconfig file is a file used to configure access to Kubernetes when used in conjunction with the kubectl command-line tool.
 
+
+#### 4.1.2 Create a kubeconfig for AWS EKS
+ 
 To create a kubeconfig file, we should first be authenticated through the AWS CLI. More information on how to authenticate with AWS CLI can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/).
 
 Then, open a terminal and run the following command (**Reference Data: 3.12, 3.13**):
@@ -202,6 +211,18 @@ Then, open a terminal and run the following command (**Reference Data: 3.12, 3.1
 ```bash
 aws eks --region <cluster region> update-kubeconfig --name <cluster name>
 ```
+
+#### 4.1.2 Create a kubeconfig for Azure AKS
+
+To create a kubeconfig file, we should first be authenticated through the Azure CLI. More information on how to authenticate with Azure CLI can be found [here](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli).
+
+Then, open a terminal and run the following command (**Reference Data: 3.12, 4.6**):
+
+```bash
+az aks get-credentials --resource-group <resource group> --name <cluster name>
+```
+
+#### 4.1.3 Test the configuration
 
 We can test the configuration by running the following command (you should see one Kubernetes service):
 
@@ -220,88 +241,51 @@ cat /root/.kube/config
 
 ### 4.2 Grant cluster access to users
 
-When we create an Amazon EKS cluster, the IAM user or role entity, such as a federated user that creates the cluster, is automatically granted system:masters permissions in the cluster's RBAC configuration on the control plane. This IAM entity does not appear in the ConfigMap or any other visible configuration, so make sure to keep track of which IAM entity originally created the cluster. To grant additional AWS users or roles the ability to interact with your cluster, we must edit the aws-auth ConfigMap within Kubernetes.
-Below are the steps to add IAM users or roles to your cluster:
+Kubernetes has fine-grained built-in role based access control (RBAC) that can be used to for regulating access to Kubernetes cluster. More information about Kubernetes RBAC can be found in [official documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/). 
 
-1. Check if you have already applied the 'aws-auth' ConfigMap:
-
-    ```bash
-    kubectl describe configmap -n kube-system aws-auth
-    ```
-
-2. If you don't have any ConfigMap you can download it by running:
-
-    ```bash
-    curl -o aws-auth-cm.yaml https://s3.us-west-2.amazonaws.com/amazon-eks/cloudformation/2020-10-29/aws-auth-cm.yaml
-    ```
-
-3. Edit the ConfigMap file to introduce the InstanceNodeARN and then apply the changes by running:
-
-    ```bash
-    kubectl apply -f aws-auth-cm.yaml
-    ```
-
-4. To add an IAM user or role to an Amazon EKS cluster, edit the 'aws-auth' ConfigMap by running:
-
-    ```bash
-    kubectl edit -n kube-system configmap/aws-auth
-    ```
-
-5. Add your IAM users, roles, or AWS accounts to the ConfigMap file (**Reference Data: 4.1, 4.2, 4.3, 4.4**):
-
-    ``` yaml
-    apiVersion: v1
-    data:
-    mapRoles: |
-      - rolearn: <role arn>
-        username: <system:node:{{EC2PrivateDNSName}}>
-        groups:
-          - <kubernetes group>
-          - <kubernetes group>
-    mapUsers: |
-      - userarn: <user arn>
-        username: <user name>
-        groups:
-          - <kubernetes group>
-          - <kubernetes group>
-      - userarn: <user arn>
-        username: <user name>
-        groups:
-          - <kubernetes group>
-    ```
-
-    To add an IAM role: add the role details to the mapRoles section of the ConfigMap under data or add the whole section if it does not already exist in the file, as shown above.
-    To add an IAM user: add the user details to the mapUsers section of the ConfigMap under data or add the whole section if it does not already exist in the file, as shown above.
-
-6. Save the ConfigMap file and exit the text editor.
+Both AWS EKS and Azure AKS provide methods for integrating their IAM roles with Kubernetes RBAC:
+- [Grant access to Kubernetes AWS EKS APIs](https://docs.aws.amazon.com/eks/latest/userguide/grant-k8s-access.html)
+- [Use Azure role-based access control for Kubernetes Authorization](https://learn.microsoft.com/en-us/azure/aks/manage-azure-rbac)
 
 ### 4.3 Restrict namespace access to a cluster
 
-If the same Cluster is shared by different developers and teams, it is advisable to create isolated environments by creating namespaces and restrict access within each namespace. More information about how to assign permissions to a namespace in an AWS EKS Cluster on the [AWS Documentation](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/).
+If the same Cluster is shared by different developers and teams, it is advisable to create isolated environments by creating namespaces and restrict access within each namespace. More information about how to assign permissions to a namespace in:
+- [AWS EKS Cluster on the](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/)
+- [Azure AKS Cluster](https://learn.microsoft.com/en-us/azure/aks/concepts-identity)
 
 ### 4.4 Kubernetes Dashboard
 
 Dashboard is a web-based Kubernetes user interface. You can use Dashboard to deploy containerized applications to a Kubernetes cluster, troubleshoot your containerized application, and manage the cluster resources.
 
-The Dashboard UI is not deployed by default. To deploy it, run the following command:
+The Dashboard UI is not deployed by default. To deploy it using `helm` run the following commands:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+# Add kubernetes-dashboard repository
+helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+# Deploy a Helm Release named "kubernetes-dashboard" using the kubernetes-dashboard chart
+helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
 ```
 
 You can access Dashboard using the kubectl command-line tool by running the following command:
 
 ```bash
-kubectl proxy
+kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
 ```
 
-Kubectl will make Dashboard available at `http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/`.
+Kubectl will make Dashboard available at <https://localhost:8443>.
 
-In the login view, you will be required to enter a token, as described in section [4 User Accounts](#4-user-accounts). AWS EKS provides authentication to the Kubernetes Cluster through the `aws eks get-token` command, so in order to get the token you can run (**Reference Data: 3.12**):
+In the login view, you will be required to enter a token. To try out Kubernetes Dashboard you can [create a sample user](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md) and get the token with the following command:
 
 ```bash
-aws eks get-token --cluster-name <cluster name>
+kubectl -n kubernetes-dashboard create token admin-user
 ```
+
+Additional information on Kubernetes Dashboard can be found in the following links:
+- [Kubernetes Dashboard project page](https://github.com/kubernetes/dashboard)
+- [Accessing Dashboard](https://github.com/kubernetes/dashboard/blob/master/docs/user/accessing-dashboard/README.md)
+- [Access Control](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/README.md)
+- [Creating sample user](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md)
+
 
 Installing the Kubernetes Dashboard could have potential security risks:
 
@@ -342,7 +326,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 1. Modify the Primary Pod manifest adding the label "role:primary" to identify it:
 
-    ``` yaml
+    ```yaml
     [...]
     metadata:
       name: <service name>
@@ -354,7 +338,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 2. Modify the Secondary Pod manifest adding the label "role:secondary" to identify it:
 
-    ``` yaml
+    ```yaml
     [...]
     spec:
       selector:
@@ -373,7 +357,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 4. Create a NetworkPolicy to deny all the ingress traffic for the Primary Pod (**Reference Data: 3.1, 4.5**):
 
-    ``` yaml
+    ```yaml
     kind: NetworkPolicy
     apiVersion: networking.k8s.io/v1
     metadata:
@@ -395,7 +379,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 6. After all the ingress traffic is denied, create a network policy that allows the traffic from the Secondary Pods to the Primary Pod through the port 22 (**Reference Data: 3.1, 4.5**):
 
-    ``` yaml
+    ```yaml
     kind: NetworkPolicy
     apiVersion: networking.k8s.io/v1
     metadata:
@@ -474,7 +458,7 @@ Then we should proceed to create a Pod Security Policy with the recommended flag
 
 Below is an example of the Pod Security Policy Role and RoleBinding configuration in yaml file named sidecar-restrictive-psp.yaml:
 
-``` yaml
+```yaml
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
@@ -586,7 +570,7 @@ Pod scheduling is based on requests. A Pod is scheduled to run on a Node only if
 
 To specify a CPU request for a container, include the `resources:requests` field in the Container resource manifest. To specify a CPU limit, include `resources:limits`. Modify the X-Road Security Server deployment manifest to add the resources:
 
-``` yaml
+```yaml
 [...]
 containers:
   - name: security-server-sidecar

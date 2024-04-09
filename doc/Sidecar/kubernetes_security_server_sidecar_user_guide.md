@@ -105,16 +105,16 @@ This option enables scaling the number of Nodes and Pods on the cluster. The opt
 
 All of the X-Road Security Server Sidecar images described in the [Security Server user guide](security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) are suitable to be used for a Kubernetes deployment. Additionally, there are images suitable to be used for a Load Balancer Kubernetes deployment as described in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). These images include the necessary configuration so that the Pods can act as Primary or Secondary.
 
-**Image**                                                              | **Description**
----------------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------------------
-niis/xroad-security-server-sidecar:\<version>-slim-primary             | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar
-niis/xroad-security-server-sidecar:\<version>-slim-secondary           | Image for the Secondary Pod deployment using the slim version of the Security Server
-niis/xroad-security-server-sidecar:\<version>-primary                  | Image for the Primary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server
-niis/xroad-security-server-sidecar:\<version>-secondary                | Image for the Secondary Pod deployment using the regular version of the Security Server.
-niis/xroad-security-server-sidecar:\<version>-slim-primary-\<variant>  | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar with NIIS member settings
-niis/xroad-security-server-sidecar:\<version>-slim-secondary-\<variant>| Image for the Secondary Pod deployment using the slim version of the Security Server with NIIS member settings
-niis/xroad-security-server-sidecar:\<version>-primary-\<variant>       | Image for the Primary Pod deployment using the regular version of the Security Server with NIIS member settings
-niis/xroad-security-server-sidecar:\<version>-secondary-\<variant>     | Image for the Secondary Pod deployment using the regular version of the Security Server with NIIS member settings
+| **Image**                                                               | **Description**                                                                                                                      |
+|-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| niis/xroad-security-server-sidecar:\<version>-slim-primary              | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar                                           |
+| niis/xroad-security-server-sidecar:\<version>-slim-secondary            | Image for the Secondary Pod deployment using the slim version of the Security Server                                                 |
+| niis/xroad-security-server-sidecar:\<version>-primary                   | Image for the Primary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server |
+| niis/xroad-security-server-sidecar:\<version>-secondary                 | Image for the Secondary Pod deployment using the regular version of the Security Server.                                             |
+| niis/xroad-security-server-sidecar:\<version>-slim-primary-\<variant>   | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar with NIIS member settings                 |
+| niis/xroad-security-server-sidecar:\<version>-slim-secondary-\<variant> | Image for the Secondary Pod deployment using the slim version of the Security Server with NIIS member settings                       |
+| niis/xroad-security-server-sidecar:\<version>-primary-\<variant>        | Image for the Primary Pod deployment using the regular version of the Security Server with NIIS member settings                      |
+| niis/xroad-security-server-sidecar:\<version>-secondary-\<variant>      | Image for the Secondary Pod deployment using the regular version of the Security Server with NIIS member settings                    |
 
 ## 4 Installation
 
@@ -162,7 +162,7 @@ This is an extension of the Security Server Sidecar [Reference Data](security_se
 | 3.9     | \<number replicas>      | Number of Pod replicas to be deployed.                                                                                                                                                                               |
 | 3.10    | \<service selector>     | Name that identifies a Load Balancer with the Pods.                                                                                                                                                                  |
 | 3.11    | \<primary DNS>          | DNS of the service that identifies the Primary Pod composed by \<service name>.\<namespace name>.svc.cluster.local .                                                                                                 |
-| 3.12    | \<cluster name>         | Name of the AWS EKS cluster.                                                                                                                                                                                         |
+| 3.12    | \<cluster name>         | Name of the Kubernetes cluster.                                                                                                                                                                                         |
 | 3.13    | \<cluster region>       | Region where the AWS EKS cluster is deployed.                                                                                                                                                                        |
 
 ### 4.5 Installation Instructions
@@ -181,7 +181,7 @@ kubectl create namespace <namespace name>
 
 For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following `yaml` manifest (**Reference Data: 3.1, 3.2, 3.5, 1.4, 1.5, 1.6, 1.10**):
 
-``` yaml
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -213,7 +213,7 @@ spec:
 Any of the Security Server Sidecar images described in the [Security Server Sidecar user guide](security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) can be used as image tag.
 Optionally, you can use an external database by adding the following environment variables of the deployment (**Reference Data: 1.7, 1.8, 1.9, 1.11**):
 
-``` yaml
+```yaml
     - name: XROAD_DB_HOST
       value: "<database host>"
     - name: XROAD_DB_PORT
@@ -331,7 +331,7 @@ This example shows how to create a secret for the Security Server Sidecar enviro
 
 The Secrets that store keys can be consumed in a similar way to volumes. To do this, you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign permissions to it, then mount the volume in a folder on the container (**Reference Data: 3.6, 3.7**):
 
-``` yaml
+```yaml
 [...]
 volumes:
 - name: <manifest volume name>
@@ -350,7 +350,7 @@ volumes:
 
 For consuming the Secrets for environmental variables, modify the deployment Pod definition in each container that needs to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
 
-``` yaml
+```yaml
 [...]
 containers:
 - name: security-server-sidecar
@@ -507,7 +507,7 @@ An example of how to install the Secondary Pod is shown in the manifest below (*
 -  [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
 -  [Use a public standard load balancer in Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard)
 
-``` yaml
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
