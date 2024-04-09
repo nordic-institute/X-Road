@@ -433,7 +433,7 @@ To change the Central Server address, follow these steps.
   - Download the internal configuration source anchor and distribute the anchor along with the anchor’s hash value to the Security Server administrators of the local X-Road infrastructure.
     > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles.
   - In case of federated X-Road systems, download the external configuration source anchor and distribute the anchor along with the anchor’s hash value to the federation partners.
-    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to the Configuration Proxy within the global configuration. Distribution will take place within two global configuration refresh cycles.
+    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to the federation partners within the global configuration. Distribution will take place within two global configuration refresh cycles.
   - Reconfigure the management services addresses in the management service Security Server.
 
 ## 4.4 Managing the TLS certificates
