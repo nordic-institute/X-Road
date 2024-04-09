@@ -143,7 +143,7 @@ saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.3" 
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
-semver4j = { module = "org.semver4j:semver4j", version = "5.2.2" }
+semver4j = { module = "org.semver4j:semver4j", version = "5.2.3" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.4.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 
