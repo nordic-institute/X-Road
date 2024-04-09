@@ -32,7 +32,7 @@ import feign.Feign;
 import feign.hc5.ApacheHttp5Client;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
-import feign.jaxrs.JakartaContract;
+import feign.jaxrs3.JAXRS3Contract;
 import jakarta.ws.rs.core.MediaType;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -105,7 +105,7 @@ public class EdcManagementApiFactory {
 
     private <T> T createFeignClient(Class<T> apiClass, String path) {
         return Feign.builder().client(client)
-                .contract(new JakartaContract())
+                .contract(new JAXRS3Contract())
                 .encoder(new JacksonEncoder(objectMapper))
                 .decoder(new JacksonDecoder(objectMapper))
                 .requestInterceptor(requestTemplate -> {

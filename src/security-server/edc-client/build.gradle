@@ -9,7 +9,7 @@ dependencies {
     implementation project(':security-server:edc:xroad-edc-security')
 
     api libs.feign.jackson
-    api libs.feign.jakarta
+    api libs.feign.jaxrs3
     api libs.feign.hc5
 
     api libs.jackson.databind
