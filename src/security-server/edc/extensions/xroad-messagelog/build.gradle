@@ -1,19 +1,18 @@
 plugins {
     id 'java-library'
-    id 'com.github.johnrengelman.shadow'
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
-    implementation("org.eclipse.edc:connector-core:$edcVersion")
+    implementation libs.edc.connector.core
 
     implementation(project(":security-server:edc:spi:xroad-messagelog-spi"))
     implementation(project(":addons:messagelog:messagelog-protocol"))
     implementation(project(":common:common-rpc"))
     implementation(project(":common:common-domain"))  // for the ClientId, ServiceId identifiers
 
-
-    testImplementation("org.eclipse.edc:junit:$edcVersion")
-    testImplementation("org.assertj:assertj-core:$assertjVersion")
+    testImplementation libs.edc.junit
+    testImplementation libs.assertj.core
 }
 
 shadowJar {

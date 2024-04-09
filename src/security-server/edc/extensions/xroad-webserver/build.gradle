@@ -7,9 +7,9 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
     }
 
-    api("org.eclipse.jetty:jetty-servlet:$edcJettyVersion")
-    implementation("org.eclipse.edc:core-spi:$edcVersion")
-    implementation("org.eclipse.edc:web-spi:$edcVersion")
-    implementation("org.eclipse.edc:connector-core:$edcVersion")
-    implementation("org.eclipse.edc:http-lib:$edcVersion")
+    api libs.jetty.servlet
+    implementation libs.edc.core.spi
+    implementation libs.edc.web.spi
+    implementation libs.edc.connector.core
+    implementation libs.edc.http.lib
 }

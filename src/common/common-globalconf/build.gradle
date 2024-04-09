@@ -6,7 +6,7 @@ dependencies {
     implementation(platform(libs.springBoot.bom))
 
     api project(":common:common-message")
-    api("org.eclipse.jetty:jetty-http:$jettyVersion")
+    api libs.jetty.http
 
     testImplementation project(':common:common-test')
 }

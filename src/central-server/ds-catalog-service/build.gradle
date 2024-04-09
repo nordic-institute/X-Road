@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("java")
     id("application")
-    id("com.github.johnrengelman.shadow")
+    alias(libs.plugins.shadow)
 }
 
 configurations {
@@ -11,48 +11,47 @@ configurations {
 
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
-        //exclude group: 'org.eclipse.edc', module: 'token-core'
     }
 
 }
 
 dependencies {
-    implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:$edcJettyVersion")
+    implementation libs.websocket.jakarta.server
 
-    implementation("org.eclipse.edc:util:$edcVersion")
-    implementation("org.eclipse.edc:configuration-filesystem:$edcVersion")
-    implementation("org.eclipse.edc:vault-filesystem:$edcVersion")
-    implementation("org.eclipse.edc:dsp:$edcVersion")
+    implementation libs.edc.util
+    implementation libs.edc.configuration.filesystem
+    implementation libs.edc.vault.filesystem
+    implementation libs.edc.dsp
 
-    implementation("org.eclipse.edc:json-ld-spi:$edcVersion")
-    implementation("org.eclipse.edc:control-plane-api-client:$edcVersion")
-    implementation("org.eclipse.edc:control-plane-core:$edcVersion")
-    implementation("org.eclipse.edc:data-plane-core:$edcVersion")
+    implementation libs.edc.jsonLd.spi
+    implementation libs.edc.control.plane.api.client
+    implementation libs.edc.control.plane.core
+    implementation libs.edc.data.plane.core
 
-    implementation("org.eclipse.edc:api-observability:$edcVersion")
-    implementation("org.eclipse.edc:control-plane-api-client:$edcVersion")
+    implementation libs.edc.api.observability
+    implementation libs.edc.control.plane.api.client
 
     // federated catalog
-    implementation("org.eclipse.edc:federated-catalog-core:$edcVersion")
-    implementation("org.eclipse.edc:federated-catalog-api:$edcVersion")
+    implementation libs.edc.federated.catalog.api
+    implementation libs.edc.federated.catalog.core
 
     // trust
     // embedded Identity Hub
-    implementation("org.eclipse.edc:identity-hub-api:$edcVersion")
-    implementation("org.eclipse.edc:identity-hub-credentials:$edcVersion")
-    implementation("org.eclipse.edc:identity-hub-participants:$edcVersion")
-    implementation("org.eclipse.edc:identity-hub-keypairs:$edcVersion")
-    implementation("org.eclipse.edc:identity-hub-did:$edcVersion")
+    implementation libs.edc.identity.hub.api
+    implementation libs.edc.identity.hub.credentials
+    implementation libs.edc.identity.hub.participants
+    implementation libs.edc.identity.hub.keypairs
+    implementation libs.edc.identity.hub.did
 
-    implementation("org.eclipse.edc:identity-trust-core:$edcVersion")
-    implementation("org.eclipse.edc:identity-did-core:$edcVersion")
-    implementation("org.eclipse.edc:identity-did-web:$edcVersion")
-    implementation("org.eclipse.edc:identity-trust-issuers-configuration:$edcVersion")
+    implementation libs.edc.identity.trust.core
+    implementation libs.edc.identity.did.core
+    implementation libs.edc.identity.did.web
+    implementation libs.edc.identity.trust.issuers.configuration
 
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 
-    testImplementation("org.eclipse.edc:junit:$edcVersion")
+    testImplementation libs.edc.junit
     testImplementation(project(':common:common-test')) {
         exclude group: 'org.eclipse.jetty'
     }

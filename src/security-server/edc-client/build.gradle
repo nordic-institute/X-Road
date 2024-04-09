@@ -1,38 +1,38 @@
 plugins {
     id 'java-library'
     id 'io.spring.dependency-management'
-    id 'org.springframework.boot'
+    alias(libs.plugins.springBoot)
 }
 
 dependencies {
     implementation project(":common:common-keyconf")
     implementation project(':security-server:edc:xroad-edc-security')
 
-    api("io.github.openfeign:feign-jackson:$openFeignVersion")
-    api("io.github.openfeign:feign-jakarta:$openFeignVersion")
-    api("io.github.openfeign:feign-hc5:$openFeignVersion")
+    api libs.feign.jackson
+    api libs.feign.jakarta
+    api libs.feign.hc5
 
-    api("com.fasterxml.jackson.core:jackson-databind:$jacksonBomVersion")
-    api("org.glassfish:jakarta.json:2.0.1:module")
+    api libs.jackson.databind
+    api variantOf(libs.jakarta.json.module) { classifier("module")}
 
 //   EDC api interfaces
-    api("org.eclipse.edc:asset-api:$edcVersion")
-    api("org.eclipse.edc:catalog-api:$edcVersion")
-    api("org.eclipse.edc:contract-negotiation-api:$edcVersion")
-    api("org.eclipse.edc:policy-definition-api:$edcVersion")
-    api("org.eclipse.edc:contract-definition-api:$edcVersion")
-    api("org.eclipse.edc:data-plane-selector-api:$edcVersion")
-    api("org.eclipse.edc:transfer-process-api:$edcVersion")
+    api libs.edc.asset.api
+    api libs.edc.catalog.api
+    api libs.edc.contract.negotiation.api
+    api libs.edc.policy.definition.api
+    api libs.edc.contract.definition.api
+    api libs.edc.data.plane.selector.api
+    api libs.edc.transfer.process.api
 
-    api("org.eclipse.edc:data-plane-http-spi:$edcVersion")
+    api libs.edc.data.plane.http.spi
 
-    api("org.eclipse.edc:json-ld-spi:$edcVersion")
-    api("org.eclipse.edc:json-ld-lib:$edcVersion")
-    api("org.eclipse.edc:transform-core:$edcVersion")
-    api("org.eclipse.edc:management-api-configuration:$edcVersion")
+    api libs.edc.jsonLd.spi
+    api libs.edc.jsonLd.lib
+    api libs.edc.transform.core
+    api libs.edc.management.api.configuration
 
     testImplementation project(':common:common-test')
-    testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation libs.hamcrest
 }
 
 

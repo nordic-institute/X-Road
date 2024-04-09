@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("java")
     id("application")
-    id("com.github.johnrengelman.shadow")
+    alias(libs.plugins.shadow)
 }
 
 configurations {
@@ -11,57 +11,43 @@ configurations {
 
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
-        //exclude group: 'org.eclipse.edc', module: 'token-core'
     }
-
 }
 
 dependencies {
-    implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:$edcJettyVersion")
+    implementation libs.websocket.jakarta.server
 
-    implementation("org.eclipse.edc:control-plane-api-client:$edcVersion")
-    implementation("org.eclipse.edc:control-plane-api:$edcVersion")
-    implementation("org.eclipse.edc:control-plane-core:$edcVersion")
-    implementation("org.eclipse.edc:dsp:$edcVersion")
-    implementation("org.eclipse.edc:configuration-filesystem:$edcVersion")
-    implementation("org.eclipse.edc:vault-filesystem:$edcVersion")
-    implementation("org.eclipse.edc:management-api:$edcVersion")
-    implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
+    implementation libs.edc.control.plane.api.client
+    implementation libs.edc.control.plane.api
+    implementation libs.edc.control.plane.core
+    implementation libs.edc.dsp
+    implementation libs.edc.configuration.filesystem
+    implementation libs.edc.vault.filesystem
+    implementation libs.edc.management.api
+    implementation libs.edc.transfer.data.plane
 
-    implementation("org.eclipse.edc:data-plane-selector-api:$edcVersion")
-    implementation("org.eclipse.edc:data-plane-selector-core:$edcVersion")
-//    implementation("org.eclipse.edc:data-plane-selector-client:$edcVersion")
+    implementation libs.edc.data.plane.selector.api
+    implementation libs.edc.data.plane.selector.core
 
-    implementation("org.eclipse.edc:data-plane-control-api:$edcVersion")
-    implementation("org.eclipse.edc:data-plane-public-api:$edcVersion")
-    implementation("org.eclipse.edc:data-plane-core:$edcVersion")
-    implementation("org.eclipse.edc:data-plane-http:$edcVersion")
+    implementation libs.edc.data.plane.control.api
+    implementation libs.edc.data.plane.public.api
+    implementation libs.edc.data.plane.core
+    implementation libs.edc.data.plane.http
 
-//    implementation("org.eclipse.edc:iam-mock:$edcVersion")
-    implementation("org.eclipse.edc:identity-trust-core:$edcVersion")
-    implementation("org.eclipse.edc:identity-did-core:$edcVersion")
-    implementation("org.eclipse.edc:identity-did-web:$edcVersion")
-    implementation("org.eclipse.edc:identity-trust-issuers-configuration:$edcVersion")
+    implementation libs.edc.identity.trust.core
+    implementation libs.edc.identity.did.core
+    implementation libs.edc.identity.did.web
+    implementation libs.edc.identity.trust.issuers.configuration
 
     // embedded Identity Hub
-    implementation("org.eclipse.edc:identity-hub-api:$edcVersion")
-    implementation("org.eclipse.edc:identity-hub-credentials:$edcVersion")
-    implementation("org.eclipse.edc:identity-hub-participants:$edcVersion")
-    implementation("org.eclipse.edc:identity-hub-keypairs:$edcVersion")
-    implementation("org.eclipse.edc:identity-hub-did:$edcVersion")
+    implementation libs.edc.identity.hub.api
+    implementation libs.edc.identity.hub.credentials
+    implementation libs.edc.identity.hub.participants
+    implementation libs.edc.identity.hub.keypairs
+    implementation libs.edc.identity.hub.did
 
     // sql store
-    sqlDependencies("org.postgresql:postgresql:$postgresqlVersion")
-    sqlDependencies("org.eclipse.edc:sql-pool-apache-commons:$edcVersion")
-    // without 'transaction-local' db connections are not returned to the pool and eventually edc stops working.
-    sqlDependencies("org.eclipse.edc:transaction-local:$edcVersion")
-    sqlDependencies("org.eclipse.edc:asset-index-sql:$edcVersion")
-    sqlDependencies("org.eclipse.edc:data-plane-instance-store-sql:$edcVersion")
-    sqlDependencies("org.eclipse.edc:data-plane-store-sql:$edcVersion")
-    sqlDependencies("org.eclipse.edc:contract-definition-store-sql:$edcVersion")
-    sqlDependencies("org.eclipse.edc:contract-negotiation-store-sql:$edcVersion")
-    sqlDependencies("org.eclipse.edc:policy-definition-store-sql:$edcVersion")
-    sqlDependencies("org.eclipse.edc:transfer-process-store-sql:$edcVersion")
+    sqlDependencies libs.bundles.edc.sql.store
 
     // x-road extensions
     implementation(project(":security-server:edc:extensions:xroad-messagelog")) {
@@ -76,7 +62,7 @@ dependencies {
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 
-    testImplementation("org.eclipse.edc:junit:$edcVersion")
+    testImplementation libs.edc.junit
     testImplementation(project(':common:common-test')) {
         exclude group: 'org.eclipse.jetty'
     }

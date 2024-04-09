@@ -3,21 +3,18 @@ plugins {
 }
 
 dependencies {
-    implementation("org.eclipse.edc:core-spi:$edcVersion")
-    implementation("org.eclipse.edc:callback-event-dispatcher:$edcVersion")
-    implementation("org.eclipse.edc:management-api:$edcVersion")
-    implementation("org.eclipse.edc:web-spi:$edcVersion")
-    implementation("org.eclipse.edc:json-ld:$edcVersion")
-    implementation("org.eclipse.edc:json-ld-lib:$edcVersion")
-    implementation("org.eclipse.edc:transform-core:$edcVersion")
+    implementation project(":security-server:edc:spi:xroad-core-spi")
 
-    implementation(project(":security-server:edc:spi:xroad-core-spi"))
+    implementation libs.edc.core.spi
+    implementation libs.edc.callback.event.dispatcher
+    implementation libs.edc.management.api
+    implementation libs.edc.web.spi
+    implementation libs.edc.jsonLd
+    implementation libs.edc.jsonLd.lib
+    implementation libs.edc.transform.core
 
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
+    implementation libs.caffeine
+    implementation libs.nimbus.jose.jwt
 
-    api("io.swagger.core.v3:swagger-annotations-jakarta:$swaggerAnnotationsVersion")
-
-//    testImplementation("org.eclipse.edc:junit:$edcVersion")
-//    testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    api libs.swagger.annotations.jakarta
 }

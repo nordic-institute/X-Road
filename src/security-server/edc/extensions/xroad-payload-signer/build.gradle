@@ -9,26 +9,26 @@ dependencies {
     implementation project(':common:common-keyconf')
     implementation project(':security-server:edc:xroad-edc-security')
 
-    implementation("org.eclipse.edc:core-spi:$edcVersion")
-    implementation("org.eclipse.edc:connector-core:$edcVersion")
+    implementation libs.edc.core.spi
+    implementation libs.edc.connector.core
 
-    implementation("org.eclipse.edc:jwt-spi:$edcVersion")
-    implementation("org.eclipse.edc:token-spi:$edcVersion")
-    implementation("org.eclipse.edc:crypto-common-lib:$edcVersion")
-    implementation("org.eclipse.edc:http-lib:$edcVersion")
-    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
+    implementation libs.edc.jwt.spi
+    implementation libs.edc.token.spi
+    implementation libs.edc.crypto.common.lib
+    implementation libs.edc.http.lib
+    implementation libs.nimbus.jose.jwt
 
-    implementation("org.eclipse.edc:transfer-data-plane:$edcVersion")
+    implementation libs.edc.transfer.data.plane
 
-    implementation("org.eclipse.edc:data-plane-core:$edcVersion")
-    implementation("org.eclipse.edc:data-plane-http:$edcVersion")
-    implementation("org.eclipse.edc:data-plane-util:$edcVersion")
-    implementation("org.eclipse.edc:data-plane-public-api:$edcVersion")
+    implementation libs.edc.data.plane.core
+    implementation libs.edc.data.plane.http
+    implementation libs.edc.data.plane.util
+    implementation libs.edc.data.plane.public.api
 
-    implementation("org.eclipse.edc:json-ld:$edcVersion")
-    implementation("org.eclipse.edc:jws2020:$edcVersion")
+    implementation libs.edc.jsonLd
+    implementation libs.edc.jws2020
 
-    testImplementation("org.eclipse.edc:junit:$edcVersion")
-    testImplementation("org.assertj:assertj-core:$assertjVersion")
-    testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
+    testImplementation libs.edc.junit
+    testImplementation libs.assertj.core
+    testImplementation libs.mockito.jupiter
 }

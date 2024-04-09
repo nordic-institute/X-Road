@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api("org.eclipse.edc:core-spi:$edcVersion")
+    api libs.edc.core.spi
 
     implementation(project(":common:common-domain"))  // for the ClientId, ServiceId identifiers
 }
