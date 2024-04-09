@@ -433,7 +433,7 @@ To change the Central Server address, follow these steps.
   - Download the internal configuration source anchor and distribute the anchor along with the anchor’s hash value to the Security Server administrators of the local X-Road infrastructure.
     > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles.
   - In case of federated X-Road systems, download the external configuration source anchor and distribute the anchor along with the anchor’s hash value to the federation partners.
-    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to the federation partners within the global configuration. Distribution will take place within two global configuration refresh cycles.
+    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to the Configuration Proxy within the global configuration. Distribution will take place within two global configuration refresh cycles.
   - Reconfigure the management services addresses in the management service Security Server.
 
 ## 4.4 Managing the TLS certificates
@@ -631,9 +631,9 @@ Starting from version 7.4.0, a new private key and a self-signed TLS certificate
 
 Applying for a TLS certificate issued by a trusted CA is required, because the Security Server does not trust the new automatically generated self-signed certificate by default. The Security Server supports disabling certificate verification, but disabling it in production environments is not recommended. More information is available in the `[configuration-client]` section of the System Parameters User Guide [UG-SYSPAR](#13-references).
 
-> **NOTE**: When upgrading from a version < 7.4.0 to a version 7.4.0, the configuration anchor must be re-generated and imported to all the Security Servers to enable downloading global configuration over HTTPS.
+> **NOTE**: When upgrading from a version < 7.4.0 to a version 7.4.*, the configuration anchor must be re-generated and imported to all the Security Servers to enable downloading global configuration over HTTPS.
 
-> **NOTE**: Starting from version 7.5.0, no need to re-generate the configuration anchor to enable downloading global configuration over HTTPS.
+> **NOTE**: Starting from version 7.5.0, it's not required to re-generate and import the configuration anchor to all the Security Servers to enable downloading global configuration over HTTPS.
 
 # 6. The Management Requests System
 ## 6.1 Registration Requests
