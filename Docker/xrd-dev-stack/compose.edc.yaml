@@ -33,20 +33,6 @@ services:
       - "4354:9194" #EDC protocol port
       - "4355:9291" #EDC public port
       - "4356:9293" #EDC XRD public port
-  did-server:
-    image: nginx
-    deploy:
-      resources:
-        reservations:
-          memory: 32M
-        limits:
-          memory: 256M
-    healthcheck:
-      interval: 5s
-      retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost/hc" ]
-    volumes:
-      - ./edc-did:/usr/share/nginx/html
 
   miw:
     image: tractusx/managed-identity-wallet:main

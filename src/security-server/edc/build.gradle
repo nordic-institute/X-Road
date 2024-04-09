@@ -55,6 +55,7 @@ dependencies {
     implementation("org.eclipse.tractusx.edc:ssi-identity-core:0.6.0")
     implementation("org.eclipse.tractusx.edc:ssi-miw-credential-client:0.6.0")
     implementation("org.eclipse.tractusx.edc:ssi-identity-extractor:0.6.0")
+    implementation("org.eclipse.tractusx.edc:json-ld-core:0.6.0")
 
     // sql store
     sqlDependencies("org.postgresql:postgresql:$postgresqlVersion")
