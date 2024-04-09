@@ -106,7 +106,7 @@ apache-ant = { module = "org.apache.ant:ant", version = "1.10.14" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.6.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.16.1" }
-commons-io = { module = "commons-io:commons-io", version = "2.15.1" }
+commons-io = { module = "commons-io:commons-io", version = "2.16.1" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swaggerParser" }
