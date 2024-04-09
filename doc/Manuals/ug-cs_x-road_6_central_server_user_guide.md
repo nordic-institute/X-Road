@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.42  
+Version: 2.43  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -68,6 +68,7 @@ Doc. ID: UG-CS
 | 20.12.2023 | 2.40    | Automatic configuration signing key rotation                                                                                                                                                                                                                                                                                                                                                                                            | Andres Rosenthal     |
 | 19.01.2024 | 2.41    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Eneli Reimets        |
 | 26.03.2024 | 2.42    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
+| 08.04.2024 | 2.43    | Taking configuration download url from shared parameters                                                                                                                                                                                                                                                                                                                                                                                | Eneli Reimets        |
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
@@ -430,7 +431,9 @@ To change the Central Server address, follow these steps.
   - generates new configuration anchors for the internal and external configuration sources.
 4. After the Central Server address is changed, act as follows.
   - Download the internal configuration source anchor and distribute the anchor along with the anchor’s hash value to the Security Server administrators of the local X-Road infrastructure.
+    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles.
   - In case of federated X-Road systems, download the external configuration source anchor and distribute the anchor along with the anchor’s hash value to the federation partners.
+    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to the federation partners within the global configuration. Distribution will take place within two global configuration refresh cycles.
   - Reconfigure the management services addresses in the management service Security Server.
 
 ## 4.4 Managing the TLS certificates
@@ -628,7 +631,9 @@ Starting from version 7.4.0, a new private key and a self-signed TLS certificate
 
 Applying for a TLS certificate issued by a trusted CA is required, because the Security Server does not trust the new automatically generated self-signed certificate by default. The Security Server supports disabling certificate verification, but disabling it in production environments is not recommended. More information is available in the `[configuration-client]` section of the System Parameters User Guide [UG-SYSPAR](#13-references).
 
-When upgrading from a version < 7.4.0 to a version >= 7.4.0, the configuration anchor must be re-generated and imported to all the Security Servers to enable downloading global configuration over HTTPS.
+> **NOTE**: When upgrading from a version < 7.4.0 to a version 7.4.*, the configuration anchor must be re-generated and imported to all the Security Servers to enable downloading global configuration over HTTPS.
+
+> **NOTE**: Starting from version 7.5.0, it's not required to re-generate and import the configuration anchor to all the Security Servers to enable downloading global configuration over HTTPS.
 
 # 6. The Management Requests System
 ## 6.1 Registration Requests

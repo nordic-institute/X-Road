@@ -17,11 +17,11 @@ dependencies {
     implementation (project(':common:common-domain'))
     implementation (libs.slf4j.api)
 
-    api (libs.grpc.protobuf)
-    api (libs.grpc.stub)
-    api (libs.grpc.nettyShaded)
-    api (libs.protobuf.javaUtil)
-    api (libs.jakarta.annotationApi)
+    api(libs.grpc.protobuf)
+    api(libs.grpc.stub)
+    api(libs.grpc.nettyShaded)
+    api(libs.protobuf.javaUtil)
+    api(libs.jakarta.annotationApi)
 }
 
 protobuf {
@@ -30,7 +30,7 @@ protobuf {
         grpc { artifact = libs.grpc.protocGenGrpcJava.get().toString() }
     }
     generateProtoTasks {
-        all()*.plugins { grpc {} }
+        all()*.plugins { grpc { option('jakarta_omit') } }
     }
 }
 
