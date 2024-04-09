@@ -132,7 +132,7 @@ feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.2.1" }
 guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
 swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.21" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.2.1" }
-bucket4j-core = { module = "com.github.vladimir-bukhtoyarov:bucket4j-core", version = "7.4.0" }
+bucket4j-core = { module = "com.github.vladimir-bukhtoyarov:bucket4j-core", version = "7.6.0" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
