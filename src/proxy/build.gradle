@@ -31,10 +31,7 @@ dependencies {
     implementation(libs.jetty.xml)
     //TODO xroad8 disabling for now. Clashes with DSS verification
     // implementation(libs.xerces.impl)
-    //todo: catalog
-    implementation "com.github.ben-manes.caffeine:caffeine"
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-
+    implementation libs.caffeine
     implementation(libs.semver4j)
 
     testImplementation(project(':common:common-test'))
