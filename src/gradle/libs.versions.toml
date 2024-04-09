@@ -90,7 +90,7 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
-apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.26.0" }
+apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.26.1" }
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.11.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.9.0" }
