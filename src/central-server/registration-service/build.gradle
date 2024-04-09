@@ -1,6 +1,5 @@
 plugins {
-    id 'io.spring.dependency-management'
-    id 'org.springframework.boot'
+    alias(libs.plugins.springBoot)
 }
 
 bootJar {
@@ -16,13 +15,11 @@ base {
     archivesName = 'centralserver-registration-service'
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
 dependencies {
+    implementation(platform(libs.springBoot.bom))
+    annotationProcessor(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
+
     annotationProcessor "org.springframework:spring-context-indexer"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
@@ -44,8 +41,8 @@ dependencies {
 
     implementation('org.springframework.boot:spring-boot-starter-jetty')
 
-    implementation('jakarta.validation:jakarta.validation-api')
-    implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
+    implementation(libs.jakarta.validationApi)
+    implementation(libs.bucket4j.core)
 
     testImplementation project(':common:common-test')
     testImplementation(testFixtures(project(":common:common-management-request"))) {
@@ -53,6 +50,6 @@ dependencies {
     }
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
-    testImplementation('org.wiremock:wiremock-standalone:3.4.2')
+    testImplementation(libs.wiremock.standalone)
 }
 

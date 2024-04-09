@@ -16,8 +16,7 @@ dependencies {
     implementation project(':common:common-domain')
     implementation project(':common:common-verifier')
 
-    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
-    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    xjc libs.bundles.jaxb
 }
 
 tasks.register('createDirs') {

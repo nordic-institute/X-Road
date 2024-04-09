@@ -8,30 +8,30 @@ plugins {
  * This is xroad core library. It should only contain dependencies that are relevant to all xroad modules.
  */
 dependencies {
-    api platform("com.fasterxml.jackson:jackson-bom:$jacksonBomVersion")
+    api(platform(libs.jackson.bom))
 
-    api "com.fasterxml.jackson.core:jackson-databind"
-    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    api("com.fasterxml.jackson.core:jackson-databind")
+    api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
-    api("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-    api("org.apache.santuario:xmlsec:$xmlsecVersion")
-    api("org.apache.commons:commons-lang3:$commonsLang3Version")
-    api("org.apache.commons:commons-text:$commonsTextVersion")
-    api("org.bouncycastle:bcpkix-jdk18on:$bouncyCastleVersion")
-    api("com.google.guava:guava:$guavaVersion")
-    api("com.fasterxml.jackson.core:jackson-annotations:$jacksonBomVersion")
-    api("commons-io:commons-io:$commonsIOVersion")
-    api("org.apache.commons:commons-configuration2:$commonsConfiguration2Version") {
+    api(libs.jclOverSlf4j)
+    api(libs.apache.xmlsec)
+    api(libs.apache.commonsLang3)
+    api(libs.apache.commonsText)
+    api(libs.bouncyCastle.bcpkix)
+    api(libs.guava)
+    api(libs.jackson.annotations)
+    api(libs.commons.io)
+    api(libs.apache.commonsConfiguration2) {
         exclude group: 'org.apache.commons', module: 'commons-text'
     }
-    api("org.apache.httpcomponents.client5:httpclient5:$httpClient5Version")
+    api(libs.apache.httpclient5)
 
-    api("jakarta.inject:jakarta.inject-api:$jakartaInjectApiVersion")
-    api("jakarta.xml.bind:jakarta.xml.bind-api:$jakartaBindApiVersion")
-    api("jakarta.xml.soap:jakarta.xml.soap-api:$jakartaSoapApiVersion")
-    api("jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
+    api(libs.jakarta.injectApi)
+    api(libs.jakarta.bindApi)
+    api(libs.jakarta.soapApi)
+    api(libs.jakarta.servletApi)
 
-    implementation "ch.qos.logback:logback-classic:$logbackVersion"
+    implementation(libs.logback.classic)
 
     testImplementation project(':common:common-test')
 }

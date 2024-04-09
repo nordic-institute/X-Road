@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id 'com.google.protobuf'
+    alias(libs.plugins.protobuf)
 }
 
 sourceSets {
@@ -14,20 +14,20 @@ sourceSets {
 }
 
 dependencies {
-    implementation project(':common:common-domain')
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation (project(':common:common-domain'))
+    implementation (libs.slf4j.api)
 
-    api "io.grpc:grpc-protobuf:$grpcVersion"
-    api "io.grpc:grpc-stub:$grpcVersion"
-    api "io.grpc:grpc-netty-shaded:$grpcVersion"
-    api "com.google.protobuf:protobuf-java-util:$protocVersion"
-    api "jakarta.annotation:jakarta.annotation-api:$jakartaAnnotationsApiVersion"
+    api (libs.grpc.protobuf)
+    api (libs.grpc.stub)
+    api (libs.grpc.nettyShaded)
+    api (libs.protobuf.javaUtil)
+    api (libs.jakarta.annotationApi)
 }
 
 protobuf {
-    protoc { artifact = "com.google.protobuf:protoc:$protocVersion" }
+    protoc { artifact = libs.protobuf.protoc.get().toString() }
     plugins {
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion" }
+        grpc { artifact = libs.grpc.protocGenGrpcJava.get().toString() }
     }
     generateProtoTasks {
         all()*.plugins { grpc {} }

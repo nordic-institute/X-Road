@@ -1,6 +1,5 @@
-
 plugins {
-    id 'com.github.johnrengelman.shadow'
+    alias(libs.plugins.shadow)
 }
 
 sourceSets {
@@ -12,40 +11,41 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform(libs.springBoot.bom))
 
-    implementation project(':common:common-jetty')
-    implementation project(':common:common-message')
-    implementation project(':common:common-globalconf')
-    implementation project(':common:common-keyconf')
-    implementation project(':common:common-scheduler')
-    implementation project(':common:common-verifier')
-    implementation project(':serverconf')
-    implementation project(':signer-protocol')
-    implementation project(':common:common-messagelog')
-    implementation project(':common:common-op-monitoring')
+    implementation(project(':common:common-jetty'))
+    implementation(project(':common:common-message'))
+    implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-keyconf'))
+    implementation(project(':common:common-scheduler'))
+    implementation(project(':common:common-verifier'))
+    implementation(project(':serverconf'))
+    implementation(project(':signer-protocol'))
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':common:common-op-monitoring'))
     implementation project(':security-server:edc-client')
     implementation project(':security-server:edc:xroad-edc-security')
 
     implementation('org.springframework:spring-context')
-    implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
-//TODO xroad8 disabling for now. Clashes with DSS verification
-// implementation "xercs:xercesImpl:$xercesVersion"
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation(libs.jetty.xml)
+    //TODO xroad8 disabling for now. Clashes with DSS verification
+    // implementation(libs.xerces.impl)
+    //todo: catalog
     implementation "com.github.ben-manes.caffeine:caffeine"
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
-    implementation 'org.semver4j:semver4j:5.2.2'
+    implementation(libs.semver4j)
 
+    testImplementation(project(':common:common-test'))
 
-    testImplementation project(':common:common-test')
+    testImplementation(libs.hsqldb)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.wsdl4j)
 
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation 'io.rest-assured:rest-assured:5.4.0'
-    testImplementation "wsdl4j:wsdl4j:$wsdl4jVersion"
-
-    intTestRuntimeOnly project(':signer')
-    intTestImplementation project(":common:common-test")
-    intTestImplementation project(":common:common-int-test")
+    intTestRuntimeOnly(project(':signer'))
+    intTestImplementation(project(":common:common-test"))
+    intTestImplementation(project(":common:common-int-test"))
 }
 
 jar {

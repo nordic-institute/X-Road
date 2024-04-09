@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow'
+    alias(libs.plugins.shadow)
 }
 
 ext {
@@ -13,7 +13,7 @@ jar {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform(libs.springBoot.bom))
 
     implementation project(':common:common-domain')
     implementation project(':monitor-common')
@@ -21,13 +21,12 @@ dependencies {
     implementation project(':serverconf')
 
     implementation('org.springframework:spring-context')
-    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-    implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
-    implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
+    implementation libs.slf4j.api
+    implementation libs.bundles.metrics
 
     testImplementation project(':common:common-test')
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation libs.mockito.core
 }
 
 shadowJar {

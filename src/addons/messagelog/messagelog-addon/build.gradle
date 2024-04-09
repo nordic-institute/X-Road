@@ -17,8 +17,8 @@ dependencies {
 
     testImplementation project(':common:common-test')
     testImplementation project(':addons:messagelog:messagelog-archiver')
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation "org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
+    testImplementation libs.hsqldb
+    testImplementation libs.bouncyCastle.bcpg
 }
 
 jar {

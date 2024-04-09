@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform(libs.springBoot.bom))
 
     api project(":common:common-message")
     api("org.eclipse.jetty:jetty-http:$jettyVersion")

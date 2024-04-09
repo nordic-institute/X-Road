@@ -6,8 +6,8 @@ dependencies {
     implementation project(':asic-util')
 
     testImplementation project(':common:common-test')
-    testImplementation "org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation libs.bouncyCastle.bcpg
+    testImplementation libs.mockito.core
 }
 
 tasks.register('copyGpg', Copy) {

@@ -38,7 +38,12 @@ ADMIN_PASSWORD=$(get_root_prop 'centerui.database.admin_password' "$PASSWORD")
 HOST=${db_host}
 PORT=${db_port}
 
-export PGOPTIONS="-c client-min-messages=warning -c search_path=$SCHEMA,public"
+# Reading custom libpq ENV variables
+if [ -f /etc/xroad/db_libpq.env ]; then
+  source /etc/xroad/db_libpq.env
+fi
+
+export PGOPTIONS="-c client-min-messages=warning -c search_path=$SCHEMA,public ${PGOPTIONS_EXTRA-}"
 
 if [ "$SCHEMA" == "public" ]; then
     echo "FATAL: Restoring to the 'public' schema is not supported." >&2

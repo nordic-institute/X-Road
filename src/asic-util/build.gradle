@@ -2,7 +2,7 @@ dependencies {
     implementation project(':common:common-message')
     implementation project(':common:common-verifier')
 //TODO xroad8
-//    implementation "xerces:xercesImpl:$xercesVersion"
+//    implementation libs.xerces.impl
 
     testImplementation project(':common:common-test')
 }
