@@ -38,6 +38,7 @@ dependencies {
     implementation("org.eclipse.edc:data-plane-http:$edcVersion")
 
 //    implementation("org.eclipse.edc:iam-mock:$edcVersion")
+/*
     implementation("org.eclipse.edc:identity-trust-core:$edcVersion")
     implementation("org.eclipse.edc:identity-did-core:$edcVersion")
     implementation("org.eclipse.edc:identity-did-web:$edcVersion")
@@ -49,6 +50,11 @@ dependencies {
     implementation("org.eclipse.edc:identity-hub-participants:$edcVersion")
     implementation("org.eclipse.edc:identity-hub-keypairs:$edcVersion")
     implementation("org.eclipse.edc:identity-hub-did:$edcVersion")
+*/
+
+    implementation("org.eclipse.tractusx.edc:ssi-identity-core:0.6.0")
+    implementation("org.eclipse.tractusx.edc:ssi-miw-credential-client:0.6.0")
+    implementation("org.eclipse.tractusx.edc:ssi-identity-extractor:0.6.0")
 
     // sql store
     sqlDependencies("org.postgresql:postgresql:$postgresqlVersion")
@@ -73,7 +79,6 @@ dependencies {
     implementation(project(":security-server:edc:extensions:xroad-edr")) {
         exclude group: 'org.eclipse.jetty'
     }
-    implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
 
     testImplementation("org.eclipse.edc:junit:$edcVersion")
     testImplementation(project(':common:common-test')) {

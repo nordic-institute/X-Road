@@ -47,3 +47,61 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost/hc" ]
     volumes:
       - ./edc-did:/usr/share/nginx/html
+
+  miw:
+    image: tractusx/managed-identity-wallet:main
+    platform: linux/amd64
+    env_file:
+      - ./.env.miw
+    ports:
+      - "8000:8000"
+      - "8090:8090"
+      - "5005:5005"
+    entrypoint: "java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar miw-latest.jar"
+    depends_on:
+      postgres:
+        condition: service_started
+      keycloak:
+        condition: service_started
+
+  postgres:
+    image: postgres:15.3-alpine3.18
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/db.sh:/docker-entrypoint-initdb.d/init-database.sh
+    env_file:
+      - ./.env.miw
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 30s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1
+    env_file:
+      - ./.env.miw
+    environment:
+      DB_SCHEMA: public
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - ./keycloak/miw_test_realm.json:/opt/keycloak/data/import/miw_test_realm.json
+      - ./keycloak/health-check.sh:/opt/keycloak/health-check.sh
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: "bash /opt/keycloak/health-check.sh"
+      interval: 10s
+      timeout: 10s
+      retries: 15
+
+volumes:
+  postgres_data:
+    driver: local
