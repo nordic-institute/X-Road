@@ -33,13 +33,10 @@ import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
-import org.apache.commons.io.IOUtils;
-
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
@@ -141,11 +138,9 @@ public final class AsicVerifierMain {
 
     @SuppressWarnings("javasecurity:S2083")
     private static void writeToFile(String fileName, InputStream contents) throws IOException {
-        final var targetFile = new File(fileName);
-        if (targetFile.getCanonicalFile().toPath().startsWith(CURRENT_DIR)) {
-            try (FileOutputStream file = new FileOutputStream(targetFile)) {
-                IOUtils.copy(contents, file);
-            }
+        final var targetFile = CURRENT_DIR.resolve(fileName);
+        if (targetFile.startsWith(CURRENT_DIR)) {
+            Files.copy(contents, targetFile, LinkOption.NOFOLLOW_LINKS);
             System.out.println("Created file " + fileName);
         }
     }
