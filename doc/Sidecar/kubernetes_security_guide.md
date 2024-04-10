@@ -39,9 +39,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   - [4.4 Kubernetes Dashboard](#44-kubernetes-dashboard)
 - [5 Network policies](#5-network-policies)
   - [5.1 Create Network policies](#51-create-network-policies)
-- [6 Pod Security Policies](#6-pod-security-policies)
-  - [6.1 Pod Security Policies in AWS EKS](#61-pod-security-policies-in-aws-eks)
-  - [6.2 Creating a Pod Security Policy](#62-creating-a-pod-security-policy)
+- [6 Pod Security Admission](#6-pod-security-admission)
 - [7 Assign Resources to Containers and Pods](#7-assign-resources-to-containers-and-pods)
 - [8 Monitoring](#8-monitoring)
 - [9 Backups](#9-backups)
@@ -417,145 +415,24 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 The [security-server-sidecar-network-policy-examples manifest template](files/security-server-sidecar-network-policy-examples.yaml) contains examples of all the above network policies.
 
-## 6 Pod Security Policies
 
-Pod Security Policies are a cluster-level resource which holds a collection of flags that control security aspects of the pod specification. These flags define the conditions with which a pod should be run within the cluster when created. If a request for creating a pod does not meet these conditions, the request is rejected and the pod is not created.
+## 6 Pod Security Admission
 
-The most relevant pod security policies to enforce are:
+[Pod Security Admission](https://kubernetes.io/docs/concepts/security/pod-security-admission/) places requirements on Pod's Security Context and other related field according to the levels defined in the [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/). The Pod Security Admission controller is enabled by default in Kubernetes 1.21 and later. It is recommended to enable the Pod Security Admission controller to enforce the Pod Security Standards.
 
-* Disable privileged containers: We can disable them for every installation by setting the flag `privileged: false`.
-* Prevent privilege escalation: We can disable it by setting the flag `allowPrivilegeEscalation: false`. This flag is recommended to set even if the container is run as a non-root user.
-* Enforce non-root users: Prevent privilege escalation: We can disable it by setting the flag `allowPrivilegeEscalation: false`. This flag is recommended to set even if the container is run as a non-root user.We can enforce to run the container as non-root user by setting the rule MustRunAsNonRoot under the flag runAsUser. However, running the sidecar requires the container to run as root so we cannot use MustRunAsNonRoot for now.
-* Prevent hostPath volumes: Mounting volumes using hostPath poses a serious risk of accessing the host file system by attackers. Nevertheless, if we need to use them, we can allow only with specified directories and permissions with the flag allowedHostPaths.
+X-Road sidecar container image adheres to `baseline` level of the Pod Security Standards as the container cannot be run as non-root user for now.
 
-### 6.1 Pod Security Policies in AWS EKS
-
-Kubernetes does not enable pod security policies by default. To enforce them every time a new pod is created in the cluster, you need to enable the Pod Security Policy at the cluster level via an admission controller. AWS EKS from version 1.13 supports the Kubernetes admission controller with a default privileged policy named eks.privileged. We can verify that the default policy exist by running:
-
-```bash
-kubectl describe psp eks.privileged
-```
-
-The eks.privileged default Pod Security Policy is equivalent to run Kubernetes with the PodSecurityPolicy controller disabled. Also, any authenticated users will be able to create any pods on the cluster with the eks.privileged policy. We can verify that by running the following command:
-
-```bash
-kubectl describe clusterrolebindings eks:podsecuritypolicy:authenticated
-```
-
-### 6.2 Creating a Pod Security Policy
-
-Prior to creating a Pod Security Policy, we should first create a dedicated namespace, as well as a service account and role binding to authorize a non-admin user to use that policy. For example, we can create a namespace called sidecar-psp-restrictive and a service account called sidecar-eks-user and its respective role binding under that namespace with the following commands:
-
-```bash
-kubectl create ns sidecar-psp-restrictive
-
-kubectl -n sidecar-psp-restrictive create sa sidecar-eks-user
-```
-
-Then we should proceed to create a Pod Security Policy with the recommended flags. At the same time, it's also important to make sure you authorize users and service accounts to use the Pod Security Policy. We can do that by creating a Role/ClusterRole that allows a user, in this case named sidecar-eks-user, to use the policy, in this case named eks.restrictive, and a RoleBinding/ClusterRoleBinding to bind to the role in the namespace, in this case named sidecar-psp-restrictive.
-
-Below is an example of the Pod Security Policy Role and RoleBinding configuration in yaml file named sidecar-restrictive-psp.yaml:
+Pod Security Admission can be configured using metadata labels for namespaces. To enforce `baseline` level for the namespace sidecar container is running in, add the following label to the namespace:
 
 ```yaml
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: eks.restrictive
-  annotations:
-    kubernetes.io/description: 'eks.restrictive policy in sidecar-psp-restrictive namespace'
-    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
-  labels:
-    kubernetes.io/cluster-service: "true"
-    eks.amazonaws.com/component: pod-security-policy
-spec:
-  privileged: false
-  allowPrivilegeEscalation: false
-  volumes:
-    - 'configMap'
-    - 'emptyDir'
-    - 'projected'
-    - 'secret'
-    - 'downwardAPI'
-    - 'persistentVolumeClaim'
-    - 'awsElasticBlockStore'
-  hostNetwork: false
-  hostIPC: false
-  hostPID: false
-  hostPorts:
-      - min: 1025
-        max: 65535
-  runAsUser:
-    # Running the sidecar requires the container to run as root so we cannot use MustRunAsNonRoot.
-    rule: 'RunAsAny'
-  seLinux:
-    # Assuming the nodes are using AppArmor rather than SELinux
-    rule: 'RunAsAny'
-  supplementalGroups:
-    rule: 'MustRunAs'
-    ranges:
-      # Forbid adding the root group
-      - min: 1
-        max: 65535
-  fsGroup:
-    rule: 'MustRunAs'
-    ranges:
-      # Forbid adding the root group
-      - min: 1
-        max: 65535
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: sidecar:psp:unprivileged
-  namespace: sidecar-psp-restrictive
-  labels:
-      kubernetes.io/cluster-service: "true"
-      eks.amazonaws.com/component: pod-security-policy
-rules:
-- apiGroups:
-  - policy
-  resourceNames:
-  - eks.restrictive
-  resources:
-  - podsecuritypolicy
-  verbs:
-  - use
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: sidecar-user:psp:unprivileged
-  namespace: sidecar-psp-restrictive
-  annotations:
-    kubernetes.io/description: 'Allow service account sidecar-eks-user to use eks.restrictive psp in sidecar-psp-restrictive namespace.'
-  labels:
-    kubernetes.io/cluster-service: "true"
-    eks.amazonaws.com/component: pod-security-policy
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: sidecar:psp:unprivileged
-  subjects:
-  - kind: ServiceAccount
-    name: sidecar-eks-user
-    namespace: sidecar-psp-restrictive
+pod-security.kubernetes.io/enforce=baseline
 ```
 
-Then, you can apply the Pod Security Policy and its corresponding Role and RoleBinding configuration:
+To add the label to an existing namespace run the following `kubectl` command (**Reference Data: 3.1**):
 
 ```bash
-kubectl -n sidecar-psp-restrictive apply -f sidecar-restrictive-psp.yaml
+kubectl label --overwrite ns <namespace name> pod-security.kubernetes.io/enforce=baseline
 ```
-
-It's worth noting that once we enable a Pod Security Policy, the admission controller will enforce it when creating or updating pods, otherwise the pod won't be created. However, if you modify the Pod Security Policy after the pods are already running, those that violate the policy as a consequence of this modification will not be shut down. In case of multiple Pod Security Policies available, the admission controller will select the first one alphabetically sorted by their name.
-
-After the Pod Security Policy is created, you can verify that the sidecar-eks-user under the namespace sidecar-psp-restrictive can use the eks.restrictive Pod Security Policy with the following command:
-
-```bash
-kubectl --as=system:serviceaccount:sidecar-psp-restrictive:sidecar-eks-user -n sidecar-psp-restrictive auth can-i use podsecuritypolicy/eks.restrictive
-```
-
-Now the user sidecar-eks-user should be able to create pods that match the conditions on the Pod Security Policy eks.restrictive.
 
 ## 7 Assign Resources to Containers and Pods
 
