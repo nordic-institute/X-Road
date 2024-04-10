@@ -308,11 +308,9 @@ Network Policies are similar to AWS security groups in the sense that allows cre
 
 Network Policies can be configured in AWS with a network provider with network policy support, such as Calico, Cilium, Kube-router, Romana, Weave Net. In this case, we will be using Calico.
 
-To install Calico, apply the Calico manifest by running:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.6/config/v1.6/calico.yaml
-```
+To install Calico, follow the instructions for your cloud provider:
+- [AWS EKS](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/eks)
+- [Azure AKS](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/aks)
 
 Verify the installation by running:
 
@@ -389,14 +387,14 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
       podSelector:
         matchLabels:
           role: primary
-    ingress:
-    - from:
-      - podSelector:
-          matchLabels:
-            role: secondary
-      ports:
-      - protocol: TCP
-        port: 22
+      ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+                role: secondary
+        ports:
+        - protocol: TCP
+          port: 22
     ```
 
 7. Apply the manifest:
