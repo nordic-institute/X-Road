@@ -36,7 +36,6 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
@@ -139,8 +138,8 @@ public final class AsicVerifierMain {
     @SuppressWarnings("javasecurity:S2083")
     private static void writeToFile(String fileName, InputStream contents) throws IOException {
         final var targetFile = CURRENT_DIR.resolve(fileName);
-        if (targetFile.startsWith(CURRENT_DIR)) {
-            Files.copy(contents, targetFile, LinkOption.NOFOLLOW_LINKS);
+        if (targetFile.normalize().startsWith(CURRENT_DIR.normalize())) {
+            Files.copy(contents, targetFile);
             System.out.println("Created file " + fileName);
         }
     }
