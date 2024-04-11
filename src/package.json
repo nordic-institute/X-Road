@@ -38,7 +38,7 @@
     "vite-plugin-vuetify": "^2.0.3",
     "vitest": "^1.4.0",
     "vue-eslint-parser": "^9.4.2",
-    "vue-i18n": "^9.11.0",
+    "vue-i18n": "^9.11.1",
     "vue-tsc": "^2.0.11"
   },
   "pnpm": {
