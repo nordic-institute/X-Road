@@ -473,15 +473,15 @@ You can also combine the value with the suffix `m` to mean milli. For example, 1
 
 ## 8 Monitoring
 
-The following steps are recommended for monitoring using AWS CloudWatch so that we can detect potential security risks in your Cluster.
+The following steps are recommended for monitoring using AWS CloudWatch and Azure Monitor so that we can detect potential security risks in your Cluster.
 
-* **Collect control panel logs**: The control plane logs capture Kubernetes audit events and requests to the Kubernetes API server, among other components. Analysis of these logs will help detect some types of attacks against the cluster, and security auditors will want to know that you collect and retain this data.
-AWS EKS Clusters can be configured to send control panel logs to Amazon CloudWatch. At a minimum, you will want to collect the following logs:
+* **Collect control plane logs**: The control plane logs capture Kubernetes audit events and requests to the Kubernetes API server, among other components. Analysis of these logs will help detect some types of attacks against the cluster, and security auditors will want to know that you collect and retain this data.
+AWS EKS Clusters can be configured to send control plane logs to Amazon CloudWatch. Similarly, Azure AKS control plane logs can be sent to Azure Monitor as resource logs. At a minimum, you will want to collect the following logs:
 * api - the Kubernetes API server log.
 * audit - the Kubernetes audit log.
 * authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
 
-* **Monitor container and cluster performance for anomalies**:  Irregular spikes in application load or node usage can be a signal that an application may need programmatic troubleshooting, but they can also signal unauthorized activity in the cluster.  Monitoring key metrics provides critical visibility into your workload’s functional health and that it may need performance tuning or that it may require further investigation. For collecting these metrics, it is required to set up Amazon CloudWatch Container Insights for your cluster.
+* **Monitor container and cluster performance for anomalies**:  Irregular spikes in application load or node usage can be a signal that an application may need programmatic troubleshooting, but they can also signal unauthorized activity in the cluster. Monitoring key metrics provides critical visibility into your workload’s functional health and that it may need performance tuning or that it may require further investigation. For collecting these metrics, it is required to set up Amazon CloudWatch Container Insights for your cluster. Azure has similar capabilities with Container Insights.
 
 * **Monitor Node (EC2 Instance) Health and Security**: EKS provides no automated detection of node issues. Changes in node CPU, memory, or network metrics that do not correlate with the cluster workload activity can be signs of security events or other issues.
 
@@ -491,7 +491,7 @@ The restoration of backups is a process that is executed with root permission an
 
 ## 10 Message logs
 
-The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#8-message-log-archives).
+The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS or Azure Files type volume and periodically send the backups to an AWS S3 Bucket or Azure Blob Storage with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#8-message-log-archives).
 
 ## 11 Horizontal Pod Autoscaler best practices
 
