@@ -4,6 +4,12 @@ updates:
     directory: "/src"
     schedule:
       interval: "daily"
+    groups:
+      java-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
     reviewers:
       - "nordic-institute/xrd-developers"
   - package-ecosystem: "npm"
@@ -16,5 +22,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      javascript-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
     reviewers:
       - "nordic-institute/xrd-developers"

@@ -8,9 +8,6 @@ case "$i" in
     "-release")
         RELEASE="RELEASE"
         ;;
-    "sonar"|"-sonar")
-        SONAR=1
-        ;;
     "-nodaemon")
         NODAEMON=1
         ;;
@@ -26,10 +23,6 @@ if [[ -n "$SKIP_TESTS" ]]; then
     ARGUMENTS+=(-xtest -xintegrationTest -xintTest)
 else
     ARGUMENTS+=(runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
-fi
-
-if [[ -n "$SONAR" ]]; then
-    ARGUMENTS+=(dependencyCheckAnalyze sonarqube)
 fi
 
 if [[ -n "$NODAEMON" ]]; then
