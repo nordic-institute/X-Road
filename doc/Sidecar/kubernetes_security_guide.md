@@ -6,13 +6,13 @@ Doc. ID: UG-K-SS-SEC-SIDECAR
 ## Version history <!-- omit in toc -->
 
 | Date       | Version | Description                                  | Author                    |
-| ---------- | ------- | -------------------------------------------- | ------------------------- |
+|------------| ------- |----------------------------------------------| ------------------------- |
 | 25.01.2021 | 1.0     | Initial version                              | Alberto Fernandez Lorenzo |
 | 09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices | Alberto Fernandez Lorenzo |
 | 28.11.2021 | 1.2     | Add license info                             | Petteri Kivimäki          |
 | 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute           |
 | 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets             |
-| 02.04.2024 | 1.5     | Updated reference data                       | Madis Loitmaa             |
+| 11.04.2024 | 1.5     | Updated for AKS                              | Madis Loitmaa             |
 
 ## License
 
@@ -61,12 +61,8 @@ Please check the Reference data in the [Kubernetes User Guide](kubernetes_securi
 
 | **Ref** | **Value**              | **Explanation**                                                                                                |
 | ------- | ---------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 4.1     | \<role arn>            | The ARN of the IAM role to add.                                                                                |
-| 4.2     | \<kubernetes groups>   | A list of groups within Kubernetes to which the role is mapped. Typically "system:masters" and "system:nodes". |
-| 4.3     | \<user arn>            | The ARN of the IAM user to add.                                                                                |
-| 4.4     | \<user name>           | The user name within Kubernetes to map to the IAM user.                                                        |
-| 4.5     | \<network policy name> | Unique name that identifies a NetworkPolicy inside a namespace.                                                |
-| 4.6     | \<resource group>      | Name of resource group in AKS.                                                                                 |
+| 4.1     | \<network policy name> | Unique name that identifies a NetworkPolicy inside a namespace.                                                |
+| 4.2     | \<resource group>      | Name of resource group in AKS.                                                                                 |
 
 ## 3 Handling passwords and secrets
 
@@ -214,7 +210,7 @@ aws eks --region <cluster region> update-kubeconfig --name <cluster name>
 
 To create a kubeconfig file, we should first be authenticated through the Azure CLI. More information on how to authenticate with Azure CLI can be found [here](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli).
 
-Then, open a terminal and run the following command (**Reference Data: 3.12, 4.6**):
+Then, open a terminal and run the following command (**Reference Data: 3.12, 4.2**):
 
 ```bash
 az aks get-credentials --resource-group <resource group> --name <cluster name>
@@ -351,7 +347,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 3. Apply the changes in the manifests.
 
-4. Create a NetworkPolicy to deny all the ingress traffic for the Primary Pod (**Reference Data: 3.1, 4.5**):
+4. Create a NetworkPolicy to deny all the ingress traffic for the Primary Pod (**Reference Data: 3.1, 4.1**):
 
     ```yaml
     kind: NetworkPolicy
@@ -373,7 +369,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
     kubectl apply -f /path/to/file.yaml
     ```
 
-6. After all the ingress traffic is denied, create a network policy that allows the traffic from the Secondary Pods to the Primary Pod through the port 22 (**Reference Data: 3.1, 4.5**):
+6. After all the ingress traffic is denied, create a network policy that allows the traffic from the Secondary Pods to the Primary Pod through the port 22 (**Reference Data: 3.1, 4.1**):
 
     ```yaml
     kind: NetworkPolicy
