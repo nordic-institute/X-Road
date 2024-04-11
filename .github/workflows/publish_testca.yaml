@@ -4,6 +4,7 @@ on:
     branches:
       - develop
     paths:
+      - '.github/workflows/publish_testca.yaml'
       - 'Docker/testca/**'
       - 'ansible/roles/xroad-ca/**'
 env:
@@ -33,3 +34,14 @@ jobs:
           context: ${{ github.workspace }}/Docker/testca
           push: true
           tags: ghcr.io/nordic-institute/xrddev-testca:latest
+      - name: Clean old CA images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-testca
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
