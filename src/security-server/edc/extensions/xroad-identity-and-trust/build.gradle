@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -21,10 +20,3 @@ dependencies {
     implementation libs.edc.jws2020
     implementation libs.edc.token.core
 }
-
-shadowJar {
-    archiveVersion = '1.0'
-    archiveClassifier = ''
-}
-
-assemble.dependsOn shadowJar
