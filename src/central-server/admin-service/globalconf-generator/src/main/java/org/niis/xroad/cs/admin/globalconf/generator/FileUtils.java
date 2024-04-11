@@ -63,6 +63,15 @@ final class FileUtils {
         Files.setPosixFilePermissions(dir, DIRECTORY_PERMISSIONS);
     }
 
+    public static void delete(Path target) throws IOException {
+        log.trace("Delete: {}", target);
+        if (Files.isDirectory(target)) {
+            org.apache.commons.io.FileUtils.deleteDirectory(target.toFile());
+        } else {
+            Files.deleteIfExists(target);
+        }
+    }
+
     static void write(Path path, byte[] data) throws IOException {
         Files.write(path, data);
         Files.setPosixFilePermissions(path, FILE_PERMISSIONS);

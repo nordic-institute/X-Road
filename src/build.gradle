@@ -1,7 +1,4 @@
 buildscript {
-    repositories {
-        mavenCentral()
-    }
     dependencies {
         classpath (libs.licenseGradlePlugin) {
             exclude group: 'org.springframework', module: 'spring-core'

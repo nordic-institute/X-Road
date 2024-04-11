@@ -123,6 +123,20 @@ public class ConfigurationParserTest {
                         "EE", "http://foo.bar.baz"));
     }
 
+    /**
+     * Test to ensure the parser will fail on an invalid signature.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void parseConfInvalidSignature() throws Exception {
+        thrown.expectError(X_INVALID_SIGNATURE_VALUE);
+
+        parse("src/test/resources/test-conf-invalid-signature",
+                getConfigurationSource(
+                        TestCertUtil.getConsumer().certChain[0],
+                        "EE", "http://foo.bar.baz"));
+    }
+
     // ------------------------------------------------------------------------
 
     private static void assertFiles(List<ConfigurationFile> actualFiles,
