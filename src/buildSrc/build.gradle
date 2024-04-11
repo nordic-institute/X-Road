@@ -12,21 +12,12 @@ gradlePlugin {
 }
 
 dependencies {
-    // force newer version, older conflicts with owasp dependency check
     implementation libs.commons.codec
     implementation libs.openapi.parser
     implementation libs.openapi.styleValidatorLib
     implementation libs.swagger.parser
     implementation libs.openapi.empoaSwaggerCore
     testImplementation libs.junit.jupiterEngine
-
-    constraints {
-        // org.owasp.dependencycheck needs at least this version of jackson.
-        add("implementation", libs.jackson.bom)
-        // org.owasp.dependencycheck needs these versions.
-        add("implementation", libs.apache.commonsLang3)
-        add("implementation", libs.apache.commonsText)
-    }
 }
 
 test {

@@ -11,7 +11,6 @@ buildscript {
 
 plugins {
     alias(libs.plugins.sonarqube)
-    alias(libs.plugins.dependencycheck)
     id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
@@ -26,8 +25,6 @@ sonarqube {
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
-        property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
-        property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
         property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"
 
@@ -35,48 +32,6 @@ sonarqube {
         //# ignore 'Local-Variable Type Inference should be used"
         property "sonar.issue.ignore.multicriteria.e1.ruleKey", "java:S6212"
         property "sonar.issue.ignore.multicriteria.e1.resourceKey", "**/*.java"
-    }
-}
-
-dependencyCheck {
-    outputDirectory = "${project.layout.buildDirectory.get().asFile}/reports/owasp-dependency-check"
-    suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
-    format = "ALL"
-    skipProjects = [
-        ":e2e-tests",
-        ":central-server:admin-service:ui-system-test",
-        ":central-server:admin-service:int-test",
-        ":central-server:management-service:int-test"
-    ]
-    nvd {
-        apiKey = "${nvdApiKey}"
-        delay = 6000
-    }
-    analyzers {
-        experimentalEnabled = false
-        archiveEnabled = false
-        jarEnabled = true
-        centralEnabled = false
-        bundleAuditEnabled = false
-        nexusEnabled = false
-        nuspecEnabled = false
-        opensslEnabled = false
-        msbuildEnabled = false
-        assemblyEnabled = false
-        pyDistributionEnabled = false
-        pyPackageEnabled = false
-        rubygemsEnabled = false
-        cmakeEnabled = false
-        autoconfEnabled = false
-        composerEnabled = false
-        nodeEnabled = false
-        nodeAudit {
-            enabled = false
-            pnpmEnabled = false
-        }
-        ossIndex {
-            enabled = false
-        }
     }
 }
 
