@@ -27,13 +27,25 @@
 <template>
   <xrd-confirm-dialog
     title="managementRequests.dialog.approve.title"
-    text="managementRequests.dialog.approve.bodyMessage"
     focus-on-accept
     :data="messageData"
     :loading="loading"
     @cancel="$emit('cancel')"
     @accept="approve()"
-  />
+  >
+    <template #text>
+     {{$t('managementRequests.dialog.approve.bodyMessage', messageData)}}
+      <v-alert
+        v-if="newMember"
+        class="mt-2"
+        color="warning"
+        icon="$warning"
+        density="compact"
+        variant="outlined"
+        :text="$t('managementRequests.dialog.approve.newMemberWarning')"
+      />
+    </template>
+  </xrd-confirm-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -54,6 +66,10 @@ const props = defineProps({
   securityServerId: {
     type: String,
     required: true,
+  },
+  newMember: {
+    type: Boolean,
+    default: false,
   },
 });
 const emits = defineEmits(['approve', 'cancel']);

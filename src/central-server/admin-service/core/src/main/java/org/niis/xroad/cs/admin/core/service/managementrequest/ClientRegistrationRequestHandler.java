@@ -81,6 +81,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     private final SecurityServerRepository servers;
     private final ServerClientRepository serverClientRepository;
     private final RequestMapper requestMapper;
+    private final MemberHelper memberHelper;
 
     @Override
     public boolean canAutoApprove(ClientRegistrationRequest request) {
@@ -160,9 +161,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         SecurityServerEntity server = servers.findBy(clientRegistrationRequest.getSecurityServerId())
                 .orElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND));
 
-        XRoadMemberEntity clientMember = members.findMember(clientRegistrationRequest.getClientId()).orElseThrow(() ->
-                new DataIntegrityException(MR_MEMBER_NOT_FOUND,
-                        clientRegistrationRequest.getClientId().toString()));
+        XRoadMemberEntity clientMember = memberHelper.findOrCreate(clientRegistrationRequest.getClientId());
 
         SecurityServerClientEntity client;
         switch (clientRegistrationRequest.getClientId().getObjectType()) {

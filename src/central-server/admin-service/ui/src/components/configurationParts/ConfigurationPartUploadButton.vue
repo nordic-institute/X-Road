@@ -48,7 +48,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { mapState } from 'pinia';
 import { ConfigurationPart, ConfigurationType } from '@/openapi-types';
 import { useUser } from '@/store/modules/user';

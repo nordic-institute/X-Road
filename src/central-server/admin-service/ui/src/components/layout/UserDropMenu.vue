@@ -55,7 +55,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';

@@ -33,7 +33,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
@@ -89,6 +88,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
     private final SecurityServerRepository servers;
     private final GlobalGroupMemberService groupMemberService;
     private final RequestMapper requestMapper;
+    private final MemberHelper memberHelper;
 
     /**
      * Creates an authentication certificate registration request.
@@ -195,9 +195,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
         SecurityServerIdEntity serverId = requestEntity.getSecurityServerId();
 
         //check prerequisites (member exists)
-        XRoadMemberEntity owner = members
-                .findOneBy(serverId.getOwner())
-                .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
+        XRoadMemberEntity owner = memberHelper.findOrCreate(serverId.getOwner());
 
         //create new security server if necessary
         final String serverCode = serverId.getServerCode();

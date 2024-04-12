@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestListView } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import { mapState } from 'pinia';

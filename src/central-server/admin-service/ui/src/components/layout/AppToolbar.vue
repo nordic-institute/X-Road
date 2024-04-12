@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { Colors } from '@/global';
 import { mapState } from 'pinia';
 import { useSystem } from '@/store/modules/system';

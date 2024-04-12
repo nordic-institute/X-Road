@@ -60,7 +60,7 @@
 /**
  * View for 'backup and restore' tab
  */
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import ConfigurationAnchor from './ConfigurationAnchor.vue';
 import ConfigurationPartsList from '@/components/configurationParts/ConfigurationPartsList.vue';
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';

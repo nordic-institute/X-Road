@@ -120,8 +120,7 @@ public class ManagementRequestsApiController implements ManagementRequestsApi {
         var pageRequest = pageRequestConverter.convert(pagingSorting, findSortParameterConverter);
         var resultPage = service.findRequests(converter.convert(filter), pageRequest);
 
-        PagedManagementRequestsDto pagedResults = pagedManagementRequestsConverter.convert(resultPage, pagingSorting);
-        return ResponseEntity.ok(pagedResults);
+        return ResponseEntity.ok(pagedManagementRequestsConverter.convert(resultPage, pagingSorting));
     }
 
 }

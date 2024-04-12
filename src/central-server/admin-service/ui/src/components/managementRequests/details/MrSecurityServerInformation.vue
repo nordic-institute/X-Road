@@ -52,7 +52,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { ManagementRequestDetailedView } from '@/openapi-types';
 import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';

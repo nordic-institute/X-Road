@@ -58,6 +58,7 @@
       "
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
+      :new-member="newMember"
       @approve="approve"
       @cancel="showApproveDialog = false"
     />
@@ -77,7 +78,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { ManagementRequestListView } from '@/openapi-types';
+import { ManagementRequestListView, ManagementRequestType } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
@@ -112,6 +113,15 @@ export default defineComponent({
     },
     showDeclineButton(): boolean {
       return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
+    },
+    newMember(): boolean {
+      return (
+        [
+          ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
+          ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
+        ].includes(this.managementRequest.type) &&
+        !this.managementRequest.client_owner_name
+      );
     },
   },
   methods: {

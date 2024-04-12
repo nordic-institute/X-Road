@@ -34,7 +34,7 @@
 /**
  * View for 'global resources'
  */
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import GlobalGroupsList from '@/components/globalGroups/GlobalGroupsList.vue';
 
 export default defineComponent({
