@@ -32,7 +32,7 @@
     "path": "^0.12.7",
     "prettier": "^3.2.5",
     "resize-observer-polyfill": "^1.5.1",
-    "sass": "^1.74.1",
+    "sass": "^1.75.0",
     "typescript": "~5.4.5",
     "vite": "^5.2.8",
     "vite-plugin-vuetify": "^2.0.3",
