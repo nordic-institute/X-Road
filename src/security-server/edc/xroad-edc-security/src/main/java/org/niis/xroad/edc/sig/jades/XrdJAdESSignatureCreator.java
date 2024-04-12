@@ -47,10 +47,15 @@ import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.xml.common.SchemaFactoryBuilder;
+import eu.europa.esig.dss.xml.common.XmlDefinerUtils;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.edc.sig.PocConstants;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureCreator;
+
+import javax.xml.XMLConstants;
+import javax.xml.validation.SchemaFactory;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -69,6 +74,12 @@ public class XrdJAdESSignatureCreator implements XrdSignatureCreator {
     private final XrdJAdESSigner signer = new XrdJAdESSigner();
     private final SignatureLevel signatureLevel;
     private final JWSSerializationType jwsSerializationType;
+
+    static {
+        // force usage of internal xerces implementation in DSS. Otherwise, not compatible Apache Xerces will be used in proxy
+        // can be removed once Apache Xerces is removed from classpath
+        XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new JaxpSchemaFactoryBuilder());
+    }
 
     @Override
     public String sign(final SignerProxy.MemberSigningInfoDto signingInfo, final byte[] messageBody,
@@ -149,4 +160,13 @@ public class XrdJAdESSignatureCreator implements XrdSignatureCreator {
         }
 
     }
+
+    static class JaxpSchemaFactoryBuilder extends SchemaFactoryBuilder {
+        @Override
+        protected SchemaFactory instantiateFactory() {
+            return SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI,
+                    "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory", null);
+        }
+    }
+
 }
