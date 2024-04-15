@@ -37,6 +37,7 @@
      {{$t('managementRequests.dialog.approve.bodyMessage', messageData)}}
       <v-alert
         v-if="newMember"
+        data-test="new-member-warning"
         class="mt-2"
         color="warning"
         icon="$warning"

@@ -201,12 +201,6 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
     public void userIsAbleToApproveManagementRequestInRow(String securityServerCode, String ownerCode) {
         final var securityServerId = getSecurityServerId(securityServerCode, ownerCode);
         managementRequestsPageObj.btnApproveManagementRequest(securityServerId).click();
-
-        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
-        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
-
-        commonPageObj.snackBar.success().shouldBe(visible);
-        commonPageObj.snackBar.btnClose().click();
     }
 
     @Step("the user clicks Approve button")
@@ -218,6 +212,25 @@ public class ManagementRequestsStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(visible);
         commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("the user clicks Yes button in dialog")
+    public void userIsAbleToApproveManagementRequestYes() {
+        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("the confirm dialog show warning about new member")
+    public void warningAboutNewMemberIsVisible() {
+        managementRequestsPageObj.newMemberWarningInDialog().shouldBe(visible);
+    }
+
+    @Step("no warnings are visible in the dialog")
+    public void noWarningsAreVisible() {
+        managementRequestsPageObj.newMemberWarningInDialog().shouldNotBe(visible);
     }
 
     @Step("the user clicks on the Decline button in the row from Security server {} with owner code {}")
