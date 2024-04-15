@@ -66,7 +66,7 @@ public class TestDataCreationStepDefs extends BaseUiStepDefs {
         authenticationCertificateRegistrationRequest.setSecurityServerId(securityServerId);
         authenticationCertificateRegistrationRequest.setAuthenticationCertificate(getExistingOrCreateNewCertificate(securityServerCode));
         authenticationCertificateRegistrationRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
-        authenticationCertificateRegistrationRequest.setOrigin(ManagementRequestOriginDto.CENTER);
+        authenticationCertificateRegistrationRequest.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
 
         final ResponseEntity<ManagementRequestDto> response =
                 managementRequestsApi.addManagementRequest(authenticationCertificateRegistrationRequest);
@@ -82,7 +82,7 @@ public class TestDataCreationStepDefs extends BaseUiStepDefs {
         authenticationCertificateRegistrationRequest.setSecurityServerId(securityServerId);
         authenticationCertificateRegistrationRequest.setAuthenticationCertificate(createNewCertificateForCA2(securityServerCode));
         authenticationCertificateRegistrationRequest.setType(AUTH_CERT_REGISTRATION_REQUEST);
-        authenticationCertificateRegistrationRequest.setOrigin(ManagementRequestOriginDto.CENTER);
+        authenticationCertificateRegistrationRequest.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
 
         final ResponseEntity<ManagementRequestDto> response =
                 managementRequestsApi.addManagementRequest(authenticationCertificateRegistrationRequest);
