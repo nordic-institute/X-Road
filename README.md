@@ -2,6 +2,8 @@
 
 [![Go to X-Road Community Slack](https://img.shields.io/badge/Go%20to%20Community%20Slack-grey.svg)](https://jointxroad.slack.com/)
 [![Get invited](https://img.shields.io/badge/No%20Slack-Get%20invited-green.svg)](https://x-road.global/community)
+[![Build status](https://github.com/nordic-institute/X-Road/actions/workflows/build.yaml/badge.svg)](https://github.com/nordic-institute/X-Road/actions?query=branch%3Adevelop++)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nordic-institute_X-Road&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nordic-institute_X-Road)
 
 ![X-Road logo](xroad_logo_small.png)
 
