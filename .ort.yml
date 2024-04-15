@@ -293,10 +293,10 @@ resolutions:
     - message: "property:advertising-clause license LicenseRef-scancode-rsa-md4 in Gradle:ee.ria.xroad:src:1.0."
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The LicenseRef-scancode-rsa-md4 in src/libs/iaikPkcs11Wrapper.AUTHORS is taken into account, and therefore the license conditions are satisfied."
-    - message: "commercial license LicenseRef-scancode-proprietary-license in Maven:org.apache.commons:commons-compress:1.26.0."
+    - message: "commercial license LicenseRef-scancode-proprietary-license in Maven:org.apache.commons:commons-compress:1.26.*"
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "This PKWare technology is not in use, therefore license is sufficient."
-    - message: "proprietary-free license LicenseRef-doubleopen-jsr-356-websocket-spec in Maven:org.apache.cxf:cxf-rt.*"
+    - message: "proprietary-free license LicenseRef-doubleopen-jsr-356-websocket-spec in Maven:org.apache.cxf:cxf.*"
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The Java API for Websocket (JSR-356) Specification is under a limited license from Oracle - as these files are not modified the implementation should satisfy the requirements for a compliant implementation. Therefore the license conditions are satisfied."
     - message: "commercial license LicenseRef-doubleopen-apple-xcode-sdk in Maven:org.jetbrains.kotlin:kotlin.*"
@@ -305,6 +305,9 @@ resolutions:
     - message: "commercial license LicenseRef-scancode-proprietary-license in Maven:javax.xml.bind:jaxb-api:2.3.1."
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The Streaming API for XML (JSR-173) Specification is under a limited license from BEA Systems - as these files are not modified the implementation should satisfy the requirements for a compliant implementation. Therefore the license conditions are satisfied."
+    - message: "proprietary-free license LicenseRef-verbatim-no-modifications in Maven:org.hsqldb:hsqldb:2.7.*"
+      reason: "NOT_MODIFIED_EXCEPTION"
+      comment: "The license represented by LicenseRef-verbatim-no-modifications allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
 
 license_choices:
   repository_license_choices:
