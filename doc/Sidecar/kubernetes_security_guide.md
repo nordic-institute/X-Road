@@ -31,7 +31,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   - [3.2 Secrets as environment variables](#32-secrets-as-environment-variables)
 - [4 User accounts](#4-user-accounts)
   - [4.1 Create a kubeconfig](#41-create-a-kubeconfig)
-    - [4.1.2 Create a kubeconfig for AWS EKS](#412-create-a-kubeconfig-for-aws-eks)
+    - [4.1.2 Create a kubeconfig for Amazon EKS](#412-create-a-kubeconfig-for-amazon-eks)
     - [4.1.2 Create a kubeconfig for Azure AKS](#412-create-a-kubeconfig-for-azure-aks)
     - [4.1.3 Test the configuration](#413-test-the-configuration)
   - [4.2 Grant cluster access to users](#42-grant-cluster-access-to-users)
@@ -50,10 +50,10 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ### 1.1 Target Audience
 
-This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS or Azure Kubernetes Service (AKS) environment.
+This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in Amazon EKS or Azure Kubernetes Service (AKS) environment.
 
 This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md).
-The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes (including it's cloud provider's specialties (AWS EKS or Azure AKS)) and X-Road.
+The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes (including it's cloud provider's specialties (Amazon EKS or Azure AKS)) and X-Road.
 
 ## 2 Reference Data
 
@@ -196,7 +196,7 @@ Amazon EKS and Azure AKS command line utilities can be used to authenticate user
 A kubeconfig file is a file used to configure access to Kubernetes when used in conjunction with the kubectl command-line tool.
 
 
-#### 4.1.2 Create a kubeconfig for AWS EKS
+#### 4.1.2 Create a kubeconfig for Amazon EKS
  
 To create a kubeconfig file, we should first be authenticated through the AWS CLI. More information on how to authenticate with AWS CLI can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/).
 
@@ -237,14 +237,14 @@ cat /root/.kube/config
 
 Kubernetes has fine-grained built-in role based access control (RBAC) that can be used to for regulating access to Kubernetes cluster. More information about Kubernetes RBAC can be found in [official documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/). 
 
-Both AWS EKS and Azure AKS provide methods for integrating their IAM roles with Kubernetes RBAC:
-- [Grant access to Kubernetes AWS EKS APIs](https://docs.aws.amazon.com/eks/latest/userguide/grant-k8s-access.html)
+Both Amazon EKS and Azure AKS provide methods for integrating their IAM roles with Kubernetes RBAC:
+- [Grant access to Kubernetes Amazon EKS APIs](https://docs.aws.amazon.com/eks/latest/userguide/grant-k8s-access.html)
 - [Use Azure role-based access control for Kubernetes Authorization](https://learn.microsoft.com/en-us/azure/aks/manage-azure-rbac)
 
 ### 4.3 Restrict namespace access to a cluster
 
 If the same Cluster is shared by different developers and teams, it is advisable to create isolated environments by creating namespaces and restrict access within each namespace. More information about how to assign permissions to a namespace in:
-- [AWS EKS Cluster on the](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/)
+- [Amazon EKS Cluster on the](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/)
 - [Azure AKS Cluster](https://learn.microsoft.com/en-us/azure/aks/concepts-identity)
 
 ### 4.4 Kubernetes Dashboard
@@ -303,7 +303,7 @@ Network Policies are similar to AWS security groups in the sense that allows cre
 Network Policies can be configured in AWS with a network provider with network policy support, such as Calico, Cilium, Kube-router, Romana, Weave Net. In this case, we will be using Calico.
 
 To install Calico, follow the instructions for your cloud provider:
-- [AWS EKS](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/eks)
+- [Amazon EKS](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/eks)
 - [Azure AKS](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/aks)
 
 Verify the installation by running:
@@ -472,7 +472,7 @@ You can also combine the value with the suffix `m` to mean milli. For example, 1
 The following steps are recommended for monitoring using AWS CloudWatch and Azure Monitor so that we can detect potential security risks in your Cluster.
 
 * **Collect control plane logs**: The control plane logs capture Kubernetes audit events and requests to the Kubernetes API server, among other components. Analysis of these logs will help detect some types of attacks against the cluster, and security auditors will want to know that you collect and retain this data.
-AWS EKS Clusters can be configured to send control plane logs to Amazon CloudWatch. Similarly, Azure AKS control plane logs can be sent to Azure Monitor as resource logs. At a minimum, you will want to collect the following logs:
+Amazon EKS Clusters can be configured to send control plane logs to Amazon CloudWatch. Similarly, Azure AKS control plane logs can be sent to Azure Monitor as resource logs. At a minimum, you will want to collect the following logs:
 * api - the Kubernetes API server log.
 * audit - the Kubernetes audit log.
 * authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.

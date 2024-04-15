@@ -71,9 +71,9 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ### 1.1 Target Audience
 
-This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS or Azure Kubernetes Service (AKS) environment.
+This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in Amazon Elastic Kubernetes Service (Amazon EKS) or Azure Kubernetes Service (AKS) environment.
 
-The document is intended for readers with at least a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, AWS EKS, AKS and X-Road.
+The document is intended for readers with at least a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, Amazon EKS, AKS and X-Road.
 
 ## 2 Deployment Options
 
@@ -163,7 +163,7 @@ This is an extension of the Security Server Sidecar [Reference Data](security_se
 | 3.10    | \<service selector>     | Name that identifies a Load Balancer with the Pods.                                                                                                                                                                  |
 | 3.11    | \<primary DNS>          | DNS of the service that identifies the Primary Pod composed by \<service name>.\<namespace name>.svc.cluster.local .                                                                                                 |
 | 3.12    | \<cluster name>         | Name of the Kubernetes cluster.                                                                                                                                                                                         |
-| 3.13    | \<cluster region>       | Region where the AWS EKS cluster is deployed.                                                                                                                                                                        |
+| 3.13    | \<cluster region>       | Region where the Amazon EKS cluster is deployed.                                                                                                                                                                        |
 
 ### 4.5 Installation Instructions
 
@@ -640,7 +640,7 @@ The backup system of the Security Servers described in the [User Guide](../Manua
 
 **Amazon CloudWatch** monitors the Amazon Web Services (AWS) resources and the applications that run on AWS in real time. CloudWatch can be used to collect and track metrics, which are variables that can be uses to measure resources and applications. For more information about CloudWatch check the [Amazon CloudWatch documentation](https://docs.aws.amazon.com/cloudwatch/index.html).
 
-**CloudWatch container insights** is a tool available for AWS EKS that can be used to collect, aggregate, and summarize metrics and logs from containerized applications and microservices. See [Setting up Container Insights on Amazon EKS and Kubernetes](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html) for more details.
+**CloudWatch container insights** is a tool available for Amazon EKS that can be used to collect, aggregate, and summarize metrics and logs from containerized applications and microservices. See [Setting up Container Insights on Amazon EKS and Kubernetes](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html) for more details.
 
 **Azure Monitor** is a monitoring solution for cloud and on-premises environments. See [AKS documentation](https://learn.microsoft.com/en-us/azure/aks/monitor-aks) for details on integration with Azure Monitor.
 
