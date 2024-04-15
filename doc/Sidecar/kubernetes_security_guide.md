@@ -50,7 +50,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ### 1.1 Target Audience
 
-This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in Amazon EKS or Azure Kubernetes Service (AKS) environment.
+This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in Amazon Elastic Kubernetes Service (Amazon EKS) or Azure Kubernetes Service (AKS) environment.
 
 This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md).
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes (including it's cloud provider's specialties (Amazon EKS or Azure AKS)) and X-Road.
@@ -148,7 +148,7 @@ Then we can consume the Secrets as environment variables by modifying the deploy
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:latest
+    image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     envFrom:
     - secretRef:
@@ -162,7 +162,7 @@ Alternatively, if we don't want to include all the environment variables in a si
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:6.26.0
+    image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     env:
     - name: XROAD_TOKEN_PIN
@@ -189,7 +189,7 @@ containers:
 
 ## 4 User accounts
 
-Amazon EKS and Azure AKS command line utilities can be used to authenticate user to your Kubernetes cluster.However, for authorization, they still rely on native Kubernetes Role Based Access Control (RBAC). All the permissions required for interacting with the Kubernetes API of your cluster are managed through the native Kubernetes RBAC system.
+Amazon EKS and Azure AKS command line utilities can be used to authenticate user to your Kubernetes cluster. However, for authorization, they still rely on native Kubernetes Role Based Access Control (RBAC). All the permissions required for interacting with the Kubernetes API of your cluster are managed through the native Kubernetes RBAC system.
 
 ### 4.1 Create a kubeconfig
 
@@ -244,7 +244,7 @@ Both Amazon EKS and Azure AKS provide methods for integrating their IAM roles wi
 ### 4.3 Restrict namespace access to a cluster
 
 If the same Cluster is shared by different developers and teams, it is advisable to create isolated environments by creating namespaces and restrict access within each namespace. More information about how to assign permissions to a namespace in:
-- [Amazon EKS Cluster on the](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/)
+- [Amazon EKS Cluster](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/)
 - [Azure AKS Cluster](https://learn.microsoft.com/en-us/azure/aks/concepts-identity)
 
 ### 4.4 Kubernetes Dashboard
@@ -263,10 +263,10 @@ helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dash
 You can access Dashboard using the kubectl command-line tool by running the following command:
 
 ```bash
-kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 4433:443
 ```
 
-Kubectl will make Dashboard available at <https://localhost:8443>.
+Kubectl will make Dashboard available at <https://localhost:4433>.
 
 In the login view, you will be required to enter a token. To try out Kubernetes Dashboard you can [create a sample user](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md) and get the token with the following command:
 
@@ -300,7 +300,7 @@ The most relevant network policies to enforce are:
 
 Network Policies are similar to AWS security groups in the sense that allows creating network ingress and egress rules. The difference with Network Policies is that it allows assigning them to pods using pod selectors and labels instead of instances of an AWS security group.
 
-Network Policies can be configured in AWS with a network provider with network policy support, such as Calico, Cilium, Kube-router, Romana, Weave Net. In this case, we will be using Calico.
+Network Policies can be configured with a network provider with network policy support, such as Calico, Cilium, Kube-router, Romana, Weave Net. In this case, we will be using Calico.
 
 To install Calico, follow the instructions for your cloud provider:
 - [Amazon EKS](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/eks)
@@ -445,7 +445,7 @@ To specify a CPU request for a container, include the `resources:requests` field
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:6.26.0
+    image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     resources:
       limits:
@@ -472,10 +472,10 @@ You can also combine the value with the suffix `m` to mean milli. For example, 1
 The following steps are recommended for monitoring using AWS CloudWatch and Azure Monitor so that we can detect potential security risks in your Cluster.
 
 * **Collect control plane logs**: The control plane logs capture Kubernetes audit events and requests to the Kubernetes API server, among other components. Analysis of these logs will help detect some types of attacks against the cluster, and security auditors will want to know that you collect and retain this data.
-Amazon EKS Clusters can be configured to send control plane logs to Amazon CloudWatch. Similarly, Azure AKS control plane logs can be sent to Azure Monitor as resource logs. At a minimum, you will want to collect the following logs:
-* api - the Kubernetes API server log.
-* audit - the Kubernetes audit log.
-* authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
+* Amazon EKS Clusters can be configured to send control plane logs to Amazon CloudWatch. Similarly, Azure AKS control plane logs can be sent to Azure Monitor as resource logs. At a minimum, you will want to collect the following logs:
+  * api - the Kubernetes API server log.
+  * audit - the Kubernetes audit log.
+  * authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
 
 * **Monitor container and cluster performance for anomalies**:  Irregular spikes in application load or node usage can be a signal that an application may need programmatic troubleshooting, but they can also signal unauthorized activity in the cluster. Monitoring key metrics provides critical visibility into your workload’s functional health and that it may need performance tuning or that it may require further investigation. For collecting these metrics, it is required to set up Amazon CloudWatch Container Insights for your cluster. Azure has similar capabilities with Container Insights.
 

@@ -73,7 +73,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in Amazon Elastic Kubernetes Service (Amazon EKS) or Azure Kubernetes Service (AKS) environment.
 
-The document is intended for readers with at least a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, Amazon EKS, AKS and X-Road.
+The document is intended for readers with at least a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, Amazon EKS, Azure AKS and X-Road.
 
 ## 2 Deployment Options
 
@@ -125,7 +125,7 @@ The resource requirements depend on the messaging workload, a minimum for the sl
 ### 4.2 Prerequisites to Installation
 
 In this guide, the `kubectl` command line utility is used. It is expected, that `kubectl` is configured to connect to existing Kubernetes cluster. For the details of setting up Kubernetes cluster and connecting to it with `kubectl`, see:
-* [Getting started with Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html). 
+* [Getting started with Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html)
 * [Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/)
 * [kubectl reference](https://kubernetes.io/docs/reference/kubectl/)
 
@@ -354,7 +354,7 @@ For consuming the Secrets for environmental variables, modify the deployment Pod
 [...]
 containers:
 - name: security-server-sidecar
-  image: niis/xroad-security-server-sidecar:latest
+  image: niis/xroad-security-server-sidecar:<image tag>
   imagePullPolicy: "Always"
   envFrom:
   - secretRef:
@@ -608,7 +608,7 @@ spec:
 
 The manifest has two Kubernetes objects:
 
-* An NLB (Network Load Balancer) Service which will be in charge of redirecting the traffic to the secondary pods. It has the required ports "5500" and "5577" for receiving messages from other Security Servers.
+* A `LoadBalancer` type Service which will be in charge of redirecting the traffic to the secondary pods. It has the required ports "5500" and "5577" for receiving messages from other Security Servers.
 * An internal Service for the consumer information systems that proxies requests to the secondary pods.
 * A Deployment for the secondary pods. As image tag, you can choose between the "secondary" or "secondary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
 
@@ -629,7 +629,9 @@ The Secondary Pods will synchronize the configuration at initialization and thro
 In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) the messages will be sent to the Security Server secondary pods through the Load Balancer. Therefore, the address of the Load Balancer needs to be provided as the Security Server address when registering the Security Server to the X-Road instance. As the global configuration supports only one address for a Security Server, but a load balancer typically has multiple, a DNS name needs to be used. There are multiple ways of implementing a stable DNS name for the load balancer:
 
 * Deploy the Load Balancer Service separately and create a CNAME (or alias) DNS record for the load balancer.
-* If using the AWS Load Balancer Controller, define elastic IP addresses and separately create a DNS record (see [AWS load balancer controller annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/service/annotations/)).
+* Use cloud provider specific annotations for Load Balancer Service to specify IP address and DNS name
+  * [AWS load balancer controller annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/guide/ingress/annotations/)
+  * [Azure AKS LoadBalancer annotations](https://cloud-provider-azure.sigs.k8s.io/topics/loadbalancer/#loadbalancer-annotations)
 * Automate DNS record assignment, e.g. by using [Kubernetes External DNS](https://github.com/kubernetes-sigs/external-dns/).
 
 ## 5 Backup and Restore
