@@ -242,7 +242,11 @@ excludes:
       reason: "TEST_DEPENDENCY_OF"
       comment: "Packages for code coverage (testing) only."
 
-    - pattern: "test.*"
+    - pattern: "aggregateCodeCoverageReportResults"
+      reason: "TEST_DEPENDENCY_OF"
+      comment: "Packages for testing only."
+
+    - pattern: ".*[Tt]est.*"
       reason: "TEST_DEPENDENCY_OF"
       comment: "Packages for testing only."
 
@@ -255,6 +259,22 @@ excludes:
       comment: "Packages for development only."
 
     - pattern: "compileOnly"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "compileProtoPath"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "protobufToolsLocator.*"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "schema"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "xjc"
       reason: "DEV_DEPENDENCY_OF"
       comment: "Packages for development only."
 
