@@ -6,6 +6,7 @@ deploy_module() {
   local -a containers=("$@")
   local jar_path
   local service_name
+  local target_path="/usr/share/xroad/jlib/"
 
   case $module_name in
   "proxy")
@@ -14,10 +15,12 @@ deploy_module() {
     ;;
   "messagelog-addon")
     jar_path="$XROAD_HOME/src/addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar"
+    target_path="${target_path}addon/proxy/"
     service_name="xroad-proxy"
     ;;
   "metaservice-addon")
     jar_path="$XROAD_HOME/src/addons/metaservice/build/libs/metaservice-1.0.jar"
+    target_path="${target_path}addon/proxy/"
     service_name="xroad-proxy"
     ;;
   "proxy-ui-api")
@@ -63,7 +66,7 @@ deploy_module() {
   esac
 
   for container in "${containers[@]}"; do
-    docker cp "$jar_path" "$container:/usr/share/xroad/jlib/"
+    docker cp "$jar_path" "$container:$target_path"
     docker exec -it "$container" supervisorctl restart "$service_name"
   done
 }

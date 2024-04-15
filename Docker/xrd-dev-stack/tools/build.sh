@@ -33,6 +33,9 @@ case $1 in
 "cs-edc")
   gradleModule="central-server/ds-catalog-service"
   ;;
+"messagelog-addon")
+  gradleModule="addons/messagelog/messagelog-addon"
+  ;;
 esac
 
 cd "$XROAD_HOME"/src/
