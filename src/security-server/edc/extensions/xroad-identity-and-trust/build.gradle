@@ -14,9 +14,9 @@ dependencies {
     implementation libs.edc.identity.hub.api
     implementation libs.edc.jersey.providers.lib
     implementation libs.edc.identity.trust.transform
-    implementation libs.edc.transform.core
+    implementation libs.edc.transform.lib
     implementation libs.edc.crypto.common.lib
     implementation libs.edc.jsonLd.spi
-    implementation libs.edc.jws2020
+    implementation libs.edc.jws2020.lib
     implementation libs.edc.token.core
 }

@@ -29,11 +29,11 @@ package org.niis.xroad.proxy.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
 
-import org.eclipse.edc.connector.api.management.asset.v3.AssetApi;
-import org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi;
-import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
-import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
-import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
+import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
+import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApi;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApi;
+import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi;
+import org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.niis.xroad.edc.management.client.FeignCatalogApi;
 import org.niis.xroad.edc.management.client.FeignXroadEdrApi;

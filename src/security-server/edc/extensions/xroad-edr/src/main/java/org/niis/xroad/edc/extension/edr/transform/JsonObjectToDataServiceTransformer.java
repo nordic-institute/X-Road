@@ -16,7 +16,7 @@ package org.niis.xroad.edc.extension.edr.transform;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.catalog.spi.DataService;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;

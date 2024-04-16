@@ -32,7 +32,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
-import org.eclipse.edc.connector.api.management.catalog.CatalogApi;
+import org.eclipse.edc.connector.controlplane.api.management.catalog.CatalogApi;
 
 public interface FeignCatalogApi extends CatalogApi {
 

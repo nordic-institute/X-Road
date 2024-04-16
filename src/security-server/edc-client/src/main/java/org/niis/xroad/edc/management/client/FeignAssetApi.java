@@ -35,7 +35,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import org.eclipse.edc.connector.api.management.asset.v3.AssetApi;
+import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
 
 /**
  * TODO Workaround for missing annotations.. A bug  in EDC.

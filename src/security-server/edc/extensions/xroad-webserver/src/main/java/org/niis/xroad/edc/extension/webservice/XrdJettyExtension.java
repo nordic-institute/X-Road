@@ -21,9 +21,9 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
 import org.eclipse.edc.web.jetty.JettyService;
+import org.eclipse.edc.web.jetty.WebServiceConfigurerImpl;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurerImpl;
 
 @Provides({WebServer.class, JettyService.class})
 public class XrdJettyExtension implements ServiceExtension {

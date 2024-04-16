@@ -22,7 +22,7 @@ protoc = "3.25.3"
 grpc = "1.63.0"
 swaggerParser = "2.1.22"
 logback = "1.4.14"
-edc = "0.6.0"
+edc = "0.6.1"
 edcJetty = "11.0.20"
 nimbusJoseJwt = "9.37.3"
 dss = "6.0"
@@ -181,6 +181,7 @@ edc-contract-negotiation-api = { module = "org.eclipse.edc:contract-negotiation-
 edc-control-plane-api-client = { module = "org.eclipse.edc:control-plane-api-client", version.ref = "edc" }
 edc-control-plane-api = { module = "org.eclipse.edc:control-plane-api", version.ref = "edc" }
 edc-control-plane-core = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
+edc-control-plane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-crypto-common-lib = { module = "org.eclipse.edc:crypto-common-lib", version.ref = "edc" }
 edc-data-plane-control-api = { module = "org.eclipse.edc:data-plane-control-api", version.ref = "edc" }
@@ -210,7 +211,7 @@ edc-jersey-providers-lib = { module = "org.eclipse.edc:jersey-providers-lib", ve
 edc-jsonLd = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-jsonLd-lib = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 edc-jsonLd-spi = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
-edc-jws2020 = { module = "org.eclipse.edc:jws2020", version.ref = "edc" }
+edc-jws2020-lib = { module = "org.eclipse.edc:jws2020-lib", version.ref = "edc" }
 edc-jwt-spi = { module = "org.eclipse.edc:jwt-spi", version.ref = "edc" }
 edc-ldp-verifiable-credentials = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-management-api = { module = "org.eclipse.edc:management-api", version.ref = "edc" }
@@ -219,10 +220,10 @@ edc-policy-definition-api = { module = "org.eclipse.edc:policy-definition-api", 
 edc-policy-engine-spi = { module = "org.eclipse.edc:policy-engine-spi", version.ref = "edc" }
 edc-transfer-data-plane = { module = "org.eclipse.edc:transfer-data-plane", version.ref = "edc" }
 edc-transfer-process-api = { module = "org.eclipse.edc:transfer-process-api", version.ref = "edc" }
-edc-transform-core = { module = "org.eclipse.edc:transform-core", version.ref = "edc" }
+edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
 edc-token-spi = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
 edc-token-core = { module = "org.eclipse.edc:token-core", version.ref = "edc" }
-edc-util = { module = "org.eclipse.edc:util", version.ref = "edc" }
+edc-util-lib = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-vault-filesystem = { module = "org.eclipse.edc:vault-filesystem", version.ref = "edc" }
 edc-web-spi = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
 

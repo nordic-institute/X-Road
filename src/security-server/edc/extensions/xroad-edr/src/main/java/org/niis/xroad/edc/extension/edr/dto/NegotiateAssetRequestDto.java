@@ -29,7 +29,7 @@ package org.niis.xroad.edc.extension.edr.dto;
 
 import lombok.Getter;
 
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.niis.xroad.edc.spi.XrdConstants.XRD_NAMESPACE;
 
 public class NegotiateAssetRequestDto {

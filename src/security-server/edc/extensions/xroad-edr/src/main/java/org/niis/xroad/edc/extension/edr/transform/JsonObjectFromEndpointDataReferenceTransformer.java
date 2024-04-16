@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.Json.createObjectBuilder;
-import static org.eclipse.edc.spi.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class JsonObjectFromEndpointDataReferenceTransformer extends AbstractJsonLdTransformer<EndpointDataReference, JsonObject> {
 

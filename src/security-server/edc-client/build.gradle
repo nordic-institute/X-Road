@@ -28,7 +28,7 @@ dependencies {
 
     api libs.edc.jsonLd.spi
     api libs.edc.jsonLd.lib
-    api libs.edc.transform.core
+    api libs.edc.transform.lib
     api libs.edc.management.api.configuration
 
     testImplementation project(':common:common-test')

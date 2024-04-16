@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     id("java")
     id("application")
@@ -18,7 +16,7 @@ configurations {
 dependencies {
     implementation libs.websocket.jakarta.server
 
-    implementation libs.edc.util
+    implementation libs.edc.util.lib
     implementation libs.edc.configuration.filesystem
     implementation libs.edc.vault.filesystem
     implementation libs.edc.dsp

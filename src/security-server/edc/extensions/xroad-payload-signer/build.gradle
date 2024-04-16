@@ -26,7 +26,7 @@ dependencies {
     implementation libs.edc.data.plane.public.api
 
     implementation libs.edc.jsonLd
-    implementation libs.edc.jws2020
+    implementation libs.edc.jws2020.lib
 
     testImplementation libs.edc.junit
     testImplementation libs.assertj.core

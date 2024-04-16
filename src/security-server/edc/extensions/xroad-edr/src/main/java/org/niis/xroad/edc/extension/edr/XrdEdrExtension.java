@@ -28,10 +28,10 @@
 package org.niis.xroad.edc.extension.edr;
 
 import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
-import org.eclipse.edc.connector.spi.catalog.CatalogService;
-import org.eclipse.edc.connector.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.connector.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.core.transform.transformer.odrl.to.JsonObjectToPolicyTransformer;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;

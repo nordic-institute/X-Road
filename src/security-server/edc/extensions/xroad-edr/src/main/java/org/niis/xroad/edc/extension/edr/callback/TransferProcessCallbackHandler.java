@@ -28,8 +28,8 @@
 package org.niis.xroad.edc.extension.edr.callback;
 
 import lombok.RequiredArgsConstructor;
-import org.eclipse.edc.connector.spi.callback.CallbackEventRemoteMessage;
-import org.eclipse.edc.connector.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEventRemoteMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.monitor.Monitor;

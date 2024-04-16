@@ -32,14 +32,14 @@ import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.connector.core.base.RetryPolicyConfiguration;
 import org.eclipse.edc.connector.core.base.RetryPolicyFactory;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.http.client.EdcHttpClientImpl;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
 import static java.lang.Integer.parseInt;

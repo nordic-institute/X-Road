@@ -11,7 +11,8 @@ dependencies {
     implementation libs.edc.web.spi
     implementation libs.edc.jsonLd
     implementation libs.edc.jsonLd.lib
-    implementation libs.edc.transform.core
+    implementation libs.edc.transform.lib
+    implementation libs.edc.control.plane.transform
 
     implementation libs.caffeine
     implementation libs.nimbus.jose.jwt
