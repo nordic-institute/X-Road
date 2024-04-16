@@ -19,7 +19,7 @@
     "deepmerge": "^4.3.1",
     "vuetify": "3.5.15",
     "vue": "^3.4.21",
-    "vue-i18n": "^9.11.0",
+    "vue-i18n": "^9.12.1",
     "vue-router": "^4.3.0",
     "vee-validate": "^4.12.6",
     "pinia": "^2.1.7",
