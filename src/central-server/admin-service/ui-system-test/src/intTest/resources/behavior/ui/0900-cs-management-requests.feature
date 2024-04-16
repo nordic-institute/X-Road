@@ -23,19 +23,7 @@ Feature: 0900 - CS: Management Requests
     And the option to show only pending requests is selected
     When the user views the Management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
     And the user clicks on the Approve button in the row from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
-    And no warnings are visible in the dialog
-    And the user clicks Yes button in dialog
     Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list
-
-  Scenario: User Approves Management Request for non existing member
-    Given a new security server E2E-SS-X with authentication certificate is registered with owner code e2e-tc1-non-existing-member-subsystem
-    And Management requests tab is selected
-    And the option to show only pending requests is selected
-    When the user views the Management request from Security server E2E-SS-X with owner code e2e-tc1-non-existing-member-subsystem
-    And the user clicks on the Approve button in the row from Security server E2E-SS-X with owner code e2e-tc1-non-existing-member-subsystem
-    And the confirm dialog show warning about new member
-    And the user clicks Yes button in dialog
-    Then the pending management request from Security server E2E-SS-X with owner code e2e-tc1-non-existing-member-subsystem should be removed from the list
 
   Scenario: User Declines Management Request
     Given a new security server E2E-SS2 with authentication certificate is registered with owner code e2e-tc2-member-subsystem
@@ -55,8 +43,6 @@ Feature: 0900 - CS: Management Requests
     And the details page displays the Affected Security Server Information for the Client request
     And the details page displays the client information for the Client Submitted for Registration
     When the user clicks Approve button
-    And no warnings are visible in the dialog
-    And the user clicks Yes button in dialog
     Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list
 
   Scenario: User views Details and Decline pending Management Request
@@ -115,8 +101,6 @@ Feature: 0900 - CS: Management Requests
     And the option to show only pending requests is selected
     When the user views the Management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
     And the user clicks on the Approve button in the row from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
-    And no warnings are visible in the dialog
-    And the user clicks Yes button in dialog
     Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list
 
   Scenario: User Approves Management Request for adding another security server
@@ -125,8 +109,6 @@ Feature: 0900 - CS: Management Requests
     And the option to show only pending requests is selected
     When the user views the Management request from Security server E2E-SS3 with owner code e2e-tc1-member-subsystem
     And the user clicks on the Approve button in the row from Security server E2E-SS3 with owner code e2e-tc1-member-subsystem
-    And no warnings are visible in the dialog
-    And the user clicks Yes button in dialog
     Then the pending management request from Security server E2E-SS3 with owner code e2e-tc1-member-subsystem should be removed from the list
 
   Scenario: User Approves Management Request for adding another client to security server
@@ -139,20 +121,4 @@ Feature: 0900 - CS: Management Requests
     And the details page displays the Affected Security Server Information for the Client request
     And the details page displays the client information for the Client Submitted for Registration
     When the user clicks Approve button
-    And no warnings are visible in the dialog
-    And the user clicks Yes button in dialog
-    Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list
-
-  Scenario: User Approves Management Request for adding another client for non existing member to security server
-    Given a client with code e2e-tc2-non-existing-member-subsystem and subsystem code e2e-tc2-subsystem is registered in security server E2E-SS1 with owner code e2e-tc1-member-subsystem
-    And Management requests tab is selected
-    And the option to show only pending requests is selected
-    When the user clicks Pending request Add Client from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
-    Then the details page is shown with title Add Client
-    And the details page displays the Request Information for the PENDING management request
-    And the details page displays the Affected Security Server Information for the Client request
-    And the details page displays the client information for the Client Submitted for Registration
-    When the user clicks Approve button
-    And the confirm dialog show warning about new member
-    And the user clicks Yes button in dialog
     Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list

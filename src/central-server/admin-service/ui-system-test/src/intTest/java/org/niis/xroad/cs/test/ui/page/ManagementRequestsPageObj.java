@@ -76,11 +76,6 @@ public class ManagementRequestsPageObj {
         return tableRowOf(text).find(xpath(xpath));
     }
 
-    public SelenideElement newMemberWarningInDialog() {
-        var xpath = "//div[@data-test='dialog-simple']//div[@data-test='new-member-warning']";
-        return $x(xpath);
-    }
-
     public SelenideElement btnApproveManagementRequest() {
         var xpath = "../..//td/div/div/button[@data-test='approve-button']";
         return table().find(xpath(xpath));
