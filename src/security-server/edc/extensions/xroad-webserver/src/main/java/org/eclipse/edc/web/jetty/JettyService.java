@@ -214,7 +214,7 @@ public class JettyService implements WebServer {
 
         cf.setSniRequired(sniEnabled);
 
-        var httpsConfiguration = new HttpConfiguration();
+        var httpsConfiguration = getDefaultHttpConfiguration();
         httpsConfiguration.setSecureScheme("https");
         httpsConfiguration.setSecurePort(port);
         httpsConfiguration.addCustomizer(new SecureRequestCustomizer(sniEnabled));
@@ -253,9 +253,16 @@ public class JettyService implements WebServer {
 
     @NotNull
     private HttpConnectionFactory httpConnectionFactory() {
-        HttpConfiguration https = new HttpConfiguration();
-        https.setSendServerVersion(false);
-        return new HttpConnectionFactory(https);
+        HttpConfiguration http = getDefaultHttpConfiguration();
+        return new HttpConnectionFactory(http);
+    }
+
+    private HttpConfiguration getDefaultHttpConfiguration() {
+        HttpConfiguration httpConfiguration = new HttpConfiguration();
+        httpConfiguration.setSendServerVersion(false);
+        httpConfiguration.setRequestHeaderSize(configuration.getMaxHeaderSize());
+        httpConfiguration.setResponseHeaderSize(configuration.getMaxHeaderSize());
+        return httpConfiguration;
     }
 
     private ServletContextHandler getOrCreate(String contextPath) {

@@ -30,14 +30,18 @@ public class JettyConfiguration {
     public static final String DEFAULT_PATH = "/api";
     public static final String DEFAULT_CONTEXT_NAME = "default";
     public static final int DEFAULT_PORT = 8181;
+    public static final int DEFAULT_MAX_HEADER_SIZE = 16384;
     @Setting
     private static final String HTTP_PORT = "web.http.port";
     @Setting
     private static final String XROAD_SSL_DISABLE = "xroad.web.ssl.disable";
+    @Setting
+    private static final String XROAD_MAX_HEADER_SIZE = "xroad.web.maxHeaderSize";
     private final String keystorePassword;
     private final String keymanagerPassword;
     private final Set<PortMapping> portMappings;
     private boolean sslDisable;
+    private int maxHeaderSize;
 
     protected JettyConfiguration(String keystorePassword, String keymanagerPassword) {
         this.keystorePassword = keystorePassword;
@@ -48,6 +52,7 @@ public class JettyConfiguration {
     public static JettyConfiguration createFromConfig(String keystorePassword, String keyManagerPassword, Config config) {
         var jettyConfig = new JettyConfiguration(keystorePassword, keyManagerPassword);
         jettyConfig.sslDisable = config.getBoolean(XROAD_SSL_DISABLE, false);
+        jettyConfig.maxHeaderSize = config.getInteger(XROAD_MAX_HEADER_SIZE, DEFAULT_MAX_HEADER_SIZE);
 
         var subConfig = config.getConfig(WEB_HTTP_PREFIX);
 
@@ -124,4 +129,7 @@ public class JettyConfiguration {
         return keymanagerPassword;
     }
 
+    public int getMaxHeaderSize() {
+        return maxHeaderSize;
+    }
 }

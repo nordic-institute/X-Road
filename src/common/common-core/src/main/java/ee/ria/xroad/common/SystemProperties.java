@@ -170,6 +170,9 @@ public final class SystemProperties {
     public static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-clientproxy-configuration-file";
 
+    public static final String JETTY_CLIENTPROXY_MAX_HEADER_SIZE =
+            PREFIX + "proxy.jetty-max-header-size";
+
     /** Property name of the ServerProxy Jetty server configuration file. */
     public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-serverproxy-configuration-file";
@@ -333,6 +336,8 @@ public final class SystemProperties {
     private static final String DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE = "2500";
 
     private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
+
+    private static final int DEFAULT_CLIENT_PROXY_JETTY_HEADER_SIZE = 16384;
 
     private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
 
@@ -909,6 +914,11 @@ public final class SystemProperties {
     public static int getClientProxyHttpPort() {
         return Integer.parseInt(System.getProperty(PROXY_CLIENT_HTTP_PORT,
                 Integer.toString(PortNumbers.CLIENT_HTTP_PORT)));
+    }
+
+    public static int getClientProxyJettyMaxHeaderSize() {
+        return Integer.parseInt(System.getProperty(JETTY_CLIENTPROXY_MAX_HEADER_SIZE,
+                Integer.toString(DEFAULT_CLIENT_PROXY_JETTY_HEADER_SIZE)));
     }
 
     /**
