@@ -48,7 +48,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -183,7 +182,7 @@ public class AsicContainerVerifier {
             @Override
             public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
                     throws ResourceResolverException {
-                return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
+                return new XMLSignatureInput(asic.getEntry(context.attr.getValue()));
             }
         });
 

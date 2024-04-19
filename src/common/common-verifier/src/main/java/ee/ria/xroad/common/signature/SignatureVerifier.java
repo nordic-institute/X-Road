@@ -42,9 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
-import org.apache.xml.security.signature.XMLSignatureByteInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -408,12 +406,12 @@ public class SignatureVerifier {
                     MessagePart part = getPart(MessageFileNames.MESSAGE);
 
                     if (part != null && part.getMessage() != null) {
-                        return new XMLSignatureByteInput(part.getMessage());
+                        return new XMLSignatureInput(part.getMessage());
                     }
 
                     break;
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                    return new XMLSignatureStreamInput(is(hashChainResult));
+                    return new XMLSignatureInput(is(hashChainResult));
                 default: // do nothing
             }
 

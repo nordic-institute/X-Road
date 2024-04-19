@@ -34,7 +34,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.xml.security.signature.XMLSignatureByteInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
@@ -177,7 +176,7 @@ class SignatureCtx {
             @Override
             public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
                     throws ResourceResolverException {
-                return new XMLSignatureByteInput(data);
+                return new XMLSignatureInput(data);
             }
         };
     }
