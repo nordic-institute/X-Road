@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.20 
+Version: 1.21 
 Doc. ID: IG-XLB
 
 
@@ -27,6 +27,7 @@ Doc. ID: IG-XLB
 | 20.12.2023 | 1.18    | Added RHEL 9                                                                                                             | Justas Samuolis             |
 | 12.01.2024 | 1.19    | RHEL PostgreSQL 12 support                                                                                               | Eneli Reimets               |
 | 16.02.2024 | 1.20    | RHEL PostgreSQL 13 support                                                                                               | Eneli Reimets               |
+| 19.04.2024 | 1.21    | Simplified creation of PostgreSQL serverconf service for RHEL 8, 9 and added warning about SELinux policy                | Eneli Reimets               |
 ## Table of Contents
 
 <!-- toc -->
@@ -61,9 +62,8 @@ Doc. ID: IG-XLB
   * [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
   * [4.2 Creating a separate PostgreSQL instance for the `serverconf` database](#42-creating-a-separate-postgresql-instance-for-the-serverconf-database)
     * [4.2.1 on RHEL](#421-on-rhel)
-      * [4.2.1.1 on RHEL PostgreSQL before 12](#4211-on-rhel-postgresql-before-12)
-      * [4.2.1.2 on RHEL PostgreSQL 12](#4212-on-rhel-postgresql-12)
-      * [4.2.1.3 on RHEL PostgreSQL 13](#4213-on-rhel-postgresql-13)
+      * [4.2.1.1 on RHEL 7](#4211-on-rhel-7)
+      * [4.2.1.2 on RHEL 8 and 9](#4212-on-rhel-8-and-9)
     * [4.2.2 on Ubuntu](#422-on-ubuntu)
   * [4.3 Configuring the primary instance for replication](#43-configuring-the-primary-instance-for-replication)
   * [4.4 Configuring the secondary instance for replication](#44-configuring-the-secondary-instance-for-replication)
@@ -515,7 +515,7 @@ For further details on the certificate authentication, see the
 
 #### 4.2.1 on RHEL
 
-##### 4.2.1.1 on RHEL PostgreSQL before 12
+##### 4.2.1.1 on RHEL 7
 
 Create a new `systemctl` service unit for the new database. As root, execute the following command:
 
@@ -535,37 +535,12 @@ semanage port -a -t postgresql_port_t -p tcp 5433
 systemctl enable postgresql-serverconf
 ```
 
-##### 4.2.1.2 on RHEL PostgreSQL 12
-
-Create a new `systemctl` service unit for the new database. As root, execute the following command:
-
-```bash
-cat <<EOF >/etc/systemd/system/postgresql-serverconf.service
-.include /usr/lib/systemd/system/postgresql-12.service
-[Service]
-Environment=PGPORT=5433
-Environment=PGDATA=/var/lib/pgsql/12/serverconf
-EOF
-```
-Create the database and configure SELinux:
-
-```bash
-# Init db
-sudo su postgres
-cd /tmp
-/usr/pgsql-12/bin/initdb --auth-local=peer --auth-host=md5 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/12/serverconf/
-exit
-
-semanage port -a -t postgresql_port_t -p tcp 5433
-systemctl enable postgresql-serverconf
-```
-
-##### 4.2.1.3 on RHEL PostgreSQL 13
+##### 4.2.1.2 on RHEL 8 and 9
 
 Create a new `systemctl` service unit for the new database. As root, make a copy for the new service
 
 ```bash
-cp /lib/systemd/system/postgresql-13.service /etc/systemd/system/postgresql-serverconf.service 
+cp /lib/systemd/system/postgresql-<postgresql major version>.service /etc/systemd/system/postgresql-serverconf.service 
 ```
 
 Edit `/etc/systemd/system/postgresql-serverconf.service` and override the following properties:
@@ -574,7 +549,7 @@ Edit `/etc/systemd/system/postgresql-serverconf.service` and override the follow
 [Service]
 ...
 Environment=PGPORT=5433
-Environment=PGDATA=/var/lib/pgsql/13/serverconf
+Environment=PGDATA=/var/lib/pgsql/<postgresql major version>/serverconf
 ```
 
 Create the database and configure SELinux:
@@ -583,7 +558,7 @@ Create the database and configure SELinux:
 # Init db
 sudo su postgres
 cd /tmp
-/usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+/usr/pgsql-<postgresql major version>/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/<postgresql major version>/serverconf/
 exit
 
 semanage port -a -t postgresql_port_t -p tcp 5433
@@ -862,6 +837,7 @@ RHEL only: Configure SELinux to allow `rsync` to be run as a `systemd` service
 setsebool -P rsync_client 1
 setsebool -P rsync_full_access 1
 ```
+>**Note:** If the applications or services running on the system are additional customized, then may need to update the SELinux policy to reflect that as well, see more information [How to create its own custom SELinux policy module wisely](https://access.redhat.com/articles/5494701)
 
 Finally, enable the services:
 ```bash
