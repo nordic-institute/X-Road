@@ -59,7 +59,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 @RequiredArgsConstructor
 public class AssetAuthorizationManager {
 
-    private static final long TIMEOUT_SECONDS = 60; // todo: parameterize?
+    private static final long TIMEOUT_SECONDS = 20; // todo: parameterize?
 
     private final CatalogService catalogService;
     private final ContractNegotiationService contractNegotiationService;

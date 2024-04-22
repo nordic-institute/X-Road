@@ -7,8 +7,12 @@ dependencies {
 
     implementation(project(":security-server:edc:spi:xroad-messagelog-spi"))
     implementation(project(":addons:messagelog:messagelog-protocol"))
-    implementation(project(":common:common-rpc"))
-    implementation(project(":common:common-domain"))  // for the ClientId, ServiceId identifiers
+    implementation(project(":common:common-rpc")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":common:common-domain")) {
+        exclude group: 'org.eclipse.jetty'
+    }  // for the ClientId, ServiceId identifiers
 
     testImplementation libs.edc.junit
     testImplementation libs.assertj.core

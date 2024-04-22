@@ -26,14 +26,22 @@
  */
 package org.niis.xroad.edc.extension.iam;
 
+import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
+import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
+import org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 
 import java.util.Set;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.NAME;
 
 /**
@@ -56,6 +64,18 @@ public class IatpScopeExtension implements ServiceExtension {
     @Inject
     private PolicyEngine policyEngine;
 
+    @Inject
+    private TypeManager typeManager;
+
+    @Inject
+    private SignatureSuiteRegistry signatureSuiteRegistry;
+
+    @Inject
+    private ScopeExtractorRegistry scopeExtractorRegistry;
+
+    @Inject
+    private TypeTransformerRegistry typeTransformerRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -63,11 +83,23 @@ public class IatpScopeExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        // register signature suite
+        var suite = new JwsSignature2020Suite(typeManager.getMapper(JSON_LD));
+        signatureSuiteRegistry.register(VcConstants.JWS_2020_SIGNATURE_SUITE, suite);
+
+        // register a default scope provider
         var contextMappingFunction = new DefaultScopeExtractor(
                 Set.of(SCOPE_FORMAT.formatted(CREDENTIAL_TYPE_NAMESPACE, CREDENTIAL_FORMAT)));
         policyEngine.registerPostValidator(CATALOG_REQUEST_SCOPE, contextMappingFunction);
         policyEngine.registerPostValidator(NEGOTIATION_REQUEST_SCOPE, contextMappingFunction);
         policyEngine.registerPostValidator(TRANSFER_PROCESS_REQUEST_SCOPE, contextMappingFunction);
+
+
+        //register scope extractor
+        scopeExtractorRegistry.registerScopeExtractor(new FrameworkCredentialScopeExtractor());
+
+
+        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager.getMapper(JSON_LD)));
     }
 
 }

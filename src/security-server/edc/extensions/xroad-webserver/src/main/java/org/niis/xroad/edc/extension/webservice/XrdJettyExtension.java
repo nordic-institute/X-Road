@@ -14,9 +14,13 @@
 
 package org.niis.xroad.edc.extension.webservice;
 
+import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
+
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
@@ -25,6 +29,7 @@ import org.eclipse.edc.web.jetty.WebServiceConfigurerImpl;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 
+@SuppressWarnings("checkstyle:MagicNumber")
 @Provides({WebServer.class, JettyService.class})
 public class XrdJettyExtension implements ServiceExtension {
 
@@ -48,6 +53,9 @@ public class XrdJettyExtension implements ServiceExtension {
                 context.getSetting(KEYSTORE_PASSWORD, "password"),
                 context.getSetting(KEYMANAGER_PASSWORD, "password"), context.getConfig());
 
+        loadSystemProperties(monitor);
+        safelyInitSignerClient(monitor);
+
         jettyService = new JettyService(configuration, monitor);
         context.registerService(JettyService.class, jettyService);
         context.registerService(WebServer.class, jettyService);
@@ -70,4 +78,30 @@ public class XrdJettyExtension implements ServiceExtension {
         return new WebServiceConfigurerImpl();
     }
 
+    private void safelyInitSignerClient(Monitor monitor) {
+        try {
+            var client = RpcSignerClient.getInstance();
+            monitor.debug("RPC signer client already initialized. Hash: %s".formatted(client.hashCode()));
+        } catch (Exception e) {
+            initSignerClient(monitor);
+        }
+    }
+
+    private void loadSystemProperties(Monitor monitor) {
+        monitor.info("Initializing X-Road System Properties..");
+        SystemPropertiesLoader.create()
+                .withCommonAndLocal()
+                .load();
+    }
+
+
+    private void initSignerClient(Monitor monitor) {
+
+        monitor.info("Initializing Signer client");
+        try {
+            RpcSignerClient.init("localhost", 5560, 10000);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

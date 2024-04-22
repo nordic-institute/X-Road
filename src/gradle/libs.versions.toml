@@ -183,6 +183,10 @@ edc-control-plane-api = { module = "org.eclipse.edc:control-plane-api", version.
 edc-control-plane-core = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-control-plane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
+edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
+edc-ext-http = { module = "org.eclipse.edc:http", version.ref = "edc" }
+edc-ext-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
+edc-ext-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-crypto-common-lib = { module = "org.eclipse.edc:crypto-common-lib", version.ref = "edc" }
 edc-data-plane-control-api = { module = "org.eclipse.edc:data-plane-control-api", version.ref = "edc" }
 edc-data-plane-core = { module = "org.eclipse.edc:data-plane-core", version.ref = "edc" }
@@ -196,6 +200,7 @@ edc-dsp = { module = "org.eclipse.edc:dsp", version.ref = "edc" }
 edc-federated-catalog-api = { module = "org.eclipse.edc:federated-catalog-api", version.ref = "edc" }
 edc-federated-catalog-core = { module = "org.eclipse.edc:federated-catalog-core", version.ref = "edc" }
 edc-http-lib = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
+
 edc-identity-did-core = { module = "org.eclipse.edc:identity-did-core", version.ref = "edc" }
 edc-identity-did-web = { module = "org.eclipse.edc:identity-did-web", version.ref = "edc" }
 edc-identity-hub-api = { module = "org.eclipse.edc:identity-hub-api", version.ref = "edc" }
@@ -204,6 +209,18 @@ edc-identity-hub-credentials = { module = "org.eclipse.edc:identity-hub-credenti
 edc-identity-hub-keypairs = { module = "org.eclipse.edc:identity-hub-keypairs", version.ref = "edc" }
 edc-identity-hub-participants = { module = "org.eclipse.edc:identity-hub-participants", version.ref = "edc" }
 edc-identity-hub-store-spi = { module = "org.eclipse.edc:identity-hub-store-spi", version.ref = "edc" }
+edc-identity-hub-spi-did = { module = "org.eclipse.edc:identity-hub-did-spi", version.ref = "edc" }
+edc-identity-hub-did-localpub = { module = "org.eclipse.edc:local-did-publisher", version.ref = "edc" }
+
+edc-identity-hub-mgmt-config = { module = "org.eclipse.edc:identityhub-management-api-configuration", version.ref = "edc" }
+edc-identity-hub-mgmt-authentication = { module = "org.eclipse.edc:identityhub-api-authentication", version.ref = "edc" }
+edc-identity-hub-mgmt-authorization = { module = "org.eclipse.edc:identityhub-api-authorization", version.ref = "edc" }
+edc-identity-hub-mgmt-participantcontext = { module = "org.eclipse.edc:participant-context-mgmt-api", version.ref = "edc" }
+edc-identity-hub-mgmt-verifiablecredential = { module = "org.eclipse.edc:verifiable-credential-mgmt-api", version.ref = "edc" }
+edc-identity-hub-mgmt-did = { module = "org.eclipse.edc:did-mgmt-api", version.ref = "edc" }
+edc-identity-hub-mgmt-keypairs = { module = "org.eclipse.edc:keypair-mgmt-api", version.ref = "edc" }
+
+edc-identity-trust-spi = { module = "org.eclipse.edc:identity-trust-spi", version.ref = "edc" }
 edc-identity-trust-core = { module = "org.eclipse.edc:identity-trust-core", version.ref = "edc" }
 edc-identity-trust-issuers-configuration = { module = "org.eclipse.edc:identity-trust-issuers-configuration", version.ref = "edc" }
 edc-identity-trust-transform = { module = "org.eclipse.edc:identity-trust-transform", version.ref = "edc" }
@@ -256,6 +273,11 @@ edc-sql-store = [
   "edc-policy-definition-store-sql",
   "edc-transfer-process-store-sql"
 ]
+edc-connector = ["edc-boot", "edc-core-connector", "edc-ext-http", "edc-ext-observability", "edc-ext-jsonld"]
+edc-did = ["edc-identity-did-web", "edc-identity-did-core", "edc-identity-hub-did", "edc-identity-hub-did-localpub"]
+edc-identity-hub-management-api = ["edc-identity-hub-mgmt-config", "edc-identity-hub-mgmt-did", "edc-identity-hub-mgmt-participantcontext",
+  "edc-identity-hub-mgmt-verifiablecredential",
+  "edc-identity-hub-mgmt-keypairs", "edc-identity-hub-mgmt-authentication", "edc-identity-hub-mgmt-authorization"]
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }

@@ -90,12 +90,12 @@ COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
 # dataspaces
-COPY build/connector.jar /usr/share/xroad/jlib/
+COPY build/libs/ /usr/share/xroad/jlib/
 COPY build/liquibase/ /usr/share/xroad/db
 
 COPY files/edc/etc /etc/xroad-edc/
 COPY files/edc/setup_edc_db.sh /usr/share/xroad/scripts/setup_edc_db.sh
-COPY files/edc/xroad-edc /usr/share/xroad/bin/xroad-edc
+COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost

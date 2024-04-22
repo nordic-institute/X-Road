@@ -136,7 +136,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     }
 
     private void initSignerClient(Monitor monitor) {
-        monitor.info("Hello from '%s' extension".formatted(NAME));
+        monitor.info("Initializing Signer client");
         try {
             RpcSignerClient.init("localhost", 5560, 10000);
         } catch (Exception e) {

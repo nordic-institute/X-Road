@@ -46,12 +46,12 @@ public class DsCatalogDirectoryExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         directory.insert(new TargetNode(
                 "ss0",
-                "did:web:did-server:ss0",
+                "did:web:ss0%3A9396:ss0",
                 "https://ss0:9194/protocol",
                 List.of(CatalogConstants.DATASPACE_PROTOCOL)));
         directory.insert(new TargetNode(
                 "ss1",
-                "did:web:did-server:ss1",
+                "did:web:ss1%3A9396:ss1",
                 "https://ss1:9194/protocol",
                 List.of(CatalogConstants.DATASPACE_PROTOCOL)));
 

@@ -74,7 +74,6 @@ include "security-server:admin-service:application"
 include 'security-server:admin-service:infra-jpa'
 include "security-server:admin-service:ui"
 include "security-server:admin-service:int-test"
-include 'security-server:edc'
 include 'security-server:edc:spi:xroad-core-spi'
 include 'security-server:edc:spi:xroad-messagelog-spi'
 include 'security-server:edc:extensions:xroad-edr'
@@ -85,6 +84,8 @@ include 'security-server:edc:extensions:xroad-identity-and-trust'
 include 'security-server:edc:extensions:xroad-webserver'
 include 'security-server:edc-client'
 include 'security-server:edc:xroad-edc-security'
+include 'security-server:edc:runtime:connector'
+include 'security-server:edc:runtime:identity-hub'
 include "security-server:system-test"
 include 'security-server:e2e-test'
 
