@@ -24,18 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.sig.jades;
+
+package org.niis.xroad.edc.sig.xades;
 
 import ee.ria.xroad.signer.SignerProxy;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.enumerations.JWSSerializationType;
-import eu.europa.esig.dss.enumerations.SigDMechanism;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
-import eu.europa.esig.dss.jades.HTTPHeader;
-import eu.europa.esig.dss.jades.HTTPHeaderDigest;
-import eu.europa.esig.dss.jades.JAdESSignatureParameters;
-import eu.europa.esig.dss.jades.signature.JAdESService;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
@@ -44,42 +39,52 @@ import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.xades.XAdESSignatureParameters;
+import eu.europa.esig.dss.xades.signature.XAdESService;
+import eu.europa.esig.dss.xml.common.definition.DSSNamespace;
+import eu.europa.esig.xades.definition.XAdESNamespace;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.edc.sig.PocConstants;
 import org.niis.xroad.edc.sig.XrdDssSigner;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureCreator;
+import org.niis.xroad.edc.sig.jades.DssOCSPSource;
+import org.niis.xroad.edc.sig.jades.DssTspSource;
+
+import javax.xml.crypto.dsig.XMLSignature;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_B;
 import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
-import static eu.europa.esig.dss.enumerations.SignaturePackaging.ENVELOPING;
+import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_HEADERS;
+import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_PAYLOAD;
 
 @RequiredArgsConstructor
-public class XrdJAdESSignatureCreator implements XrdSignatureCreator {
+public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
+
     private final XrdDssSigner signer = new XrdDssSigner();
     private final SignatureLevel signatureLevel;
-    private final JWSSerializationType jwsSerializationType;
 
     @Override
-    public String sign(final SignerProxy.MemberSigningInfoDto signingInfo, final byte[] messageBody,
-                       final Map<String, String> messageHeaders) throws XrdSignatureCreationException {
-        JAdESSignatureParameters parameters = new JAdESSignatureParameters();
-        parameters.setSignaturePackaging(signatureLevel == JAdES_BASELINE_B ? DETACHED : ENVELOPING);
-        parameters.setSigDMechanism(SigDMechanism.HTTP_HEADERS);
-        parameters.setBase64UrlEncodedPayload(false);
-
+    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] messageBody, Map<String, String> messageHeaders)
+            throws XrdSignatureCreationException {
         List<DSSDocument> documentsToSign = new ArrayList<>();
-        documentsToSign.add(new HTTPHeaderDigest(new InMemoryDocument(messageBody), DigestAlgorithm.SHA1)); //TODO sha1?
-
         if (messageHeaders != null && !messageHeaders.isEmpty()) {
-            messageHeaders.forEach((k, v) -> documentsToSign.add(new HTTPHeader(k, v)));
+            documentsToSign.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(messageHeaders), DOCUMENT_NAME_HEADERS));
         }
+        documentsToSign.add(new InMemoryDocument(messageBody, DOCUMENT_NAME_PAYLOAD));
+
+        XAdESSignatureParameters parameters = new XAdESSignatureParameters();
+        parameters.setXadesNamespace(XAdESNamespace.XADES_132);
+        parameters.setXmldsigNamespace(new DSSNamespace(XMLSignature.XMLNS, "ds"));
+        parameters.setSignatureLevel(signatureLevel);
+        parameters.setSignaturePackaging(DETACHED);
+        parameters.setDigestAlgorithm(DigestAlgorithm.SHA512);
 
         X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
         var dssCert = new CertificateToken(cert);
@@ -87,27 +92,19 @@ public class XrdJAdESSignatureCreator implements XrdSignatureCreator {
         parameters.setSigningCertificate(dssCert);
         parameters.setCertificateChain(dssCert, DSSUtils.loadCertificateFromBase64EncodedString(PocConstants.TEST_CA_CERT));
 
-        parameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
-        parameters.setSignatureLevel(signatureLevel);
-        parameters.setJwsSerializationType(jwsSerializationType);
-
-        final JAdESService service = getJAdESService(signingInfo);
-
-        ToBeSigned dataToSign = service.getDataToSign(documentsToSign, parameters);
-
-        SignatureValue signatureValue = signer.sign(signingInfo.getKeyId(), parameters.getDigestAlgorithm(), dataToSign);
+        XAdESService service = getXAdESService(signingInfo);
+        ToBeSigned toBeSigned = service.getDataToSign(documentsToSign, parameters);
+        SignatureValue signatureValue = signer.sign(signingInfo.getKeyId(), parameters.getDigestAlgorithm(), toBeSigned);
 
         DSSDocument signedDocument = service.signDocument(documentsToSign, parameters, signatureValue);
 
-        return new String(DSSUtils.toByteArray(signedDocument));
+        //zipping might save up to 50% of the size
+        return Base64.getEncoder().encodeToString(DSSUtils.toByteArray(signedDocument));
     }
 
-    /**
-     * Create temporary service for a single signing operation. For production use this should be made as a singleton.
-     */
-    private JAdESService getJAdESService(SignerProxy.MemberSigningInfoDto memberSigningInfoDto) {
+    private XAdESService getXAdESService(SignerProxy.MemberSigningInfoDto memberSigningInfoDto) {
         var commonCertificateVerifier = new CommonCertificateVerifier();
-        var service = new JAdESService(commonCertificateVerifier);
+        var service = new XAdESService(commonCertificateVerifier);
 
         var trustedCertSource = new CommonTrustedCertificateSource();
         commonCertificateVerifier.setOcspSource(new DssOCSPSource(memberSigningInfoDto.getCert()));

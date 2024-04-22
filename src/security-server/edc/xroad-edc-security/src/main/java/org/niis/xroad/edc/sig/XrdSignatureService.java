@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.signer.SignerProxy;
 
 import eu.europa.esig.dss.enumerations.JWSSerializationType;
+import eu.europa.esig.dss.xml.common.SchemaFactoryBuilder;
+import eu.europa.esig.dss.xml.common.XmlDefinerUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.encoders.Base64;
@@ -38,6 +40,11 @@ import org.niis.xroad.edc.sig.jades.XrdJAdESSignatureCreator;
 import org.niis.xroad.edc.sig.jades.XrdJAdESVerifier;
 import org.niis.xroad.edc.sig.jws.XrdJWSSignatureCreator;
 import org.niis.xroad.edc.sig.jws.XrdJwsVerifier;
+import org.niis.xroad.edc.sig.xades.XrdXAdESSignatureCreator;
+import org.niis.xroad.edc.sig.xades.XrdXAdESVerifier;
+
+import javax.xml.XMLConstants;
+import javax.xml.validation.SchemaFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,12 +53,13 @@ import java.util.stream.Collectors;
 
 import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_B;
 import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_LT;
+import static eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_B;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG_OCSP;
 
 @Slf4j
 public class XrdSignatureService {
-    private static final XrdSignatureMode MODE = XrdSignatureMode.JADES_B;
+    private static final XrdSignatureMode MODE = XrdSignatureMode.XADES_B;
 
     //TODO these headers are disabled as they can be modified by jetty server or http-client.
     private static final Set<String> IGNORED_HEADERS = Set.of(HEADER_XRD_SIG,
@@ -59,6 +67,12 @@ public class XrdSignatureService {
             "Date",
             "Content-Type",
             "Content-Length");
+
+    static {
+        // force usage of internal xerces implementation in DSS. Otherwise, not compatible Apache Xerces will be used in proxy
+        // can be removed once Apache Xerces is removed from classpath
+        XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new JaxpSchemaFactoryBuilder());
+    }
 
     public Map<String, String> sign(String assetId, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
@@ -75,6 +89,7 @@ public class XrdSignatureService {
             case JWS -> new XrdJWSSignatureCreator();
             case JADES_B -> new XrdJAdESSignatureCreator(JAdES_BASELINE_B, JWSSerializationType.COMPACT_SERIALIZATION);
             case JADES_B_LT -> new XrdJAdESSignatureCreator(JAdES_BASELINE_LT, JWSSerializationType.FLATTENED_JSON_SERIALIZATION);
+            case XADES_B -> new XrdXAdESSignatureCreator(XAdES_BASELINE_B);
         };
 
         Map<String, String> headersToSign = new HashMap<>();
@@ -99,6 +114,7 @@ public class XrdSignatureService {
         var verifier = switch (MODE) {
             case JWS -> new XrdJwsVerifier();
             case JADES_B, JADES_B_LT -> new XrdJAdESVerifier();
+            case XADES_B -> new XrdXAdESVerifier();
         };
 
         var signature = headers.get(HEADER_XRD_SIG); // currently only header is supported for signature.
@@ -122,6 +138,15 @@ public class XrdSignatureService {
     public enum XrdSignatureMode {
         JWS,
         JADES_B,
-        JADES_B_LT
+        JADES_B_LT,
+        XADES_B,
+    }
+
+    static class JaxpSchemaFactoryBuilder extends SchemaFactoryBuilder {
+        @Override
+        protected SchemaFactory instantiateFactory() {
+            return SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI,
+                    "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory", null);
+        }
     }
 }

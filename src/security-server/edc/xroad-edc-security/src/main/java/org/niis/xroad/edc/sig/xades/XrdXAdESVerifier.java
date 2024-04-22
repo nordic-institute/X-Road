@@ -24,17 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.sig.jades;
+
+package org.niis.xroad.edc.sig.xades;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
 import eu.europa.esig.dss.diagnostic.SignatureWrapper;
 import eu.europa.esig.dss.diagnostic.TimestampWrapper;
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.jades.HTTPHeader;
-import eu.europa.esig.dss.jades.HTTPHeaderDigest;
-import eu.europa.esig.dss.jades.validation.JWSCompactDocumentValidator;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
@@ -45,52 +42,47 @@ import org.niis.xroad.edc.sig.XrdSignatureVerifier;
 import org.niis.xroad.edc.sig.XrdSignatureVerifierBase;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-/**
- * POC for JWS verification. Loosely based on SignatureVerifier.
- */
-@Slf4j
-public class XrdJAdESVerifier extends XrdSignatureVerifierBase implements XrdSignatureVerifier {
+import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_HEADERS;
+import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_PAYLOAD;
 
+@Slf4j
+public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSignatureVerifier {
     @Override
     public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId)
             throws XrdSignatureVerificationException {
         try {
-            InMemoryDocument signedDocument = new InMemoryDocument(signature.getBytes());
-            JWSCompactDocumentValidator compactDocumentValidator = new JWSCompactDocumentValidator(signedDocument);
-            var cert = compactDocumentValidator.getSignatures().get(0).getCertificates().get(0);
-
-            validateXroad(cert.getCertificate(), signerClientId, detachedHeaders);
-            validateDss(signedDocument, detachedPayload, detachedHeaders);
-
+            byte[] decoded = Base64.getDecoder().decode(signature);
+            InMemoryDocument signatureDocument = new InMemoryDocument(decoded);
+            validateSignature(signatureDocument, detachedPayload, detachedHeaders, signerClientId);
         } catch (Exception e) {
             throw new XrdSignatureVerificationException("Verification has failed", e);
         }
     }
 
-    private void validateDss(InMemoryDocument signedDocument, byte[] detachedPayload, Map<String, String> detachedHeaders) {
+    private void validateSignature(InMemoryDocument signedDocument, byte[] detachedPayload, Map<String, String> detachedHeaders,
+                                   ClientId signerClientId) throws Exception {
         SignedDocumentValidator validator = getValidator(signedDocument);
 
-        List<DSSDocument> detachedContents = new ArrayList<>();
-        //no http headers for now
+        List<DSSDocument> detachedPayloads = new ArrayList<>();
         if (detachedHeaders != null && !detachedHeaders.isEmpty()) {
-            detachedHeaders.forEach((k, v) -> detachedContents.add(new HTTPHeader(k, v)));
+            detachedPayloads.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(detachedHeaders), DOCUMENT_NAME_HEADERS));
         }
-
-        var payloadDoc = new InMemoryDocument(detachedPayload);
-        detachedContents.add(new HTTPHeaderDigest(payloadDoc, DigestAlgorithm.SHA1));
-
-        validator.setDetachedContents(detachedContents);
+        detachedPayloads.add(new InMemoryDocument(detachedPayload, DOCUMENT_NAME_PAYLOAD));
+        validator.setDetachedContents(detachedPayloads);
 
         Reports reports = validator.validateDocument();
-
         DiagnosticData diagnosticData = reports.getDiagnosticData();
+
+        var cert = validator.getSignatures().get(0).getCertificates().get(0);
+        validateXroad(cert.getCertificate(), signerClientId, detachedHeaders);
 
         List<SignatureWrapper> signatures = diagnosticData.getSignatures();
         for (SignatureWrapper signatureWrapper : signatures) {
-            assertTrue(signatureWrapper.isBLevelTechnicallyValid());
+            assertTrue(signatureWrapper.isSignatureValid());
 
             List<TimestampWrapper> timestampList = signatureWrapper.getTimestampList();
             for (TimestampWrapper timestampWrapper : timestampList) {
