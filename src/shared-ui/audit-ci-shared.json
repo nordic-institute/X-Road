@@ -15,7 +15,10 @@
     "GHSA-ch3r-j5x3-6q2m|vm2",
     "GHSA-whpj-8f3w-67p5|vm2",
     "GHSA-cchq-frgv-rjh5|vm2",
-    "GHSA-g644-9gfx-q4q4|vm2"
+    "GHSA-g644-9gfx-q4q4|vm2",
+    "GHSA-67hx-6x53-jw92|*",
+    "GHSA-pfq8-rq6v-vf5m|*",
+    "GHSA-9c47-m6qq-7p4h|*"
   ],
   "registry": "https://registry.npmjs.org"
 }
