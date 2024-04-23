@@ -35,8 +35,8 @@ import java.util.TreeMap;
 @UtilityClass
 public class XrdXAdESUtils {
 
-    public final static String DOCUMENT_NAME_HEADERS = "headers";
-    public final static String DOCUMENT_NAME_PAYLOAD = "payload";
+    public static final String DOCUMENT_NAME_HEADERS = "headers";
+    public static final String DOCUMENT_NAME_PAYLOAD = "payload";
 
     public static byte[] serializeHeaders(Map<String, String> headers) {
         TreeMap<String, String> sortedHeaders = new TreeMap<>(headers);
