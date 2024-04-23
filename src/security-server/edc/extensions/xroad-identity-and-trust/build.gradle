@@ -7,11 +7,7 @@ dependencies {
     implementation libs.edc.policy.engine.spi
 
     implementation libs.edc.identity.trust.core
-
-    implementation libs.edc.identity.hub.credentials
-    implementation libs.edc.identity.hub.store.spi
     implementation libs.edc.ldp.verifiable.credentials
-    implementation libs.edc.identity.hub.api
     implementation libs.edc.jersey.providers.lib
     implementation libs.edc.identity.trust.transform
     implementation libs.edc.transform.lib

@@ -27,8 +27,11 @@ case $1 in
   gradleModule="central-server/management-service"
   gradleArgs+="-xintTest"
   ;;
-"edc")
-  gradleModule="security-server/edc"
+"edc-connector")
+  gradleModule="security-server/edc/runtime/connector"
+  ;;
+"edc-ih")
+  gradleModule="security-server/edc/runtime/identity-hub"
   ;;
 "cs-edc")
   gradleModule="central-server/ds-catalog-service"

@@ -89,10 +89,10 @@ COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
 # dataspaces
-COPY build/ds-catalog-service.jar /usr/share/xroad/jlib/
+COPY build/libs/ /usr/share/xroad/jlib/
 
 COPY files/edc/etc /etc/xroad-edc/
-COPY files/edc/xroad-edc /usr/share/xroad/bin/xroad-edc
+COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost

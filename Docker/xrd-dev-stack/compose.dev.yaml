@@ -42,6 +42,3 @@ services:
   issoap:
     ports:
       - "4600:8080"
-  did-server:
-    ports:
-      - "4700:80"

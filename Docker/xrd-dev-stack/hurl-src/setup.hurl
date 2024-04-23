@@ -920,7 +920,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_name":"Test member",
-  "did":"did:web:did-server:ss0"
+  "did":"did:web:ss0%3A9396:ss0"
 }
 
 HTTP 200
@@ -930,7 +930,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_name":"Test client",
-  "did":"did:web:did-server:ss1"
+  "did":"did:web:ss1%3A9396:ss1"
 }
 
 HTTP 200
