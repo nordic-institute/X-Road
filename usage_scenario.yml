@@ -26,16 +26,21 @@ services:
     command: --interactive hurl-src/setup.hurl
     setup-commands:
       - hurl --insecure --variables-file /hurl-src/vars.env --file-root /hurl-files /hurl-src/setup.hurl --very-verbose --retry 18 --retry-interval 10000
-
+  tester:
+    image: alpine
+    volumes:
+      - ./Docker/xrd-dev-stack/gmt-test-suite:/tests:ro
+    # Workaround to keep the container running, not sure why it drops otherwise
+    command: tail -f /dev/null
+    setup-commands:
+      - apk add --no-cache curl
 
 flow:
-  - name: Initialize
-    container: testca
+  - name: Test with 100
+    container: tester
     commands:
       - type: console
-        command: ping -c 100 cs
-        note: Starting hurl initialization flow
+        command: /tests/run-tests.sh /tests 100 100
+        note: Run 100 sequential and 100 parallel requests
         log-stdout: true
-        read-notes-stdout: true
-        read-sci-stdout: true
-        read-sci-stdout: true
+        log-stderr: true
