@@ -38,6 +38,9 @@ dependencies {
     implementation libs.edc.identity.did.core
     implementation libs.edc.identity.did.web
 
+    // sql store
+    sqlDependencies libs.bundles.edc.sql.store
+
     // x-road extensions
     implementation(project(":security-server:edc:extensions:xroad-messagelog")) {
         exclude group: 'org.eclipse.jetty'
