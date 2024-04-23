@@ -11,7 +11,10 @@
     "GHSA-ww39-953v-wcq6|copy-webpack-plugin>glob-parent>",
     "GHSA-4wf5-vphf-c2xc|terser",
     "GHSA-fwr7-v2mv-hh25|async",
-    "GHSA-rp65-9cf3-cjxr|postcss-svgo>svgo>css-select>nth-check"
+    "GHSA-rp65-9cf3-cjxr|postcss-svgo>svgo>css-select>nth-check",
+    "GHSA-67hx-6x53-jw92|*",
+    "GHSA-pfq8-rq6v-vf5m|*",
+    "GHSA-9c47-m6qq-7p4h|*"
   ],
   "registry": "https://registry.npmjs.org"
 }
