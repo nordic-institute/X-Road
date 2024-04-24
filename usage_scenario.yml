@@ -33,7 +33,7 @@ services:
     # Workaround to keep the container running, not sure why it drops otherwise
     command: tail -f /dev/null
     setup-commands:
-      - apk add --no-cache curl
+      - apk add --no-cache curl bash
 
 flow:
   - name: Test with 100

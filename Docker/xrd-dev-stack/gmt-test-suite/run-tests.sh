@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 data_path=${1:-./}
 sequential=${2:-500}
