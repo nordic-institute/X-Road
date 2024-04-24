@@ -44,3 +44,19 @@ flow:
         note: Run 100 sequential and 100 parallel requests
         log-stdout: true
         log-stderr: true
+  - name: Test with 200
+    container: tester
+    commands:
+      - type: console
+        command: /tests/run-tests.sh /tests 200 200
+        note: Run 200 sequential and 200 parallel requests
+        log-stdout: true
+        log-stderr: true
+  - name: Test with 500
+    container: tester
+    commands:
+      - type: console
+        command: /tests/run-tests.sh /tests 500 500
+        note: Run 500 sequential and 500 parallel requests
+        log-stdout: true
+        log-stderr: true
