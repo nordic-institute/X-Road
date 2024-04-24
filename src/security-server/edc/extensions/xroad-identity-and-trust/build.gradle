@@ -6,11 +6,14 @@ dependencies {
     implementation libs.edc.boot
     implementation libs.edc.policy.engine.spi
 
-    implementation libs.edc.identity.trust.core
+    implementation(libs.edc.identity.trust.core) {
+        exclude group: 'org.eclipse.edc', module: 'verifiable-credentials' // we use our own fork of it to customize validation rules
+        exclude group: 'org.eclipse.edc', module: 'ldp-verifiable-credentials' // we use our own fork of it in order to verify Gaia-X signatures
+    }
 
     implementation libs.edc.identity.hub.credentials
+    implementation libs.edc.identity.hub.credentials
     implementation libs.edc.identity.hub.store.spi
-    implementation libs.edc.ldp.verifiable.credentials
     implementation libs.edc.identity.hub.api
     implementation libs.edc.jersey.providers.lib
     implementation libs.edc.identity.trust.transform
@@ -19,4 +22,11 @@ dependencies {
     implementation libs.edc.jsonLd.spi
     implementation libs.edc.jws2020.lib
     implementation libs.edc.token.core
+    implementation libs.edc.util.lib
+
+    constraints {
+        // Overwrite the default 1.1 version to fix RDF normalization inconsistencies
+        add("implementation", "com.apicatalog:titanium-json-ld:1.4.0")
+        add("implementation", "io.setl:rdf-urdna:1.3")
+    }
 }
