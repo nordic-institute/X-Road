@@ -88,5 +88,5 @@ COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 
-VOLUME /etc/xroad
+VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/14/main/"]
 EXPOSE 4000 2222
