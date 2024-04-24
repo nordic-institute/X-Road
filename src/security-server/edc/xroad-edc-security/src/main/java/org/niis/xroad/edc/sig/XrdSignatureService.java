@@ -53,7 +53,6 @@ import java.util.stream.Collectors;
 
 import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_B;
 import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_LT;
-import static eu.europa.esig.dss.enumerations.SignatureLevel.XAdES_BASELINE_B;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG_OCSP;
 
@@ -89,7 +88,7 @@ public class XrdSignatureService {
             case JWS -> new XrdJWSSignatureCreator();
             case JADES_B -> new XrdJAdESSignatureCreator(JAdES_BASELINE_B, JWSSerializationType.COMPACT_SERIALIZATION);
             case JADES_B_LT -> new XrdJAdESSignatureCreator(JAdES_BASELINE_LT, JWSSerializationType.FLATTENED_JSON_SERIALIZATION);
-            case XADES_B -> new XrdXAdESSignatureCreator(XAdES_BASELINE_B);
+            case XADES_B -> new XrdXAdESSignatureCreator();
         };
 
         Map<String, String> headersToSign = new HashMap<>();

@@ -37,12 +37,19 @@ public class XrdXAdESUtils {
 
     public static final String DOCUMENT_NAME_HEADERS = "headers";
     public static final String DOCUMENT_NAME_PAYLOAD = "payload";
+    private static final String CRLF = "\r\n";
 
+    /**
+     * Sorts and serializes headers to byte array.
+     *
+     * @param headers
+     * @return
+     */
     public static byte[] serializeHeaders(Map<String, String> headers) {
         TreeMap<String, String> sortedHeaders = new TreeMap<>(headers);
 
         StringBuilder headersString = new StringBuilder();
-        sortedHeaders.forEach((k, v) -> headersString.append(k).append(":").append(v).append("\n"));
+        sortedHeaders.forEach((k, v) -> headersString.append(k).append(":").append(v).append(CRLF));
 
         return headersString.toString().getBytes();
     }

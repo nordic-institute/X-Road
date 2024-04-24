@@ -42,10 +42,8 @@ import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.ToBeSigned;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.spi.DSSUtils;
-import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.edc.sig.PocConstants;
 import org.niis.xroad.edc.sig.XrdDssSigner;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureCreator;
@@ -85,7 +83,7 @@ public class XrdJAdESSignatureCreator implements XrdSignatureCreator {
         var dssCert = new CertificateToken(cert);
 
         parameters.setSigningCertificate(dssCert);
-        parameters.setCertificateChain(dssCert, DSSUtils.loadCertificateFromBase64EncodedString(PocConstants.TEST_CA_CERT));
+        // parameters.setCertificateChain(dssCert, DSSUtils.loadCertificateFromBase64EncodedString(PocConstants.TEST_CA_CERT));
 
         parameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
         parameters.setSignatureLevel(signatureLevel);
@@ -109,12 +107,8 @@ public class XrdJAdESSignatureCreator implements XrdSignatureCreator {
         var commonCertificateVerifier = new CommonCertificateVerifier();
         var service = new JAdESService(commonCertificateVerifier);
 
-        var trustedCertSource = new CommonTrustedCertificateSource();
         commonCertificateVerifier.setOcspSource(new DssOCSPSource(memberSigningInfoDto.getCert()));
-        commonCertificateVerifier.addTrustedCertSources(trustedCertSource);
-
-        trustedCertSource.addCertificate(DSSUtils.loadCertificateFromBase64EncodedString(PocConstants.TEST_CA_CERT));
-        trustedCertSource.addCertificate(DSSUtils.loadCertificateFromBase64EncodedString(PocConstants.TEST_OCSP_CERT));
+        commonCertificateVerifier.addTrustedCertSources(getTrustedListsCertificateSource());
 
         service.setTspSource(new DssTspSource());
 

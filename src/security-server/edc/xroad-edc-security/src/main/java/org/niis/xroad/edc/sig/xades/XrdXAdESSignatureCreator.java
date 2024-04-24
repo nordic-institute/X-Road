@@ -37,21 +37,14 @@ import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.ToBeSigned;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.spi.DSSUtils;
-import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.xades.XAdESSignatureParameters;
 import eu.europa.esig.dss.xades.signature.XAdESService;
-import eu.europa.esig.dss.xml.common.definition.DSSNamespace;
 import eu.europa.esig.xades.definition.XAdESNamespace;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.edc.sig.PocConstants;
 import org.niis.xroad.edc.sig.XrdDssSigner;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureCreator;
-import org.niis.xroad.edc.sig.jades.DssOCSPSource;
-import org.niis.xroad.edc.sig.jades.DssTspSource;
-
-import javax.xml.crypto.dsig.XMLSignature;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -68,7 +61,7 @@ import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_PAYLOAD;
 public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
 
     private final XrdDssSigner signer = new XrdDssSigner();
-    private final SignatureLevel signatureLevel;
+    private final SignatureLevel signatureLevel = SignatureLevel.XAdES_BASELINE_B;
 
     @Override
     public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] messageBody, Map<String, String> messageHeaders)
@@ -81,18 +74,14 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
 
         XAdESSignatureParameters parameters = new XAdESSignatureParameters();
         parameters.setXadesNamespace(XAdESNamespace.XADES_132);
-        parameters.setXmldsigNamespace(new DSSNamespace(XMLSignature.XMLNS, "ds"));
         parameters.setSignatureLevel(signatureLevel);
         parameters.setSignaturePackaging(DETACHED);
         parameters.setDigestAlgorithm(DigestAlgorithm.SHA512);
 
         X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
-        var dssCert = new CertificateToken(cert);
+        parameters.setSigningCertificate(new CertificateToken(cert));
 
-        parameters.setSigningCertificate(dssCert);
-        parameters.setCertificateChain(dssCert, DSSUtils.loadCertificateFromBase64EncodedString(PocConstants.TEST_CA_CERT));
-
-        XAdESService service = getXAdESService(signingInfo);
+        XAdESService service = new XAdESService(new CommonCertificateVerifier());
         ToBeSigned toBeSigned = service.getDataToSign(documentsToSign, parameters);
         SignatureValue signatureValue = signer.sign(signingInfo.getKeyId(), parameters.getDigestAlgorithm(), toBeSigned);
 
@@ -100,22 +89,6 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
 
         //zipping might save up to 50% of the size
         return Base64.getEncoder().encodeToString(DSSUtils.toByteArray(signedDocument));
-    }
-
-    private XAdESService getXAdESService(SignerProxy.MemberSigningInfoDto memberSigningInfoDto) {
-        var commonCertificateVerifier = new CommonCertificateVerifier();
-        var service = new XAdESService(commonCertificateVerifier);
-
-        var trustedCertSource = new CommonTrustedCertificateSource();
-        commonCertificateVerifier.setOcspSource(new DssOCSPSource(memberSigningInfoDto.getCert()));
-        commonCertificateVerifier.addTrustedCertSources(trustedCertSource);
-
-        trustedCertSource.addCertificate(DSSUtils.loadCertificateFromBase64EncodedString(PocConstants.TEST_CA_CERT));
-        trustedCertSource.addCertificate(DSSUtils.loadCertificateFromBase64EncodedString(PocConstants.TEST_OCSP_CERT));
-
-        service.setTspSource(new DssTspSource());
-
-        return service;
     }
 
 }
