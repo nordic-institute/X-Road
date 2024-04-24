@@ -57,6 +57,17 @@ jobs:
             PACKAGE_SOURCE=internal
           push: true
           tags: ghcr.io/nordic-institute/xrddev-central-server:latest
+      - name: Clean old CS images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-central-server
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
   PublishSS:
     name: Publish Security Server image
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -106,3 +117,14 @@ jobs:
             PACKAGE_SOURCE=internal
           push: true
           tags: ghcr.io/nordic-institute/xrddev-security-server:latest
+      - name: Clean old SS images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-security-server
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
