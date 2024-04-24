@@ -837,7 +837,7 @@ RHEL only: Configure SELinux to allow `rsync` to be run as a `systemd` service
 setsebool -P rsync_client 1
 setsebool -P rsync_full_access 1
 ```
->**Note:** If the applications or services running on the system are additional customized, then may need to update the SELinux policy to reflect that as well, see more information [How to create its own custom SELinux policy module wisely](https://access.redhat.com/articles/5494701)
+>**Note:** If the applications or services running on the system are customized, updating the SELinux policy to reflect the changes may be required, see [more information](https://access.redhat.com/articles/5494701).
 
 Finally, enable the services:
 ```bash
