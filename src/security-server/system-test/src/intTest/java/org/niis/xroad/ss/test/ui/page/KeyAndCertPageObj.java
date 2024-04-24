@@ -66,6 +66,23 @@ public class KeyAndCertPageObj {
         public SelenideElement btnChangeToken() {
             return $x("//*[@data-test='token-open-pin-change-link']");
         }
+
+        public SelenideElement inputOldPin() {
+            return $x("//input[@name='token.oldPin']");
+        }
+
+        public SelenideElement inputNewPin() {
+            return $x("//input[@name='token.newPin']");
+        }
+
+        public SelenideElement inputNewPinConfirm() {
+            return $x("//input[@name='token.newPinConfirm']");
+        }
+
+        public SelenideElement btnSave() {
+            return $x("//button[@data-test='token-details-save']");
+        }
+
     }
 
     public static class TokenLogoutDialog {
