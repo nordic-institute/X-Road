@@ -61,7 +61,6 @@ public class MemberHelper {
 
         var memberClass = memberClassRepository.findByCode(clientId.getMemberClass())
                 .orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", clientId.getMemberClass()));
-        System.out.println("XXX new: " + clientId);
         return xRoadMemberRepository.save(new XRoadMemberEntity(clientId.getMemberCode(), clientId, memberClass));
     }
 }
