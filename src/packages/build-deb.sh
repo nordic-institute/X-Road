@@ -76,6 +76,10 @@ case "$1" in
         prepare ubuntu22.04
         builddeb build/xroad/ubuntu jammy ubuntu22.04 "$PACKAGE_VERSION"
         ;;
+    noble)
+        prepare ubuntu24.04
+        builddeb build/xroad/ubuntu noble ubuntu24.04 "$PACKAGE_VERSION"
+        ;;
     *)
         echo "Unsupported distribution $dist"
         exit 1;
