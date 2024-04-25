@@ -92,7 +92,7 @@ public final class HibernateUtil {
             } catch (Exception e) {
                 log.error("Failed to create session factory", e);
 
-                throw new CodedException(X_DATABASE_ERROR, e);
+                throw new CodedException(X_DATABASE_ERROR, e, "Error accessing database (%s)", name);
             }
         }
     }

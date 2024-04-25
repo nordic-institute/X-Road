@@ -28,11 +28,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ProxyInputStream;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.X509Certificate;
 import java.util.Map;
+import java.util.Optional;
 
 public interface RequestWrapper {
     InputStream getInputStream();
@@ -50,6 +53,8 @@ public interface RequestWrapper {
     String getParameter(String name) throws Exception;
 
     Map<String, String[]> getParametersMap() throws Exception;
+
+    Optional<X509Certificate[]> getPeerCertificates();
 
     static RequestWrapper of(Request request) {
         var in = new ProxyInputStream(Request.asInputStream(request)) {
@@ -100,6 +105,13 @@ public interface RequestWrapper {
             @Override
             public Map<String, String[]> getParametersMap() throws Exception {
                 return Request.getParameters(request).toStringArrayMap();
+            }
+
+            @Override
+            public Optional<X509Certificate[]> getPeerCertificates() {
+                var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
+                return Optional.ofNullable(ssd)
+                        .map(EndPoint.SslSessionData::peerCertificates);
             }
         };
     }

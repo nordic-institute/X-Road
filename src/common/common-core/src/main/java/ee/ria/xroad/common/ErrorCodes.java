@@ -202,8 +202,8 @@ public final class ErrorCodes {
      */
     @SuppressWarnings("squid:S1872")
     public static CodedException translateException(Throwable ex) {
-        if (ex instanceof CodedException) {
-            return (CodedException) ex;
+        if (ex instanceof CodedException cex) {
+            return cex;
         } else if (ex instanceof UnknownHostException
                 || ex instanceof MalformedURLException
                 || ex instanceof SocketException
