@@ -35,7 +35,7 @@
   />
 </template>
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { useNotifications } from '@/store/modules/notifications';

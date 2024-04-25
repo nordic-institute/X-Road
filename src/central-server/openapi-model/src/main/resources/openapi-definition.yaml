@@ -4594,9 +4594,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/ManagementRequestListView'
       properties:
-        client_owner_name:
-          type: string
-          readOnly: true
         comments:
           type: string
           format: text
@@ -4666,6 +4663,9 @@ components:
           $ref: '#/components/schemas/ManagementRequestStatus'
         client_id:
           $ref: '#/components/schemas/ClientId'
+        client_owner_name:
+          type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time
