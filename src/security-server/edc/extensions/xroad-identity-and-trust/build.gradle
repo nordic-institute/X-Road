@@ -10,13 +10,13 @@ dependencies {
         exclude group: 'org.eclipse.edc', module: 'verifiable-credentials' // we use our own fork of it to customize validation rules
         exclude group: 'org.eclipse.edc', module: 'ldp-verifiable-credentials' // we use our own fork of it in order to verify Gaia-X signatures
     }
+    //    implementation libs.edc.identity.trust.transform  // we use our own fork to allow "evidence" property in the Gaia-x compliance VC
 
     implementation libs.edc.identity.hub.credentials
     implementation libs.edc.identity.hub.credentials
     implementation libs.edc.identity.hub.store.spi
     implementation libs.edc.identity.hub.api
     implementation libs.edc.jersey.providers.lib
-    implementation libs.edc.identity.trust.transform
     implementation libs.edc.transform.lib
     implementation libs.edc.crypto.common.lib
     implementation libs.edc.jsonLd.spi
