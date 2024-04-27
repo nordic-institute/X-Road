@@ -76,7 +76,7 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
             case VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY ->
                     vcBuilder.credentialSubjects(transformArray(jsonValue, CredentialSubject.class, context));
             case VERIFIABLE_CREDENTIAL_NAME_PROPERTY -> vcBuilder.name(transformString(jsonValue, context));
-            case VERIFIABLE_CREDENTIAL_PROOF_PROPERTY, "https://www.w3.org/2018/credentials#evidence" -> {
+            case VERIFIABLE_CREDENTIAL_PROOF_PROPERTY, "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#evidence" -> {
                 //noop
             }
             default ->
